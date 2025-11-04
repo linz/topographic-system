@@ -8,15 +8,10 @@ export const ProduceCommand = command({
   },
 
   async handler() {
-    const projectPath = "/app/data/topo50-map.qgz";
-    const xMin = "1732000.0";
-    const yMin = "5405051.55";
-    const xMax = "1756007.23";
-    const yMax = "5440726.20";
-    const dpi = "300";
-    const fileOutputPath = "/app/data/output.pdf";
+    const projectPath = "/data/topo50-map.qgz";
+    const fileOutputPath = "/out";
 
-    const child = spawn('python3', ['qgis_export.py', projectPath, xMin, yMin, xMax, yMax, dpi, fileOutputPath], {
+    const child = spawn('python3', ['qgis_export.py', projectPath, fileOutputPath], {
       cwd: process.cwd(),
     });
     child.stdout.on('data', (data) => console.log(`stdout: ${data}`));
