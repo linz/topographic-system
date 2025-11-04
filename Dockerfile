@@ -6,4 +6,4 @@ WORKDIR /app
 
 COPY . /app
 
-ENTRYPOINT [ "npx", "ts-node", "src/index.ts" ]
+ENTRYPOINT [ "node", "src/index.ts" ]
