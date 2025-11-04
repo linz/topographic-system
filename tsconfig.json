@@ -1,6 +1,3 @@
 {
-  "extends": "@linzjs/style/tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2023"]
-  }
+  "extends": "@linzjs/style/tsconfig.base.json"
 }
