@@ -4,12 +4,11 @@ import { command } from 'cmd-ts';
 export const ProduceCommand = command({
   name: 'produce',
   description: 'Produce',
-  args: {
-  },
+  args: {},
 
-  async handler() {
-    const projectPath = "/data/topo50-map.qgz";
-    const fileOutputPath = "/out";
+  handler() {
+    const projectPath = '/data/topo50-map.qgz';
+    const fileOutputPath = '/out';
 
     const child = spawn('python3', ['qgis_export.py', projectPath, fileOutputPath], {
       cwd: process.cwd(),
