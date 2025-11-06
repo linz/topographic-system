@@ -1,0 +1,12 @@
+{
+  "name": "@topographic-system/map",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "cmd-ts": "^0.13.0"
+  },
+  "devDependencies": {
+    "@linzjs/style": "^5.4.0",
+    "@types/node": "^22.15.24"
+  }
+}

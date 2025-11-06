@@ -10,7 +10,7 @@ export const ProduceCommand = command({
     const projectPath = '/data/topo50-map.qgz';
     const fileOutputPath = '/out';
 
-    const child = spawn('python3', ['qgis_export.py', projectPath, fileOutputPath], {
+    const child = spawn('python3', ['src/qgis_export.py', projectPath, fileOutputPath], {
       cwd: process.cwd(),
     });
     child.stdout.on('data', (data) => console.log(`stdout: ${data}`));

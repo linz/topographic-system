@@ -1,6 +1,6 @@
 import { run, subcommands } from 'cmd-ts';
 
-import { ProduceCommand } from './cli/produce.ts';
+import { ProduceCommand } from './cli/action.produce.ts';
 
 const Cli = subcommands({
   name: 'topographic-system',
