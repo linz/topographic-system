@@ -15,7 +15,7 @@ docker build -t map .
 4. Run it in the container and mount the parquet data, qgis project and the output folder `docker run -it --rm -v ../../../topographic-qgis/map-series/topo50map/topo50-map.qgz:/data/topo50-map.qgz -v ../../../release62_parquet/2025-02-05:/data/ -v ../../../out:/out map produce`
 
 ## Debug
-Drop into the container with the current folder mounted
+Drop into the container with the src folder mounted
 ```
 docker run -it --rm --entrypoint /bin/bash -v ./src:/app/src -v ../../../topographic-qgis/map-series/topo50map/topo50-map.qgz:/data/topo50-map.qgz -v ../../../release62_parquet/2025-02-05:/data/ -v ../../../out:/out map
 node src/index.ts produce
