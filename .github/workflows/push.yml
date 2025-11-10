@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: linz/action-typescript@v3
         with:
-          node-version: 24.x
+          node-version: 24.10.0
