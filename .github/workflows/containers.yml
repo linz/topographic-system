@@ -1,17 +1,13 @@
 name: Containers
 
-# Build containers when pushed to master or if a pull request has been labeled with "container"
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
   pull_request:
-    types: [labeled, synchronize, opened]
+    types: [labeled]
 
 jobs:
   build-containers:
-
-    if: github.event.label.name == 'container'
 
     runs-on: ubuntu-latest
 
@@ -24,7 +20,18 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Container
         uses: docker/build-push-action@v6
         with:
           context: packages/map
+          tags: |
+            ${{ github.event_name == 'release' && 'ghcr.io/linz/topographic-system/map' + github.ref_name }}
+            ${{ github.event_name == 'pull_request' && 'ghcr.io/linz/topographic-system/map' + github.pull_request.number }}
+          
