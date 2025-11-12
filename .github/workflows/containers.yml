@@ -6,12 +6,12 @@ on:
     branches:
       - master
   pull_request:
-    branches:
-      - master
     types: [labeled, synchronize, opened]
 
 jobs:
   build-containers:
+
+    if: github.event.label.name == 'container'
 
     runs-on: ubuntu-latest
 
