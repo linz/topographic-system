@@ -1,0 +1,25 @@
+name: Containers
+
+# Build containers when pushed to master or if a pull request has been labeled with "container"
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types: [labeled, synchronize, opened]
+
+jobs:
+  build-containers:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: linz/action-typescript@v3
+        with:
+          node-version: 24.10.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
