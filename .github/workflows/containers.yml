@@ -32,6 +32,5 @@ jobs:
         with:
           context: packages/map
           tags: |
-            ${{ github.event_name == 'release' && 'ghcr.io/linz/topographic-system/map' + github.ref_name }}
-            ${{ github.event_name == 'pull_request' && 'ghcr.io/linz/topographic-system/map' + github.pull_request.number }}
-          
+            ${{ github.event_name == 'release' && format('ghcr.io/linz/topographic-system/map:{0}', github.ref_name) }}
+            ${{ github.event_name == 'pull_request' && format('ghcr.io/linz/topographic-system/map:pr-{0}', github.event.pull_request.number) }}
