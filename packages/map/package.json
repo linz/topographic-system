@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.936.0",
+    "@chunkd/fs": "^11.3.0",
+    "@chunkd/fs-aws": "^11.4.0",
     "cmd-ts": "^0.13.0"
   },
   "devDependencies": {
