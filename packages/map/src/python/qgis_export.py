@@ -6,13 +6,16 @@ os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
+sheet_code = sys.argv[3]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
 qgs.initQgis()
 
 project = QgsProject.instance()
-project.read(project_path)
+success = project.read(project_path)
+if not success:
+    raise ValueError(f"Failed to read project file: {project_path}")
 
 layout = project.layoutManager().layoutByName("Topo50")
 
@@ -29,6 +32,8 @@ for item in layout.items():
 
 topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
 for feature in topo_sheet_layer.getFeatures():
+    if str(feature["sheet_code"]) != sheet_code:
+        continue
     geom = feature.geometry()
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()))
     map_item.setExtent(geom.boundingBox())
