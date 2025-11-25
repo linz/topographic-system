@@ -8,11 +8,13 @@ class TopologyValidatorFactory():
     def __init__(self, settings: TopoValidatorSettings):
         self.settings = settings
 
-    def create_validator(self, table, table2=None, export_layername=None, where_condition=None, message=None):
+    def create_validator(self, summary_report, export_validation_data, table, table2=None, export_layername=None, where_condition=None, message=None):
         """
         Create and return the appropriate TopologyValidator instance based on db_path
         
         Args: settings: TopoValidatorSettings instance containing configuration
+            summary_report: Summary report dictionary - true/false for each rule group
+            export_validation_data: Flag to indicate if validation data should be exported
             db_path: Database URL or file path
             table: Table/layer name
             export_layername: Name for exported validation layers
@@ -31,17 +33,17 @@ class TopologyValidatorFactory():
         """
         if self.settings.db_path.startswith('postgresql'):
             return PostgisTopologyValidator(
-                self.settings.db_path, table, export_layername, table2,
+                summary_report, export_validation_data, self.settings.db_path, table, export_layername, table2,
                 where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
             )
         elif self.settings.db_path.endswith('.gpkg'):
             return GpkgTopologyValidator(
-                self.settings.db_path, table, export_layername, table2,
+                summary_report, export_validation_data,self.settings.db_path, table, export_layername, table2,
                 where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
             )
         elif self.settings.db_path.endswith('.parquet') or 'parquet' in self.settings.db_path:
             return ParquetTopologyValidator(
-                self.settings.db_path, table, export_layername, table2,
+                summary_report, export_validation_data, self.settings.db_path, table, export_layername, table2,
                 where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
             )
         else:

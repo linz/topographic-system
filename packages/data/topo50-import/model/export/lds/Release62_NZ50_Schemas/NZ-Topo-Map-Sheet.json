@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "sheet_code": "str:21",
+    "sheet_name": "str:50",
+    "edition": "str:30",
+    "revised": "str:60"
+  },
+  "geometry": "Polygon"
+}

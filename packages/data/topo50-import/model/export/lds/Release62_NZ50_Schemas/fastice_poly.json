@@ -1,0 +1,6 @@
+{
+  "properties": {
+    "t50_fid": "int:10"
+  },
+  "geometry": "Polygon"
+}

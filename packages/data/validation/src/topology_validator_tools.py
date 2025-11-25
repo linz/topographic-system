@@ -42,6 +42,7 @@ class TopoValidatorSettings:
         db_path=None,
         output_dir=None,
         area_crs=2193,
+        export_validation_data=True,
         export_parquet=False,
         export_parquet_by_geometry_type=False,
         export_gpkg=True,
@@ -57,6 +58,7 @@ class TopoValidatorSettings:
         self.db_path = db_path
         self.output_dir = output_dir
         self.area_crs = area_crs
+        self.export_validation_data = export_validation_data
         self.export_parquet = export_parquet
         self.export_parquet_by_geometry_type = export_parquet_by_geometry_type
         self.export_gpkg = export_gpkg

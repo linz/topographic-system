@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "use": "str:16"
+  },
+  "geometry": "Point"
+}

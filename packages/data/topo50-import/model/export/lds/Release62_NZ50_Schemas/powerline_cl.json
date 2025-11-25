@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "t50_fid": "int32:9",
+    "support_ty": "str:5"
+  },
+  "geometry": "LineString"
+}

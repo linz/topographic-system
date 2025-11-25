@@ -11,13 +11,14 @@ if __name__ == "__main__":
         settings.db_path = "postgresql://postgres:landinformation@localhost:5432/topo"
     else:
         # set data source and read configuration - gkpg and parquet
-        settings.validation_config_file = './validation/src/validation_generic_config.json'
+        settings.validation_config_file = './packages/data/validation/src/validation_generic_config.json'
         settings.db_path = r"C:\Data\topoedit\topographic-data\topographic-data.gpkg"
         settings.db_path = r"C:\Data\toposource\topographic-data\topographic-data.gpkg"
         #settings.db_path = r"C:\Data\temp\2025-02-05\files.parquet"
 
     settings.output_dir = r"C:\Data\topoedit\validation-data"
     settings.output_dir = r"C:\temp\validation-data"
+    settings.export_validation_data = True
     settings.area_crs = 2193
     settings.export_parquet = False
     settings.export_parquet_by_geometry_type = False

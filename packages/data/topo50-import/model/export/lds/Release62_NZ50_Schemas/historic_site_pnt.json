@@ -1,0 +1,8 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "descriptn": "str:80",
+    "macronated": "str:1"
+  },
+  "geometry": "Point"
+}
