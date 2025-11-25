@@ -57,9 +57,9 @@ jobs:
           script: |
             const tags = [];
             if ('${{ github.ref }}' == 'refs/heads/master' && ${{ toJson(github.event.head_commit.message) }}.startsWith('release:')) {
-              tags.push('ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}');
+              tags.push('ghcr.io/${{ github.repository }}/map:${{ steps.version.outputs.version }}');
             } else if (${{ toJson(github.event.pull_request.labels.*.name) }}.includes('container')) {
-              tags.push('ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}');
+              tags.push('ghcr.io/${{ github.repository }}/map:pr-${{ github.event.pull_request.number }}');
             }
 
             return tags.join('\n');
