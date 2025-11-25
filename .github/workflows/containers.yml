@@ -80,7 +80,7 @@ jobs:
           tags: ${{ steps.tags.outputs.result }}
           push: true
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/amd64
           build-args: |
             GIT_HASH=${{ github.sha }}
             GIT_VERSION=${{ steps.version.outputs.version }} 
