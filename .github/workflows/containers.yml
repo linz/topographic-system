@@ -1,10 +1,13 @@
 name: Containers
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - master
   pull_request:
-    types: [labeled, synchronize]
+    branches:
+      - master
+    types: [labeled, synchronize, opened]
 
 jobs:
   build-containers:
@@ -16,6 +19,10 @@ jobs:
       packages: write
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: linz/action-typescript@v3
         with:
           node-version: 24.10.0
@@ -31,11 +38,54 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Container
+      - name: Setup tags
+        id: version
+        run: |
+          GIT_VERSION=$(git describe --tags --always --match 'v*')
+          GIT_VERSION_MAJOR=$(echo $GIT_VERSION | cut -d. -f1)
+          GIT_VERSION_MAJOR_MINOR=$(echo $GIT_VERSION | cut -d. -f1,2)
+
+          echo "version=${GIT_VERSION}" >> $GITHUB_OUTPUT
+          echo "version_major=${GIT_VERSION_MAJOR}" >> $GITHUB_OUTPUT
+          echo "version_major_minor=${GIT_VERSION_MAJOR_MINOR}" >> $GITHUB_OUTPUT
+
+      - name: Create Image Tags
+        id: tags
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            const tags = [];
+
+            const commitMsg = github.event.head_commit?.message || "";
+            const labels = github.event.pull_request?.labels?.map(l => l.name) || [];
+
+            if (commitMsg.startsWith('release:')) {
+              tags.push('ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}');
+            } else if (labels.includes('container')) {
+              tags.push('ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}');
+            }
+
+            return tags.join('\n');
+
+      - name: Create docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          labels: org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.licenses=MIT
+          tags: |
+            type=sha
+
+      - name: Build and push container
         uses: docker/build-push-action@v6
         with:
           context: packages/map
-          tags: |
-            ${{ github.event_name == 'release' && format('ghcr.io/linz/topographic-system/map:{0}', github.ref_name) || '' }}
-            ${{ github.event_name == 'pull_request' && format('ghcr.io/linz/topographic-system/map:pr-{0}', github.event.pull_request.number) || '' }}
+          tags: ${{ steps.tags.outputs.result }}
           push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64,linux/amd64
+          build-args: |
+            GIT_HASH=${{ github.sha }}
+            GIT_VERSION=${{ steps.version.outputs.version }} 
+            GITHUB_RUN_ID=${{ github.run_id}}
