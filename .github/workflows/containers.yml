@@ -56,13 +56,9 @@ jobs:
           result-encoding: string
           script: |
             const tags = [];
-
-            const commitMsg = github.event.head_commit?.message || "";
-            const labels = github.event.pull_request?.labels?.map(l => l.name) || [];
-
-            if (commitMsg.startsWith('release:')) {
+            if (${{ toJson(github.event.head_commit.message) }}.startsWith('release:')) {
               tags.push('ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}');
-            } else if (labels.includes('container')) {
+            } else if (${{ toJson(github.event.pull_request.labels.*.name) }}.includes('container')) {
               tags.push('ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}');
             }
 
