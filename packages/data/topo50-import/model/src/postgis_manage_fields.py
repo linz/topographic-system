@@ -386,6 +386,8 @@ class ModifyTable:
             "physical_infrastructure_line",
             "structure",
             "vegetation",
+            "landcover",
+            "landcover_line",
             "ferry_crossing",
         ]
 
@@ -528,6 +530,7 @@ class ModifyTable:
             "tank_type",
             "track_type",
             "landcover_type",
+            "landuse_type",
             "tunnel_type",
             "vehicle_type",
             "structure_type",
@@ -555,6 +558,7 @@ class ModifyTable:
             "description",
             "display",
             "definition",
+            "designated",
             "designation",
             "formation",
             "edition",
@@ -568,7 +572,7 @@ class ModifyTable:
             "restrictions",
             "revised",
             "size",
-            "store_item",
+            "stored_item",
             "substance",
             "surface",
             "temperature",
@@ -756,14 +760,12 @@ if __name__ == "__main__":
             (schema_name, "structure"): [("species", "species_cultivated"), ("lid_type", "reservoir_lid_type"),
                           ("structure_type", "tank_type")],
             (schema_name, "road_line"): [("highway_number", "highway_numb")],
-            (schema_name, "water"): [("water_use", "pond_use"), ("height", "elevation")],
-            (schema_name, "contour"): [("designated", "designation"), ("formation", "nat_form")]
+            (schema_name, "water"): [("water_use", "pond_use"), ("height", "elevation")]
         }
 
         for (schema, table), columns in update_dict.items():
             for base_col, drop_col in columns:
-                tableModifer.set_base_column_and_drop_column(schema, table, base_col, drop_col)
-        #tableModifer.drop_column(schema, "structure", 'tank_type')  
+                tableModifer.set_base_column_and_drop_column(schema, table, base_col, drop_col) 
         tableModifer.drop_column(schema, "tree_locations", 'name')   
 
         #specific updates
@@ -793,6 +795,8 @@ if __name__ == "__main__":
         tableModifer.update_value_by_column(schema_name, "vegetation", "sub_type", "species")
         tableModifer.update_value_by_column(schema_name, "vegetation", "species", "null")
 
+        tableModifer.add_column(f"{schema_name}.landcover", "sub_type", "VARCHAR(50)")
+
         tableModifer.add_column(f"{schema_name}.road_line", "level", "INTEGER")
         tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(50)")
 
@@ -812,10 +816,13 @@ if __name__ == "__main__":
         tableModifer.add_column(f"{schema_name}.water", "hierarchy", "VARCHAR(25)") 
         tableModifer.add_column(f"{schema_name}.water", "railway_line", "VARCHAR(25)")
 
-        tableModifer.rename_columns(schema_name, "landcover", "track_type", "landcover_type")
-        tableModifer.update_value_by_column(schema_name, "landcover", "landcover_type", "visibility")
-        tableModifer.drop_column(schema_name, "landcover", "visibility")
-        tableModifer.rename_columns(schema_name, "landcover_line", "track_type", "landcover_type")
+        tableModifer.rename_columns(schema_name, "contour", "nat_form", "formation")
+        tableModifer.rename_columns(schema_name, "contour", "designated", "designation")
+
+        tableModifer.rename_columns(schema_name, "landuse", "track_type", "landuse_type")
+        tableModifer.update_value_by_column(schema_name, "landuse", "landuse_type", "visibility")
+        tableModifer.drop_column(schema_name, "landuse", "visibility")
+        tableModifer.rename_columns(schema_name, "landuse_line", "track_type", "landuse_type")
         tableModifer.rename_columns(schema_name, "place_point", "visibility", "place_type")
 
         #offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
@@ -833,6 +840,7 @@ if __name__ == "__main__":
         rename_dict = {
             f"{schema_name}.structure_line": [("materials", "material"), ("mtlconveyd", "material_conveyed")],
             f"{schema_name}.structure_point": [("store_item", "stored_item")],
+            f"{schema_name}.structure": [("store_item", "stored_item")],
         }
 
         for table_full, columns in rename_dict.items():

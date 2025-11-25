@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "t50_fid": "int32:9",
+    "name_ascii": "str:75",
+    "macronated": "str:1",
+    "name": "str:75",
+    "status": "str:18",
+    "track_type": "str:8",
+    "rway_use": "str:6",
+    "veh_type": "str:9"
+  },
+  "geometry": "LineString"
+}

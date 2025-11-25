@@ -5,13 +5,13 @@ from abstract_topology_validator import AbstractTopologyValidator
 
 
 class PostgisTopologyValidator(AbstractTopologyValidator):
-    def __init__(self, db_url, table, export_layername, table2=None,  
+    def __init__(self, summary_report, export_validation_data, db_url, table, export_layername, table2=None,  
                  where_condition=None, bbox=None,
                  message="validation error", 
                  output_dir=r"c:\data\topoedit\validation-data", 
                  area_crs=2193):
         
-        super().__init__(db_url, table, export_layername, table2, 
+        super().__init__(summary_report, export_validation_data, db_url, table, export_layername, table2, 
                          where_condition, bbox, message, output_dir, area_crs)
         
         if not db_url.startswith('postgresql'):

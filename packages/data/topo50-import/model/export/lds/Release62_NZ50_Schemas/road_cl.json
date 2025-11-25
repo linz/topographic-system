@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "UFID": "int:10",
+    "lol_sufi": "float:20",
+    "name": "str:100",
+    "RW_lane_c": "int32:1",
+    "RW_surface": "str:10",
+    "road_access": "str:3",
+    "width": "str:1",
+    "name_id": "str:20",
+    "surface": "str:10",
+    "status": "str:18",
+    "num_lanes": "int32:1",
+    "hway_num": "str:5",
+    "way_count": "str:7"
+  },
+  "geometry": "LineString"
+}

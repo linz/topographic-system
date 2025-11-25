@@ -58,10 +58,12 @@ Examples:
     # Export format options
     parser.add_argument('--export-parquet', 
                        action='store_false',
+                       default=False,
                        help='Export results to Parquet format')
     
     parser.add_argument('--export-parquet-by-geometry', 
                        action='store_false',
+                       default=False,
                        help='Export Parquet files separated by geometry type')
     
     parser.add_argument('--export-gpkg', 
@@ -78,6 +80,11 @@ Examples:
     parser.add_argument('--use-date-folder', 
                        action='store_true',
                        help='Create date-based subfolder in output directory')
+        
+    parser.add_argument('--report-only', 
+                       action='store_true',
+                       default=False,
+                       help="Don't export validation data - other just report is created")
     
     parser.add_argument('--skip-queries', 
                        action='store_false', 
@@ -167,6 +174,8 @@ def setup_settings(args):
     # Output settings
     settings.output_dir = args.output_dir
     settings.area_crs = args.area_crs
+    if args.report_only:
+        settings.export_validation_data = False
     
     # Export format settings
     settings.export_parquet = args.export_parquet
@@ -217,12 +226,15 @@ def main():
         print(f"Database path: {settings.db_path}")
         print(f"Config file: {settings.validation_config_file}")
         print(f"Output directory: {settings.output_dir}")
+        print(f"Export validation data: {settings.export_validation_data}")
         print(f"Export formats: GPKG={settings.export_gpkg}, Parquet={settings.export_parquet}")
         print(f"Use date folder: {settings.use_date_folder}")
         if hasattr(settings, 'bbox') and settings.bbox:
             print(f"Bounding box: {settings.bbox}")
         if hasattr(settings, 'date') and settings.date:
             print(f"Date filter: {settings.date}")
+        if hasattr(settings, 'weeks') and settings.weeks:
+            print(f"Weeks filter: {settings.weeks}")
     
     # Run validation
     try:

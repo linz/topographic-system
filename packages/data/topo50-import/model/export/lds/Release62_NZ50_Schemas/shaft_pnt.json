@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "shaft_use": "str:18"
+  },
+  "geometry": "Point"
+}

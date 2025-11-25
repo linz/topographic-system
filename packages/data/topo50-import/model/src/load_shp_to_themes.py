@@ -233,7 +233,7 @@ class Topo50DataLoader:
                 continue
 
     ############# TEMP for testing
-           # if layer_info[3].lower() != 'island':
+           # if layer_info[3].lower() != 'landcover':
            #     print(f"Skipping layer: {layer_info[3]}")
            #     continue
             layer_name = layer_info[3]

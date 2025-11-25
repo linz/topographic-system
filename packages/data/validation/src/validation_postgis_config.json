@@ -190,10 +190,10 @@
             "message": "Physical infrastructure line features must have a support_type attribute for type powerline"
         },
         {
-            "table": "release62.landcover",
-            "column": "visibility",
+            "table": "release62.landuse",
+            "column": "landuse_type",
             "where": "feature_type = 'mine'",
-            "message": "Landcover features must have a visibility attribute for type mine"
+            "message": "Landuse features must have a landuse_type attribute for type mine"
         },
         {
             "table": "release62.water_point",
