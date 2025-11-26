@@ -1,7 +1,7 @@
 import { fsa } from '@chunkd/fs';
+import cmdts from 'cmd-ts';
 import { relative } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import cmdts from 'cmd-ts';
 
 /**
  * Convert a path to a relative path

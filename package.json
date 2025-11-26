@@ -7,8 +7,7 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "npm run lint:ts && npm run lint:py",
-    "lint:ts": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
+    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
     "lint:py": "uv run ruff check"
   }
 }

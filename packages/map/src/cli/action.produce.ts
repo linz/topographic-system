@@ -2,13 +2,27 @@ import { fsa } from '@chunkd/fs';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import path, { basename } from 'path';
+
 import { registerFileSystem } from '../fs.register.ts';
 import { logger, logId } from '../log.ts';
-import { ExportFormat, qgisExport } from '../python.runner.ts';
+import { qgisExport } from '../python.runner.ts';
 import { Url, UrlFolder } from '../util.ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));
+
+export const ExportFormats = {
+  Pdf: 'pdf',
+  Tif: 'tif',
+  GeoTif: 'geotif',
+} as const;
+
+export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
+
+export interface ExportOptions {
+  dpi: number;
+  format: ExportFormat;
+}
 
 /** Ready the json file and parse all the mapsheet code as array */
 async function fromFile(file: URL): Promise<string[]> {
@@ -73,14 +87,8 @@ function getContentType(format: ExportFormat): string {
   if (format === ExportFormats.Pdf) return 'application/pdf';
   else if (format === ExportFormats.Tif) return 'image/tiff';
   else if (format === ExportFormats.GeoTif) return 'image/tiff; application=geotiff';
-  else throw new Error('Invalid format' + format);
+  else throw new Error(`Invalid format`);
 }
-
-export const ExportFormats = {
-  Pdf: 'pdf',
-  Tif: 'tif',
-  GeoTif: 'geotif',
-} as const;
 
 export const ProduceArgs = {
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),

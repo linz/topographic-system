@@ -10,3 +10,14 @@ jobs:
       - uses: linz/action-typescript@v3
         with:
           node-version: 24.10.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Lint Python
+        run: npm run lint:py

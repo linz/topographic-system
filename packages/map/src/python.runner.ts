@@ -1,14 +1,8 @@
 import { Command } from '@linzjs/docker-command';
-import { ExportFormats } from './cli/action.produce.ts';
-import { toRelative } from './util.ts';
+
+import type { ExportOptions } from './cli/action.produce.ts';
 import { logger } from './log.ts';
-
-export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
-
-export interface ExportOptions {
-  dpi: number;
-  format: ExportFormat;
-}
+import { toRelative } from './util.ts';
 
 /**
  * Running python commands for qgis_export
