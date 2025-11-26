@@ -16,8 +16,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install uv and ruff
-        run: pip install uv && uv add ruff
+      - name: Install uv
+        run: pip install uv ruff
 
       - name: Lint Python
         run: npm run lint:py
