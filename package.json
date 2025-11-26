@@ -7,11 +7,8 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore"
-  },
-  "dependencies": {
-    "pino": "^10.1.0",
-    "pretty-json-log": "^1.5.0",
-    "ulid": "^3.0.1"
+    "lint": "npm run lint:ts && npm run lint:py",
+    "lint:ts": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
+    "lint:py": "uv run ruff check"
   }
 }

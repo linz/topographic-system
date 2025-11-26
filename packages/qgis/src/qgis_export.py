@@ -1,4 +1,10 @@
-from qgis.core import *
+from qgis.core import (
+    QgsApplication,
+    QgsProject,
+    QgsLayoutExporter,
+    QgsCoordinateTransform,
+    QgsLayoutItemMap
+)
 import sys
 import os
 
@@ -43,18 +49,14 @@ for feature in topo_sheet_layer.getFeatures():
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
         pdf_settings = QgsLayoutExporter.PdfExportSettings()
         pdf_settings.dpi = dpi
-        df_settings.rasterizeWholeImage = False
+        pdf_settings.rasterizeWholeImage = False
         export_result = exporter.exportToPdf(output_file, pdf_settings)
-    elif export_format == "tif":
+    elif export_format in ["tif", "geotif"]:
         output_file = os.path.join(file_output_path, f"{feature_code}.tif")
         img_settings = QgsLayoutExporter.ImageExportSettings()
         img_settings.dpi = dpi
-        export_result = exporter.exportToImage(output_file, img_settings)
-    elif export_format == "geotiff":
-        output_file = os.path.join(file_output_path, f"{feature_code}.tiff")
-        img_settings = QgsLayoutExporter.ImageExportSettings()
-        img_settings.dpi = dpi
-        img_settings.exportMetadata = True 
+        if export_format == "geotif":
+            img_settings.exportMetadata = True  # Only for geotif
         export_result = exporter.exportToImage(output_file, img_settings)
     else:
         raise ValueError(f"Unsupported format: {export_format}")
