@@ -8,7 +8,6 @@ import type { BuildMiddleware, FinalizeRequestMiddleware, MetadataBearer } from 
 
 import { logger } from './log.ts';
 
-
 /** Check to see if hostname exists inside of a object */
 function hasHostName(x: unknown): x is { hostname: string } {
   if (x == null) return false;

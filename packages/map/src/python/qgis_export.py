@@ -6,7 +6,9 @@ os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
-sheet_code = sys.argv[3]
+export_format = sys.argv[3]
+dpi = int(sys.argv[4])
+sheet_codes = sys.argv[5:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -18,10 +20,6 @@ if not success:
     raise ValueError(f"Failed to read project file: {project_path}")
 
 layout = project.layoutManager().layoutByName("Topo50")
-
-pdf_settings = QgsLayoutExporter.PdfExportSettings()
-pdf_settings.dpi = 300
-pdf_settings.rasterizeWholeImage = False
 exporter = QgsLayoutExporter(layout)
 
 map_item = None
@@ -32,11 +30,38 @@ for item in layout.items():
 
 topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
 for feature in topo_sheet_layer.getFeatures():
-    if str(feature["sheet_code"]) != sheet_code:
+    feature_code = str(feature["sheet_code"])
+    # skip if this sheet_code is not in the list passed from CLI
+    if feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()))
     map_item.setExtent(geom.boundingBox())
-    exporter.exportToPdf(os.path.join(file_output_path, feature["sheet_code"] + ".pdf"), pdf_settings)
+
+    export_result = None
+    if export_format == "pdf":
+        output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
+        pdf_settings = QgsLayoutExporter.PdfExportSettings()
+        pdf_settings.dpi = dpi
+        df_settings.rasterizeWholeImage = False
+        export_result = exporter.exportToPdf(output_file, pdf_settings)
+    elif export_format == "tif":
+        output_file = os.path.join(file_output_path, f"{feature_code}.tif")
+        img_settings = QgsLayoutExporter.ImageExportSettings()
+        img_settings.dpi = dpi
+        export_result = exporter.exportToImage(output_file, img_settings)
+    elif export_format == "geotiff":
+        output_file = os.path.join(file_output_path, f"{feature_code}.tiff")
+        img_settings = QgsLayoutExporter.ImageExportSettings()
+        img_settings.dpi = dpi
+        img_settings.exportMetadata = True 
+        export_result = exporter.exportToImage(output_file, img_settings)
+    else:
+        raise ValueError(f"Unsupported format: {export_format}")
+
+    if export_result == QgsLayoutExporter.Success:
+        print(f"Map exported successfully to: {output_file}")
+    else:
+        print(f"Error exporting map: {exporter.errorMessage()}")
 
 qgs.exitQgis()
