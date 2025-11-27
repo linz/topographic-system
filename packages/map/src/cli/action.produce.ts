@@ -13,8 +13,8 @@ const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));
 
 export const ExportFormats = {
   Pdf: 'pdf',
-  Tif: 'tif',
-  GeoTif: 'geotif',
+  Tiff: 'tiff',
+  GeoTiff: 'geotiff',
 } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
@@ -85,8 +85,8 @@ export async function downloadFiles(path: URL): Promise<URL[]> {
 
 function getContentType(format: ExportFormat): string {
   if (format === ExportFormats.Pdf) return 'application/pdf';
-  else if (format === ExportFormats.Tif) return 'image/tiff';
-  else if (format === ExportFormats.GeoTif) return 'image/tiff; application=geotiff';
+  else if (format === ExportFormats.Tiff) return 'image/tiff';
+  else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff';
   else throw new Error(`Invalid format`);
 }
 
@@ -108,9 +108,9 @@ export const ProduceArgs = {
     description: 'Path or s3 of source parquet vector layers to use for generate map sheets.',
   }),
   format: option({
-    type: oneOf([ExportFormats.Pdf, ExportFormats.Tif, ExportFormats.GeoTif]),
+    type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff]),
     long: 'format',
-    description: `Export format as ${ExportFormats.Pdf}, ${ExportFormats.Tif}, or ${ExportFormats.GeoTif}`,
+    description: `Export format as ${ExportFormats.Pdf}, ${ExportFormats.Tiff}, or ${ExportFormats.GeoTiff}`,
     defaultValue: () => ExportFormats.Pdf,
     defaultValueIsSerializable: true,
   }),
