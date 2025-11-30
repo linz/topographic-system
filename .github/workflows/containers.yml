@@ -75,6 +75,7 @@ jobs:
 
       - name: Build and push container
         uses: docker/build-push-action@v6
+        if: steps.tags.outputs.result != ''
         with:
           context: packages/map
           tags: ${{ steps.tags.outputs.result }}
