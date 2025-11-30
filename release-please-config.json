@@ -3,7 +3,9 @@
   "packages": {
     "packages/data": {},
     "packages/map": {},
-    ".": {}
+    ".": {
+      "include-component-in-tag": false
+    }
   },
   "group-pull-request-title-pattern": "release: v${version}",
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
