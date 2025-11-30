@@ -77,7 +77,7 @@ jobs:
         uses: docker/build-push-action@v6
         if: steps.tags.outputs.result != ''
         with:
-          context: packages/map
+          file: packages/map/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
           push: true
           labels: ${{ steps.meta.outputs.labels }}
