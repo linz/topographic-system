@@ -100,12 +100,12 @@ export const ProduceArgs = {
   source: option({
     type: UrlFolder,
     long: 'source',
-    description: 'Path or s3 of QGIS Project to use for generate map sheets.',
+    description: 'Path or s3 of source parquet vector layers to use for generate map sheets.',
   }),
   project: option({
     type: Url,
     long: 'project',
-    description: 'Path or s3 of source parquet vector layers to use for generate map sheets.',
+    description: 'Path or s3 of QGIS Project to use for generate map sheets.',
   }),
   format: option({
     type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff]),

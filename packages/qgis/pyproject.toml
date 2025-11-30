@@ -1,7 +1,7 @@
 [project]
 name = "topographic-system-qgis"
 version = "0.1.0"
-description = "Qgis project for exporting maps in pdf or tif"
+description = "Qgis project for exporting maps in pdf, tiff, or geotiff"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
