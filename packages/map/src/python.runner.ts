@@ -3,11 +3,56 @@ import { Command } from '@linzjs/docker-command';
 import type { ExportOptions } from './cli/action.produce.ts';
 import { logger } from './log.ts';
 import { toRelative } from './util.ts';
+import { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.js';
+
+type SheetMetadataStr = {
+  sheetCode: string;
+  geometry: string; // Geometry encoded as string
+  epsg: number;
+  bbox: [number, number, number, number];
+};
+
+export type SheetMetadata = {
+  sheetCode: string;
+  geometry: GeoJSONPolygon | GeoJSONMultiPolygon;
+  epsg: number;
+  bbox: [number, number, number, number];
+};
+
+function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
+  const raw = JSON.parse(stdoutBuffer) as SheetMetadataStr[];
+
+  const metadata: SheetMetadata[] = [];
+  raw.map((item) => {
+    const geom = JSON.parse(item.geometry) as GeoJSON.Geometry;
+
+    // Only could be a polygon or multipolygons for a mapsheet.
+    if (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon') {
+      throw new Error(`Unexpected geometry type for ${item.sheetCode}: ${geom.type}`);
+    }
+
+    metadata.push({
+      sheetCode: item.sheetCode,
+      geometry: geom.type === 'Polygon' ? (geom as GeoJSONPolygon) : (geom as GeoJSONMultiPolygon),
+      epsg: item.epsg,
+      bbox: item.bbox,
+    });
+  });
+
+  console.log(metadata);
+
+  return metadata;
+}
 
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(input: URL, output: URL, mapsheets: string[], options: ExportOptions): Promise<void> {
+export async function qgisExport(
+  input: URL,
+  output: URL,
+  mapsheets: string[],
+  options: ExportOptions,
+): Promise<SheetMetadata[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -24,4 +69,6 @@ export async function qgisExport(input: URL, output: URL, mapsheets: string[], o
     logger.fatal({ qgis_export: res }, 'Failure');
     throw new Error('qgis_export.py failed to run');
   }
+
+  return parseSheetsMetadata(res.stdout);
 }

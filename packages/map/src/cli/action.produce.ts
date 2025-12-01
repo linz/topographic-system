@@ -4,12 +4,15 @@ import { mkdirSync } from 'fs';
 import path, { basename } from 'path';
 
 import { registerFileSystem } from '../fs.register.ts';
-import { logger, logId } from '../log.ts';
+import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
 import { Url, UrlFolder } from '../util.ts';
+import { CliId } from '../cli.info.ts';
+import { createStacCatalog, createStacCollection, createStacItem, createStacLink } from '../stac.ts';
+import { StacCatalog } from 'stac-ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
-const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));
+const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -137,7 +140,7 @@ export const ProduceCommand = command({
     // Download source files
     await downloadFiles(args.source);
     // Download project file
-    const projectFile = await downloadFile(new URL(args.project));
+    const projectFile = await downloadFile(args.project);
 
     // Prepare tmp path for the outputs
     const tempOutput = new URL('output/', tmpFolder);
@@ -148,16 +151,38 @@ export const ProduceCommand = command({
 
     // Run python qgis export script
     const exportOptions = { dpi: args.dpi, format: args.format };
-    await qgisExport(projectFile, tempOutput, mapSheets, exportOptions);
+    const metadatas = await qgisExport(projectFile, tempOutput, mapSheets, exportOptions);
 
     // Write outputs files to destination
+    const projectName = basename(args.project.pathname);
+    const outputUrl = new URL(`/${projectName}/${CliId}`, args.output);
     for await (const file of fsa.list(tempOutput)) {
-      const destPath = new URL(basename(file.pathname), args.output);
+      const destPath = new URL(basename(file.pathname), outputUrl);
       const stream = fsa.readStream(file);
       await fsa.write(destPath, stream, {
         contentType: getContentType(args.format),
       });
       logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
+    }
+
+    // Create Stac Files and upload to destination
+    const links = await createStacLink(args.source, args.project);
+    for (const metadata of metadatas) {
+      const item = createStacItem(metadata, args.format, args.dpi, links);
+      await fsa.write(new URL(`${metadata.sheetCode}.json`, outputUrl), JSON.stringify(item, null, 2));
+    }
+    const collection = createStacCollection(metadatas, links);
+    await fsa.write(new URL('collection.json', outputUrl), JSON.stringify(collection, null, 2));
+
+    let catalog = await fsa.readJson<StacCatalog>(new URL(`/${projectName}/catalog.json`, args.output));
+    if (catalog != null) {
+      catalog.links.push({
+        rel: 'collection',
+        href: `./${CliId}/collection.json`,
+        type: 'application/json',
+      });
+    } else {
+      catalog = createStacCatalog();
     }
   },
 });
