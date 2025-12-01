@@ -1,3 +1,11 @@
+import * as ulid from 'ulid';
+
+/** ISO date of when this command was run */
+export const CliDate = new Date().toISOString();
+
+/** Unique Id for this instance of the cli being run */
+export const CliId = ulid.ulid();
+
 export const CliInfo = {
   package: '@topographic-system/map',
   // Git version information
