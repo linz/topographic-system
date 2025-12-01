@@ -3,8 +3,7 @@ from qgis.core import (
     QgsProject,
     QgsLayoutExporter,
     QgsCoordinateTransform,
-    QgsLayoutItemMap,
-    QgsMapLayer
+    QgsLayoutItemMap
 )
 import sys
 import os
