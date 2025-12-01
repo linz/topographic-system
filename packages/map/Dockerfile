@@ -4,7 +4,8 @@ RUN pacman -Syu --noconfirm arrow qgis nodejs npm
 
 WORKDIR /app
 
-COPY . /app
+COPY packages/qgis/ /app/qgis/
+COPY packages/map/ /app/
 
 RUN npm install
 

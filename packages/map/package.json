@@ -3,7 +3,15 @@
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
-    "cmd-ts": "^0.13.0"
+    "@aws-sdk/client-s3": "^3.936.0",
+    "@chunkd/fs": "^11.3.0",
+    "@chunkd/fs-aws": "^11.4.0",
+    "@linzjs/docker-command": "^8.0.0",
+    "@smithy/types": "^4.9.0",
+    "cmd-ts": "^0.13.0",
+    "pino": "^10.1.0",
+    "pretty-json-log": "^1.5.0",
+    "ulid": "^3.0.1"
   },
   "devDependencies": {
     "@linzjs/style": "^5.4.0",
