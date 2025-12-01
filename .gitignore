@@ -1,4 +1,5 @@
 node_modules
+tmp
 tsconfig.tsbuildinfo
 .venv
 .ruff_cache
