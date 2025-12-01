@@ -1,6 +1,6 @@
 {
   "name": "@topographic-system/map",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.936.0",
