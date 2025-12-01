@@ -2,14 +2,14 @@ import { fsa } from '@chunkd/fs';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import path, { basename } from 'path';
+import { StacCatalog } from 'stac-ts';
 
+import { CliId } from '../cli.info.ts';
 import { registerFileSystem } from '../fs.register.ts';
 import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
-import { Url, UrlFolder } from '../util.ts';
-import { CliId } from '../cli.info.ts';
 import { createStacCatalog, createStacCollection, createStacItem, createStacLink } from '../stac.ts';
-import { StacCatalog } from 'stac-ts';
+import { Url, UrlFolder } from '../util.ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
