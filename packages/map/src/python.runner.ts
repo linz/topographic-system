@@ -1,5 +1,5 @@
 import { Command } from '@linzjs/docker-command';
-import { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.js';
+import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import type { ExportOptions } from './cli/action.produce.ts';
 import { logger } from './log.ts';
