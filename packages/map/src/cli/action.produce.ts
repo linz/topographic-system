@@ -10,6 +10,7 @@ import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
 import { createStacCatalog, createStacCollection, createStacItem, createStacLink } from '../stac.ts';
 import { Url, UrlFolder } from '../util.ts';
+import { validateTiff } from '../validate.ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
@@ -157,6 +158,10 @@ export const ProduceCommand = command({
     const projectName = parse(args.project.pathname).name;
     const outputUrl = new URL(`/${projectName}/${CliId}/`, args.output);
     for await (const file of fsa.list(tempOutput)) {
+      if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
+        await validateTiff(file, metadatas);
+      }
+
       const destPath = new URL(basename(file.pathname), outputUrl);
       const stream = fsa.readStream(file);
       await fsa.write(destPath, stream, {
