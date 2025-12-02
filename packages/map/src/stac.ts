@@ -1,12 +1,12 @@
-import { BoundingBox, Bounds } from '@basemaps/geo';
+import { type BoundingBox, Bounds } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { basename } from 'path';
-import { StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
 
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
-import { ExportFormat } from './cli/action.produce.ts';
+import type { ExportFormat } from './cli/action.produce.ts';
 import { logger } from './log.ts';
-import { SheetMetadata } from './python.runner.ts';
+import type { SheetMetadata } from './python.runner.ts';
 
 export interface CreationOptions {
   /** Map Sheet Code*/

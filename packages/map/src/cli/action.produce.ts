@@ -1,8 +1,8 @@
 import { fsa } from '@chunkd/fs';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
-import path, { basename } from 'path';
-import { StacCatalog } from 'stac-ts';
+import path, { basename, parse } from 'path';
+import type { StacCatalog } from 'stac-ts';
 
 import { CliId } from '../cli.info.ts';
 import { registerFileSystem } from '../fs.register.ts';
@@ -154,8 +154,8 @@ export const ProduceCommand = command({
     const metadatas = await qgisExport(projectFile, tempOutput, mapSheets, exportOptions);
 
     // Write outputs files to destination
-    const projectName = basename(args.project.pathname);
-    const outputUrl = new URL(`/${projectName}/${CliId}`, args.output);
+    const projectName = parse(args.project.pathname).name;
+    const outputUrl = new URL(`/${projectName}/${CliId}/`, args.output);
     for await (const file of fsa.list(tempOutput)) {
       const destPath = new URL(basename(file.pathname), outputUrl);
       const stream = fsa.readStream(file);
@@ -174,15 +174,17 @@ export const ProduceCommand = command({
     const collection = createStacCollection(metadatas, links);
     await fsa.write(new URL('collection.json', outputUrl), JSON.stringify(collection, null, 2));
 
-    let catalog = await fsa.readJson<StacCatalog>(new URL(`/${projectName}/catalog.json`, args.output));
-    if (catalog != null) {
+    const catalogPath = new URL(`/${projectName}/catalog.json`, args.output);
+    let catalog = createStacCatalog();
+    const existing = await fsa.exists(catalogPath);
+    if (existing) {
+      catalog = await fsa.readJson<StacCatalog>(catalogPath);
       catalog.links.push({
         rel: 'collection',
         href: `./${CliId}/collection.json`,
         type: 'application/json',
       });
-    } else {
-      catalog = createStacCatalog();
     }
+    await fsa.write(catalogPath, JSON.stringify(catalog, null, 2));
   },
 });

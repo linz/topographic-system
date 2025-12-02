@@ -72,7 +72,7 @@ for feature in topo_sheet_layer.getFeatures():
                 "sheetCode": feature_code,
                 "geometry": geom.asJson(),
                 "epsg": map_crs.postgisSrid(),
-                "bbox": bbox,
+                "bbox": [bbox.xMinimum(), bbox.yMinimum(), bbox.xMaximum(), bbox.yMaximum()],
             }
         )
     else:
