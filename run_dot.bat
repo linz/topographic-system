@@ -1,0 +1,6 @@
+dot -Tpng "C:\Data\Model\metadata\diagrams\Transport_and_Infrastructure_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Transport_and_Infrastructure_diagram.png"
+dot -Tpng "C:\Data\Model\metadata\diagrams\Buildings_and_Structures_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Buildings_and_Structures_diagram.png"
+dot -Tpng "C:\Data\Model\metadata\diagrams\Water_Marine_Coastal_Hydrographic_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Water_Marine_Coastal_Hydrographic_diagram.png"
+dot -Tpng "C:\Data\Model\metadata\diagrams\Terrain_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Terrain_diagram.png"
+dot -Tpng "C:\Data\Model\metadata\diagrams\Administrative_and_Reference_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Administrative_and_Reference_diagram.png"
+dot -Tpng "C:\Data\Model\metadata\diagrams\Land_Cover_and_Land_Use_diagram.dot" -o "C:\Data\Model\metadata\diagrams\Land_Cover_and_Land_Use_diagram.png"
