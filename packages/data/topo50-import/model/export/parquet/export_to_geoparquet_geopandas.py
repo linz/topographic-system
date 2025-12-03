@@ -48,8 +48,8 @@ class Database:
             return columns
 
 if __name__ == "__main__":
-    export_topo_data = False
-    export_carto_data = True
+    export_topo_data = True
+    export_carto_data = False
 
     DB_PARAMS = {
         'dbname': 'topo',
@@ -58,10 +58,11 @@ if __name__ == "__main__":
         'host': 'localhost',
         'port': 5432
     }
+    export_folder = r"C:/Data/temp/"
     db_connection_url = "postgresql://postgres:landinformation@localhost:5432/topo"
     schema = 'release62'
     release_date = "2025-02-05"
-    export_folder = os.path.join("C:/Data/temp/", release_date)
+    export_folder = os.path.join(export_folder, release_date)
     if not os.path.exists(export_folder):
         os.makedirs(export_folder)
 

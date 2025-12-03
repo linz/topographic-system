@@ -1,0 +1,71 @@
+// Transport and Infrastructure Hierarchy
+digraph {
+	rankdir=LR size=8
+	"Transport and Infrastructure" [label="Transport and Infrastructure" color=lightblue shape=box style=filled]
+	Transport [label=Transport shape=ellipse]
+	airport [label=airport shape=circle]
+	airport_Polygon [label=Polygon shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> airport
+	airport -> airport_Polygon
+	Transport [label=Transport shape=ellipse]
+	bridge [label=bridge shape=circle]
+	bridge_Line [label=Line shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> bridge
+	bridge -> bridge_Line
+	Transport [label=Transport shape=ellipse]
+	ferry_crossing [label=ferry_crossing shape=circle]
+	ferry_crossing_Polygon [label=Polygon shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> ferry_crossing
+	ferry_crossing -> ferry_crossing_Polygon
+	Transport [label=Transport shape=ellipse]
+	railway [label=railway shape=circle]
+	railway_Line [label=Line shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> railway
+	railway -> railway_Line
+	Transport [label=Transport shape=ellipse]
+	rail_station [label=rail_station shape=circle]
+	rail_station_Polygon [label=Polygon shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> rail_station
+	rail_station -> rail_station_Polygon
+	Transport [label=Transport shape=ellipse]
+	road [label=road shape=circle]
+	road_Line [label=Line shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> road
+	road -> road_Line
+	Transport [label=Transport shape=ellipse]
+	runway [label=runway shape=circle]
+	runway_Polygon [label=Polygon shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> runway
+	runway -> runway_Polygon
+	Transport [label=Transport shape=ellipse]
+	track [label=track shape=circle]
+	track_Line [label=Line shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> track
+	track -> track_Line
+	Transport [label=Transport shape=ellipse]
+	ford [label=ford shape=circle]
+	ford_Point [label=Point shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> ford
+	ford -> ford_Point
+	Transport [label=Transport shape=ellipse]
+	helipad [label=helipad shape=circle]
+	helipad_Point [label=Point shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> helipad
+	helipad -> helipad_Point
+	Transport [label=Transport shape=ellipse]
+	tunnel [label=tunnel shape=circle]
+	tunnel_Line [label=Line shape=diamond]
+	"Transport and Infrastructure" -> Transport
+	Transport -> tunnel
+	tunnel -> tunnel_Line
+}
