@@ -37,6 +37,10 @@ See: [New Zealand Mainland - NZTM2000 EPSG:2193](https://toitutewhenua.atlassian
 
 Contains scripts to extract useful information
 
+**metadata**
+
+Contains scripts to generate basic metadata about layers and features from new and existing sources.
+
 ## other folders
 
 **validation folder**
