@@ -1,1735 +1,1612 @@
 {
-    "airport": {
-        "feature_types": [
-            "airport"
-        ],
-        "layer_description": "Represents the boundary of an airport facility.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\airport.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "airport": {
-                "theme": "Transport",
-                "table_lds": "airport_poly",
-                "table_type": "Polygon",
-                "description": "A facility where aircraft can take off and land; usually consists of hard-surfaced landing strips, a control tower, hangars and accommodation for passengers and cargo",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\airport_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\airport_poly.gif"
-            }
-        }
-    },
-    "bridge_line": {
-        "feature_types": [
-            "bridge"
-        ],
-        "layer_description": "Represents bridges crossing roads, railways, walkways or water features.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\bridge_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "bridge": {
-                "theme": "Transport",
-                "table_lds": "bridge_cl",
-                "table_type": "Line",
-                "description": "A structure erected over a depression or obstacle to carry traffic or some facility such as a pipeline.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\bridge_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\bridge_cl.gif"
-            }
-        }
-    },
-    "building": {
-        "feature_types": [
-            "building"
-        ],
-        "layer_description": "Represents the extent of a building. Captured from aerial imagery.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\building.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "building": {
-                "theme": "Buildings",
-                "table_lds": "building_poly",
-                "table_type": "Polygon",
-                "description": "A relatively permanent walled and roofed construction.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\building_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\building_poly.gif"
-            }
-        }
-    },
-    "building_point": {
-        "feature_types": [
-            "building"
-        ],
-        "layer_description": "Represents the location of a building.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\building_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "building": {
-                "theme": "Buildings",
-                "table_lds": "building_pnt",
-                "table_type": "Point",
-                "description": "A relatively permanent walled and roofed construction.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\building_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\building_pnt.gif"
-            }
-        }
-    },
-    "coastline": {
-        "feature_types": [
-            "coastline"
-        ],
-        "layer_description": "Represents the boundary between land and sea.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\coastline.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "coastline": {
-                "theme": "Landcover",
-                "table_lds": "coastline_poly",
-                "table_type": "Polygon",
-                "description": "",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\coastline_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\coastline_poly.gif"
-            }
-        }
-    },
-    "contour": {
-        "feature_types": [
-            "contour"
-        ],
-        "layer_description": "Represents elevation lines for terrain representation.",
-        "layer_category": "Terrain",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\contour.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
-        "features": {
-            "contour": {
-                "theme": "Relief",
-                "table_lds": "contour_poly",
-                "table_type": "Polygon",
-                "description": "",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\contour_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\contour_poly.gif"
-            }
-        }
-    },
-    "descriptive_text": {
-        "feature_types": [
-            "descriptive_text"
-        ],
-        "layer_description": "Represents text annotations for labeling or descriptions.",
-        "layer_category": "Administrative & Reference",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\descriptive_text.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
-        "features": {
-            "descriptive_text": {
-                "theme": "Annonation",
-                "table_lds": "descriptive_text",
-                "table_type": "Point Annotation",
-                "description": "Descriptive text; object used to hold text.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\descriptive_text.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\descriptive_text.gif"
-            }
-        }
-    },
-    "fence_line": {
-        "feature_types": [
-            "fence"
-        ],
-        "layer_description": "",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "fence": {
-                "theme": "Structures",
-                "table_lds": "fence_cl",
-                "table_type": "Line",
-                "description": "An enclosure or barrier made of wire, rails, slats or other relatively light material, as opposed to a wall which is of stone or other heavy material",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fence_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fence_cl.gif"
-            }
-        }
-    },
-    "ferry_crossing": {
-        "feature_types": [
-            "ferry_crossing"
-        ],
-        "layer_description": "Indicates ferry links to terminal locations.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\ferry_crossing.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "ferry_crossing": {
-                "theme": "Transport",
-                "table_lds": "ferry_crossing_poly",
-                "table_type": "Polygon",
-                "description": "",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ferry_crossing_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ferry_crossing_poly.gif"
-            }
-        }
-    },
-    "geographic_name": {
-        "feature_types": [
-            "geographic_name"
-        ],
-        "layer_description": "Represents named geographic locations and features.",
-        "layer_category": "Administrative & Reference",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\geographic_name.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
-        "features": {
-            "geographic_name": {
-                "theme": "Annonation",
-                "table_lds": "geographic_name",
-                "table_type": "Point Annotation",
-                "description": "Geographic name holds the proper noun of certain objects within the Topo databases.                    Geographic_name does not apply to roads, railway lines, or descriptive text - eg 'Brunner Mine' would be a Geographic_name but 'mine disused' is held in the descriptive_text feature \n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\geographic_name.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\geographic_name.gif"
-            }
-        }
-    },
-    "island": {
-        "feature_types": [
-            "island"
-        ],
-        "layer_description": "Represents an island within a water body. Onshore and Offshore.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\island.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "island": {
-                "theme": "Landcover",
-                "table_lds": "island_poly",
-                "table_type": "Polygon",
-                "description": "Area of dry or relatively dry land surrounded by water or low wetland",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\island_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\island_poly.gif"
-            }
-        }
-    },
-    "landcover": {
-        "feature_types": [
-            "ice",
-            "moraine",
-            "moraine_wall",
-            "mud",
-            "sand",
-            "scree",
-            "shingle"
-        ],
-        "layer_description": "Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "ice": {
-                "theme": "Landcover",
-                "table_lds": "ice_poly",
-                "table_type": "Polygon",
-                "description": "A region of permanent ice",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ice_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ice_poly.gif"
-            },
-            "moraine": {
-                "theme": "Landcover",
-                "table_lds": "moraine_poly",
-                "table_type": "Polygon",
-                "description": "An accumulation of boulders, stones or other debris carried and deposited by a glacier.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\moraine_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\moraine_poly.gif"
-            },
-            "moraine_wall": {
-                "theme": "Landcover",
-                "table_lds": "moraine_wall_poly",
-                "table_type": "Polygon",
-                "description": "An accumulation of boulders, stones or other debris, carried and deposited by the glacier to either side of the glacier, or at its terminal, forming a wall.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\moraine_wall_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\moraine_wall_poly.gif"
-            },
-            "mud": {
-                "theme": "Landcover",
-                "table_lds": "mud_poly",
-                "table_type": "Polygon",
-                "description": "An area of wet, soft earthy matter",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mud_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mud_poly.gif"
-            },
-            "sand": {
-                "theme": "Landcover",
-                "table_lds": "sand_poly",
-                "table_type": "Polygon",
-                "description": "Sand: crushed rock, shells etc smaller than 2mm in size",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sand_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sand_poly.gif"
-            },
-            "scree": {
-                "theme": "Landcover",
-                "table_lds": "scree_poly",
-                "table_type": "Polygon",
-                "description": "Mountain slope covered with small stones.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scree_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scree_poly.gif"
-            },
-            "shingle": {
-                "theme": "Landcover",
-                "table_lds": "shingle_poly",
-                "table_type": "Polygon",
-                "description": "Crushed rock, shells etc larger than 2mm in size",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shingle_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shingle_poly.gif"
-            }
-        }
-    },
-    "landcover_line": {
-        "feature_types": [
-            "dredge_tailing"
-        ],
-        "layer_description": "Represents linear of land cover features such as dredge tailings.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "dredge_tailing": {
-                "theme": "Landuse",
-                "table_lds": "dredge_tailing_cl",
-                "table_type": "Line",
-                "description": "The refuse left behind after dredging",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dredge_tailing_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dredge_tailing_cl.gif"
-            }
-        }
-    },
-    "landcover_point": {
-        "feature_types": [
-            "fumarole",
-            "rock_outcrop"
-        ],
-        "layer_description": "Represents land cover feature locations suck as rock outcrops.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "fumarole": {
-                "theme": "Landcover",
-                "table_lds": "fumarole_pnt",
-                "table_type": "Point",
-                "description": "A hole in the Earth's crust from which steam and gases are emitted",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fumarole_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fumarole_pnt.gif"
-            },
-            "rock_outcrop": {
-                "theme": "Landcover",
-                "table_lds": "rock_outcrop_pnt",
-                "table_type": "Point",
-                "description": "An isolated rock formation that constitutes a prominent or unusual landmark",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_outcrop_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_outcrop_pnt.gif"
-            }
-        }
-    },
-    "landuse": {
-        "feature_types": [
-            "cemetery",
-            "golf_course",
-            "gravel_pit",
-            "landfill",
-            "mine",
-            "pumice_pit",
-            "quarry",
-            "racetrack",
-            "rifle_range",
-            "showground",
-            "sportsfield"
-        ],
-        "layer_description": "Represents areas designated for specific uses such as mines, racetracks.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landuse.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "cemetery": {
-                "theme": "Landuse",
-                "table_lds": "cemetery_poly",
-                "table_type": "Polygon",
-                "description": "A place for burying the dead.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cemetery_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cemetery_poly.gif"
-            },
-            "golf_course": {
-                "theme": "Landuse",
-                "table_lds": "golf_course_poly",
-                "table_type": "Polygon",
-                "description": "An area set aside for playing golf.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\golf_course_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\golf_course_poly.gif"
-            },
-            "gravel_pit": {
-                "theme": "Landuse",
-                "table_lds": "gravel_pit_poly",
-                "table_type": "Polygon",
-                "description": "Area used for the extraction of coarse sand and small water-worn or pounded stones, used for paths and roads",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gravel_pit_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gravel_pit_poly.gif"
-            },
-            "landfill": {
-                "theme": "Landuse",
-                "table_lds": "landfill_poly",
-                "table_type": "Polygon",
-                "description": "A portion of land on which refuse, solid or semi-solid waste, is dumped and then covered with earth.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\landfill_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\landfill_poly.gif"
-            },
-            "mine": {
-                "theme": "Landuse",
-                "table_lds": "mine_poly",
-                "table_type": "Polygon",
-                "description": "An excavation in the Earth for the purpose of extracting minerals.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mine_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mine_poly.gif"
-            },
-            "pumice_pit": {
-                "theme": "Landuse",
-                "table_lds": "pumice_pit_poly",
-                "table_type": "Polygon",
-                "description": "Area used for the extraction of pumice",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pumice_pit_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pumice_pit_poly.gif"
-            },
-            "quarry": {
-                "theme": "Landuse",
-                "table_lds": "quarry_poly",
-                "table_type": "Polygon",
-                "description": "An excavation or pit, usually open to the air, from which building stone or the like is obtained by cutting, blasting etc",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\quarry_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\quarry_poly.gif"
-            },
-            "racetrack": {
-                "theme": "Landuse",
-                "table_lds": "racetrack_poly",
-                "table_type": "Polygon",
-                "description": "A course laid out for racing",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\racetrack_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\racetrack_poly.gif"
-            },
-            "rifle_range": {
-                "theme": "Landuse",
-                "table_lds": "rifle_range_poly",
-                "table_type": "Polygon",
-                "description": "An area of land set aside for fire-arms practise",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rifle_range_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rifle_range_poly.gif"
-            },
-            "showground": {
-                "theme": "Landuse",
-                "table_lds": "showground_poly",
-                "table_type": "Polygon",
-                "description": "A public area containing buildings, paddocks etc. for the display of livestock, agricultural produce, machinery, and the like.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\showground_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\showground_poly.gif"
-            },
-            "sportsfield": {
-                "theme": "Landuse",
-                "table_lds": "sportsfield_poly",
-                "table_type": "Polygon",
-                "description": "A field on which sporting activities are carried out",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sportsfield_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sportsfield_poly.gif"
-            }
-        }
-    },
-    "landuse_line": {
-        "feature_types": [
-            "racetrack"
-        ],
-        "layer_description": "Represents linear of land use features suck as racetracks.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landuse_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "racetrack": {
-                "theme": "Landuse",
-                "table_lds": "racetrack_cl",
-                "table_type": "Line",
-                "description": "A course laid out for racing",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\racetrack_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\racetrack_cl.gif"
-            }
-        }
-    },
-    "marine": {
-        "feature_types": [
-            "mangrove",
-            "reef",
-            "rock",
-            "shoal"
-        ],
-        "layer_description": "Represents features in the marine environment such as mangrives, reef, rocks and shoals.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\marine.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "mangrove": {
-                "theme": "Landcover",
-                "table_lds": "mangrove_poly",
-                "table_type": "Polygon",
-                "description": "A vegetation type characterising a coastal swamp of brackish or saline water, in which specially adapted trees form a dense swamp forest",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mangrove_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mangrove_poly.gif"
-            },
-            "reef": {
-                "theme": "Landcover",
-                "table_lds": "reef_poly",
-                "table_type": "Polygon",
-                "description": "A ridge, usually of rocks or coral, lying near the surface of the sea, which may be visible at low tide, but is usually covered with water",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\reef_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\reef_poly.gif"
-            },
-            "rock": {
-                "theme": "Landcover",
-                "table_lds": "rock_poly",
-                "table_type": "Polygon",
-                "description": "Coastal rocks; rocks between high and low tide",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_poly.gif"
-            },
-            "shoal": {
-                "theme": "Landcover",
-                "table_lds": "shoal_poly",
-                "table_type": "Polygon",
-                "description": "A submarine object over which the water is shallow, which is detached from the shore and whose bottom is visible at low water; may be a menace to navigation on the surface",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shoal_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shoal_poly.gif"
-            }
-        }
-    },
-    "nz_topo50_map_sheet": {
-        "feature_types": [
-            "nz_topo50_map_sheet"
-        ],
-        "layer_description": "Represents the LINZ Topographic 1:50,000 map sheets.",
-        "layer_category": "Administrative & Reference",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\nz_topo50_map_sheet.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
-        "features": {
-            "nz_topo50_map_sheet": {
-                "theme": "MapSheets",
-                "table_lds": "nz_topo50_map_sheet_poly",
-                "table_type": "Polygon",
-                "description": "",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\nz_topo50_map_sheet_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\nz_topo50_map_sheet_poly.gif"
-            }
-        }
-    },
-    "physical_infrastructure_line": {
-        "feature_types": [
-            "pipeline",
-            "powerline",
-            "telephone",
-            "walkwire",
-            "water_race"
-        ],
-        "layer_description": "Represents linear infrastructure such as  pipelines, power lines.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\physical_infrastructure_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "pipeline": {
-                "theme": "Infrastructure",
-                "table_lds": "pipeline_cl",
-                "table_type": "Line",
-                "description": "A closed pressure system,usually constructed of steel or ferro concrete pipes.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pipeline_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pipeline_cl.gif"
-            },
-            "powerline": {
-                "theme": "Infrastructure",
-                "table_lds": "powerline_cl",
-                "table_type": "Line",
-                "description": "A cable or cables supported by poles or towers for the transmission of electricity",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\powerline_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\powerline_cl.gif"
-            },
-            "telephone": {
-                "theme": "Infrastructure",
-                "table_lds": "telephone_cl",
-                "table_type": "Line",
-                "description": "Telephone line; the linear distribution system of high-tension wires, cables etc providing telephone communications.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\telephone_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\telephone_cl.gif"
-            },
-            "walkwire": {
-                "theme": "Infrastructure",
-                "table_lds": "walkwire_cl",
-                "table_type": "Line",
-                "description": "A series of wires, one to walk on, one or more to hold on to. This enables a person to cross from one side of an obstacle to another - ususally a river.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\walkwire_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\walkwire_cl.gif"
-            },
-            "water_race": {
-                "theme": "Infrastructure",
-                "table_lds": "water_race_cl",
-                "table_type": "Line",
-                "description": "A man-made water channel, often running parallel to the contours, built specifically for the distribution of water to crops, pasture, mining activities etc",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\water_race_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\water_race_cl.gif"
-            }
-        }
-    },
-    "physical_infrastructure_point": {
-        "feature_types": [
-            "gas_valve",
-            "geo_bore",
-            "pylon"
-        ],
-        "layer_description": "Represents point infrastructure such as poles, towers.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\physical_infrastructure_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "gas_valve": {
-                "theme": "Infrastructure",
-                "table_lds": "gas_valve_pnt",
-                "table_type": "Point",
-                "description": "A device for the controlling of gas through a pipe",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gas_valve_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gas_valve_pnt.gif"
-            },
-            "geo_bore": {
-                "theme": "Infrastructure",
-                "table_lds": "geo_bore_pnt",
-                "table_type": "Point",
-                "description": "A hole drilled to tap into a geothermal field; resulting steam and/or pressure is used in the production of electricity, for drying, heating etc.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\geo_bore_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\geo_bore_pnt.gif"
-            },
-            "pylon": {
-                "theme": "Infrastructure",
-                "table_lds": "pylon_pnt",
-                "table_type": "Point",
-                "description": "A steel tower supporting high tension wires",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pylon_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pylon_pnt.gif"
-            }
-        }
-    },
-    "place_point": {
-        "feature_types": [
-            "cave",
-            "cemetery",
-            "grave",
-            "historic_site",
-            "mine",
-            "monument",
-            "pa",
-            "radar_dome",
-            "saddle",
-            "satellite_station"
-        ],
-        "layer_description": "Represents a named place or locality.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\place_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "cave": {
-                "theme": "LandCover",
-                "table_lds": "cave_pnt",
-                "table_type": "Point",
-                "description": "A naturally formed, subterranean open area or chamber.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cave_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cave_pnt.gif"
-            },
-            "cemetery": {
-                "theme": "Landuse",
-                "table_lds": "cemetery_pnt",
-                "table_type": "Point",
-                "description": "A place for burying the dead.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cemetery_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cemetery_pnt.gif"
-            },
-            "grave": {
-                "theme": "Landuse",
-                "table_lds": "grave_pnt",
-                "table_type": "Point",
-                "description": "A location of one or more graves not within an officially designated cemetery.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\grave_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\grave_pnt.gif"
-            },
-            "historic_site": {
-                "theme": "Landuse",
-                "table_lds": "historic_site_pnt",
-                "table_type": "Point",
-                "description": "A place where some historic activity has been conducted, or where some historic object is located.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\historic_site_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\historic_site_pnt.gif"
-            },
-            "mine": {
-                "theme": "Landuse",
-                "table_lds": "mine_pnt",
-                "table_type": "Point",
-                "description": "An excavation in the Earth for the purpose of extracting minerals.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mine_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mine_pnt.gif"
-            },
-            "monument": {
-                "theme": "Landuse",
-                "table_lds": "monument_pnt",
-                "table_type": "Point",
-                "description": "A structure erected as a memorial.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\monument_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\monument_pnt.gif"
-            },
-            "pa": {
-                "theme": "Landuse",
-                "table_lds": "pa_pnt",
-                "table_type": "Point",
-                "description": "Defensive earthworks constructed by Maori at any time between the fifteenth and nineteenth centuries which were still visible as a topographical object at the time the first edition of the map was published.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pa_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pa_pnt.gif"
-            },
-            "radar_dome": {
-                "theme": "Landuse",
-                "table_lds": "radar_dome_pnt",
-                "table_type": "Point",
-                "description": "A dome shaped structure used to protect the antenna of a radar installation",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\radar_dome_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\radar_dome_pnt.gif"
-            },
-            "saddle": {
-                "theme": "LandCover",
-                "table_lds": "saddle_pnt",
-                "table_type": "Point",
-                "description": "Low point or opening between hills or mountains",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\saddle_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\saddle_pnt.gif"
-            },
-            "satellite_station": {
-                "theme": "Landuse",
-                "table_lds": "satellite_station_pnt",
-                "table_type": "Point",
-                "description": "concave dish for the receiving of signals from satellite/s",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\satellite_station_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\satellite_station_pnt.gif"
-            }
-        }
-    },
-    "railway_line": {
-        "feature_types": [
-            "railway"
-        ],
-        "layer_description": "Represents railway tracks. Dual tracks may be represented as single entity.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\railway_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "railway": {
-                "theme": "Transport",
-                "table_lds": "railway_cl",
-                "table_type": "Line",
-                "description": "A permanent way having one or more rails which provides a track for trains or trams",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\railway_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\railway_cl.gif"
-            }
-        }
-    },
-    "railway_station": {
-        "feature_types": [
-            "rail_station"
-        ],
-        "layer_description": "Location of a railway station.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\railway_station.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "rail_station": {
-                "theme": "Transport",
-                "table_lds": "rail_station_poly",
-                "table_type": "Polygon",
-                "description": "",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rail_station_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rail_station_poly.gif"
-            }
-        }
-    },
-    "relief_line": {
-        "feature_types": [
-            "cliff_edge",
-            "cutting_edge",
-            "embankment",
-            "slip_edge"
-        ],
-        "layer_description": "Represents terrain features such as cliffs.",
-        "layer_category": "Terrain",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\relief_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
-        "features": {
-            "cliff_edge": {
-                "theme": "Relief",
-                "table_lds": "cliff_edge",
-                "table_type": "Line",
-                "description": "A high, steep or overhanging face or rock. Can be rock.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cliff_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cliff_edge.gif"
-            },
-            "cutting_edge": {
-                "theme": "Relief",
-                "table_lds": "cutting_edge",
-                "table_type": "Line",
-                "description": "An excavation of the Earth's surface to provide passage for a road, railway, canal etc",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cutting_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cutting_edge.gif"
-            },
-            "embankment": {
-                "theme": "Relief",
-                "table_lds": "embankment_cl",
-                "table_type": "Line",
-                "description": "An artificial bank of earth and or stone built above the natural surface",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\embankment_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\embankment_cl.gif"
-            },
-            "slip_edge": {
-                "theme": "Relief",
-                "table_lds": "slip_edge",
-                "table_type": "Line",
-                "description": "A land mass which has moved",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\slip_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\slip_edge.gif"
-            }
-        }
-    },
-    "relief_point": {
-        "feature_types": [
-            "height",
-            "sinkhole"
-        ],
-        "layer_description": "Represents terrain features such as peaks or saddles.",
-        "layer_category": "Terrain",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\relief_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
-        "features": {
-            "height": {
-                "theme": "Relief",
-                "table_lds": "height_pnt",
-                "table_type": "Point",
-                "description": "A height above a vertical datum, represented on a map by a dot locator with the elevation printed beside the dot. Unlike trigonometrical stations, spot heights are not identifiable on the ground",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\height_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\height_pnt.gif"
-            },
-            "sinkhole": {
-                "theme": "Relief",
-                "table_lds": "sinkhole_pnt",
-                "table_type": "Point",
-                "description": "A hole, or funnel shaped cavity made in the earth by the action of water on the soil, rock or underlying strata",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sinkhole_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sinkhole_pnt.gif"
-            }
-        }
-    },
-    "residential_area": {
-        "feature_types": [
-            "residential_area"
-        ],
-        "layer_description": "Represents areas primarily used for housing.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\residential_area.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "residential_area": {
-                "theme": "Landuse",
-                "table_lds": "residential_area_poly",
-                "table_type": "Polygon",
-                "description": "The group of houses and their sections that together make up a residential area",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\residential_area_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\residential_area_poly.gif"
-            }
-        }
-    },
-    "road_line": {
-        "feature_types": [
-            "road"
-        ],
-        "layer_description": "Represents roads, including highways and streets.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\road_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "road": {
-                "theme": "Transport",
-                "table_lds": "road_cl",
-                "table_type": "Line",
-                "description": "Any formed all weather route suitable for the passage of any vehicle.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\road_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\road_cl.gif"
-            }
-        }
-    },
-    "runway": {
-        "feature_types": [
-            "runway"
-        ],
-        "layer_description": "Represents airport runway areas.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\runway.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "runway": {
-                "theme": "Transport",
-                "table_lds": "runway_poly",
-                "table_type": "Polygon",
-                "description": "The usable surface where aircraft land and take-off. ",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\runway_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\runway_poly.gif"
-            }
-        }
-    },
-    "structure": {
-        "feature_types": [
-            "dry_dock",
-            "fish_farm",
-            "marine_farm",
-            "reservoir",
-            "siphon",
-            "tank"
-        ],
-        "layer_description": "Represents man-made structures other than buildings (e.g., reservoir, dry_dock, fish_farm, marine_farm, siphon, tank).",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "dry_dock": {
-                "theme": "Structures",
-                "table_lds": "dry_dock_poly",
-                "table_type": "Polygon",
-                "description": "An artificial basin fitted with gate or caisson into which a vessel may be floated and from which the water may be pumped out to expose the bottom of the vessel",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dry_dock_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dry_dock_poly.gif"
-            },
-            "fish_farm": {
-                "theme": "Structures",
-                "table_lds": "fish_farm_poly",
-                "table_type": "Polygon",
-                "description": "An area of water on land, or in an inland waterbody, used for aquatic cultivation.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fish_farm_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fish_farm_poly.gif"
-            },
-            "marine_farm": {
-                "theme": "Structures",
-                "table_lds": "marine_farm_poly",
-                "table_type": "Polygon",
-                "description": "An area in the sea, used for aquatic cultivation.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\marine_farm_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\marine_farm_poly.gif"
-            },
-            "reservoir": {
-                "theme": "Landuse",
-                "table_lds": "reservoir_poly",
-                "table_type": "Polygon",
-                "description": "Reservoir; receptacle in which a large quantity of water is stored",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\reservoir_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\reservoir_poly.gif"
-            },
-            "siphon": {
-                "theme": "Structures",
-                "table_lds": "siphon_poly",
-                "table_type": "Polygon",
-                "description": "A pipe system comprising a rising leg and a falling leg, typically in the shape of an inverted U. Works on atmospheric pressure",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\siphon_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\siphon_poly.gif"
-            },
-            "tank": {
-                "theme": "Structures",
-                "table_lds": "tank_poly",
-                "table_type": "Polygon",
-                "description": "A structure used for the storage of fluids.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tank_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tank_poly.gif"
-            }
-        }
-    },
-    "structure_line": {
-        "feature_types": [
-            "boatramp",
-            "boom",
-            "breakwater",
-            "cableway_industrial",
-            "cableway_people",
-            "dam",
-            "flume",
-            "ladder",
-            "marine_farm",
-            "ski_lift",
-            "ski_tow",
-            "slipway",
-            "spillway_edge",
-            "weir",
-            "wharf",
-            "wharf_edge"
-        ],
-        "layer_description": "Represents structural features such as  cableways, ladders, wharf, weirs etc.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "boatramp": {
-                "theme": "Structures",
-                "table_lds": "boatramp_cl",
-                "table_type": "Line",
-                "description": "A place for launching or retrieving boats from the water.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\boatramp_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\boatramp_cl.gif"
-            },
-            "boom": {
-                "theme": "Structures",
-                "table_lds": "boom_cl",
-                "table_type": "Line",
-                "description": "Floating barrier across a river or harbour mouth.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\boom_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\boom_cl.gif"
-            },
-            "breakwater": {
-                "theme": "Structures",
-                "table_lds": "breakwater_cl",
-                "table_type": "Line",
-                "description": "A structure built to break the force of waves to protect a beach, harbour or other waterfront facility.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\breakwater_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\breakwater_cl.gif"
-            },
-            "cableway_industrial": {
-                "theme": "Structures",
-                "table_lds": "cableway_industrial_cl",
-                "table_type": "Line",
-                "description": "Industrial cableway; a conveyor system built primarily for the transport of material for industry, power production etc, in which a carrier unit or units run on wire cables strung between supports.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cableway_industrial_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cableway_industrial_cl.gif"
-            },
-            "cableway_people": {
-                "theme": "Structures",
-                "table_lds": "cableway_people_cl",
-                "table_type": "Line",
-                "description": "Cableway for people; a conveyor system, built to transport people primarily, in which a carrier unit or units run on wire cables strung between supports.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cableway_people_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cableway_people_cl.gif"
-            },
-            "dam": {
-                "theme": "Structures",
-                "table_lds": "dam_cl",
-                "table_type": "Line",
-                "description": "A barrier constructed across a watercourse to control the flow or raise the level of water",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dam_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dam_cl.gif"
-            },
-            "flume": {
-                "theme": "Landuse",
-                "table_lds": "flume_cl",
-                "table_type": "Line",
-                "description": "A flat bottomed timber trough or other open channel, generally formed in concrete, for the conveyance of water",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\flume_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\flume_cl.gif"
-            },
-            "ladder": {
-                "theme": "Structures",
-                "table_lds": "ladder_cl",
-                "table_type": "Line",
-                "description": "A set of steps, or rungs, inserted in two uprights to serve as a means of ascending a cliff-face",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ladder_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ladder_cl.gif"
-            },
-            "marine_farm": {
-                "theme": "Structures",
-                "table_lds": "marine_farm_cl",
-                "table_type": "Line",
-                "description": "A line often strung between buoys in the sea used for aquatic cultivation.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\marine_farm_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\marine_farm_cl.gif"
-            },
-            "ski_lift": {
-                "theme": "Structures",
-                "table_lds": "ski_lift_cl",
-                "table_type": "Line",
-                "description": "a conveyor system in which carrier units run on wire cables strung between supports for transporting skiers (who sit in a chair or similar construction; ie. not in contact with the ground) up the slope.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ski_lift_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ski_lift_cl.gif"
-            },
-            "ski_tow": {
-                "theme": "Structures",
-                "table_lds": "ski_tow_cl",
-                "table_type": "Line",
-                "description": "a conveyor system in which carrier units run on wire or rope cables strung between supports for transporting skiers up the slope - the skier remains in contact with the ground whilst being towed up the slope",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ski_tow_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ski_tow_cl.gif"
-            },
-            "slipway": {
-                "theme": "Structures",
-                "table_lds": "slipway_cl",
-                "table_type": "Line",
-                "description": "Ship building or landing slip",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\slipway_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\slipway_cl.gif"
-            },
-            "spillway_edge": {
-                "theme": "Structures",
-                "table_lds": "spillway_edge",
-                "table_type": "Line",
-                "description": "A constructed path or channel for excess water to pass over or beside a dam.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\spillway_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\spillway_edge.gif"
-            },
-            "weir": {
-                "theme": "Structures",
-                "table_lds": "weir_cl",
-                "table_type": "Line",
-                "description": "An artificial barrier placed in an open channel and over which the water flows",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\weir_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\weir_cl.gif"
-            },
-            "wharf": {
-                "theme": "Structures",
-                "table_lds": "wharf_cl",
-                "table_type": "Line",
-                "description": "Any structure on a waterfront, designed to make it possible for vessels to lie alongside and take or unload cargo, passengers etc.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wharf_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wharf_cl.gif"
-            },
-            "wharf_edge": {
-                "theme": "Structures",
-                "table_lds": "wharf_edge",
-                "table_type": "Line",
-                "description": "Any structure on a waterfront, designed to make it possible for vessels to lie alongside and take or unload cargo, passengers etc.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wharf_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wharf_edge.gif"
-            }
-        }
-    },
-    "structure_point": {
-        "feature_types": [
-            "beacon",
-            "bivouac",
-            "buoy",
-            "chimney",
-            "dredge",
-            "flare",
-            "floodgate",
-            "gate",
-            "ladder",
-            "mast",
-            "redoubt",
-            "shaft",
-            "siphon",
-            "stockyard",
-            "tank",
-            "tower",
-            "well",
-            "windmill",
-            "wreck"
-        ],
-        "layer_description": "Represents small structures or structural features such as gates, masts tanks, windmills.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "beacon": {
-                "theme": "Structures",
-                "table_lds": "beacon_pnt",
-                "table_type": "Point",
-                "description": "A fixed signal, mark or light erected for the guidance of mariners or aeroplane pilots.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\beacon_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\beacon_pnt.gif"
-            },
-            "bivouac": {
-                "theme": "Structures",
-                "table_lds": "bivouac_pnt",
-                "table_type": "Point",
-                "description": "An emergency shelter, place known to offer protection in remote areas, maybe either natural as in the cleft of a rock, or the lee of a fallen tree etc, or man made.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\bivouac_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\bivouac_pnt.gif"
-            },
-            "buoy": {
-                "theme": "Structures",
-                "table_lds": "buoy_pnt",
-                "table_type": "Point",
-                "description": "A float moored or anchored in water.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\buoy_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\buoy_pnt.gif"
-            },
-            "chimney": {
-                "theme": "Structures",
-                "table_lds": "chimney_pnt",
-                "table_type": "Point",
-                "description": "A structure containing a passage or flue which discharges smoke and gases from combustion. \n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\chimney_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\chimney_pnt.gif"
-            },
-            "dredge": {
-                "theme": "Structures",
-                "table_lds": "dredge_pnt",
-                "table_type": "Point",
-                "description": "Apparatus for clearing out mud etc from river or sea bottom.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dredge_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dredge_pnt.gif"
-            },
-            "flare": {
-                "theme": "Structures",
-                "table_lds": "flare_pnt",
-                "table_type": "Point",
-                "description": "A stack used for the safe burning of combustible gases. Usually associated with petroleum and petrochemical process plants",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\flare_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\flare_pnt.gif"
-            },
-            "floodgate": {
-                "theme": "Structures",
-                "table_lds": "floodgate_pnt",
-                "table_type": "Point",
-                "description": "Gate opened and closed to admit or exclude water.",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\floodgate_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\floodgate_pnt.gif"
-            },
-            "gate": {
-                "theme": "Structures",
-                "table_lds": "gate_pnt",
-                "table_type": "Point",
-                "description": " A structure that may be swung, drawn or lowered to block an entrance or passageway",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gate_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gate_pnt.gif"
-            },
-            "ladder": {
-                "theme": "Structures",
-                "table_lds": "ladder_pnt",
-                "table_type": "Point",
-                "description": "A set of steps, or rungs, inserted in two uprights to serve as a means of ascending a cliff-face",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ladder_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ladder_pnt.gif"
-            },
-            "mast": {
-                "theme": "Structures",
-                "table_lds": "mast_pnt",
-                "table_type": "Point",
-                "description": "A vertical pole serving as an antenna or antenna support.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mast_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mast_pnt.gif"
-            },
-            "redoubt": {
-                "theme": "Structures",
-                "table_lds": "redoubt_pnt",
-                "table_type": "Point",
-                "description": "European fortification of the New Zealand Wars",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\redoubt_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\redoubt_pnt.gif"
-            },
-            "shaft": {
-                "theme": "Structures",
-                "table_lds": "shaft_pnt",
-                "table_type": "Point",
-                "description": "a long narrow passage sunk in the earth",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shaft_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shaft_pnt.gif"
-            },
-            "siphon": {
-                "theme": "Structures",
-                "table_lds": "siphon_pnt",
-                "table_type": "Point",
-                "description": "A pipe system comprising a rising leg and a falling leg, typically in the shape of an inverted U. Works on atmospheric pressure",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\siphon_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\siphon_pnt.gif"
-            },
-            "stockyard": {
-                "theme": "Structures",
-                "table_lds": "stockyard_pnt",
-                "table_type": "Point",
-                "description": "A holding place for livestock (cattle, sheep etc.)\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\stockyard_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\stockyard_pnt.gif"
-            },
-            "tank": {
-                "theme": "Structures",
-                "table_lds": "tank_pnt",
-                "table_type": "Point",
-                "description": "A structure used for the storage of fluids       ",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tank_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tank_pnt.gif"
-            },
-            "tower": {
-                "theme": "Structures",
-                "table_lds": "tower_pnt",
-                "table_type": "Point",
-                "description": "A tall framework or structure, the elevation of which is functional",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tower_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tower_pnt.gif"
-            },
-            "well": {
-                "theme": "Structures",
-                "table_lds": "well_pnt",
-                "table_type": "Point",
-                "description": "A pit or hole dug or bored into the earth",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\well_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\well_pnt.gif"
-            },
-            "windmill": {
-                "theme": "Structures",
-                "table_lds": "windmill_pnt",
-                "table_type": "Point",
-                "description": "A mill or other machine that runs on the energy generated by a wheel of adjustable blades or flats rotated by the wind",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\windmill_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\windmill_pnt.gif"
-            },
-            "wreck": {
-                "theme": "Structures",
-                "table_lds": "wreck_pnt",
-                "table_type": "Point",
-                "description": "A wrecked vessel, either submerged or visible which is attached to or foul of the bottom or cast up on the shore; or a greatly disabled or damaged vehicle",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wreck_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wreck_pnt.gif"
-            }
-        }
-    },
-    "track_line": {
-        "feature_types": [
-            "track"
-        ],
-        "layer_description": "Represents walking tracks, trails, or unsealed paths.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\track_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "track": {
-                "theme": "Transport",
-                "table_lds": "track_cl",
-                "table_type": "Line",
-                "description": "A deliberately formed route of a lesser quality than a road",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\track_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\track_cl.gif"
-            }
-        }
-    },
-    "transport_point": {
-        "feature_types": [
-            "ford",
-            "helipad"
-        ],
-        "layer_description": "Represents transport-related locations (e.g., bus stops, terminals).",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\transport_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "ford": {
-                "theme": "Transport",
-                "table_lds": "ford_pnt",
-                "table_type": "Point",
-                "description": "A shallow or flat portion of the bed of a watercourse where a crossing may be effected",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ford_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ford_pnt.gif"
-            },
-            "helipad": {
-                "theme": "Transport",
-                "table_lds": "helipad_pnt",
-                "table_type": "Point",
-                "description": "An area set aside for the landing of helicopters",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\helipad_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\helipad_pnt.gif"
-            }
-        }
-    },
-    "tree_locations": {
-        "feature_types": [
-            "tree"
-        ],
-        "layer_description": "Represents individual trees or notable groups of trees.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\tree_locations.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "tree": {
-                "theme": "Landcover",
-                "table_lds": "tree_pnt",
-                "table_type": "Point",
-                "description": "A woody perennial plant, having a self-supporting main stem or trunk.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tree_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tree_pnt.gif"
-            }
-        }
-    },
-    "trig_point": {
-        "feature_types": [
-            "trig"
-        ],
-        "layer_description": "Represents a geodetic survey control point.",
-        "layer_category": "Buildings & Structures",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\trig_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
-        "features": {
-            "trig": {
-                "theme": "Relief",
-                "table_lds": "trig_pnt",
-                "table_type": "Point",
-                "description": "A structure on top of a hill, usually coloured black and white, used as a physical reference point by surveyors to determine location. The symbol shown on the map includes the elevation and trig identification code for beaconed trig stations.\nThese topographic trig points are derived from New Zealand geodetic marks data which can also be accessed through the LINZ Data Service: [NZ Geodetic Marks](https://data.linz.govt.nz/layer/50787/) and [NZ Geodetic Vertical Marks](https://data.linz.govt.nz/layer/50784/). ",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\trig_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\trig_pnt.gif"
-            }
-        }
-    },
-    "tunnel_line": {
-        "feature_types": [
-            "tunnel"
-        ],
-        "layer_description": "Represents tunnels for roads, railways, or utilities.",
-        "layer_category": "Transport and Infrastructure",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\tunnel_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
-        "features": {
-            "tunnel": {
-                "theme": "Transport",
-                "table_lds": "tunnel_cl",
-                "table_type": "Line",
-                "description": "An underground passage",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tunnel_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tunnel_cl.gif"
-            }
-        }
-    },
-    "vegetation": {
-        "feature_types": [
-            "exotic",
-            "native",
-            "orchard",
-            "scattered_scrub",
-            "scrub",
-            "vineyard"
-        ],
-        "layer_description": "Represents areas of vegetation landcover such as trees, scrub, vineyards.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "exotic": {
-                "theme": "Landcover",
-                "table_lds": "exotic_poly",
-                "table_type": "Polygon",
-                "description": "A tract of land covered by trees not native to New Zealand",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\exotic_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\exotic_poly.gif"
-            },
-            "native": {
-                "theme": "Landcover",
-                "table_lds": "native_poly",
-                "table_type": "Polygon",
-                "description": "A tract of land covered by trees native to New Zealand.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\native_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\native_poly.gif"
-            },
-            "orchard": {
-                "theme": "Landuse",
-                "table_lds": "orchard_poly",
-                "table_type": "Polygon",
-                "description": "Vegetation defined as pip or stone fruit eg apples, apricots, olives etc",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\orchard_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\orchard_poly.gif"
-            },
-            "scattered_scrub": {
-                "theme": "Landcover",
-                "table_lds": "scattered_scrub_poly",
-                "table_type": "Polygon",
-                "description": "A tract of land covered by vegetation less than 3m high in a random manner.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scattered_scrub_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scattered_scrub_poly.gif"
-            },
-            "scrub": {
-                "theme": "Landcover",
-                "table_lds": "scrub_poly",
-                "table_type": "Polygon",
-                "description": "A tract of land covered by vegetation less that 3m high",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scrub_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scrub_poly.gif"
-            },
-            "vineyard": {
-                "theme": "Landuse",
-                "table_lds": "vineyard_poly",
-                "table_type": "Polygon",
-                "description": "Vegetation defined as vines eg grapes, kiwifruit etc",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\vineyard_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\vineyard_poly.gif"
-            }
-        }
-    },
-    "vegetation_line": {
-        "feature_types": [
-            "shelter_belt"
-        ],
-        "layer_description": "Represents linear vegetation features such as shelter belts.",
-        "layer_category": "Land Cover & Land Use",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
-        "features": {
-            "shelter_belt": {
-                "theme": "Landcover",
-                "table_lds": "shelter_belt_cl",
-                "table_type": "Line",
-                "description": "A line of trees which breaks or interrupts the force of the wind",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shelter_belt_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shelter_belt_cl.gif"
-            }
-        }
-    },
-    "water": {
-        "feature_types": [
-            "canal",
-            "lagoon",
-            "lake",
-            "pond",
-            "river",
-            "swamp"
-        ],
-        "layer_description": "Represents water bodies such as  rivers, lakes.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "canal": {
-                "theme": "Landuse",
-                "table_lds": "canal_poly",
-                "table_type": "Polygon",
-                "description": "An artificial open waterway used for transportation, waterpower or irrigation.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\canal_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\canal_poly.gif"
-            },
-            "lagoon": {
-                "theme": "Landcover",
-                "table_lds": "lagoon_poly",
-                "table_type": "Polygon",
-                "description": "A sheet of salt water separated from the open sea by sand, shingle banks or a road embankment. The sheet of water between an offshore reef, esp. of coral, and mainland. The sheet of water within a ring or horseshoe shaped atoll.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\lagoon_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\lagoon_poly.gif"
-            },
-            "lake": {
-                "theme": "Landcover",
-                "table_lds": "lake_poly",
-                "table_type": "Polygon",
-                "description": "Any standing body of fresh inland water.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\lake_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\lake_poly.gif"
-            },
-            "pond": {
-                "theme": "Landcover",
-                "table_lds": "pond_poly",
-                "table_type": "Polygon",
-                "description": "An area of shallow water with walls or banks created for a specific purpose",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pond_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pond_poly.gif"
-            },
-            "river": {
-                "theme": "Landcover",
-                "table_lds": "river_poly",
-                "table_type": "Polygon",
-                "description": "A natural, flowing body of water emptying into an ocean, lake or other body of water and usually fed along it's course by converging tributaries.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\river_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\river_poly.gif"
-            },
-            "swamp": {
-                "theme": "Landcover",
-                "table_lds": "swamp_poly",
-                "table_type": "Polygon",
-                "description": "A wet or moist region with water standing on or just below the surface of the ground, and usually covered by a growth of vegetation",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\swamp_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\swamp_poly.gif"
-            }
-        }
-    },
-    "water_line": {
-        "feature_types": [
-            "canal",
-            "drain",
-            "river"
-        ],
-        "layer_description": "Represents water features such as rivers, canals, drains.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "canal": {
-                "theme": "Landuse",
-                "table_lds": "canal_cl",
-                "table_type": "Line",
-                "description": "An artificial open waterway used for transportation, waterpower or irrigation.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\canal_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\canal_cl.gif"
-            },
-            "drain": {
-                "theme": "Landuse",
-                "table_lds": "drain_cl",
-                "table_type": "Line",
-                "description": "A channel which carries surface water.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\drain_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\drain_cl.gif"
-            },
-            "river": {
-                "theme": "Landcover",
-                "table_lds": "river_cl",
-                "table_type": "Line",
-                "description": "A natural, flowing body of water emptying into an ocean, lake or other body of water and usually fed along it's course by converging tributaries.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\river_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\river_cl.gif"
-            }
-        }
-    },
-    "water_point": {
-        "feature_types": [
-            "rock",
-            "soakhole",
-            "spring",
-            "swamp",
-            "waterfall"
-        ],
-        "layer_description": "Represents water-related features such as springs.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water_point.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "rock": {
-                "theme": "Landcover",
-                "table_lds": "rock_pnt",
-                "table_type": "Point",
-                "description": "An isolated rock or rock formation between high and low tides.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_pnt.gif"
-            },
-            "soakhole": {
-                "theme": "Landcover",
-                "table_lds": "soakhole_pnt",
-                "table_type": "Point",
-                "description": "The point at which a river or stream percolates into or through the soil.\n\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\soakhole_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\soakhole_pnt.gif"
-            },
-            "spring": {
-                "theme": "Landcover",
-                "table_lds": "spring_pnt",
-                "table_type": "Point",
-                "description": "The place where water issues from the ground naturally",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\spring_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\spring_pnt.gif"
-            },
-            "swamp": {
-                "theme": "Landcover",
-                "table_lds": "swamp_pnt",
-                "table_type": "Point",
-                "description": "A wet or moist region with water standing on or just below the surface of the ground, and usually covered by a growth of vegetation",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\swamp_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\swamp_pnt.gif"
-            },
-            "waterfall": {
-                "theme": "Landcover",
-                "table_lds": "waterfall_pnt",
-                "table_type": "Point",
-                "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_pnt.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_pnt.gif"
-            }
-        }
-    },
-    "waterway_feature": {
-        "feature_types": [
-            "rapid",
-            "waterfall"
-        ],
-        "layer_description": "Represents rapids and waterfall areas.",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\waterway_feature.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "rapid": {
-                "theme": "Landcover",
-                "table_lds": "rapid_poly",
-                "table_type": "Polygon",
-                "description": "An area of broken, fast flowing water in a stream, where the slope of the bed increases (but without a prominent break of slope which might result in a cascade or waterfall), or where a gently dipping bar of harder rock outcrops",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rapid_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rapid_poly.gif"
-            },
-            "waterfall": {
-                "theme": "Landcover",
-                "table_lds": "waterfall_poly",
-                "table_type": "Polygon",
-                "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_poly.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_poly.gif"
-            }
-        }
-    },
-    "waterway_feature_line": {
-        "feature_types": [
-            "rapid",
-            "waterfall",
-            "waterfall_edge"
-        ],
-        "layer_description": "Represents edges of rapids and waterfalls",
-        "layer_category": "Water Marine Coastal Hydrographic",
-        "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\waterway_feature_line.png",
-        "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
-        "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
-        "features": {
-            "rapid": {
-                "theme": "Landcover",
-                "table_lds": "rapid_cl",
-                "table_type": "Line",
-                "description": "An area of broken, fast flowing water in a stream, where the slope of the bed increases (but without a prominent break of slope which might result in a cascade or waterfall), or where a gently dipping bar of harder rock outcrops",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rapid_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rapid_cl.gif"
-            },
-            "waterfall": {
-                "theme": "Landcover",
-                "table_lds": "waterfall_cl",
-                "table_type": "Line",
-                "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_cl.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_cl.gif"
-            },
-            "waterfall_edge": {
-                "theme": "Landcover",
-                "table_lds": "waterfall_edge",
-                "table_type": "Line",
-                "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
-                "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_edge.gif",
-                "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_edge.gif"
-            }
-        }
+  "airport": {
+    "feature_types": ["airport"],
+    "layer_description": "Represents the boundary of an airport facility.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\airport.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "airport": {
+        "theme": "Transport",
+        "table_lds": "airport_poly",
+        "table_type": "Polygon",
+        "description": "A facility where aircraft can take off and land; usually consists of hard-surfaced landing strips, a control tower, hangars and accommodation for passengers and cargo",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\airport_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\airport_poly.gif"
+      }
     }
+  },
+  "bridge_line": {
+    "feature_types": ["bridge"],
+    "layer_description": "Represents bridges crossing roads, railways, walkways or water features.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\bridge_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "bridge": {
+        "theme": "Transport",
+        "table_lds": "bridge_cl",
+        "table_type": "Line",
+        "description": "A structure erected over a depression or obstacle to carry traffic or some facility such as a pipeline.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\bridge_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\bridge_cl.gif"
+      }
+    }
+  },
+  "building": {
+    "feature_types": ["building"],
+    "layer_description": "Represents the extent of a building. Captured from aerial imagery.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\building.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "building": {
+        "theme": "Buildings",
+        "table_lds": "building_poly",
+        "table_type": "Polygon",
+        "description": "A relatively permanent walled and roofed construction.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\building_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\building_poly.gif"
+      }
+    }
+  },
+  "building_point": {
+    "feature_types": ["building"],
+    "layer_description": "Represents the location of a building.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\building_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "building": {
+        "theme": "Buildings",
+        "table_lds": "building_pnt",
+        "table_type": "Point",
+        "description": "A relatively permanent walled and roofed construction.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\building_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\building_pnt.gif"
+      }
+    }
+  },
+  "coastline": {
+    "feature_types": ["coastline"],
+    "layer_description": "Represents the boundary between land and sea.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\coastline.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "coastline": {
+        "theme": "Landcover",
+        "table_lds": "coastline_poly",
+        "table_type": "Polygon",
+        "description": "",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\coastline_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\coastline_poly.gif"
+      }
+    }
+  },
+  "contour": {
+    "feature_types": ["contour"],
+    "layer_description": "Represents elevation lines for terrain representation.",
+    "layer_category": "Terrain",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\contour.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
+    "features": {
+      "contour": {
+        "theme": "Relief",
+        "table_lds": "contour_poly",
+        "table_type": "Polygon",
+        "description": "",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\contour_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\contour_poly.gif"
+      }
+    }
+  },
+  "descriptive_text": {
+    "feature_types": ["descriptive_text"],
+    "layer_description": "Represents text annotations for labeling or descriptions.",
+    "layer_category": "Administrative & Reference",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\descriptive_text.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
+    "features": {
+      "descriptive_text": {
+        "theme": "Annonation",
+        "table_lds": "descriptive_text",
+        "table_type": "Point Annotation",
+        "description": "Descriptive text; object used to hold text.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\descriptive_text.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\descriptive_text.gif"
+      }
+    }
+  },
+  "fence_line": {
+    "feature_types": ["fence"],
+    "layer_description": "",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "fence": {
+        "theme": "Structures",
+        "table_lds": "fence_cl",
+        "table_type": "Line",
+        "description": "An enclosure or barrier made of wire, rails, slats or other relatively light material, as opposed to a wall which is of stone or other heavy material",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fence_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fence_cl.gif"
+      }
+    }
+  },
+  "ferry_crossing": {
+    "feature_types": ["ferry_crossing"],
+    "layer_description": "Indicates ferry links to terminal locations.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\ferry_crossing.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "ferry_crossing": {
+        "theme": "Transport",
+        "table_lds": "ferry_crossing_poly",
+        "table_type": "Polygon",
+        "description": "",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ferry_crossing_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ferry_crossing_poly.gif"
+      }
+    }
+  },
+  "geographic_name": {
+    "feature_types": ["geographic_name"],
+    "layer_description": "Represents named geographic locations and features.",
+    "layer_category": "Administrative & Reference",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\geographic_name.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
+    "features": {
+      "geographic_name": {
+        "theme": "Annonation",
+        "table_lds": "geographic_name",
+        "table_type": "Point Annotation",
+        "description": "Geographic name holds the proper noun of certain objects within the Topo databases.                    Geographic_name does not apply to roads, railway lines, or descriptive text - eg 'Brunner Mine' would be a Geographic_name but 'mine disused' is held in the descriptive_text feature \n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\geographic_name.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\geographic_name.gif"
+      }
+    }
+  },
+  "island": {
+    "feature_types": ["island"],
+    "layer_description": "Represents an island within a water body. Onshore and Offshore.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\island.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "island": {
+        "theme": "Landcover",
+        "table_lds": "island_poly",
+        "table_type": "Polygon",
+        "description": "Area of dry or relatively dry land surrounded by water or low wetland",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\island_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\island_poly.gif"
+      }
+    }
+  },
+  "landcover": {
+    "feature_types": ["ice", "moraine", "moraine_wall", "mud", "sand", "scree", "shingle"],
+    "layer_description": "Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "ice": {
+        "theme": "Landcover",
+        "table_lds": "ice_poly",
+        "table_type": "Polygon",
+        "description": "A region of permanent ice",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ice_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ice_poly.gif"
+      },
+      "moraine": {
+        "theme": "Landcover",
+        "table_lds": "moraine_poly",
+        "table_type": "Polygon",
+        "description": "An accumulation of boulders, stones or other debris carried and deposited by a glacier.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\moraine_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\moraine_poly.gif"
+      },
+      "moraine_wall": {
+        "theme": "Landcover",
+        "table_lds": "moraine_wall_poly",
+        "table_type": "Polygon",
+        "description": "An accumulation of boulders, stones or other debris, carried and deposited by the glacier to either side of the glacier, or at its terminal, forming a wall.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\moraine_wall_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\moraine_wall_poly.gif"
+      },
+      "mud": {
+        "theme": "Landcover",
+        "table_lds": "mud_poly",
+        "table_type": "Polygon",
+        "description": "An area of wet, soft earthy matter",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mud_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mud_poly.gif"
+      },
+      "sand": {
+        "theme": "Landcover",
+        "table_lds": "sand_poly",
+        "table_type": "Polygon",
+        "description": "Sand: crushed rock, shells etc smaller than 2mm in size",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sand_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sand_poly.gif"
+      },
+      "scree": {
+        "theme": "Landcover",
+        "table_lds": "scree_poly",
+        "table_type": "Polygon",
+        "description": "Mountain slope covered with small stones.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scree_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scree_poly.gif"
+      },
+      "shingle": {
+        "theme": "Landcover",
+        "table_lds": "shingle_poly",
+        "table_type": "Polygon",
+        "description": "Crushed rock, shells etc larger than 2mm in size",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shingle_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shingle_poly.gif"
+      }
+    }
+  },
+  "landcover_line": {
+    "feature_types": ["dredge_tailing"],
+    "layer_description": "Represents linear of land cover features such as dredge tailings.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "dredge_tailing": {
+        "theme": "Landuse",
+        "table_lds": "dredge_tailing_cl",
+        "table_type": "Line",
+        "description": "The refuse left behind after dredging",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dredge_tailing_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dredge_tailing_cl.gif"
+      }
+    }
+  },
+  "landcover_point": {
+    "feature_types": ["fumarole", "rock_outcrop"],
+    "layer_description": "Represents land cover feature locations suck as rock outcrops.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landcover_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "fumarole": {
+        "theme": "Landcover",
+        "table_lds": "fumarole_pnt",
+        "table_type": "Point",
+        "description": "A hole in the Earth's crust from which steam and gases are emitted",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fumarole_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fumarole_pnt.gif"
+      },
+      "rock_outcrop": {
+        "theme": "Landcover",
+        "table_lds": "rock_outcrop_pnt",
+        "table_type": "Point",
+        "description": "An isolated rock formation that constitutes a prominent or unusual landmark",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_outcrop_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_outcrop_pnt.gif"
+      }
+    }
+  },
+  "landuse": {
+    "feature_types": [
+      "cemetery",
+      "golf_course",
+      "gravel_pit",
+      "landfill",
+      "mine",
+      "pumice_pit",
+      "quarry",
+      "racetrack",
+      "rifle_range",
+      "showground",
+      "sportsfield"
+    ],
+    "layer_description": "Represents areas designated for specific uses such as mines, racetracks.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landuse.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "cemetery": {
+        "theme": "Landuse",
+        "table_lds": "cemetery_poly",
+        "table_type": "Polygon",
+        "description": "A place for burying the dead.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cemetery_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cemetery_poly.gif"
+      },
+      "golf_course": {
+        "theme": "Landuse",
+        "table_lds": "golf_course_poly",
+        "table_type": "Polygon",
+        "description": "An area set aside for playing golf.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\golf_course_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\golf_course_poly.gif"
+      },
+      "gravel_pit": {
+        "theme": "Landuse",
+        "table_lds": "gravel_pit_poly",
+        "table_type": "Polygon",
+        "description": "Area used for the extraction of coarse sand and small water-worn or pounded stones, used for paths and roads",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gravel_pit_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gravel_pit_poly.gif"
+      },
+      "landfill": {
+        "theme": "Landuse",
+        "table_lds": "landfill_poly",
+        "table_type": "Polygon",
+        "description": "A portion of land on which refuse, solid or semi-solid waste, is dumped and then covered with earth.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\landfill_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\landfill_poly.gif"
+      },
+      "mine": {
+        "theme": "Landuse",
+        "table_lds": "mine_poly",
+        "table_type": "Polygon",
+        "description": "An excavation in the Earth for the purpose of extracting minerals.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mine_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mine_poly.gif"
+      },
+      "pumice_pit": {
+        "theme": "Landuse",
+        "table_lds": "pumice_pit_poly",
+        "table_type": "Polygon",
+        "description": "Area used for the extraction of pumice",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pumice_pit_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pumice_pit_poly.gif"
+      },
+      "quarry": {
+        "theme": "Landuse",
+        "table_lds": "quarry_poly",
+        "table_type": "Polygon",
+        "description": "An excavation or pit, usually open to the air, from which building stone or the like is obtained by cutting, blasting etc",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\quarry_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\quarry_poly.gif"
+      },
+      "racetrack": {
+        "theme": "Landuse",
+        "table_lds": "racetrack_poly",
+        "table_type": "Polygon",
+        "description": "A course laid out for racing",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\racetrack_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\racetrack_poly.gif"
+      },
+      "rifle_range": {
+        "theme": "Landuse",
+        "table_lds": "rifle_range_poly",
+        "table_type": "Polygon",
+        "description": "An area of land set aside for fire-arms practise",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rifle_range_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rifle_range_poly.gif"
+      },
+      "showground": {
+        "theme": "Landuse",
+        "table_lds": "showground_poly",
+        "table_type": "Polygon",
+        "description": "A public area containing buildings, paddocks etc. for the display of livestock, agricultural produce, machinery, and the like.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\showground_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\showground_poly.gif"
+      },
+      "sportsfield": {
+        "theme": "Landuse",
+        "table_lds": "sportsfield_poly",
+        "table_type": "Polygon",
+        "description": "A field on which sporting activities are carried out",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sportsfield_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sportsfield_poly.gif"
+      }
+    }
+  },
+  "landuse_line": {
+    "feature_types": ["racetrack"],
+    "layer_description": "Represents linear of land use features suck as racetracks.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\landuse_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "racetrack": {
+        "theme": "Landuse",
+        "table_lds": "racetrack_cl",
+        "table_type": "Line",
+        "description": "A course laid out for racing",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\racetrack_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\racetrack_cl.gif"
+      }
+    }
+  },
+  "marine": {
+    "feature_types": ["mangrove", "reef", "rock", "shoal"],
+    "layer_description": "Represents features in the marine environment such as mangrives, reef, rocks and shoals.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\marine.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "mangrove": {
+        "theme": "Landcover",
+        "table_lds": "mangrove_poly",
+        "table_type": "Polygon",
+        "description": "A vegetation type characterising a coastal swamp of brackish or saline water, in which specially adapted trees form a dense swamp forest",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mangrove_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mangrove_poly.gif"
+      },
+      "reef": {
+        "theme": "Landcover",
+        "table_lds": "reef_poly",
+        "table_type": "Polygon",
+        "description": "A ridge, usually of rocks or coral, lying near the surface of the sea, which may be visible at low tide, but is usually covered with water",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\reef_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\reef_poly.gif"
+      },
+      "rock": {
+        "theme": "Landcover",
+        "table_lds": "rock_poly",
+        "table_type": "Polygon",
+        "description": "Coastal rocks; rocks between high and low tide",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_poly.gif"
+      },
+      "shoal": {
+        "theme": "Landcover",
+        "table_lds": "shoal_poly",
+        "table_type": "Polygon",
+        "description": "A submarine object over which the water is shallow, which is detached from the shore and whose bottom is visible at low water; may be a menace to navigation on the surface",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shoal_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shoal_poly.gif"
+      }
+    }
+  },
+  "nz_topo50_map_sheet": {
+    "feature_types": ["nz_topo50_map_sheet"],
+    "layer_description": "Represents the LINZ Topographic 1:50,000 map sheets.",
+    "layer_category": "Administrative & Reference",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\nz_topo50_map_sheet.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Administrative & Reference_diagram.svg",
+    "features": {
+      "nz_topo50_map_sheet": {
+        "theme": "MapSheets",
+        "table_lds": "nz_topo50_map_sheet_poly",
+        "table_type": "Polygon",
+        "description": "",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\nz_topo50_map_sheet_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\nz_topo50_map_sheet_poly.gif"
+      }
+    }
+  },
+  "physical_infrastructure_line": {
+    "feature_types": ["pipeline", "powerline", "telephone", "walkwire", "water_race"],
+    "layer_description": "Represents linear infrastructure such as  pipelines, power lines.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\physical_infrastructure_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "pipeline": {
+        "theme": "Infrastructure",
+        "table_lds": "pipeline_cl",
+        "table_type": "Line",
+        "description": "A closed pressure system,usually constructed of steel or ferro concrete pipes.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pipeline_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pipeline_cl.gif"
+      },
+      "powerline": {
+        "theme": "Infrastructure",
+        "table_lds": "powerline_cl",
+        "table_type": "Line",
+        "description": "A cable or cables supported by poles or towers for the transmission of electricity",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\powerline_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\powerline_cl.gif"
+      },
+      "telephone": {
+        "theme": "Infrastructure",
+        "table_lds": "telephone_cl",
+        "table_type": "Line",
+        "description": "Telephone line; the linear distribution system of high-tension wires, cables etc providing telephone communications.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\telephone_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\telephone_cl.gif"
+      },
+      "walkwire": {
+        "theme": "Infrastructure",
+        "table_lds": "walkwire_cl",
+        "table_type": "Line",
+        "description": "A series of wires, one to walk on, one or more to hold on to. This enables a person to cross from one side of an obstacle to another - ususally a river.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\walkwire_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\walkwire_cl.gif"
+      },
+      "water_race": {
+        "theme": "Infrastructure",
+        "table_lds": "water_race_cl",
+        "table_type": "Line",
+        "description": "A man-made water channel, often running parallel to the contours, built specifically for the distribution of water to crops, pasture, mining activities etc",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\water_race_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\water_race_cl.gif"
+      }
+    }
+  },
+  "physical_infrastructure_point": {
+    "feature_types": ["gas_valve", "geo_bore", "pylon"],
+    "layer_description": "Represents point infrastructure such as poles, towers.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\physical_infrastructure_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "gas_valve": {
+        "theme": "Infrastructure",
+        "table_lds": "gas_valve_pnt",
+        "table_type": "Point",
+        "description": "A device for the controlling of gas through a pipe",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gas_valve_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gas_valve_pnt.gif"
+      },
+      "geo_bore": {
+        "theme": "Infrastructure",
+        "table_lds": "geo_bore_pnt",
+        "table_type": "Point",
+        "description": "A hole drilled to tap into a geothermal field; resulting steam and/or pressure is used in the production of electricity, for drying, heating etc.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\geo_bore_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\geo_bore_pnt.gif"
+      },
+      "pylon": {
+        "theme": "Infrastructure",
+        "table_lds": "pylon_pnt",
+        "table_type": "Point",
+        "description": "A steel tower supporting high tension wires",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pylon_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pylon_pnt.gif"
+      }
+    }
+  },
+  "place_point": {
+    "feature_types": [
+      "cave",
+      "cemetery",
+      "grave",
+      "historic_site",
+      "mine",
+      "monument",
+      "pa",
+      "radar_dome",
+      "saddle",
+      "satellite_station"
+    ],
+    "layer_description": "Represents a named place or locality.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\place_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "cave": {
+        "theme": "LandCover",
+        "table_lds": "cave_pnt",
+        "table_type": "Point",
+        "description": "A naturally formed, subterranean open area or chamber.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cave_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cave_pnt.gif"
+      },
+      "cemetery": {
+        "theme": "Landuse",
+        "table_lds": "cemetery_pnt",
+        "table_type": "Point",
+        "description": "A place for burying the dead.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cemetery_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cemetery_pnt.gif"
+      },
+      "grave": {
+        "theme": "Landuse",
+        "table_lds": "grave_pnt",
+        "table_type": "Point",
+        "description": "A location of one or more graves not within an officially designated cemetery.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\grave_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\grave_pnt.gif"
+      },
+      "historic_site": {
+        "theme": "Landuse",
+        "table_lds": "historic_site_pnt",
+        "table_type": "Point",
+        "description": "A place where some historic activity has been conducted, or where some historic object is located.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\historic_site_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\historic_site_pnt.gif"
+      },
+      "mine": {
+        "theme": "Landuse",
+        "table_lds": "mine_pnt",
+        "table_type": "Point",
+        "description": "An excavation in the Earth for the purpose of extracting minerals.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mine_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mine_pnt.gif"
+      },
+      "monument": {
+        "theme": "Landuse",
+        "table_lds": "monument_pnt",
+        "table_type": "Point",
+        "description": "A structure erected as a memorial.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\monument_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\monument_pnt.gif"
+      },
+      "pa": {
+        "theme": "Landuse",
+        "table_lds": "pa_pnt",
+        "table_type": "Point",
+        "description": "Defensive earthworks constructed by Maori at any time between the fifteenth and nineteenth centuries which were still visible as a topographical object at the time the first edition of the map was published.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pa_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pa_pnt.gif"
+      },
+      "radar_dome": {
+        "theme": "Landuse",
+        "table_lds": "radar_dome_pnt",
+        "table_type": "Point",
+        "description": "A dome shaped structure used to protect the antenna of a radar installation",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\radar_dome_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\radar_dome_pnt.gif"
+      },
+      "saddle": {
+        "theme": "LandCover",
+        "table_lds": "saddle_pnt",
+        "table_type": "Point",
+        "description": "Low point or opening between hills or mountains",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\saddle_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\saddle_pnt.gif"
+      },
+      "satellite_station": {
+        "theme": "Landuse",
+        "table_lds": "satellite_station_pnt",
+        "table_type": "Point",
+        "description": "concave dish for the receiving of signals from satellite/s",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\satellite_station_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\satellite_station_pnt.gif"
+      }
+    }
+  },
+  "railway_line": {
+    "feature_types": ["railway"],
+    "layer_description": "Represents railway tracks. Dual tracks may be represented as single entity.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\railway_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "railway": {
+        "theme": "Transport",
+        "table_lds": "railway_cl",
+        "table_type": "Line",
+        "description": "A permanent way having one or more rails which provides a track for trains or trams",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\railway_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\railway_cl.gif"
+      }
+    }
+  },
+  "railway_station": {
+    "feature_types": ["rail_station"],
+    "layer_description": "Location of a railway station.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\railway_station.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "rail_station": {
+        "theme": "Transport",
+        "table_lds": "rail_station_poly",
+        "table_type": "Polygon",
+        "description": "",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rail_station_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rail_station_poly.gif"
+      }
+    }
+  },
+  "relief_line": {
+    "feature_types": ["cliff_edge", "cutting_edge", "embankment", "slip_edge"],
+    "layer_description": "Represents terrain features such as cliffs.",
+    "layer_category": "Terrain",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\relief_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
+    "features": {
+      "cliff_edge": {
+        "theme": "Relief",
+        "table_lds": "cliff_edge",
+        "table_type": "Line",
+        "description": "A high, steep or overhanging face or rock. Can be rock.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cliff_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cliff_edge.gif"
+      },
+      "cutting_edge": {
+        "theme": "Relief",
+        "table_lds": "cutting_edge",
+        "table_type": "Line",
+        "description": "An excavation of the Earth's surface to provide passage for a road, railway, canal etc",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cutting_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cutting_edge.gif"
+      },
+      "embankment": {
+        "theme": "Relief",
+        "table_lds": "embankment_cl",
+        "table_type": "Line",
+        "description": "An artificial bank of earth and or stone built above the natural surface",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\embankment_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\embankment_cl.gif"
+      },
+      "slip_edge": {
+        "theme": "Relief",
+        "table_lds": "slip_edge",
+        "table_type": "Line",
+        "description": "A land mass which has moved",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\slip_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\slip_edge.gif"
+      }
+    }
+  },
+  "relief_point": {
+    "feature_types": ["height", "sinkhole"],
+    "layer_description": "Represents terrain features such as peaks or saddles.",
+    "layer_category": "Terrain",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\relief_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Terrain_diagram.svg",
+    "features": {
+      "height": {
+        "theme": "Relief",
+        "table_lds": "height_pnt",
+        "table_type": "Point",
+        "description": "A height above a vertical datum, represented on a map by a dot locator with the elevation printed beside the dot. Unlike trigonometrical stations, spot heights are not identifiable on the ground",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\height_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\height_pnt.gif"
+      },
+      "sinkhole": {
+        "theme": "Relief",
+        "table_lds": "sinkhole_pnt",
+        "table_type": "Point",
+        "description": "A hole, or funnel shaped cavity made in the earth by the action of water on the soil, rock or underlying strata",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\sinkhole_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\sinkhole_pnt.gif"
+      }
+    }
+  },
+  "residential_area": {
+    "feature_types": ["residential_area"],
+    "layer_description": "Represents areas primarily used for housing.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\residential_area.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "residential_area": {
+        "theme": "Landuse",
+        "table_lds": "residential_area_poly",
+        "table_type": "Polygon",
+        "description": "The group of houses and their sections that together make up a residential area",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\residential_area_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\residential_area_poly.gif"
+      }
+    }
+  },
+  "road_line": {
+    "feature_types": ["road"],
+    "layer_description": "Represents roads, including highways and streets.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\road_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "road": {
+        "theme": "Transport",
+        "table_lds": "road_cl",
+        "table_type": "Line",
+        "description": "Any formed all weather route suitable for the passage of any vehicle.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\road_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\road_cl.gif"
+      }
+    }
+  },
+  "runway": {
+    "feature_types": ["runway"],
+    "layer_description": "Represents airport runway areas.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\runway.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "runway": {
+        "theme": "Transport",
+        "table_lds": "runway_poly",
+        "table_type": "Polygon",
+        "description": "The usable surface where aircraft land and take-off. ",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\runway_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\runway_poly.gif"
+      }
+    }
+  },
+  "structure": {
+    "feature_types": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"],
+    "layer_description": "Represents man-made structures other than buildings (e.g., reservoir, dry_dock, fish_farm, marine_farm, siphon, tank).",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "dry_dock": {
+        "theme": "Structures",
+        "table_lds": "dry_dock_poly",
+        "table_type": "Polygon",
+        "description": "An artificial basin fitted with gate or caisson into which a vessel may be floated and from which the water may be pumped out to expose the bottom of the vessel",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dry_dock_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dry_dock_poly.gif"
+      },
+      "fish_farm": {
+        "theme": "Structures",
+        "table_lds": "fish_farm_poly",
+        "table_type": "Polygon",
+        "description": "An area of water on land, or in an inland waterbody, used for aquatic cultivation.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\fish_farm_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\fish_farm_poly.gif"
+      },
+      "marine_farm": {
+        "theme": "Structures",
+        "table_lds": "marine_farm_poly",
+        "table_type": "Polygon",
+        "description": "An area in the sea, used for aquatic cultivation.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\marine_farm_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\marine_farm_poly.gif"
+      },
+      "reservoir": {
+        "theme": "Landuse",
+        "table_lds": "reservoir_poly",
+        "table_type": "Polygon",
+        "description": "Reservoir; receptacle in which a large quantity of water is stored",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\reservoir_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\reservoir_poly.gif"
+      },
+      "siphon": {
+        "theme": "Structures",
+        "table_lds": "siphon_poly",
+        "table_type": "Polygon",
+        "description": "A pipe system comprising a rising leg and a falling leg, typically in the shape of an inverted U. Works on atmospheric pressure",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\siphon_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\siphon_poly.gif"
+      },
+      "tank": {
+        "theme": "Structures",
+        "table_lds": "tank_poly",
+        "table_type": "Polygon",
+        "description": "A structure used for the storage of fluids.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tank_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tank_poly.gif"
+      }
+    }
+  },
+  "structure_line": {
+    "feature_types": [
+      "boatramp",
+      "boom",
+      "breakwater",
+      "cableway_industrial",
+      "cableway_people",
+      "dam",
+      "flume",
+      "ladder",
+      "marine_farm",
+      "ski_lift",
+      "ski_tow",
+      "slipway",
+      "spillway_edge",
+      "weir",
+      "wharf",
+      "wharf_edge"
+    ],
+    "layer_description": "Represents structural features such as  cableways, ladders, wharf, weirs etc.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "boatramp": {
+        "theme": "Structures",
+        "table_lds": "boatramp_cl",
+        "table_type": "Line",
+        "description": "A place for launching or retrieving boats from the water.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\boatramp_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\boatramp_cl.gif"
+      },
+      "boom": {
+        "theme": "Structures",
+        "table_lds": "boom_cl",
+        "table_type": "Line",
+        "description": "Floating barrier across a river or harbour mouth.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\boom_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\boom_cl.gif"
+      },
+      "breakwater": {
+        "theme": "Structures",
+        "table_lds": "breakwater_cl",
+        "table_type": "Line",
+        "description": "A structure built to break the force of waves to protect a beach, harbour or other waterfront facility.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\breakwater_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\breakwater_cl.gif"
+      },
+      "cableway_industrial": {
+        "theme": "Structures",
+        "table_lds": "cableway_industrial_cl",
+        "table_type": "Line",
+        "description": "Industrial cableway; a conveyor system built primarily for the transport of material for industry, power production etc, in which a carrier unit or units run on wire cables strung between supports.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cableway_industrial_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cableway_industrial_cl.gif"
+      },
+      "cableway_people": {
+        "theme": "Structures",
+        "table_lds": "cableway_people_cl",
+        "table_type": "Line",
+        "description": "Cableway for people; a conveyor system, built to transport people primarily, in which a carrier unit or units run on wire cables strung between supports.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\cableway_people_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\cableway_people_cl.gif"
+      },
+      "dam": {
+        "theme": "Structures",
+        "table_lds": "dam_cl",
+        "table_type": "Line",
+        "description": "A barrier constructed across a watercourse to control the flow or raise the level of water",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dam_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dam_cl.gif"
+      },
+      "flume": {
+        "theme": "Landuse",
+        "table_lds": "flume_cl",
+        "table_type": "Line",
+        "description": "A flat bottomed timber trough or other open channel, generally formed in concrete, for the conveyance of water",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\flume_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\flume_cl.gif"
+      },
+      "ladder": {
+        "theme": "Structures",
+        "table_lds": "ladder_cl",
+        "table_type": "Line",
+        "description": "A set of steps, or rungs, inserted in two uprights to serve as a means of ascending a cliff-face",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ladder_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ladder_cl.gif"
+      },
+      "marine_farm": {
+        "theme": "Structures",
+        "table_lds": "marine_farm_cl",
+        "table_type": "Line",
+        "description": "A line often strung between buoys in the sea used for aquatic cultivation.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\marine_farm_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\marine_farm_cl.gif"
+      },
+      "ski_lift": {
+        "theme": "Structures",
+        "table_lds": "ski_lift_cl",
+        "table_type": "Line",
+        "description": "a conveyor system in which carrier units run on wire cables strung between supports for transporting skiers (who sit in a chair or similar construction; ie. not in contact with the ground) up the slope.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ski_lift_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ski_lift_cl.gif"
+      },
+      "ski_tow": {
+        "theme": "Structures",
+        "table_lds": "ski_tow_cl",
+        "table_type": "Line",
+        "description": "a conveyor system in which carrier units run on wire or rope cables strung between supports for transporting skiers up the slope - the skier remains in contact with the ground whilst being towed up the slope",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ski_tow_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ski_tow_cl.gif"
+      },
+      "slipway": {
+        "theme": "Structures",
+        "table_lds": "slipway_cl",
+        "table_type": "Line",
+        "description": "Ship building or landing slip",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\slipway_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\slipway_cl.gif"
+      },
+      "spillway_edge": {
+        "theme": "Structures",
+        "table_lds": "spillway_edge",
+        "table_type": "Line",
+        "description": "A constructed path or channel for excess water to pass over or beside a dam.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\spillway_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\spillway_edge.gif"
+      },
+      "weir": {
+        "theme": "Structures",
+        "table_lds": "weir_cl",
+        "table_type": "Line",
+        "description": "An artificial barrier placed in an open channel and over which the water flows",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\weir_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\weir_cl.gif"
+      },
+      "wharf": {
+        "theme": "Structures",
+        "table_lds": "wharf_cl",
+        "table_type": "Line",
+        "description": "Any structure on a waterfront, designed to make it possible for vessels to lie alongside and take or unload cargo, passengers etc.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wharf_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wharf_cl.gif"
+      },
+      "wharf_edge": {
+        "theme": "Structures",
+        "table_lds": "wharf_edge",
+        "table_type": "Line",
+        "description": "Any structure on a waterfront, designed to make it possible for vessels to lie alongside and take or unload cargo, passengers etc.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wharf_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wharf_edge.gif"
+      }
+    }
+  },
+  "structure_point": {
+    "feature_types": [
+      "beacon",
+      "bivouac",
+      "buoy",
+      "chimney",
+      "dredge",
+      "flare",
+      "floodgate",
+      "gate",
+      "ladder",
+      "mast",
+      "redoubt",
+      "shaft",
+      "siphon",
+      "stockyard",
+      "tank",
+      "tower",
+      "well",
+      "windmill",
+      "wreck"
+    ],
+    "layer_description": "Represents small structures or structural features such as gates, masts tanks, windmills.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\structure_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "beacon": {
+        "theme": "Structures",
+        "table_lds": "beacon_pnt",
+        "table_type": "Point",
+        "description": "A fixed signal, mark or light erected for the guidance of mariners or aeroplane pilots.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\beacon_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\beacon_pnt.gif"
+      },
+      "bivouac": {
+        "theme": "Structures",
+        "table_lds": "bivouac_pnt",
+        "table_type": "Point",
+        "description": "An emergency shelter, place known to offer protection in remote areas, maybe either natural as in the cleft of a rock, or the lee of a fallen tree etc, or man made.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\bivouac_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\bivouac_pnt.gif"
+      },
+      "buoy": {
+        "theme": "Structures",
+        "table_lds": "buoy_pnt",
+        "table_type": "Point",
+        "description": "A float moored or anchored in water.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\buoy_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\buoy_pnt.gif"
+      },
+      "chimney": {
+        "theme": "Structures",
+        "table_lds": "chimney_pnt",
+        "table_type": "Point",
+        "description": "A structure containing a passage or flue which discharges smoke and gases from combustion. \n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\chimney_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\chimney_pnt.gif"
+      },
+      "dredge": {
+        "theme": "Structures",
+        "table_lds": "dredge_pnt",
+        "table_type": "Point",
+        "description": "Apparatus for clearing out mud etc from river or sea bottom.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\dredge_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\dredge_pnt.gif"
+      },
+      "flare": {
+        "theme": "Structures",
+        "table_lds": "flare_pnt",
+        "table_type": "Point",
+        "description": "A stack used for the safe burning of combustible gases. Usually associated with petroleum and petrochemical process plants",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\flare_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\flare_pnt.gif"
+      },
+      "floodgate": {
+        "theme": "Structures",
+        "table_lds": "floodgate_pnt",
+        "table_type": "Point",
+        "description": "Gate opened and closed to admit or exclude water.",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\floodgate_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\floodgate_pnt.gif"
+      },
+      "gate": {
+        "theme": "Structures",
+        "table_lds": "gate_pnt",
+        "table_type": "Point",
+        "description": " A structure that may be swung, drawn or lowered to block an entrance or passageway",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\gate_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\gate_pnt.gif"
+      },
+      "ladder": {
+        "theme": "Structures",
+        "table_lds": "ladder_pnt",
+        "table_type": "Point",
+        "description": "A set of steps, or rungs, inserted in two uprights to serve as a means of ascending a cliff-face",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ladder_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ladder_pnt.gif"
+      },
+      "mast": {
+        "theme": "Structures",
+        "table_lds": "mast_pnt",
+        "table_type": "Point",
+        "description": "A vertical pole serving as an antenna or antenna support.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\mast_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\mast_pnt.gif"
+      },
+      "redoubt": {
+        "theme": "Structures",
+        "table_lds": "redoubt_pnt",
+        "table_type": "Point",
+        "description": "European fortification of the New Zealand Wars",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\redoubt_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\redoubt_pnt.gif"
+      },
+      "shaft": {
+        "theme": "Structures",
+        "table_lds": "shaft_pnt",
+        "table_type": "Point",
+        "description": "a long narrow passage sunk in the earth",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shaft_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shaft_pnt.gif"
+      },
+      "siphon": {
+        "theme": "Structures",
+        "table_lds": "siphon_pnt",
+        "table_type": "Point",
+        "description": "A pipe system comprising a rising leg and a falling leg, typically in the shape of an inverted U. Works on atmospheric pressure",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\siphon_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\siphon_pnt.gif"
+      },
+      "stockyard": {
+        "theme": "Structures",
+        "table_lds": "stockyard_pnt",
+        "table_type": "Point",
+        "description": "A holding place for livestock (cattle, sheep etc.)\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\stockyard_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\stockyard_pnt.gif"
+      },
+      "tank": {
+        "theme": "Structures",
+        "table_lds": "tank_pnt",
+        "table_type": "Point",
+        "description": "A structure used for the storage of fluids       ",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tank_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tank_pnt.gif"
+      },
+      "tower": {
+        "theme": "Structures",
+        "table_lds": "tower_pnt",
+        "table_type": "Point",
+        "description": "A tall framework or structure, the elevation of which is functional",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tower_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tower_pnt.gif"
+      },
+      "well": {
+        "theme": "Structures",
+        "table_lds": "well_pnt",
+        "table_type": "Point",
+        "description": "A pit or hole dug or bored into the earth",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\well_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\well_pnt.gif"
+      },
+      "windmill": {
+        "theme": "Structures",
+        "table_lds": "windmill_pnt",
+        "table_type": "Point",
+        "description": "A mill or other machine that runs on the energy generated by a wheel of adjustable blades or flats rotated by the wind",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\windmill_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\windmill_pnt.gif"
+      },
+      "wreck": {
+        "theme": "Structures",
+        "table_lds": "wreck_pnt",
+        "table_type": "Point",
+        "description": "A wrecked vessel, either submerged or visible which is attached to or foul of the bottom or cast up on the shore; or a greatly disabled or damaged vehicle",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\wreck_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\wreck_pnt.gif"
+      }
+    }
+  },
+  "track_line": {
+    "feature_types": ["track"],
+    "layer_description": "Represents walking tracks, trails, or unsealed paths.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\track_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "track": {
+        "theme": "Transport",
+        "table_lds": "track_cl",
+        "table_type": "Line",
+        "description": "A deliberately formed route of a lesser quality than a road",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\track_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\track_cl.gif"
+      }
+    }
+  },
+  "transport_point": {
+    "feature_types": ["ford", "helipad"],
+    "layer_description": "Represents transport-related locations (e.g., bus stops, terminals).",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\transport_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "ford": {
+        "theme": "Transport",
+        "table_lds": "ford_pnt",
+        "table_type": "Point",
+        "description": "A shallow or flat portion of the bed of a watercourse where a crossing may be effected",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\ford_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\ford_pnt.gif"
+      },
+      "helipad": {
+        "theme": "Transport",
+        "table_lds": "helipad_pnt",
+        "table_type": "Point",
+        "description": "An area set aside for the landing of helicopters",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\helipad_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\helipad_pnt.gif"
+      }
+    }
+  },
+  "tree_locations": {
+    "feature_types": ["tree"],
+    "layer_description": "Represents individual trees or notable groups of trees.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\tree_locations.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "tree": {
+        "theme": "Landcover",
+        "table_lds": "tree_pnt",
+        "table_type": "Point",
+        "description": "A woody perennial plant, having a self-supporting main stem or trunk.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tree_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tree_pnt.gif"
+      }
+    }
+  },
+  "trig_point": {
+    "feature_types": ["trig"],
+    "layer_description": "Represents a geodetic survey control point.",
+    "layer_category": "Buildings & Structures",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\trig_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Buildings & Structures_diagram.svg",
+    "features": {
+      "trig": {
+        "theme": "Relief",
+        "table_lds": "trig_pnt",
+        "table_type": "Point",
+        "description": "A structure on top of a hill, usually coloured black and white, used as a physical reference point by surveyors to determine location. The symbol shown on the map includes the elevation and trig identification code for beaconed trig stations.\nThese topographic trig points are derived from New Zealand geodetic marks data which can also be accessed through the LINZ Data Service: [NZ Geodetic Marks](https://data.linz.govt.nz/layer/50787/) and [NZ Geodetic Vertical Marks](https://data.linz.govt.nz/layer/50784/). ",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\trig_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\trig_pnt.gif"
+      }
+    }
+  },
+  "tunnel_line": {
+    "feature_types": ["tunnel"],
+    "layer_description": "Represents tunnels for roads, railways, or utilities.",
+    "layer_category": "Transport and Infrastructure",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\tunnel_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Transport and Infrastructure_diagram.svg",
+    "features": {
+      "tunnel": {
+        "theme": "Transport",
+        "table_lds": "tunnel_cl",
+        "table_type": "Line",
+        "description": "An underground passage",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\tunnel_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\tunnel_cl.gif"
+      }
+    }
+  },
+  "vegetation": {
+    "feature_types": ["exotic", "native", "orchard", "scattered_scrub", "scrub", "vineyard"],
+    "layer_description": "Represents areas of vegetation landcover such as trees, scrub, vineyards.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "exotic": {
+        "theme": "Landcover",
+        "table_lds": "exotic_poly",
+        "table_type": "Polygon",
+        "description": "A tract of land covered by trees not native to New Zealand",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\exotic_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\exotic_poly.gif"
+      },
+      "native": {
+        "theme": "Landcover",
+        "table_lds": "native_poly",
+        "table_type": "Polygon",
+        "description": "A tract of land covered by trees native to New Zealand.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\native_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\native_poly.gif"
+      },
+      "orchard": {
+        "theme": "Landuse",
+        "table_lds": "orchard_poly",
+        "table_type": "Polygon",
+        "description": "Vegetation defined as pip or stone fruit eg apples, apricots, olives etc",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\orchard_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\orchard_poly.gif"
+      },
+      "scattered_scrub": {
+        "theme": "Landcover",
+        "table_lds": "scattered_scrub_poly",
+        "table_type": "Polygon",
+        "description": "A tract of land covered by vegetation less than 3m high in a random manner.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scattered_scrub_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scattered_scrub_poly.gif"
+      },
+      "scrub": {
+        "theme": "Landcover",
+        "table_lds": "scrub_poly",
+        "table_type": "Polygon",
+        "description": "A tract of land covered by vegetation less that 3m high",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\scrub_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\scrub_poly.gif"
+      },
+      "vineyard": {
+        "theme": "Landuse",
+        "table_lds": "vineyard_poly",
+        "table_type": "Polygon",
+        "description": "Vegetation defined as vines eg grapes, kiwifruit etc",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\vineyard_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\vineyard_poly.gif"
+      }
+    }
+  },
+  "vegetation_line": {
+    "feature_types": ["shelter_belt"],
+    "layer_description": "Represents linear vegetation features such as shelter belts.",
+    "layer_category": "Land Cover & Land Use",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\vegetation_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Land Cover & Land Use_diagram.svg",
+    "features": {
+      "shelter_belt": {
+        "theme": "Landcover",
+        "table_lds": "shelter_belt_cl",
+        "table_type": "Line",
+        "description": "A line of trees which breaks or interrupts the force of the wind",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\shelter_belt_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\shelter_belt_cl.gif"
+      }
+    }
+  },
+  "water": {
+    "feature_types": ["canal", "lagoon", "lake", "pond", "river", "swamp"],
+    "layer_description": "Represents water bodies such as  rivers, lakes.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "canal": {
+        "theme": "Landuse",
+        "table_lds": "canal_poly",
+        "table_type": "Polygon",
+        "description": "An artificial open waterway used for transportation, waterpower or irrigation.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\canal_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\canal_poly.gif"
+      },
+      "lagoon": {
+        "theme": "Landcover",
+        "table_lds": "lagoon_poly",
+        "table_type": "Polygon",
+        "description": "A sheet of salt water separated from the open sea by sand, shingle banks or a road embankment. The sheet of water between an offshore reef, esp. of coral, and mainland. The sheet of water within a ring or horseshoe shaped atoll.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\lagoon_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\lagoon_poly.gif"
+      },
+      "lake": {
+        "theme": "Landcover",
+        "table_lds": "lake_poly",
+        "table_type": "Polygon",
+        "description": "Any standing body of fresh inland water.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\lake_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\lake_poly.gif"
+      },
+      "pond": {
+        "theme": "Landcover",
+        "table_lds": "pond_poly",
+        "table_type": "Polygon",
+        "description": "An area of shallow water with walls or banks created for a specific purpose",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\pond_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\pond_poly.gif"
+      },
+      "river": {
+        "theme": "Landcover",
+        "table_lds": "river_poly",
+        "table_type": "Polygon",
+        "description": "A natural, flowing body of water emptying into an ocean, lake or other body of water and usually fed along it's course by converging tributaries.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\river_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\river_poly.gif"
+      },
+      "swamp": {
+        "theme": "Landcover",
+        "table_lds": "swamp_poly",
+        "table_type": "Polygon",
+        "description": "A wet or moist region with water standing on or just below the surface of the ground, and usually covered by a growth of vegetation",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\swamp_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\swamp_poly.gif"
+      }
+    }
+  },
+  "water_line": {
+    "feature_types": ["canal", "drain", "river"],
+    "layer_description": "Represents water features such as rivers, canals, drains.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "canal": {
+        "theme": "Landuse",
+        "table_lds": "canal_cl",
+        "table_type": "Line",
+        "description": "An artificial open waterway used for transportation, waterpower or irrigation.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\canal_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\canal_cl.gif"
+      },
+      "drain": {
+        "theme": "Landuse",
+        "table_lds": "drain_cl",
+        "table_type": "Line",
+        "description": "A channel which carries surface water.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\drain_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\drain_cl.gif"
+      },
+      "river": {
+        "theme": "Landcover",
+        "table_lds": "river_cl",
+        "table_type": "Line",
+        "description": "A natural, flowing body of water emptying into an ocean, lake or other body of water and usually fed along it's course by converging tributaries.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\river_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\river_cl.gif"
+      }
+    }
+  },
+  "water_point": {
+    "feature_types": ["rock", "soakhole", "spring", "swamp", "waterfall"],
+    "layer_description": "Represents water-related features such as springs.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\water_point.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "rock": {
+        "theme": "Landcover",
+        "table_lds": "rock_pnt",
+        "table_type": "Point",
+        "description": "An isolated rock or rock formation between high and low tides.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rock_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rock_pnt.gif"
+      },
+      "soakhole": {
+        "theme": "Landcover",
+        "table_lds": "soakhole_pnt",
+        "table_type": "Point",
+        "description": "The point at which a river or stream percolates into or through the soil.\n\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\soakhole_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\soakhole_pnt.gif"
+      },
+      "spring": {
+        "theme": "Landcover",
+        "table_lds": "spring_pnt",
+        "table_type": "Point",
+        "description": "The place where water issues from the ground naturally",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\spring_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\spring_pnt.gif"
+      },
+      "swamp": {
+        "theme": "Landcover",
+        "table_lds": "swamp_pnt",
+        "table_type": "Point",
+        "description": "A wet or moist region with water standing on or just below the surface of the ground, and usually covered by a growth of vegetation",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\swamp_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\swamp_pnt.gif"
+      },
+      "waterfall": {
+        "theme": "Landcover",
+        "table_lds": "waterfall_pnt",
+        "table_type": "Point",
+        "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_pnt.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_pnt.gif"
+      }
+    }
+  },
+  "waterway_feature": {
+    "feature_types": ["rapid", "waterfall"],
+    "layer_description": "Represents rapids and waterfall areas.",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\waterway_feature.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "rapid": {
+        "theme": "Landcover",
+        "table_lds": "rapid_poly",
+        "table_type": "Polygon",
+        "description": "An area of broken, fast flowing water in a stream, where the slope of the bed increases (but without a prominent break of slope which might result in a cascade or waterfall), or where a gently dipping bar of harder rock outcrops",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rapid_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rapid_poly.gif"
+      },
+      "waterfall": {
+        "theme": "Landcover",
+        "table_lds": "waterfall_poly",
+        "table_type": "Polygon",
+        "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_poly.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_poly.gif"
+      }
+    }
+  },
+  "waterway_feature_line": {
+    "feature_types": ["rapid", "waterfall", "waterfall_edge"],
+    "layer_description": "Represents edges of rapids and waterfalls",
+    "layer_category": "Water Marine Coastal Hydrographic",
+    "model_picture_path": "C:\\Data\\Model\\metadata_source\\model-diagrams\\png\\waterway_feature_line.png",
+    "model_summary_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_summary_diagram.svg",
+    "model_theme_picture_path": "C:\\Data\\Model\\metadata_source\\model-themes\\Water Marine Coastal Hydrographic_diagram.svg",
+    "features": {
+      "rapid": {
+        "theme": "Landcover",
+        "table_lds": "rapid_cl",
+        "table_type": "Line",
+        "description": "An area of broken, fast flowing water in a stream, where the slope of the bed increases (but without a prominent break of slope which might result in a cascade or waterfall), or where a gently dipping bar of harder rock outcrops",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\rapid_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\rapid_cl.gif"
+      },
+      "waterfall": {
+        "theme": "Landcover",
+        "table_lds": "waterfall_cl",
+        "table_type": "Line",
+        "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_cl.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_cl.gif"
+      },
+      "waterfall_edge": {
+        "theme": "Landcover",
+        "table_lds": "waterfall_edge",
+        "table_type": "Line",
+        "description": "a sudden descent of water over a step or ledge in the bed of a river.\n",
+        "feature_picture_path": "C:\\Data\\Model\\metadata_source\\diagrams\\waterfall_edge.gif",
+        "aerial_picture_path": "C:\\Data\\Model\\metadata_source\\airphotos\\waterfall_edge.gif"
+      }
+    }
+  }
 }
