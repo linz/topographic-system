@@ -4,16 +4,9 @@ import { parse } from 'path';
 
 import type { SheetMetadata } from './python.runner.ts';
 
-/**
- * Find metadata by sheetCode
- */
-export function findSheetMeta(metadata: SheetMetadata[], sheetCode: string): SheetMetadata | undefined {
-  return metadata.find((sheet) => sheet.sheetCode === sheetCode);
-}
-
 export async function validateTiff(url: URL, metadata: SheetMetadata[]): Promise<void> {
   const sheetCode = parse(url.pathname).name;
-  const sheetMeta = findSheetMeta(metadata, sheetCode);
+  const sheetMeta = metadata.find((sheet) => sheet.sheetCode === sheetCode);
   if (sheetMeta == null) throw new Error(`No metadata found for sheet code: ${sheetCode}`);
   const tiff = await Tiff.create(fsa.source(url));
   const image = tiff.images[0];

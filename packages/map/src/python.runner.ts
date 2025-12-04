@@ -5,12 +5,12 @@ import type { ExportOptions } from './cli/action.produce.ts';
 import { logger } from './log.ts';
 import { toRelative } from './util.ts';
 
-type SheetMetadataStr = {
+interface SheetMetadataStdOut {
   sheetCode: string;
   geometry: string; // Geometry encoded as string
   epsg: number;
   bbox: [number, number, number, number];
-};
+}
 
 export type SheetMetadata = {
   sheetCode: string;
@@ -20,10 +20,10 @@ export type SheetMetadata = {
 };
 
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
-  const raw = JSON.parse(stdoutBuffer) as SheetMetadataStr[];
+  const raw = JSON.parse(stdoutBuffer) as SheetMetadataStdOut[];
 
   const metadata: SheetMetadata[] = [];
-  raw.map((item) => {
+  for (const item of raw) {
     const geom = JSON.parse(item.geometry) as GeoJSON.Geometry;
 
     // Only could be a polygon or multipolygons for a mapsheet.
@@ -37,9 +37,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
       epsg: item.epsg,
       bbox: item.bbox,
     });
-  });
-
-  console.log(metadata);
+  }
 
   return metadata;
 }
