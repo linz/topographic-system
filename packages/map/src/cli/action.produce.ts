@@ -1,15 +1,13 @@
 import { fsa } from '@chunkd/fs';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
-import path, { basename } from 'path';
+import { basename } from 'path';
 
 import { registerFileSystem } from '../fs.register.ts';
-import { logger, logId } from '../log.ts';
+import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
 import { Url, UrlFolder } from '../util.ts';
-
-// Prepare a temporary folder to store the source data and processed outputs
-const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));
+import { downloadFile, downloadFiles, tmpFolder } from './action.download.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -31,56 +29,6 @@ async function fromFile(file: URL): Promise<string[]> {
     throw new Error(`Invalide or empty map sheets in file: ${file.href}`);
   }
   return mapSheets;
-}
-
-/**
- * Downloads the given source vector parquet files for processing
- */
-export async function downloadFile(file: URL): Promise<URL> {
-  logger.info({ project: file.href, downloaded: tmpFolder.href }, 'DownloadProjectFile: Start');
-  try {
-    const downloadFile = new URL(basename(file.pathname), tmpFolder);
-    if (await fsa.exists(downloadFile)) return downloadFile;
-    const stats = await fsa.head(file);
-    logger.debug(
-      { file: file.href, size: stats?.size, ContentType: stats?.contentType, LastModified: stats?.lastModified },
-      'DownloadFile: stats',
-    );
-
-    const stream = fsa.readStream(file);
-    if (file.href.endsWith('.parquet')) {
-      await fsa.write(downloadFile, stream, {
-        contentType: 'application/vnd.apache.parquet',
-      });
-    } else {
-      await fsa.write(downloadFile, stream);
-    }
-
-    // validate file was downloaded
-    if (!(await fsa.exists(downloadFile))) {
-      throw new Error(`Failed to download file: ${downloadFile.href}`);
-    }
-
-    logger.info({ destination: downloadFile.href }, 'DownloadFile: End');
-    return downloadFile;
-  } catch (error) {
-    logger.error({ project: file.href }, 'DownloadFile: Error');
-    throw error;
-  }
-}
-
-/**
- * Downloads the given source vector parquet files for processing
- */
-export async function downloadFiles(path: URL): Promise<URL[]> {
-  logger.info({ source: path.href, downloaded: tmpFolder.href }, 'DownloadSourceFile: Start');
-  const downloadFiles = [];
-  const files = await fsa.toArray(fsa.list(path));
-  for (const file of files) {
-    downloadFiles.push(await downloadFile(file));
-  }
-  logger.info({ destination: tmpFolder.href, number: files.length }, 'DownloadSourceFile: End');
-  return downloadFiles;
 }
 
 function getContentType(format: ExportFormat): string {

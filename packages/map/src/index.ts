@@ -1,5 +1,7 @@
 import { run, subcommands } from 'cmd-ts';
 
+import { downloadCommand } from './cli/action.download.ts';
+import { listMapSheetsCommand } from './cli/action.list.mapsheet.ts';
 import { ProduceCommand } from './cli/action.produce.ts';
 
 const Cli = subcommands({
@@ -7,6 +9,8 @@ const Cli = subcommands({
   description: '',
   cmds: {
     produce: ProduceCommand,
+    'list-mapsheets': listMapSheetsCommand,
+    download: downloadCommand,
   },
 });
 
