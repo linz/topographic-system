@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "location": "str:4",
+    "status": "str:8",
+    "type": "str:10",
+    "name_ascii": "str:75",
+    "macronated": "str:1",
+    "name": "str:75"
+  },
+  "geometry": "Point"
+}

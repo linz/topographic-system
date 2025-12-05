@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "orientatn": "float:13.11",
+    "t50_fid": "int:10",
+    "display": "int32:5",
+    "elevation": "int32:5",
+    "name_ascii": "str:75",
+    "macronated": "str:1",
+    "name": "str:75"
+  },
+  "geometry": "Point"
+}

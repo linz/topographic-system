@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "t50_fid": "int:10",
+    "definition": "str:10",
+    "designated": "str:13",
+    "nat_form": "str:10",
+    "elevation": "int32:5"
+  },
+  "geometry": "LineString"
+}
