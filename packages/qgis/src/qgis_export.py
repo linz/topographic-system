@@ -3,12 +3,12 @@ from qgis.core import (
     QgsProject,
     QgsLayoutExporter,
     QgsCoordinateTransform,
-    QgsLayoutItemMap
+    QgsLayoutItemMap,
 )
 import sys
 import os
 
-os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
+os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
@@ -41,7 +41,11 @@ for feature in topo_sheet_layer.getFeatures():
     if feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
-    geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()))
+    geom.transform(
+        QgsCoordinateTransform(
+            topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()
+        )
+    )
     map_item.setExtent(geom.boundingBox())
 
     export_result = None
