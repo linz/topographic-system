@@ -40,6 +40,8 @@ for feature in topo_sheet_layer.getFeatures():
     # skip if this sheet_code is not in the list passed from CLI
     if feature_code not in sheet_codes:
         continue
+    if map_item is None:
+        continue
     geom = feature.geometry()
     geom.transform(
         QgsCoordinateTransform(
