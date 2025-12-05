@@ -15,3 +15,7 @@ dev-dependencies = [
     "pytest",
     "ruff>=0.14.6",
 ]
+
+[[tool.mypy.overrides]]
+module = ["qgis.core"]
+follow_untyped_imports = true
