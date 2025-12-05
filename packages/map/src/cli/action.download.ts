@@ -1,10 +1,10 @@
 import { fsa } from '@chunkd/fs';
 import { command, option } from 'cmd-ts';
+import path, { basename } from 'path';
 
 import { registerFileSystem } from '../fs.register.ts';
 import { logger, logId } from '../log.ts';
 import { Url, UrlFolder } from '../util.ts';
-import path, { basename } from 'path';
 
 // Prepare a temporary folder to store the source data and processed outputs
 export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));

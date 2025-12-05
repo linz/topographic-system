@@ -1,10 +1,10 @@
 import { fsa } from '@chunkd/fs';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
-import path, { basename } from 'path';
+import { basename } from 'path';
 
 import { registerFileSystem } from '../fs.register.ts';
-import { logger, logId } from '../log.ts';
+import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
 import { Url, UrlFolder } from '../util.ts';
 import { downloadFile, downloadFiles, tmpFolder } from './action.download.ts';
