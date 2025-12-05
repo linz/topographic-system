@@ -87,7 +87,7 @@ export function createStacItem(
     properties: {
       datetime: CliDate,
       'proj:epsg': metadata.epsg,
-      'linz_topograhpic_system:generated': {
+      'linz_topographic_system:generated': {
         package: CliInfo.package,
         hash: CliInfo.hash,
         version: CliInfo.version,
