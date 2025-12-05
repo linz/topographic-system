@@ -7,6 +7,7 @@ from qgis.core import (
 )
 import sys
 import os
+import json
 
 os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
 
@@ -34,6 +35,9 @@ for item in layout.items():
         map_item = item
         break
 
+metadata = []
+map_crs = map_item.crs()
+
 topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
@@ -41,8 +45,9 @@ for feature in topo_sheet_layer.getFeatures():
     if feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
-    geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()))
-    map_item.setExtent(geom.boundingBox())
+    geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
+    bbox = geom.boundingBox()
+    map_item.setExtent(bbox)
 
     export_result = None
     if export_format == "pdf":
@@ -62,8 +67,19 @@ for feature in topo_sheet_layer.getFeatures():
         raise ValueError(f"Unsupported format: {export_format}")
 
     if export_result == QgsLayoutExporter.Success:
-        print(f"Map exported successfully to: {output_file}")
+        metadata.append(
+            {
+                "sheetCode": feature_code,
+                "geometry": geom.asJson(),
+                "epsg": map_crs.postgisSrid(),
+                "bbox": [bbox.xMinimum(), bbox.yMinimum(), bbox.xMaximum(), bbox.yMaximum()],
+            }
+        )
     else:
         print(f"Error exporting map: {exporter.errorMessage()}")
+
+json.dump(metadata, sys.stdout, ensure_ascii=False)
+sys.stdout.write("\n")
+sys.stdout.flush()
 
 qgs.exitQgis()
