@@ -1,0 +1,21 @@
+[project]
+name = "topographic-system"
+version = "0.1.0"
+description = "A collection of tools for LINZ Topographic Data"
+requires-python = ">=3.12"
+dependencies = [
+    "topographic-system-qgis",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "mypy",
+    "pytest",
+    "ruff",
+]
+
+[tool.uv.sources]
+topographic-system-qgis = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/qgis"]

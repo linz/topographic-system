@@ -6,6 +6,12 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arrow",
-    "qgis",
+    # QGIS Python bindings must be installed via system package manager, not PyPI.
+]
+
+[tool.uv]
+dev-dependencies = [
+    "mypy",
+    "pytest",
     "ruff>=0.14.6",
 ]
