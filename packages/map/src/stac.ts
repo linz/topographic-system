@@ -93,7 +93,7 @@ export function createStacItem(
         version: CliInfo.version,
         datetime: CliDate,
       },
-      'linz_topograhpic_system:options': {
+      'linz_topographic_system:options': {
         mapsheet: metadata.sheetCode,
         format,
         dpi,
