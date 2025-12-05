@@ -33,8 +33,8 @@ export interface GeneratedProperties {
 
 export type GeneratedStacItem = StacItem & {
   properties: {
-    'linz_topograhpic_system:generated': GeneratedProperties;
-    'linz_topograhpic_system:options'?: CreationOptions;
+    'linz_topographic_system:generated': GeneratedProperties;
+    'linz_topographic_system:options'?: CreationOptions;
   };
 };
 
