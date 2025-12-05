@@ -7,8 +7,8 @@ dependencies = [
     "topographic-system-qgis",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "mypy",
     "pytest",
     "ruff",
@@ -22,4 +22,4 @@ members = ["packages/qgis"]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
-follow_untyped_imports = true
+ignore_missing_imports = true
