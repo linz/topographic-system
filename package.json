@@ -1,12 +1,13 @@
 {
   "name": "@topographic-system/core",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "workspaces": [
     "packages/data",
     "packages/map"
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore"
+    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
+    "lint:py": "uv run ruff check"
   }
 }
