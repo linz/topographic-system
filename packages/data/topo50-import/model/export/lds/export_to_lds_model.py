@@ -4,23 +4,29 @@ import pandas as pd
 import json
 
 class ExportToLDSModel:
-    def __init__(self, layer_info_excel, field_mappings_excel, database, output_folder, schema_folder=None):
+    def __init__(self, layer_info_excel, field_mappings_excel, schema_folder, database, contour_database, product_database, output_folder):
         self.excel_file = layer_info_excel
         self.field_mappings_excel = field_mappings_excel
-        self.database = database
-        self.output_folder = output_folder
         self.schema_folder = schema_folder
+        self.database = database
+        self.contour_database = contour_database
+        self.product_database = product_database
+        self.output_folder = output_folder
         self.layers_info = self.load_layers_info()
         self.field_names, self.mapped_names = self.load_field_mapping(field_mappings_excel)
 
     def is_macronated(self, word):
-        macronated_maori_vowels = {'ā', 'ē', 'ī', 'ō', 'ū'}
+        macronated_maori_vowels = {'ā', 'ē', 'ī', 'ō', 'ū', 'è'}
         return any(char.lower() in macronated_maori_vowels for char in word)
 
+    def language_test(self, word):
+        macronateds = {'à', 'á', 'â', 'ã', 'ä', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ò', 'ó', 'ô', 'õ', 'ö', 'ù', 'ú', 'û', 'ü', 'ç', 'ñ', 'ß'}
+        return any(char.lower() in macronateds for char in word) 
+    
     def remove_macrons(self, text):
         macron_map = {
-            'ā': 'a', 'ē': 'e', 'ī': 'i', 'ō': 'o', 'ū': 'u',
-            'Ā': 'A', 'Ē': 'E', 'Ī': 'I', 'Ō': 'O', 'Ū': 'U'
+            'ā': 'a', 'ē': 'e', 'ī': 'i', 'ō': 'o', 'ū': 'u','è': 'e',
+            'Ā': 'A', 'Ē': 'E', 'Ī': 'I', 'Ō': 'O', 'Ū': 'U', 'È': 'E'
         }
         return ''.join(macron_map.get(char, char) for char in text)
 
@@ -88,6 +94,10 @@ class ExportToLDSModel:
             
         for idx, row in layer.iterrows():
             name_value = row[name_field]
+            #test check other languages
+            language_test_result = self.language_test(str(name_value))
+            if language_test_result:
+                print(f"Language test for {name_value}: {language_test_result}")
             if name_value and self.is_macronated(str(name_value)):
                 #print(f"Macronated name found: {name_value}")
                 layer.at[idx, 'macronated'] = 'Y'
@@ -140,15 +150,7 @@ class ExportToLDSModel:
 
         return layer
     
-    
-    def tree_locations_special_case_remove(self, schema):
-        keys_to_remove = ['macronated', 'name_ascii', 'name']
-        for key in keys_to_remove:
-            schema['properties'].pop(key, None)
-        return schema
-    
     def tree_locations_special_case(self, layer):
-        keys_to_add = ['macronated', 'name_ascii', 'name']
         layer['macronated'] = 'N'
         layer['name'] = ''
         layer['name_ascii'] = ''
@@ -193,6 +195,8 @@ class ExportToLDSModel:
     
     def process_layers(self):
         processed_layers = []
+        #debug temp
+        #docontinue = True
         for shp_name, layer_info in self.layers_info.items():
             start_time = pd.Timestamp.now()
             object_name, theme, feature_type, layer_name, dataset = layer_info
@@ -207,14 +211,23 @@ class ExportToLDSModel:
             field_names = self.field_names.get(shp_name, [])
             mapped_names = self.mapped_names.get(shp_name, [])
 
+            #todo - deal with these being in different database
+           ## if layer_name in ['contour', 'nz_topo50_map_sheet']:
+           ##     continue
+
             ##temp debug
-            #if layer_name == 'structure_point':  
+            #if 'road' in layer_name:
+            #    docontinue = False
+            
+            #if docontinue:
             #    continue
 
-            #if 'structure' in layer_name:
-            #    continue
-
-            layer = gpd.read_file(self.database, layer=layer_name, where=f"feature_type = '{feature_type}'")
+            if layer_name == 'contour' and os.path.exists(self.contour_database):
+                layer = gpd.read_file(self.contour_database, layer=layer_name, where=f"feature_type = '{feature_type}'")
+            elif layer_name in ['nz_topo50_map_sheet'] and os.path.exists(self.product_database):
+                layer = gpd.read_file(self.product_database, layer=layer_name, where=f"feature_type = '{feature_type}'")
+            else:
+                layer = gpd.read_file(self.database, layer=layer_name, where=f"feature_type = '{feature_type}'")
             if 'name' in mapped_names or feature_type == 'historic_site':
                 layer = self.check_names(mapped_names, layer, feature_type)
 
@@ -224,7 +237,6 @@ class ExportToLDSModel:
             schema = self.read_schema(schema_file)
             if layer_name == 'tree_locations':
                 layer = self.tree_locations_special_case(layer)
-                #schema = self.tree_locations_special_case_remove(schema)
             layer.to_file(shp_path, engine='fiona', schema=schema, encoding="UTF-8")
             end_time = pd.Timestamp.now()
             print(f"Exported: {layer_name} of type {feature_type} to {shp_name}: {end_time - start_time}")
@@ -243,15 +255,24 @@ if __name__ == "__main__":
     schema_folder = r"C:\Data\Topo50\Release62_NZ50_Schemas"
     layer_info_excel = os.path.join(model_folder, "layers_info.xlsx")
     field_mappings_excel = os.path.join(model_folder, "lds_field_mapping.xlsx")
+
     source_folder = r"C:\Data\toposource\topographic-data"
+    source_folder = r"C:\Data\topoedit\topographic-data"
     database = os.path.join(source_folder, "topographic-data.gpkg")
+    
+    contour_folder = r"C:\Data\topoedit\contours"
+    contour_database = os.path.join(contour_folder, "contours.gpkg")
+
+    product_folder = r"C:\Data\topoedit\topographic-carto-data"
+    product_database = os.path.join(product_folder, "topographic-carto-data.gpkg")
+    
     output_folder = r"C:\Data\topo50\export\lds_model"
     output_folder = r"C:\temp\export\lds_model"
 
     os.makedirs(output_folder, exist_ok=True)
 
     start_time = pd.Timestamp.now()
-    exporter = ExportToLDSModel(layer_info_excel, field_mappings_excel, database, output_folder, schema_folder)
+    exporter = ExportToLDSModel(layer_info_excel, field_mappings_excel, schema_folder, database, contour_database, product_database, output_folder)
     exporter.process_layers()
     end_time = pd.Timestamp.now()
     print(f"Processing time: {end_time - start_time}")

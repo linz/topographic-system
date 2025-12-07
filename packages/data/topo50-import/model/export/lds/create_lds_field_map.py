@@ -43,6 +43,8 @@ def ogr_fields():
 
 field_mappings = r"C:\Data\Model\lds_field_mapping_export.xlsx"
 folder_path = r"C:\Data\Topo50\Release62_NZ50_Shape"
+#field_mappings = r"C:\Data\Model\lds_field_mapping_export_rd.xlsx"
+#folder_path = r"C:\Data\Topo50\Release62_NZ50_Shape\replaced_by_lamps"
 search_path = os.path.join(folder_path, "*.shp")
 all_fields = {}
 
