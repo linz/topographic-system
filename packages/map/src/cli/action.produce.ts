@@ -1,15 +1,16 @@
 import { fsa } from '@chunkd/fs';
+import { CliId } from '@topographic-system/shared/src/cli.info.ts';
+import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
+import { logger } from '@topographic-system/shared/src/log.ts';
+import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.ts';
+import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import path, { basename, parse } from 'path';
 import type { StacCatalog } from 'stac-ts';
 
-import { CliId } from '../cli.info.ts';
-import { registerFileSystem } from '../fs.register.ts';
-import { logger } from '../log.ts';
 import { qgisExport } from '../python.runner.ts';
-import { createStacCatalog, createStacCollection, createStacItem, createStacLink } from '../stac.ts';
-import { Url, UrlFolder } from '../util.ts';
+import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
@@ -87,7 +88,7 @@ export async function downloadFiles(path: URL): Promise<URL[]> {
   return downloadFiles;
 }
 
-function getContentType(format: ExportFormat): string {
+export function getContentType(format: ExportFormat): string {
   if (format === ExportFormats.Pdf) return 'application/pdf';
   else if (format === ExportFormats.Tiff) return 'image/tiff';
   else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff';
@@ -173,14 +174,17 @@ export const ProduceCommand = command({
     // Create Stac Files and upload to destination
     const links = await createStacLink(args.source, args.project);
     for (const metadata of metadatas) {
-      const item = createStacItem(metadata, args.format, args.dpi, links);
+      const item = await createMapSheetStacItem(metadata, args.format, args.dpi, outputUrl, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, outputUrl), JSON.stringify(item, null, 2));
     }
-    const collection = createStacCollection(metadatas, links);
+    const collection = createMapSheetStacCollection(metadatas, links);
     await fsa.write(new URL('collection.json', outputUrl), JSON.stringify(collection, null, 2));
 
     const catalogPath = new URL(`/${projectName}/catalog.json`, args.output);
-    let catalog = createStacCatalog();
+    const title = 'Topographic System Map Producer';
+    const description =
+      'Topographic System Map Producer to generate maps from Qgis project in pdf, tiff, geotiff formats';
+    let catalog = createStacCatalog(title, description);
     const existing = await fsa.exists(catalogPath);
     if (existing) {
       catalog = await fsa.readJson<StacCatalog>(catalogPath);
