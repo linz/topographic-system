@@ -33,10 +33,6 @@ def ogr_fields():
         else:
             properties[field_name] = field_type.lower()
     
-    schema = {
-        'geometry': geom_name,
-        'properties': properties
-    }
 
 
 # read all fields in all shape files in folder C:\Data\Topo50\Release62_NZ50_Shape
@@ -61,7 +57,6 @@ for filename in glob.glob(search_path):
 
     # Write schemas to JSON file
     json_output_path = os.path.join(folder_path, f"{layer_name}.json")
-    json_output_path = os.path.join(r"c:\temp\export", f"{layer_name}.json")
     with open(json_output_path, 'w') as f:
         json.dump(schema, f, indent=2)
     print(f"Exported schemas to {json_output_path}")

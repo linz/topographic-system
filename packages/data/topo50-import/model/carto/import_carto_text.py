@@ -1,5 +1,4 @@
 import os
-#import psycopg
 from sqlalchemy import create_engine, text
 import geopandas as gpd
 import uuid

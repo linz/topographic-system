@@ -99,7 +99,7 @@ if __name__ == "__main__":
                             try:
                                 cur.execute(create_sql)
                                 conn.commit()
-                            except Exception as e:
+                            except Exception:
                                 print("likely error postgis extension not installed in schema - CREATE EXTENSION postgis; ")
                                 print(create_sql)
                                 continue
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                             try:
                                 cur.execute(create_sql)
                                 conn.commit()
-                            except Exception as e:
+                            except Exception:
                                 print(create_sql)
                                 continue
 

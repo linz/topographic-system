@@ -1,5 +1,4 @@
 import duckdb
-import geopandas as gpd
 
 
 # Connect to DuckDB and load PostGIS extension
@@ -50,12 +49,12 @@ con.execute(f"""
 
 
 
-describe = con.execute(f"""
+describe = con.execute("""
     DESCRIBE buildings 
 """)
 print(describe.fetchall())
 
-info = con.execute(f"""
+info = con.execute("""
     select geometry from buildings 
 """)
 #print(info.fetchall())

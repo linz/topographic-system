@@ -3,15 +3,15 @@ import csv
 
 # Database connection parameters
 DB_PARAMS = {
-    'dbname': 'topo',
-    'user': 'postgres',
-    'password': 'landinformation',
-    'host': 'localhost',
-    'port': 5432
+    "dbname": "topo",
+    "user": "postgres",
+    "password": "landinformation",
+    "host": "localhost",
+    "port": 5432,
 }
 
 
-def list_schema_tables(db_params, schema='toposource'):
+def list_schema_tables(db_params, schema="toposource"):
     query = f"""
     SELECT table_schema, table_name FROM information_schema.tables
     WHERE table_schema = '{schema}'
@@ -32,7 +32,8 @@ def list_schema_tables(db_params, schema='toposource'):
     except Exception:
         return {}
 
-def list_columns(db_params, schema='toposource'):
+
+def list_columns(db_params, schema="toposource"):
     query = f"""
     SELECT DISTINCT column_name FROM information_schema.columns
     WHERE table_schema = '{schema}'
@@ -50,7 +51,8 @@ def list_columns(db_params, schema='toposource'):
     except Exception:
         return []
 
-def list_schema_table_columns(db_params, schema='toposource'):
+
+def list_schema_table_columns(db_params, schema="toposource"):
     query = f"""
     SELECT table_schema, table_name, column_name FROM information_schema.columns
     WHERE table_schema = '{schema}'
@@ -72,7 +74,8 @@ def list_schema_table_columns(db_params, schema='toposource'):
     except Exception:
         return {}
 
-def get_table_row_count(db_params, schema, table):  
+
+def get_table_row_count(db_params, schema, table):
     query = f'SELECT COUNT(*) FROM "{schema}"."{table}"'
     try:
         with psycopg.connect(**db_params) as conn:
@@ -82,6 +85,7 @@ def get_table_row_count(db_params, schema, table):
         return count
     except Exception:
         return 0
+
 
 def get_unique_feature_types(db_params, schema, table):
     query = f"""
@@ -98,12 +102,13 @@ def get_unique_feature_types(db_params, schema, table):
     except Exception:
         return []
 
+
 if __name__ == "__main__":
-    local_pwd = "landinformation"  
-    
+    local_pwd = "landinformation"
+
     schema_name = "toposource"
     schema_name = "release62"
-    
+
     file = r"C:\Data\model\schema_tables.csv"
     fileschemacolumns = r"C:\Data\model\schema_columns.csv"
     filecolumns = r"C:\Data\model\columns.csv"
@@ -111,7 +116,7 @@ if __name__ == "__main__":
     filekart_bat = r"C:\Data\model\kart_import.bat"
     fileschemafeatures = r"C:\Data\model\schema_features.csv"
     fileschemafeatures_bycolumn = r"C:\Data\model\schema_features_column.csv"
-    
+
     schema_tables = list_schema_tables(DB_PARAMS, schema_name)
     schema_table_columns = list_schema_table_columns(DB_PARAMS, schema_name)
     columns_names = list_columns(DB_PARAMS, schema_name)
@@ -133,26 +138,30 @@ if __name__ == "__main__":
                 columns = schema_table_columns[schema][table]
                 for column in columns:
                     writer.writerow([schema, table, column])
-    
+
     with open(filecolumns, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["column_name"])
         for column in columns_names:
             writer.writerow([column])
-  
+
     with open(filekart, "w", newline="", encoding="utf-8") as csvfile:
         for schema, tables in schema_tables.items():
             for table in tables:
-                csvfile.write(f"kart import postgresql://postgres:{local_pwd}@localhost/topo/{schema_name}  --primary-key topo_id {table}\n")
+                csvfile.write(
+                    f"kart import postgresql://postgres:{local_pwd}@localhost/topo/{schema_name}  --primary-key topo_id {table}\n"
+                )
 
     with open(filekart_bat, "w", newline="", encoding="utf-8") as csvfile:
         for schema, tables in schema_tables.items():
             for table in tables:
-                csvfile.write(f"kart import postgresql://postgres:{local_pwd}@localhost/topo/{schema_name}  --primary-key topo_id {table} --replace-existing\n")
-                csvfile.write(f"kart push origin master\n")
+                csvfile.write(
+                    f"kart import postgresql://postgres:{local_pwd}@localhost/topo/{schema_name}  --primary-key topo_id {table} --replace-existing\n"
+                )
+                csvfile.write("kart push origin master\n")
 
-
-    if table.strip() == 'collections':  exit()
+    if table.strip() == "collections":
+        exit()
 
     with open(fileschemafeatures, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
@@ -163,7 +172,9 @@ if __name__ == "__main__":
                 for feature_type in feature_types:
                     writer.writerow([schema, table, feature_type])
 
-    with open(fileschemafeatures_bycolumn, "w", newline="", encoding="utf-8") as csvfile:
+    with open(
+        fileschemafeatures_bycolumn, "w", newline="", encoding="utf-8"
+    ) as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["schema", "table", "column", "feature_type"])
         for schema, tables in schema_tables.items():

@@ -7,19 +7,12 @@ import subprocess
 def render(output_folder, cat, dot, summary=''):
     filename = os.path.join(output_folder, f"{cat.replace(' ', '_')}{summary}_diagram.dot")
     filename = filename.replace('&', 'and')
-    body = dot.body
+
     dot.save(filename)
-        #with open(filename, 'w') as f:
-        #    f.write('\n'.join(body))
-        #dot -Tpng Transport_and_Infrastructure_diagram.format -o output.png
+
     svg_filename = filename.replace('.dot', '.svg')
     gif_filename = filename.replace('.dot', '.png')
-    # Set the path to Graphviz dot executable
-    #command_line = 'dot -Tpng "{}" -o "{}"'.format(filename, png_filename)
-    #with open(os.path.join(output_folder,'run_dot.bat'), 'a') as bat_file:
-    #    bat_file.write(command_line + '\n')
     subprocess.run(['dot','-Tsvg', filename, '-o', svg_filename], check=True) 
-    result = subprocess.run(['dot','-Tpng', filename, '-o', gif_filename], check=True)
     print(f"Generated SVG: {svg_filename}")
     print(f"Generated PNG: {gif_filename}")
 
@@ -31,6 +24,7 @@ def create_main_and_layer_diagrams(metadata_file_path, output_folder):
 
     # Create output folder
     os.makedirs(output_folder, exist_ok=True)
+    
     # Define colors for categories
     category_colors = {
         'Transport and Infrastructure': 'lightblue',

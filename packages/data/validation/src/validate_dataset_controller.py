@@ -109,7 +109,7 @@ class ValidateDatasetController:
 
         for query_rule in self.settings.query_rules:
             table = query_rule["table"]
-            export_layername = query_rule["table"]
+            #export_layername = query_rule["table"]
             where_condition = self.build_where_statement(query_rule)
             message = query_rule.get("message", "")
 

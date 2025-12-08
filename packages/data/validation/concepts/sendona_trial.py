@@ -30,14 +30,14 @@ df_polys.to_view("building_polys")
 
 #df = sd.sql(query).execute()
 
-query = f"""
+query = """
     SELECT p.topo_id, p.geometry
     FROM building_points p
     JOIN building_polys poly
     ON ST_Contains(poly.geometry, p.geometry)
 """
 
-query = f"""
+query = """
     SELECT DISTINCT a.*
     FROM building_polys a
     JOIN building_polys b
@@ -46,7 +46,7 @@ query = f"""
     AND a.topo_id != b.topo_id;
     """
 
-query = f"""
+query = """
     SELECT a.topo_id, a.geometry
     FROM building_polys a
     JOIN building_polys b

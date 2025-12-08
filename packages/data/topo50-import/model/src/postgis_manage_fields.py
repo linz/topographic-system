@@ -313,7 +313,8 @@ class ModifyTable:
 
         for schema, tables in schema_tables.items():
             for table in tables:
-                if table == 'collections': continue
+                if table == 'collections': 
+                    continue
                 fields = self.get_ordered_columns(schema, table, primary_key_type)
                 if self.column_exists(schema, table, "geom"):
                     geom_field = "geom"
@@ -358,7 +359,8 @@ class ModifyTable:
                     columns = tableModifer.column_list(schema, table, field_name)
                     if columns:
                         for field in columns:
-                            if field == 'change_type': continue
+                            if field == 'change_type': 
+                                continue
                             sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_{field_name} ON {schema}.{table}({field});"
                             with self.conn.cursor() as cur:
                                 try:
@@ -632,7 +634,7 @@ class ModifyTable:
         self.connect()
         ordered_columns = self.all_ordered_columns(primary_key_type)
         with self.conn.cursor() as cur:
-            cur.execute(f"""
+            cur.execute("""
                 SELECT column_name FROM information_schema.columns
                 WHERE table_schema = %s AND table_name = %s
                 ORDER BY ordinal_position
@@ -650,7 +652,7 @@ class ModifyTable:
         self.connect()
         non_compare_columns = self.get_non_compare_columns()
         with self.conn.cursor() as cur:
-            cur.execute(f"""
+            cur.execute("""
                 SELECT column_name FROM information_schema.columns
                 WHERE table_schema = %s AND table_name = %s
                 ORDER BY ordinal_position
@@ -900,18 +902,18 @@ if __name__ == "__main__":
             if df.empty:
                 print(f"No {df_order[i]} changes detected for {schema}.{table}")
             else:
-                if use_hive_partitioning == False:
+                if not use_hive_partitioning:
                     output_file = os.path.join(change_logs_path, schema, f"{schema}_{table}_{df_order[i]}_changelog.parquet")
                     os.makedirs(os.path.dirname(output_file), exist_ok=True)
                     df.to_parquet(output_file, index=False)
                     print(f"Exported {df_order[i]} changes for {schema}.{table} to {output_file}")
                 else:
                     partition_path = os.path.join(change_logs_path, schema)
-                    #f"release_date={release_date}", f"table_name={table}", f"change_type={df_order[i]}")
+
                     os.makedirs(partition_path, exist_ok=True)
                     partition_path = partition_path.replace("\\", "/")
                     output_file = os.path.join(partition_path, f"{schema}_{table}_{df_order[i]}_changelog.parquet")
-                    #df.to_parquet(root_path=partition_path, partition_cols=['year', 'month', 'day', 'table_name', 'change_type'], index=False)
+
                     pq.write_to_dataset(pa.Table.from_pandas(df), root_path=partition_path, partition_cols=['year', 'month', 'day', 'change_type'])
                     print(f"Exported {df_order[i]} changes for {schema}.{table} to {output_file}")
             i += 1

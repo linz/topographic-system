@@ -1,5 +1,4 @@
 import psycopg
-import pandas as pd
 
 # Database connection parameters
 db_params = {

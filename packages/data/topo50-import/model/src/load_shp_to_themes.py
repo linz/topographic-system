@@ -57,7 +57,7 @@ class Topo50DataLoader:
             elif extension == "gpkg":
                 write_dataframe(gdf, output_file, layer=layer_name, driver='GPKG')
             elif extension == "postgis":
-                engine = create_engine(f"postgresql://postgres:landinformation@localhost:5432/topo")
+                engine = create_engine("postgresql://postgres:landinformation@localhost:5432/topo")
                 schema = dataset_name.lower().replace("_layers", "") 
                 schema = schema_name
                 gdf.to_postgis(name=layer_name, con=engine, schema=schema, if_exists='append' if append_data else 'replace', index=False)

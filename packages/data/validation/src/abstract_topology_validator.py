@@ -50,7 +50,7 @@ class AbstractTopologyValidator(ABC):
         all_intersection_geometries_valid = []
         for item in geometries:
             geom = item['geometry']
-            if type(geom) == str:
+            if isinstance(geom, str):
                 continue
             if geom.is_valid:
                 all_intersection_geometries_valid.append(item)

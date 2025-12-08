@@ -1,6 +1,4 @@
-from multiprocessing import util
 import os
-from duckdb import query
 import geopandas as gpd
 import pandas as pd
 from shapely import Point
@@ -372,7 +370,7 @@ class TopologyValidator:
         all_intersection_geometries_valid = []
         for item in geometries:
             geom = item['geometry']
-            if type(geom) == str:
+            if isinstance(geom, str):
                 #print(item)
                 continue
             if geom.is_valid:

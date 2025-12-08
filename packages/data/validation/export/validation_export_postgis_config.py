@@ -70,36 +70,6 @@ def options_layer_generic():
             "where": "feature_type = 'shelter_belt'"
         }
     ]
-    feature_in_layers_examples = [
-        {
-            "table": "release62.building_point",
-            "intersection_table": "release62.building",
-            "layername": "building-points-in-building-polygons",
-            "message": "Building point features must not fall within building polygon features",
-            "date": "2025-10-01"
-        },
-        {
-            "table": "release62.building_point",
-            "intersection_table": "release62.building",
-            "layername": "building-points-in-building-polygons",
-            "message": "Building point features must not fall within building polygon features",
-            "date": "today"
-        },
-        {
-            "table": "release62.building_point",
-            "intersection_table": "release62.residential_area",
-            "layername": "building-points-in-residential",
-            "message": "Building point features must not fall within residential area polygon features",
-            "weeks": 1
-        },
-        {
-            "table": "release62.building_point",
-            "intersection_table": "release62.residential_area",
-            "layername": "building-points-in-extent",
-            "message": "Building point features must not fall within residential area polygon features",
-            "bbox": (174.81, -41.31, 174.82, -41.30)
-        }
-    ]
     self_intersection_layers = [
         {
             "table": "release62.building",

@@ -183,7 +183,7 @@ def create_html_file(table_dictionary, html_output_folder):
         for category_name, tables in table_dictionary.items():
             if category_name == 'summary':
                 continue
-            html_content += f'<div class="table-section">\n'
+            html_content += '<div class="table-section">\n'
             html_content += f'<div class="table-title"><h2 id="{category_name}">{category_name}</h2></div>\n'
             # Add summary of feature types in this table
             feature_types = tables["feature_types"]
@@ -204,7 +204,7 @@ def create_html_file(table_dictionary, html_output_folder):
             features = tables.get('features', {})
 
             for feature_type, feature_info in features.items():
-                html_content += f'<div class="feature">\n'
+                html_content += '<div class="feature">\n'
                 html_content += f'<h3>{feature_type}</h3>\n'
                 html_content += f'<p><span class="theme">Theme:</span> {feature_info["theme"]}</p>\n'
                 html_content += f'<p><span class="theme">LDS Table:</span> {feature_info["table_lds"]}</p>\n'
@@ -285,13 +285,6 @@ def create_html_file(table_dictionary, html_output_folder):
 
         for category_name, summary_info in summary_data.items():
             index_html_content += '<div class="model-drawings">\n'
-            # Copy and reference model picture
-            #model_src = summary_info[1]
-            #if os.path.exists(model_src):
-            #    model_filename = os.path.basename(model_src)
-            #    model_dest = os.path.join(model_images_folder, model_filename)
-            #    shutil.copy2(model_src, model_dest)
-            #    index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers and Themes</h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="max-width: 400px; height: auto;"></div>\n'
             model_src = summary_info[2]
             if os.path.exists(model_src):
                 model_filename = os.path.basename(model_src)
