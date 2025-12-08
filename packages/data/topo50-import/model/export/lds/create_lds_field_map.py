@@ -8,7 +8,6 @@ import json
 def ogr_fields():
     ds = ogr.Open(filename)
     layer = ds.GetLayer()
-    layer_name = layer.GetName()
     geom_type = layer.GetGeomType()
     geom_name = ogr.GeometryTypeToName(geom_type)
     if geom_type > 3:

@@ -881,7 +881,8 @@ if __name__ == "__main__":
         i = 0
         for schema, tables in schema_tables.items():
             for table in tables:
-                if table == 'collections': continue
+                if table == 'collections': 
+                    continue
                 dfs = tableModifer.compare_table_data(schema, table, previous_schema, release_date)
                 i+=1
                 if dfs is None:

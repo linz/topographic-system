@@ -88,7 +88,7 @@ class ValidateDatasetController:
 
         for null_check in self.settings.null_columns:
             table = null_check["table"]
-            export_layername = null_check["table"]
+            #export_layername = null_check["table"]
             where_condition = self.build_where_statement(null_check)
             message = null_check.get("message", "")
 
