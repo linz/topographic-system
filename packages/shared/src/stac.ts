@@ -13,7 +13,7 @@ const providers: StacProvider[] = [
 
 export async function createStacLink(source: URL, project: URL): Promise<StacLink[]> {
   const links: StacLink[] = [];
-  logger.info({ source: source.href, project: project.href }, 'Stac:PreareStacLinks');
+  logger.info({ source: source.href, project: project.href }, 'Stac:PrepareStacLinks');
   // Create stac link for external layer
 
   links.push({
@@ -37,7 +37,7 @@ export function createStacItem(
   geometry: GeoJSONGeometry,
   bbox: number[],
   links: StacLink[],
-  assets?: Record<string, StacAsset>,
+  assets: Record<string, StacAsset>,
 ): StacItem {
   const item: StacItem = {
     id: `${CliId}/${id}`,
@@ -45,8 +45,8 @@ export function createStacItem(
     collection: CliId,
     stac_version: '1.0.0',
     stac_extensions: [],
-    geometry: geometry,
-    bbox: bbox,
+    geometry,
+    bbox,
     links: [
       { href: `./${id}.json`, rel: 'self' },
       { href: './collection.json', rel: 'collection', type: 'application/json' },
@@ -62,7 +62,7 @@ export function createStacItem(
         datetime: CliDate,
       },
     },
-    assets: assets ?? {},
+    assets: assets,
   };
 
   return item;
