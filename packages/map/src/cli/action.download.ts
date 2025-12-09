@@ -1,13 +1,13 @@
 import { fsa } from '@chunkd/fs';
+import { CliId } from '@topographic-system/shared/src/cli.info.ts';
+import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
+import { logger } from '@topographic-system/shared/src/log.ts';
+import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, option } from 'cmd-ts';
-
-import { registerFileSystem } from '../fs.register.ts';
-import { logger, logId } from '../log.ts';
-import { Url, UrlFolder } from '../util.ts';
 import path, { basename } from 'path';
 
 // Prepare a temporary folder to store the source data and processed outputs
-export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${logId}/`));
+export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
 
 /**
  * Downloads the given source vector parquet files for processing
