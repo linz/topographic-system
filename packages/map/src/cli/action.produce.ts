@@ -12,6 +12,7 @@ import type { StacCatalog } from 'stac-ts';
 import { qgisExport } from '../python.runner.ts';
 import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
+import { downloadFile, downloadFiles } from './action.download.ts';
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
@@ -36,56 +37,6 @@ async function fromFile(file: URL): Promise<string[]> {
     throw new Error(`Invalide or empty map sheets in file: ${file.href}`);
   }
   return mapSheets;
-}
-
-/**
- * Downloads the given source vector parquet files for processing
- */
-export async function downloadFile(file: URL): Promise<URL> {
-  logger.info({ project: file.href, downloaded: tmpFolder.href }, 'DownloadProjectFile: Start');
-  try {
-    const downloadFile = new URL(basename(file.pathname), tmpFolder);
-    if (await fsa.exists(downloadFile)) return downloadFile;
-    const stats = await fsa.head(file);
-    logger.debug(
-      { file: file.href, size: stats?.size, ContentType: stats?.contentType, LastModified: stats?.lastModified },
-      'DownloadFile: stats',
-    );
-
-    const stream = fsa.readStream(file);
-    if (file.href.endsWith('.parquet')) {
-      await fsa.write(downloadFile, stream, {
-        contentType: 'application/vnd.apache.parquet',
-      });
-    } else {
-      await fsa.write(downloadFile, stream);
-    }
-
-    // validate file was downloaded
-    if (!(await fsa.exists(downloadFile))) {
-      throw new Error(`Failed to download file: ${downloadFile.href}`);
-    }
-
-    logger.info({ destination: downloadFile.href }, 'DownloadFile: End');
-    return downloadFile;
-  } catch (error) {
-    logger.error({ project: file.href }, 'DownloadFile: Error');
-    throw error;
-  }
-}
-
-/**
- * Downloads the given source vector parquet files for processing
- */
-export async function downloadFiles(path: URL): Promise<URL[]> {
-  logger.info({ source: path.href, downloaded: tmpFolder.href }, 'DownloadSourceFile: Start');
-  const downloadFiles = [];
-  const files = await fsa.toArray(fsa.list(path));
-  for (const file of files) {
-    downloadFiles.push(await downloadFile(file));
-  }
-  logger.info({ destination: tmpFolder.href, number: files.length }, 'DownloadSourceFile: End');
-  return downloadFiles;
 }
 
 export function getContentType(format: ExportFormat): string {

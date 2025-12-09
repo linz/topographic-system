@@ -70,3 +70,23 @@ export async function qgisExport(
 
   return parseSheetsMetadata(res.stdout);
 }
+
+/**
+ * Running python commands for list_map_sheets
+ */
+export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map_sheet'): Promise<string[]> {
+  const cmd = Command.create('python3');
+
+  cmd.args.push('qgis/src/list_map_sheets.py');
+  cmd.args.push(toRelative(input));
+  cmd.args.push(layerName);
+  const res = await cmd.run();
+  logger.debug('list_map_sheets.py ' + cmd.args.join(' '));
+
+  if (res.exitCode !== 0) {
+    logger.fatal({ list_map_sheets: res }, 'Failure');
+    throw new Error('list_map_sheets.py failed to run');
+  }
+
+  return JSON.parse(res.stdout) as string[];
+}
