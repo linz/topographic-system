@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0](https://github.com/linz/topographic-system/compare/v0.2.0...v0.3.0) (2025-12-10)
+
+
+### Features
+
+* **map:** Add Download cli and list mapsheet clis for argo workflow. BM-1393 ([#11](https://github.com/linz/topographic-system/issues/11)) ([1eb12a6](https://github.com/linz/topographic-system/commit/1eb12a6603ed838ff321d6763985475a36902bcc))
+* **map:** Create Stac files for the output files and simple tiff validation. BM-1392 ([#9](https://github.com/linz/topographic-system/issues/9)) ([88ebf31](https://github.com/linz/topographic-system/commit/88ebf313661b7ab0389daebbed3fad8b5f119392))
+* python configuration and CI BM-1456 ([#12](https://github.com/linz/topographic-system/issues/12)) ([33fab64](https://github.com/linz/topographic-system/commit/33fab642ac5e2565847a033c6e174f85b34c8167))
+
 ## [0.2.0](https://github.com/linz/topographic-system/compare/v0.1.0...v0.2.0) (2025-12-01)
 
 
