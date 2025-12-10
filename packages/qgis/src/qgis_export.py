@@ -35,6 +35,9 @@ for item in layout.items():
         map_item = item
         break
 
+if map_item is None:
+    raise ValueError("No QgsLayoutItemMap found in layout 'Topo50'.")
+
 metadata = []
 map_crs = map_item.crs()
 
@@ -44,12 +47,10 @@ for feature in topo_sheet_layer.getFeatures():
     # skip if this sheet_code is not in the list passed from CLI
     if feature_code not in sheet_codes:
         continue
-    if map_item is None:
-        continue
     geom = feature.geometry()
     geom.transform(
         QgsCoordinateTransform(
-            topo_sheet_layer.crs(), map_item.crs(), QgsProject.instance()
+            topo_sheet_layer.crs(), map_crs, QgsProject.instance()
         )
     )
     bbox = geom.boundingBox()
