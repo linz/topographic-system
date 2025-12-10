@@ -1,12 +1,9 @@
-from qgis.core import (
-    QgsApplication,
-    QgsProject
-)
+from qgis.core import QgsApplication, QgsProject
 import sys
 import os
 import json
 
-os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
+os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 layer_name = sys.argv[2]
