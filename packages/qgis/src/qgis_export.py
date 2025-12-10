@@ -49,9 +49,7 @@ for feature in topo_sheet_layer.getFeatures():
         continue
     geom = feature.geometry()
     geom.transform(
-        QgsCoordinateTransform(
-            topo_sheet_layer.crs(), map_crs, QgsProject.instance()
-        )
+        QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance())
     )
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
