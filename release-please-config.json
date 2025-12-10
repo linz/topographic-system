@@ -3,6 +3,7 @@
   "packages": {
     "packages/data": {},
     "packages/map": {},
+    "packages/shared": {},
     ".": {
       "include-component-in-tag": false
     }
