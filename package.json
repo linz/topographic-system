@@ -13,7 +13,6 @@
     "format:py": "uv run ruff format --check",
     "typecheck:py": "uv run mypy .",
     "test:py": "uv run pytest"
-
   },
   "devDependencies": {
     "@linzjs/style": "^5.4.0",
