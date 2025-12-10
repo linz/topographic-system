@@ -4,9 +4,14 @@ RUN pacman -Syu --noconfirm arrow qgis nodejs npm
 
 WORKDIR /app
 
-COPY packages/qgis/ /app/qgis/
-COPY packages/map/ /app/
+COPY package.json package-lock.json ./
+COPY packages/shared ./packages/shared
+COPY packages/map ./packages/map
+# Copy the qgis python code into map cli
+COPY packages/qgis ./packages/map/qgis
 
 RUN npm install
+
+WORKDIR /app/packages/map
 
 ENTRYPOINT [ "node", "src/index.ts" ]
