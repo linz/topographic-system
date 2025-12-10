@@ -3,13 +3,13 @@ from qgis.core import (
     QgsProject,
     QgsLayoutExporter,
     QgsCoordinateTransform,
-    QgsLayoutItemMap
+    QgsLayoutItemMap,
 )
 import sys
 import os
 import json
 
-os.environ.update({'QT_QPA_PLATFORM': 'offscreen'})
+os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
@@ -35,6 +35,9 @@ for item in layout.items():
         map_item = item
         break
 
+if map_item is None:
+    raise ValueError("No QgsLayoutItemMap found in layout 'Topo50'.")
+
 metadata = []
 map_crs = map_item.crs()
 
@@ -45,7 +48,9 @@ for feature in topo_sheet_layer.getFeatures():
     if feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
-    geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
+    geom.transform(
+        QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance())
+    )
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
 
@@ -72,7 +77,12 @@ for feature in topo_sheet_layer.getFeatures():
                 "sheetCode": feature_code,
                 "geometry": geom.asJson(),
                 "epsg": map_crs.postgisSrid(),
-                "bbox": [bbox.xMinimum(), bbox.yMinimum(), bbox.xMaximum(), bbox.yMaximum()],
+                "bbox": [
+                    bbox.xMinimum(),
+                    bbox.yMinimum(),
+                    bbox.xMaximum(),
+                    bbox.yMaximum(),
+                ],
             }
         )
     else:
