@@ -1,8 +1,9 @@
 import os
 import glob
 import pandas as pd
-import geopandas as gpd
-from pyogrio import read_info, write_dataframe
+import geopandas as gpd # type: ignore
+
+from pyogrio import read_info, write_dataframe # type: ignore
 import pyproj
 from sqlalchemy import create_engine
 
@@ -311,9 +312,10 @@ class Topo50DataLoader:
         print("Completed...")
 
 
-# usage:
 if __name__ == "__main__":
     local_app_data = os.getenv("LOCALAPPDATA")
+    if local_app_data is None:
+        raise ValueError("LOCALAPPDATA environment variable not found")
     folder = os.path.join(
         local_app_data,
         "miniconda3",

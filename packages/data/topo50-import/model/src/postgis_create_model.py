@@ -1,13 +1,14 @@
+from typing import Any
 import psycopg
 import pandas as pd
 
 # Database connection parameters
-db_params = {
+db_params: dict[str, Any] = {
     "dbname": "topo",
     "user": "postgres",
     "password": "landinformation",
     "host": "localhost",
-    "port": 5432,
+    "port": 5432
 }
 
 
