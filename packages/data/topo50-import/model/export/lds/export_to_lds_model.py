@@ -1,5 +1,5 @@
 import os
-import geopandas as gpd
+import geopandas as gpd # type: ignore
 import pandas as pd
 import json
 

@@ -1,5 +1,5 @@
 import os
-from pyogrio import list_layers
+from pyogrio import list_layers # type: ignore
 
 tables = [
     "airport",

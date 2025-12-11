@@ -1,4 +1,4 @@
-import geopandas as gpd
+import geopandas as gpd # type: ignore
 import pandas as pd
 from sqlalchemy import create_engine
 from abstract_topology_validator import AbstractTopologyValidator

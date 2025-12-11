@@ -1,6 +1,6 @@
 import os
 import json
-from graphviz import Digraph
+from graphviz import Digraph # type: ignore
 import subprocess
 
 

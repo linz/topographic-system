@@ -1,7 +1,5 @@
 import os
-from pyogrio import read_dataframe
-from pyogrio import list_layers
-from pyogrio import read_info
+from pyogrio import read_dataframe, list_layers, read_info # type: ignore
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
 from functools import partial

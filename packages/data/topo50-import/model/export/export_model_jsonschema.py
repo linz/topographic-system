@@ -1,5 +1,5 @@
 import json
-from db_common import DBTables
+from db_common_connection import DBTables
 
 
 # PostgreSQL to JSON Schema type mapping
