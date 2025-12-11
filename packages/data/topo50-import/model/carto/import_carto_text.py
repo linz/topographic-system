@@ -49,12 +49,20 @@ gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(gdf))])
 print(gdf.columns)
 
 engine = create_engine(db_params)
-schema = 'carto'
-gdf.to_postgis(name='nz_topo50_carto_text', con=engine, schema=schema, if_exists='replace', index=False)
+schema = "carto"
+gdf.to_postgis(
+    name="nz_topo50_carto_text",
+    con=engine,
+    schema=schema,
+    if_exists="replace",
+    index=False,
+)
 with engine.connect() as conn:
-    conn.execute(text(f"""
+    conn.execute(
+        text(f"""
             ALTER TABLE {schema}.nz_topo50_carto_text ADD PRIMARY KEY (topo_id);
-        """))
+        """)
+    )
 
 
 print("Data imported successfully")

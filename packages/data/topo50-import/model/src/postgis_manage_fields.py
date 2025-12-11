@@ -344,7 +344,7 @@ class ModifyTable:
 
         for schema, tables in schema_tables.items():
             for table in tables:
-                if table == 'collections' or table == 'nz_topo50_map_sheet': 
+                if table == "collections" or table == "nz_topo50_map_sheet":
                     continue
                 fields = self.get_ordered_columns(schema, table, primary_key_type)
                 if self.column_exists(schema, table, "geom"):
@@ -411,7 +411,7 @@ class ModifyTable:
                 #    except Exception as e:
                 #        print(f"Error creating index for '{table}': {e}")
                 #        continue
-                #print(f"Index for '{table}' created successfully.")
+                # print(f"Index for '{table}' created successfully.")
 
     def add_name_columns(self):
         self.connect()
@@ -998,7 +998,7 @@ if __name__ == "__main__":
                     tableModifer.update_primary_key_guid(schema, table, "topo_id")
 
     # turn the concept of collections off for now as no direct requirement
-    #if option == "all" or option == "collections":
+    # if option == "all" or option == "collections":
     #    tableModifer.create_collections_table(schema_name)
 
     if update_topoid_from_previous_release and option == "all":
@@ -1079,7 +1079,7 @@ if __name__ == "__main__":
             i += 1
 
     if option == "all" or option == "process_carto_tables":
-        tables_to_copy = ['nz_topo50_map_sheet']
+        tables_to_copy = ["nz_topo50_map_sheet"]
         for table_name in tables_to_copy:
             # Check if table exists in source schema
             if tableModifer.table_exists(schema_name, table_name):
@@ -1090,7 +1090,7 @@ if __name__ == "__main__":
                         cur.execute(drop_query)
                         tableModifer.conn.commit()
                         print(f"Dropped existing table 'carto.{table_name}'")
-                
+
                 # Copy table from source schema to carto schema
                 with tableModifer.conn.cursor() as cur:
                     copy_query = f'CREATE TABLE "carto"."{table_name}" AS SELECT * FROM "{schema_name}"."{table_name}";'
@@ -1102,6 +1102,10 @@ if __name__ == "__main__":
                         cur.execute(index_sql)
                         tableModifer.conn.commit()
                         print(f"Created index on topo_id for 'carto.{table_name}'")
-                    print(f"Copied table '{schema_name}.{table_name}' to 'carto.{table_name}'")
+                    print(
+                        f"Copied table '{schema_name}.{table_name}' to 'carto.{table_name}'"
+                    )
             else:
-                print(f"Table '{schema_name}.{table_name}' does not exist in source schema")
+                print(
+                    f"Table '{schema_name}.{table_name}' does not exist in source schema"
+                )
