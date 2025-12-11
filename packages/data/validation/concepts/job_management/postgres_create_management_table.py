@@ -2,11 +2,11 @@ import psycopg
 
 # Database connection parameters
 db_params = {
-    'dbname': 'topo',
-    'user': 'postgres',
-    'password': 'landinformation',
-    'host': 'localhost',
-    'port': 5432
+    "dbname": "topo",
+    "user": "postgres",
+    "password": "landinformation",
+    "host": "localhost",
+    "port": 5432,
 }
 
 schema = "editjobs"

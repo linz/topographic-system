@@ -3,6 +3,7 @@ import psycopg
 import geopandas as gpd
 from sqlalchemy import create_engine
 
+
 class Database:
     def __init__(self, db_params):
         self.db_params = db_params
@@ -47,20 +48,21 @@ class Database:
             columns = [row[0] for row in cur.fetchall()]
             return columns
 
+
 if __name__ == "__main__":
     export_topo_data = True
     export_carto_data = False
 
     DB_PARAMS = {
-        'dbname': 'topo',
-        'user': 'postgres',
-        'password': 'landinformation',
-        'host': 'localhost',
-        'port': 5432
+        "dbname": "topo",
+        "user": "postgres",
+        "password": "landinformation",
+        "host": "localhost",
+        "port": 5432,
     }
     export_folder = r"C:/Data/temp/"
     db_connection_url = "postgresql://postgres:landinformation@localhost:5432/topo"
-    schema = 'release62'
+    schema = "release62"
     release_date = "2025-02-05"
     export_folder = os.path.join(export_folder, release_date)
     if not os.path.exists(export_folder):
@@ -69,9 +71,9 @@ if __name__ == "__main__":
     database = Database(DB_PARAMS)
     sqlcon = create_engine(db_connection_url)
     tables = database.list_schema_tables(schema)
-    non_spatial_tables = ['collections']
+    non_spatial_tables = ["collections"]
 
-    if  export_topo_data:
+    if export_topo_data:
         for table in tables.get(schema, []):
             print(f"Table: {table}")
             columns = database.list_columns(schema, table)
@@ -85,16 +87,29 @@ if __name__ == "__main__":
 
             if table not in non_spatial_tables:
                 df = gpd.GeoDataFrame.from_postgis(sql, sqlcon)
-                gdf = gpd.GeoDataFrame(df, geometry='geom', crs='EPSG:4167')
-                gdf.to_parquet(parquet_file, engine='pyarrow', compression='zstd', compression_level=3, write_covering_bbox=True, row_group_size=50000)
+                gdf = gpd.GeoDataFrame(df, geometry="geom", crs="EPSG:4167")
+                gdf.to_parquet(
+                    parquet_file,
+                    engine="pyarrow",
+                    compression="zstd",
+                    compression_level=3,
+                    write_covering_bbox=True,
+                    row_group_size=50000,
+                )
             else:
                 df = gpd.pd.read_sql(sql, sqlcon)
-                df.to_parquet(parquet_file, engine='pyarrow', compression='zstd', compression_level=3, row_group_size=50000)
+                df.to_parquet(
+                    parquet_file,
+                    engine="pyarrow",
+                    compression="zstd",
+                    compression_level=3,
+                    row_group_size=50000,
+                )
 
     if export_carto_data:
         # export the carto dataset
-        schema = 'carto'
-        table = 'topo50_carto_text'
+        schema = "carto"
+        table = "topo50_carto_text"
         print(f"Table: {table}")
         columns = database.list_columns(schema, table)
         fields = ", ".join(columns)
@@ -105,6 +120,13 @@ if __name__ == "__main__":
         parquet_file = os.path.join(export_folder, "carto_text.parquet")
         print(f"Exporting to {parquet_file}")
 
-        df = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col='geometry')
-        gdf = gpd.GeoDataFrame(df, geometry='geometry', crs='EPSG:4167')
-        gdf.to_parquet(parquet_file, engine='pyarrow', compression='zstd', compression_level=3, write_covering_bbox=True, row_group_size=50000)
+        df = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
+        gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4167")
+        gdf.to_parquet(
+            parquet_file,
+            engine="pyarrow",
+            compression="zstd",
+            compression_level=3,
+            write_covering_bbox=True,
+            row_group_size=50000,
+        )

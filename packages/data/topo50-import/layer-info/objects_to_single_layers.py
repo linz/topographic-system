@@ -30,7 +30,10 @@ for row in source.itertuples():
         layers_info.append(layer_list)
 
 output_file = os.path.join(folder, "layers_info.xlsx")
-df_layers = pd.DataFrame(layers_info, columns=["object_name", "shp_name", "theme", "feature_type", "layer_name", "type"])
+df_layers = pd.DataFrame(
+    layers_info,
+    columns=["object_name", "shp_name", "theme", "feature_type", "layer_name", "type"],
+)
 df_layers.to_excel(output_file, index=False)
 
 print(f"Layers information saved to {output_file}")

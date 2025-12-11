@@ -4,14 +4,25 @@ from parquet_topology_validator import ParquetTopologyValidator
 from postgis_topology_validator import PostgisTopologyValidator
 
 """Factory class to create the appropriate TopologyValidator based on db_path"""
-class TopologyValidatorFactory():
+
+
+class TopologyValidatorFactory:
     def __init__(self, settings: TopoValidatorSettings):
         self.settings = settings
 
-    def create_validator(self, summary_report, export_validation_data, table, table2=None, export_layername=None, where_condition=None, message=None):
+    def create_validator(
+        self,
+        summary_report,
+        export_validation_data,
+        table,
+        table2=None,
+        export_layername=None,
+        where_condition=None,
+        message=None,
+    ):
         """
         Create and return the appropriate TopologyValidator instance based on db_path
-        
+
         Args: settings: TopoValidatorSettings instance containing configuration
             summary_report: Summary report dictionary - true/false for each rule group
             export_validation_data: Flag to indicate if validation data should be exported
@@ -24,27 +35,57 @@ class TopologyValidatorFactory():
             message: Validation error message (optional)
             output_dir: Output directory for validation results (optional)
             area_crs: CRS for area calculations (optional)
-            
+
         Returns:
             Appropriate TopologyValidator instance
-            
+
         Raises:
             ValueError: If db_path format is not recognized
         """
-        if self.settings.db_path.startswith('postgresql'):
+        if self.settings.db_path.startswith("postgresql"):
             return PostgisTopologyValidator(
-                summary_report, export_validation_data, self.settings.db_path, table, export_layername, table2,
-                where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
+                summary_report,
+                export_validation_data,
+                self.settings.db_path,
+                table,
+                export_layername,
+                table2,
+                where_condition,
+                self.settings.bbox,
+                message,
+                self.settings.output_dir,
+                self.settings.area_crs,
             )
-        elif self.settings.db_path.endswith('.gpkg'):
+        elif self.settings.db_path.endswith(".gpkg"):
             return GpkgTopologyValidator(
-                summary_report, export_validation_data,self.settings.db_path, table, export_layername, table2,
-                where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
+                summary_report,
+                export_validation_data,
+                self.settings.db_path,
+                table,
+                export_layername,
+                table2,
+                where_condition,
+                self.settings.bbox,
+                message,
+                self.settings.output_dir,
+                self.settings.area_crs,
             )
-        elif self.settings.db_path.endswith('.parquet') or 'parquet' in self.settings.db_path:
+        elif (
+            self.settings.db_path.endswith(".parquet")
+            or "parquet" in self.settings.db_path
+        ):
             return ParquetTopologyValidator(
-                summary_report, export_validation_data, self.settings.db_path, table, export_layername, table2,
-                where_condition, self.settings.bbox, message, self.settings.output_dir, self.settings.area_crs
+                summary_report,
+                export_validation_data,
+                self.settings.db_path,
+                table,
+                export_layername,
+                table2,
+                where_condition,
+                self.settings.bbox,
+                message,
+                self.settings.output_dir,
+                self.settings.area_crs,
             )
         else:
             raise ValueError(

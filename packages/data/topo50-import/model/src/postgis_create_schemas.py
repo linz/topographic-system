@@ -2,16 +2,13 @@ import psycopg
 
 # Database connection parameters
 DB_PARAMS = {
-    'dbname': 'topo',
-    'user': 'postgres',
-    'password': 'landinformation',
-    'host': 'localhost',
-    'port': 5432
+    "dbname": "topo",
+    "user": "postgres",
+    "password": "landinformation",
+    "host": "localhost",
+    "port": 5432,
 }
-SCHEMAS = [
-    "release62",
-    "qgis"
-]
+SCHEMAS = ["release62", "qgis"]
 
 SCHEMAS_DATASETS = [
     "transport",
@@ -22,8 +19,9 @@ SCHEMAS_DATASETS = [
     "infrastructure",
     "relief",
     "mapsheets",
-    "qgis"
+    "qgis",
 ]
+
 
 def create_schemas(db_params, schemas):
     with psycopg.connect(**db_params) as conn:
@@ -34,6 +32,7 @@ def create_schemas(db_params, schemas):
         conn.commit()
         conn.close()
 
+
 if __name__ == "__main__":
     create_schemas(DB_PARAMS, SCHEMAS)
-    #create_schemas(DB_PARAMS, SCHEMAS_DATASETS)  # latest version just goes into single schema
+    # create_schemas(DB_PARAMS, SCHEMAS_DATASETS)  # latest version just goes into single schema

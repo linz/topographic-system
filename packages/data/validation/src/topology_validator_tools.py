@@ -1,16 +1,20 @@
-
 import datetime
 import os
 import shutil
 import json
 
-class TopoValidatorTools:
 
-    def prep_output_folder(self, output_dir=r"c:\data\topoedit\validation-data", use_date=True, remove_folder=True):
+class TopoValidatorTools:
+    def prep_output_folder(
+        self,
+        output_dir=r"c:\data\topoedit\validation-data",
+        use_date=True,
+        remove_folder=True,
+    ):
         if use_date:
-            date_str = datetime.datetime.now().strftime('%Y-%m-%d')
+            date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             output_dir = os.path.join(output_dir, date_str)
-        
+
         if remove_folder and os.path.exists(output_dir):
             shutil.rmtree(output_dir)
         os.makedirs(output_dir, exist_ok=True)
@@ -21,19 +25,19 @@ class TopoValidatorTools:
             os.makedirs(path)
 
     def get_update_date(self, date=None, weeks=1):
-
         if date is None:
             date = self.last_week(weeks)
-        elif date == 'today':
-            date = datetime.datetime.now().strftime('%Y-%m-%d')
+        elif date == "today":
+            date = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        #date('2025-09-13');
+        # date('2025-09-13');
         where = f"update_date >= date('{date}')"
         return where
 
     def last_week(self, number_of_weeks=1):
         last_week = datetime.datetime.now() - datetime.timedelta(weeks=number_of_weeks)
-        return last_week.strftime('%Y-%m-%d')
+        return last_week.strftime("%Y-%m-%d")
+
 
 class TopoValidatorSettings:
     def __init__(
@@ -51,8 +55,8 @@ class TopoValidatorSettings:
         process_features_on_layer=True,
         process_self_intersections=True,
         update_date=None,
-        weeks=None, 
-        bbox=None
+        weeks=None,
+        bbox=None,
     ):
         self.validation_config_file = validation_config_file
         self.db_path = db_path
@@ -71,16 +75,22 @@ class TopoValidatorSettings:
         self.bbox = bbox
 
     def load_validation_config(self):
-        with open(self.validation_config_file, 'r') as f:
+        with open(self.validation_config_file, "r") as f:
             loaded_data = json.load(f)
-            self.feature_not_on_layers = loaded_data.get('feature_not_on_layers', [])
-            self.feature_in_layers = loaded_data.get('feature_in_layers', [])
-            self.line_not_on_feature_layers = loaded_data.get('line_not_on_feature_layers', [])
-            self.line_not_touches_feature_layers = loaded_data.get('line_not_touches_feature_layers', [])
-            self.feature_not_contains_layers = loaded_data.get('feature_not_contains_layers', [])
-            self.self_intersect_layers = loaded_data.get('self_intersect_layers', [])
-            self.null_columns = loaded_data.get('null_columns', [])
-            self.query_rules = loaded_data.get('query_rules', [])
+            self.feature_not_on_layers = loaded_data.get("feature_not_on_layers", [])
+            self.feature_in_layers = loaded_data.get("feature_in_layers", [])
+            self.line_not_on_feature_layers = loaded_data.get(
+                "line_not_on_feature_layers", []
+            )
+            self.line_not_touches_feature_layers = loaded_data.get(
+                "line_not_touches_feature_layers", []
+            )
+            self.feature_not_contains_layers = loaded_data.get(
+                "feature_not_contains_layers", []
+            )
+            self.self_intersect_layers = loaded_data.get("self_intersect_layers", [])
+            self.null_columns = loaded_data.get("null_columns", [])
+            self.query_rules = loaded_data.get("query_rules", [])
 
     @property
     def validation_config_file(self):
@@ -239,7 +249,7 @@ class TopoValidatorSettings:
     @property
     def update_date(self):
         return self._update_date
-    
+
     @update_date.setter
     def update_date(self, value):
         self._update_date = value
@@ -251,7 +261,7 @@ class TopoValidatorSettings:
     @weeks.setter
     def weeks(self, value):
         self._weeks = value
-        
+
     @property
     def bbox(self):
         return self._bbox

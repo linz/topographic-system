@@ -25,10 +25,10 @@ for file in glob.glob(search_path):
 
 # Find the highest value across all files
 max_value = max(max_ids.values()) if max_ids else 0
-max_ids['max_value'] = max_value
+max_ids["max_value"] = max_value
 
 # Write to disk
-with open(output_file, 'w') as f:
+with open(output_file, "w") as f:
     json.dump(max_ids, f, indent=2)
 
 end_time = time()

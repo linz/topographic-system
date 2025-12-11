@@ -7,12 +7,12 @@ feat_codes = os.path.join(folder, "tdd-feat-codes.csv")
 
 # Read the Excel file and get the 'shp_name' column
 df = pd.read_excel(layer_info_path)
-keys = df['shp_name'].dropna().unique()
+keys = df["shp_name"].dropna().unique()
 
 
 # Read the feature codes CSV file
 feat_df = pd.read_csv(feat_codes)
-feat_keys = feat_df['object class'].dropna().unique()
+feat_keys = feat_df["object class"].dropna().unique()
 
 # Find keys in 'keys' not in 'feat_keys'
 missing_in_feat = set(keys) - set(feat_keys)
