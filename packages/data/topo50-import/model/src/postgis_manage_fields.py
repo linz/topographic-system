@@ -313,7 +313,7 @@ class ModifyTable:
 
         for schema, tables in schema_tables.items():
             for table in tables:
-                if table == 'collections': 
+                if table == 'collections' or table == 'nz_topo50_map_sheet': 
                     continue
                 fields = self.get_ordered_columns(schema, table, primary_key_type)
                 if self.column_exists(schema, table, "geom"):
@@ -380,7 +380,6 @@ class ModifyTable:
                 #        continue
                 #print(f"Index for '{table}' created successfully.")
 
-    
     def add_name_columns(self):
         self.connect()
         table_list = [
@@ -866,8 +865,9 @@ if __name__ == "__main__":
                 for table in tables:
                     tableModifer.update_primary_key_guid(schema, table, "topo_id")
 
-    if option == "all" or option == "collections":
-        tableModifer.create_collections_table(schema_name)
+    # turn the concept of collections off for now as no direct requirement
+    #if option == "all" or option == "collections":
+    #    tableModifer.create_collections_table(schema_name)
 
     if update_topoid_from_previous_release and option == "all":
         schema_tables = tableModifer.list_schema_tables(schema_name)
@@ -918,3 +918,31 @@ if __name__ == "__main__":
                     pq.write_to_dataset(pa.Table.from_pandas(df), root_path=partition_path, partition_cols=['year', 'month', 'day', 'change_type'])
                     print(f"Exported {df_order[i]} changes for {schema}.{table} to {output_file}")
             i += 1
+
+    if option == "all" or option == "process_carto_tables":
+        tables_to_copy = ['nz_topo50_map_sheet']
+        for table_name in tables_to_copy:
+            # Check if table exists in source schema
+            if tableModifer.table_exists(schema_name, table_name):
+                # Check if table exists in carto schema and delete it
+                if tableModifer.table_exists("carto", table_name):
+                    with tableModifer.conn.cursor() as cur:
+                        drop_query = f'DROP TABLE "carto"."{table_name}" CASCADE;'
+                        cur.execute(drop_query)
+                        tableModifer.conn.commit()
+                        print(f"Dropped existing table 'carto.{table_name}'")
+                
+                # Copy table from source schema to carto schema
+                with tableModifer.conn.cursor() as cur:
+                    copy_query = f'CREATE TABLE "carto"."{table_name}" AS SELECT * FROM "{schema_name}"."{table_name}";'
+                    cur.execute(copy_query)
+                    tableModifer.conn.commit()
+                    # Add index on topo_id field if it exists
+                    if tableModifer.column_exists("carto", table_name, "topo_id"):
+                        index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
+                        cur.execute(index_sql)
+                        tableModifer.conn.commit()
+                        print(f"Created index on topo_id for 'carto.{table_name}'")
+                    print(f"Copied table '{schema_name}.{table_name}' to 'carto.{table_name}'")
+            else:
+                print(f"Table '{schema_name}.{table_name}' does not exist in source schema")

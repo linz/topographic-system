@@ -48,10 +48,10 @@ print(gdf.columns)
 
 engine = create_engine(db_params)
 schema = 'carto'
-gdf.to_postgis(name='carto_text', con=engine, schema=schema, if_exists='replace', index=False)
+gdf.to_postgis(name='nz_topo50_carto_text', con=engine, schema=schema, if_exists='replace', index=False)
 with engine.connect() as conn:
     conn.execute(text(f"""
-            ALTER TABLE {schema}.topo50_carto_text ADD PRIMARY KEY (topo_id);
+            ALTER TABLE {schema}.nz_topo50_carto_text ADD PRIMARY KEY (topo_id);
         """))
 
 
