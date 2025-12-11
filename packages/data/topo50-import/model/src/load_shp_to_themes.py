@@ -1,9 +1,9 @@
 import os
 import glob
 import pandas as pd
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 
-from pyogrio import read_info, write_dataframe # type: ignore
+from pyogrio import read_info, write_dataframe  # type: ignore
 import pyproj
 from sqlalchemy import create_engine
 

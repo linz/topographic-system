@@ -8,7 +8,7 @@ db_params: dict[str, Any] = {
     "user": "postgres",
     "password": "landinformation",
     "host": "localhost",
-    "port": 5432
+    "port": 5432,
 }
 
 
