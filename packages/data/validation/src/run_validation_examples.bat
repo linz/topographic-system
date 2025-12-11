@@ -1,4 +1,0 @@
-echo on
-python run_validation_cli.py --db-path "C:\Data\topoedit\topographic-data\topographic-data.gpkg" --output-dir "C:\temp\validation-data" --use-date-folder --bbox 174.711 -41.349 175.04 -41.17 --verbose
-
-python run_validation_cli.py --db-path "C:\Data\topoedit\topographic-data\topographic-data.gpkg" --output-dir "C:\temp\validation-data" --use-date-folder --bbox 174.711 -41.349 175.04 -41.17 --verbose
