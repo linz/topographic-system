@@ -1,16 +1,17 @@
 import psycopg
 import csv
 import openpyxl
-#from postgis_data_checks import DataChecker
+# from postgis_data_checks import DataChecker
 
 # Database connection parameters
 DB_PARAMS = {
-    'dbname': 'topo',
-    'user': 'postgres',
-    'password': 'landinformation',
-    'host': 'localhost',
-    'port': 5432
+    "dbname": "topo",
+    "user": "postgres",
+    "password": "landinformation",
+    "host": "localhost",
+    "port": 5432,
 }
+
 
 class DataChecker:
     def __init__(self, db_params):
@@ -50,7 +51,7 @@ class DataChecker:
         with self.conn.cursor() as cur:
             cur.execute(query)
             return cur.fetchall()
-        
+
     def query_classification_macronated_name_null(self, schema, table):
         query = f"""
             SELECT feature_type, macronated, COUNT(*) as count
@@ -72,7 +73,7 @@ class DataChecker:
         with self.conn.cursor() as cur:
             cur.execute(query)
             return cur.fetchall()
-        
+
     def query_classifications(self, schema, table):
         query = f"""
             SELECT theme, feature_type, object_name, COUNT(*) as count
@@ -88,10 +89,10 @@ class DataChecker:
             cur.execute(f"SELECT COUNT(*) FROM {schema}.{table_name}")
             count = cur.fetchone()[0]
         return count
-    
+
     def get_schema_tables_list(self, schema_tables: str):
-        with open(schema_tables, newline='', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
+        with open(schema_tables, newline="", encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile, delimiter=",")
             next(reader)  # Skip header row
             tables = []
             for row in reader:
@@ -114,19 +115,27 @@ class DataChecker:
                 ws.append([f"No records with {field} NULL in {table_name}"])
             else:
                 ws.append([f"Records with {field} NULL in {table_name}"])
-                ws.append(["schema", "table_name","feature_type", "Macronated", "Count"])
+                ws.append(
+                    ["schema", "table_name", "feature_type", "Macronated", "Count"]
+                )
                 for feature_type, macronated, count in results:
-                    ws.append([schema, table_name,feature_type, "NULL", count])
+                    ws.append([schema, table_name, feature_type, "NULL", count])
 
             ws.append([])  # Blank row for separation
             results = self.query_classification_macronated_name_null(schema, table_name)
             if len(results) == 0:
-                ws.append([f"No records with {field} NULL and name not NULL in {table_name}"])
+                ws.append(
+                    [f"No records with {field} NULL and name not NULL in {table_name}"]
+                )
             else:
-                ws.append([f"Records with {field} NULL and name not NULL in {table_name}"])
-                ws.append(["schema", "table_name","feature_type", "Macronated", "Count"])
+                ws.append(
+                    [f"Records with {field} NULL and name not NULL in {table_name}"]
+                )
+                ws.append(
+                    ["schema", "table_name", "feature_type", "Macronated", "Count"]
+                )
                 for feature_type, macronated, count in results:
-                    ws.append([schema, table_name,feature_type, "NULL", count])
+                    ws.append([schema, table_name, feature_type, "NULL", count])
         else:
             ws.append([f"Field '{field}' does not exist in {table_name}"])
         ws.append([])  # Blank row for separation
@@ -141,37 +150,43 @@ class DataChecker:
                 ws.append([f"No records with {field} NULL in {table_name}"])
             else:
                 ws.append([f"Records with {field} NULL in {table_name}"])
-                ws.append(["schema", "table_name","feature_type", "Name", "Count"])
+                ws.append(["schema", "table_name", "feature_type", "Name", "Count"])
                 for feature_type, name, count in results:
-                    ws.append([schema, table_name,feature_type, "NULL", count])
+                    ws.append([schema, table_name, feature_type, "NULL", count])
         else:
             ws.append([f"Field '{field}' does not exist in {table_name}"])
         ws.append([])  # Blank row for separation
 
     def write_classications_results(self, schema, table_name, ws):
-
         results = self.query_classifications(schema, table_name)
         if len(results) == 0:
             ws.append([f"No records with classiciations in {table_name}"])
         else:
             ws.append([f"Classifications in {table_name}"])
-            ws.append(["schema", "table_name","theme", "feature_type", "object_name", "Count"])
+            ws.append(
+                [
+                    "schema",
+                    "table_name",
+                    "theme",
+                    "feature_type",
+                    "object_name",
+                    "Count",
+                ]
+            )
             for theme, feature_type, object_name, count in results:
                 ws.append([schema, table_name, theme, feature_type, object_name, count])
         ws.append([])  # Blank row for separation
-
 
     def run(self, schema_tables):
         try:
             # Create a new Excel workbook and add a sheet with the table name
             wb = openpyxl.Workbook()
 
-        
             tables = checker.get_schema_tables_list(schema_tables)
 
             for schema, table_name in tables:
                 print(schema, table_name)
-                
+
                 wb.create_sheet(title=table_name)
                 ws = wb[table_name]
 
@@ -183,13 +198,14 @@ class DataChecker:
 
         finally:
             ws = wb["Sheet"]
-            wb.remove(ws)  
+            wb.remove(ws)
             wb.save(r"C:\Data\Model\data_checks.xlsx")
         wb.close()
         checker.close()
 
+
 if __name__ == "__main__":
     checker = DataChecker(DB_PARAMS)
     schema_tables = r"C:\Data\Model\schema_tables.csv"
-    
+
     checker.run(schema_tables)

@@ -7,12 +7,12 @@ layer_info_path = os.path.join(folder, "layers_info.xlsx")
 
 # Read the Excel file and get the 'shp_name' column
 df = pd.read_excel(layer_info_path)
-keys = df['shp_name'].dropna().unique()
+keys = df["shp_name"].dropna().unique()
 expected_shp_files = set(f"{key}.shp" for key in keys)
 
 
 # List all .shp files in the shape_path directory
-actual_shp_files = set(f for f in os.listdir(shape_path) if f.lower().endswith('.shp'))
+actual_shp_files = set(f for f in os.listdir(shape_path) if f.lower().endswith(".shp"))
 
 
 # Find differences
@@ -26,4 +26,3 @@ for f in sorted(missing_files):
 print("\nExtra .shp files (extract shapefiles):")
 for f in sorted(extra_files):
     print(f)
-

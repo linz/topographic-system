@@ -2,19 +2,16 @@
   "name": "@topographic-system/map",
   "version": "0.2.0",
   "type": "module",
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.936.0",
-    "@chunkd/fs": "^11.3.0",
-    "@chunkd/fs-aws": "^11.4.0",
-    "@linzjs/docker-command": "^8.0.0",
-    "@smithy/types": "^4.9.0",
-    "cmd-ts": "^0.13.0",
-    "pino": "^10.1.0",
-    "pretty-json-log": "^1.5.0",
-    "ulid": "^3.0.1"
+  "scripts": {
+    "build": "tsc -b"
   },
-  "devDependencies": {
-    "@linzjs/style": "^5.4.0",
-    "@types/node": "24.10.0"
+  "dependencies": {
+    "@basemaps/geo": "^8.9.0",
+    "@chunkd/fs": "^11.3.0",
+    "@cogeotiff/core": "^9.1.2",
+    "@linzjs/docker-command": "^8.0.0",
+    "cmd-ts": "^0.13.0",
+    "stac-ts": "^1.0.4",
+    "@topographic-system/shared": "0.1.0"
   }
 }

@@ -1,4 +1,3 @@
-
 import geopandas as gpd
 from shapely import coverage_is_valid
 import time

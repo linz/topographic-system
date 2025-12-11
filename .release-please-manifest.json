@@ -1,5 +1,6 @@
 {
   "packages/data": "0.1.0",
   "packages/map": "0.2.0",
+  "packages/shared": "0.1.0",
   ".": "0.2.0"
 }

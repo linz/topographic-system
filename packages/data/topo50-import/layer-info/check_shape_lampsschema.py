@@ -7,12 +7,12 @@ layer_info_path = os.path.join(folder, "schema_objects_list.txt")
 
 # Read the text file and get the 'shp_name' column
 df = pd.read_csv(layer_info_path, sep="\t")
-keys = df['names']
+keys = df["names"]
 expected_shp_files = set(f"{key}.shp" for key in keys)
 
 
 # List all .shp files in the shape_path directory
-actual_shp_files = set(f for f in os.listdir(shape_path) if f.lower().endswith('.shp'))
+actual_shp_files = set(f for f in os.listdir(shape_path) if f.lower().endswith(".shp"))
 
 
 # Find differences
@@ -26,4 +26,3 @@ for f in sorted(missing_files):
 print("\nExtra .shp files (extra shapefiles):")
 for f in sorted(extra_files):
     print(f)
-

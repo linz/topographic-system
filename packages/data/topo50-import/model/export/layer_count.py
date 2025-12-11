@@ -48,13 +48,13 @@ tables = [
     "water_point",
 ]
 
-format  = "geoparquet"
+format = "geoparquet"
 source_path = r"C:\Data\topo50maps"
 
-#format = "geopackage"
-#source_path = r"C:\Data\toposource\topographic-data"
+# format = "geopackage"
+# source_path = r"C:\Data\toposource\topographic-data"
 ##source_path = r"C:\Data\topoedit\topographic-data"
-database = 'topographic-data.gpkg'
+database = "topographic-data.gpkg"
 
 if format == "geoparquet":
     search_ext = ".parquet"

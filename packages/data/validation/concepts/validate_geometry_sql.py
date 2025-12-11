@@ -29,8 +29,12 @@ con = duckdb.connect()
 result = con.fetchall().df()
 
 # Assuming 'result' is a DataFrame with a column 'intersection_geom' containing WKB geometries
-result['geometry'] = result['intersection_geom'].apply(lambda x: wkb.loads(x) if x is not None else None)
-gdf = gpd.GeoDataFrame(result, geometry='geometry')
+result["geometry"] = result["intersection_geom"].apply(
+    lambda x: wkb.loads(x) if x is not None else None
+)
+gdf = gpd.GeoDataFrame(result, geometry="geometry")
 
 
-print("DuckDB SQL embedded. Adapt logic for spatial operations using GeoPandas/Shapely if needed.")
+print(
+    "DuckDB SQL embedded. Adapt logic for spatial operations using GeoPandas/Shapely if needed."
+)

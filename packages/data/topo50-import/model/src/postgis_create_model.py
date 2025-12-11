@@ -1,59 +1,58 @@
-
 import psycopg
 import pandas as pd
 
 # Database connection parameters
 db_params = {
-    'dbname': 'topo',
-    'user': 'postgres',
-    'password': 'landinformation',
-    'host': 'localhost',
-    'port': 5432
+    "dbname": "topo",
+    "user": "postgres",
+    "password": "landinformation",
+    "host": "localhost",
+    "port": 5432,
 }
+
 
 def excel_to_layered_dict(excel_path):
     df = pd.read_excel(excel_path)
     layered_dict = {}
 
     for _, row in df.iterrows():
-        dataset,layer,name,mapped_name,fieldtype,length = row
+        dataset, layer, name, mapped_name, fieldtype, length = row
         dataset = dataset.replace("_Layers", "")
         layered_dict.setdefault(dataset, {})
         layered_dict[dataset].setdefault(layer, {})
         layered_dict[dataset][layer][mapped_name] = {
             "type": fieldtype,
-            "length": int(length)
+            "length": int(length),
         }
 
     return layered_dict
 
-if __name__ == "__main__":
 
-    commands_options = ["drop_tables","create_tables"]
-    #commands_options = ["drop_tables"]
-    #commands_options = ["create_indexes"]
+if __name__ == "__main__":
+    commands_options = ["drop_tables", "create_tables"]
+    # commands_options = ["drop_tables"]
+    # commands_options = ["create_indexes"]
     for command_option in commands_options:
         print(f"Executing command: {command_option}")
 
         model_fields_file = r"C:\Data\Model\datasets_fields.xlsx"
-        #schema_name = "toposource"
+        # schema_name = "toposource"
         schema_name = "release62"
-        #schema_name = "release63"
+        # schema_name = "release63"
 
+        # primary_key_type = 'int' #uuid
+        primary_key_type = "uuid"
 
-        #primary_key_type = 'int' #uuid
-        primary_key_type = 'uuid'
-        
         layered_dict = excel_to_layered_dict(model_fields_file)
-        
+
         for layers in layered_dict.items():
             for layer, fields in layers[1].items():
-                geom = fields['SHAPE']['type']
-                if geom.lower() == 'polyline':
-                    geom = 'LINESTRING'
+                geom = fields["SHAPE"]["type"]
+                if geom.lower() == "polyline":
+                    geom = "LINESTRING"
 
                 table = layer.lower()
-                if primary_key_type == 'int':
+                if primary_key_type == "int":
                     columns = ["id SERIAL PRIMARY KEY"]
                 else:
                     columns = ["topo_id uuid PRIMARY KEY DEFAULT gen_random_uuid()"]
@@ -63,7 +62,7 @@ if __name__ == "__main__":
                     else:
                         col_type = props["type"].upper()
                         if col_type == "STRING":
-                            col_type = 'VARCHAR'
+                            col_type = "VARCHAR"
 
                         if col_type == "VARCHAR":
                             col_def = f"{field_name} VARCHAR({props['length']})"
@@ -80,7 +79,10 @@ if __name__ == "__main__":
                         elif col_type == "BOOLEAN":
                             col_def = f"{field_name} BOOLEAN"
                         elif col_type == "GUID":
-                            if primary_key_type == 'guid' and field_name.lower() == 'topo_id':
+                            if (
+                                primary_key_type == "guid"
+                                and field_name.lower() == "topo_id"
+                            ):
                                 continue
                             else:
                                 col_def = f"{field_name} uuid DEFAULT gen_random_uuid()"
@@ -92,20 +94,25 @@ if __name__ == "__main__":
 
                 if command_option == "create_tables":
                     print(f"Creating table '{table}'.")
-                    create_sql = f"CREATE TABLE IF NOT EXISTS {schema_name}.{table} (\n    " + ",\n    ".join(columns) + "\n);"
-                    
+                    create_sql = (
+                        f"CREATE TABLE IF NOT EXISTS {schema_name}.{table} (\n    "
+                        + ",\n    ".join(columns)
+                        + "\n);"
+                    )
+
                     with psycopg.connect(**db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(create_sql)
                                 conn.commit()
                             except Exception:
-                                print("likely error postgis extension not installed in schema - CREATE EXTENSION postgis; ")
+                                print(
+                                    "likely error postgis extension not installed in schema - CREATE EXTENSION postgis; "
+                                )
                                 print(create_sql)
                                 continue
 
-                if command_option == "drop_tables":            
-
+                if command_option == "drop_tables":
                     print(f"Dropping table '{table}' in schema '{schema_name}'...")
                     create_sql = f"DROP TABLE IF EXISTS {schema_name}.{table} CASCADE;"
 
@@ -118,7 +125,7 @@ if __name__ == "__main__":
                                 print(create_sql)
                                 continue
 
-                if table == 'collections':
+                if table == "collections":
                     continue
 
                 if command_option == "create_indexes":
@@ -132,7 +139,6 @@ if __name__ == "__main__":
                                 print(f"Error creating index for '{table}': {e}")
                                 continue
                     print(f"Index for '{table}' created successfully.")
-
 
                     index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema_name}.{table}(feature_type);"
                     with psycopg.connect(**db_params) as conn:

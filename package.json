@@ -3,11 +3,19 @@
   "version": "0.2.0",
   "workspaces": [
     "packages/data",
-    "packages/map"
+    "packages/map",
+    "packages/shared"
   ],
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
-    "lint:py": "uv run ruff check"
+    "lint:py": "uv run ruff check",
+    "format:py": "uv run ruff format --check",
+    "typecheck:py": "uv run mypy .",
+    "test:py": "uv run pytest"
+  },
+  "devDependencies": {
+    "@linzjs/style": "^5.4.0",
+    "@types/node": "24.10.0"
   }
 }
