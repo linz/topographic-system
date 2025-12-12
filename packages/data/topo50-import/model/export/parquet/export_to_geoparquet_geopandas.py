@@ -1,6 +1,6 @@
 import os
 import psycopg
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 from sqlalchemy import create_engine
 
 

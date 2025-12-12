@@ -1,6 +1,6 @@
 import os
-import geopandas as gpd # type: ignore
-from shapely import Point # type: ignore
+import geopandas as gpd  # type: ignore
+from shapely import Point  # type: ignore
 import datetime
 from abc import ABC, abstractmethod
 

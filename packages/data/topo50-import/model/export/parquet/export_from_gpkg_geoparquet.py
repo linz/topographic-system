@@ -1,5 +1,5 @@
 import os
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 
 # Read the 'building' layer from the GeoPackage file
 gpkg_path = r"C:\Data\topoedit\topographic-data\topographic-data.gpkg"

@@ -1,6 +1,7 @@
 import os
 import datetime
-from pyogrio import read_dataframe, list_layers, read_info # type: ignore
+from pyogrio import read_dataframe, list_layers, read_info  # type: ignore
+
 
 class Database:
     def __init__(self, path):

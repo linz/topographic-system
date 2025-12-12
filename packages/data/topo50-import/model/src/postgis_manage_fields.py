@@ -1,8 +1,8 @@
 import os
 import psycopg
 import pandas as pd
-import pyarrow as pa # type: ignore
-import pyarrow.parquet as pq # type: ignore
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
 
 # Database connection parameters
 DB_PARAMS = {

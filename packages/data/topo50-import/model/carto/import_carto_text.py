@@ -1,6 +1,6 @@
 import os
 from sqlalchemy import create_engine, text
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 import uuid
 
 

@@ -1,6 +1,6 @@
 import os
 from time import time
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 import glob
 import json
 

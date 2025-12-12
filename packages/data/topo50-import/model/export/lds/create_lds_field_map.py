@@ -1,8 +1,8 @@
 import os
 import glob
-import fiona # type: ignore
+import fiona  # type: ignore
 import pandas as pd
-from osgeo import ogr # type: ignore
+from osgeo import ogr  # type: ignore
 import json
 
 
