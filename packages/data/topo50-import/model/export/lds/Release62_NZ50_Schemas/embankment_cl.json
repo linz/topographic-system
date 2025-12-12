@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "t50_fid": "int32:9",
+    "embkmt_use": "str:10",
+    "name_ascii": "str:75",
+    "macronated": "str:1",
+    "name": "str:75"
+  },
+  "geometry": "LineString"
+}

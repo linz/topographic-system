@@ -1,0 +1,8 @@
+{
+  "properties": {
+    "t50_fid": "int32:9",
+    "pipe_use": "str:8",
+    "visibility": "str:11"
+  },
+  "geometry": "LineString"
+}

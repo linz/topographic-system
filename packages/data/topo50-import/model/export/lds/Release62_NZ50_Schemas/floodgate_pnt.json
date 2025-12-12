@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "orientatn": "float:13.11",
+    "t50_fid": "int:10"
+  },
+  "geometry": "Point"
+}
