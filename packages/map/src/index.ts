@@ -3,6 +3,7 @@ import { run, subcommands } from 'cmd-ts';
 import { downloadCommand } from './cli/action.download.ts';
 import { listMapSheetsCommand } from './cli/action.list.mapsheet.ts';
 import { ProduceCommand } from './cli/action.produce.ts';
+import { ReleaseCommand } from './cli/action.release.ts';
 
 const Cli = subcommands({
   name: 'topographic-system',
@@ -11,6 +12,7 @@ const Cli = subcommands({
     produce: ProduceCommand,
     'list-mapsheets': listMapSheetsCommand,
     download: downloadCommand,
+    release: ReleaseCommand,
   },
 });
 
