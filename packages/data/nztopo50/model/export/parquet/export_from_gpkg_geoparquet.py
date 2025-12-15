@@ -13,7 +13,7 @@ for layer in layers:
     buildings_gdf.to_parquet(
         output_path,
         engine="pyarrow",
-        compression="zstd",
+        compression="zstd",  # type: ignore[arg-type]
         write_covering_bbox=True,
         row_group_size=50000,
     )

@@ -91,8 +91,8 @@ if __name__ == "__main__":
                 gdf.to_parquet(
                     parquet_file,
                     engine="pyarrow",
-                    compression="zstd",
-                    compression_level=3,
+                    compression="zstd", # type: ignore[arg-type]
+                    compression_level=19,
                     write_covering_bbox=True,
                     row_group_size=50000,
                 )
@@ -101,8 +101,8 @@ if __name__ == "__main__":
                 df.to_parquet(
                     parquet_file,
                     engine="pyarrow",
-                    compression="zstd",
-                    compression_level=3,
+                    compression="zstd", # type: ignore[arg-type]
+                    compression_level=19,
                     row_group_size=50000,
                 )
 
@@ -125,8 +125,8 @@ if __name__ == "__main__":
         gdf.to_parquet(
             parquet_file,
             engine="pyarrow",
-            compression="zstd",
-            compression_level=3,
+            compression="zstd",  # type: ignore[arg-type]
+            compression_level=19,
             write_covering_bbox=True,
             row_group_size=50000,
         )
