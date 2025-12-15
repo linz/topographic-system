@@ -1,11 +1,9 @@
 [project]
-name = "topographic-system"
+name = "topographic-system-kart"
 version = "0.1.0"
-description = "A collection of tools for LINZ Topographic Data"
+description = "A collection of tools to deal with kart for LINZ Topographic Data"
 requires-python = ">=3.12"
 dependencies = [
-    "topographic-system-kart",
-    "topographic-system-qgis",
     "linz-logger",
 ]
 [dependency-groups]
@@ -15,15 +13,7 @@ dev = [
     "ruff",
 ]
 
-[tool.uv.sources]
-topographic-system-qgis = { workspace = true }
-topographic-system-kart = { workspace = true }
-
-[tool.uv.workspace]
-members = ["packages/qgis", "packages/kart"]
-
 [tool.mypy]
-mypy_path = "packages/kart/src:packages/qgis/src"
 show_error_codes = true
 strict = true
 disable_error_code = ["import"]

@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "topographic-system",
+    "topographic-system-kart",
     "topographic-system-qgis",
 ]
 
@@ -89,6 +90,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/82/a8/4aaead9a06c795a318282aebf7d3e3e578fa889ff396e1b640c3be4c7806/librt-0.6.3-cp314-cp314t-win32.whl", hash = "sha256:f33462b19503ba68d80dac8a1354402675849259fb3ebf53b67de86421735a3a", size = 19465, upload-time = "2025-11-29T14:01:41.77Z" },
     { url = "https://files.pythonhosted.org/packages/3a/61/b7e6a02746c1731670c19ba07d86da90b1ae45d29e405c0b5615abf97cde/librt-0.6.3-cp314-cp314t-win_amd64.whl", hash = "sha256:04f8ce401d4f6380cfc42af0f4e67342bf34c820dae01343f58f472dbac75dcf", size = 21042, upload-time = "2025-11-29T14:01:42.865Z" },
     { url = "https://files.pythonhosted.org/packages/0e/3d/72cc9ec90bb80b5b1a65f0bb74a0f540195837baaf3b98c7fa4a7aa9718e/librt-0.6.3-cp314-cp314t-win_arm64.whl", hash = "sha256:afb39550205cc5e5c935762c6bf6a2bb34f7d21a68eadb25e2db7bf3593fecc0", size = 20246, upload-time = "2025-11-29T14:01:44.13Z" },
+]
+
+[[package]]
+name = "linz-logger"
+version = "0.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-ulid" },
+    { name = "structlog" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/71/29/de1a703fae473d8014d1770e86e7f6b46b9b02dbe84ea6c2dc4bf1476902/linz_logger-0.11.0.tar.gz", hash = "sha256:7454e18f613b5aafbb38cad1478d48eab15bacd4d3fe8bb70fcc55f4ea139a6b", size = 4368, upload-time = "2022-12-05T23:30:00.917Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/b5/310ff8b62f7607d8b127ebe222acfc1394aca0b5f490832903b70672fa7e/linz_logger-0.11.0-py3-none-any.whl", hash = "sha256:1e8ef3f85a77e9506728a022e7b9b6b835c32a7d784ee8d78b6bb28755cc264a", size = 4798, upload-time = "2022-12-05T23:29:59.669Z" },
 ]
 
 [[package]]
@@ -198,6 +212,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-ulid"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/8b/0580d8ee0a73a3f3869488856737c429cbaa08b63c3506275f383c4771a8/python-ulid-1.1.0.tar.gz", hash = "sha256:5fb5e4a91db8ca93e8938a613360b3def299b60d41f847279a8c39c9b2e9c65e", size = 19992, upload-time = "2022-03-10T15:11:41.968Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/8e/c30b08ee9b8dc9b4a10e782c2a7fd5de55388201ddebfe0f7ab99dfbb349/python_ulid-1.1.0-py3-none-any.whl", hash = "sha256:88c952f6be133dbede19c907d72d26717d2691ec8421512b573144794d891e24", size = 9360, upload-time = "2022-03-10T15:11:40.405Z" },
+]
+
+[[package]]
 name = "ruff"
 version = "0.14.8"
 source = { registry = "https://pypi.org/simple" }
@@ -233,10 +256,21 @@ wheels = [
 ]
 
 [[package]]
+name = "structlog"
+version = "22.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/9b/4236af056671ba03c788b7398785912b741fb47b6683feab96501f66fc5b/structlog-22.3.0.tar.gz", hash = "sha256:e7509391f215e4afb88b1b80fa3ea074be57a5a17d794bd436a5c949da023333", size = 743718, upload-time = "2022-11-24T07:44:09.667Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3a/3e/7308875945401bcbc5f3390f0150aee8e9f81ab1e5e4ea6afeffe9a2e68b/structlog-22.3.0-py3-none-any.whl", hash = "sha256:b403f344f902b220648fa9f286a23c0cc5439a5844d271fec40562dbadbc70ad", size = 61686, upload-time = "2022-11-24T07:44:07.425Z" },
+]
+
+[[package]]
 name = "topographic-system"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "linz-logger" },
+    { name = "topographic-system-kart" },
     { name = "topographic-system-qgis" },
 ]
 
@@ -248,7 +282,36 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "topographic-system-qgis", editable = "packages/qgis" }]
+requires-dist = [
+    { name = "linz-logger" },
+    { name = "topographic-system-kart", editable = "packages/kart" },
+    { name = "topographic-system-qgis", editable = "packages/qgis" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[[package]]
+name = "topographic-system-kart"
+version = "0.1.0"
+source = { editable = "packages/kart" }
+dependencies = [
+    { name = "linz-logger" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "linz-logger" }]
 
 [package.metadata.requires-dev]
 dev = [
