@@ -13,6 +13,8 @@ dev = [
     "mypy",
     "pytest",
     "ruff",
+    "pandas-stubs",
+    "types-geopandas",
 ]
 
 [tool.uv.sources]
