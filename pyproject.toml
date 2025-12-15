@@ -5,6 +5,7 @@ description = "A collection of tools for LINZ Topographic Data"
 requires-python = ">=3.12"
 dependencies = [
     "topographic-system-qgis",
+    "topographic-system-data",
 ]
 
 [dependency-groups]
@@ -16,9 +17,10 @@ dev = [
 
 [tool.uv.sources]
 topographic-system-qgis = { workspace = true }
+topographic-system-data = { workspace = true }
 
 [tool.uv.workspace]
-members = ["packages/qgis"]
+members = ["packages/qgis", "packages/data"]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
