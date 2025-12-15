@@ -20,14 +20,8 @@ dependencies = [
     "python-pptx"
 ]
 
-[tool.setuptools]
-packages = ["validation", "nztopo50"]
-
-[tool.setuptools.package-data]
-"*" = ["*.json", "*.md"]
-
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "mypy",
     "pytest",
     "ruff",
@@ -36,6 +30,12 @@ dev-dependencies = [
     "types-setuptools",
     "types-geopandas",  # Includes types-shapely as dependency
 ]
+
+[tool.setuptools]
+packages = ["validation", "nztopo50"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.md"]
 
 [tool.mypy]
 python_version = "3.12"
