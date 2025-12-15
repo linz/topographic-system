@@ -1,6 +1,5 @@
-
-
 from kart.kart_commands import get_kart_command
+
 
 def test_check_kart_command() -> None:
     """
