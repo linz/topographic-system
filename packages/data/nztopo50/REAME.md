@@ -25,11 +25,11 @@ The field mapping spreadsheet **model\src\dataset_fields.xlsx** lists all the fi
 
 Field names have been remapped to be consistent and follow guidance https://toitutewhenua.atlassian.net/wiki/spaces/LI/pages/1129021598/Naming+Conventions+-+Field+and+Table+Rules
 
-**Spatial Reference July 2025**
+**Spatial Reference Dec 2025**
 
-Data is currently loaded in New Zealand Mainland - NZTM2000 EPSG:2193 as this is the source.
+Data is currently sourced in New Zealand Mainland - NZTM2000 EPSG:2193 as this is the source.
 
-The model design will expect the data to be converted into New Zealand Geodetic Datum NZGD2000 (EPSG: 4167)
+The model design transforms the data to be converted into New Zealand Geodetic Datum NZGD2000 (EPSG: 4167)
 
 See: [New Zealand Mainland - NZTM2000 EPSG:2193](https://toitutewhenua.atlassian.net/wiki/spaces/LI/pages/edit-v2/1120012771)
 
