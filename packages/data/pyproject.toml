@@ -53,14 +53,14 @@ module = "validation._archive.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "topo50_import.model.src.postgis_create_model"
+module = "nztopo50.model.src.postgis_create_model"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "topo50_import.model.src.postgis_create_schemas"
+module = "nztopo50.model.src.postgis_create_schemas"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "topo50_import.model.src.postgis_manage_fields"
+module = "nztopo50.model.src.postgis_manage_fields"
 ignore_errors = true
 
