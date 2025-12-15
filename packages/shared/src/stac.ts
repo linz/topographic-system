@@ -34,19 +34,19 @@ export async function createStacLink(source: URL, project: URL): Promise<StacLin
 
 export function createStacItem(
   id: string,
-  geometry: GeoJSONGeometry,
-  bbox: number[],
   links: StacLink[],
   assets: Record<string, StacAsset>,
+  geometry?: GeoJSONGeometry,
+  bbox?: number[],
 ): StacItem {
   const item: StacItem = {
-    id: `${CliId}/${id}`,
+    id,
     type: 'Feature',
     collection: CliId,
     stac_version: '1.0.0',
     stac_extensions: [],
-    geometry,
-    bbox,
+    geometry: geometry ?? null,
+    bbox: bbox ?? [],
     links: [
       { href: `./${id}.json`, rel: 'self' },
       { href: './collection.json', rel: 'collection', type: 'application/json' },

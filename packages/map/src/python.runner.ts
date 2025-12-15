@@ -19,6 +19,11 @@ export type SheetMetadata = {
   bbox: [number, number, number, number];
 };
 
+export type ProjectGeometry = {
+  geometry: GeoJSONPolygon | GeoJSONMultiPolygon;
+  bbox: [number, number, number, number];
+};
+
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
   const raw = JSON.parse(stdoutBuffer) as SheetMetadataStdOut[];
 
@@ -89,4 +94,34 @@ export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map
   }
 
   return JSON.parse(res.stdout) as string[];
+}
+
+/**
+ * Running python commands for list_map_sheets
+ */
+export async function getGeometry(input: URL): Promise<ProjectGeometry> {
+  const cmd = Command.create('python3');
+
+  cmd.args.push('qgis/src/get_project_geometry.py');
+  cmd.args.push(toRelative(input));
+  const res = await cmd.run();
+  logger.debug('get_project_geometry.py ' + cmd.args.join(' '));
+
+  if (res.exitCode !== 0) {
+    logger.fatal({ get_project_geometry: res }, 'Failure');
+    throw new Error('get_project_geometry.py failed to run');
+  }
+
+  const parsed = JSON.parse(res.stdout) as {
+    geometry: string;
+    bbox: [number, number, number, number];
+  };
+
+  const [xmin, ymin, xmax, ymax] = parsed.bbox;
+  const geom = JSON.parse(parsed.geometry) as GeoJSON.Geometry;
+
+  return {
+    geometry: geom.type === 'Polygon' ? (geom as GeoJSONPolygon) : (geom as GeoJSONMultiPolygon),
+    bbox: [xmin, ymin, xmax, ymax],
+  };
 }
