@@ -86,8 +86,8 @@ if __name__ == "__main__":
             print(f"Exporting to {parquet_file}")
 
             if table not in non_spatial_tables:
-                df = gpd.GeoDataFrame.from_postgis(sql, sqlcon)
-                gdf = gpd.GeoDataFrame(df, geometry="geom", crs="EPSG:4167")
+                gdf = gpd.GeoDataFrame.from_postgis(sql, sqlcon)
+                gdf = gpd.GeoDataFrame(gdf, geometry="geom", crs="EPSG:4167")
                 gdf.to_parquet(
                     parquet_file,
                     engine="pyarrow",
@@ -120,8 +120,8 @@ if __name__ == "__main__":
         parquet_file = os.path.join(export_folder, "carto_text.parquet")
         print(f"Exporting to {parquet_file}")
 
-        df = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
-        gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4167")
+        gdf = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
+        gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs="EPSG:4167")
         gdf.to_parquet(
             parquet_file,
             engine="pyarrow",
