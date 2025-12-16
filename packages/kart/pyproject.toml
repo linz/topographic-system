@@ -12,14 +12,3 @@ dev = [
     "pytest",
     "ruff",
 ]
-
-[tool.mypy]
-show_error_codes = true
-strict = true
-disable_error_code = ["import"]
-[[tool.mypy.overrides]]
-module = ["qgis.core"]
-ignore_missing_imports = true
-[[tool.mypy.overrides]]
-module = ["linz_logger"]
-ignore_missing_imports = true
