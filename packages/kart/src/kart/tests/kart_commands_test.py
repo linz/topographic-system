@@ -7,12 +7,12 @@ def test_check_kart_command() -> None:
     """
     kart_command = get_kart_command(
         "fetch",
-        ["--global-opt", "value"],
+        ["--global-opt", "global-value"],
         ["--option1", "value1", "--option2", "value2"],
     )
     assert kart_command == [
         "--global-opt",
-        "value",
+        "global-value",
         "fetch",
         "--option1",
         "value1",
