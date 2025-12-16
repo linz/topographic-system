@@ -1,13 +1,14 @@
 import os
 import subprocess
-import time
+import traceback
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from kart.utils import repository_data_path, time_in_ms, ensure_git_credentials
 
 from linz_logger import get_log
 
 
 class KartExecutionException(Exception):
-    get_log().error("kart execution error", Exception=Exception)
     pass
 
 
@@ -56,85 +57,58 @@ def get_kart_clone_command(repository: str, token: str | None = None) -> list[st
         a list of arguments for `kart`
     """
     get_log().info("kart clone command", repository=repository, token=bool(token))
-    global_options = ["-C", repository_name_from_url(repository)]
+    global_options = ["-C", repository_data_path(repository)]
     command_options = [repository, "--no-checkout"]
     return get_kart_command("clone", global_options, command_options)
 
 
-def get_kart_data_ls_command(repository: str | None) -> list[str]:
+def get_kart_data_ls_command(repository_path: str | None) -> list[str]:
     """Build a `kart data ls` command.
 
     Args:
-        repository: Address (URL) of the repository to list data from
+        repository_path: Local path of the repository to list data from (optional, defaults to current directory)
 
     Returns:
         a list of arguments for `kart`
     """
-    get_log().info("kart data ls command", repository=repository)
-    global_options = []
-    if repository:
-        global_options = ["-C", repository_name_from_url(repository)]
+    get_log().info("kart data ls command", repository_path=repository_path)
+    global_options = ["-C", repository_path] if repository_path else []
     command_options = ["ls"]
     return get_kart_command("data", global_options, command_options)
 
 
 def get_kart_export_command(
-    layer: str, repository: str | None = None, sha: str | None = None
+    layer: str, repository_path: str | None = None, sha: str | None = None
 ) -> list[str]:
     """Build a `kart export` command.
 
     Args:
-        repository: Address (URL) of the repository to export from
         layer: The layer to export
+        repository_path: Local path of the repository to export from (optional, defaults to current directory)
         sha: Optional commit SHA to export
 
     Returns:
         a list of arguments for `kart`
     """
-    get_log().info("kart export command", repository=repository, layer=layer, sha=sha)
-    global_options = []
-    command_options = []
-    if repository:
-        global_options = ["-C", repository_name_from_url(repository)]
-    if sha:
-        command_options.extend(["--ref", sha])
-    command_options.extend([layer, f"{layer}.gpkg"])
+    global_options = ["-C", repository_path] if repository_path else []
+    command_options = ["--ref", sha] if sha else []
+    command_options.extend([layer, f"/tmp/data/{layer}.gpkg"])
     return get_kart_command("export", global_options, command_options)
 
 
-def get_kart_fetch_command(repository: str, sha: str) -> list[str]:
+def get_kart_fetch_command(repository_path: str, sha: str) -> list[str]:
     """Build a `kart fetch` command.
 
     Args:
-        repository: Address (URL) of the repository to fetch from
+        repository_path: Local path of the repository to fetch from
         sha: The commit SHA to fetch
 
     Returns:
         a list of arguments for `kart`
     """
-    global_options = ["-C", repository_name_from_url(repository)]
+    global_options = ["-C", repository_path]
     command_options = ["origin", sha]
     return get_kart_command("fetch", global_options, command_options)
-
-
-def repository_name_from_url(repository_url: str) -> str:
-    """Extract the repository name from its URL.
-    Args:
-        repository_url: The URL of the repository
-
-    Returns:
-        The name of the repository
-    """
-    return repository_url.split("/")[-1].replace(".git", "")
-
-
-def time_in_ms() -> float:
-    """
-
-    Returns:
-        the current time in ms
-    """
-    return time.time() * 1000
 
 
 def run_kart_clone(
@@ -150,14 +124,16 @@ def run_kart_clone(
     Returns:
         tuple[subprocess.CompletedProcess, subprocess.CompletedProcess]: the output processes for clone and fetch.
     """
-    kart_env = os.environ.copy()
     kart_exec = os.environ.get("KART_EXECUTABLE", "kart")
 
     kart_clone_command = [
         kart_exec,
-        *get_kart_clone_command(repository, kart_env.get("GITHUB_TOKEN")),
+        *get_kart_clone_command(repository),
     ]
-    kart_fetch_command = [kart_exec, *get_kart_fetch_command(repository, sha)]
+    kart_fetch_command = [
+        kart_exec,
+        *get_kart_fetch_command(repository_data_path(repository), sha),
+    ]
 
     procs = []
     for kart_command in [kart_clone_command, kart_fetch_command]:
@@ -168,7 +144,7 @@ def run_kart_clone(
 
 
 def run_kart_export(
-    repository: str,
+    repository_path: str | None = None,
     sha: str | None = None,
     layers: list[str] | None = None,
     num_procs: int | None = None,
@@ -176,8 +152,8 @@ def run_kart_export(
     """Run the kart export command in parallel.
 
     Args:
-        repository: Address (URL) of the repository to export from
-        sha: The commit SHA to export (optional)
+        repository_path: Local path of the repository to export from (optional, defaults to current directory)
+        sha: The commit SHA to export (optional, defaults to HEAD)
         layers: List of layers to export (optional, defaults to all layers)
         num_procs: Number of parallel processes to use (optional, defaults to number of CPUs)
 
@@ -188,25 +164,24 @@ def run_kart_export(
 
     kart_data_ls_command = [
         kart_exec,
-        *get_kart_data_ls_command(repository),
+        *get_kart_data_ls_command(repository_path),
     ]
 
     kart_repo_layers = (
         execute_command(kart_data_ls_command).stdout.decode().splitlines()
     )
-    layers_to_export = []
-    if layers is not None:
-        for layer in layers:
-            if layer not in kart_repo_layers:
-                raise KartExecutionException(
-                    f"{layer=} not found in {repository=}"
-                )
-            layers_to_export.append(layer)
+    if layers:
+        layers_to_export = [layer for layer in layers if layer in kart_repo_layers]
+        if len(layers_to_export) != len(layers):
+            missing_layers = set(layers) - set(layers_to_export)
+            raise KartExecutionException(
+                f"Missing layers: {missing_layers}, repository_path={repository_path}"
+            )
     else:
         layers_to_export = kart_repo_layers
 
     kart_export_commands = [
-        [kart_exec, *get_kart_export_command(repository, layer, sha)]
+        [kart_exec, *get_kart_export_command(layer, repository_path, sha)]
         for layer in layers_to_export
     ]
 
@@ -236,7 +211,12 @@ def execute_command(command: list[str]) -> subprocess.CompletedProcess[bytes]:
     """
     start_time = time_in_ms()
     kart_env = os.environ.copy()
-    get_log().debug("run_kart_start", command=" ".join(command))
+    ensure_git_credentials()
+    get_log().debug(
+        "run_kart_start",
+        command=" ".join(command),
+        has_token="GITHUB_TOKEN" in kart_env,
+    )
     proc = None
     try:
         proc = subprocess.run(
@@ -251,6 +231,7 @@ def execute_command(command: list[str]) -> subprocess.CompletedProcess[bytes]:
             "run_kart_failed",
             command=" ".join(command),
             error=str(cpe.stderr, "utf-8"),
+            exception=traceback.format_exc(),
         )
         raise KartExecutionException(f"kart {str(cpe.stderr, 'utf-8')}") from cpe
     finally:
@@ -267,7 +248,7 @@ def execute_command(command: list[str]) -> subprocess.CompletedProcess[bytes]:
             )
         if proc:
             get_log().trace(
-                "run_kart_succeeded",
+                "run_kart_stdout",
                 command=" ".join(command),
                 stdout=proc.stdout.decode(),
             )
