@@ -66,29 +66,22 @@ Examples:
     # Export format options
     parser.add_argument(
         "--export-parquet",
-        action="store_false",
+        action="store_true",
         default=False,
         help="Export results to Parquet format",
     )
 
     parser.add_argument(
         "--export-parquet-by-geometry",
-        action="store_false",
+        action="store_true",
         default=False,
         help="Export Parquet files separated by geometry type",
     )
 
     parser.add_argument(
-        "--export-gpkg",
-        action="store_true",
-        default=True,
-        help="Export results to GeoPackage format (default: True)",
-    )
-
-    parser.add_argument(
         "--no-export-gpkg",
-        action="store_false",
-        dest="export_gpkg",
+        action="store_true",
+        default=False,
         help="Disable GeoPackage export",
     )
 
@@ -96,6 +89,7 @@ Examples:
     parser.add_argument(
         "--use-date-folder",
         action="store_true",
+        default=False,
         help="Create date-based subfolder in output directory",
     )
 
@@ -108,22 +102,22 @@ Examples:
 
     parser.add_argument(
         "--skip-queries",
-        action="store_false",
-        dest="process_queries",
+        action="store_true",
+        default=False,
         help="Skip query-based validations",
     )
 
     parser.add_argument(
         "--skip-features-on-layer",
-        action="store_false",
-        dest="process_features_on_layer",
+        action="store_true",
+        default=False,
         help="Skip features-on-layer validations",
     )
 
     parser.add_argument(
         "--skip-self-intersections",
-        action="store_false",
-        dest="process_self_intersections",
+        action="store_true",
+        default=False,
         help="Skip self-intersection validations",
     )
 
@@ -167,7 +161,7 @@ def validate_arguments(args):
             or "parquet" in args.db_path
         ):
             errors.append(
-                "Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)"
+            "Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)"
             )
         if not os.path.exists(args.db_path.replace("files.parquet", "")):
             errors.append(f"Database file/directory not found: {args.db_path}")
@@ -215,13 +209,16 @@ def setup_settings(args):
     # Export format settings
     settings.export_parquet = args.export_parquet
     settings.export_parquet_by_geometry_type = args.export_parquet_by_geometry
-    settings.export_gpkg = args.export_gpkg
+    if args.no_export_gpkg:
+        settings.export_gpkg = False
+    else:
+        settings.export_gpkg = True
 
     # Processing settings
     settings.use_date_folder = args.use_date_folder
-    settings.process_queries = args.process_queries
-    settings.process_features_on_layer = args.process_features_on_layer
-    settings.process_self_intersections = args.process_self_intersections
+    settings.process_queries = not args.skip_queries
+    settings.process_features_on_layer = not args.skip_features_on_layer
+    settings.process_self_intersections = not args.skip_self_intersections
 
     # Filtering settings
     if args.bbox:

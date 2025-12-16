@@ -57,6 +57,12 @@ class AbstractTopologyValidator(ABC):
         else:
             return ("noname", "noname")
 
+    def get_feature_types(self, gdf, idx1, idx2):
+        if hasattr(gdf, "feature_type"):
+            return (gdf.feature_type.iloc[idx1], gdf.feature_type.iloc[idx2])
+        else:
+            return ("nofeaturetype", "nofeaturetype")
+
     def get_keys(self, gdf, idx1, idx2):
         return (gdf[self.pkey].iloc[idx1], gdf[self.pkey].iloc[idx2])
 
@@ -148,12 +154,14 @@ class AbstractTopologyValidator(ABC):
                 if not intersection_geom.is_empty:
                     original_names = self.get_names(self.gdf, idx1, idx2)
                     original_keys = self.get_keys(self.gdf, idx1, idx2)
+                    original_feature_types = self.get_feature_types(self.gdf, idx1, idx2)
                     if intersection_geom.geom_type in ["Point", "MultiPoint"]:
                         intersection_geometries_point.append(
                             {
                                 "geometry": intersection_geom,
                                 "pair_names": f"{original_names[0]}-{original_names[1]}",
                                 "pair_keys": f"{original_keys[0]}-{original_keys[1]}",
+                                "pair_feature_types": f"{original_feature_types[0]}-{original_feature_types[1]}",
                             }
                         )
                     elif intersection_geom.geom_type in [
@@ -165,11 +173,12 @@ class AbstractTopologyValidator(ABC):
                                 "geometry": intersection_geom,
                                 "pair_names": f"{original_names[0]}-{original_names[1]}",
                                 "pair_keys": f"{original_keys[0]}-{original_keys[1]}",
+                                "pair_feature_types": f"{original_feature_types[0]}-{original_feature_types[1]}",
                             }
                         )
                     elif intersection_geom.geom_type == "GeometryCollection":
                         for geom_type, entry in self.handle_geometry_collection(
-                            intersection_geom, original_names
+                            intersection_geom, original_names, original_feature_types
                         ):
                             if geom_type in ["Point", "MultiPoint"]:
                                 intersection_geometries_point.append(entry)
@@ -183,6 +192,7 @@ class AbstractTopologyValidator(ABC):
                                 "geometry": geom,
                                 "pair_names": f"{original_names[0]}-{original_names[1]}",
                                 "pair_keys": f"{original_keys[0]}-{original_keys[1]}",
+                                "pair_feature_types": f"{original_feature_types[0]}-{original_feature_types[1]}",
                             }
                             intersection_geometries_multipolygon.append(entry)
                     else:
@@ -191,6 +201,7 @@ class AbstractTopologyValidator(ABC):
                                 "geometry": intersection_geom,
                                 "pair_names": f"{original_names[0]}-{original_names[1]}",
                                 "pair_keys": f"{original_keys[0]}-{original_keys[1]}",
+                                "pair_feature_types": f"{original_feature_types[0]}-{original_feature_types[1]}",
                             }
                         )
 
@@ -209,12 +220,13 @@ class AbstractTopologyValidator(ABC):
             geomtypes,
         )
 
-    def handle_geometry_collection(self, intersection_geom, original_names):
+    def handle_geometry_collection(self, intersection_geom, original_names, original_feature_types):
         geoms = []
         for geom in intersection_geom.geoms:
             entry = {
                 "geometry": self.geom_column,
                 "pair_names": f"{original_names[0]}-{original_names[1]}",
+                "pair_feature_types": f"{original_feature_types[0]}-{original_feature_types[1]}",
             }
             geoms.append((geom.geom_type, entry))
         return geoms
