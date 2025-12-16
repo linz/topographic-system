@@ -19,11 +19,6 @@ export type SheetMetadata = {
   bbox: [number, number, number, number];
 };
 
-export type ProjectGeometry = {
-  geometry: GeoJSONPolygon | GeoJSONMultiPolygon;
-  bbox: [number, number, number, number];
-};
-
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
   const raw = JSON.parse(stdoutBuffer) as SheetMetadataStdOut[];
 

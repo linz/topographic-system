@@ -12,10 +12,10 @@ export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
 /**
  * Downloads the given source vector parquet files for processing
  */
-export async function downloadFile(file: URL, location?: URL): Promise<URL> {
+export async function downloadFile(file: URL): Promise<URL> {
   logger.info({ project: file.href, downloaded: tmpFolder.href }, 'DownloadProjectFile: Start');
   try {
-    const downloadFile = new URL(basename(file.pathname), location ?? tmpFolder);
+    const downloadFile = new URL(basename(file.pathname), tmpFolder);
     if (await fsa.exists(downloadFile)) return downloadFile;
     const stats = await fsa.head(file);
     logger.debug(
@@ -48,12 +48,12 @@ export async function downloadFile(file: URL, location?: URL): Promise<URL> {
 /**
  * Downloads the given source vector parquet files for processing
  */
-export async function downloadFiles(path: URL, location?: URL): Promise<URL[]> {
+export async function downloadFiles(path: URL): Promise<URL[]> {
   logger.info({ source: path.href, downloaded: tmpFolder.href }, 'DownloadSourceFile: Start');
   const downloadFiles = [];
   const files = await fsa.toArray(fsa.list(path));
   for (const file of files) {
-    downloadFiles.push(await downloadFile(file, location));
+    downloadFiles.push(await downloadFile(file));
   }
   logger.info({ destination: tmpFolder.href, number: files.length }, 'DownloadSourceFile: End');
   return downloadFiles;
