@@ -135,7 +135,14 @@ export const ProduceCommand = command({
     const title = 'Topographic System Map Producer';
     const description =
       'Topographic System Map Producer to generate maps from Qgis project in pdf, tiff, geotiff formats';
-    let catalog = createStacCatalog(title, description);
+    const catalogLinks = [
+      {
+        rel: 'collection',
+        href: `./${CliId}/collection.json`,
+        type: 'application/json',
+      },
+    ];
+    let catalog = createStacCatalog(title, description, catalogLinks);
     const existing = await fsa.exists(catalogPath);
     if (existing) {
       catalog = await fsa.readJson<StacCatalog>(catalogPath);

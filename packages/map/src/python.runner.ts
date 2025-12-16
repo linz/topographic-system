@@ -97,7 +97,8 @@ export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map
 }
 
 /**
- * Running python commands for list_map_sheets
+ * Running python commands to get project geometry
+ * TODO: This is not used yet, we need to download all the source files first to load qgis project which might not need this.
  */
 export async function getGeometry(input: URL): Promise<ProjectGeometry> {
   const cmd = Command.create('python3');
