@@ -154,7 +154,9 @@ class AbstractTopologyValidator(ABC):
                 if not intersection_geom.is_empty:
                     original_names = self.get_names(self.gdf, idx1, idx2)
                     original_keys = self.get_keys(self.gdf, idx1, idx2)
-                    original_feature_types = self.get_feature_types(self.gdf, idx1, idx2)
+                    original_feature_types = self.get_feature_types(
+                        self.gdf, idx1, idx2
+                    )
                     if intersection_geom.geom_type in ["Point", "MultiPoint"]:
                         intersection_geometries_point.append(
                             {
@@ -220,7 +222,9 @@ class AbstractTopologyValidator(ABC):
             geomtypes,
         )
 
-    def handle_geometry_collection(self, intersection_geom, original_names, original_feature_types):
+    def handle_geometry_collection(
+        self, intersection_geom, original_names, original_feature_types
+    ):
         geoms = []
         for geom in intersection_geom.geoms:
             entry = {

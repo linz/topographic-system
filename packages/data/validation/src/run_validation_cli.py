@@ -161,7 +161,7 @@ def validate_arguments(args):
             or "parquet" in args.db_path
         ):
             errors.append(
-            "Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)"
+                "Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)"
             )
         if not os.path.exists(args.db_path.replace("files.parquet", "")):
             errors.append(f"Database file/directory not found: {args.db_path}")
