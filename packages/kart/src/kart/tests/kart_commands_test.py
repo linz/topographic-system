@@ -3,7 +3,7 @@ from kart.kart_commands import get_kart_command
 
 def test_check_kart_command() -> None:
     """
-    tests that the kart command is built correctly
+    Test that the kart command is built correctly for valid input.
     """
     kart_command = get_kart_command(
         "fetch",
@@ -23,7 +23,7 @@ def test_check_kart_command() -> None:
 
 def test_check_kart_command_invalid() -> None:
     """
-    tests that the kart command raises an error when an invalid command is requested
+    Test that the kart command raises an error when an unsupported command is requested.
     """
     try:
         get_kart_command("invalid_command", [], ["--option1", "value1"])
