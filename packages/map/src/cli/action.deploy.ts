@@ -12,7 +12,7 @@ import { command, flag, option, optional, string } from 'cmd-ts';
 import { parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
 
-export const listMapSheetsArgs = {
+export const DeployArgs = {
   project: option({
     type: UrlFolder,
     long: 'project',
