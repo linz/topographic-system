@@ -1,8 +1,7 @@
 import { Command } from '@linzjs/docker-command';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import {command, option, optional, string} from 'cmd-ts';
-import {basename} from "path";
-import {fsa} from "@chunkd/fs";
+import { command, option, optional, string } from 'cmd-ts';
+import { basename } from 'path';
 
 export const cloneCommand = command({
   name: 'clone',
@@ -22,7 +21,6 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone: Start');
-    await ensureGitCredentials();
     const kartExec = process.env['KART_EXECUTABLE'] || 'kart';
     logger.info({ kartExec }, 'Using kart executable');
     const repoDir = basename(args.repository, '.git');
@@ -53,26 +51,3 @@ export const cloneCommand = command({
     logger.info('Clone and fetch completed successfully.');
   },
 });
-
-async function ensureGitCredentials(token?: string) {
-    const gitToken = token?.trim() || process.env['GITHUB_TOKEN'];
-    if (!gitToken) {
-      logger.warn('No GITHUB_TOKEN provided, skipping git credentials setup');
-      return;
-    }
-
-    const gitCmd = Command.create('git');
-    // gitCmd.args.push('config', '--global', 'credential.helper', 'store');
-    await gitCmd.run();
-
-   // const homePath = fsa.toUrl(homedir());
-    const homePath = fsa.toUrl('/root/');
-    // mkdirSync('/opt/kart/_internal/git/credentials', { recursive: true });
-    const credentialsFile = new URL('.git-credentials', homePath);
-    // const configFile = new URL('.gitconfig', homePath);
-    await fsa.write(credentialsFile, `https://x-access-token:${gitToken}@github.com\n`);
-
-      // fsa.write(configFile, "[credential]\n\thelper = store\n")
-    // ]);
-    logger.info({ credentialsFile: credentialsFile.href }, 'Wrote token for GitHub');
-  }
