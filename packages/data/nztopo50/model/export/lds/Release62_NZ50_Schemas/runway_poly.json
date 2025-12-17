@@ -1,9 +1,0 @@
-{
-  "properties": {
-    "t50_fid": "int32:9",
-    "status": "str:7",
-    "surface": "str:6",
-    "runway_use": "str:9"
-  },
-  "geometry": "Polygon"
-}

@@ -1,8 +1,0 @@
-{
-  "properties": {
-    "t50_fid": "int32:9",
-    "store_item": "str:5",
-    "tank_type": "str:13"
-  },
-  "geometry": "Polygon"
-}

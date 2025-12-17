@@ -1,7 +1,0 @@
-{
-  "properties": {
-    "t50_fid": "int32:9",
-    "elevation": "int32:5"
-  },
-  "geometry": "LineString"
-}

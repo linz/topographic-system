@@ -1,3 +1,6 @@
+# This script exports nz topographic data model to LDS shapefiles
+# It reads layer information and field mappings from excel files and 
+# uses the schema json to force the field formats
 import os
 import geopandas as gpd  # type: ignore
 import pandas as pd
@@ -9,7 +12,7 @@ class ExportToLDSModel:
         self,
         layer_info_excel,
         field_mappings_excel,
-        schema_folder,
+        master_schema_file,
         database,
         contour_database,
         product_database,
@@ -17,7 +20,7 @@ class ExportToLDSModel:
     ):
         self.excel_file = layer_info_excel
         self.field_mappings_excel = field_mappings_excel
-        self.schema_folder = schema_folder
+        self.master_schema_file = master_schema_file
         self.database = database
         self.contour_database = contour_database
         self.product_database = product_database
@@ -26,6 +29,7 @@ class ExportToLDSModel:
         self.field_names, self.mapped_names = self.load_field_mapping(
             field_mappings_excel
         )
+        self.schemas = self.read_schema(master_schema_file)
 
     def is_macronated(self, word):
         macronated_maori_vowels = {"ā", "ē", "ī", "ō", "ū", "è"}
@@ -129,6 +133,9 @@ class ExportToLDSModel:
         with open(schema_file, "r") as f:
             schema_dict = json.load(f)
         return schema_dict
+    
+    def read_schema_layer(self, layer_name):
+        return self.schemas.get(layer_name, {})
 
     def check_names(self, mapped_names, layer, feature_type):
         # historic_site special case - only has description field. In reality all current historic_site names are not macronated = (N)
@@ -275,17 +282,6 @@ class ExportToLDSModel:
             field_names = self.field_names.get(shp_name, [])
             mapped_names = self.mapped_names.get(shp_name, [])
 
-            # todo - deal with these being in different database
-            ## if layer_name in ['contour', 'nz_topo50_map_sheet']:
-            ##     continue
-
-            ##temp debug
-            # if 'road' in layer_name:
-            #    docontinue = False
-
-            # if docontinue:
-            #    continue
-
             if layer_name == "contour" and os.path.exists(self.contour_database):
                 layer = gpd.read_file(
                     self.contour_database,
@@ -311,8 +307,7 @@ class ExportToLDSModel:
 
             layer = self.reorder_columns(layer, mapped_names, field_names)
             layer.to_crs(2193, inplace=True)
-            schema_file = os.path.join(self.schema_folder, f"{shp_name}.json")
-            schema = self.read_schema(schema_file)
+            schema = self.read_schema_layer(layer_name)
             if layer_name == "tree_locations":
                 layer = self.tree_locations_special_case(layer)
             layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
@@ -331,7 +326,8 @@ class ExportToLDSModel:
 
 if __name__ == "__main__":
     model_folder = r"C:\Data\Model"
-    schema_folder = r"C:\Data\Topo50\Release62_NZ50_Schemas"
+    master_schema_file = r"C:\Data\Topo50\Release62_NZ50_Schemas\nztopo50_lds_schemas.json"
+
     layer_info_excel = os.path.join(model_folder, "layers_info.xlsx")
     field_mappings_excel = os.path.join(model_folder, "lds_field_mapping.xlsx")
 
@@ -354,7 +350,7 @@ if __name__ == "__main__":
     exporter = ExportToLDSModel(
         layer_info_excel,
         field_mappings_excel,
-        schema_folder,
+        master_schema_file,
         database,
         contour_database,
         product_database,

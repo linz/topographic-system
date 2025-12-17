@@ -1,7 +1,0 @@
-{
-  "properties": {
-    "t50_fid": "int32:9",
-    "type": "str:8"
-  },
-  "geometry": "Polygon"
-}

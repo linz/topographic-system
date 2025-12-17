@@ -1,7 +1,0 @@
-{
-  "properties": {
-    "t50_fid": "int:10",
-    "height": "float:19.11"
-  },
-  "geometry": "Point"
-}
