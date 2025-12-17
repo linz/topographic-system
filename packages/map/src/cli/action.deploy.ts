@@ -24,7 +24,7 @@ export const DeployArgs = {
     description: 'Path that contains assets to deploy.',
   }),
   target: option({
-    type: URLFolder,
+    type: UrlFolder,
     long: 'target',
     description: 'Target directory or s3 bucket to write the mapsheet json file.',
   }),
