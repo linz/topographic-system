@@ -10,3 +10,6 @@ jobs:
       - uses: linz/action-typescript@v3
         with:
           node-version: 24.10.0
+
+      - run: |
+          npx lerna run bundle --stream
