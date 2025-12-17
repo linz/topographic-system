@@ -1,0 +1,14 @@
+{
+  "name": "@topographic-system/kartts",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@linzjs/docker-command": "^8.0.0",
+    "cmd-ts": "^0.13.0",
+    "@topographic-system/shared": "file:../shared",
+    "@chunkd/fs": "~11.3.0"
+  }
+}
