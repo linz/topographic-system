@@ -1,7 +1,9 @@
 import { Command } from '@linzjs/docker-command';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { command, option, optional, string } from 'cmd-ts';
-import { basename } from 'path';
+import {command, option, optional, string} from 'cmd-ts';
+import {basename} from "path";
+
+const KARTEXEC='kart';
 
 export const cloneCommand = command({
   name: 'clone',
@@ -21,22 +23,27 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone: Start');
-    const kartExec = process.env['KART_EXECUTABLE'] || 'kart';
-    logger.info({ kartExec }, 'Using kart executable');
+    const cloneUrl = new URL(args.repository);
+    const ghToken = process.env['GITHUB_TOKEN'];
+    if (ghToken) {
+      cloneUrl.username = 'x-access-token';
+      cloneUrl.password = ghToken;
+    }
     const repoDir = basename(args.repository, '.git');
 
-    const cloneCmd = Command.create(kartExec);
-    cloneCmd.env('GITHUB_TOKEN', process.env['GITHUB_TOKEN'] || '');
-    logger.info({ cloneCmd, env: cloneCmd.envs }, 'Clone command before args');
-    cloneCmd.args.push('clone', args.repository, '--no-checkout');
-    logger.info(`Running kart clone... ${cloneCmd.args.join(' ')}`);
+    const cloneCmd = Command.create(KARTEXEC);
+    logger.info({ cloneCmd }, 'Clone command before args');
+    cloneCmd.args.push('clone', cloneUrl.href, '--no-checkout');
+    // NOTE: do not log cloneCmd here as it contains the github token
     const cloneRes = await cloneCmd.run();
     if (cloneRes.exitCode !== 0) {
-      logger.error({ stdout: cloneRes.stdout, stderr: cloneRes.stderr }, 'Clone failed');
+      logger.error({stdout: cloneRes.stdout, stderr: cloneRes.stderr}, 'Clone failed');
       throw new Error(`Failed to clone ${args.repository}`);
+    } else {
+      logger.info({stdout: cloneRes.stdout});
     }
 
-    const fetchCmd = Command.create(kartExec);
+    const fetchCmd = Command.create(KARTEXEC);
     fetchCmd.args.push('-C', repoDir);
     fetchCmd.args.push('fetch');
     if (args.ref) {
