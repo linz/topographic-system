@@ -1,16 +1,20 @@
-import { Command } from '@linzjs/docker-command';
+import { parseEnv } from '@topographic-system/shared/src/env.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { command, option, optional, string } from 'cmd-ts';
+import { command, option, optional, positional, string } from 'cmd-ts';
 import { basename } from 'path';
+import { z } from 'zod/mini';
+import { $ } from 'zx';
+
+const EnvParser = z.object({
+  GITHUB_TOKEN: z.string(),
+});
 
 export const cloneCommand = command({
   name: 'clone',
   description: 'Clone a kart repository and fetch a specific commit',
   args: {
-    repository: option({
-      type: string,
-      long: 'repository',
-      description: 'Repository URL to clone (e.g. https://github.com/linz/topographic-data)',
+    repository: positional({
+      description: 'Repository to clone (e.g. linz/topographic-data)',
     }),
     ref: option({
       type: optional(string),
@@ -20,33 +24,32 @@ export const cloneCommand = command({
     }),
   },
   async handler(args) {
-    logger.info({ repository: args.repository, ref: args.ref }, 'Clone: Start');
-    const kartExec = process.env['KART_EXECUTABLE'] || 'kart';
-    logger.info({ kartExec }, 'Using kart executable');
+    logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
     const repoDir = basename(args.repository, '.git');
+    const repoContext = ['-C', repoDir];
 
-    const cloneCmd = Command.create(kartExec);
-    cloneCmd.env('GITHUB_TOKEN', process.env['GITHUB_TOKEN'] || '');
-    logger.info({ cloneCmd, env: cloneCmd.envs }, 'Clone command before args');
-    cloneCmd.args.push('clone', args.repository, '--no-checkout');
-    logger.info(`Running kart clone... ${cloneCmd.args.join(' ')}`);
-    const cloneRes = await cloneCmd.run();
-    if (cloneRes.exitCode !== 0) {
-      logger.error({ stdout: cloneRes.stdout, stderr: cloneRes.stderr }, 'Clone failed');
-      throw new Error(`Failed to clone ${args.repository}`);
-    }
+    const env = parseEnv(EnvParser);
 
-    const fetchCmd = Command.create(kartExec);
-    fetchCmd.args.push('-C', repoDir);
-    fetchCmd.args.push('fetch');
-    if (args.ref) {
-      fetchCmd.args.push('origin', args.ref);
+    const kvOut = await $`kart --version`;
+    const kartVersion = kvOut.stdout.split('\n')[0]?.split(',')?.[0] ?? 'unknown';
+    logger.info({ kartVersion }, 'Using kart executable');
+
+    const targetUrl = new URL(args.repository, `https://github.com/`);
+
+    const targetUrlCredentials = new URL(targetUrl);
+    if (targetUrlCredentials.host !== 'github.com') {
+      throw new Error('Invalid host: ' + targetUrl.host);
     }
-    const fetchRes = await fetchCmd.run();
-    if (fetchRes.exitCode !== 0) {
-      logger.error({ stdout: fetchRes.stdout, stderr: fetchRes.stderr }, 'Fetch failed');
-      throw new Error(`Failed to fetch ref ${args.ref}`);
-    }
+    targetUrlCredentials.username = 'x-access-token';
+    targetUrlCredentials.password = env.GITHUB_TOKEN;
+
+    logger.info({ repo: targetUrl.href }, 'kart:clone');
+    await $`kart clone ${targetUrlCredentials.href} --no-checkout --depth=1`;
+    logger.debug({ repo: targetUrl.href }, 'kart:clone:done');
+
+    const ref = args.ref ? ['origin', args.ref] : [];
+    logger.info({ repo: targetUrl.href, ref }, 'kart:fetch');
+    await $`kart ${repoContext} fetch ${ref}`;
 
     logger.info('Clone and fetch completed successfully.');
   },

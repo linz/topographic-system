@@ -6,9 +6,10 @@
     "build": "tsc -b"
   },
   "dependencies": {
+    "@chunkd/fs": "~11.3.0",
     "@linzjs/docker-command": "^8.0.0",
-    "cmd-ts": "^0.13.0",
     "@topographic-system/shared": "file:../shared",
-    "@chunkd/fs": "~11.3.0"
+    "cmd-ts": "^0.13.0",
+    "zx": "^8.8.5"
   }
 }
