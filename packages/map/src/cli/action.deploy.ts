@@ -16,17 +16,17 @@ export const DeployArgs = {
   project: option({
     type: UrlFolder,
     long: 'project',
-    description: 'Path that contains QGIS Project to deploy.',
+    description: 'Directory containing the QGIS Project to deploy.',
   }),
   assets: option({
     type: optional(UrlFolder),
     long: 'assets',
-    description: 'Path that contains assets to deploy.',
+    description: 'Directory containing the assets to deploy.',
   }),
   target: option({
     type: UrlFolder,
     long: 'target',
-    description: 'Target directory or s3 bucket to write the mapsheet json file.',
+    description: 'Target s3 location to deploy the files.',
   }),
   tag: option({
     type: string,
@@ -96,19 +96,22 @@ export const deployCommand = command({
       }
     }
 
-    const links = [{ href: '../catalog.json', rel: 'parent', type: 'application/json' }];
+    if (stacItems.size === 0) throw new Error(`Deploy: No QGS project files found in ${args.project.href}`);
+
+    const catalogLinks = [{ href: '../catalog.json', rel: 'parent', type: 'application/json' }];
     for (const [series, items] of stacItems) {
       logger.info({ mapSeries: series }, 'Deploy: Create Stac Collection');
+      const collectionLinks = [];
       for (const item of items) {
-        links.push({
+        collectionLinks.push({
           rel: 'item',
           href: `./${item.id}.json`,
           type: 'application/json',
         });
       }
       const description = `LINZ Topographic Qgis Project Series ${series}.`;
-      const collection = createStacCollection(description, [], links);
-      links.push({
+      const collection = createStacCollection(description, [], collectionLinks);
+      catalogLinks.push({
         rel: 'collection',
         href: `./${series}/collection.json`,
         type: 'application/json',
@@ -125,21 +128,23 @@ export const deployCommand = command({
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
 
-    let catalog = createStacCatalog(title, description, links);
-    const existing = await fsa.exists(catalogPath);
-    if (existing) {
-      catalog = await fsa.readJson<StacCatalog>(catalogPath);
-      for (const series of stacItems.keys()) {
-        catalog.links.push({
-          rel: 'collection',
-          href: `./${series}/collection.json`,
-          type: 'application/json',
-        });
-      }
-    }
-
+    let catalog = createStacCatalog(title, description, []);
     if (args.commit) {
-      logger.info({ destination: catalogPath.href }, 'Deploy: Upload Stac Catalog File');
+      // Only try to update the catalog if committing
+      const existing = await fsa.exists(catalogPath);
+      if (existing) {
+        catalog = await fsa.readJson<StacCatalog>(catalogPath);
+        for (const series of stacItems.keys()) {
+          if (catalog.links.find((link) => link.href === `./${series}/collection.json`)) continue;
+          // Push new series collection link if not exists
+          catalog.links.push({
+            rel: 'collection',
+            href: `./${series}/collection.json`,
+            type: 'application/json',
+          });
+        }
+        logger.info({ destination: catalogPath.href }, 'Deploy: Upload Stac Catalog File');
+      }
       await fsa.write(catalogPath, JSON.stringify(catalog, null, 2));
     }
 

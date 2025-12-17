@@ -31,7 +31,7 @@ node src/index.ts list-mapsheets --project s3://linz-topography-nonprod/carto/te
 ## Deploy Qgis project cli
 
 ```
-node src/index.ts deploy --project /src/topographic-qgis/map-series/ --tag latest --target s3://linz-topography-nonprod/product/
+node src/index.ts deploy --project /topographic-qgis/map-series/ --tag latest --target s3://linz-topography-nonprod/qgis/
 ```
 
 ## Debug
