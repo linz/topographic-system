@@ -44,7 +44,7 @@ export const listMapSheetsArgs = {
 export const deployCommand = command({
   name: 'deploy',
   description: 'Deploy all the qgs project files and assets into target s3 location.',
-  args: listMapSheetsArgs,
+  args: DeployArgs,
   async handler(args) {
     registerFileSystem();
     logger.info({ project: args.project, commit: args.commit }, 'Deploy: Started');
