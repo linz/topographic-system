@@ -1,5 +1,5 @@
 # This script exports nz topographic data model to LDS shapefiles
-# It reads layer information and field mappings from excel files and 
+# It reads layer information and field mappings from excel files and
 # uses the schema json to force the field formats
 import os
 import geopandas as gpd  # type: ignore
@@ -133,7 +133,7 @@ class ExportToLDSModel:
         with open(schema_file, "r") as f:
             schema_dict = json.load(f)
         return schema_dict
-    
+
     def read_schema_layer(self, layer_name):
         return self.schemas.get(layer_name, {})
 
@@ -326,7 +326,9 @@ class ExportToLDSModel:
 
 if __name__ == "__main__":
     model_folder = r"C:\Data\Model"
-    master_schema_file = r"C:\Data\Topo50\Release62_NZ50_Schemas\nztopo50_lds_schemas.json"
+    master_schema_file = (
+        r"C:\Data\Topo50\Release62_NZ50_Schemas\nztopo50_lds_schemas.json"
+    )
 
     layer_info_excel = os.path.join(model_folder, "layers_info.xlsx")
     field_mappings_excel = os.path.join(model_folder, "lds_field_mapping.xlsx")

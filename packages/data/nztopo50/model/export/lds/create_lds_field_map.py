@@ -8,6 +8,7 @@ import pandas as pd
 from osgeo import ogr  # type: ignore
 import json
 
+
 def ogr_fields():
     ds = ogr.Open(filename)
     layer = ds.GetLayer()
