@@ -1,9 +1,14 @@
 {
   "name": "@topographic-system/kartts",
   "version": "0.1.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "index.js",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.js"
   },
   "dependencies": {
     "@chunkd/fs": "~11.3.0",

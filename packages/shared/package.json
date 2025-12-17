@@ -4,6 +4,8 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "scripts": {
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.936.0",
     "@chunkd/fs": "^11.3.0",
