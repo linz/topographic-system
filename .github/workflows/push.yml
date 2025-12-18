@@ -14,9 +14,9 @@ jobs:
       - name: Python CI
         uses: ./.github/actions/python-ci
 
-  build-latest:
-    if: github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:')
+  build-containers:
     uses: ./.github/workflows/containers.yml
     with:
       manifest: '{"map": ["latest"]}'
+      push: ${{ github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:') }}
     secrets: inherit
