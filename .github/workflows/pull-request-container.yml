@@ -13,4 +13,5 @@ jobs:
         {
           "map": ["pr-${{ github.event.number }}"]
         }
+      environment: nonprod
     secrets: inherit
