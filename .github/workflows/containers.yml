@@ -56,6 +56,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Ensure tag exists
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* # see https://stackoverflow.com/a/60184319/9285308
+
       - name: Calculate Version for Build Args
         id: version
         run: |
