@@ -49,14 +49,14 @@ export const deployCommand = command({
     registerFileSystem();
     logger.info({ project: args.project, commit: args.commit }, 'Deploy: Started');
 
-    // File all the qgs files from the path
+    // Find all the qgs files from the path
     const files = await fsa.toArray(fsa.list(args.project));
     const stacItems: Map<string, StacItem[]> = new Map();
     for (const file of files) {
       if (file.href.endsWith('.qgs')) {
         const splits = file.href.split('/');
-        const projectName = parse(file.pathname).name;
-        const projectSeries = splits[splits.length - 2];
+        const projectName = parse(file.pathname).name; // example "topo50-map"
+        const projectSeries = splits[splits.length - 2]; // example "topo50"
         if (projectName == null || projectSeries == null) {
           throw new Error(`Deploy: Invalid project file path ${file.href}`);
         }
@@ -109,7 +109,7 @@ export const deployCommand = command({
           type: 'application/json',
         });
       }
-      const description = `LINZ Topographic Qgis Project Series ${series}.`;
+      const description = `LINZ Topographic QGIS Project Series ${series}.`;
       const collection = createStacCollection(description, [], collectionLinks);
       catalogLinks.push({
         rel: 'collection',
