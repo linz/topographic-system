@@ -28,11 +28,35 @@ node src/index.ts download --project s3://linz-topography-nonprod/carto/test/lat
 node src/index.ts list-mapsheets --project s3://linz-topography-nonprod/carto/test/latest/topo50-map.qgz --source s3://linz-topography-nonprod/topo/test/2025-02-05/ --output output.json
 ```
 
-## Deploy Qgis project cli
+## Deploy QGIS Project Cli
 
-```
-node src/index.ts deploy --project /topographic-qgis/map-series/ --tag latest --target s3://linz-topography-nonprod/qgis/
-```
+### Write files locally
+
+- Dry run
+
+  ```
+  node src/index.ts deploy --project {path_to}/topographic-qgis/map-series/ --target tmp/ --tag abc123
+  ```
+
+- Create files
+
+  ```
+  node src/index.ts deploy --project {path_to}/topographic-qgis/map-series/ --target tmp/ --tag abc123 --commit
+  ```
+
+### Write files to S3
+
+- Dry run
+
+  ```
+  node src/index.ts deploy --project {path_to}/topographic-qgis/map-series/ --target s3://linz-topography-nonprod/qgis/ --tag abc123
+  ```
+
+- Create files
+
+  ```
+  node src/index.ts deploy --project {path_to}/topographic-qgis/map-series/ --target s3://linz-topography-nonprod/qgis/ --tag latest --commit
+  ```
 
 ## Debug
 

@@ -98,7 +98,7 @@ export const deployCommand = command({
 
     if (stacItems.size === 0) throw new Error(`Deploy: No QGS project files found in ${args.project.href}`);
 
-    const catalogLinks = [{ href: '../catalog.json', rel: 'parent', type: 'application/json' }];
+    const catalogLinks = [];
     for (const [series, items] of stacItems) {
       logger.info({ mapSeries: series }, 'Deploy: Create Stac Collection');
       const collectionLinks = [];
@@ -128,7 +128,7 @@ export const deployCommand = command({
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
 
-    let catalog = createStacCatalog(title, description, []);
+    let catalog = createStacCatalog(title, description, catalogLinks);
     if (args.commit) {
       // Only try to update the catalog if committing
       const existing = await fsa.exists(catalogPath);
