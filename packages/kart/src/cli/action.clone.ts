@@ -40,7 +40,7 @@ export const cloneCommand = command({
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
     logger.info({ repo: targetUrl.href }, 'kart:clone');
-    await $`kart clone ${targetUrlCredentials.href} --no-checkout --depth=1`;
+    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1`;
     logger.debug({ repo: targetUrl.href }, 'kart:clone:done');
 
     const ref = args.ref ? ['origin', args.ref] : [];
