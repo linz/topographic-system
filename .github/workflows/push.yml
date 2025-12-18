@@ -10,3 +10,13 @@ jobs:
       - uses: linz/action-typescript@v3
         with:
           node-version: 24.10.0
+
+      - name: Python CI
+        uses: ./.github/actions/python-ci
+
+  build-latest:
+    if: github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:')
+    uses: ./.github/workflows/containers.yml
+    with:
+      manifest: '{"map": ["latest"]}'
+    secrets: inherit
