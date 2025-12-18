@@ -60,7 +60,7 @@ export async function createMapSheetStacItem(
     } as StacAsset,
   };
 
-  const item = createStacItem(metadata.sheetCode, metadata.geometry, metadata.bbox, links, assets) as MapSheetStacItem;
+  const item = createStacItem(metadata.sheetCode, links, assets, metadata.geometry, metadata.bbox) as MapSheetStacItem;
 
   item.properties['proj:epsg'] = metadata.epsg;
   item.properties['linz_topographic_system:options'] = {
