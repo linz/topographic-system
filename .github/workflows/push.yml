@@ -11,8 +11,6 @@ jobs:
         with:
           node-version: 24.10.0
 
-      - run: npx lerna run bundle --stream
-
       - name: Python CI
         uses: ./.github/actions/python-ci
 

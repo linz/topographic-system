@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@linzjs/style": "^5.4.0",
-    "@types/jest": "^30.0.0",
     "@types/node": "24.10.0",
     "esbuild": "^0.27.2",
     "lerna": "^9.0.3"
