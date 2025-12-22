@@ -3,3 +3,4 @@ tmp
 tsconfig.tsbuildinfo
 .venv
 .ruff_cache
+__pycache__
