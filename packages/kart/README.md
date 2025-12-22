@@ -6,7 +6,7 @@ Bundle the package before building the docker image. Run both commands at root d
 
 ```
 npx lerna run bundle --stream
-docker build -f packages/kart/Dockerfile -t kart ./packages/kart/
+docker build -f packages/kart/Dockerfile -t kart .
 ```
 
 ## Clone cli
@@ -19,8 +19,8 @@ docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart clon
 
 ## Export cli
 
-Mount a local folder to export geopackage from a kart repository.
-When no datasets are listed, this will export all datasets from the cloned repo.
+Mount a local folder containing the cloned repo to export geopackage.
+When no arguments are provided, this will export all datasets from the cloned repository.
 
 **All datasets:**
 ```
