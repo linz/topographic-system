@@ -99,7 +99,6 @@ jobs:
       - name: Build and push container
         uses: docker/build-push-action@v6
         with:
-          context: packages/${{ matrix.package }}
           file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
           push: ${{ inputs.push }}

@@ -1,6 +1,6 @@
 FROM ghcr.io/linz/action-kart:v0.2.0
 
-ADD dist/index.* /scripts/
+ADD packages/kart/dist/index.* /scripts/
 
 WORKDIR /tmp/kart
 
