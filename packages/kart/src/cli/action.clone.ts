@@ -1,7 +1,6 @@
 import { parseEnv } from '@topographic-system/shared/src/env.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, option, optional, positional, string } from 'cmd-ts';
-import { basename } from 'path';
 import { z } from 'zod/mini';
 import { $ } from 'zx';
 
@@ -25,8 +24,6 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
-    const repoDir = basename(args.repository, '.git');
-    const repoContext = ['-C', repoDir];
 
     const env = parseEnv(EnvParser);
 
@@ -39,14 +36,12 @@ export const cloneCommand = command({
     targetUrlCredentials.username = 'x-access-token';
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
-    logger.info({ repo: targetUrl.href }, 'kart:clone');
-    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1`;
-    logger.debug({ repo: targetUrl.href }, 'kart:clone:done');
+    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1 repo`;
+    logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
     const ref = args.ref ? ['origin', args.ref] : [];
-    logger.info({ repo: targetUrl.href, ref }, 'kart:fetch');
-    await $`kart ${repoContext} fetch ${ref}`;
-
-    logger.info('Clone and fetch completed successfully.');
+    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Start');
+    await $`kart -C repo fetch ${ref}`;
+    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Completed');
   },
 });
