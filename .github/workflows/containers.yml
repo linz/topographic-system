@@ -50,11 +50,8 @@ jobs:
         with:
           node-version: 24.10.0
 
-      - name: bundle
+      - name: Bundle the package
         run: npx lerna run bundle --stream
-
-      - name: Verify dist/index.js exists
-        run: test -f packages/kart/dist/index.js && echo "dist/index.js present"
 
       - name: Set up Docker Buildx
         id: buildx
@@ -102,6 +99,7 @@ jobs:
       - name: Build and push container
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
           push: ${{ inputs.push }}
