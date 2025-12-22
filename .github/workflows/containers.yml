@@ -50,8 +50,11 @@ jobs:
         with:
           node-version: 24.10.0
 
-      - run: |
-          npx lerna run bundle --stream
+      - name: bundle
+        run: npx lerna run bundle --stream
+
+      - name: Verify dist/index.js exists
+        run: test -f packages/kart/dist/index.js && echo "dist/index.js present"
 
       - name: Set up Docker Buildx
         id: buildx
