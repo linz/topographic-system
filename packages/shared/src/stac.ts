@@ -34,19 +34,19 @@ export async function createStacLink(source: URL, project: URL): Promise<StacLin
 
 export function createStacItem(
   id: string,
-  geometry: GeoJSONGeometry,
-  bbox: number[],
   links: StacLink[],
   assets: Record<string, StacAsset>,
+  geometry?: GeoJSONGeometry,
+  bbox?: number[],
 ): StacItem {
   const item: StacItem = {
-    id: `${CliId}/${id}`,
+    id,
     type: 'Feature',
     collection: CliId,
     stac_version: '1.0.0',
     stac_extensions: [],
-    geometry,
-    bbox,
+    geometry: geometry ?? null,
+    bbox: bbox ?? [],
     links: [
       { href: `./${id}.json`, rel: 'self' },
       { href: './collection.json', rel: 'collection', type: 'application/json' },
@@ -88,7 +88,7 @@ export function createStacCollection(description: string, bbox: number[], links:
   };
 }
 
-export function createStacCatalog(title: string, description: string): StacCatalog {
+export function createStacCatalog(title: string, description: string, links: StacLink[]): StacCatalog {
   return {
     stac_version: '1.0.0',
     stac_extensions: [],
@@ -96,14 +96,7 @@ export function createStacCatalog(title: string, description: string): StacCatal
     title,
     description,
     id: 'sl_' + CliId,
-    links: [
-      { rel: 'self', href: './catalog.json', type: 'application/json' },
-      {
-        rel: 'collection',
-        href: `./${CliId}/collection.json`,
-        type: 'application/json',
-      },
-    ],
+    links: [{ rel: 'self', href: './catalog.json', type: 'application/json' }, ...links],
   };
 }
 

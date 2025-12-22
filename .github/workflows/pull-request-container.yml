@@ -1,0 +1,17 @@
+name: Pull Request Containers
+
+on:
+  pull_request:
+    types:
+      - labeled
+jobs:
+  build-container:
+    if: github.event.label.name == 'container'
+    uses: ./.github/workflows/containers.yml
+    with:
+      manifest: |
+        {
+          "map": ["pr-${{ github.event.number }}"]
+        }
+      environment: nonprod
+    secrets: inherit
