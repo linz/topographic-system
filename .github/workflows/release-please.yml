@@ -34,7 +34,7 @@ jobs:
             const manifest = {};
             const outputs = ${{ toJson(steps.release.outputs) }};
 
-            const containers = ["map"];
+            const containers = ["map", "kart"];
             
             for (const [key,value] of Object.entries(outputs)) {
               if (!key.endsWith('--release_created') || !value) continue;
