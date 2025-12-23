@@ -61,8 +61,9 @@ for feature in topo_sheet_layer.getFeatures():
         pdf_settings.dpi = dpi
         pdf_settings.rasterizeWholeImage = False
         export_result = exporter.exportToPdf(output_file, pdf_settings)
-    elif export_format in ["tiff", "geotiff"]:
-        output_file = os.path.join(file_output_path, f"{feature_code}.tiff")
+    elif export_format in ["tiff", "geotiff", "png"]:
+        ext = "tiff" if export_format in ["tiff", "geotiff"] else "png"
+        output_file = os.path.join(file_output_path, f"{feature_code}.{ext}")
         img_settings = QgsLayoutExporter.ImageExportSettings()
         img_settings.dpi = dpi
         if export_format == "geotiff":

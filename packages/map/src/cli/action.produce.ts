@@ -21,6 +21,7 @@ export const ExportFormats = {
   Pdf: 'pdf',
   Tiff: 'tiff',
   GeoTiff: 'geotiff',
+  Png: 'png',
 } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
@@ -43,6 +44,7 @@ export function getContentType(format: ExportFormat): string {
   if (format === ExportFormats.Pdf) return 'application/pdf';
   else if (format === ExportFormats.Tiff) return 'image/tiff';
   else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff';
+  else if (format === ExportFormats.Png) return 'image/png';
   else throw new Error(`Invalid format`);
 }
 
@@ -64,9 +66,9 @@ export const ProduceArgs = {
     description: 'Path or s3 of QGIS Project to use for generate map sheets.',
   }),
   format: option({
-    type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff]),
+    type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff, ExportFormats.Png]),
     long: 'format',
-    description: `Export format as ${ExportFormats.Pdf}, ${ExportFormats.Tiff}, or ${ExportFormats.GeoTiff}`,
+    description: `Export format as ${ExportFormats.Pdf}, ${ExportFormats.Tiff}, ${ExportFormats.GeoTiff}, or ${ExportFormats.Png}`,
     defaultValue: () => ExportFormats.Pdf,
     defaultValueIsSerializable: true,
   }),
@@ -108,7 +110,7 @@ export const ProduceCommand = command({
 
     // Write outputs files to destination
     const projectName = parse(args.project.pathname).name;
-    const outputUrl = new URL(`/${projectName}/${CliId}/`, args.output);
+    const outputUrl = fsa.toUrl(path.join(args.output.href, `/${projectName}/${CliId}/`));
     for await (const file of fsa.list(tempOutput)) {
       if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
         await validateTiff(file, metadatas);
