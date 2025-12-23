@@ -37,6 +37,13 @@ export type MapSheetStacItem = StacItem & {
   };
 };
 
+function getExtentFormat(format: ExportFormat): string {
+  if (format === 'pdf') return 'pdf';
+  else if (format === 'tiff' || format === 'geotiff') return 'tiff';
+  else if (format === 'png') return 'png';
+  else throw new Error(`Invalid format: ${format}`);
+}
+
 export async function createMapSheetStacItem(
   metadata: SheetMetadata,
   format: ExportFormat,
@@ -46,7 +53,7 @@ export async function createMapSheetStacItem(
 ): Promise<MapSheetStacItem> {
   logger.info({ sheetCode: metadata.sheetCode }, 'Stac: CreateStacItem');
   // Check asset been uploaded
-  const extent = format === 'pdf' ? 'pdf' : 'tiff';
+  const extent = getExtentFormat(format);
   const filename = `${metadata.sheetCode}.${extent}`;
   const assetPath = new URL(filename, outputUrl);
   const data = await fsa.read(assetPath);
