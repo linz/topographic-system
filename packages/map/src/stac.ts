@@ -41,7 +41,7 @@ function getExtentFormat(format: ExportFormat): string {
   if (format === 'pdf') return 'pdf';
   else if (format === 'tiff' || format === 'geotiff') return 'tiff';
   else if (format === 'png') return 'png';
-  else throw new Error(`Invalid format: ${format}`);
+  else throw new Error(`Invalid format`);
 }
 
 export async function createMapSheetStacItem(
