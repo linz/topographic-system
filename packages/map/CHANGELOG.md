@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0](https://github.com/linz/topographic-system/compare/map-v0.2.0...map-v0.3.0) (2026-01-05)
+
+
+### Features
+
+* **map:** Add Download cli and list mapsheet clis for argo workflow. BM-1393 ([#11](https://github.com/linz/topographic-system/issues/11)) ([1eb12a6](https://github.com/linz/topographic-system/commit/1eb12a6603ed838ff321d6763985475a36902bcc))
+* **map:** cli for deploying qgis project into aws. BM-1394 ([#15](https://github.com/linz/topographic-system/issues/15)) ([9b5378e](https://github.com/linz/topographic-system/commit/9b5378ed8659dfbb86ffc8be64a05a13c2910abf))
+* **map:** Create Stac files for the output files and simple tiff validation. BM-1392 ([#9](https://github.com/linz/topographic-system/issues/9)) ([88ebf31](https://github.com/linz/topographic-system/commit/88ebf313661b7ab0389daebbed3fad8b5f119392))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from 0.1.0 to 0.2.0
+
 ## [0.2.0](https://github.com/linz/topographic-system/compare/map-v0.1.0...map-v0.2.0) (2025-12-01)
 
 
