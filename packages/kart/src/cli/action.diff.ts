@@ -1,6 +1,7 @@
 import { UUID } from 'node:crypto';
 
 import { fsa } from '@chunkd/fs';
+import { GithubApi } from '@topographic-system/shared/src/github.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
@@ -142,38 +143,40 @@ export const diffCommand = command({
 
     const featureCount = await getFeatureCount(diffRange);
     const textDiff = await getTextDiff(diffRange);
-    const htmlFile = await createHtmlDiff(diffRange);
-
-    // const uploadedHtmlPath = await uploadToArtifactStorage(htmlFile);
-    const uploadedHtmlPath = htmlFile.href;
-    // const uploadedGeojsonPath = await uploadToArtifactStorage('diff/kart_diff.geojson');
+    await createHtmlDiff(diffRange);
 
     const featureChangesPerDataset = await createGeojsonDiff(diffRange);
 
     const gitDiff = await getGitDiff(diffRange);
 
-    const summaryMd = buildMarkdownSummary(
-      diffRange,
-      featureCount,
-      textDiff,
-      gitDiff,
-      featureChangesPerDataset,
-      uploadedHtmlPath,
-    );
+    const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
     await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
     logger.info('Diff:Markdown Summary Generated');
+
+    const repoName = await GithubApi.findRepo();
+    const prNumber = await GithubApi.findPullRequest();
+
+    if (repoName && prNumber) {
+      try {
+        logger.info({ repoName, prNumber }, 'Diff:PRComment:Upsert');
+        const github = new GithubApi(repoName);
+        await github.upsertComment(prNumber, summaryMd);
+      } catch (e) {
+        logger.error({ error: e, repoName, prNumber }, 'Diff:PRComment:Error');
+      }
+    } else {
+      logger.info({ repoName, prNumber }, 'Diff:PRComment:Skipped');
+    }
 
     logger.info('Diff command completed');
   },
 });
 
 function buildMarkdownSummary(
-  diffRange: string[],
   featureCount: number,
   textDiff: string,
   gitDiff: string,
   featureChangesPerDataset: Record<string, string>,
-  htmlArtifactUrl: string,
 ): string {
   const allFeatures = Object.values(featureChangesPerDataset)
     .map((geojsonStr) => {
@@ -183,21 +186,9 @@ function buildMarkdownSummary(
     .flat();
 
   const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
-  // const allChangesGeoJson = Object.values(featureChangesPerDataset)
-  //   .map((geojsonStr) => {
-  //     const geojson = JSON.parse(geojsonStr) as GeoJson;
-  //     return geojson.features;
-  //   })
-  //   .flat()
-  //   .join(',\n');
   const gitDiffLines = gitDiff.split('\n').length;
 
   let summary = `# Changes\n`;
-  summary += 'To view a map and table with all changes between `';
-  summary += diffRange.join('` and `');
-  summary += '`, see the HTML file in the [attached artifacts]';
-  summary += `(${htmlArtifactUrl}).\n\n`;
-
   summary += '```geojson\n';
   summary += `${allChangesGeoJson}\n`;
   summary += '```\n\n';
