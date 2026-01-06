@@ -1,64 +1,80 @@
+import { UUID } from 'node:crypto';
+
 import { fsa } from '@chunkd/fs';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
 import { $ } from 'zx';
 
+type GeoJson = { type: string; features: unknown[] };
+type DiffOutput = {
+  [kartFormat: string]: {
+    [dataset: string]: {
+      feature: Array<{
+        [changeType in '+' | '++' | '-' | '--']?: {
+          topo_id: UUID | null;
+          t50_fid: number | null;
+          feature_type?: string | null;
+          name?: string | null;
+          theme?: string | null;
+          source?: string | null;
+          source_date?: string | null;
+          capture_method?: string | null;
+          change_type?: string | null;
+          update_date?: string | null;
+          create_date?: string | null;
+          version?: number | null;
+          geom: string;
+          [key: string]: unknown;
+        };
+      }>;
+    };
+  };
+};
+
 async function getTextDiff(diffRange: string[]): Promise<string> {
-  // read text diff
-  // $.verbose = true  // Shows commands and their output
-  // $.shell = '/bin/bash'
-  // $.prefix = 'set -x; '  // Bash will echo each command
-  const textDiff = await $`kart -C repo diff ${diffRange} -o "text"`;
-  await fsa.write(fsa.toUrl('kart_diff.txt'), textDiff.stdout);
-  logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to kart_diff.txt');
+  const textDiff = await $`kart -C repo diff -o "text" ${diffRange}`;
+  await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
+  logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
   return textDiff.stdout;
 }
-async function getFeatureCount(diffRange: string[]): Promise<string> {
-  // read feature count
-  // const baseDiffCmd = `-C repo diff ${diffRange}`;
-  // $.verbose = true  // Shows commands and their output
-  // $.shell = '/bin/bash'
-  // $.prefix = 'set -x; '  // Bash will echo each command
-  // await $`pwd; ls -latr; kart -C repo diff master..origin/feat-kart-edits -- --only-feature-count exact`;
-  // const countOutput = await $`pwd; whoami; id; ls -latr ./repo/; cat ./repo/.git; ls ./repo/.kart/ -altr; kart -C repo diff --only-feature-count exact ${diffRange}`;
-  const countOutput = await $`kart -C repo diff --only-feature-count exact ${diffRange}`;
-  const featureCount = countOutput.stdout.trim();
-  logger.info({ diffRange, featureCount }, 'Diff:FeatureCount');
-  return featureCount;
-}
 
-async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const stat = await fsa.head(filePath);
-      if (!stat) throw new Error('File not found');
-      return await fsa.read(filePath);
-    } catch (e) {
-      logger.warn({ error: e, retry: i }, 'ReadFile:Failed');
-      if (i === retries - 1) throw e;
-      await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+async function getFeatureCount(diffRange: string[]): Promise<number> {
+  const countOutput = await $`kart -C repo diff -o "json" ${diffRange}`;
+  const featureCount = countOutput.stdout.trim();
+  if (!featureCount) {
+    logger.warn('Diff:FeatureCount:EmptyOutput');
+    return 0;
+  }
+  let totalFeaturesChanged = 0;
+  let changes: DiffOutput;
+  try {
+    changes = JSON.parse(featureCount) as DiffOutput;
+  } catch (e) {
+    logger.error({ error: e, featureCount }, 'Diff:FeatureCount:JSONParseError');
+    return 0;
+  }
+  for (const formatKey of Object.keys(changes)) {
+    const dataset = changes[formatKey];
+    if (dataset === undefined) continue;
+    for (const datasetKey of Object.keys(dataset)) {
+      if (dataset[datasetKey] === undefined) continue;
+      totalFeaturesChanged += dataset[datasetKey].feature.length;
     }
   }
-  throw new Error(`Failed to read file after ${retries} retries`);
+  logger.info({ diffRange, totalFeaturesChanged }, 'Diff:FeatureCount');
+  return totalFeaturesChanged;
 }
 
 async function createHtmlDiff(diffRange: string[]): Promise<URL> {
-  // create HTML diff
-  // const baseDiffCmd = `kart -C repo diff ${diffRange}`;
-  const htmlFile = 'kart_diff.html';
+  const htmlFile = 'diff/kart_diff.html';
   const htmlPath = fsa.toUrl(htmlFile);
   await $`kart -C repo diff ${diffRange} -o "html" --output "${htmlFile}"`;
-  // await $`echo "HERE ${htmlFile}"; ls -latr .; pwd`;
-  // await $`echo "href"; ls -latr ${htmlPath.href}`;
-  // await $`echo "file"; ls -latr ${htmlFile}`;
   const content = await readFileWithRetry(htmlPath);
   const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
   await fsa.write(htmlPath, fixedContent);
   return htmlPath;
 }
-
-type GeoJson = { type: string; features: unknown[] };
 
 async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileString: string } | undefined> {
   const datasetName = basename(file.href, '.geojson');
@@ -66,24 +82,19 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
   const fileString = fileContent.toString('utf-8');
   const geojson = JSON.parse(fileString) as GeoJson;
   if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
-    // allFeatures.push(...geojson.features);
     return { datasetName, fileString };
   }
   return undefined;
 }
 
 async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, string>> {
-  // create geojson diff
-  // const baseDiffCmd = `kart -C repo diff ${diffRange}`;
-  const geojsonOutName = 'kart_diff.geojson';
+  const geojsonOutName = 'diff/kart_diff.geojson/';
   const geojsonPath = fsa.toUrl(geojsonOutName);
   await $`kart -C repo diff ${diffRange} -o "geojson" --output "${geojsonOutName}"`;
   const stat = await fsa.head(geojsonPath);
   const featureChangesPerDataset: Record<string, string> = {};
-  // const allFeatures: any[] = [];
 
   if (stat && stat.isDirectory) {
-    // Combine all files in the directory into one geojson file
     const files = await fsa.toArray(fsa.list(geojsonPath, { recursive: true }));
     for (const file of files) {
       const jsonFile = await readGeojsonFile(file);
@@ -92,7 +103,6 @@ async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, st
       }
     }
   } else if (stat) {
-    // no "isFile" property on stat, so just use else
     const jsonFile = await readGeojsonFile(geojsonPath);
     if (jsonFile) {
       featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
@@ -102,11 +112,19 @@ async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, st
 }
 
 async function getGitDiff(diffRange: string[]): Promise<string> {
-  // Get git diff
   const gitDiffOutput =
-      await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
-  await fsa.write(fsa.toUrl('git_diff.txt'), gitDiffOutput.stdout);
+    await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
+  await fsa.write(fsa.toUrl('diff/git_diff.txt'), gitDiffOutput.stdout);
   return gitDiffOutput.stdout;
+}
+
+async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
+  for (let i = 0; i < retries; i++) {
+    const stat = await fsa.head(filePath);
+    if (stat?.size) return fsa.read(filePath);
+    await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+  }
+  throw new Error(`Failed to read file ${filePath.href} after ${retries} retries`);
 }
 
 export const diffCommand = command({
@@ -123,30 +141,25 @@ export const diffCommand = command({
     const diffRange = args.diff.length > 0 ? args.diff : ['master..FETCH_HEAD'];
 
     const featureCount = await getFeatureCount(diffRange);
-    // read text diff
     const textDiff = await getTextDiff(diffRange);
     const htmlFile = await createHtmlDiff(diffRange);
 
     // const uploadedHtmlPath = await uploadToArtifactStorage(htmlFile);
     const uploadedHtmlPath = htmlFile.href;
-    // const uploadedGeojsonPath = await uploadToArtifactStorage('kart_diff.geojson');
+    // const uploadedGeojsonPath = await uploadToArtifactStorage('diff/kart_diff.geojson');
 
     const featureChangesPerDataset = await createGeojsonDiff(diffRange);
 
-    // const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
-    // await fsa.write(fsa.toUrl('kart_diff_all.geojson'), allChangesGeoJson);
     const gitDiff = await getGitDiff(diffRange);
 
-    // build Markdown summary
     const summaryMd = buildMarkdownSummary(
-        diffRange,
-        featureCount,
-        textDiff,
-        gitDiff,
-        featureChangesPerDataset,
-        uploadedHtmlPath,
+      diffRange,
+      featureCount,
+      textDiff,
+      gitDiff,
+      featureChangesPerDataset,
+      uploadedHtmlPath,
     );
-
     await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
     logger.info('Diff:Markdown Summary Generated');
 
@@ -155,25 +168,21 @@ export const diffCommand = command({
 });
 
 function buildMarkdownSummary(
-    diffRange: string[],
-    featureCount: string,
-    textDiff: string,
-    gitDiff: string,
-    featureChangesPerDataset: Record<string, string>,
-    htmlArtifactUrl: string,
+  diffRange: string[],
+  featureCount: number,
+  textDiff: string,
+  gitDiff: string,
+  featureChangesPerDataset: Record<string, string>,
+  htmlArtifactUrl: string,
 ): string {
   const allFeatures = Object.values(featureChangesPerDataset)
-      .map((geojsonStr) => {
-        const geojson = JSON.parse(geojsonStr) as GeoJson;
-        return geojson.features;
-      })
-      .flat();
+    .map((geojsonStr) => {
+      const geojson = JSON.parse(geojsonStr) as GeoJson;
+      return geojson.features;
+    })
+    .flat();
 
-  const allChangesGeoJson = JSON.stringify(
-      { type: 'FeatureCollection', features: allFeatures },
-      null,
-      2
-  );
+  const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
   // const allChangesGeoJson = Object.values(featureChangesPerDataset)
   //   .map((geojsonStr) => {
   //     const geojson = JSON.parse(geojsonStr) as GeoJson;
@@ -184,7 +193,10 @@ function buildMarkdownSummary(
   const gitDiffLines = gitDiff.split('\n').length;
 
   let summary = `# Changes\n`;
-  summary += `To view a map and table with all changes between \`${diffRange}\`, see the HTML file in the [attached artifacts](${htmlArtifactUrl}).\n\n`;
+  summary += 'To view a map and table with all changes between `';
+  summary += diffRange.join('` and `');
+  summary += '`, see the HTML file in the [attached artifacts]';
+  summary += `(${htmlArtifactUrl}).\n\n`;
 
   summary += '```geojson\n';
   summary += `${allChangesGeoJson}\n`;
@@ -199,7 +211,7 @@ function buildMarkdownSummary(
       if (featureCount > 0) {
         summary += `<details>\n<summary>**${dataset}**: ${featureCount} changes</summary>\n\n`;
         summary += '```geojson\n';
-        summary += `${geojsonStr}\n`
+        summary += `${geojsonStr}\n`;
         summary += '```\n';
         summary += `</details>\n\n`;
       }
