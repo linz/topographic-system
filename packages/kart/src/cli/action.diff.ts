@@ -33,47 +33,62 @@ type DiffOutput = {
 };
 
 async function getTextDiff(diffRange: string[]): Promise<string> {
-  const textDiff = await $`kart -C repo diff -o "text" ${diffRange}`;
-  await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
-  logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
-  return textDiff.stdout;
+  try {
+    const textDiff = await $`kart -C repo diff -o "text" ${diffRange}`;
+    await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
+    logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
+    return textDiff.stdout;
+  } catch (error) {
+    logger.error({ error, diffRange }, 'Diff:Text diff failed');
+    throw error;
+  }
 }
 
 async function getFeatureCount(diffRange: string[]): Promise<number> {
-  const countOutput = await $`kart -C repo diff -o "json" ${diffRange}`;
-  const featureCount = countOutput.stdout.trim();
-  if (!featureCount) {
-    logger.warn('Diff:FeatureCount:EmptyOutput');
-    return 0;
-  }
-  let totalFeaturesChanged = 0;
-  let changes: DiffOutput;
   try {
-    changes = JSON.parse(featureCount) as DiffOutput;
-  } catch (e) {
-    logger.error({ error: e, featureCount }, 'Diff:FeatureCount:JSONParseError');
-    return 0;
-  }
-  for (const formatKey of Object.keys(changes)) {
-    const dataset = changes[formatKey];
-    if (dataset === undefined) continue;
-    for (const datasetKey of Object.keys(dataset)) {
-      if (dataset[datasetKey] === undefined) continue;
-      totalFeaturesChanged += dataset[datasetKey].feature.length;
+    const countOutput = await $`kart -C repo diff -o "json" ${diffRange}`;
+    const featureCount = countOutput.stdout.trim();
+    if (!featureCount) {
+      logger.warn('Diff:FeatureCount:EmptyOutput');
+      return 0;
     }
+    let totalFeaturesChanged = 0;
+    let changes: DiffOutput;
+    try {
+      changes = JSON.parse(featureCount) as DiffOutput;
+    } catch (e) {
+      logger.error({ error: e, featureCount }, 'Diff:FeatureCount:JSONParseError');
+      return 0;
+    }
+    for (const formatKey of Object.keys(changes)) {
+      const dataset = changes[formatKey];
+      if (dataset === undefined) continue;
+      for (const datasetKey of Object.keys(dataset)) {
+        if (dataset[datasetKey] === undefined) continue;
+        totalFeaturesChanged += dataset[datasetKey]?.feature?.length ?? 0;
+      }
+    }
+    logger.info({ diffRange, totalFeaturesChanged }, 'Diff:FeatureCount');
+    return totalFeaturesChanged;
+  } catch (error) {
+    logger.error({ error, diffRange }, 'Diff:Feature count failed');
+    throw error;
   }
-  logger.info({ diffRange, totalFeaturesChanged }, 'Diff:FeatureCount');
-  return totalFeaturesChanged;
 }
 
 async function createHtmlDiff(diffRange: string[]): Promise<URL> {
-  const htmlFile = 'diff/kart_diff.html';
-  const htmlPath = fsa.toUrl(htmlFile);
-  await $`kart -C repo diff ${diffRange} -o "html" --output "${htmlFile}"`;
-  const content = await readFileWithRetry(htmlPath);
-  const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
-  await fsa.write(htmlPath, fixedContent);
-  return htmlPath;
+  try {
+    const htmlFile = 'diff/kart_diff.html';
+    const htmlPath = fsa.toUrl(htmlFile);
+    await $`kart -C repo diff ${diffRange} -o "html" --output "${htmlFile}"`;
+    const content = await readFileWithRetry(htmlPath);
+    const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
+    await fsa.write(htmlPath, fixedContent);
+    return htmlPath;
+  } catch (error) {
+    logger.error({ error, diffRange }, 'Diff:HTML diff failed');
+    throw error;
+  }
 }
 
 async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileString: string } | undefined> {
