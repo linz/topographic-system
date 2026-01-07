@@ -24,6 +24,9 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
+    delete $.env['GITHUB_ACTION_REPOSITORY'];
+    delete $.env['GITHUB_ACTION_REF'];
+    delete $.env['GITHUB_WORKFLOW_REF'];
 
     const env = parseEnv(EnvParser);
 

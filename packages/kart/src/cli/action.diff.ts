@@ -137,6 +137,10 @@ export const diffCommand = command({
     }),
   },
   async handler(args) {
+    delete $.env['GITHUB_ACTION_REPOSITORY'];
+    delete $.env['GITHUB_ACTION_REF'];
+    delete $.env['GITHUB_WORKFLOW_REF'];
+
     logger.info({ ref: args.diff }, 'Diff:Start');
     const diffRange = args.diff.length > 0 ? args.diff : ['master..FETCH_HEAD'];
 

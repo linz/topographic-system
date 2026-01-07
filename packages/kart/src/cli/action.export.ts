@@ -21,6 +21,10 @@ export const exportCommand = command({
     }),
   },
   async handler(args) {
+    delete $.env['GITHUB_ACTION_REPOSITORY'];
+    delete $.env['GITHUB_ACTION_REF'];
+    delete $.env['GITHUB_WORKFLOW_REF'];
+
     logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
     const kartData = await $`kart -C repo data ls`;
