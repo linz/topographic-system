@@ -49,34 +49,43 @@ export class GithubApi {
    */
   async upsertComment(prNumber: number, body: string): Promise<void> {
     logger.info({ prNumber }, 'GitHub API: Upsert Comment');
-    const user = await this.octokit.rest.users.getAuthenticated();
-    const login = user.data.login;
 
-    const comments = await this.octokit.rest.issues.listComments({
-      owner: this.owner,
-      repo: this.repo,
-      issue_number: prNumber,
-      per_page: 100,
-    });
+    // Add a unique identifier to our comments so we can find them later
+    const commentIdentifier = '<!-- topographic-system-diff-comment -->';
+    const bodyWithIdentifier = `${commentIdentifier}\n${body}`;
 
-    const lastComment = comments.data
-      .slice()
-      .reverse()
-      .find((comment) => comment.user?.login === login);
-
-    if (lastComment) {
-      const response = await this.octokit.rest.issues.updateComment({
+    try {
+      const comments = await this.octokit.rest.issues.listComments({
         owner: this.owner,
         repo: this.repo,
-        comment_id: lastComment.id,
-        body,
+        issue_number: prNumber,
+        per_page: 100,
       });
-      if (!this.isOk(response.status)) {
-        throw new Error(`Failed to update comment ${lastComment.id} on PR #${prNumber}.`);
+
+      // Find our last comment by looking for the identifier
+      const lastComment = comments.data
+        .slice()
+        .reverse()
+        .find((comment) => comment.body?.includes(commentIdentifier));
+
+      if (lastComment) {
+        const response = await this.octokit.rest.issues.updateComment({
+          owner: this.owner,
+          repo: this.repo,
+          comment_id: lastComment.id,
+          body: bodyWithIdentifier,
+        });
+        if (!this.isOk(response.status)) {
+          throw new Error(`Failed to update comment ${lastComment.id} on PR #${prNumber}.`);
+        }
+        logger.info({ prNumber, commentId: lastComment.id, url: response.data.html_url }, 'GitHub: Comment Updated');
+      } else {
+        await this.createComment(prNumber, bodyWithIdentifier);
       }
-      logger.info({ prNumber, commentId: lastComment.id, url: response.data.html_url }, 'GitHub: Comment Updated');
-    } else {
-      await this.createComment(prNumber, body);
+    } catch (error) {
+      logger.error({ error, prNumber }, 'GitHub API: Failed to upsert comment, falling back to create');
+      // Fallback: just create a new comment if upsert fails
+      await this.createComment(prNumber, bodyWithIdentifier);
     }
   }
 

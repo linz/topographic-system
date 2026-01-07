@@ -38,8 +38,10 @@ export const commentCommand = command({
         const github = new GithubApi(repoName);
         logger.info({ github }, 'Diff:PRComment:Upsert');
         await github.upsertComment(prNumber, summaryMd);
+        logger.info('Diff:PRComment:Success');
       } catch (e) {
         logger.error({ error: e, repoName, prNumber }, 'Diff:PRComment:Error');
+        throw e;
       }
     } else {
       logger.info({ repoName, prNumber }, 'Diff:PRComment:Skipped');
