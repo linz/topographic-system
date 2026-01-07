@@ -103,34 +103,44 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
 }
 
 async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, string>> {
-  const geojsonOutName = 'diff/kart_diff.geojson/';
-  const geojsonPath = fsa.toUrl(geojsonOutName);
-  await $`kart -C repo diff ${diffRange} -o "geojson" --output "${geojsonOutName}"`;
-  const stat = await fsa.head(geojsonPath);
-  const featureChangesPerDataset: Record<string, string> = {};
+  try {
+    const geojsonOutName = 'diff/kart_diff.geojson/';
+    const geojsonPath = fsa.toUrl(geojsonOutName);
+    await $`kart -C repo diff ${diffRange} -o "geojson" --output "${geojsonOutName}"`;
+    const stat = await fsa.head(geojsonPath);
+    const featureChangesPerDataset: Record<string, string> = {};
 
-  if (stat && stat.isDirectory) {
-    const files = await fsa.toArray(fsa.list(geojsonPath, { recursive: true }));
-    for (const file of files) {
-      const jsonFile = await readGeojsonFile(file);
+    if (stat && stat.isDirectory) {
+      const files = await fsa.toArray(fsa.list(geojsonPath, { recursive: true }));
+      for (const file of files) {
+        const jsonFile = await readGeojsonFile(file);
+        if (jsonFile) {
+          featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
+        }
+      }
+    } else if (stat) {
+      const jsonFile = await readGeojsonFile(geojsonPath);
       if (jsonFile) {
         featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
       }
     }
-  } else if (stat) {
-    const jsonFile = await readGeojsonFile(geojsonPath);
-    if (jsonFile) {
-      featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
-    }
+    return featureChangesPerDataset;
+  } catch (error) {
+    logger.error({ error, diffRange }, 'Diff:GeoJSON diff failed');
+    throw error;
   }
-  return featureChangesPerDataset;
 }
 
 async function getGitDiff(diffRange: string[]): Promise<string> {
-  const gitDiffOutput =
-    await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
-  await fsa.write(fsa.toUrl('diff/git_diff.txt'), gitDiffOutput.stdout);
-  return gitDiffOutput.stdout;
+  try {
+    const gitDiffOutput =
+      await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
+    await fsa.write(fsa.toUrl('diff/git_diff.txt'), gitDiffOutput.stdout);
+    return gitDiffOutput.stdout;
+  } catch (error) {
+    logger.error({ error, diffRange }, 'Diff:Git diff failed');
+    throw error;
+  }
 }
 
 async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
@@ -157,21 +167,47 @@ export const diffCommand = command({
     delete $.env['GITHUB_WORKFLOW_REF'];
 
     logger.info({ ref: args.diff }, 'Diff:Start');
-    const diffRange = args.diff.length > 0 ? args.diff : ['master..FETCH_HEAD'];
 
-    const featureCount = await getFeatureCount(diffRange);
-    const textDiff = await getTextDiff(diffRange);
-    await createHtmlDiff(diffRange);
+    // Determine diff range - for GitHub Actions PRs, use a more robust approach
+    let diffRange: string[];
+    if (args.diff.length > 0) {
+      diffRange = args.diff;
+    } else {
+      // In GitHub Actions PR context, use merge-base to find the common ancestor
+      // and compare against that rather than relying on .. operator
+      try {
+        // First try to find the merge base between master and FETCH_HEAD
+        const mergeBase = await $`git -C repo merge-base origin/master FETCH_HEAD`;
+        const baseCommit = mergeBase.stdout.trim();
+        diffRange = [`${baseCommit}..FETCH_HEAD`];
+        logger.info({ baseCommit, diffRange }, 'Diff:Using merge-base strategy');
+      } catch (mergeBaseError) {
+        // If merge-base fails, fall back to comparing against origin/master directly
+        logger.warn({ error: mergeBaseError }, 'Diff:Merge-base failed, falling back to direct comparison');
+        diffRange = ['origin/master', 'FETCH_HEAD'];
+      }
+    }
 
-    const featureChangesPerDataset = await createGeojsonDiff(diffRange);
+    logger.info({ diffRange }, 'Diff:Using range');
 
-    const gitDiff = await getGitDiff(diffRange);
+    try {
+      const featureCount = await getFeatureCount(diffRange);
+      const textDiff = await getTextDiff(diffRange);
+      await createHtmlDiff(diffRange);
 
-    const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
-    await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
-    logger.info('Diff:Markdown Summary Generated');
+      const featureChangesPerDataset = await createGeojsonDiff(diffRange);
 
-    logger.info('Diff command completed');
+      const gitDiff = await getGitDiff(diffRange);
+
+      const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
+      await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
+      logger.info('Diff:Markdown Summary Generated');
+
+      logger.info('Diff command completed');
+    } catch (error) {
+      logger.error({ error, diffRange }, 'Diff:Failed');
+      process.exit(1);
+    }
   },
 });
 
