@@ -1,7 +1,6 @@
 import { UUID } from 'node:crypto';
 
 import { fsa } from '@chunkd/fs';
-import { GithubApi } from '@topographic-system/shared/src/github.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
@@ -152,21 +151,6 @@ export const diffCommand = command({
     const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
     await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
     logger.info('Diff:Markdown Summary Generated');
-
-    const repoName = await GithubApi.findRepo();
-    const prNumber = await GithubApi.findPullRequest();
-
-    if (repoName && prNumber) {
-      try {
-        logger.info({ repoName, prNumber }, 'Diff:PRComment:Upsert');
-        const github = new GithubApi(repoName);
-        await github.upsertComment(prNumber, summaryMd);
-      } catch (e) {
-        logger.error({ error: e, repoName, prNumber }, 'Diff:PRComment:Error');
-      }
-    } else {
-      logger.info({ repoName, prNumber }, 'Diff:PRComment:Skipped');
-    }
 
     logger.info('Diff command completed');
   },

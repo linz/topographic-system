@@ -19,6 +19,7 @@
     "zx": "^8.8.5"
   },
   "devDependencies": {
-    "@smithy/types": "^4.9.0"
+    "@smithy/types": "^4.9.0",
+    "@octokit/webhooks-types": "^7.6.1"
   }
 }

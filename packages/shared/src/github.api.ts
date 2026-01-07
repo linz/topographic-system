@@ -2,16 +2,10 @@ import { fsa } from '@chunkd/fs';
 import { Octokit } from '@octokit/core';
 import type { Api } from '@octokit/plugin-rest-endpoint-methods';
 import { restEndpointMethods } from '@octokit/plugin-rest-endpoint-methods';
+import type { PullRequestEvent } from '@octokit/webhooks-types';
 import { $ } from 'zx';
 
 import { logger } from './log.ts';
-
-export interface Blob {
-  path: string;
-  mode: '100644';
-  type: 'blob';
-  sha: string;
-}
 
 export class GithubApi {
   octokit: Api;
@@ -30,7 +24,6 @@ export class GithubApi {
   }
 
   isOk = (s: number): boolean => s >= 200 && s <= 299;
-  toRef = (branch: string): string => `heads/${branch}`;
 
   /**
    * Create a comment on a pull request
@@ -92,15 +85,15 @@ export class GithubApi {
    */
   static async findRepo(): Promise<string> {
     if (process.env['GITHUB_REPOSITORY']) return process.env['GITHUB_REPOSITORY'];
-    logger.info('GitHub API: Finding repository from git config');
-    const remoteUrl = (await $`git -C repo remote get-url origin`).stdout.trim();
-    const match = remoteUrl.match(/github\.com[:/]([^/]+\/[^/.]+)(\.git)?/);
-    if (!match?.[1]) throw new Error(`Could not parse GitHub repository from remote URL: ${remoteUrl}`);
-    return match[1];
+    const remoteUrl = new URL((await $`git -C repo remote get-url origin`).stdout.trim());
+    logger.info({ URLPathname: remoteUrl.pathname }, 'GitHub API: Finding repository from git config');
+    return remoteUrl.pathname.replace(/\.git$/, '').replace(/^\/+/, '');
   }
 
   /**
    * Attempt to find the pull request number from the environment.
+   * Checks a custom variable (GITHUB_PR_NUMBER), then GITHUB_REF (refs/pull/123/head), and finally parses the event.json in GITHUB_EVENT_PATH.
+   * See https://docs.github.com/en/actions/reference/workflows-and-actions/variables
    */
   static async findPullRequest(): Promise<number | null> {
     const prNumber = process.env['GITHUB_PR_NUMBER'];
@@ -115,7 +108,7 @@ export class GithubApi {
     if (eventPath) {
       try {
         const fileContent = await fsa.read(fsa.toUrl(eventPath));
-        const event = JSON.parse(fileContent.toString('utf-8'));
+        const event = JSON.parse(fileContent.toString('utf-8')) as PullRequestEvent;
         return event.pull_request?.number ?? event.number ?? null;
       } catch {
         // Fall through
