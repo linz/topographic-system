@@ -42,9 +42,17 @@ export const cloneCommand = command({
     await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1 repo`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
-    const ref = args.ref ? ['origin', args.ref] : [];
-    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Start');
-    await $`kart -C repo fetch ${ref}`;
-    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Completed');
+    if (args.ref) {
+      // Also fetch master/main for comparison
+      logger.info({ repoUrl: targetUrl.href }, 'Fetch:Base branch (master)');
+      await $`kart -C repo fetch origin master`;
+
+      logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
+      await $`kart -C repo fetch origin ${args.ref}`;
+    } else {
+      logger.info({ repoUrl: targetUrl.href }, 'Fetch:Default branch');
+      await $`kart -C repo fetch origin`;
+    }
+    logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
   },
 });
