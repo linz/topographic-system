@@ -27,7 +27,7 @@ export const commentCommand = command({
     logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile }, 'PRComment:Start');
 
     const summaryMd = (await fsa.read(fsa.toUrl(args.bodyFile[0] ?? 'pr_summary.md'))).toString('utf-8');
-    logger.info({bodyFile: args.bodyFile[0] ?? 'pr_summary.md'}, 'PRComment:Markdown Summary Loaded');
+    logger.info({ bodyFile: args.bodyFile[0] ?? 'pr_summary.md' }, 'PRComment:Markdown Summary Loaded');
 
     const repoName = args.repo ?? (await GithubApi.findRepo());
     const prNumber = args.pr ?? (await GithubApi.findPullRequest());
