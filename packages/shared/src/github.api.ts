@@ -112,14 +112,14 @@ export class GithubApi {
     );
 
     return [
-      '# Diff Summary',
-      '',
-      ...summaryLines,
-      '',
       '---',
       '*Full diff details were too large for GitHub comments.*',
       '*Check the GitHub Actions workflow logs for complete information.*',
       `*Original comment size: ${originalBody.length} characters*`,
+      '---',
+      '',
+      ...summaryLines,
+      '',
     ].join('\n');
   }
 
