@@ -31,6 +31,7 @@ type DiffOutput = {
     };
   };
 };
+const MAX_GEOJSON_LENGTH = 40000;
 
 async function getTextDiff(diffRange: string[]): Promise<string> {
   try {
@@ -227,39 +228,53 @@ function buildMarkdownSummary(
   const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
   const gitDiffLines = gitDiff.split('\n').length;
 
-  let summary = `# Changes\n`;
-  summary += '```geojson\n';
-  summary += `${allChangesGeoJson}\n`;
-  summary += '```\n\n';
+  let summary = `# Changes Summary\n\n`;
+  summary += `**Total Features Changed**: ${featureCount}\n`;
+  summary += `**Datasets Affected**: ${Object.keys(featureChangesPerDataset).length}\n`;
+  summary += `**Git Diff Lines**: ${gitDiffLines}\n\n`;
+
+  // Only include GeoJSON if we have features, it's not too large, and under character limit
+  if (allFeatures.length > 0) {
+    summary += `## Feature Changes Preview\n`;
+    const geojsonLength = allChangesGeoJson.length;
+    if (geojsonLength <= MAX_GEOJSON_LENGTH) {
+      summary += '```geojson\n';
+      summary += `${allChangesGeoJson}\n`;
+      summary += '```\n\n';
+    } else {
+      summary += `*GeoJSON too large to display (${geojsonLength} characters > ${MAX_GEOJSON_LENGTH} limit). `;
+      summary += `Check workflow artifacts for full GeoJSON data.*\n\n`;
+    }
+  }
 
   if (Object.keys(featureChangesPerDataset).length > 0) {
-    summary += `### Feature Changes by Dataset\n\n`;
-    summary += `<details>\n<summary>Individual GeoJSON Diffs - click each to expand</summary>\n\n`;
+    summary += `### Changes by Dataset\n\n`;
     for (const [dataset, geojsonStr] of Object.entries(featureChangesPerDataset)) {
       const geojson = JSON.parse(geojsonStr) as GeoJson;
       const featureCount = geojson.features.length;
       if (featureCount > 0) {
-        summary += `<details>\n<summary>**${dataset}**: ${featureCount} changes</summary>\n\n`;
+        summary += `- **${dataset}**: ${featureCount} features changed\n`;
+        summary += `<details>\n<summary>**${dataset}**: ${featureCount} features changed</summary>\n\n`;
         summary += '```geojson\n';
         summary += `${geojsonStr}\n`;
         summary += '```\n';
         summary += `</details>\n\n`;
       }
     }
-    summary += `</details>\n\n`;
+    summary += '\n';
   }
 
-  summary += `## Kart Diff Results\n`;
+  summary += `## Kart Diff\n\n`;
   summary += `<details>\n`;
-  summary += `<summary>kart diff - click to expand (${featureCount} features)</summary>\n\n`;
+  summary += `<summary>Kart Diff (${featureCount} features)</summary>\n\n`;
   summary += '```diff\n';
   summary += `${textDiff}\n`;
   summary += '```\n';
   summary += `</details>\n\n`;
 
-  summary += `## Git Diff Results\n\n`;
+  summary += `## Git Diff\n\n`;
   summary += `<details>\n`;
-  summary += `<summary>git diff - click to expand (${gitDiffLines} lines)</summary>\n\n`;
+  summary += `<summary>Git Diff (${gitDiffLines} lines)</summary>\n\n`;
   summary += '```diff\n';
   summary += `${gitDiff}\n`;
   summary += '```\n';

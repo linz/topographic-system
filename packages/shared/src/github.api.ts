@@ -6,6 +6,7 @@ import type { PullRequestEvent } from '@octokit/webhooks-types';
 import { $ } from 'zx';
 
 import { logger } from './log.ts';
+const MAX_COMMENT_SIZE = 65536; // GitHub's actual limit
 
 export class GithubApi {
   octokit: Api;
@@ -29,7 +30,7 @@ export class GithubApi {
    * Create a comment on a pull request
    */
   async createComment(prNumber: number, body: string): Promise<void> {
-    logger.info({ prNumber }, 'GitHub API: Create Comment');
+    logger.info({ prNumber, bodyLength: body.length }, 'GitHub API: Create Comment');
     const response = await this.octokit.rest.issues.createComment({
       owner: this.owner,
       repo: this.repo,
@@ -38,7 +39,7 @@ export class GithubApi {
     });
 
     if (!this.isOk(response.status)) {
-      throw new Error(`Failed to create comment on PR #${prNumber}.`);
+      throw new Error(`Failed to create comment on PR #${prNumber}. Status: ${response.status}`);
     }
     logger.info({ prNumber, url: response.data.html_url }, 'GitHub: Comment Created');
   }
@@ -48,11 +49,11 @@ export class GithubApi {
    * or create a new one if none exists.
    */
   async upsertComment(prNumber: number, body: string): Promise<void> {
-    logger.info({ prNumber }, 'GitHub API: Upsert Comment');
+    logger.info({ prNumber, bodyLength: body.length }, 'GitHub API: Upsert Comment');
 
     // Add a unique identifier to our comments so we can find them later
     const commentIdentifier = '<!-- topographic-system-diff-comment -->';
-    const bodyWithIdentifier = `${commentIdentifier}\n${body}`;
+    const bodyWithIdentifier = this.shortenLongComments(`${commentIdentifier}\n${body}`);
 
     try {
       const comments = await this.octokit.rest.issues.listComments({
@@ -87,6 +88,39 @@ export class GithubApi {
       // Fallback: just create a new comment if upsert fails
       await this.createComment(prNumber, bodyWithIdentifier);
     }
+  }
+
+  /**
+   * Create a minimal fallback comment when the main comment is too large
+   */
+  private shortenLongComments(originalBody: string): string {
+    if (originalBody.length <= MAX_COMMENT_SIZE) {
+      return originalBody;
+    }
+    logger.warn(
+      { bodyLength: originalBody.length, maxSize: MAX_COMMENT_SIZE },
+      'GitHub API: Comment exceeds size limit, truncating',
+    );
+    const lines = originalBody.split('\n');
+    const summaryLines = lines.filter(
+      (line) =>
+        line.startsWith('<!--') ||
+        line.startsWith('#') ||
+        line.startsWith('**') ||
+        line.includes('Features Changed') ||
+        line.includes('Datasets Affected'),
+    );
+
+    return [
+      '# Diff Summary',
+      '',
+      ...summaryLines,
+      '',
+      '---',
+      '*Full diff details were too large for GitHub comments.*',
+      '*Check the GitHub Actions workflow logs for complete information.*',
+      `*Original comment size: ${originalBody.length} characters*`,
+    ].join('\n');
   }
 
   /**
