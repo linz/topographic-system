@@ -27,26 +27,24 @@ export const commentCommand = command({
     logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile }, 'PRComment:Start');
 
     const summaryMd = (await fsa.read(fsa.toUrl(args.bodyFile[0] ?? 'pr_summary.md'))).toString('utf-8');
-    logger.info('Diff:Markdown Summary Generated');
+    logger.info({bodyFile: args.bodyFile[0] ?? 'pr_summary.md'}, 'PRComment:Markdown Summary Loaded');
 
     const repoName = args.repo ?? (await GithubApi.findRepo());
     const prNumber = args.pr ?? (await GithubApi.findPullRequest());
 
     if (repoName && prNumber) {
       try {
-        logger.info({ repoName, prNumber }, 'Diff:PRComment:Upsert');
+        logger.info({ repoName, prNumber }, 'PRComment:Upsert');
         const github = new GithubApi(repoName);
-        logger.info({ github }, 'Diff:PRComment:Upsert');
         await github.upsertComment(prNumber, summaryMd);
-        logger.info('Diff:PRComment:Success');
+        logger.info('PRComment:Success');
       } catch (e) {
-        logger.error({ error: e, repoName, prNumber }, 'Diff:PRComment:Error');
+        logger.error({ error: e, repoName, prNumber }, 'PRComment:Error');
         throw e;
       }
     } else {
-      logger.info({ repoName, prNumber }, 'Diff:PRComment:Skipped');
+      logger.info({ repoName, prNumber }, 'PRComment:Skipped');
     }
-
-    logger.info('Diff command completed');
+    logger.info('PRComment:Completed');
   },
 });
