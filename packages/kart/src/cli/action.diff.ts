@@ -31,7 +31,7 @@ type DiffOutput = {
     };
   };
 };
-const MAX_GEOJSON_LENGTH = 40000;
+const MAX_GEOJSON_LENGTH = 25_000;
 
 async function getTextDiff(diffRange: string[]): Promise<string> {
   try {
@@ -169,13 +169,10 @@ export const diffCommand = command({
 
     logger.info({ ref: args.diff }, 'Diff:Start');
 
-    // Determine diff range - for GitHub Actions PRs, use a more robust approach
     let diffRange: string[];
     if (args.diff.length > 0) {
       diffRange = args.diff;
     } else {
-      // In GitHub Actions PR context, use merge-base to find the common ancestor
-      // and compare against that rather than relying on .. operator
       try {
         // First try to find the merge base between master and FETCH_HEAD
         const mergeBase = await $`git -C repo merge-base origin/master FETCH_HEAD`;
@@ -207,7 +204,7 @@ export const diffCommand = command({
       logger.info('Diff command completed');
     } catch (error) {
       logger.error({ error, diffRange }, 'Diff:Failed');
-      process.exit(1);
+      throw error;
     }
   },
 });

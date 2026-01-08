@@ -40,14 +40,9 @@ export const cloneCommand = command({
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
     await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout repo`;
-    // await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1 repo`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
     if (args.ref) {
-      // // Also fetch master/main for comparison
-      // logger.info({ repoUrl: targetUrl.href }, 'Fetch:Base branch (master)');
-      // await $`kart -C repo fetch origin master`;
-
       logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
       await $`kart -C repo fetch origin ${args.ref}`;
     } else {
