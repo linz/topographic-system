@@ -250,7 +250,6 @@ function buildMarkdownSummary(
       const geojson = JSON.parse(geojsonStr) as GeoJson;
       const featureCount = geojson.features.length;
       if (featureCount > 0) {
-        summary += `- **${dataset}**: ${featureCount} features changed\n`;
         summary += `<details>\n<summary>**${dataset}**: ${featureCount} features changed</summary>\n\n`;
         summary += '```geojson\n';
         summary += `${geojsonStr}\n`;
