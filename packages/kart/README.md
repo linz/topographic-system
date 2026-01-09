@@ -110,20 +110,28 @@ jobs:
     steps:
       - name: Check kart version
         run: node /scripts/index.js version
-        
+
       - name: Clone repository
         run: node /scripts/index.js clone ${{ github.event.repository.clone_url }} --ref ${{ github.head_ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Generate diff
         run: node /scripts/index.js diff
-        
+
       - name: Comment on PR
         run: node /scripts/index.js pr-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff
+          path: |
+            pr_summary.md
+            diff/
+
       - name: Export datasets
         run: node /scripts/index.js export
 ```

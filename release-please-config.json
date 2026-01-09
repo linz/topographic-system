@@ -2,6 +2,7 @@
   "plugins": ["node-workspace"],
   "packages": {
     "packages/data": {},
+    "packages/kart": {},
     "packages/map": {},
     "packages/shared": {},
     ".": {
