@@ -1,4 +1,5 @@
 import { fsa } from '@chunkd/fs';
+import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
@@ -46,6 +47,20 @@ export const parquetCommand = command({
     delete $.env['GITHUB_ACTION_REPOSITORY'];
     delete $.env['GITHUB_ACTION_REF'];
     delete $.env['GITHUB_WORKFLOW_REF'];
+    logger.info(
+      { AWS_ROLE_CONFIG_PATH_SET: !!process.env['AWS_ROLE_CONFIG_PATH'] },
+      'Checking if AWS_ROLE_CONFIG_PATH is set',
+    );
+    registerFileSystem();
+    const baseS3Url = new URL('s3://linz-topography-nonprod/');
+    const listing = await fsa.toArray(fsa.list(baseS3Url, { recursive: false }));
+    logger.info({ listing }, 'FileListingCheck');
+    const myfile = new URL('s3://linz-topography-nonprod/topo/🚧/myfile');
+    await fsa.write(myfile, 'hello');
+    const myfileexists = fsa.exists(myfile);
+    logger.info({ myfileexists }, 'FileExistsCheck');
+    const fileContent = await fsa.read(myfile);
+    logger.info({ fileContent: fileContent.toString('utf-8') }, 'FileReadCheck');
 
     logger.info(
       {
