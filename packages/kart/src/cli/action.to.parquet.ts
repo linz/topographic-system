@@ -51,7 +51,8 @@ function determineS3Location(dataset: string, output: string): URL {
       tag = `pr-unknown`;
     }
   }
-  return new URL(`s3://linz-topography/${repo}/${dataset}/${tag}/${output}`);
+  // return new URL(`s3://linz-topography/${repo}/${dataset}/${tag}/${output}`);
+  return new URL(`s3://linz-topography-nonprod/topo/🚧/${repo}/${dataset}/${tag}/${output}`);
 }
 
 // function to determine if current context is a release
