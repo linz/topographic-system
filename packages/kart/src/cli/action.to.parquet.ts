@@ -9,6 +9,69 @@ import { $ } from 'zx';
 
 const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
+
+async function createSTACItem(dataset: string, s3location: URL): Promise<URL> {
+  const stacFile = fsa.toUrl(`${s3location.href}.json`);
+  await fsa.write(
+    stacFile,
+    JSON.stringify({
+      type: 'Feature',
+      stac_version: '1.0.0',
+      stac_extensions: [],
+      id: dataset,
+      properties: {},
+    }),
+  );
+  return stacFile;
+}
+
+function determineS3Location(dataset: string, output: string): URL {
+  // Placeholder function to determine S3 location based on dataset and output
+  logger.info($.env['GITHUB_ACTION_REPOSITORY']);
+  logger.info($.env['GITHUB_ACTION_REF']);
+  logger.info($.env['GITHUB_WORKFLOW_REF']);
+  logger.info($.env);
+  let tag = 'unknown';
+  const repo = ($.env['GITHUB_REPOSITORY'] || 'unknown').split('/')[1];
+  // const ref = $.env['GITHUB_ACTION_REF'] || '';
+  if (is_merge_to_master()) {
+    // add version number and "next" not "latest" ?
+    tag = `v${new Date().toISOString()}`;
+  }
+  if (is_release()) {
+    // add version number and "latest" ?
+    tag = `v${new Date().toISOString()}`;
+  }
+  if (is_pr()) {
+    const ref = $.env['GITHUB_REF'] || '';
+    const prMatch = ref.match(/refs\/pull\/(\d+)\/merge/);
+    if (prMatch) {
+      tag = `pr-${prMatch[1]}`;
+    } else {
+      tag = `pr-unknown`;
+    }
+  }
+  return new URL(`s3://linz-topography/${repo}/${dataset}/${tag}/${output}`);
+}
+
+// function to determine if current context is a release
+function is_release(): boolean {
+  // merge target is master, and the workflow is release
+  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
+  return is_merge_to_master() && workflow.toLowerCase().includes('release');
+}
+
+function is_pr(): boolean {
+  // merge target is not master and there is a PR number
+  const ref = $.env['GITHUB_ACTION_REF'] || '';
+  return !is_merge_to_master() && ref.startsWith('refs/pull/');
+}
+
+function is_merge_to_master(): boolean {
+  const ref = $.env['GITHUB_ACTION_REF'] || '';
+  return ref.endsWith('/master');
+}
+
 export const parquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
@@ -47,20 +110,7 @@ export const parquetCommand = command({
     delete $.env['GITHUB_ACTION_REPOSITORY'];
     delete $.env['GITHUB_ACTION_REF'];
     delete $.env['GITHUB_WORKFLOW_REF'];
-    logger.info(
-      { AWS_ROLE_CONFIG_PATH_SET: !!process.env['AWS_ROLE_CONFIG_PATH'] },
-      'Checking if AWS_ROLE_CONFIG_PATH is set',
-    );
     registerFileSystem();
-    const baseS3Url = new URL('s3://linz-topography-nonprod/');
-    const listing = await fsa.toArray(fsa.list(baseS3Url, { recursive: false }));
-    logger.info({ listing }, 'FileListingCheck');
-    const myfile = new URL('s3://linz-topography-nonprod/topo/🚧/myfile');
-    await fsa.write(myfile, 'hello');
-    const myfileexists = fsa.exists(myfile);
-    logger.info({ myfileexists }, 'FileExistsCheck');
-    const fileContent = await fsa.read(myfile);
-    logger.info({ fileContent: fileContent.toString('utf-8') }, 'FileReadCheck');
 
     logger.info(
       {
@@ -101,7 +151,8 @@ export const parquetCommand = command({
     logger.info({ filesToProcess }, 'ToParquet:Processing');
     for (const file of filesToProcess) {
       Q.push(async () => {
-        const output = `./parquet/${basename(file, '.gpkg')}.parquet`;
+        const dataset = basename(file, '.gpkg');
+        const output = `./parquet/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
           '-f',
@@ -119,6 +170,16 @@ export const parquetCommand = command({
           command.push('-dsco', 'SORT_BY_BBOX=YES');
         }
         await $`${command}`;
+        const s3location = determineS3Location(dataset, output);
+        const stacItem = await createSTACItem(dataset, s3location);
+        logger.info({ s3location }, 'ToParquet:Uploading');
+        await fsa.write(s3location, fsa.readStream(fsa.toUrl(output)), {
+          contentType: 'application/vnd.apache.parquet',
+        });
+        logger.info({ stacItem }, 'ToParquet:UploadingSTAC');
+        await fsa.write(stacItem, JSON.stringify(stacItem, null, 2), {
+          contentType: 'application/json',
+        });
         logger.info({ output }, 'ToParquet:Converted');
       });
     }
