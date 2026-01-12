@@ -268,7 +268,7 @@ class Topo50DataLoader:
             for col in common_columns:
                 if col not in gdf.columns:
                     gdf[col] = None
-            gdf["theme"] = theme
+            #gdf["theme"] = theme
             gdf["feature_type"] = layer_info[2]
 
             gdf = gdf.to_crs(epsg=2193)
@@ -278,7 +278,7 @@ class Topo50DataLoader:
                 if col in gdf.columns and col != gdf.geometry.name
             ]
             cols += [c for c in ["feature_type"] if c in gdf.columns]
-            cols += [c for c in ["theme"] if c in gdf.columns]
+            #cols += [c for c in ["theme"] if c in gdf.columns]
 
             cols.append(gdf.geometry.name)
             gdf = gdf[cols]

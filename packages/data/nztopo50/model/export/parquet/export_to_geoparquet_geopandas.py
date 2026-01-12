@@ -50,8 +50,8 @@ class Database:
 
 
 if __name__ == "__main__":
-    export_topo_data = True
-    export_carto_data = False
+    export_topo_data = False
+    export_carto_data = True
 
     DB_PARAMS = {
         "dbname": "topo",
@@ -109,24 +109,25 @@ if __name__ == "__main__":
     if export_carto_data:
         # export the carto dataset
         schema = "carto"
-        table = "topo50_carto_text"
-        print(f"Table: {table}")
-        columns = database.list_columns(schema, table)
-        fields = ", ".join(columns)
-        fields = fields.replace("topo_id", "topo_id::text")
-        print(fields)
+        tables = database.list_schema_tables(schema)
+        for table in tables.get(schema, []):
+            print(f"Table: {table}")
+            columns = database.list_columns(schema, table)
+            fields = ", ".join(columns)
+            fields = fields.replace("topo_id", "topo_id::text")
+            print(fields)
 
-        sql = f"SELECT {fields} FROM carto.carto_text"
-        parquet_file = os.path.join(export_folder, "carto_text.parquet")
-        print(f"Exporting to {parquet_file}")
+            sql = f"SELECT {fields} FROM {schema}.{table}"
+            parquet_file = os.path.join(export_folder, f"{table}.parquet")
+            print(f"Exporting to {parquet_file}")
 
-        gdf = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
-        gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs="EPSG:4167")
-        gdf.to_parquet(
-            parquet_file,
-            engine="pyarrow",
-            compression="zstd",  # type: ignore[arg-type]
-            compression_level=19,
-            write_covering_bbox=True,
-            row_group_size=50000,
-        )
+            gdf = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
+            #gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs="EPSG:4167")
+            gdf.to_parquet(
+                parquet_file,
+                engine="pyarrow",
+                compression="zstd",  # type: ignore[arg-type]
+                compression_level=19,
+                write_covering_bbox=True,
+                row_group_size=50000,
+            )
