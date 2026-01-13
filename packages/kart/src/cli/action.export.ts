@@ -1,10 +1,13 @@
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { command, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
 import { $ } from 'zx';
 
 const Q = new ConcurrentQueue(os.cpus().length);
+
+type KartDiffOutput = Record<string, number>;
+
 export const exportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
@@ -15,9 +18,14 @@ export const exportCommand = command({
       description: 'Commit SHA or branch to export (default: HEAD)',
       defaultValue: () => 'HEAD',
     }),
+    changed: flag({
+      long: 'changed-datasets-only',
+      description: 'Export only datasets changed compared to master (default: false)',
+      defaultValue: () => false,
+    }),
     datasets: restPositionals({
       type: string,
-      description: 'List of datasets to export (default: all datasets)',
+      description: 'List of datasets to export (default: all, or all changed datasets)',
     }),
   },
   async handler(args) {
@@ -27,8 +35,19 @@ export const exportCommand = command({
 
     logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
-    const kartData = await $`kart -C repo data ls`;
-    const datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
+    let datasets = new Set<string>();
+    if (args.changed) {
+      logger.info('Export:Listing changed datasets only');
+      // todo: use --ref here?
+      const kartData = await $`kart -C repo diff master --only-feature-count exact --output-format=json`;
+      const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
+      datasets = new Set(Object.keys(diffOutput));
+    } else {
+      logger.info('Export:Listing all datasets');
+      const kartData = await $`kart -C repo data ls`;
+      datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
+    }
+    logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
     // Ensure the export directory exists before exporting
     await $`mkdir -p ./export`;
     const datasetsToProcess = allDatasetsRequested

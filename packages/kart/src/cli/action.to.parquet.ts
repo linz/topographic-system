@@ -56,7 +56,10 @@ function determineS3Location(dataset: string, output: string): URL {
     }
   }
   // return new URL(`s3://${}/${repo}/${dataset}/${tag}/${basename(output)}`);
-  logger.info({ repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() }, 'DetermineS3Location:Context');
+  logger.info(
+    { repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() },
+    'DetermineS3Location:Context',
+  );
   return new URL(`s3://${S3BucketName}/topo/🚧/${repo}/${dataset}/${tag}/${basename(output)}`);
 }
 
