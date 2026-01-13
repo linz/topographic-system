@@ -17,7 +17,7 @@ jobs:
   build-containers:
     uses: ./.github/workflows/containers.yml
     with:
-      manifest: '{"map": ["latest"]}'
+      manifest: '{"map": ["latest"], "kart": ["latest"]}'
       push: ${{ github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:') }}
       environment: nonprod
     secrets: inherit
