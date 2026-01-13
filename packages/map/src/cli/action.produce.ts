@@ -24,6 +24,10 @@ export const ExportFormats = {
   Png: 'png',
 } as const;
 
+export function isGeoFormat(format: ExportFormat): boolean {
+  return format !== ExportFormats.Png;
+}
+
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
 
 export interface ExportOptions {
@@ -123,6 +127,9 @@ export const ProduceCommand = command({
       });
       logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
     }
+
+    // Skip stac creation for formats doesn't support geo referencing
+    if (!isGeoFormat(args.format)) return;
 
     // Create Stac Files and upload to destination
     const links = await createStacLink(args.source, args.project);
