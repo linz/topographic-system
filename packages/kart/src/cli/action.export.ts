@@ -38,8 +38,7 @@ export const exportCommand = command({
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:Listing changed datasets only');
-      // todo: use --ref here?
-      const kartData = await $`kart -C repo diff master --only-feature-count exact --output-format=json`;
+      const kartData = await $`kart -C repo diff master..FETCH_HEAD --only-feature-count exact --output-format=json`;
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
