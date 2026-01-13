@@ -33,6 +33,11 @@ export const DeployArgs = {
     long: 'tag',
     description: 'Tag to apply to the deployed items, could be githash, release version, etc.',
   }),
+  githash: option({
+    type: optional(string),
+    long: 'githash',
+    description: 'Github hash to tag the deployment with.',
+  }),
   commit: flag({
     long: 'commit',
     description: 'Actually start the import',
@@ -83,6 +88,20 @@ export const deployCommand = command({
 
         const stacItemPath = new URL(`${args.tag}/${projectSeries}/${projectName}.json`, args.target);
         logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
+        // Add derived_from githash stac if provided
+        const stacItemLinks = [];
+        if (args.githash) {
+          const sourcedStacItem = new URL(`${args.githash}/${projectSeries}/${projectName}.json`, args.target);
+          if (await fsa.exists(sourcedStacItem)) {
+            stacItemLinks.push({
+              rel: 'derived_from',
+              href: sourcedStacItem.href,
+              type: 'application/json',
+            });
+          } else {
+            throw new Error(`Deploy: Source stac item not found at ${sourcedStacItem.href}`);
+          }
+        }
         const item = createStacItem(projectName, [], assets);
         if (stacItems.has(projectSeries) === false) {
           stacItems.set(projectSeries, [item]);
