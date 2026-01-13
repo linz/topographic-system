@@ -1,6 +1,9 @@
 FROM archlinux:base-20251019.0.436919
 
-RUN pacman -Syu --noconfirm arrow qgis nodejs npm
+RUN pacman-key --init && \
+    pacman-key --populate archlinux && \
+    pacman -Sy --noconfirm archlinux-keyring && \
+    pacman -Syu --noconfirm arrow qgis nodejs npm
 
 WORKDIR /app
 

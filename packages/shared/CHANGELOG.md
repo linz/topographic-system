@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/linz/topographic-system/compare/shared-v0.2.0...shared-v0.3.0) (2026-01-13)
+
+
+### Features
+
+* Visual diff in PR BM-1424 ([#21](https://github.com/linz/topographic-system/issues/21)) ([9f0e004](https://github.com/linz/topographic-system/commit/9f0e00458954daa2f7bc06cf35420cd57f14a7a5))
+
 ## [0.2.0](https://github.com/linz/topographic-system/compare/shared-v0.1.0...shared-v0.2.0) (2026-01-05)
 
 

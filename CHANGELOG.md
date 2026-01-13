@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/v0.3.0...v0.4.0) (2026-01-13)
+
+
+### Features
+
+* **map:** Generate png files from the qgis project for screenshots. BM-1349 ([#20](https://github.com/linz/topographic-system/issues/20)) ([2e9b458](https://github.com/linz/topographic-system/commit/2e9b458a6b767fe8e409c0e82f97b9a452b6d595))
+* Visual diff in PR BM-1424 ([#21](https://github.com/linz/topographic-system/issues/21)) ([9f0e004](https://github.com/linz/topographic-system/commit/9f0e00458954daa2f7bc06cf35420cd57f14a7a5))
+
+
+### Bug Fixes
+
+* init arch keyring BM-1474 ([#26](https://github.com/linz/topographic-system/issues/26)) ([b42dfef](https://github.com/linz/topographic-system/commit/b42dfefd378691fc1c04857e43360ea0dca670f5))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/v0.2.0...v0.3.0) (2026-01-05)
 
 
