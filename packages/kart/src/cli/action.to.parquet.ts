@@ -9,6 +9,9 @@ import { $ } from 'zx';
 
 const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
+const Environment = process.env['ENVIRONMENT'] || 'nonprod';
+const EnvLabel = Environment === 'prod' ? '' : `-${Environment}`;
+const S3BucketName = `linz-topography${EnvLabel}`;
 
 async function createSTACItem(dataset: string, s3location: URL): Promise<URL> {
   const stacFile = fsa.toUrl(`${s3location.href}.json`);
@@ -30,7 +33,8 @@ function determineS3Location(dataset: string, output: string): URL {
   logger.info($.env['GITHUB_ACTION_REPOSITORY']);
   logger.info($.env['GITHUB_ACTION_REF']);
   logger.info($.env['GITHUB_WORKFLOW_REF']);
-  logger.info($.env);
+  logger.info({ zx_env: $.env });
+  logger.info({ node_env: process.env });
   let tag = 'unknown';
   const repo = ($.env['GITHUB_REPOSITORY'] || 'unknown').split('/')[1];
   // const ref = $.env['GITHUB_ACTION_REF'] || '';
@@ -51,8 +55,8 @@ function determineS3Location(dataset: string, output: string): URL {
       tag = `pr-unknown`;
     }
   }
-  // return new URL(`s3://linz-topography/${repo}/${dataset}/${tag}/${output}`);
-  return new URL(`s3://linz-topography-nonprod/topo/🚧/${repo}/${dataset}/${tag}/${output}`);
+  // return new URL(`s3://${}/${repo}/${dataset}/${tag}/${output}`);
+  return new URL(`s3://${S3BucketName}/topo/🚧/${repo}/${dataset}/${tag}/${output}`);
 }
 
 // function to determine if current context is a release
