@@ -55,8 +55,9 @@ function determineS3Location(dataset: string, output: string): URL {
       tag = `pr-unknown`;
     }
   }
-  // return new URL(`s3://${}/${repo}/${dataset}/${tag}/${output}`);
-  return new URL(`s3://${S3BucketName}/topo/🚧/${repo}/${dataset}/${tag}/${output}`);
+  // return new URL(`s3://${}/${repo}/${dataset}/${tag}/${basename(output)}`);
+  logger.info({ repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() }, 'DetermineS3Location:Context');
+  return new URL(`s3://${S3BucketName}/topo/🚧/${repo}/${dataset}/${tag}/${basename(output)}`);
 }
 
 // function to determine if current context is a release
@@ -112,9 +113,6 @@ export const parquetCommand = command({
     }),
   },
   async handler(args) {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
     registerFileSystem();
 
     logger.info(
