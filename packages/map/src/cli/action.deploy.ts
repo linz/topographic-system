@@ -7,7 +7,7 @@ import {
   createStacCollection,
   createStacItem,
 } from '@topographic-system/shared/src/stac.ts';
-import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
+import { UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
 import { parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
