@@ -1,6 +1,6 @@
 {
   "name": "@topographic-system/map",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "build": "tsc -b"
@@ -12,6 +12,6 @@
     "@linzjs/docker-command": "^8.0.0",
     "cmd-ts": "^0.13.0",
     "stac-ts": "^1.0.4",
-    "@topographic-system/shared": "0.2.0"
+    "@topographic-system/shared": "0.3.0"
   }
 }
