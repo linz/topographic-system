@@ -24,6 +24,9 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
+    delete $.env['GITHUB_ACTION_REPOSITORY'];
+    delete $.env['GITHUB_ACTION_REF'];
+    delete $.env['GITHUB_WORKFLOW_REF'];
 
     const env = parseEnv(EnvParser);
 
@@ -36,12 +39,16 @@ export const cloneCommand = command({
     targetUrlCredentials.username = 'x-access-token';
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
-    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout --depth=1 repo`;
+    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout repo`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
-    const ref = args.ref ? ['origin', args.ref] : [];
-    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Start');
-    await $`kart -C repo fetch ${ref}`;
-    logger.info({ repoUrl: targetUrl.href, ref }, 'Fetch:Completed');
+    if (args.ref) {
+      logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
+      await $`kart -C repo fetch origin ${args.ref}`;
+    } else {
+      logger.info({ repoUrl: targetUrl.href }, 'Fetch:Default branch');
+      await $`kart -C repo fetch origin`;
+    }
+    logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
   },
 });
