@@ -9,6 +9,8 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  packages: write
+  id-token: write
 
 jobs:
   release-please:
@@ -19,8 +21,45 @@ jobs:
 
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+      manifest: ${{ steps.manifest.outputs.manifest }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.LI_GITHUB_ACTION_TOKEN }}
+
+      - uses: actions/github-script@v7
+        id: manifest
+        if: ${{ steps.release.outputs.releases_created }}
+        with:
+          script: |
+            const manifest = {};
+            const outputs = ${{ toJson(steps.release.outputs) }};
+
+            const containers = ["map", "kart"];
+            
+            for (const [key,value] of Object.entries(outputs)) {
+              if (!key.endsWith('--release_created') || !value) continue;
+              const pkgName = key.replace('packages/', '').replace('--release_created', '');
+              
+              if (!containers.includes(pkgName)) continue;
+              const versionKey = `packages/${pkgName}--version`;
+              const version = outputs[versionKey];
+              
+              if (version) {
+                 const [major, minor] = version.split('.');
+                 manifest[pkgName] = [version, 'latest', `v${version}`, `v${major}`, `v${major}.${minor}`];
+              }
+            }
+
+            core.setOutput('manifest', JSON.stringify(manifest));
+
+  build-container:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true' && needs.release-please.outputs.manifest != '{}'
+    uses: ./.github/workflows/containers.yml
+    with:
+      manifest: ${{ needs.release-please.outputs.manifest }}
+      push: true
+      environment: prod
+    secrets: inherit

@@ -1,23 +1,46 @@
 name: Containers
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-    types: [labeled, synchronize, opened]
-
+  workflow_call:
+    inputs:
+      manifest:
+        required: true
+        type: string
+        description: "JSON object mapping package names to tag lists, e.g. \"{'map': ['latest']}\""
+      push:
+        required: false
+        type: boolean
+        description: "Whether to push the image to the registry"
+        default: true
+      environment:
+        required: true
+        type: string
+        description: "GitHub environment to use"
 jobs:
-  build-containers:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const manifest = JSON.parse(`${{ inputs.manifest }}`);
+            core.setOutput('matrix', JSON.stringify(Object.keys(manifest)));
 
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.setup.outputs.matrix) }}
     permissions:
       id-token: write
       contents: read
       packages: write
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +49,9 @@ jobs:
       - uses: linz/action-typescript@v3
         with:
           node-version: 24.10.0
+
+      - name: Bundle the packages
+        run: npx lerna run bundle --stream
 
       - name: Set up Docker Buildx
         id: buildx
@@ -38,49 +64,46 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup tags
+      - name: Ensure tag exists
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* # see https://stackoverflow.com/a/60184319/9285308
+
+      - name: Calculate Version for Build Args
         id: version
         run: |
           GIT_VERSION=$(git describe --tags --always --match 'v*')
-          GIT_VERSION_MAJOR=$(echo $GIT_VERSION | cut -d. -f1)
-          GIT_VERSION_MAJOR_MINOR=$(echo $GIT_VERSION | cut -d. -f1,2)
-
           echo "version=${GIT_VERSION}" >> $GITHUB_OUTPUT
-          echo "version_major=${GIT_VERSION_MAJOR}" >> $GITHUB_OUTPUT
-          echo "version_major_minor=${GIT_VERSION_MAJOR_MINOR}" >> $GITHUB_OUTPUT
 
-      - name: Create Image Tags
+      - name: Generate Tags
         id: tags
         uses: actions/github-script@v8
         with:
           result-encoding: string
           script: |
-            const tags = [];
-            if ('${{ github.ref }}' == 'refs/heads/master' && ${{ toJson(github.event.head_commit.message) }}.startsWith('release:')) {
-              tags.push('ghcr.io/${{ github.repository }}/map:${{ steps.version.outputs.version }}');
-            } else if (${{ toJson(github.event.pull_request.labels.*.name) }}.includes('container')) {
-              tags.push('ghcr.io/${{ github.repository }}/map:pr-${{ github.event.pull_request.number }}');
+            const manifest = JSON.parse(`${{ inputs.manifest }}`);
+            const pkg = '${{ matrix.package }}';
+            const fullRepo = '${{ github.repository }}';
+            
+            const rawTags = manifest[pkg];
+            if (!Array.isArray(rawTags)) throw new Error(`No tags found for package ${pkg}`);
+            
+            const imageTags = rawTags.map(t => `ghcr.io/${fullRepo}/${pkg}:${t}`);
+            
+            // Add git describe tag only if the only tag is "latest"
+            if (rawTags.length === 1 && rawTags[0] === 'latest') {
+              imageTags.push(`ghcr.io/${fullRepo}/${pkg}:${{ steps.version.outputs.version }}`);
             }
-
-            return tags.join('\n');
-
-      - name: Create docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          labels: org.opencontainers.image.version=${{ steps.version.outputs.version }}
-            org.opencontainers.image.licenses=MIT
-          tags: |
-            type=sha
+            
+            return imageTags.join('\n');
 
       - name: Build and push container
         uses: docker/build-push-action@v6
-        if: steps.tags.outputs.result != ''
         with:
-          file: packages/map/Dockerfile
+          context: .
+          file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
-          push: true
-          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ inputs.push }}
+
           platforms: linux/amd64
           build-args: |
             GIT_HASH=${{ github.sha }}

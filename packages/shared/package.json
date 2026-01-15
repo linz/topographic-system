@@ -1,20 +1,25 @@
 {
   "name": "@topographic-system/shared",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "scripts": {},
   "dependencies": {
     "@aws-sdk/client-s3": "^3.936.0",
     "@chunkd/fs": "^11.3.0",
     "@chunkd/fs-aws": "^11.4.0",
+    "@octokit/core": "^6.1.4",
+    "@octokit/plugin-rest-endpoint-methods": "^13.3.1",
     "cmd-ts": "^0.13.0",
     "pino": "^10.1.0",
     "pretty-json-log": "^1.5.0",
     "stac-ts": "^1.0.4",
-    "ulid": "^3.0.1"
+    "ulid": "^3.0.1",
+    "zx": "^8.8.5"
   },
   "devDependencies": {
-    "@smithy/types": "^4.9.0"
+    "@smithy/types": "^4.9.0",
+    "@octokit/webhooks-types": "^7.6.1"
   }
 }

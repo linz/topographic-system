@@ -37,6 +37,13 @@ export type MapSheetStacItem = StacItem & {
   };
 };
 
+function getExtentFormat(format: ExportFormat): string {
+  if (format === 'pdf') return 'pdf';
+  else if (format === 'tiff' || format === 'geotiff') return 'tiff';
+  else if (format === 'png') return 'png';
+  else throw new Error(`Invalid format`);
+}
+
 export async function createMapSheetStacItem(
   metadata: SheetMetadata,
   format: ExportFormat,
@@ -46,7 +53,7 @@ export async function createMapSheetStacItem(
 ): Promise<MapSheetStacItem> {
   logger.info({ sheetCode: metadata.sheetCode }, 'Stac: CreateStacItem');
   // Check asset been uploaded
-  const extent = format === 'pdf' ? 'pdf' : 'tiff';
+  const extent = getExtentFormat(format);
   const filename = `${metadata.sheetCode}.${extent}`;
   const assetPath = new URL(filename, outputUrl);
   const data = await fsa.read(assetPath);
@@ -60,7 +67,7 @@ export async function createMapSheetStacItem(
     } as StacAsset,
   };
 
-  const item = createStacItem(metadata.sheetCode, metadata.geometry, metadata.bbox, links, assets) as MapSheetStacItem;
+  const item = createStacItem(metadata.sheetCode, links, assets, metadata.geometry, metadata.bbox) as MapSheetStacItem;
 
   item.properties['proj:epsg'] = metadata.epsg;
   item.properties['linz_topographic_system:options'] = {
