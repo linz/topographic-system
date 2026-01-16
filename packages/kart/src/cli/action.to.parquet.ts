@@ -82,15 +82,17 @@ async function upsertItemToCollection(
     type: 'application/geo+json',
   });
   stacCollection['updated'] = CommonDateTime.toISOString();
-  const stacItem = await fsa.readJson<StacItem>(stacItemFile);
-  if (stacItem.bbox) {
-    stacCollection.extent.spatial.bbox.push(stacItem.bbox);
-  }
-  if (stacItem.properties.start_datetime && stacItem.properties.end_datetime) {
-    stacCollection.extent.temporal.interval.push([
-      stacItem.properties.start_datetime,
-      stacItem.properties.end_datetime,
-    ]);
+  if (await fsa.exists(stacItemFile)) {
+    const stacItem = await fsa.readJson<StacItem>(stacItemFile);
+    if (stacItem.bbox) {
+      stacCollection.extent.spatial.bbox.push(stacItem.bbox);
+    }
+    if (stacItem.properties.start_datetime && stacItem.properties.end_datetime) {
+      stacCollection.extent.temporal.interval.push([
+        stacItem.properties.start_datetime,
+        stacItem.properties.end_datetime,
+      ]);
+    }
   }
   await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, null, 2));
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
@@ -114,7 +116,7 @@ async function upsertItemToCollection(
  * */
 async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCollectionFile?: URL): Promise<URL> {
   const extension = dataAssetPath.href.split('.').pop() || '';
-  const dataset = basename(dataAssetPath.href, extension);
+  const dataset = basename(dataAssetPath.href, `.${extension}`);
   if (!stacCollectionFile) {
     stacCollectionFile = new URL('./collection.json', dataAssetPath);
   }
@@ -166,10 +168,14 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
   }
   stacItem.assets[extension] = stacAsset;
 
-  stacCollectionFile = await upsertItemToCollection(stacItemFile, stacCollectionFile);
-  stacItem.collection = await readOrCreateCollectionId(stacCollectionFile);
   await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
-  logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACAssetUpserted');
+  logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACAssetToItemUpserted');
+  stacCollectionFile = await upsertItemToCollection(stacItemFile, stacCollectionFile);
+  const updatedCollectionId = await readOrCreateCollectionId(stacCollectionFile);
+  if (stacItem.collection !== updatedCollectionId) {
+    await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
+    logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACItemCollectionIdUpdated');
+  }
   return stacItemFile;
 }
 
@@ -217,7 +223,7 @@ function determineS3AssetLocation(dataset: string, output: string, tag?: string)
       const ref = $.env['GITHUB_REF_NAME'] || '';
       const prMatch = ref.match(/(\d+)\/merge/);
       if (prMatch) {
-        tag = `pr-${prMatch[0]}`;
+        tag = `pr-${prMatch[1]}`;
       } else {
         tag = `pr-unknown`;
       }
@@ -401,7 +407,7 @@ export const parquetCommand = command({
       'ToParquet:Start',
     );
 
-    const filesToProcess: string[] = [];
+    const gpkgFilesToProcess: string[] = [];
     const sourceFileArguments = args.sourceFiles.length > 0 ? args.sourceFiles : ['./export'];
 
     for (const sourceFileArgument of sourceFileArguments) {
@@ -411,33 +417,33 @@ export const parquetCommand = command({
         const filePaths = await fsa.toArray(fsa.list(sourcePath, { recursive: true }));
         for (const filePath of filePaths) {
           if (filePath.href.endsWith('.gpkg')) {
-            filesToProcess.push(filePath.pathname);
+            gpkgFilesToProcess.push(filePath.pathname);
           }
         }
       } else if (stat) {
         if (sourcePath.href.endsWith('.gpkg')) {
-          filesToProcess.push(sourcePath.pathname);
+          gpkgFilesToProcess.push(sourcePath.pathname);
         }
       }
     }
 
-    if (filesToProcess.length === 0) {
+    if (gpkgFilesToProcess.length === 0) {
       logger.info('ToParquet:No files to process');
       return;
     }
 
     await $`mkdir ./parquet`;
-    logger.info({ filesToProcess }, 'ToParquet:Processing');
-    for (const file of filesToProcess) {
+    logger.info({ gpkgFilesToProcess }, 'ToParquet:Processing');
+    for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
-        const dataset = basename(file, '.gpkg');
-        const output = `./parquet/${dataset}.parquet`;
+        const dataset = basename(gpkgFile, '.gpkg');
+        const parquetFile = `./parquet/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
           '-f',
           'Parquet',
-          output,
-          file,
+          parquetFile,
+          gpkgFile,
           '-dsco',
           `COMPRESSION=${args.compression}`,
           '-dsco',
@@ -449,9 +455,9 @@ export const parquetCommand = command({
           command.push('-dsco', 'SORT_BY_BBOX=YES');
         }
         await $`${command}`;
-        const assetFile = determineS3AssetLocation(dataset, output);
+        const assetFile = determineS3AssetLocation(dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
-        await fsa.write(assetFile, fsa.readStream(fsa.toUrl(output)), {
+        await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
         const stacItemFile = await upsertAssetToItem(assetFile);
@@ -461,7 +467,7 @@ export const parquetCommand = command({
         } else if (is_release()) {
           await upsertItemToCollection(stacItemFile, new URL('../../latest/collection.json', stacItemFile));
         }
-        logger.info({ output, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
+        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
       });
     }
 
