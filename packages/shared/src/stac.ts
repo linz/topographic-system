@@ -7,10 +7,16 @@ import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.ts';
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
 import { logger } from './log.ts';
 
-const providers: StacProvider[] = [
+const Environment = process.env['ENVIRONMENT'] || 'dev';
+const EnvLabel = Environment === 'prod' ? '' : `-${Environment}`;
+const S3BucketName = `linz-topography${EnvLabel}`;
+export const RootCatalogFile = new URL(`s3://${S3BucketName}/catalog.json`);
+
+const Providers: StacProvider[] = [
   { name: 'Land Information New Zealand', url: 'https://www.linz.govt.nz/', roles: ['processor', 'host'] },
 ];
 
+// FIXME: This function is very specific to the Map Production use case. May need to be generalized or moved to Map package.
 export async function createStacLink(source: URL, project: URL): Promise<StacLink[]> {
   const links: StacLink[] = [];
   logger.info({ source: source.href, project: project.href }, 'Stac:PrepareStacLinks');
@@ -48,9 +54,10 @@ export function createStacItem(
     geometry: geometry ?? null,
     bbox: bbox ?? [],
     links: [
-      { href: `./${id}.json`, rel: 'self' },
+      { href: `./${id}.json`, rel: 'self', type: 'application/geo+json' },
       { href: './collection.json', rel: 'collection', type: 'application/json' },
       { href: './collection.json', rel: 'parent', type: 'application/json' },
+      { href: RootCatalogFile.href, rel: 'root', type: 'application/json' },
       ...links,
     ],
     properties: {
@@ -83,7 +90,7 @@ export function createStacCollection(description: string, bbox: number[], links:
       temporal: { interval: [[CliDate, null]] },
     },
     links: [{ rel: 'self', href: './collection.json', type: 'application/json' }, ...links],
-    providers,
+    providers: Providers,
     summaries: {},
   };
 }

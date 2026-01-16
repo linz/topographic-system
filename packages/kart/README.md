@@ -6,6 +6,7 @@
 - [Clone cli](#clone-cli)
 - [Diff cli](#diff-cli)
 - [Export cli](#export-cli)
+- [To Parquet cli](#to-parquet-cli)
 - [PR Comment cli](#pr-comment-cli)
 - [Version cli](#version-cli)
 - [Sample GitHub Actions Workflow](#sample-github-actions-workflow)
@@ -64,6 +65,22 @@ docker run -it --rm -v /tmp/docker:/tmp kart export marine airport
 **Export from specific commit:**
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export --ref commit-sha
+```
+
+## To Parquet cli
+
+Convert .gpkg files to geoparquet.
+When no arguments are provided, this will convert all datasets from the `./export` folder.
+Output parquet files will be saved to `./parquet` folder.
+
+**All datasets:**
+```
+docker run -it --rm -v /tmp/docker:/tmp kart to-parquet
+```
+
+**Specific dataset(s):**
+```
+docker run -it --rm -v /tmp/docker:/tmp kart to-parquet export/marine.gpkg export/airport.gpkg
 ```
 
 ## PR Comment cli
@@ -125,7 +142,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload diff artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: diff
           path: |
@@ -134,6 +151,23 @@ jobs:
 
       - name: Export datasets
         run: node /scripts/index.js export
+
+      - name: Upload gpkg artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: gpkg
+          path: |
+            export/
+
+      - name: Convert to parquet
+        run: node /scripts/index.js to-parquet
+
+      - name: Upload parquet artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: parquet
+          path: |
+            parquet/
 ```
 
 This workflow will:
@@ -142,6 +176,6 @@ This workflow will:
 3. Generate a diff comparing the PR changes against master
 4. Post a comment on the PR with the diff results
 5. Export all datasets as geopackages
+6. Convert all geopackages to parquet files
 
 The workflow runs on every pull request and provides automated quality checks and diff visualization for topographic data changes.
-
