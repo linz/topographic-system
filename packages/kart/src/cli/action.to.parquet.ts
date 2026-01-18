@@ -176,7 +176,10 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
     await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
     logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACItemCollectionIdUpdated');
   } else {
-    logger.debug({ updatedCollectionId, stacItemFile: stacItemFile.href, stacItem }, 'ToParquet:STACItemCollectionIdUnchanged');
+    logger.debug(
+      { updatedCollectionId, stacItemFile: stacItemFile.href, stacItem },
+      'ToParquet:STACItemCollectionIdUnchanged',
+    );
   }
   return stacItemFile;
 }
