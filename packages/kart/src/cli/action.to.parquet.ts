@@ -49,7 +49,7 @@ async function upsertItemToCollection(
         bbox: [[]],
       },
       temporal: {
-        interval: [[CommonDateTime.toISOString(), CommonDateTime.toISOString()]],
+        interval: [['placeholder_start', 'placeholder_end']],
       },
     },
     links: [
@@ -175,6 +175,8 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
   if (stacItem.collection !== updatedCollectionId) {
     await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
     logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACItemCollectionIdUpdated');
+  } else {
+    logger.debug({ updatedCollectionId, stacItemFile: stacItemFile.href, stacItem }, 'ToParquet:STACItemCollectionIdUnchanged');
   }
   return stacItemFile;
 }
@@ -194,15 +196,19 @@ async function readOrCreateStacId(stacFile: URL, prefix: 'collection' | 'catalog
   if (await fsa.exists(stacFile)) {
     const stac = await fsa.readJson<StacCollection | StacCatalog>(stacFile);
     if (stac.id) {
+      logger.debug({ stacFile: stacFile.href, stacId: stac.id }, 'ToParquet:STACIdRead');
       return stac.id;
+    } else {
+      logger.debug({ stacFile: stacFile.href, stacId: stac.id }, 'ToParquet:STACIdEMPTYRead');
     }
   }
   const timestamp = CommonDateTime.toISOString().replace(/[-:.]/g, '').slice(0, 15);
   const pathPart = stacFile.href.slice(stacFile.protocol.length + 1).replaceAll('/', '-');
+  logger.debug({ stacFile: stacFile.href, prefix, pathPart, timestamp }, 'ToParquet:STACIdCreated');
   if (prefix === 'collection') {
-    return `linz-${prefix}${pathPart}-${timestamp}`;
+    return `${prefix}${pathPart}-${timestamp}`;
   }
-  return `linz-${prefix}${pathPart}`;
+  return `${prefix}${pathPart}`;
 }
 
 async function readOrCreateCollectionId(stacCollectionFile: URL): Promise<string> {
