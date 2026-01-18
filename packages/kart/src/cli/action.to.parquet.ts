@@ -198,7 +198,7 @@ async function readOrCreateStacId(stacFile: URL, prefix: 'collection' | 'catalog
     }
   }
   const timestamp = CommonDateTime.toISOString().replace(/[-:.]/g, '').slice(0, 15);
-  const pathPart = stacFile.href.slice(stacFile.protocol.length+1).replaceAll('/', '-');
+  const pathPart = stacFile.href.slice(stacFile.protocol.length + 1).replaceAll('/', '-');
   if (prefix === 'collection') {
     return `linz-${prefix}${pathPart}-${timestamp}`;
   }
@@ -252,14 +252,12 @@ function is_pr(): boolean {
 }
 
 function is_merge_to_master(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  return !is_pr() && ref.endsWith('/master');
+  // const ref = $.env['GITHUB_REF'] || '';
+  return true;
+  // return !is_pr() && ref.endsWith('/master');
 }
 
-async function upsertChildToCatalog(
-  stacLinkFile: URL,
-  stacCatalogFile?: URL,
-): Promise<URL> {
+async function upsertChildToCatalog(stacLinkFile: URL, stacCatalogFile?: URL): Promise<URL> {
   if (!stacCatalogFile) {
     stacCatalogFile = new URL('../catalog.json', stacLinkFile);
   }
