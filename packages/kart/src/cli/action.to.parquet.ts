@@ -190,25 +190,27 @@ function compareStacAssets(a: StacAsset | undefined, b: StacAsset | undefined): 
   return false;
 }
 
-async function readOrCreateCollectionId(stacCollectionFile: URL): Promise<string> {
-  if (await fsa.exists(stacCollectionFile)) {
-    const collection = await fsa.readJson<StacCollection>(stacCollectionFile);
-    if (collection.id) {
-      return collection.id;
+async function readOrCreateStacId(stacFile: URL, prefix: 'collection' | 'catalog'): Promise<string> {
+  if (await fsa.exists(stacFile)) {
+    const stac = await fsa.readJson<StacCollection | StacCatalog>(stacFile);
+    if (stac.id) {
+      return stac.id;
     }
   }
   const timestamp = CommonDateTime.toISOString().replace(/[-:.]/g, '').slice(0, 15);
-  return `linz-collection-${stacCollectionFile.pathname.replaceAll('/', '-')}-${timestamp}`;
+  const pathPart = stacFile.href.slice(stacFile.protocol.length+1).replaceAll('/', '-');
+  if (prefix === 'collection') {
+    return `linz-${prefix}${pathPart}-${timestamp}`;
+  }
+  return `linz-${prefix}${pathPart}`;
+}
+
+async function readOrCreateCollectionId(stacCollectionFile: URL): Promise<string> {
+  return readOrCreateStacId(stacCollectionFile, 'collection');
 }
 
 async function readOrCreateCatalogId(stacCatalogFile: URL): Promise<string> {
-  if (await fsa.exists(stacCatalogFile)) {
-    const catalog = await fsa.readJson<StacCatalog>(stacCatalogFile);
-    if (catalog.id) {
-      return catalog.id;
-    }
-  }
-  return `linz-catalog-${stacCatalogFile.pathname.replaceAll('/', '-')}`;
+  return readOrCreateStacId(stacCatalogFile, 'catalog');
 }
 
 function determineS3AssetLocation(dataset: string, output: string, tag?: string): URL {
@@ -217,7 +219,7 @@ function determineS3AssetLocation(dataset: string, output: string, tag?: string)
   if (!tag) {
     if (is_merge_to_master() || is_release()) {
       // add version number and "next" not "latest" ?
-      tag = `${CommonDateTime.getFullYear()}/${CommonDateTime.toISOString().split('T')[0]}`;
+      tag = `year=${CommonDateTime.getFullYear()}/date=${CommonDateTime.toISOString().split('T')[0]}`;
       // tag = `${new Date().toISOString()}`;
     } else if (is_pr()) {
       const ref = $.env['GITHUB_REF_NAME'] || '';
@@ -254,9 +256,12 @@ function is_merge_to_master(): boolean {
   return !is_pr() && ref.endsWith('/master');
 }
 
-async function upsertSubCatalogToCatalog(stacSubCatalogFile: URL, stacCatalogFile?: URL): Promise<URL> {
+async function upsertChildToCatalog(
+  stacLinkFile: URL,
+  stacCatalogFile?: URL,
+): Promise<URL> {
   if (!stacCatalogFile) {
-    stacCatalogFile = new URL('../catalog.json', stacSubCatalogFile);
+    stacCatalogFile = new URL('../catalog.json', stacLinkFile);
   }
   let stacCatalog = <StacCatalog>{
     type: 'Catalog',
@@ -279,29 +284,27 @@ async function upsertSubCatalogToCatalog(stacSubCatalogFile: URL, stacCatalogFil
   }
   if (await fsa.exists(stacCatalogFile)) {
     stacCatalog = await fsa.readJson<StacCatalog>(stacCatalogFile);
-    const oldLinkToCollection = stacCatalog.links.find(
-      (link) => link.href === stacSubCatalogFile.href && link.rel === 'collection',
-    );
-    if (oldLinkToCollection) {
+    const oldLink = stacCatalog.links.find((link) => link.href === stacLinkFile.href && link.rel === 'child');
+    if (oldLink) {
       logger.info(
         {
-          collectionHref: stacSubCatalogFile.href,
+          linkHref: stacLinkFile.href,
           catalogHref: stacCatalogFile.href,
         },
-        `STAC Catalog already contains link to collection, skipping addition.`,
+        `STAC Catalog already contains link to child, skipping addition.`,
       );
       return stacCatalogFile;
     }
   }
   stacCatalog.links.push({
-    href: stacSubCatalogFile.href,
-    rel: 'catalog',
+    href: stacLinkFile.href,
+    rel: 'child',
     type: 'application/json',
   });
   await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
-  logger.info({ stacCatalogFile: stacCatalogFile.href }, 'ToParquet:STACSubCatalogToCatalogUpserted');
+  logger.info({ stacCatalogFile: stacCatalogFile.href }, `ToParquet:STACChildToCatalogUpserted`);
   if (stacCatalogFile.href !== RootCatalogFile.href) {
-    await upsertSubCatalogToCatalog(stacCatalogFile, parentCatalogFile);
+    await upsertChildToCatalog(stacCatalogFile, parentCatalogFile);
   }
   return stacCatalogFile;
 }
@@ -311,53 +314,7 @@ function urlToTitle(fileName: URL): string {
 }
 
 async function upsertCollectionToCatalog(stacCollectionFile: URL, stacCatalogFile?: URL): Promise<URL> {
-  if (!stacCatalogFile) {
-    stacCatalogFile = new URL('../catalog.json', stacCollectionFile);
-  }
-  let stacCatalog = <StacCatalog>{
-    type: 'Catalog',
-    stac_version: '1.0.0',
-    stac_extensions: [],
-    id: await readOrCreateCatalogId(stacCatalogFile),
-    title: `Catalog for ${urlToTitle(stacCatalogFile)}`,
-    description: `Description of Catalog ${urlToTitle(stacCatalogFile)}`,
-    links: [
-      { rel: 'self', href: stacCatalogFile.href, type: 'application/json' },
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-    ],
-  };
-  const parentCatalogFile = new URL('../catalog.json', stacCatalogFile);
-  if (stacCatalogFile.href !== RootCatalogFile.href) {
-    stacCatalog.links.push({ rel: 'parent', href: parentCatalogFile.href, type: 'application/json' });
-  } else {
-    stacCatalog.title = 'LINZ Topographic Data Catalog';
-    stacCatalog.description = 'Catalog of LINZ Topographic Data assets.';
-  }
-  if (await fsa.exists(stacCatalogFile)) {
-    stacCatalog = await fsa.readJson<StacCatalog>(stacCatalogFile);
-    const oldLinkToCollection = stacCatalog.links.find(
-      (link) => link.href === stacCollectionFile.href && link.rel === 'collection',
-    );
-    if (oldLinkToCollection) {
-      logger.info(
-        {
-          collectionHref: stacCollectionFile.href,
-          catalogHref: stacCatalogFile.href,
-        },
-        `STAC Catalog already contains link to collection, skipping addition.`,
-      );
-      return stacCatalogFile;
-    }
-  }
-  stacCatalog.links.push({
-    href: stacCollectionFile.href,
-    rel: 'collection',
-    type: 'application/json',
-  });
-  await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
-  logger.info({ stacCatalogFile: stacCatalogFile.href }, 'ToParquet:STACCollectionToCatalogUpserted');
-  await upsertSubCatalogToCatalog(stacCatalogFile, parentCatalogFile);
-  return stacCatalogFile;
+  return upsertChildToCatalog(stacCollectionFile, stacCatalogFile);
 }
 
 export const parquetCommand = command({
