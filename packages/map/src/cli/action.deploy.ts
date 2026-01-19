@@ -128,12 +128,14 @@ export const deployCommand = command({
           type: 'application/json',
         });
       }
-      const sourcedCollection = new URL(`${args.githash}/${series}/collection.json`, args.target);
-      collectionLinks.push({
-        rel: 'derived_from',
-        href: sourcedCollection.href,
-        type: 'application/json',
-      });
+      if (args.githash) {
+        const sourcedCollection = new URL(`${args.githash}/${series}/collection.json`, args.target);
+        collectionLinks.push({
+          rel: 'derived_from',
+          href: sourcedCollection.href,
+          type: 'application/json',
+        });
+      }
       const description = `LINZ Topographic QGIS Project Series ${series}.`;
       const collection = createStacCollection(description, [], collectionLinks);
       catalogLinks.push({
