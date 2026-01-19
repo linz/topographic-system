@@ -102,7 +102,7 @@ export const deployCommand = command({
             throw new Error(`Deploy: Source stac item not found at ${sourcedStacItem.href}`);
           }
         }
-        const item = createStacItem(projectName, [], assets);
+        const item = createStacItem(projectName, stacItemLinks, assets);
         if (stacItems.has(projectSeries) === false) {
           stacItems.set(projectSeries, [item]);
         } else {
@@ -128,6 +128,12 @@ export const deployCommand = command({
           type: 'application/json',
         });
       }
+      const sourcedCollection = new URL(`${args.githash}/${series}/collection.json`, args.target);
+      collectionLinks.push({
+        rel: 'derived_from',
+        href: sourcedCollection.href,
+        type: 'application/json',
+      });
       const description = `LINZ Topographic QGIS Project Series ${series}.`;
       const collection = createStacCollection(description, [], collectionLinks);
       catalogLinks.push({
