@@ -15,8 +15,8 @@ export const exportCommand = command({
     ref: option({
       type: optional(string),
       long: 'ref',
-      description: 'Commit SHA or branch to export (default: HEAD)',
-      defaultValue: () => 'HEAD',
+      description: 'Commit SHA or branch to export (default: FETCH_HEAD)',
+      defaultValue: () => 'FETCH_HEAD',
     }),
     changed: flag({
       long: 'changed-datasets-only',
@@ -38,7 +38,7 @@ export const exportCommand = command({
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:Listing changed datasets only');
-      const kartData = await $`kart -C repo diff master..FETCH_HEAD --only-feature-count exact --output-format=json`;
+      const kartData = await $`kart -C repo diff master..${args.ref} --only-feature-count exact --output-format=json`;
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
