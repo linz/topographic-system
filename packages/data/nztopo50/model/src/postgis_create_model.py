@@ -41,8 +41,9 @@ if __name__ == "__main__":
         schema_name = "release62"
         # schema_name = "release63"
 
+        primary_key_type = "none"
         # primary_key_type = 'int' #uuid
-        primary_key_type = "uuid"
+        # primary_key_type = "uuid"
 
         layered_dict = excel_to_layered_dict(model_fields_file)
 
@@ -55,8 +56,10 @@ if __name__ == "__main__":
                 table = layer.lower()
                 if primary_key_type == "int":
                     columns = ["id SERIAL PRIMARY KEY"]
-                else:
+                elif primary_key_type == "uuid":
                     columns = ["topo_id uuid PRIMARY KEY DEFAULT gen_random_uuid()"]
+                else:
+                    columns = ["topo_id uuid DEFAULT gen_random_uuid()"]
                 for field_name, props in fields.items():
                     if field_name.lower() in ["shape", "objectid", "shape_length"]:
                         continue

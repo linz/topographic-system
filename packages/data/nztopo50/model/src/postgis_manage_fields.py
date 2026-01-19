@@ -810,8 +810,9 @@ if __name__ == "__main__":
     # release_date = "2025-05-14"
 
     add_full_metadata_fields = True
-    # primary_key_type = 'int' #uuid
-    primary_key_type = "uuid"
+    primary_key_type = "none"
+    # primary_key_type = 'int'
+    # primary_key_type = "uuid"
     update_topoid_from_previous_release = False
     previous_schema = "release62"
     use_hive_partitioning = True
