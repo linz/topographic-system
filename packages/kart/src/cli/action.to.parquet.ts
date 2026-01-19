@@ -41,7 +41,7 @@ async function upsertItemToCollection(
   let stacCollection = <StacCollection>{
     type: 'Collection',
     stac_version: '1.0.0',
-    id: await readOrCreateCollectionId(stacCollectionFile),
+    id: await readOrCreateStacId(stacCollectionFile),
     features: [],
     description: `Collection of ${urlToTitle(stacCollectionFile)}`,
     extent: {
@@ -72,7 +72,7 @@ async function upsertItemToCollection(
         collectionHref: stacCollectionFile.href,
         stacCollectionExtent: stacCollection.extent,
       },
-      `STAC Collection already contains link to item. Existing extents will not be updated.`,
+      `ToParquet:SkipSTACItemAlreadyInCollection`,
     );
     return stacCollectionFile;
   }
@@ -84,6 +84,9 @@ async function upsertItemToCollection(
   stacCollection['updated'] = CommonDateTime.toISOString();
   if (await fsa.exists(stacItemFile)) {
     const stacItem = await fsa.readJson<StacItem>(stacItemFile);
+    if (stacItem['collection'] === '') {
+      logger.warn({ stacItemFile: stacItemFile, stacItem }, 'ToParquet:STACItemCollectionIdEmpty');
+    }
     if (stacItem.bbox) {
       stacCollection.extent.spatial.bbox.push(stacItem.bbox);
     }
@@ -96,7 +99,7 @@ async function upsertItemToCollection(
   }
   await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, null, 2));
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
-  await upsertCollectionToCatalog(stacCollectionFile, stacCatalogFile);
+  await upsertChildToCatalog(stacCollectionFile, stacCatalogFile);
 
   return stacCollectionFile;
 }
@@ -141,10 +144,10 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
     stac_version: '1.0.0',
     stac_extensions: [],
     id: dataset,
-    geometry: null, // defines the full footprint of the asset represented by the STAC Item
-    bbox: [], // Bounding Box of the asset represented by this Item, formatted according to RFC 7946, section 5. https://tools.ietf.org/html/rfc7946#section-5
+    geometry: null, // TODO: What is needed here for geoparquet? Usually this defines the full footprint of the asset represented by the STAC Item
+    bbox: [], // TODO: What is needed here for geoparquet? Usually this is Bounding Box of the asset represented by this Item, formatted according to RFC 7946, section 5. https://tools.ietf.org/html/rfc7946#section-5
     properties: {
-      datetime: currentDate,
+      datetime: currentDate, // TODO: Read from data.
     },
     links: [
       { href: stacItemFile.href, rel: 'self' },
@@ -153,7 +156,7 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
       { href: RootCatalogFile.href, rel: 'root', type: 'application/json' },
     ],
     assets: {},
-    collection: '',
+    collection: await readOrCreateStacId(stacCollectionFile),
   };
 
   if (await fsa.exists(stacItemFile)) {
@@ -169,18 +172,8 @@ async function upsertAssetToItem(dataAssetPath: URL, stacItemFile?: URL, stacCol
   stacItem.assets[extension] = stacAsset;
 
   await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
-  logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACAssetToItemUpserted');
-  stacCollectionFile = await upsertItemToCollection(stacItemFile, stacCollectionFile);
-  const updatedCollectionId = await readOrCreateCollectionId(stacCollectionFile);
-  if (stacItem.collection !== updatedCollectionId) {
-    await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
-    logger.info({ stacItemFile: stacItemFile.href }, 'ToParquet:STACItemCollectionIdUpdated');
-  } else {
-    logger.debug(
-      { updatedCollectionId, stacItemFile: stacItemFile.href, stacItem },
-      'ToParquet:STACItemCollectionIdUnchanged',
-    );
-  }
+  logger.info({ stacAssetFile: stacAsset.href, stacItemFile: stacItemFile.href }, 'ToParquet:STACAssetToItemUpserted');
+  await upsertItemToCollection(stacItemFile, stacCollectionFile);
   return stacItemFile;
 }
 
@@ -195,7 +188,7 @@ function compareStacAssets(a: StacAsset | undefined, b: StacAsset | undefined): 
   return false;
 }
 
-async function readOrCreateStacId(stacFile: URL, prefix: 'collection' | 'catalog'): Promise<string> {
+async function readOrCreateStacId(stacFile: URL): Promise<string> {
   if (await fsa.exists(stacFile)) {
     const stac = await fsa.readJson<StacCollection | StacCatalog>(stacFile);
     if (stac.id) {
@@ -205,31 +198,23 @@ async function readOrCreateStacId(stacFile: URL, prefix: 'collection' | 'catalog
       logger.debug({ stacFile: stacFile.href, stacId: stac.id }, 'ToParquet:STACIdEMPTYRead');
     }
   }
-  const timestamp = CommonDateTime.toISOString().replace(/[-:.]/g, '').slice(0, 15);
-  const pathPart = stacFile.href.slice(stacFile.protocol.length + 1).replaceAll('/', '-');
-  logger.debug({ stacFile: stacFile.href, prefix, pathPart, timestamp }, 'ToParquet:STACIdCreated');
-  if (prefix === 'collection') {
-    return `${prefix}${pathPart}-${timestamp}`;
-  }
-  return `${prefix}${pathPart}`;
-}
-
-async function readOrCreateCollectionId(stacCollectionFile: URL): Promise<string> {
-  return readOrCreateStacId(stacCollectionFile, 'collection');
-}
-
-async function readOrCreateCatalogId(stacCatalogFile: URL): Promise<string> {
-  return readOrCreateStacId(stacCatalogFile, 'catalog');
+  const timestamp = CommonDateTime.toISOString()
+    .replace(/[-:.Z]/g, '')
+    .replace(/[T]/g, '-');
+  const pathPart = stacFile.href
+    .slice(stacFile.protocol.length + 2)
+    .replaceAll('/', '-')
+    .slice(0, -5);
+  logger.debug({ stacFile: stacFile.href, pathPart, timestamp }, 'ToParquet:STACIdCreated');
+  return `${pathPart}-${timestamp}`;
 }
 
 function determineS3AssetLocation(dataset: string, output: string, tag?: string): URL {
-  logger.debug({ zx_env: $.env });
-  const repo = ($.env['GITHUB_REPOSITORY'] || 'unknown').split('/')[1];
+  // logger.debug({ zx_env: $.env });
+  const repo = ($.env['GITHUB_REPOSITORY'] || '/unknown').split('/')[1];
   if (!tag) {
     if (is_merge_to_master() || is_release()) {
-      // add version number and "next" not "latest" ?
       tag = `year=${CommonDateTime.getFullYear()}/date=${CommonDateTime.toISOString().split('T')[0]}`;
-      // tag = `${new Date().toISOString()}`;
     } else if (is_pr()) {
       const ref = $.env['GITHUB_REF_NAME'] || '';
       const prMatch = ref.match(/(\d+)\/merge/);
@@ -274,8 +259,8 @@ async function upsertChildToCatalog(stacLinkFile: URL, stacCatalogFile?: URL): P
     type: 'Catalog',
     stac_version: '1.0.0',
     stac_extensions: [],
-    id: await readOrCreateCatalogId(stacCatalogFile),
-    title: `Catalog for ${urlToTitle(stacCatalogFile)}`,
+    id: await readOrCreateStacId(stacCatalogFile),
+    title: `Catalog for${urlToTitle(stacCatalogFile)}`,
     description: `Description of Catalog ${urlToTitle(stacCatalogFile)}`,
     links: [
       { rel: 'self', href: stacCatalogFile.href, type: 'application/json' },
@@ -298,7 +283,7 @@ async function upsertChildToCatalog(stacLinkFile: URL, stacCatalogFile?: URL): P
           linkHref: stacLinkFile.href,
           catalogHref: stacCatalogFile.href,
         },
-        `STAC Catalog already contains link to child, skipping addition.`,
+        `ToParquet:SkipSTACLinkAlreadyInCatalog`,
       );
       return stacCatalogFile;
     }
@@ -317,11 +302,7 @@ async function upsertChildToCatalog(stacLinkFile: URL, stacCatalogFile?: URL): P
 }
 
 function urlToTitle(fileName: URL): string {
-  return fileName.pathname.replaceAll('/', ' ').replaceAll('_', ' ');
-}
-
-async function upsertCollectionToCatalog(stacCollectionFile: URL, stacCatalogFile?: URL): Promise<URL> {
-  return upsertChildToCatalog(stacCollectionFile, stacCatalogFile);
+  return fileName.pathname.replace(/[/_-]/g, ' ').replace(/\.json$/, '');
 }
 
 export const parquetCommand = command({
