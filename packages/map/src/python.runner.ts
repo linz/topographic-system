@@ -48,18 +48,18 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 export async function qgisExport(
   input: URL,
   output: URL,
-  layerName: string = 'nz_topo50_map_sheet',
-  options: ExportOptions,
   mapsheets: string[],
+  options: ExportOptions,
+  layerName: string = 'nz_topo50_map_sheet',
 ): Promise<SheetMetadata[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
   cmd.args.push(toRelative(input));
   cmd.args.push(toRelative(output));
-  cmd.args.push(layerName);
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
+  cmd.args.push(layerName);
   for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
 
   const res = await cmd.run();

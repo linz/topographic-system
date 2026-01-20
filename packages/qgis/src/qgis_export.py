@@ -13,9 +13,9 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
-layer_name = sys.argv[3]
-export_format = sys.argv[4]
-dpi = int(sys.argv[5])
+export_format = sys.argv[3]
+dpi = int(sys.argv[4])
+layer_name = sys.argv[5]
 sheet_codes = sys.argv[6:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
