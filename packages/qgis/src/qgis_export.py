@@ -13,9 +13,10 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
-export_format = sys.argv[3]
-dpi = int(sys.argv[4])
-sheet_codes = sys.argv[5:]
+layer_name = sys.argv[3]
+export_format = sys.argv[4]
+dpi = int(sys.argv[5])
+sheet_codes = sys.argv[6:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -41,7 +42,12 @@ if map_item is None:
 metadata = []
 map_crs = map_item.crs()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo50_map_sheet")[0]
+# Get topo sheet layer
+layers = QgsProject.instance().mapLayersByName(layer_name)
+if not layers:
+    raise ValueError(f"Layer '{layer_name}' not found in project")
+topo_sheet_layer = layers[0]
+
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
     # skip if this sheet_code is not in the list passed from CLI
