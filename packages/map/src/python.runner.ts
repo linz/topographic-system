@@ -4,7 +4,6 @@ import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geoj
 import { logger } from '../../shared/src/log.ts';
 import { toRelative } from '../../shared/src/url.ts';
 import type { ExportOptions } from './cli/action.produce.ts';
-import { log } from 'console';
 
 interface SheetMetadataStdOut {
   sheetCode: string;
