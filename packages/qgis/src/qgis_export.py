@@ -41,7 +41,16 @@ if map_item is None:
 metadata = []
 map_crs = map_item.crs()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
+manager = project.layoutManager()
+layouts = manager.layouts()
+
+if not layouts:
+    raise RuntimeError("No layouts found in the QGIS project")
+
+# Pick the first layout
+topo_sheet_layer = layouts[0]
+print("Using layout:", topo_sheet_layer.name())
+
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
     # skip if this sheet_code is not in the list passed from CLI
