@@ -116,6 +116,7 @@ export const ProduceCommand = command({
     const projectName = parse(args.project.pathname).name;
     const outputUrl = args.output;
     for await (const file of fsa.list(tempOutput)) {
+      logger.info({ file: file.href }, 'Produce: FileFound');
       if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
         await validateTiff(file, metadatas);
       }

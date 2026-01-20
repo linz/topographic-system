@@ -4,6 +4,7 @@ import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geoj
 import { logger } from '../../shared/src/log.ts';
 import { toRelative } from '../../shared/src/url.ts';
 import type { ExportOptions } from './cli/action.produce.ts';
+import { log } from 'console';
 
 interface SheetMetadataStdOut {
   sheetCode: string;
@@ -67,6 +68,8 @@ export async function qgisExport(
     logger.fatal({ qgis_export: res }, 'Failure');
     throw new Error('qgis_export.py failed to run');
   }
+
+  logger.debug({ stdout: res.stdout }, 'qgis_export.py output');
 
   return parseSheetsMetadata(res.stdout);
 }
