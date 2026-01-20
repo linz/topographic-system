@@ -41,7 +41,7 @@ if map_item is None:
 metadata = []
 map_crs = map_item.crs()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
+topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo50_map_sheet")[0]
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
     # skip if this sheet_code is not in the list passed from CLI

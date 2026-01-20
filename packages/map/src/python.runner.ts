@@ -74,7 +74,7 @@ export async function qgisExport(
 /**
  * Running python commands for list_map_sheets
  */
-export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map_sheet'): Promise<string[]> {
+export async function listMapSheets(input: URL, layerName: string = 'nz_topo50_map_sheet'): Promise<string[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/list_map_sheets.py');
