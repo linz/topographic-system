@@ -26,7 +26,13 @@ success = project.read(project_path)
 if not success:
     raise ValueError(f"Failed to read project file: {project_path}")
 
-layout = project.layoutManager().layoutByName("Topo50")
+manager = project.layoutManager()
+layouts = manager.layouts()
+
+if not layouts:
+    raise RuntimeError("No layouts found in the QGIS project")
+
+layout = layouts[0]  # Use the first layout found
 exporter = QgsLayoutExporter(layout)
 
 map_item = None
@@ -36,20 +42,26 @@ for item in layout.items():
         break
 
 if map_item is None:
-    raise ValueError("No QgsLayoutItemMap found in layout 'Topo50'.")
+    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{layout.name()}'.")
 
 metadata = []
 map_crs = map_item.crs()
 
-manager = project.layoutManager()
-layouts = manager.layouts()
+# Find the vector layer with the 'sheet_code' field
+topo_sheet_layer = None
+for layer in project.mapLayers().values():
+    # Only consider vector layers
+    if not hasattr(layer, "fields"):
+        continue
 
-if not layouts:
-    raise RuntimeError("No layouts found in the QGIS project")
+    field_names = [f.name() for f in layer.fields()]
+    if "sheet_code" in field_names:
+        topo_sheet_layer = layer
+        break
 
-# Pick the first layout
-topo_sheet_layer = layouts[0]
-print("Using layout:", topo_sheet_layer.name())
+if topo_sheet_layer is None:
+    raise RuntimeError("No vector layer with a 'sheet_code' field found in the project")
+
 
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
