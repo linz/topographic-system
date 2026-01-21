@@ -13,7 +13,7 @@ const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
 
 function determineParquetAssetLocation(dataset: string, output: string, tag?: string): URL {
-  const repo = ($.env['GITHUB_REPOSITORY'] || '/unknown-repo').split('/')[1];
+  const repo = $.env['GITHUB_REPOSITORY']?.split('/')[1] ?? 'unknown-repo';
   if (!tag) {
     if (is_merge_to_master() || is_release()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate.split('T')[0]}`;
