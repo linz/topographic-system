@@ -110,13 +110,12 @@ export const ProduceCommand = command({
 
     // Write outputs files to destination
     const projectName = parse(args.project.pathname).name;
-    const outputUrl = fsa.toUrl(path.join(args.output.href, `/${projectName}/${CliId}/`));
     for await (const file of fsa.list(tempOutput)) {
       if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
         await validateTiff(file, metadatas);
       }
 
-      const destPath = new URL(basename(file.pathname), outputUrl);
+      const destPath = new URL(basename(file.pathname), args.output);
       const stream = fsa.readStream(file);
       await fsa.write(destPath, stream, {
         contentType: getContentType(args.format),
@@ -127,11 +126,11 @@ export const ProduceCommand = command({
     // Create Stac Files and upload to destination
     const links = await createStacLink(args.source, args.project);
     for (const metadata of metadatas) {
-      const item = await createMapSheetStacItem(metadata, args.format, args.dpi, outputUrl, links);
-      await fsa.write(new URL(`${metadata.sheetCode}.json`, outputUrl), JSON.stringify(item, null, 2));
+      const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
+      await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));
     }
     const collection = createMapSheetStacCollection(metadatas, links);
-    await fsa.write(new URL('collection.json', outputUrl), JSON.stringify(collection, null, 2));
+    await fsa.write(new URL('collection.json', args.output), JSON.stringify(collection, null, 2));
 
     const catalogPath = new URL(`/${projectName}/catalog.json`, args.output);
     const title = 'Topographic System Map Producer';
