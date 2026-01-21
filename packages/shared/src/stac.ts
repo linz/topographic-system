@@ -52,20 +52,20 @@ export async function createStacLink(source: URL, project: URL): Promise<StacLin
 }
 
 export function createStacItem(
-    id: string,
-    links: StacLink[],
-    assets: Record<string, StacAsset>,
-    geometry?: GeoJSONGeometry,
-    bbox?: number[],
+  id: string,
+  links: StacLink[],
+  assets: Record<string, StacAsset>,
+  geometry?: GeoJSONGeometry,
+  bbox?: number[],
 ): StacItem {
   const stacItem = createBasicStacItem();
   stacItem.id = id;
   stacItem.links.push(
-      { rel: 'self', href: `./${id}.json`, type: 'application/geo+json' },
-      { rel: 'collection', href: './collection.json', type: 'application/json' },
-      { rel: 'parent', href: './collection.json', type: 'application/json' },
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      ...links,
+    { rel: 'self', href: `./${id}.json`, type: 'application/geo+json' },
+    { rel: 'collection', href: './collection.json', type: 'application/json' },
+    { rel: 'parent', href: './collection.json', type: 'application/json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    ...links,
   );
   stacItem.assets = assets;
   if (geometry !== undefined) {
@@ -82,10 +82,10 @@ export function createStacCollection(description: string, bbox: number[], links:
   stacCollection.extent.spatial.bbox = [bbox];
   stacCollection.description = description;
   stacCollection.links.push(
-      { rel: 'self', href: './collection.json', type: 'application/json' },
-      { rel: 'parent', href: './catalog.json', type: 'application/json' },
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      ...links,
+    { rel: 'self', href: './collection.json', type: 'application/json' },
+    { rel: 'parent', href: './catalog.json', type: 'application/json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    ...links,
   );
   return stacCollection;
 }
@@ -95,9 +95,9 @@ export function createStacCatalog(title: string, description: string, links: Sta
   stacCatalog.title = title;
   stacCatalog.description = description;
   stacCatalog.links.push(
-      { rel: 'self', href: './catalog.json', type: 'application/json' },
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      ...links,
+    { rel: 'self', href: './catalog.json', type: 'application/json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    ...links,
   );
   return stacCatalog;
 }
@@ -181,8 +181,8 @@ async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog
   stacCatalog.id = await readOrCreateStacIdFromFileName(stacFile);
   stacCatalog.description = `Catalog of${urlToTitle(stacFile)}`;
   stacCatalog.links.push(
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      { rel: 'self', href: stacFile.href, type: 'application/json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
   stacCatalog['created'] = CliDate;
   stacCatalog['updated'] = CliDate;
@@ -203,8 +203,8 @@ export async function createStacCollectionFromFileName(stacFile: URL): Promise<S
   stacCollection.id = await readOrCreateStacIdFromFileName(stacFile);
   stacCollection.description = `Collection of${urlToTitle(stacFile)}`;
   stacCollection.links.push(
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      { rel: 'self', href: stacFile.href, type: 'application/json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
   stacCollection['created'] = CliDate;
   stacCollection['updated'] = CliDate;
@@ -218,8 +218,8 @@ export async function createStacItemFromFileName(stacFile: URL): Promise<StacIte
   const stacItem = createBasicStacItem();
   stacItem.id = await readOrCreateStacIdFromFileName(stacFile);
   stacItem.links.push(
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
   );
   return stacItem;
 }
@@ -325,16 +325,16 @@ async function upsertChildToCatalog(stacChildFile: URL, stacCatalogFile?: URL): 
     stacCatalogFile = new URL('../catalog.json', stacChildFile);
   }
   let stacChild = childIsCollection
-      ? await createStacCollectionFromFileName(stacChildFile)
-      : await createStacCatalogFromFilename(stacChildFile);
+    ? await createStacCollectionFromFileName(stacChildFile)
+    : await createStacCatalogFromFilename(stacChildFile);
   let stacCatalog = await createStacCatalogFromFilename(stacCatalogFile);
   stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
   await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
   logger.info(
-      { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
-      `STAC:ChildToCatalogUpserted`,
+    { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
+    `STAC:ChildToCatalogUpserted`,
   );
   await upsertChildToCatalog(stacCatalogFile);
   return stacCatalogFile;
@@ -358,19 +358,19 @@ async function readOrCreateStacIdFromFileName(stacFile: URL): Promise<string> {
   }
   const timestamp = CliDate.replace(/[-:.Z]/g, '').replace('T', '-');
   const pathPart = stacFile.href
-      .slice(stacFile.protocol.length + 2)
-      .replaceAll('/', '-')
-      .slice(0, -5);
+    .slice(stacFile.protocol.length + 2)
+    .replaceAll('/', '-')
+    .slice(0, -5);
   return `${pathPart}-${timestamp}`;
 }
 
 function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAsset | StacLink | undefined): boolean {
   if (a && b)
     return (
-        a.href === b.href &&
-        a.type === b.type &&
-        a['file:checksum'] === b['file:checksum'] &&
-        a['file:size'] === b['file:size']
+      a.href === b.href &&
+      a.type === b.type &&
+      a['file:checksum'] === b['file:checksum'] &&
+      a['file:size'] === b['file:size']
     );
   return false;
 }
@@ -390,8 +390,8 @@ function urlToTitle(fileName: URL): string {
  * @returns The updated STAC child with the correct parent link and collection ID (if applicable).
  */
 function addParentDataToChild(
-    stacChild: StacItem | StacCollection | StacCatalog,
-    stacParent: StacCollection | StacCatalog,
+  stacChild: StacItem | StacCollection | StacCatalog,
+  stacParent: StacCollection | StacCatalog,
 ): StacItem | StacCollection | StacCatalog {
   const stacParentFile = getSelfLink(stacParent);
   const stacChildFile = getSelfLink(stacChild);
@@ -405,8 +405,8 @@ function addParentDataToChild(
       stacChild.collection = stacParent.id;
       stacChild['updated'] = CliDate;
       logger.info(
-          { stacChildFile, collection: stacChild.collection, stacParentFile },
-          'STAC:ItemCollectionLinkAndIdAdded',
+        { stacChildFile, collection: stacChild.collection, stacParentFile },
+        'STAC:ItemCollectionLinkAndIdAdded',
       );
     } else if (collectionLink.href === getSelfLink(stacParent) && stacChild.collection !== stacParent.id) {
       // Links to this collection, but collection ID is wrong
@@ -415,14 +415,14 @@ function addParentDataToChild(
       logger.info({ stacChildFile, collection: stacChild.collection, stacParentFile }, 'STAC:ItemCollectionIdUpdated');
     } else {
       logger.info(
-          {
-            stacChildFile,
-            stacParentFile,
-            collectionLink: collectionLink.href,
-            childCollectionId: stacChild.collection,
-            parentId: stacParent.id,
-          },
-          'STAC:ItemCollectionLinkAndIdUpToDate',
+        {
+          stacChildFile,
+          stacParentFile,
+          collectionLink: collectionLink.href,
+          childCollectionId: stacChild.collection,
+          parentId: stacParent.id,
+        },
+        'STAC:ItemCollectionLinkAndIdUpToDate',
       );
     }
   }
@@ -453,8 +453,8 @@ function addParentDataToChild(
  * @returns The updated STAC parent with the correct child link and updated extents (if applicable).
  */
 function addChildDataToParent(
-    stacParent: StacCollection | StacCatalog,
-    stacChild: StacItem | StacCollection | StacCatalog,
+  stacParent: StacCollection | StacCatalog,
+  stacChild: StacItem | StacCollection | StacCatalog,
 ): StacCollection | StacCatalog {
   const stacParentFile = getSelfLink(stacParent);
   const stacChildFile = getSelfLink(stacChild);
@@ -463,10 +463,16 @@ function addChildDataToParent(
   const expectedRel = childIsItem ? 'item' : 'child';
   const expectedType = childIsItem ? 'application/geo+json' : 'application/json';
   const newLinkStats = createFileStats(JSON.stringify(stacChild, null, 2));
-  const newLinkToChild = <StacLink>{ rel: expectedRel, href: stacChildFile, type: expectedType, ...newLinkStats, title: stacChild.title };
+  const newLinkToChild = <StacLink>{
+    rel: expectedRel,
+    href: stacChildFile,
+    type: expectedType,
+    ...newLinkStats,
+    title: stacChild.title,
+  };
 
   const oldLinkToChild = stacParent.links.find(
-      (link) => link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType,
+    (link) => link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType,
   );
   if (oldLinkToChild === undefined) {
     stacParent.links.push(newLinkToChild);
@@ -483,7 +489,7 @@ function addChildDataToParent(
     return stacParent;
   }
   stacParent.links = stacParent.links.filter(
-      (link) => !(link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType),
+    (link) => !(link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType),
   );
   stacParent.links.push(newLinkToChild);
   stacParent['updated'] = CliDate;
