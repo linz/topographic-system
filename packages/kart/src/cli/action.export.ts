@@ -37,24 +37,24 @@ export const exportCommand = command({
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();
     if (args.changed) {
-      logger.info('Export:Listing changed datasets only');
+      logger.info('Export:OnlyChangedDatasets');
       const kartData = await $`kart -C repo diff master..${args.ref} --only-feature-count exact --output-format=json`;
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
-      logger.info('Export:Listing all datasets');
+      logger.info('Export:AllDatasets');
       const kartData = await $`kart -C repo data ls`;
       datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
     }
     logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
-    // Ensure the export directory exists before exporting
-    await $`mkdir -p ./export`;
+    const exportDir = './export';
+    await $`mkdir -p ${exportDir}`; // kart will fail with unclear error if this doesn't exist
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart -C repo export ${dataset} --ref ${args.ref} ./export/${dataset}.gpkg`),
+      Q.push(() => $`kart -C repo export ${dataset} --ref ${args.ref} ${exportDir}/${dataset}.gpkg`),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');
