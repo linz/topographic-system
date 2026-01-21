@@ -260,7 +260,7 @@ class Topo50DataLoader:
             #     print(f"Skipping layer: {layer_info[3]}")
             #     continue
             layer_name = layer_info[3]
-            theme = layer_info[1]
+            #theme = layer_info[1]
             dataset = layer_info[4]
             if layer_name not in processed_layer:
                 processed_layer.append(layer_name)
