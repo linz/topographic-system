@@ -7,7 +7,7 @@ export const CliDate = new Date().toISOString();
 export const CliId = ulid.ulid();
 
 export const CliInfo = {
-  package: '@topographic-system/map',
+  package: '@topographic-system/shared',
   // Git version information
   version: process.env['GIT_VERSION'],
   // Git commit hash

@@ -15,8 +15,8 @@ export const exportCommand = command({
     ref: option({
       type: optional(string),
       long: 'ref',
-      description: 'Commit SHA or branch to export (default: HEAD)',
-      defaultValue: () => 'HEAD',
+      description: 'Commit SHA or branch to export (default: FETCH_HEAD)',
+      defaultValue: () => 'FETCH_HEAD',
     }),
     changed: flag({
       long: 'changed-datasets-only',
