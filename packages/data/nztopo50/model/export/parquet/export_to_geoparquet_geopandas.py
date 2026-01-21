@@ -122,7 +122,7 @@ if __name__ == "__main__":
             print(f"Exporting to {parquet_file}")
 
             gdf = gpd.GeoDataFrame.from_postgis(sql, sqlcon, geom_col="geometry")
-            #gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs="EPSG:4167")
+            # gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs="EPSG:4167")
             gdf.to_parquet(
                 parquet_file,
                 engine="pyarrow",
