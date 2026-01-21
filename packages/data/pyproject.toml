@@ -32,7 +32,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["validation", "nztopo50"]
+packages = ["nztopo50"]
 
 [tool.setuptools.package-data]
 "*" = ["*.json", "*.md"]
@@ -43,14 +43,6 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "validation.experimental.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "validation._archive.*"
-ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "nztopo50.model.src.postgis_create_model"
