@@ -184,8 +184,6 @@ async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog
     { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
     { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
-  stacCatalog['created'] = CliDate;
-  stacCatalog['updated'] = CliDate;
 
   if (getSelfLink(stacCatalog) === RootCatalogFile.href) {
     stacCatalog.title = 'LINZ Topographic Data Catalog';
@@ -206,8 +204,6 @@ export async function createStacCollectionFromFileName(stacFile: URL): Promise<S
     { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
     { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
-  stacCollection['created'] = CliDate;
-  stacCollection['updated'] = CliDate;
   return stacCollection;
 }
 
