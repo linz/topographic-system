@@ -218,8 +218,8 @@ export async function createStacItemFromFileName(stacFile: URL): Promise<StacIte
   const stacItem = createBasicStacItem();
   stacItem.id = await readOrCreateStacIdFromFileName(stacFile);
   stacItem.links.push(
-      { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-      { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
   );
   return stacItem;
 }
