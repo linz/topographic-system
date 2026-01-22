@@ -139,7 +139,6 @@ function createBasicStacCollection(): StacCollection {
     type: 'Collection',
     stac_version: '1.0.0',
     id: 'sc_' + CliId,
-    features: [],
     description: '',
     extent: {
       spatial: {
@@ -399,7 +398,7 @@ function addParentDataToChild(
     if (collectionLink === undefined) {
       stacChild.links.push({ rel: 'collection', href: stacParentFile, type: 'application/json' });
       stacChild.collection = stacParent.id;
-      stacChild['updated'] = CliDate;
+      stacChild.properties.datetime = CliDate;
       logger.info(
         { stacChildFile, collection: stacChild.collection, stacParentFile },
         'STAC:ItemCollectionLinkAndIdAdded',
@@ -407,7 +406,7 @@ function addParentDataToChild(
     } else if (collectionLink.href === getSelfLink(stacParent) && stacChild.collection !== stacParent.id) {
       // Links to this collection, but collection ID is wrong
       stacChild.collection = stacParent.id;
-      stacChild['updated'] = CliDate;
+      stacChild.properties.datetime = CliDate;
       logger.info({ stacChildFile, collection: stacChild.collection, stacParentFile }, 'STAC:ItemCollectionIdUpdated');
     } else {
       logger.info(
@@ -425,7 +424,11 @@ function addParentDataToChild(
   const parentLink = stacChild.links.find((link) => link.rel === 'parent');
   if (parentLink === undefined) {
     stacChild.links.push({ rel: 'parent', href: stacParentFile, type: 'application/json' });
-    stacChild['updated'] = CliDate;
+    if (childIsItem) {
+      stacChild.properties.datetime = CliDate;
+    } else {
+      stacChild['updated'] = CliDate;
+    }
     logger.info({ stacChildFile, stacParentFile }, 'STAC:ParentLinkAdded');
     return stacChild;
   }
