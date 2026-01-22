@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import { createHash } from 'crypto';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
-import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.ts';
+import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
 
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
 import { S3BucketName } from './env.ts';
