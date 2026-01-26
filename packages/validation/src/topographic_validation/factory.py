@@ -1,4 +1,4 @@
-from tools import TopoValidatorSettings
+from .tools import TopoValidatorSettings
 from .validators.gpkg import GpkgTopologyValidator
 from .validators.parquet import ParquetTopologyValidator
 from .validators.postgis import PostgisTopologyValidator
