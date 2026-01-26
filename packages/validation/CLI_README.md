@@ -15,13 +15,13 @@ This directory contains command-line tools for running topology validation on ge
 
 ```bash
 # Validate a GeoPackage file
-python run_validation_cli.py --mode generic --db-url "data.gpkg"
+python cli.py --mode generic --db-url "data.gpkg"
 
 # Validate PostGIS database
-python run_validation_cli.py --mode postgis --db-url "postgresql://user:pass@localhost/db"
+python cli.py --mode postgis --db-url "postgresql://user:pass@localhost/db"
 
 # Validate with spatial filtering
-python run_validation_cli.py --mode generic --db-url "data.gpkg" --bbox 174.8 -41.3 174.9 -41.2
+python cli.py --mode generic --db-url "data.gpkg" --bbox 174.8 -41.3 174.9 -41.2
 ```
 
 ### 2. Using Wrapper Scripts (Windows)
@@ -96,14 +96,14 @@ validate.bat help
 
 ```bash
 # Validate GeoPackage with default settings
-python run_validation_cli.py --mode generic --db-url "topo50.gpkg"
+python cli.py --mode generic --db-url "topo50.gpkg"
 ```
 
 ### 2. PostGIS with Custom Output
 
 ```bash
 # Validate PostGIS database with custom output directory
-python run_validation_cli.py \
+python cli.py \
     --mode postgis \
     --db-url "postgresql://user:pass@localhost/topo50" \
     --output-dir "/custom/output/path" \
@@ -114,7 +114,7 @@ python run_validation_cli.py \
 
 ```bash
 # Validate with bounding box and date filtering
-python run_validation_cli.py \
+python cli.py \
     --mode generic \
     --db-url "data.gpkg" \
     --bbox 174.81 -41.31 174.82 -41.30 \
@@ -126,7 +126,7 @@ python run_validation_cli.py \
 
 ```bash
 # Export to both Parquet and GeoPackage, skip some validations
-python run_validation_cli.py \
+python cli.py \
     --mode generic \
     --db-url "data.parquet" \
     --export-parquet \
@@ -139,7 +139,7 @@ python run_validation_cli.py \
 
 ```bash
 # Use custom validation configuration
-python run_validation_cli.py \
+python cli.py \
     --mode generic \
     --db-url "data.gpkg" \
     --config-file "custom_validation_config.json"
@@ -249,7 +249,7 @@ To migrate from `run_validation.py`:
 Use `--verbose` flag for detailed logging:
 
 ```bash
-python run_validation_cli.py --mode generic --db-url "data.gpkg" --verbose
+python cli.py --mode generic --db-url "data.gpkg" --verbose
 ```
 
 This enables detailed output showing:

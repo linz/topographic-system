@@ -21,16 +21,16 @@ def parse_arguments() -> argparse.Namespace:
         epilog="""
 Examples:
   # Run validation on PostGIS database
-  python run_validation_cli.py --mode postgis --db-path "postgresql://user:pass@localhost/db"
+  python cli.py --mode postgis --db-path "postgresql://user:pass@localhost/db"
   
   # Run validation on GeoPackage file
-  python run_validation_cli.py --mode generic --db-path "data.gpkg"
+  python cli.py --mode generic --db-path "data.gpkg"
   
   # Run validation on Parquet files with custom output
-  python run_validation_cli.py --mode generic --db-path "data.parquet" --output-dir "/tmp/validation"
+  python cli.py --mode generic --db-path "data.parquet" --output-dir "/tmp/validation"
   
   # Run with bounding box and date filtering
-  python run_validation_cli.py --mode generic --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
+  python cli.py --mode generic --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
         """,
     )
 
