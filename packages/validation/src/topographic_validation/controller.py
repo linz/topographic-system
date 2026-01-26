@@ -1,15 +1,15 @@
 import time
 import json
-from topology_validator_factory import TopologyValidatorFactory
-from topology_validator_tools import TopoValidatorSettings, TopoValidatorTools
+from .factory import TopologyValidatorFactory
+from .tools import TopoValidatorSettings, TopoValidatorTools
 
 
 class ValidateDatasetController:
-    def __init__(self, settings: TopoValidatorSettings):
+    def __init__(self, settings: TopoValidatorSettings) -> None:
         self.settings = settings
         self.summary_report = self.default_validation_summary_dictionary()
 
-    def default_validation_summary_dictionary(self):
+    def default_validation_summary_dictionary(self) -> dict[str, bool | str]:
         return {
             "feature_not_on_layers_about": "If True - a feature is found that does not lie on the specified layer.",
             "feature_not_on_layers": False,
@@ -31,11 +31,11 @@ class ValidateDatasetController:
             "null_columns_all": False,
         }
 
-    def write_summary_report(self, summary_report_file):
+    def write_summary_report(self, summary_report_file: str) -> None:
         with open(summary_report_file, "w") as f:
             json.dump(self.summary_report, f, indent=4)
 
-    def build_where_statement(self, active_dict):
+    def build_where_statement(self, active_dict: dict) -> str | None:
         # CHANGE TO SETTINGS
         where = active_dict.get("where", None)
         date = active_dict.get("date", None)
@@ -58,7 +58,7 @@ class ValidateDatasetController:
 
         return where
 
-    def run_validation(self):
+    def run_validation(self) -> None:
         folders = TopoValidatorTools()
         self.settings.output_dir = folders.prep_output_folder(
             output_dir=self.settings.output_dir, use_date=self.settings.use_date_folder
@@ -87,7 +87,7 @@ class ValidateDatasetController:
         )
         print(msg)
 
-    def run_process_queries(self):
+    def run_process_queries(self) -> None:
         for null_check in self.settings.null_columns:
             table = null_check["table"]
             # export_layername = null_check["table"]
@@ -143,7 +143,7 @@ class ValidateDatasetController:
             )
             self.summary_report = validator.summary_report
 
-    def run_process_features_on_layer(self):
+    def run_process_features_on_layer(self) -> None:
         for layer in self.settings.feature_in_layers:
             validator = self.validator.create_validator(
                 summary_report=self.summary_report,
@@ -277,7 +277,7 @@ class ValidateDatasetController:
             )
             self.summary_report = validator.summary_report
 
-    def run_process_self_intersections(self):
+    def run_process_self_intersections(self) -> None:
         for layer in self.settings.self_intersect_layers:
             table = layer["table"]
             export_layername = layer["layername"]

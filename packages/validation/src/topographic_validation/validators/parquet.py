@@ -1,23 +1,25 @@
 import os
-import geopandas as gpd  # type: ignore
-from abstract_topology_validator import AbstractTopologyValidator
+import geopandas as gpd
+from .base import AbstractTopologyValidator
 
 
 class ParquetTopologyValidator(AbstractTopologyValidator):
     def __init__(
         self,
-        summary_report,
-        export_validation_data,
-        db_url,
-        table,
-        export_layername,
-        table2=None,
-        where_condition=None,
-        bbox=None,
-        message="validation error",
-        output_dir=r"c:\data\topoedit\validation-data",
-        area_crs=2193,
-    ):
+        summary_report: dict[str, bool | str],
+        export_validation_data: bool,
+        db_url: str,
+        table: str,
+        export_layername: str,
+        table2: str | None = None,
+        where_condition: str | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
+        message: str | None = None,
+        output_dir: str = "./topoedit/validation-data",
+        area_crs: int = 2193,
+    ) -> None:
+        if message is None:
+            message = "validation error"
         super().__init__(
             summary_report,
             export_validation_data,
@@ -41,10 +43,11 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
         self.source = "parquet"
         self.geom_column = "geom"
 
-    def _read_data(self):
+    def _read_data(self) -> None:
         """Read data from Parquet files"""
         file = os.path.join(self.db_url, f"{self.table}.parquet")
 
+        gdf = gpd.read_parquet(file, bbox=self.bbox)
         if self.where_condition:
             # Note: read_parquet does not support where directly
             where = (
@@ -52,30 +55,17 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
                 .replace("AND", "&")
                 .replace("OR", "|")
             )
-            if self.bbox:
-                gdf = gpd.read_parquet(file, bbox=self.bbox)
-            else:
-                gdf = gpd.read_parquet(file)
-            self.gdf = gdf.query(where)
-        elif self.bbox:
-            self.gdf = gpd.read_parquet(file, bbox=self.bbox)
-        else:
-            self.gdf = gpd.read_parquet(file)
+            gdf = gdf.query(where)
+        self.gdf = gdf
 
-        if self.mode == "twotable":
+        if self.table2 != self.table:
             file = os.path.join(self.db_url, f"{self.table2}.parquet")
-            if self.bbox:
-                self.gdf2 = gpd.read_parquet(file, bbox=self.bbox)
-            else:
-                self.gdf2 = gpd.read_parquet(file)
+            self.gdf2 = gpd.read_parquet(file, bbox=self.bbox)
 
-    def _read_data_by_rule(self, rule_is_null=True, rule=""):
+    def _read_data_by_rule(self, rule_is_null: bool = True, rule: str = "") -> None:
         """Read data from Parquet file filtered by rule"""
         file = os.path.join(self.db_url, f"{self.table}.parquet")
-        if self.bbox:
-            gdf = gpd.read_parquet(file, bbox=self.bbox)
-        else:
-            gdf = gpd.read_parquet(file)
+        gdf = gpd.read_parquet(file, bbox=self.bbox)
 
         if rule_is_null:
             column_name = rule
@@ -100,6 +90,5 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
                 where = where.replace("(", "[").replace(")", "]")
 
             null_gdf = null_gdf.query(where)
-            self.gdf = null_gdf[[self.pkey, self.geom_column]]
-        else:
-            self.gdf = null_gdf[[self.pkey, self.geom_column]]
+
+        self.gdf = null_gdf[[self.pkey, self.geom_column]]

@@ -1,24 +1,24 @@
-from topology_validator_tools import TopoValidatorSettings
-from gpkg_topology_validator import GpkgTopologyValidator
-from parquet_topology_validator import ParquetTopologyValidator
-from postgis_topology_validator import PostgisTopologyValidator
+from tools import TopoValidatorSettings
+from .validators.gpkg import GpkgTopologyValidator
+from .validators.parquet import ParquetTopologyValidator
+from .validators.postgis import PostgisTopologyValidator
 
 """Factory class to create the appropriate TopologyValidator based on db_path"""
 
 
 class TopologyValidatorFactory:
-    def __init__(self, settings: TopoValidatorSettings):
+    def __init__(self, settings: TopoValidatorSettings) -> None:
         self.settings = settings
 
     def create_validator(
         self,
-        summary_report,
-        export_validation_data,
-        table,
-        table2=None,
-        export_layername=None,
-        where_condition=None,
-        message=None,
+        summary_report: dict[str, bool | str],
+        export_validation_data: bool,
+        table: str,
+        table2: str | None = None,
+        export_layername: str = "",
+        where_condition: str | None = None,
+        message: str | None = None,
     ):
         """
         Create and return the appropriate TopologyValidator instance based on db_path

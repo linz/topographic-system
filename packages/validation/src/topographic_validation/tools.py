@@ -7,10 +7,10 @@ import json
 class TopoValidatorTools:
     def prep_output_folder(
         self,
-        output_dir=r"c:\data\topoedit\validation-data",
-        use_date=True,
-        remove_folder=True,
-    ):
+        output_dir: str = "./topoedit/validation-data",
+        use_date: bool = True,
+        remove_folder: bool = True,
+    ) -> str:
         if use_date:
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             output_dir = os.path.join(output_dir, date_str)
@@ -20,11 +20,11 @@ class TopoValidatorTools:
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
 
-    def create_folder(self, path):
+    def create_folder(self, path: str) -> None:
         if not os.path.exists(path):
             os.makedirs(path)
 
-    def get_update_date(self, date=None, weeks=1):
+    def get_update_date(self, date: str | None = None, weeks: int = 1) -> str:
         if date is None:
             date = self.last_week(weeks)
         elif date == "today":
@@ -34,7 +34,7 @@ class TopoValidatorTools:
         where = f"update_date >= date('{date}')"
         return where
 
-    def last_week(self, number_of_weeks=1):
+    def last_week(self, number_of_weeks: int = 1) -> str:
         last_week = datetime.datetime.now() - datetime.timedelta(weeks=number_of_weeks)
         return last_week.strftime("%Y-%m-%d")
 
@@ -42,22 +42,22 @@ class TopoValidatorTools:
 class TopoValidatorSettings:
     def __init__(
         self,
-        validation_config_file=None,
-        db_path=None,
-        output_dir=None,
-        area_crs=2193,
-        export_validation_data=True,
-        export_parquet=False,
-        export_parquet_by_geometry_type=False,
-        export_gpkg=True,
-        use_date_folder=False,
-        process_queries=True,
-        process_features_on_layer=True,
-        process_self_intersections=True,
-        update_date=None,
-        weeks=None,
-        bbox=None,
-    ):
+        validation_config_file: str | None = None,
+        db_path: str | None = None,
+        output_dir: str | None = None,
+        area_crs: int = 2193,
+        export_validation_data: bool = True,
+        export_parquet: bool = False,
+        export_parquet_by_geometry_type: bool = False,
+        export_gpkg: bool = True,
+        use_date_folder: bool = False,
+        process_queries: bool = True,
+        process_features_on_layer: bool = True,
+        process_self_intersections: bool = True,
+        update_date: str | None = None,
+        weeks: int | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
+    ) -> None:
         self.validation_config_file = validation_config_file
         self.db_path = db_path
         self.output_dir = output_dir
@@ -74,7 +74,7 @@ class TopoValidatorSettings:
         self.weeks = weeks
         self.bbox = bbox
 
-    def load_validation_config(self):
+    def load_validation_config(self) -> None:
         with open(self.validation_config_file, "r") as f:
             loaded_data = json.load(f)
             self.feature_not_on_layers = loaded_data.get("feature_not_on_layers", [])
