@@ -313,7 +313,9 @@ class AbstractTopologyValidator(ABC):
             "MultiLineString",
         ]:
             buffer_distance = 0.000001
-            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(buffer_distance)  # TODO: Should this be in 2193? Note that gdf2 is being mutated here.
+            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(
+                buffer_distance
+            )  # TODO: Should this be in 2193? Note that gdf2 is being mutated here.
 
         intersecting_features = gpd.sjoin(
             self.gdf, self.gdf2, how="left", predicate=predicate
@@ -325,7 +327,11 @@ class AbstractTopologyValidator(ABC):
             col.replace("_left", "") for col in non_intersecting_features.columns
         ]
         wanted = [self.pkey, self.geom_column, "topo_id", "name"]
-        columns = list(dict.fromkeys(col for col in wanted if col in non_intersecting_features.columns))
+        columns = list(
+            dict.fromkeys(
+                col for col in wanted if col in non_intersecting_features.columns
+            )
+        )
 
         non_intersecting_features = non_intersecting_features[columns]
 
