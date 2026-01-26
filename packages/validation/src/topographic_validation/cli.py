@@ -9,8 +9,8 @@ import argparse
 import sys
 import os
 from datetime import datetime
-from .tools import TopoValidatorSettings
-from .controller import ValidateDatasetController
+from topographic_validation.tools import TopoValidatorSettings
+from topographic_validation.controller import ValidateDatasetController
 
 
 def parse_arguments() -> argparse.Namespace:

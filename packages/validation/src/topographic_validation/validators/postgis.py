@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 from sqlalchemy import create_engine
-from .base import AbstractTopologyValidator
+from topographic_validation.validators.base import AbstractTopologyValidator
 
 
 class PostgisTopologyValidator(AbstractTopologyValidator):

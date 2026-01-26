@@ -1,5 +1,5 @@
-from .tools import TopoValidatorSettings
-from .controller import ValidateDatasetController
+from topographic_validation.tools import TopoValidatorSettings
+from topographic_validation.controller import ValidateDatasetController
 
 if __name__ == "__main__":
     mode = "generic"

@@ -1,5 +1,5 @@
 import geopandas as gpd
-from .base import AbstractTopologyValidator
+from topographic_validation.validators.base import AbstractTopologyValidator
 
 
 class GpkgTopologyValidator(AbstractTopologyValidator):
