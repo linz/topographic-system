@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/linz/topographic-system/compare/kart-v0.2.0...kart-v0.3.0) (2026-01-26)
+
+
+### Features
+
+* **kart:** create geoparquet files from kart gpkg export BM-1480 ([#33](https://github.com/linz/topographic-system/issues/33)) ([0990be5](https://github.com/linz/topographic-system/commit/0990be570195c233ebfb04ba5f7a2f769c1eedf9))
+* **kart:** only export changed datasets BM-1479 ([#28](https://github.com/linz/topographic-system/issues/28)) ([6617ea4](https://github.com/linz/topographic-system/commit/6617ea4e81956dc6d2fbfcf78a0bc42ae3055e1e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from file:../shared to 0.4.0
+
 ## [0.2.0](https://github.com/linz/topographic-system/compare/kart-v0.1.0...kart-v0.2.0) (2026-01-13)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/linz/topographic-system/compare/map-v0.4.0...map-v0.5.0) (2026-01-26)
+
+
+### Features
+
+* **map:** Add derived from githash stac link for the latest stac file. BM-1472 ([#27](https://github.com/linz/topographic-system/issues/27)) ([f3fac84](https://github.com/linz/topographic-system/commit/f3fac84504141ebda61e19a2eff3557781bc6787))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from 0.3.0 to 0.4.0
+
 ## [0.4.0](https://github.com/linz/topographic-system/compare/map-v0.3.0...map-v0.4.0) (2026-01-13)
 
 

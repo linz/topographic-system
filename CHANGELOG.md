@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0](https://github.com/linz/topographic-system/compare/v0.4.0...v0.5.0) (2026-01-26)
+
+
+### Features
+
+* **kart:** create geoparquet files from kart gpkg export BM-1480 ([#33](https://github.com/linz/topographic-system/issues/33)) ([0990be5](https://github.com/linz/topographic-system/commit/0990be570195c233ebfb04ba5f7a2f769c1eedf9))
+* **kart:** only export changed datasets BM-1479 ([#28](https://github.com/linz/topographic-system/issues/28)) ([6617ea4](https://github.com/linz/topographic-system/commit/6617ea4e81956dc6d2fbfcf78a0bc42ae3055e1e))
+* **map:** Add derived from githash stac link for the latest stac file. BM-1472 ([#27](https://github.com/linz/topographic-system/issues/27)) ([f3fac84](https://github.com/linz/topographic-system/commit/f3fac84504141ebda61e19a2eff3557781bc6787))
+* **shared:** create STAC files from parquet assets BM-1477 ([#31](https://github.com/linz/topographic-system/issues/31)) ([a61f9bd](https://github.com/linz/topographic-system/commit/a61f9bde2941202ae8bf85ac8af440d055837e43))
+
 ## [0.4.0](https://github.com/linz/topographic-system/compare/v0.3.0...v0.4.0) (2026-01-13)
 
 
