@@ -67,7 +67,7 @@ class AbstractTopologyValidator(ABC):
 
     @property
     def twotable(self) -> bool:
-        return self.table2 is not None and self.table == self.table2
+        return self.table2 is not None and self.table != self.table2
 
     def set_exports(
         self,
@@ -305,17 +305,15 @@ class AbstractTopologyValidator(ABC):
     def find_not_intersections_features_between_layers(
         self, predicate: str = "intersects", buffer_lines: bool = True
     ) -> gpd.GeoDataFrame:
-        if self.gdf.empty:
+        if self.gdf.empty or self.gdf2.empty:
             return self.gdf
-        if self.gdf2.empty:
-            return self.gdf2
 
         if buffer_lines and self.gdf2.geom_type.iloc[0] in [
             "LineString",
             "MultiLineString",
         ]:
-            buffer_distance: float = 0.000001
-            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(buffer_distance)
+            buffer_distance = 0.000001
+            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(buffer_distance)  # TODO: Should this be in 2193? Note that gdf2 is being mutated here.
 
         intersecting_features = gpd.sjoin(
             self.gdf, self.gdf2, how="left", predicate=predicate
@@ -326,11 +324,8 @@ class AbstractTopologyValidator(ABC):
         non_intersecting_features.columns = [
             col.replace("_left", "") for col in non_intersecting_features.columns
         ]
-        columns: list[str] = [self.pkey, self.geom_column]
-        if self.pkey != "topo_id":
-            columns.append("topo_id")
-        if "name" in intersecting_features.columns:
-            columns.append("name")
+        wanted = [self.pkey, self.geom_column, "topo_id", "name"]
+        columns = list(dict.fromkeys(col for col in wanted if col in non_intersecting_features.columns))
 
         non_intersecting_features = non_intersecting_features[columns]
 
