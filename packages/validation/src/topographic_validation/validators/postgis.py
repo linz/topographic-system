@@ -1,6 +1,6 @@
 import geopandas as gpd
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from topographic_validation.validators.base import AbstractTopologyValidator
 
 
@@ -50,8 +50,8 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         table = self.table.split(".")[-1]  # Get the table name without schema
         schema = self.table.split(".")[0] if "." in self.table else "public"
 
-        # FIXME: secure against SQL injection
-        sql = f"""
+        sql = text(
+            """
         SELECT
             kcu.column_name
         FROM
@@ -61,11 +61,14 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         ON
             tc.constraint_name = kcu.constraint_name
         WHERE
-            tc.table_name = '{table}' AND tc.constraint_schema = '{schema}'
+            tc.table_name = :table AND tc.constraint_schema = :schema
             AND tc.constraint_type = 'PRIMARY KEY';
         """
+        )
 
-        df_table = pd.read_sql(sql, self.engine)
+        df_table = pd.read_sql(
+            sql, self.engine, params={"table": table, "schema": schema}
+        )
         if len(df_table["column_name"]) > 0:
             pk = df_table["column_name"][0]
         else:
