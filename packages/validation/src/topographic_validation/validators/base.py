@@ -1,25 +1,49 @@
 import os
-import geopandas as gpd  # type: ignore
-from shapely import Point  # type: ignore
+
+import geopandas as gpd
+from geopandas.sindex import SpatialIndex
+from shapely import Point
 import datetime
 from abc import ABC, abstractmethod
 
 
 class AbstractTopologyValidator(ABC):
+    summary_report: dict[str, bool | str]
+    export_validation_data: bool
+    db_url: str
+    table: str
+    table2: str
+    mode: str
+    layername: str
+    where_condition: str | None
+    output_dir: str
+    area_crs: int
+    message: str
+    gdf: gpd.GeoDataFrame
+    sindex: SpatialIndex | None
+    gdf2: gpd.GeoDataFrame
+    bbox: tuple[float, float, float, float] | None
+    export_parquet: bool
+    export_parquet_by_geometry_type: bool
+    export_gpkg: bool
+    pkey: str
+    source: str
+    geom_column: str
+
     def __init__(
         self,
-        summary_report,
-        export_validation_data,
-        db_url,
-        table,
-        export_layername,
-        table2=None,
-        where_condition=None,
-        bbox=None,
-        message="validation error",
-        output_dir=r"c:\data\topoedit\validation-data",
-        area_crs=2193,
-    ):
+        summary_report: dict[str, bool | str],
+        export_validation_data: bool,
+        db_url: str,
+        table: str,
+        export_layername: str,
+        table2: str | None = None,
+        where_condition: str | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
+        message: str = "validation error",
+        output_dir: str = "./topoedit/validation-data",
+        area_crs: int = 2193,
+    ) -> None:
         self.summary_report = summary_report
         self.export_validation_data = export_validation_data
         self.db_url = db_url
@@ -35,39 +59,47 @@ class AbstractTopologyValidator(ABC):
         self.output_dir = output_dir
         self.area_crs = area_crs
         self.message = message
-        self.gdf = None
+        self.gdf = gpd.GeoDataFrame()
         self.sindex = None
-        self.gdf2 = None
+        self.gdf2 = gpd.GeoDataFrame()
         self.bbox = bbox
         self.set_exports(True, False, True)
 
+    @property
+    def twotable(self) -> bool:
+        return self.table2 is not None and self.table == self.table2
+
     def set_exports(
         self,
-        export_parquet=True,
-        export_parquet_by_geometry_type=True,
-        export_gpkg=True,
-    ):
+        export_parquet: bool = True,
+        export_parquet_by_geometry_type: bool = True,
+        export_gpkg: bool = True,
+    ) -> None:
         self.export_parquet = export_parquet
         self.export_parquet_by_geometry_type = export_parquet_by_geometry_type
         self.export_gpkg = export_gpkg
 
-    def get_names(self, gdf, idx1, idx2):
+    def get_names(self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int) -> tuple[str, str]:
         if hasattr(gdf, "name"):
-            return (gdf.name.iloc[idx1], gdf.name.iloc[idx2])
+            return gdf.name.iloc[idx1], gdf.name.iloc[idx2]
         else:
-            return ("noname", "noname")
+            return "noname", "noname"
 
-    def get_feature_types(self, gdf, idx1, idx2):
+    def get_feature_types(
+        self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int
+    ) -> tuple[str, str]:
         if hasattr(gdf, "feature_type"):
-            return (gdf.feature_type.iloc[idx1], gdf.feature_type.iloc[idx2])
+            return gdf.feature_type.iloc[idx1], gdf.feature_type.iloc[idx2]
         else:
-            return ("nofeaturetype", "nofeaturetype")
+            return "nofeaturetype", "nofeaturetype"
 
-    def get_keys(self, gdf, idx1, idx2):
-        return (gdf[self.pkey].iloc[idx1], gdf[self.pkey].iloc[idx2])
+    def get_keys(
+        self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int
+    ) -> tuple[int | str, int | str]:
+        return gdf[self.pkey].iloc[idx1], gdf[self.pkey].iloc[idx2]
 
-    def get_valid_geometries(self, geometries):
-        all_intersection_geometries_valid = []
+    def get_valid_geometries(self, geometries: list[dict]) -> list[dict]:
+        all_intersection_geometries_valid: list[dict] = []
         for item in geometries:
             geom = item["geometry"]
             if isinstance(geom, str):
@@ -79,7 +111,7 @@ class AbstractTopologyValidator(ABC):
         return all_intersection_geometries_valid
 
     @staticmethod
-    def get_first_last(geom):
+    def get_first_last(geom) -> tuple[Point | None, Point | None]:
         if geom.geom_type == "LineString":
             return Point(geom.coords[0]), Point(geom.coords[-1])
         elif geom.geom_type == "MultiLineString":
@@ -90,44 +122,54 @@ class AbstractTopologyValidator(ABC):
             return None, None
 
     @staticmethod
-    def split_first_two_spaces(s):
+    def split_first_two_spaces(s: str) -> tuple[str, str, str]:
         """Find the first and second space and split into tuple of 3 objects"""
         first = s.find(" ")
         second = s.find(" ", first + 1)
         if first == -1 or second == -1:
-            return (s, "", "")
-        return (s[:first], s[first + 1 : second], s[second + 1 :])
+            return s, "", ""
+        return s[:first], s[first + 1 : second], s[second + 1 :]
 
     @abstractmethod
-    def _read_data(self):
+    def _read_data(self) -> None:
         """Read the main dataset(s) - to be implemented by concrete classes"""
         pass
 
     @abstractmethod
-    def _read_data_by_rule(self, rule_is_null=True, rule=""):
+    def _read_data_by_rule(self, rule_is_null: bool = True, rule: str = "") -> None:
         """Read dataset filtered by a rule - to be implemented by concrete classes"""
         pass
 
-    def read_datasets(self):
+    def read_datasets(self) -> None:
         """Public method to read datasets"""
         self._read_data()
 
-        if self.mode == "onetable":
-            self.sindex = self.gdf.sindex
-        else:
+        if self.twotable:
             self.sindex = self.gdf2.sindex
+        else:
+            self.sindex = self.gdf.sindex
 
-    def read_dataset_by_rule(self, rule_is_null=True, rule=""):
+    def read_dataset_by_rule(self, rule_is_null: bool = True, rule: str = "") -> None:
         """Public method to read dataset by rule"""
         self._read_data_by_rule(rule_is_null, rule)
         self.sindex = self.gdf.sindex
 
-    def find_self_intersecting(self):
+    def find_self_intersecting(
+        self,
+    ) -> tuple[bool, list[dict], list[dict], list[dict], list[dict], list[str]]:
+        if self.sindex is None:
+            raise ValueError("Spatial index is not initialized.")
+
         candidate_pairs = set()
         starttime = datetime.datetime.now()
 
-        for idx1, row in self.gdf.iterrows():
+        for label, row in self.gdf.iterrows():
+            idx1 = self.gdf.index.get_loc(label)
+            if not isinstance(idx1, int):
+                raise ValueError("Duplicate index labels are not supported")
             geom = row.get("geom", None) or row.get("geometry", None)
+            if not geom:
+                raise ValueError("Geometry column not found in GeoDataFrame")
 
             for idx2 in self.sindex.query(geom):
                 if idx1 < idx2:
@@ -144,10 +186,10 @@ class AbstractTopologyValidator(ABC):
 
         for idx1, idx2 in candidate_pairs:
             geom1 = self.gdf.geometry.iloc[idx1]
-            if self.mode == "onetable":
-                geom2 = self.gdf.geometry.iloc[idx2]
-            else:
+            if self.twotable:
                 geom2 = self.gdf2.geometry.iloc[idx2]
+            else:
+                geom2 = self.gdf.geometry.iloc[idx2]
             if geom1.intersects(geom2):
                 intersection_geom = geom1.intersection(geom2)
                 geomtypes.append(intersection_geom.geom_type)
@@ -223,9 +265,12 @@ class AbstractTopologyValidator(ABC):
         )
 
     def handle_geometry_collection(
-        self, intersection_geom, original_names, original_feature_types
-    ):
-        geoms = []
+        self,
+        intersection_geom,
+        original_names: tuple[str, str],
+        original_feature_types: tuple[str, str],
+    ) -> list[tuple[str, dict]]:
+        geoms: list[tuple[str, dict]] = []
         for geom in intersection_geom.geoms:
             entry = {
                 "geometry": self.geom_column,
@@ -235,14 +280,14 @@ class AbstractTopologyValidator(ABC):
             geoms.append((geom.geom_type, entry))
         return geoms
 
-    def find_intersections_features_between_layers(self):
+    def find_intersections_features_between_layers(self) -> gpd.GeoDataFrame:
         starttime = datetime.datetime.now()
 
         intersecting_features = gpd.sjoin(self.gdf, self.gdf2, how="inner")
         intersecting_features.columns = [
             col.replace("_left", "") for col in intersecting_features.columns
         ]
-        columns = [self.pkey, self.geom_column]
+        columns: list[str] = [self.pkey, self.geom_column]
         if self.pkey != "topo_id":
             columns.append("topo_id")
         if "name" in intersecting_features.columns:
@@ -258,8 +303,8 @@ class AbstractTopologyValidator(ABC):
         return intersecting_features
 
     def find_not_intersections_features_between_layers(
-        self, predicate="intersects", buffer_lines=True
-    ):
+        self, predicate: str = "intersects", buffer_lines: bool = True
+    ) -> gpd.GeoDataFrame:
         if self.gdf.empty:
             return self.gdf
         if self.gdf2.empty:
@@ -269,8 +314,8 @@ class AbstractTopologyValidator(ABC):
             "LineString",
             "MultiLineString",
         ]:
-            buffer_lines = 0.000001
-            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(buffer_lines)
+            buffer_distance: float = 0.000001
+            self.gdf2[self.geom_column] = self.gdf2.geometry.buffer(buffer_distance)
 
         intersecting_features = gpd.sjoin(
             self.gdf, self.gdf2, how="left", predicate=predicate
@@ -281,7 +326,7 @@ class AbstractTopologyValidator(ABC):
         non_intersecting_features.columns = [
             col.replace("_left", "") for col in non_intersecting_features.columns
         ]
-        columns = [self.pkey, self.geom_column]
+        columns: list[str] = [self.pkey, self.geom_column]
         if self.pkey != "topo_id":
             columns.append("topo_id")
         if "name" in intersecting_features.columns:
@@ -291,10 +336,15 @@ class AbstractTopologyValidator(ABC):
 
         return non_intersecting_features
 
-    def update_summary_report(self, rule):
+    def update_summary_report(self, rule: str) -> None:
         self.summary_report[rule] = True
 
-    def save_gdf(self, gdf, validation_type="topology", extended_name=""):
+    def save_gdf(
+        self,
+        gdf: gpd.GeoDataFrame,
+        validation_type: str = "topology",
+        extended_name: str = "",
+    ) -> None:
         if self.export_validation_data is False:
             return
         if gdf.empty:
@@ -329,11 +379,11 @@ class AbstractTopologyValidator(ABC):
 
     def save_intersection_outputs(
         self,
-        intersection_geometries,
-        intersection_geometries_point,
-        intersection_geometries_line,
-        intersection_geometries_multipolygon,
-    ):
+        intersection_geometries: list[dict],
+        intersection_geometries_point: list[dict],
+        intersection_geometries_line: list[dict],
+        intersection_geometries_multipolygon: list[dict],
+    ) -> None:
         if self.export_validation_data is False:
             return
         # Combine all intersection geometries into a single list
@@ -349,7 +399,7 @@ class AbstractTopologyValidator(ABC):
         )
 
         validation_date = datetime.datetime.now().strftime("%Y-%m-%d")
-        all_intersection_geometries = []
+        all_intersection_geometries: list[dict] = []
 
         if intersection_geometries:
             all_intersection_geometries += intersection_geometries
@@ -479,7 +529,7 @@ class AbstractTopologyValidator(ABC):
                         row_group_size=50000,
                     )
 
-    def run_self_intersections(self, rule_name=""):
+    def run_self_intersections(self, rule_name: str = "") -> None:
         starttime = datetime.datetime.now()
 
         self.read_datasets()
@@ -504,8 +554,12 @@ class AbstractTopologyValidator(ABC):
         print("Time taken for read_datasets:", datetime.datetime.now() - starttime)
 
     def run_layer_intersections(
-        self, rule_name="", intersect=True, buffer_lines=True, predicate="intersects"
-    ):
+        self,
+        rule_name: str = "",
+        intersect: bool = True,
+        buffer_lines: bool = True,
+        predicate: str = "intersects",
+    ) -> None:
         starttime = datetime.datetime.now()
 
         self.read_datasets()
@@ -529,7 +583,9 @@ class AbstractTopologyValidator(ABC):
             datetime.datetime.now() - starttime,
         )
 
-    def run_null_column_checks(self, rule_name="", column_name=""):
+    def run_null_column_checks(
+        self, rule_name: str = "", column_name: str = ""
+    ) -> None:
         starttime = datetime.datetime.now()
 
         self.read_dataset_by_rule(rule_is_null=True, rule=column_name)
@@ -541,7 +597,9 @@ class AbstractTopologyValidator(ABC):
             datetime.datetime.now() - starttime,
         )
 
-    def run_query_rule_checks(self, rule_name, rule, column_name):
+    def run_query_rule_checks(
+        self, rule_name: str, rule: str, column_name: str
+    ) -> None:
         starttime = datetime.datetime.now()
 
         self.read_dataset_by_rule(rule_is_null=False, rule=rule)

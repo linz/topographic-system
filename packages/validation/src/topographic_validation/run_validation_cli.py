@@ -9,11 +9,11 @@ import argparse
 import sys
 import os
 from datetime import datetime
-from topology_validator_tools import TopoValidatorSettings
-from validate_dataset_controller import ValidateDatasetController
+from .tools import TopoValidatorSettings
+from .controller import ValidateDatasetController
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Run topology validation on geospatial datasets",
@@ -144,7 +144,7 @@ Examples:
     return parser.parse_args()
 
 
-def validate_arguments(args):
+def validate_arguments(args: argparse.Namespace) -> list[str]:
     """Validate command line arguments."""
     errors = []
 
@@ -184,7 +184,7 @@ def validate_arguments(args):
     return errors
 
 
-def setup_settings(args):
+def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
     """Setup TopoValidatorSettings based on command line arguments."""
     settings = TopoValidatorSettings()
 
@@ -225,7 +225,7 @@ def setup_settings(args):
         settings.bbox = tuple(args.bbox)
 
     if args.date:
-        settings.date = args.date
+        settings.update_date = args.date
 
     if args.weeks:
         settings.weeks = args.weeks
@@ -233,7 +233,7 @@ def setup_settings(args):
     return settings
 
 
-def main():
+def main() -> None:
     """Main entry point for the CLI."""
     args = parse_arguments()
 

@@ -1,24 +1,26 @@
-import geopandas as gpd  # type: ignore
+import geopandas as gpd
 import pandas as pd
 from sqlalchemy import create_engine
-from abstract_topology_validator import AbstractTopologyValidator
+from .base import AbstractTopologyValidator
 
 
 class PostgisTopologyValidator(AbstractTopologyValidator):
     def __init__(
         self,
-        summary_report,
-        export_validation_data,
-        db_url,
-        table,
-        export_layername,
-        table2=None,
-        where_condition=None,
-        bbox=None,
-        message="validation error",
-        output_dir=r"c:\data\topoedit\validation-data",
-        area_crs=2193,
-    ):
+        summary_report: dict[str, bool | str],
+        export_validation_data: bool,
+        db_url: str,
+        table: str,
+        export_layername: str,
+        table2: str | None = None,
+        where_condition: str | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
+        message: str | None = None,
+        output_dir: str = "./topoedit/validation-data",
+        area_crs: int = 2193,
+    ) -> None:
+        if message is None:
+            message = "validation error"
         super().__init__(
             summary_report,
             export_validation_data,
@@ -43,11 +45,12 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         self.source = "postgis"
         self.geom_column = "geom"
 
-    def get_primary_key(self):
+    def get_primary_key(self) -> str:
         """Get the primary key column name from the PostgreSQL table"""
         table = self.table.split(".")[-1]  # Get the table name without schema
         schema = self.table.split(".")[0] if "." in self.table else "public"
 
+        # FIXME: secure against SQL injection
         sql = f"""
         SELECT
             kcu.column_name
@@ -69,7 +72,7 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
             pk = "id"
         return pk
 
-    def _read_data(self):
+    def _read_data(self) -> None:
         """Read data from PostGIS database"""
         where_condition = ""
         if self.where_condition:
@@ -82,13 +85,13 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         query = f"SELECT * FROM {self.table} {where_condition}"
         self.gdf = gpd.read_postgis(query, self.engine, geom_col=self.geom_column)
 
-        if self.mode == "twotable":
+        if self.twotable:
             query2 = f"SELECT * FROM {self.table2}"
             if self.bbox:
                 query2 += f" WHERE {self.geom_column} && ST_MakeEnvelope({self.bbox[0]}, {self.bbox[1]}, {self.bbox[2]}, {self.bbox[3]}, 2193)"
             self.gdf2 = gpd.read_postgis(query2, self.engine, geom_col=self.geom_column)
 
-    def _read_data_by_rule(self, rule_is_null=True, rule=""):
+    def _read_data_by_rule(self, rule_is_null: bool = True, rule: str = "") -> None:
         """Read data from PostGIS database filtered by rule"""
         if self.where_condition:
             where_condition = f" AND {self.where_condition}"
