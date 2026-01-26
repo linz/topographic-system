@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/shared-v0.3.0...shared-v0.4.0) (2026-01-26)
+
+
+### Features
+
+* **shared:** create STAC files from parquet assets BM-1477 ([#31](https://github.com/linz/topographic-system/issues/31)) ([a61f9bd](https://github.com/linz/topographic-system/commit/a61f9bde2941202ae8bf85ac8af440d055837e43))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/shared-v0.2.0...shared-v0.3.0) (2026-01-13)
 
 
