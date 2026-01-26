@@ -1,7 +1,7 @@
 import time
 import json
-from .factory import TopologyValidatorFactory
-from .tools import TopoValidatorSettings, TopoValidatorTools
+from topographic_validation.factory import TopologyValidatorFactory
+from topographic_validation.tools import TopoValidatorSettings, TopoValidatorTools
 
 
 class ValidateDatasetController:

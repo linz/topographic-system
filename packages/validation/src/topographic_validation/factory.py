@@ -1,7 +1,7 @@
-from .tools import TopoValidatorSettings
-from .validators.gpkg import GpkgTopologyValidator
-from .validators.parquet import ParquetTopologyValidator
-from .validators.postgis import PostgisTopologyValidator
+from topographic_validation.tools import TopoValidatorSettings
+from topographic_validation.validators.gpkg import GpkgTopologyValidator
+from topographic_validation.validators.parquet import ParquetTopologyValidator
+from topographic_validation.validators.postgis import PostgisTopologyValidator
 
 """Factory class to create the appropriate TopologyValidator based on db_path"""
 
