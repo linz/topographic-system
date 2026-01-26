@@ -14,7 +14,6 @@ requires-python = ">=3.12"
 dependencies = [
     "topographic-system-qgis",
     "topographic-system-validation",
-#    "topographic_validator",
 ]
 
 [dependency-groups]
@@ -31,11 +30,9 @@ dev = [
 [tool.uv.sources]
 topographic-system-qgis = { workspace = true }
 topographic-system-validation = { workspace = true }
-#topographic_validator = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/qgis", "packages/validation"]
-#members = ["packages/qgis", "packages/topographic-validator"]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
