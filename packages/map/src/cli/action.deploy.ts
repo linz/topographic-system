@@ -107,7 +107,7 @@ export const deployCommand = command({
               type: 'application/json',
             });
           } else {
-            throw new Error(`Deploy: Source stac item not found at ${sourcedStacItem.href}`);
+            throw new Error(`Multiple projects found in ${projectSeries} folder.`);
           }
         }
 
@@ -128,8 +128,9 @@ export const deployCommand = command({
 
           // Prepare assets for stac item
           const data = await fsa.read(file);
-          assets[filename.split('.').pop() || filename] = {
-            href: targetPath.href,
+          const assetKey = parse(filename).name || filename;
+          assets[assetKey] = {
+            href: assetTargetPath.href,
             type: getAssetType(filename),
             roles: ['graphic'],
             ...createFileStats(data),
