@@ -123,7 +123,9 @@ export const deployCommand = command({
           if (args.commit) {
             logger.info({ source: file.href, destination: assetTargetPath.href }, 'Deploy: Upload Asset File');
             const stream = fsa.readStream(file);
-            await fsa.write(assetTargetPath, stream);
+            await fsa.write(assetTargetPath, stream, {
+              contentType: getAssetType(filename),
+            });
           }
 
           // Prepare assets for stac item
