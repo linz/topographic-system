@@ -33,17 +33,25 @@ export const exportCommand = command({
   async handler(args) {
     logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
+    const ref = args.ref || 'FETCH_HEAD';
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:OnlyChangedDatasets');
-      const kartData = await callKartInSanitizedEnv(
-        `-C repo diff master..${args.ref} --only-feature-count exact --output-format=json`.split(' '),
-      );
+      const kartData = await callKartInSanitizedEnv([
+        '-C',
+        'repo',
+        'diff',
+        `master..${args.ref}`,
+        '-o',
+        'json',
+        '--only-feature-count',
+        'exact',
+      ]);
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
       logger.info('Export:AllDatasets');
-      const kartData = await callKartInSanitizedEnv('-C repo data ls'.split(' '));
+      const kartData = await callKartInSanitizedEnv(['-C', 'repo', 'data', 'ls']);
       datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
     }
     logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
@@ -54,7 +62,9 @@ export const exportCommand = command({
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart -C repo export ${dataset} --ref ${args.ref} ${exportDir}/${dataset}.gpkg`),
+      Q.push(() =>
+        callKartInSanitizedEnv(['-C', 'repo', 'export', dataset, '--ref', ref, `${exportDir}/${dataset}.gpkg`]),
+      ),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');

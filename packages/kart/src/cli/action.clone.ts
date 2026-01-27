@@ -2,7 +2,6 @@ import { parseEnv } from '@topographic-system/shared/src/env.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, option, optional, positional, string } from 'cmd-ts';
 import { z } from 'zod/mini';
-import { $ } from 'zx';
 
 import { callKartInSanitizedEnv } from '../utils.ts';
 
@@ -37,15 +36,15 @@ export const cloneCommand = command({
     targetUrlCredentials.username = 'x-access-token';
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
-    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout repo`;
+    await callKartInSanitizedEnv(['clone', targetUrlCredentials.href, '--no-checkout', 'repo']);
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
     if (args.ref) {
       logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
-      await callKartInSanitizedEnv(`-C repo fetch origin ${args.ref}`.split(' '));
+      await callKartInSanitizedEnv(['-C', 'repo', 'fetch', 'origin', args.ref]);
     } else {
       logger.info({ repoUrl: targetUrl.href }, 'Fetch:Default branch');
-      await callKartInSanitizedEnv(`-C repo fetch origin`.split(' '));
+      await callKartInSanitizedEnv(['-C', 'repo', 'fetch', 'origin']);
     }
     logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
   },

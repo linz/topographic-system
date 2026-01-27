@@ -25,7 +25,11 @@ run(Cli, process.argv.slice(2)).catch((err) => {
   // handle zx errors
   if (err instanceof ProcessOutput) {
     console.log(err.stderr);
+    if (err.exitCode !== 0) {
+      process.exit(err.exitCode);
+    }
   } else {
     console.log(err);
+    process.exit(1);
   }
 });

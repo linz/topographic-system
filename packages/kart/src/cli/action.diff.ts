@@ -37,7 +37,7 @@ const MAX_GEOJSON_LENGTH = 25_000;
 
 async function getTextDiff(diffRange: string[]): Promise<string> {
   try {
-    const textDiff = await callKartInSanitizedEnv(`kart -C repo diff -o "text" ${diffRange.join(' ')}`.split(' '));
+    const textDiff = await callKartInSanitizedEnv(['-C', 'repo', 'diff', ...diffRange, '-o', 'text']);
     await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
     logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
     return textDiff.stdout;
@@ -49,7 +49,7 @@ async function getTextDiff(diffRange: string[]): Promise<string> {
 
 async function getFeatureCount(diffRange: string[]): Promise<number> {
   try {
-    const countOutput = await callKartInSanitizedEnv(`-C repo diff -o "json" ${diffRange.join(' ')}`.split(' '));
+    const countOutput = await callKartInSanitizedEnv(['-C', 'repo', 'diff', ...diffRange, '-o', 'json']);
     const featureCount = countOutput.stdout.trim();
     if (!featureCount) {
       logger.warn('Diff:FeatureCount:EmptyOutput');
@@ -83,7 +83,7 @@ async function createHtmlDiff(diffRange: string[]): Promise<URL> {
   try {
     const htmlFile = 'diff/kart_diff.html';
     const htmlPath = fsa.toUrl(htmlFile);
-    await callKartInSanitizedEnv(`-C repo diff ${diffRange.join(' ')} -o "html" --output "${htmlFile}"`.split(' '));
+    await callKartInSanitizedEnv(['-C', 'repo', 'diff', ...diffRange, '-o', 'html', '--output', htmlFile]);
     const content = await readFileWithRetry(htmlPath);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
     await fsa.write(htmlPath, fixedContent);
@@ -109,7 +109,7 @@ async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, st
   try {
     const geojsonOutName = 'diff/kart_diff.geojson/';
     const geojsonPath = fsa.toUrl(geojsonOutName);
-    await $`kart -C repo diff ${diffRange} -o "geojson" --output "${geojsonOutName}"`;
+    await callKartInSanitizedEnv(['-C', 'repo', 'diff', ...diffRange, '-o', 'geojson', '--output', geojsonOutName]);
     const stat = await fsa.head(geojsonPath);
     const featureChangesPerDataset: Record<string, string> = {};
 
