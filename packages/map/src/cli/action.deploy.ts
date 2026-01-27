@@ -12,16 +12,19 @@ import { command, flag, option, optional, string } from 'cmd-ts';
 import { parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
 
+function getAssetType(filename: string): string {
+  if (filename.endsWith('.qgs')) return 'application/vnd.qgis.qgs+xml';
+  else if (filename.endsWith('.png')) return 'image/png';
+  else if (filename.endsWith('.tif') || filename.endsWith('.tiff')) return 'image/tiff';
+  else if (filename.endsWith('.pdf')) return 'application/pdf';
+  else return 'application/octet-stream';
+}
+
 export const DeployArgs = {
   project: option({
     type: UrlFolder,
     long: 'project',
     description: 'Directory containing the QGIS Project to deploy.',
-  }),
-  assets: option({
-    type: optional(UrlFolder),
-    long: 'assets',
-    description: 'Directory containing the assets to deploy.',
   }),
   target: option({
     type: UrlFolder,
@@ -56,18 +59,22 @@ export const deployCommand = command({
 
     // Find all the qgs files from the path
     const files = await fsa.toArray(fsa.list(args.project));
-    const stacItems: Map<string, StacItem[]> = new Map();
+    const stacItems: Map<string, StacItem> = new Map();
     for (const file of files) {
       if (file.href.endsWith('.qgs')) {
         const splits = file.href.split('/');
-        const projectName = parse(file.pathname).name; // example "topo50-map"
-        const projectSeries = splits[splits.length - 2]; // example "topo50"
+        const projectName = parse(file.pathname).name; // example "nz-topo50-map"
+        const projectSeries = splits[splits.length - 2]; // example "nztopo50map"
         if (projectName == null || projectSeries == null) {
           throw new Error(`Deploy: Invalid project file path ${file.href}`);
         }
+        if (stacItems.has(projectSeries)) {
+          throw new Error(`Multiple projects ${projectSeries} found at ${projectSeries} folder.`);
+        }
 
+        // Upload the QGS file to target location
+        const targetPath = new URL(`${args.tag}/${projectSeries}/${projectName}.qgs`, args.target);
         if (args.commit) {
-          const targetPath = new URL(`${args.tag}/${projectSeries}/${projectName}.qgs`, args.target);
           logger.info({ source: file.href, destination: targetPath }, 'Deploy: Upload QGS File');
           const stream = fsa.readStream(file);
           await fsa.write(targetPath, stream, {
@@ -75,17 +82,18 @@ export const deployCommand = command({
           });
         }
 
-        // Create Stac Item for the QGS file
+        // Prepare data assets for stac item
         const data = await fsa.read(file);
-        const assets = {
+        const assets: Record<string, StacAsset> = {
           extent: {
-            href: `./${projectName}.qgs`,
+            href: targetPath.href,
             type: 'application/vnd.qgis.qgs+xml',
             roles: ['data'],
             ...createFileStats(data),
           } as StacAsset,
         };
 
+        // Create Stac Item for the QGS file
         const stacItemPath = new URL(`${args.tag}/${projectSeries}/${projectName}.json`, args.target);
         logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
         // Add derived_from githash stac if provided
@@ -102,12 +110,34 @@ export const deployCommand = command({
             throw new Error(`Deploy: Source stac item not found at ${sourcedStacItem.href}`);
           }
         }
-        const item = createStacItem(projectName, stacItemLinks, assets);
-        if (stacItems.has(projectSeries) === false) {
-          stacItems.set(projectSeries, [item]);
-        } else {
-          stacItems.get(projectSeries)?.push(item);
+
+        // Found and deploy all the assets file for the project
+        const projectFolder = new URL(`/${projectSeries}/`, args.project);
+        const projectFiles = await fsa.toArray(fsa.list(projectFolder));
+        for (const file of projectFiles) {
+          const filename = file.pathname.split('/').pop();
+          if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
+          if (filename.endsWith('.qgs')) continue; // Skip project file itself
+          const assetTargetPath = new URL(`${args.tag}/${projectSeries}/${filename}`, args.target);
+          // Upload asset file
+          if (args.commit) {
+            logger.info({ source: file.href, destination: assetTargetPath.href }, 'Deploy: Upload Asset File');
+            const stream = fsa.readStream(file);
+            await fsa.write(assetTargetPath, stream);
+          }
+
+          // Prepare assets for stac item
+          const data = await fsa.read(file);
+          assets[filename.split('.').pop() || filename] = {
+            href: targetPath.href,
+            type: getAssetType(filename),
+            roles: ['graphic'],
+            ...createFileStats(data),
+          };
         }
+
+        const item = createStacItem(projectName, stacItemLinks, assets);
+        stacItems.set(projectSeries, item);
         if (args.commit) {
           logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Upload Stac Item File');
           await fsa.write(stacItemPath, JSON.stringify(item, null, 2));
@@ -118,16 +148,14 @@ export const deployCommand = command({
     if (stacItems.size === 0) throw new Error(`Deploy: No QGS project files found in ${args.project.href}`);
 
     const catalogLinks = [];
-    for (const [series, items] of stacItems) {
+    for (const [series, item] of stacItems) {
       logger.info({ mapSeries: series }, 'Deploy: Create Stac Collection');
       const collectionLinks = [];
-      for (const item of items) {
-        collectionLinks.push({
-          rel: 'item',
-          href: `./${item.id}.json`,
-          type: 'application/json',
-        });
-      }
+      collectionLinks.push({
+        rel: 'item',
+        href: `./${item.id}.json`,
+        type: 'application/json',
+      });
       if (args.githash) {
         const sourcedCollection = new URL(`${args.githash}/${series}/collection.json`, args.target);
         collectionLinks.push({
