@@ -41,7 +41,7 @@ export const exportCommand = command({
         '-C',
         'repo',
         'diff',
-        `master..${args.ref}`,
+        `master..${ref}`,
         '-o',
         'json',
         '--only-feature-count',
