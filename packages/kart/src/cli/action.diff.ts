@@ -6,6 +6,8 @@ import { command, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
 import { $ } from 'zx';
 
+import { callKartInSanitizedEnv } from '../utils.ts';
+
 type GeoJson = { type: string; features: unknown[] };
 type DiffOutput = {
   [kartFormat: string]: {
@@ -35,7 +37,7 @@ const MAX_GEOJSON_LENGTH = 25_000;
 
 async function getTextDiff(diffRange: string[]): Promise<string> {
   try {
-    const textDiff = await $`kart -C repo diff -o "text" ${diffRange}`;
+    const textDiff = await callKartInSanitizedEnv(`kart -C repo diff -o "text" ${diffRange.join(' ')}`.split(' '));
     await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
     logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
     return textDiff.stdout;
@@ -47,7 +49,7 @@ async function getTextDiff(diffRange: string[]): Promise<string> {
 
 async function getFeatureCount(diffRange: string[]): Promise<number> {
   try {
-    const countOutput = await $`kart -C repo diff -o "json" ${diffRange}`;
+    const countOutput = await callKartInSanitizedEnv(`-C repo diff -o "json" ${diffRange.join(' ')}`.split(' '));
     const featureCount = countOutput.stdout.trim();
     if (!featureCount) {
       logger.warn('Diff:FeatureCount:EmptyOutput');
@@ -81,7 +83,7 @@ async function createHtmlDiff(diffRange: string[]): Promise<URL> {
   try {
     const htmlFile = 'diff/kart_diff.html';
     const htmlPath = fsa.toUrl(htmlFile);
-    await $`kart -C repo diff ${diffRange} -o "html" --output "${htmlFile}"`;
+    await callKartInSanitizedEnv(`-C repo diff ${diffRange.join(' ')} -o "html" --output "${htmlFile}"`.split(' '));
     const content = await readFileWithRetry(htmlPath);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
     await fsa.write(htmlPath, fixedContent);
@@ -163,10 +165,6 @@ export const diffCommand = command({
     }),
   },
   async handler(args) {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
     logger.info({ ref: args.diff }, 'Diff:Start');
 
     let diffRange: string[];

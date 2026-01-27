@@ -4,6 +4,8 @@ import { command, flag, option, optional, restPositionals, string } from 'cmd-ts
 import os from 'os';
 import { $ } from 'zx';
 
+import { callKartInSanitizedEnv } from '../utils.ts';
+
 const Q = new ConcurrentQueue(os.cpus().length);
 
 type KartDiffOutput = Record<string, number>;
@@ -29,21 +31,19 @@ export const exportCommand = command({
     }),
   },
   async handler(args) {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
     logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:OnlyChangedDatasets');
-      const kartData = await $`kart -C repo diff master..${args.ref} --only-feature-count exact --output-format=json`;
+      const kartData = await callKartInSanitizedEnv(
+        `-C repo diff master..${args.ref} --only-feature-count exact --output-format=json`.split(' '),
+      );
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
       logger.info('Export:AllDatasets');
-      const kartData = await $`kart -C repo data ls`;
+      const kartData = await callKartInSanitizedEnv('-C repo data ls'.split(' '));
       datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
     }
     logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');

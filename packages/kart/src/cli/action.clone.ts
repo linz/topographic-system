@@ -4,6 +4,8 @@ import { command, option, optional, positional, string } from 'cmd-ts';
 import { z } from 'zod/mini';
 import { $ } from 'zx';
 
+import { callKartInSanitizedEnv } from '../utils.ts';
+
 const EnvParser = z.object({
   GITHUB_TOKEN: z.string(),
 });
@@ -24,10 +26,6 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
     const env = parseEnv(EnvParser);
 
     const targetUrl = new URL(args.repository, `https://github.com/`);
@@ -44,10 +42,10 @@ export const cloneCommand = command({
 
     if (args.ref) {
       logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
-      await $`kart -C repo fetch origin ${args.ref}`;
+      await callKartInSanitizedEnv(`-C repo fetch origin ${args.ref}`.split(' '));
     } else {
       logger.info({ repoUrl: targetUrl.href }, 'Fetch:Default branch');
-      await $`kart -C repo fetch origin`;
+      await callKartInSanitizedEnv(`-C repo fetch origin`.split(' '));
     }
     logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
   },
