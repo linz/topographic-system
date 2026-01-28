@@ -29,16 +29,13 @@ export const exportCommand = command({
     }),
   },
   async handler(args) {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
-    logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
+    const ref = args.ref ?? 'FETCH_HEAD'
+    logger.info({ ref: ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:OnlyChangedDatasets');
-      const kartData = await $`kart -C repo diff master..${args.ref} --only-feature-count exact --output-format=json`;
+      const kartData = await $`kart -C repo diff master..${ref} -o json --only-feature-count exact`;
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
@@ -54,7 +51,7 @@ export const exportCommand = command({
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart -C repo export ${dataset} --ref ${args.ref} ${exportDir}/${dataset}.gpkg`),
+      Q.push(() => $`kart -C repo export ${dataset} --ref ${ref} ${exportDir}/${dataset}.gpkg`),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');
