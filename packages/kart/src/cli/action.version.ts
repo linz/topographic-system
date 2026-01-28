@@ -7,12 +7,8 @@ export const versionCommand = command({
   description: 'Get kart version',
   args: {},
   async handler() {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
     const kvOut = await $`kart --version`;
     const kartVersion = kvOut.stdout.split('\n')[0]?.split(',')?.[0] ?? 'unknown';
-    logger.info({ kartVersion }, 'Using kart executable');
+    logger.info({ kartVersion }, 'kartVersion');
   },
 });
