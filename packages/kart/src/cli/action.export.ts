@@ -29,7 +29,7 @@ export const exportCommand = command({
     }),
   },
   async handler(args) {
-    const ref = args.ref ?? 'FETCH_HEAD'
+    const ref = args.ref ?? 'FETCH_HEAD';
     logger.info({ ref: ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();
