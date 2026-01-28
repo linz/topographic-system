@@ -112,7 +112,7 @@ export const deployCommand = command({
         }
 
         // Found and deploy all the assets file for the project
-        const projectFolder = new URL(`/${projectSeries}/`, args.project);
+        const projectFolder = new URL(`${projectSeries}/`, args.project);
         const projectFiles = await fsa.toArray(fsa.list(projectFolder));
         for (const file of projectFiles) {
           const filename = file.pathname.split('/').pop();
