@@ -24,6 +24,10 @@ export const ExportFormats = {
   Png: 'png',
 } as const;
 
+export function isGeoFormat(format: ExportFormat): boolean {
+  return format !== ExportFormats.Png;
+}
+
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
 
 export interface ExportOptions {
@@ -110,8 +114,9 @@ export const ProduceCommand = command({
 
     // Write outputs files to destination
     const projectName = parse(args.project.pathname).name;
-    const outputUrl = fsa.toUrl(path.join(args.output.href, `/${projectName}/${CliId}/`));
+    const outputUrl = args.output;
     for await (const file of fsa.list(tempOutput)) {
+      logger.info({ file: file.href }, 'Produce: FileFound');
       if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
         await validateTiff(file, metadatas);
       }
@@ -123,6 +128,9 @@ export const ProduceCommand = command({
       });
       logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
     }
+
+    // Skip stac creation for formats doesn't support geo referencing
+    if (!isGeoFormat(args.format)) return;
 
     // Create Stac Files and upload to destination
     const links = await createStacLink(args.source, args.project);

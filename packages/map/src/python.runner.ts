@@ -68,6 +68,8 @@ export async function qgisExport(
     throw new Error('qgis_export.py failed to run');
   }
 
+  logger.debug({ stdout: res.stdout }, 'qgis_export.py output');
+
   return parseSheetsMetadata(res.stdout);
 }
 
