@@ -424,7 +424,9 @@ class AbstractTopologyValidator(ABC):
             intersections_gdf["notes"] = ""
 
             intersections_gdf.to_parquet(
-                rf"{self.output_dir}\{self.layername}_topology_self_intersect.parquet",
+                os.path.join(
+                    self.output_dir, f"{self.layername}_topology_self_intersect.parquet"
+                ),
                 engine="pyarrow",
                 compression="zstd",
                 write_covering_bbox=True,
@@ -444,13 +446,16 @@ class AbstractTopologyValidator(ABC):
                 intersections_gdf["Area"] = projected_gdf.geometry.area
                 if self.export_gpkg:
                     intersections_gdf.to_file(
-                        rf"{self.output_dir}\topology_self_intersect.gpkg",
+                        os.path.join(self.output_dir, "topology_self_intersect.gpkg"),
                         layer=f"{self.layername}_errors_areas",
                         driver="GPKG",
                     )
                 if self.export_parquet_by_geometry_type:
                     intersections_gdf.to_parquet(
-                        rf"{self.output_dir}\{self.layername}_topology_self_intersect_poly.parquet",
+                        os.path.join(
+                            self.output_dir,
+                            f"{self.layername}_topology_self_intersect_poly.parquet",
+                        ),
                         engine="pyarrow",
                         compression="zstd",
                         write_covering_bbox=True,
@@ -468,13 +473,16 @@ class AbstractTopologyValidator(ABC):
 
                 if self.export_gpkg:
                     intersections_gdf.to_file(
-                        rf"{self.output_dir}\topology_self_intersect.gpkg",
+                        os.path.join(self.output_dir, "topology_self_intersect.gpkg"),
                         layer=f"{self.layername}_errors_points",
                         driver="GPKG",
                     )
                 if self.export_parquet_by_geometry_type:
                     intersections_gdf.to_parquet(
-                        rf"{self.output_dir}\{self.layername}_topology_self_intersect_point.parquet",
+                        os.path.join(
+                            self.output_dir,
+                            f"{self.layername}_topology_self_intersect_point.parquet",
+                        ),
                         engine="pyarrow",
                         compression="zstd",
                         write_covering_bbox=True,
@@ -492,13 +500,16 @@ class AbstractTopologyValidator(ABC):
 
                 if self.export_gpkg:
                     intersections_gdf.to_file(
-                        rf"{self.output_dir}\topology_self_intersect.gpkg",
+                        os.path.join(self.output_dir, "topology_self_intersect.gpkg"),
                         layer=f"{self.layername}_errors_lines",
                         driver="GPKG",
                     )
                 if self.export_parquet_by_geometry_type:
                     intersections_gdf.to_parquet(
-                        rf"{self.output_dir}\{self.layername}_topology_self_intersect_line.parquet",
+                        os.path.join(
+                            self.output_dir,
+                            f"{self.layername}_topology_self_intersect_line.parquet",
+                        ),
                         engine="pyarrow",
                         compression="zstd",
                         write_covering_bbox=True,
@@ -517,13 +528,16 @@ class AbstractTopologyValidator(ABC):
 
                 if self.export_gpkg:
                     intersections_gdf.to_file(
-                        rf"{self.output_dir}\topology_self_intersect.gpkg",
+                        os.path.join(self.output_dir, "topology_self_intersect.gpkg"),
                         layer=f"{self.layername}_errors_multipolygon",
                         driver="GPKG",
                     )
                 if self.export_parquet_by_geometry_type:
                     intersections_gdf.to_parquet(
-                        rf"{self.output_dir}\{self.layername}_topology_self_intersect_multipolygon.parquet",
+                        os.path.join(
+                            self.output_dir,
+                            f"{self.layername}_topology_self_intersect_multipolygon.parquet",
+                        ),
                         engine="pyarrow",
                         compression="zstd",
                         write_covering_bbox=True,

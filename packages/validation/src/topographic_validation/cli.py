@@ -282,6 +282,7 @@ def main() -> None:
         sys.exit(130)
     except Exception as e:
         print(f"Error during validation: {e}", file=sys.stderr)
+        raise
         sys.exit(1)
 
 
