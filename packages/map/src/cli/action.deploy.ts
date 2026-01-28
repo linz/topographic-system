@@ -115,7 +115,7 @@ export const deployCommand = command({
         const projectFolder = new URL(`${projectSeries}/`, args.project);
         const projectFiles = await fsa.toArray(fsa.list(projectFolder));
         for (const file of projectFiles) {
-          const filename = file.pathname.split('/').pop();
+          const filename = file.href.split('/').pop();
           if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
           if (filename.endsWith('.qgs')) continue; // Skip project file itself
           const assetTargetPath = new URL(`${args.tag}/${projectSeries}/${filename}`, args.target);
