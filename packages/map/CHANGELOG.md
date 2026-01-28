@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/linz/topographic-system/compare/map-v0.5.0...map-v0.5.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* produce output location BM-1457 ([#32](https://github.com/linz/topographic-system/issues/32)) ([4ce25f9](https://github.com/linz/topographic-system/commit/4ce25f9a7a83d262826a9bf0efd90deefd7e0ff1))
+
 ## [0.5.0](https://github.com/linz/topographic-system/compare/map-v0.4.0...map-v0.5.0) (2026-01-26)
 
 
