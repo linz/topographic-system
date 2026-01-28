@@ -63,7 +63,7 @@ export const deployCommand = command({
     for (const file of files) {
       if (file.href.endsWith('.qgs')) {
         const splits = file.href.split('/');
-        const projectName = parse(file.pathname).name; // example "nz-topo50-map"
+        const projectName = parse(file.href).name; // example "nz-topo50-map"
         const projectSeries = splits[splits.length - 2]; // example "nztopo50map"
         if (projectName == null || projectSeries == null) {
           throw new Error(`Deploy: Invalid project file path ${file.href}`);
