@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/linz/topographic-system/compare/kart-v0.3.0...kart-v0.3.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* **kart:** do not use kart helper BM-1492 ([#36](https://github.com/linz/topographic-system/issues/36)) ([709e2ce](https://github.com/linz/topographic-system/commit/709e2ce546480ba2b62f5afad723c3f4d41ddee2))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/kart-v0.2.0...kart-v0.3.0) (2026-01-26)
 
 
