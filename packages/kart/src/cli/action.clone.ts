@@ -24,9 +24,6 @@ export const cloneCommand = command({
   },
   async handler(args) {
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
 
     const env = parseEnv(EnvParser);
 
@@ -39,7 +36,7 @@ export const cloneCommand = command({
     targetUrlCredentials.username = 'x-access-token';
     targetUrlCredentials.password = env.GITHUB_TOKEN;
 
-    await $`GIT_TERMINAL_PROMPT=0 kart clone ${targetUrlCredentials.href} --no-checkout repo`;
+    await $`kart clone ${targetUrlCredentials.href} --no-checkout repo`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
     if (args.ref) {
