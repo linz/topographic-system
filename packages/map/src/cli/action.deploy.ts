@@ -9,8 +9,9 @@ import {
 } from '@topographic-system/shared/src/stac.ts';
 import { UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import { parse } from 'path';
+import path, { parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
+import { pathToFileURL } from 'url';
 
 function getAssetType(filename: string): string {
   if (filename.endsWith('.qgs')) return 'application/vnd.qgis.qgs+xml';
@@ -83,7 +84,7 @@ export const deployCommand = command({
         }
 
         // Prepare data assets for stac item
-        const data = await fsa.read(file);
+        const data = await fsa.read(pathToFileURL(file.href));
         const assets: Record<string, StacAsset> = {
           extent: {
             href: targetPath.href,
@@ -129,7 +130,7 @@ export const deployCommand = command({
           }
 
           // Prepare assets for stac item
-          const data = await fsa.read(file);
+          const data = await fsa.read(pathToFileURL(file.href));
           const assetKey = parse(filename).name || filename;
           assets[assetKey] = {
             href: assetTargetPath.href,
