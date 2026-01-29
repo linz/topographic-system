@@ -462,13 +462,13 @@ function addChildDataToParent(
   const expectedRel = childIsItem ? 'item' : 'child';
   const expectedType = childIsItem ? 'application/geo+json' : 'application/json';
   const newLinkStats = createFileStats(JSON.stringify(stacChild, null, 2));
-  const newLinkToChild = <StacLink>{
+  const newLinkToChild = {
     rel: expectedRel,
     href: stacChildFile,
     type: expectedType,
     ...newLinkStats,
     title: stacChild.title,
-  };
+  } as StacLink;
 
   const oldLinkToChild = stacParent.links.find(
     (link) => link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType,
