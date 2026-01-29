@@ -9,16 +9,15 @@ import {
 } from '@topographic-system/shared/src/stac.ts';
 import { UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import { parse } from 'path';
+import { basename, parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
-import { pathToFileURL } from 'url';
 
 function getAssetType(filename: string): string {
   if (filename.endsWith('.qgs')) return 'application/vnd.qgis.qgs+xml';
-  else if (filename.endsWith('.png')) return 'image/png';
-  else if (filename.endsWith('.tif') || filename.endsWith('.tiff')) return 'image/tiff';
-  else if (filename.endsWith('.pdf')) return 'application/pdf';
-  else return 'application/octet-stream';
+  if (filename.endsWith('.png')) return 'image/png';
+  if (filename.endsWith('.tif') || filename.endsWith('.tiff')) return 'image/tiff';
+  if (filename.endsWith('.pdf')) return 'application/pdf';
+  return 'application/octet-stream';
 }
 
 export const DeployArgs = {
@@ -64,7 +63,7 @@ export const deployCommand = command({
     for (const file of files) {
       if (file.href.endsWith('.qgs')) {
         const splits = file.href.split('/');
-        const projectName = parse(file.href).name; // example "nz-topo50-map"
+        const projectName = basename(file.href, '.qgs'); // example "nz-topo50-map"
         const projectSeries = splits[splits.length - 2]; // example "nztopo50map"
         if (projectName == null || projectSeries == null) {
           throw new Error(`Deploy: Invalid project file path ${file.href}`);
@@ -84,7 +83,7 @@ export const deployCommand = command({
         }
 
         // Prepare data assets for stac item
-        const data = await fsa.read(pathToFileURL(file.pathname));
+        const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
           extent: {
             href: targetPath.href,
@@ -130,8 +129,8 @@ export const deployCommand = command({
           }
 
           // Prepare assets for stac item
-          const data = await fsa.read(pathToFileURL(file.pathname));
-          const assetKey = parse(filename).name || filename;
+          const data = await fsa.read(file); // nztopo50map/nz-topo50-map#10.png
+          const assetKey = parse(filename).name ?? filename;
           assets[assetKey] = {
             href: assetTargetPath.href,
             type: getAssetType(filename),
