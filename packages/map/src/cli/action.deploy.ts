@@ -84,7 +84,7 @@ export const deployCommand = command({
         }
 
         // Prepare data assets for stac item
-        const data = await fsa.read(pathToFileURL(file.href));
+        const data = await fsa.read(pathToFileURL(file.pathname));
         const assets: Record<string, StacAsset> = {
           extent: {
             href: targetPath.href,
@@ -130,7 +130,7 @@ export const deployCommand = command({
           }
 
           // Prepare assets for stac item
-          const data = await fsa.read(pathToFileURL(file.href));
+          const data = await fsa.read(pathToFileURL(file.pathname));
           const assetKey = parse(filename).name || filename;
           assets[assetKey] = {
             href: assetTargetPath.href,
