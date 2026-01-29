@@ -9,7 +9,7 @@ import {
 } from '@topographic-system/shared/src/stac.ts';
 import { UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import path, { parse } from 'path';
+import { parse } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
 import { pathToFileURL } from 'url';
 
