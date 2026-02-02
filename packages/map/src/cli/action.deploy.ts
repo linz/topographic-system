@@ -6,18 +6,40 @@ import {
   createStacCatalog,
   createStacCollection,
   createStacItem,
+  getDataFromCatalog,
 } from '@topographic-system/shared/src/stac.ts';
-import { UrlFolder } from '@topographic-system/shared/src/url.ts';
+import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import { basename, parse } from 'path';
+import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
+import tar from 'tar-stream';
 
-function getAssetType(filename: string): string {
-  if (filename.endsWith('.qgs')) return 'application/vnd.qgis.qgs+xml';
-  if (filename.endsWith('.png')) return 'image/png';
-  if (filename.endsWith('.tif') || filename.endsWith('.tiff')) return 'image/tiff';
-  if (filename.endsWith('.pdf')) return 'application/pdf';
-  return 'application/octet-stream';
+import { listSourceLayers } from '../python.runner.ts';
+
+// Deploy all assets as a single tar file
+async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL> {
+  const tarPack = tar.pack();
+
+  const projectFiles = await fsa.toArray(fsa.list(projectFolder));
+  for (const file of projectFiles) {
+    const filename = basename(file.href);
+    if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
+    if (filename.endsWith('.qgs')) continue; // Skip project file
+
+    // Add file to tar
+    const data = await fsa.read(file);
+    tarPack.entry({ name: filename, size: data.byteLength }, data);
+  }
+
+  tarPack.finalize(); // Close tar stream
+
+  if (commit) {
+    // Convert tarPack (tar-stream) to a readable stream for fsa.write
+    await fsa.write(tarTargetPath, tarPack, { contentType: 'application/x-tar' });
+    logger.info({ destination: tarTargetPath.href }, 'Deploy: Upload Tar Asset File');
+  }
+
+  return tarTargetPath;
 }
 
 export const DeployArgs = {
@@ -31,7 +53,19 @@ export const DeployArgs = {
     long: 'target',
     description: 'Target s3 location to deploy the files.',
   }),
-  tag: option({
+  source: option({
+    type: Url,
+    long: 'source',
+    description: 'Source data catalog.json that contains the layers.',
+  }),
+  dataTag: option({
+    type: optional(string),
+    long: 'data-tag',
+    defaultValue: () => 'latest',
+    defaultValueIsSerializable: true,
+    description: 'data tag to use when looking for source layers. Default to latest if not provided.',
+  }),
+  deployTag: option({
     type: string,
     long: 'tag',
     description: 'Tag to apply to the deployed items, could be githash, release version, etc.',
@@ -72,8 +106,22 @@ export const deployCommand = command({
           throw new Error(`Multiple projects ${projectSeries} found at ${projectSeries} folder.`);
         }
 
+        // Find all the source layers for project
+        const layers = await listSourceLayers(file);
+        if (layers.length === 0) throw new Error(`No source layers found in project ${file.href}`);
+        // Prepare source layer links for stac item
+        const stacItemLinks = [];
+        for (const layer of layers) {
+          const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
+          stacItemLinks.push({
+            rel: 'dataset',
+            href: layerCollection.href,
+            type: 'application/json',
+          });
+        }
+
         // Upload the QGS file to target location
-        const targetPath = new URL(`${args.tag}/${projectSeries}/${projectName}.qgs`, args.target);
+        const targetPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.qgs`, args.target);
         if (args.commit) {
           logger.info({ source: file.href, destination: targetPath }, 'Deploy: Upload QGS File');
           const stream = fsa.readStream(file);
@@ -82,10 +130,20 @@ export const deployCommand = command({
           });
         }
 
+        // Found and deploy all the assets file for the project as a tar file
+        const projectFolder = new URL(`${projectSeries}/`, args.project);
+        const targetAssetPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.tar`, args.target);
+        const assetLocation = await deployAssetsAsTar(projectFolder, targetAssetPath, args.commit);
+        stacItemLinks.push({
+          rel: 'assets',
+          href: assetLocation.href,
+          type: 'application/x-tar',
+        });
+
         // Prepare data assets for stac item
         const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
-          extent: {
+          project: {
             href: targetPath.href,
             type: 'application/vnd.qgis.qgs+xml',
             roles: ['data'],
@@ -93,11 +151,7 @@ export const deployCommand = command({
           } as StacAsset,
         };
 
-        // Create Stac Item for the QGS file
-        const stacItemPath = new URL(`${args.tag}/${projectSeries}/${projectName}.json`, args.target);
-        logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
         // Add derived_from githash stac if provided
-        const stacItemLinks = [];
         if (args.githash) {
           const sourcedStacItem = new URL(`${args.githash}/${projectSeries}/${projectName}.json`, args.target);
           if (await fsa.exists(sourcedStacItem)) {
@@ -111,34 +165,9 @@ export const deployCommand = command({
           }
         }
 
-        // Found and deploy all the assets file for the project
-        const projectFolder = new URL(`${projectSeries}/`, args.project);
-        const projectFiles = await fsa.toArray(fsa.list(projectFolder));
-        for (const file of projectFiles) {
-          const filename = file.href.split('/').pop();
-          if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
-          if (filename.endsWith('.qgs')) continue; // Skip project file itself
-          const assetTargetPath = new URL(`${args.tag}/${projectSeries}/${filename}`, args.target);
-          // Upload asset file
-          if (args.commit) {
-            logger.info({ source: file.href, destination: assetTargetPath.href }, 'Deploy: Upload Asset File');
-            const stream = fsa.readStream(file);
-            await fsa.write(assetTargetPath, stream, {
-              contentType: getAssetType(filename),
-            });
-          }
-
-          // Prepare assets for stac item
-          const data = await fsa.read(file); // nztopo50map/nz-topo50-map#10.png
-          const assetKey = parse(filename).name ?? filename;
-          assets[assetKey] = {
-            href: assetTargetPath.href,
-            type: getAssetType(filename),
-            roles: ['graphic'],
-            ...createFileStats(data),
-          };
-        }
-
+        // Create Stac Item for the QGS file
+        const stacItemPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.json`, args.target);
+        logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
         const item = createStacItem(projectName, stacItemLinks, assets);
         stacItems.set(projectSeries, item);
         if (args.commit) {
@@ -175,14 +204,14 @@ export const deployCommand = command({
         type: 'application/json',
       });
       if (args.commit) {
-        const stacCollectionPath = new URL(`${args.tag}/${series}/collection.json`, args.target);
+        const stacCollectionPath = new URL(`${args.deployTag}/${series}/collection.json`, args.target);
         logger.info({ mapSeries: series, destination: stacCollectionPath.href }, 'Deploy: Upload Stac Collections');
         await fsa.write(stacCollectionPath, JSON.stringify(collection, null, 2));
       }
     }
 
     logger.info({ project: args.project }, 'Deploy: Create Stac Catalog');
-    const catalogPath = new URL(`${args.tag}/catalog.json`, args.target);
+    const catalogPath = new URL(`${args.deployTag}/catalog.json`, args.target);
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
 
