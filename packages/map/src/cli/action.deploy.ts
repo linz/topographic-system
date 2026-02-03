@@ -113,6 +113,7 @@ export const deployCommand = command({
         const stacItemLinks = [];
         for (const layer of layers) {
           if (layer === 'contour') continue;
+          if (layer.startsWith('nz_topo')) continue;
           const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
           stacItemLinks.push({
             rel: 'dataset',
