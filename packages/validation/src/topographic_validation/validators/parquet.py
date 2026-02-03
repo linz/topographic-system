@@ -45,6 +45,7 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
 
     def _read_data(self) -> None:
         """Read data from Parquet files"""
+        print(f"Reading data from Parquet files in: {self.db_url}")
         file = os.path.join(self.db_url, f"{self.table}.parquet")
 
         gdf = gpd.read_parquet(file, bbox=self.bbox)

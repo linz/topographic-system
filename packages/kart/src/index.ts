@@ -6,6 +6,7 @@ import { diffCommand } from './cli/action.diff.ts';
 import { exportCommand } from './cli/action.export.ts';
 import { commentCommand } from './cli/action.pr.comment.ts';
 import { parquetCommand } from './cli/action.to.parquet.ts';
+import { validateCommand } from './cli/action.validate.ts';
 import { versionCommand } from './cli/action.version.ts';
 
 const Cli = subcommands({
@@ -17,6 +18,7 @@ const Cli = subcommands({
     export: exportCommand,
     'to-parquet': parquetCommand,
     'pr-comment': commentCommand,
+    validate: validateCommand,
     version: versionCommand,
   },
 });
