@@ -112,6 +112,7 @@ export const deployCommand = command({
         // Prepare source layer links for stac item
         const stacItemLinks = [];
         for (const layer of layers) {
+          if (layer === 'contour') continue;
           const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
           stacItemLinks.push({
             rel: 'dataset',
