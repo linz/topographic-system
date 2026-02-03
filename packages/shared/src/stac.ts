@@ -294,6 +294,7 @@ export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFi
   let stacItem = await createStacItemFromFileName(stacItemFile);
   stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
   stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
+  await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
   await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, null, 2));
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
   await upsertChildToCatalog(stacCollectionFile);
