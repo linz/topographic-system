@@ -11,30 +11,33 @@ import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
+import { PassThrough } from 'stream';
 import tar from 'tar-stream';
 
 import { listSourceLayers } from '../python.runner.ts';
 
-// Deploy all assets as a single tar file
 async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL> {
   const tarPack = tar.pack();
+  const pass = new PassThrough();
+  tarPack.pipe(pass);
 
   const projectFiles = await fsa.toArray(fsa.list(projectFolder));
   for (const file of projectFiles) {
     const filename = basename(file.href);
     if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
-    if (filename.endsWith('.qgs')) continue; // Skip project file
+    if (filename.endsWith('.qgs')) continue;
 
-    // Add file to tar
     const data = await fsa.read(file);
     tarPack.entry({ name: filename, size: data.byteLength }, data);
   }
 
-  tarPack.finalize(); // Close tar stream
+  tarPack.finalize();
 
   if (commit) {
-    // Convert tarPack (tar-stream) to a readable stream for fsa.write
-    await fsa.write(tarTargetPath, tarPack, { contentType: 'application/x-tar' });
+    await fsa.write(tarTargetPath, pass, {
+      contentType: 'application/x-tar',
+    });
+
     logger.info({ destination: tarTargetPath.href }, 'Deploy: Upload Tar Asset File');
   }
 
