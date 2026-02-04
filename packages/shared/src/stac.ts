@@ -462,13 +462,13 @@ function addChildDataToParent(
   const expectedRel = childIsItem ? 'item' : 'child';
   const expectedType = childIsItem ? 'application/geo+json' : 'application/json';
   const newLinkStats = createFileStats(JSON.stringify(stacChild, null, 2));
-  const newLinkToChild = <StacLink>{
+  const newLinkToChild = {
     rel: expectedRel,
     href: stacChildFile,
     type: expectedType,
     ...newLinkStats,
     title: stacChild.title,
-  };
+  } as StacLink;
 
   const oldLinkToChild = stacParent.links.find(
     (link) => link.href === stacChildFile && link.rel === expectedRel && link.type === expectedType,
@@ -519,4 +519,22 @@ function addExtentFromItemToCollection(stacCollection: StacCollection, stacItem:
     ]);
   }
   return stacCollection;
+}
+
+export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
+  if (stacUrl.href.endsWith('catalog.json')) {
+    const catalog = await fsa.readJson<StacCatalog>(stacUrl);
+    const chilrdLink = catalog.links.find((link) => link.rel === 'child' && link.href.includes(`/${layerName}/`));
+    if (!chilrdLink) throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
+
+    // Recursively search in child catalog
+    if (chilrdLink.href.endsWith('catalog.json')) return getDataFromCatalog(new URL(chilrdLink.href), layerName, tag);
+
+    // Found collection link
+    if (chilrdLink.href.endsWith('collection.json')) {
+      if (chilrdLink.href.includes(`/${tag}/`)) return new URL(chilrdLink.href);
+    }
+  }
+
+  throw new Error(`Layer ${layerName} with tag ${tag} not found in catalog ${stacUrl.href}`);
 }

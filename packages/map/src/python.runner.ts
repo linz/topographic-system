@@ -1,4 +1,5 @@
 import { Command } from '@linzjs/docker-command';
+import path from 'path';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import { logger } from '../../shared/src/log.ts';
@@ -89,4 +90,27 @@ export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map
   }
 
   return JSON.parse(res.stdout) as string[];
+}
+
+/**
+ * Running python commands for list_source_layers
+ */
+export async function listSourceLayers(input: URL): Promise<string[]> {
+  const cmd = Command.create('python3');
+
+  cmd.args.push('qgis/src/list_source_layers.py');
+  cmd.args.push(toRelative(input));
+  const res = await cmd.run();
+  logger.debug('list_source_layers.py ' + cmd.args.join(' '));
+
+  if (res.exitCode !== 0) {
+    logger.fatal({ list_source_layers: res }, 'Failure');
+    throw new Error('list_source_layers.py failed to run');
+  }
+
+  // Get all layers names and remove duplicates
+  const layerPaths = JSON.parse(res.stdout) as string[];
+  const layerNames = Array.from(new Set(layerPaths.map((p) => path.basename(p, path.extname(p)))));
+
+  return layerNames;
 }
