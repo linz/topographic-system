@@ -1,55 +1,17 @@
 import { fsa } from '@chunkd/fs';
-import { CliDate, CliInfo } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { RootCatalogFile, upsertAssetToItem, upsertItemToCollection } from '@topographic-system/shared/src/stac.ts';
+import { upsertAssetToItem, upsertItemToCollection } from '@topographic-system/shared/src/stac.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
 import { basename } from 'path';
 import { $ } from 'zx';
 
+import { determineAssetLocation, is_merge_to_master, is_release, recursiveFileSearch } from '../util.ts';
+
 const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
-
-function determineParquetAssetLocation(dataset: string, output: string, tag?: string): URL {
-  const repo = $.env['GITHUB_REPOSITORY']?.split('/')[1] ?? 'unknown-repo';
-  if (!tag) {
-    if (is_merge_to_master() || is_release()) {
-      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate.split('T')[0]}`;
-    } else if (is_pr()) {
-      const ref = $.env['GITHUB_REF_NAME'] || '';
-      const prMatch = ref.match(/(\d+)\/merge/);
-      if (prMatch) {
-        tag = `pr-${prMatch[1]}`;
-      } else {
-        tag = `pr-unknown`;
-      }
-    } else {
-      tag = `dev-${CliInfo.hash}`;
-    }
-  }
-  logger.info(
-    { repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() },
-    'DetermineS3Location:ContextVars',
-  );
-  return new URL(`${repo}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
-}
-
-function is_pr(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  return ref.startsWith('refs/pull/');
-}
-
-function is_merge_to_master(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  return !is_pr() && ref.endsWith('/master');
-}
-
-function is_release(): boolean {
-  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
-  return is_merge_to_master() && workflow.toLowerCase().includes('release');
-}
 
 export const parquetCommand = command({
   name: 'to-parquet',
@@ -98,25 +60,10 @@ export const parquetCommand = command({
       'ToParquet:Start',
     );
 
-    const gpkgFilesToProcess: string[] = [];
     const sourceFileArguments = args.sourceFiles.length > 0 ? args.sourceFiles : ['./export'];
-
-    for (const sourceFileArgument of sourceFileArguments) {
-      const sourcePath = fsa.toUrl(sourceFileArgument);
-      const stat = await fsa.head(sourcePath);
-      if (stat && stat.isDirectory) {
-        const filePaths = await fsa.toArray(fsa.list(sourcePath, { recursive: true }));
-        for (const filePath of filePaths) {
-          if (filePath.href.endsWith('.gpkg')) {
-            gpkgFilesToProcess.push(filePath.pathname);
-          }
-        }
-      } else if (stat) {
-        if (sourcePath.href.endsWith('.gpkg')) {
-          gpkgFilesToProcess.push(sourcePath.pathname);
-        }
-      }
-    }
+    const gpkgFilesToProcess = (
+      await Promise.all(sourceFileArguments.map((sourceFile) => recursiveFileSearch(fsa.toUrl(sourceFile), '.gpkg')))
+    ).flat();
 
     if (gpkgFilesToProcess.length === 0) {
       logger.info('ToParquet:No files to process');
@@ -125,17 +72,17 @@ export const parquetCommand = command({
 
     const parquetDir = './parquet';
     await $`mkdir -p ${parquetDir}`;
-    logger.info({ gpkgFilesToProcess }, 'ToParquet:Processing');
+    logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
-        const dataset = basename(gpkgFile, '.gpkg');
+        const dataset = basename(gpkgFile.href, '.gpkg');
         const parquetFile = `${parquetDir}/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
           '-f',
           'Parquet',
           parquetFile,
-          gpkgFile,
+          gpkgFile.pathname,
           '-dsco',
           `COMPRESSION=${args.compression}`,
           '-dsco',
@@ -147,8 +94,8 @@ export const parquetCommand = command({
           command.push('-dsco', 'SORT_BY_BBOX=YES');
         }
         await $`${command}`;
-        const assetFile = determineParquetAssetLocation(dataset, parquetFile);
-        logger.info({ assetFile }, 'ToParquet:UploadingParquet');
+        const assetFile = determineAssetLocation('data', dataset, parquetFile);
+        logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
