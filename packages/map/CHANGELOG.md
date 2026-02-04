@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.0](https://github.com/linz/topographic-system/compare/map-v0.5.0...map-v0.6.0) (2026-02-04)
+
+
+### Features
+
+* **map:** Define the assets and push to s3 as Tar file. BM-1460 ([#35](https://github.com/linz/topographic-system/issues/35)) ([e897619](https://github.com/linz/topographic-system/commit/e897619f419bd32171207a2bd027fa90de091c41))
+
+
+### Bug Fixes
+
+* produce output location BM-1457 ([#32](https://github.com/linz/topographic-system/issues/32)) ([4ce25f9](https://github.com/linz/topographic-system/commit/4ce25f9a7a83d262826a9bf0efd90deefd7e0ff1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from 0.4.0 to 0.5.0
+
 ## [0.5.0](https://github.com/linz/topographic-system/compare/map-v0.4.0...map-v0.5.0) (2026-01-26)
 
 

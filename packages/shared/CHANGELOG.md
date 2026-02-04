@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/linz/topographic-system/compare/shared-v0.4.0...shared-v0.5.0) (2026-02-04)
+
+
+### Features
+
+* **map:** Define the assets and push to s3 as Tar file. BM-1460 ([#35](https://github.com/linz/topographic-system/issues/35)) ([e897619](https://github.com/linz/topographic-system/commit/e897619f419bd32171207a2bd027fa90de091c41))
+
 ## [0.4.0](https://github.com/linz/topographic-system/compare/shared-v0.3.0...shared-v0.4.0) (2026-01-26)
 
 
