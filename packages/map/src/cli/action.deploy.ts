@@ -114,8 +114,11 @@ export const deployCommand = command({
         // Prepare source layer links for stac item
         const stacItemLinks = [];
         for (const layer of layers) {
+          // TODO: Skip contour and nz_topo layers for now
+          // Delete once the data is ready
           if (layer === 'contour') continue;
           if (layer.startsWith('nz_topo')) continue;
+
           const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
           stacItemLinks.push({
             rel: 'dataset',
