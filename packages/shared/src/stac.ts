@@ -273,6 +273,96 @@ export function createStacCatalog(title: string, description: string, links: Sta
   );
   return stacCatalog;
 }
+//
+// function createBasicStacAsset(): StacAsset {
+//   return {
+//     href: '',
+//     type: MediaTypes[''],
+//     roles: [Roles['']],
+//   };
+// }
+//
+// function createBasicStacItem(): StacItem {
+//   return {
+//     id: '',
+//     type: 'Feature',
+//     collection: CliId,
+//     stac_version: '1.0.0',
+//     stac_extensions: [],
+//     geometry: null,
+//     bbox: [],
+//     links: [],
+//     properties: {
+//       datetime: CliDate,
+//       // TODO: Consider using STAC Processing extension?
+//       'linz_topographic_system:generated': {
+//         package: CliInfo.package,
+//         hash: CliInfo.hash,
+//         version: CliInfo.version,
+//         datetime: CliDate,
+//       },
+//     },
+//     assets: {},
+//   };
+// }
+//
+// function createBasicStacCollection(): StacCollection {
+//   return {
+//     type: 'Collection',
+//     stac_version: '1.0.0',
+//     id: 'sc_' + CliId,
+//     description: '',
+//     extent: {
+//       spatial: {
+//         bbox: [[]],
+//       },
+//       temporal: {
+//         interval: [['', '']],
+//       },
+//     },
+//     links: [],
+//     license: 'CC-BY-4.0',
+//     created: CliDate,
+//     updated: CliDate,
+//     providers: Providers,
+//     stac_extensions: [],
+//     summaries: {},
+//   };
+// }
+//
+// function createBasicStacCatalog(): StacCatalog {
+//   return {
+//     type: 'Catalog',
+//     stac_version: '1.0.0',
+//     stac_extensions: [],
+//     id: 'sl_' + CliId,
+//     title: '',
+//     description: '',
+//     links: [],
+//     created: CliDate,
+//     updated: CliDate,
+//   };
+// }
+//
+// async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog> {
+//   if (await fsa.exists(stacFile)) {
+//     return await fsa.readJson<StacCatalog>(stacFile);
+//   }
+//   const stacCatalog = createBasicStacCatalog();
+//   stacCatalog.id = await readOrCreateStacIdFromFileName(stacFile);
+//   stacCatalog.description = `Catalog of${urlToTitle(stacFile)}`;
+//   stacCatalog.links.push(
+//     { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+//     { rel: 'self', href: stacFile.href, type: 'application/json' },
+//   );
+//
+//   if (getSelfLink(stacCatalog) === RootCatalogFile.href) {
+//     stacCatalog.title = 'LINZ Topographic Data Catalog';
+//     stacCatalog.description = 'Root Catalog of LINZ Topographic Data';
+//   }
+//
+//   return stacCatalog;
+// }
 
 export async function createStacItemFromFileName(stacFile: URL): Promise<StacItem> {
   if (await fsa.exists(stacFile)) {
@@ -692,4 +782,22 @@ async function upsertChildToCatalog(stacChildFile: URL, stacCatalogFile?: URL): 
   );
   await upsertChildToCatalog(stacCatalogFile);
   return stacCatalogFile;
+}
+
+export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
+  if (stacUrl.href.endsWith('catalog.json')) {
+    const catalog = await fsa.readJson<StacCatalog>(stacUrl);
+    const chilrdLink = catalog.links.find((link) => link.rel === 'child' && link.href.includes(`/${layerName}/`));
+    if (!chilrdLink) throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
+
+    // Recursively search in child catalog
+    if (chilrdLink.href.endsWith('catalog.json')) return getDataFromCatalog(new URL(chilrdLink.href), layerName, tag);
+
+    // Found collection link
+    if (chilrdLink.href.endsWith('collection.json')) {
+      if (chilrdLink.href.includes(`/${tag}/`)) return new URL(chilrdLink.href);
+    }
+  }
+
+  throw new Error(`Layer ${layerName} with tag ${tag} not found in catalog ${stacUrl.href}`);
 }

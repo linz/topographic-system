@@ -7,10 +7,15 @@
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
+    "test": "node --test 'packages/**/*.test.ts'",
     "lint:py": "uv run ruff check",
     "format:py": "uv run ruff format --check",
     "typecheck:py": "uv run mypy .",
     "test:py": "uv run pytest"
+  },
+  "type": "module",
+  "engines": {
+    "node": "^24.5.0"
   },
   "devDependencies": {
     "@linzjs/style": "^5.4.0",
