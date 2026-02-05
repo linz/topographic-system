@@ -3,7 +3,7 @@ import { CliDate, CliInfo } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { RootCatalogFile, upsertAssetToItem, upsertItemToCollection } from '@topographic-system/shared/src/stac.ts';
+import { RootCatalogFile, upsertAssetToCollection } from '@topographic-system/shared/src/stac.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
 import { basename } from 'path';
@@ -12,28 +12,28 @@ import { $ } from 'zx';
 const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
 
-function determineParquetAssetLocation(dataset: string, output: string, tag?: string): URL {
-  const repo = $.env['GITHUB_REPOSITORY']?.split('/')[1] ?? 'unknown-repo';
+function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
   if (!tag) {
     if (is_merge_to_master() || is_release()) {
-      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate.split('T')[0]}`;
+      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
     } else if (is_pr()) {
       const ref = $.env['GITHUB_REF_NAME'] || '';
       const prMatch = ref.match(/(\d+)\/merge/);
       if (prMatch) {
-        tag = `pr-${prMatch[1]}`;
+        tag = `pull_request/pr-${prMatch[1]}`;
       } else {
-        tag = `pr-unknown`;
+        tag = `pull_request/unknown`;
       }
     } else {
-      tag = `dev-${CliInfo.hash}`;
+      tag = `dev/${CliInfo.hash}`;
     }
   }
+  const s3location = new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
   logger.info(
-    { repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() },
-    'DetermineS3Location:ContextVars',
+    { subdir, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr(), s3location: s3location.href },
+    'DetermineAssetLocation:Variables',
   );
-  return new URL(`${repo}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
+  return s3location;
 }
 
 function is_pr(): boolean {
@@ -147,20 +147,21 @@ export const parquetCommand = command({
           command.push('-dsco', 'SORT_BY_BBOX=YES');
         }
         await $`${command}`;
-        const assetFile = determineParquetAssetLocation(dataset, parquetFile);
+        const assetFile = determineAssetLocation('data', dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
-        const stacItemFile = await upsertAssetToItem(assetFile);
+        const stacItemFile = await upsertAssetToCollection(assetFile);
+        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
         if (is_merge_to_master()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertItemToCollection(stacItemFile, new URL('../../next/collection.json', stacItemFile));
+          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
         } else if (is_release()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
-          await upsertItemToCollection(stacItemFile, new URL('../../latest/collection.json', stacItemFile));
+          await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
         }
-        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
+
       });
     }
 

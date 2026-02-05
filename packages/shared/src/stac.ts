@@ -1,5 +1,13 @@
 import { fsa } from '@chunkd/fs';
 import { createHash } from 'crypto';
+import {
+  AsyncBuffer,
+  asyncBufferFromFile,
+  ColumnChunk,
+  FileMetaData,
+  parquetMetadataAsync,
+  Statistics,
+} from 'hyparquet';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
@@ -27,6 +35,170 @@ const Roles = {
 const Providers: StacProvider[] = [
   { name: 'Land Information New Zealand', url: 'https://www.linz.govt.nz/', roles: ['processor', 'host'] },
 ];
+
+const bigIntFields = new Set([
+  'table:row_count',
+  'null_count',
+  'distinct_count',
+  'max',
+  'min',
+  'max_value',
+  'min_value',
+]);
+
+interface ColumnStats extends Statistics {
+  name: string;
+  type: string;
+  codec: string;
+}
+
+interface RowGroupColumnStats {
+  'table:row_count': bigint;
+  'table:columns': Partial<ColumnStats>[];
+}
+
+interface FileStats {
+  'file:size': number;
+  'file:checksum': string;
+}
+
+function bigIntReplacer(key: string, value: unknown): unknown {
+  if (typeof value === 'bigint') {
+    if (!bigIntFields.has(key)) {
+      logger.warn({ key, value: value.toString() }, 'STAC:BigIntFieldNotInPredefinedList');
+    }
+    if (value >= BigInt(Number.MIN_SAFE_INTEGER) && value <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return Number(value);
+    }
+    return value.toString();
+  }
+  return value;
+}
+
+function bigIntReviver(key: string, value: unknown): unknown {
+  if (bigIntFields.has(key) && typeof value === 'string') {
+    return BigInt(value);
+  }
+  return value;
+}
+
+function urlToTitle(fileName: URL): string {
+  return fileName.pathname.replace(/[/_-]/g, ' ').replace(/\.json$/, '');
+}
+
+function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
+  const selfLink = stac.links.find((link) => link.rel === 'self');
+  if (selfLink === undefined) {
+    logger.error({ stac }, 'STAC:SelfLinkUndefined');
+    throw new Error('STAC self link is undefined');
+  }
+  return selfLink.href;
+}
+
+function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAsset | StacLink | undefined): boolean {
+  if (a && b)
+    return (
+      a.href === b.href &&
+      a.type === b.type &&
+      a['file:checksum'] === b['file:checksum'] &&
+      a['file:size'] === b['file:size']
+    );
+  return false;
+}
+
+/** Generate the STAC file:size and file:checksum fields from a buffer */
+export function createFileStats(data: string | Buffer): FileStats {
+  return {
+    'file:size': Buffer.isBuffer(data) ? data.byteLength : data.length,
+    // Multihash header for sha256 is 0x12 0x20
+    'file:checksum': '1220' + createHash('sha256').update(data).digest('hex'),
+  };
+}
+
+async function readOrCreateStacIdFromFileName(stacFile: URL): Promise<string> {
+  if (await fsa.exists(stacFile)) {
+    const stac = await fsa.readJson<StacCollection | StacCatalog>(stacFile);
+    if (stac.id) {
+      return stac.id;
+    }
+  }
+  const timestamp = CliDate.replace(/[-:.Z]/g, '').replace('T', '-');
+  const pathPart = stacFile.href
+    .slice(stacFile.protocol.length + 2)
+    .replaceAll('/', '-')
+    .slice(0, -5);
+  return `${pathPart}-${timestamp}`;
+}
+
+function createBasicStacAsset(): StacAsset {
+  return {
+    href: '',
+    type: MediaTypes[''],
+    roles: [Roles['']],
+  };
+}
+
+function createBasicStacItem(): StacItem {
+  return {
+    id: '',
+    type: 'Feature',
+    collection: CliId,
+    stac_version: '1.0.0',
+    stac_extensions: [],
+    geometry: null,
+    bbox: [],
+    links: [],
+    properties: {
+      datetime: CliDate,
+      // TODO: Consider using STAC Processing extension?
+      'linz_topographic_system:generated': {
+        package: CliInfo.package,
+        hash: CliInfo.hash,
+        version: CliInfo.version,
+        datetime: CliDate,
+      },
+    },
+    assets: {},
+  };
+}
+
+function createBasicStacCollection(): StacCollection {
+  return {
+    type: 'Collection',
+    stac_version: '1.0.0',
+    id: 'sc_' + CliId,
+    description: '',
+    extent: {
+      spatial: {
+        bbox: [[]],
+      },
+      temporal: {
+        interval: [['', '']],
+      },
+    },
+    links: [],
+    license: 'CC-BY-4.0',
+    created: CliDate,
+    updated: CliDate,
+    providers: Providers,
+    stac_extensions: [],
+    summaries: {},
+  };
+}
+
+function createBasicStacCatalog(): StacCatalog {
+  return {
+    type: 'Catalog',
+    stac_version: '1.0.0',
+    stac_extensions: [],
+    id: 'sl_' + CliId,
+    title: '',
+    description: '',
+    links: [],
+    created: CliDate,
+    updated: CliDate,
+  };
+}
 
 // FIXME: This function is very specific to the Map Production use case ("project" and "source" link relations are not standard STAC).
 //  May need to be generalized or move to Map package.
@@ -102,79 +274,37 @@ export function createStacCatalog(title: string, description: string, links: Sta
   return stacCatalog;
 }
 
-function createBasicStacAsset(): StacAsset {
-  return {
-    href: '',
-    type: MediaTypes[''],
-    roles: [Roles['']],
-  };
+export async function createStacItemFromFileName(stacFile: URL): Promise<StacItem> {
+  if (await fsa.exists(stacFile)) {
+    return await fsa.readJson<StacItem>(stacFile);
+  }
+  const stacItem = createBasicStacItem();
+  stacItem.id = await readOrCreateStacIdFromFileName(stacFile);
+  stacItem.links.push(
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
+  );
+  return stacItem;
 }
 
-function createBasicStacItem(): StacItem {
-  return {
-    id: '',
-    type: 'Feature',
-    collection: CliId,
-    stac_version: '1.0.0',
-    stac_extensions: [],
-    geometry: null,
-    bbox: [],
-    links: [],
-    properties: {
-      datetime: CliDate,
-      // TODO: Consider using STAC Processing extension?
-      'linz_topographic_system:generated': {
-        package: CliInfo.package,
-        hash: CliInfo.hash,
-        version: CliInfo.version,
-        datetime: CliDate,
-      },
-    },
-    assets: {},
-  };
-}
-
-function createBasicStacCollection(): StacCollection {
-  return {
-    type: 'Collection',
-    stac_version: '1.0.0',
-    id: 'sc_' + CliId,
-    description: '',
-    extent: {
-      spatial: {
-        bbox: [[]],
-      },
-      temporal: {
-        interval: [['', '']],
-      },
-    },
-    links: [],
-    license: 'CC-BY-4.0',
-    created: CliDate,
-    updated: CliDate,
-    providers: Providers,
-    stac_extensions: [],
-    summaries: {},
-  };
-}
-
-function createBasicStacCatalog(): StacCatalog {
-  return {
-    type: 'Catalog',
-    stac_version: '1.0.0',
-    stac_extensions: [],
-    id: 'sl_' + CliId,
-    title: '',
-    description: '',
-    links: [],
-    created: CliDate,
-    updated: CliDate,
-  };
+export async function createStacCollectionFromFileName(stacFile: URL): Promise<StacCollection> {
+  if (await fsa.exists(stacFile)) {
+    return await fsa.readJson<StacCollection>(stacFile);
+  }
+  const stacCollection = createBasicStacCollection();
+  stacCollection.id = await readOrCreateStacIdFromFileName(stacFile);
+  stacCollection.description = `Collection of${urlToTitle(stacFile)}`;
+  stacCollection.links.push(
+    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'self', href: stacFile.href, type: 'application/json' },
+  );
+  return stacCollection;
 }
 
 async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog> {
   if (await fsa.exists(stacFile)) {
-    return await fsa.readJson<StacCatalog>(stacFile);
+    const stacContent = await fsa.read(stacFile);
+    return JSON.parse(stacContent.toString(), bigIntReviver) as StacCatalog;
   }
   const stacCatalog = createBasicStacCatalog();
   stacCatalog.id = await readOrCreateStacIdFromFileName(stacFile);
@@ -192,186 +322,108 @@ async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog
   return stacCatalog;
 }
 
-export async function createStacCollectionFromFileName(stacFile: URL): Promise<StacCollection> {
-  if (await fsa.exists(stacFile)) {
-    return await fsa.readJson<StacCollection>(stacFile);
-  }
-  const stacCollection = createBasicStacCollection();
-  stacCollection.id = await readOrCreateStacIdFromFileName(stacFile);
-  stacCollection.description = `Collection of${urlToTitle(stacFile)}`;
-  stacCollection.links.push(
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-    { rel: 'self', href: stacFile.href, type: 'application/json' },
-  );
-  return stacCollection;
-}
-
-export async function createStacItemFromFileName(stacFile: URL): Promise<StacItem> {
-  if (await fsa.exists(stacFile)) {
-    return await fsa.readJson<StacItem>(stacFile);
-  }
-  const stacItem = createBasicStacItem();
-  stacItem.id = await readOrCreateStacIdFromFileName(stacFile);
-  stacItem.links.push(
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
-    { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
-  );
-  return stacItem;
-}
-
 export async function createStacAssetFromFileName(assetFile: URL): Promise<StacAsset> {
   const stacAsset = createBasicStacAsset();
   const extension = assetFile.href.split('.').pop() || '';
   const dataset = basename(assetFile.href, `.${extension}`);
   const datatype = (extension in MediaTypes ? extension : '') as keyof typeof MediaTypes;
+  let fileStats = {} as FileStats;
+  let parquetStats = {} as RowGroupColumnStats;
 
   if (await fsa.exists(assetFile)) {
-    const assetStats = createFileStats(await fsa.read(assetFile));
+    fileStats = createFileStats(await fsa.read(assetFile));
+    if (extension === 'parquet') {
+      parquetStats = await getParquetMetadata(assetFile);
+      const bbox = getBBoxFromParquetMetadata(parquetStats);
+      const dates = getDatesFromParquetMetadata(parquetStats);
+      stacAsset['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
+    }
     stacAsset.href = assetFile.href;
     stacAsset.title = dataset;
     stacAsset.description = `${dataset} data in ${extension} format`;
     stacAsset.type = MediaTypes[datatype];
     stacAsset.roles = [Roles[datatype]];
-    stacAsset['file:size'] = assetStats['file:size'];
-    stacAsset['file:checksum'] = assetStats['file:checksum'];
   }
-  return stacAsset;
+
+  return { ...stacAsset, ...fileStats, ...parquetStats };
 }
 
-/**
- * Given a data asset path, create or update the corresponding STAC Item with the asset information.
- * Note:
- * One STAC Item may contain multiple assets.
- * Running this function multiple times with different assets for the same dataset will update the same STAC Item.
- * Running this in parallel for different assets of the same dataset may lead to race conditions,
- * as STAC Collection and Catalogs up to the RootCatalog are updated.
- *
- * @param assetFile - The URL of the data asset to be added to the STAC Item.
- * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
- *
- * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
- * */
-export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Promise<URL> {
-  const extension = assetFile.href.split('.').pop() ?? '';
-  const dataset = basename(assetFile.href, `.${extension}`);
-  const stacAsset = await createStacAssetFromFileName(assetFile);
-  if (!stacItemFile) {
-    stacItemFile = new URL(`./${dataset}.json`, assetFile);
+async function getParquetMetadata(assetFile: URL): Promise<RowGroupColumnStats> {
+  let buf: AsyncBuffer;
+  if (assetFile.protocol.slice(0, 4) === 'http') {
+    buf = await asyncBufferFromFile(assetFile.href);
+  } else if (assetFile.protocol === 'file:') {
+    buf = await asyncBufferFromFile(assetFile.pathname);
+  } else {
+    logger.error({ assetFile: assetFile.href }, 'STAC:UnsupportedProtocolForParquetMetadataExtraction');
+    throw new Error(`Unsupported protocol for parquet metadata extraction: ${assetFile.protocol}`);
   }
-  const stacItem = await createStacItemFromFileName(stacItemFile);
-  if (compareStacAssets(stacItem.assets[extension], stacAsset)) {
-    logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAlreadyUpToDate');
-    return stacItemFile;
-  }
-  stacItem.assets[extension] = stacAsset;
-  stacItem.properties.datetime = CliDate;
-  await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
-  logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAddedOrUpdated');
-  await upsertItemToCollection(stacItemFile);
-  return stacItemFile;
+  return parquetToStacMetadata(await parquetMetadataAsync(buf));
 }
 
-/**
- * Given a STAC Item file, upsert it into the specified STAC Collection file.
- * If the STAC Collection file is not provided, it is assumed to be a STAC Collection located at './collection.json' relative to the STAC Item file.
- * This function updates the parent STAC Collection to include an "item" link to the STAC Item,
- * and adds to the temporal and spatial extents.
- * In order to keep all STAC files consistent, this function also triggers
- * an update of the parent Catalogs up to the RootCatalog
- * as well as an update of the ITEM's collection ID if necessary.
- *
- * @param stacItemFile - The URL of the STAC Item file to be upserted into the collection.
- * @param stacCollectionFile - Optional URL of the STAC Collection file. If not provided, it will be derived from the STAC Item file.
- *
- * @returns The URL of the updated or newly created STAC Collection file.
- */
-export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFile?: URL): Promise<URL> {
-  if (!stacCollectionFile) {
-    stacCollectionFile = new URL('./collection.json', stacItemFile);
-  }
+function parquetToStacMetadata(parquetMetadata: FileMetaData): RowGroupColumnStats {
+  const numColumns = parquetMetadata.row_groups[0]?.columns.length ?? 0;
 
-  let stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
-  let stacItem = await createStacItemFromFileName(stacItemFile);
-  stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
-  stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
-  await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, null, 2));
-  logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
-  await upsertChildToCatalog(stacCollectionFile);
-
-  return stacCollectionFile;
-}
-
-/** Given a STAC child file (Collection or Catalog), upsert it into its parent Catalog.
- * If the parent Catalog does not exist, it will be created.
- * This function will recursively ensure that all parent Catalogs up to the RootCatalog are updated.
- *
- * @param stacChildFile - The URL of the STAC child (Collection or Sub-Catalog) file to be upserted into the parent Catalog.
- * @param stacCatalogFile - Optional URL of the STAC parent (Catalog) file. If not provided, it will be derived from the STAC child file.
- *
- * @returns The URL of the updated or newly created STAC Catalog file.
- */
-async function upsertChildToCatalog(stacChildFile: URL, stacCatalogFile?: URL): Promise<URL> {
-  if (stacChildFile.href === RootCatalogFile.href) {
-    logger.info({ stacChildFile: stacChildFile.href }, `STAC:ReachedRootCatalog`);
-    return stacChildFile;
-  }
-  const childIsCollection = basename(stacChildFile.href) === 'collection.json';
-  if (!stacCatalogFile) {
-    stacCatalogFile = new URL('../catalog.json', stacChildFile);
-  }
-  let stacChild = childIsCollection
-    ? await createStacCollectionFromFileName(stacChildFile)
-    : await createStacCatalogFromFilename(stacChildFile);
-  let stacCatalog = await createStacCatalogFromFilename(stacCatalogFile);
-  stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
-  stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
-
-  await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
-  logger.info(
-    { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
-    `STAC:ChildToCatalogUpserted`,
-  );
-  await upsertChildToCatalog(stacCatalogFile);
-  return stacCatalogFile;
-}
-
-/** Generate the STAC file:size and file:checksum fields from a buffer */
-export function createFileStats(data: string | Buffer): { 'file:size': number; 'file:checksum': string } {
   return {
-    'file:size': Buffer.isBuffer(data) ? data.byteLength : data.length,
-    // Multihash header for sha256 is 0x12 0x20
-    'file:checksum': '1220' + createHash('sha256').update(data).digest('hex'),
+    'table:row_count': parquetMetadata.num_rows,
+    'table:columns': Array.from({ length: numColumns }, (_, i) => {
+      const columns = parquetMetadata.row_groups.map((rg) => rg.columns[i]).filter((col) => col !== undefined);
+      return combineStats(columns);
+    }),
   };
 }
 
-async function readOrCreateStacIdFromFileName(stacFile: URL): Promise<string> {
-  if (await fsa.exists(stacFile)) {
-    const stac = await fsa.readJson<StacCollection | StacCatalog>(stacFile);
-    if (stac.id) {
-      return stac.id;
+function combineStats(columns: ColumnChunk[]): ColumnStats {
+  const summaryStats = {} as ColumnStats;
+
+  for (const column of columns) {
+    if (!column?.meta_data) continue;
+    summaryStats.name = column.meta_data.path_in_schema.join('.');
+    summaryStats.type = column.meta_data.type.toLowerCase();
+    summaryStats.codec = column.meta_data.codec;
+    if (!column?.meta_data?.statistics) continue;
+    const columnStats = column.meta_data.statistics;
+
+    if (columnStats.min !== undefined && (summaryStats.min === undefined || columnStats.min < summaryStats.min)) {
+      summaryStats.min = columnStats.min;
+    }
+    if (columnStats.max !== undefined && (summaryStats.max === undefined || columnStats.max > summaryStats.max)) {
+      summaryStats.max = columnStats.max;
+    }
+    if (columnStats.null_count !== undefined) {
+      summaryStats.null_count = (summaryStats.null_count ?? 0n) + columnStats.null_count;
+    }
+    if (
+      columnStats.distinct_count !== undefined &&
+      (summaryStats.distinct_count === undefined || columnStats.distinct_count > summaryStats.distinct_count)
+    ) {
+      summaryStats.distinct_count = columnStats.distinct_count;
     }
   }
-  const timestamp = CliDate.replace(/[-:.Z]/g, '').replace('T', '-');
-  const pathPart = stacFile.href
-    .slice(stacFile.protocol.length + 2)
-    .replaceAll('/', '-')
-    .slice(0, -5);
-  return `${pathPart}-${timestamp}`;
+  return summaryStats;
 }
 
-function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAsset | StacLink | undefined): boolean {
-  if (a && b)
-    return (
-      a.href === b.href &&
-      a.type === b.type &&
-      a['file:checksum'] === b['file:checksum'] &&
-      a['file:size'] === b['file:size']
-    );
-  return false;
+function getBBoxFromParquetMetadata(parquetStats: RowGroupColumnStats): number[] {
+  const xmin = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.xmin')?.min as number;
+  const xmax = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.xmax')?.max as number;
+  const ymin = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.ymin')?.min as number;
+  const ymax = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.ymax')?.max as number;
+
+  return [xmin, ymin, xmax, ymax];
 }
 
-function urlToTitle(fileName: URL): string {
-  return fileName.pathname.replace(/[/_-]/g, ' ').replace(/\.json$/, '');
+function getDatesFromParquetMetadata(parquetStats: RowGroupColumnStats): string[] {
+  const minDates: string[] = [];
+  const maxDates: string[] = [];
+  for (const column of parquetStats['table:columns']) {
+    if (column.name?.toLowerCase().endsWith('_date')) {
+      if (column.min && typeof column.min === 'string') minDates.push(column.min);
+      if (column.max && typeof column.max === 'string') maxDates.push(column.max);
+    }
+  }
+  const minDate = minDates.length > 0 ? minDates.reduce((a, b) => (a < b ? a : b)) : 'null';
+  const maxDate = maxDates.length > 0 ? maxDates.reduce((a, b) => (a > b ? a : b)) : 'null';
+  return maxDate === minDate ? [minDate, 'null'] : [minDate, maxDate];
 }
 
 /**
@@ -499,15 +551,6 @@ function addChildDataToParent(
   return stacParent;
 }
 
-function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
-  const selfLink = stac.links.find((link) => link.rel === 'self');
-  if (selfLink === undefined) {
-    logger.error({ stac }, 'STAC:SelfLinkUndefined');
-    throw new Error('STAC self link is undefined');
-  }
-  return selfLink.href;
-}
-
 function addExtentFromItemToCollection(stacCollection: StacCollection, stacItem: StacItem): StacCollection {
   if (stacItem.bbox) {
     stacCollection.extent.spatial.bbox.push(stacItem.bbox);
@@ -519,4 +562,134 @@ function addExtentFromItemToCollection(stacCollection: StacCollection, stacItem:
     ]);
   }
   return stacCollection;
+}
+
+/**
+ * Given a data asset path, create or update the corresponding STAC Item with the asset information.
+ * Note:
+ * One STAC Item may contain multiple assets.
+ * Running this function multiple times with different assets for the same dataset will update the same STAC Item.
+ * Running this in parallel for different assets of the same dataset may lead to race conditions,
+ * as STAC Collection and Catalogs up to the RootCatalog are updated.
+ *
+ * @param assetFile - The URL of the data asset to be added to the STAC Item.
+ * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
+ *
+ * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
+ * */
+export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Promise<URL> {
+  const extension = assetFile.href.split('.').pop() ?? '';
+  const dataset = basename(assetFile.href, `.${extension}`);
+  const stacAsset = await createStacAssetFromFileName(assetFile);
+  if (!stacItemFile) {
+    stacItemFile = new URL(`./${dataset}.json`, assetFile);
+  }
+  const stacItem = await createStacItemFromFileName(stacItemFile);
+  if (compareStacAssets(stacItem.assets[extension], stacAsset)) {
+    logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAlreadyUpToDate');
+    return stacItemFile;
+  }
+  stacItem.assets[extension] = stacAsset;
+  stacItem.properties.datetime = CliDate;
+  await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
+  logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAddedOrUpdated');
+  await upsertItemToCollection(stacItemFile);
+  return stacItemFile;
+}
+
+/**
+ * Given a data asset path, create or update the corresponding STAC Catalog with the asset information.
+ * Note:
+ * One STAC Collection per geoparquet file, with additional related assets.
+ *
+ * @param assetFile - The URL of the data asset to be added to the STAC Item.
+ * @param stacCollectionFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
+ *
+ * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
+ * */
+export async function upsertAssetToCollection(assetFile: URL, stacCollectionFile?: URL): Promise<URL> {
+  const extension = assetFile.href.split('.').pop() ?? '';
+  const dataset = basename(assetFile.href, `.${extension}`);
+  const stacAsset = await createStacAssetFromFileName(assetFile);
+  if (!stacCollectionFile) {
+    stacCollectionFile = new URL(`./collection.json`, assetFile);
+  }
+  const stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
+  stacCollection['assets'] = stacCollection['assets'] || {};
+  if (compareStacAssets(stacCollection.assets['data'], stacAsset)) {
+    logger.info(
+      { dataset, asset: assetFile.href, stacCollection: stacCollectionFile.href },
+      'STAC:AssetInItemAlreadyUpToDate',
+    );
+    return stacCollectionFile;
+  }
+  stacCollection.assets[extension] = stacAsset;
+  await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, bigIntReplacer, 2));
+  logger.info({ dataset, asset: assetFile.href, stacItem: stacCollectionFile.href }, 'STAC:AssetInItemAddedOrUpdated');
+  await upsertItemToCollection(stacCollectionFile);
+  return stacCollectionFile;
+}
+
+/**
+ * Given a STAC Item file, upsert it into the specified STAC Collection file.
+ * If the STAC Collection file is not provided, it is assumed to be a STAC Collection located at './collection.json' relative to the STAC Item file.
+ * This function updates the parent STAC Collection to include an "item" link to the STAC Item,
+ * and adds to the temporal and spatial extents.
+ * In order to keep all STAC files consistent, this function also triggers
+ * an update of the parent Catalogs up to the RootCatalog
+ * as well as an update of the ITEM's collection ID if necessary.
+ *
+ * @param stacItemFile - The URL of the STAC Item file to be upserted into the collection.
+ * @param stacCollectionFile - Optional URL of the STAC Collection file. If not provided, it will be derived from the STAC Item file.
+ *
+ * @returns The URL of the updated or newly created STAC Collection file.
+ */
+export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFile?: URL): Promise<URL> {
+  if (!stacCollectionFile) {
+    stacCollectionFile = new URL('./collection.json', stacItemFile);
+  }
+
+  let stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
+  let stacItem = await createStacItemFromFileName(stacItemFile);
+  stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
+  stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
+  await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, bigIntReplacer, 2));
+  logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
+  await upsertChildToCatalog(stacCollectionFile);
+
+  return stacCollectionFile;
+}
+
+/** Given a STAC child file (Collection or Catalog), upsert it into its parent Catalog.
+ * If the parent Catalog does not exist, it will be created.
+ * This function will recursively ensure that all parent Catalogs up to the RootCatalog are updated.
+ *
+ * @param stacChildFile - The URL of the STAC child (Collection or Sub-Catalog) file to be upserted into the parent Catalog.
+ * @param stacCatalogFile - Optional URL of the STAC parent (Catalog) file. If not provided, it will be derived from the STAC child file.
+ *
+ * @returns The URL of the updated or newly created STAC Catalog file.
+ */
+async function upsertChildToCatalog(stacChildFile: URL, stacCatalogFile?: URL): Promise<URL> {
+  if (stacChildFile.href === RootCatalogFile.href) {
+    logger.info({ stacChildFile: stacChildFile.href }, `STAC:ReachedRootCatalog`);
+    return stacChildFile;
+  }
+  const childIsCollection = basename(stacChildFile.href) === 'collection.json';
+  if (!stacCatalogFile) {
+    stacCatalogFile = new URL('../catalog.json', stacChildFile);
+  }
+  let stacChild = childIsCollection
+    ? await createStacCollectionFromFileName(stacChildFile)
+    : await createStacCatalogFromFilename(stacChildFile);
+  let stacCatalog = await createStacCatalogFromFilename(stacCatalogFile);
+  stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
+  stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
+
+  await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
+  logger.info(
+    { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
+    `STAC:ChildToCatalogUpserted`,
+  );
+  await upsertChildToCatalog(stacCatalogFile);
+  return stacCatalogFile;
 }
