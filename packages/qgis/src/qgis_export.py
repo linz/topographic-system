@@ -47,10 +47,11 @@ if map_item is None:
 metadata = []
 map_crs = map_item.crs()
 
-# Find the vector layer with the 'sheet_code' field
+# Find the vector layer with the 'sheet_code' field, i.e. nz_topo50_map_sheets layer
 topo_sheet_layer = None
 for layer in project.mapLayers().values():
-    # Only consider vector layers
+    if not layer.isValid():
+        continue
     if not hasattr(layer, "fields"):
         continue
 

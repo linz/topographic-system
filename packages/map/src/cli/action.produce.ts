@@ -1,18 +1,75 @@
-import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
+import { fsa, registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import path, { basename, parse } from 'path';
-import type { StacCatalog } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import tar from 'tar';
+import { fileURLToPath } from 'url';
 
 import { qgisExport } from '../python.runner.ts';
 import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
-import { downloadFile, downloadFiles } from './action.download.ts';
+import { downloadFile } from './action.download.ts';
+
+/**
+ * Downloads the given source vector parquet files for processing
+ */
+export async function downloadProject(path: URL): Promise<{ projectPath: URL; sources: URL[] }> {
+  logger.info({ source: path.href, downloaded: tmpFolder.href }, 'Download: Start');
+  const stac = await fsa.readJson<StacItem>(path);
+  if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
+
+  let projectPath;
+  for (const [key, asset] of Object.entries(stac.assets)) {
+    const downloadedPath = await downloadFile(new URL(asset.href));
+    if (key === 'project') projectPath = downloadedPath;
+  }
+
+  if (projectPath == null) {
+    throw new Error(`Project asset not found in STAC Item: ${path.href}`);
+  }
+
+  const links = stac.links;
+  const sources = [];
+  for (const link of links) {
+    if (link.rel === 'dataset') {
+      // Download Source data
+      const sourcedCollection = await fsa.readJson<StacCollection>(new URL(link.href));
+      if (sourcedCollection == null) {
+        throw new Error(`Invalid source collection at path: ${link.href}`);
+      }
+      for (const link of sourcedCollection.links) {
+        if (link.rel === 'item') {
+          const item = await fsa.readJson<StacItem>(new URL(link.href));
+          if (item == null) {
+            throw new Error(`Invalid source item at path: ${link.href}`);
+          }
+          const data = item.assets['parquet'];
+          if (data == null) {
+            throw new Error(`Parquet asset not found in source item: ${link.href}`);
+          }
+          const source = new URL(data.href);
+          sources.push(source);
+          await downloadFile(source);
+        }
+      }
+    } else if (link.rel === 'assets') {
+      // Download assets tar file and extract to tmp folder for processing
+      const assetTarPath = await downloadFile(new URL(link.href));
+      await tar.extract({
+        file: fileURLToPath(assetTarPath),
+        cwd: fileURLToPath(tmpFolder),
+      });
+    }
+  }
+
+  logger.info({ destination: tmpFolder.href, project: projectPath.href }, 'Download: End');
+  return { projectPath, sources };
+}
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
@@ -55,15 +112,10 @@ export const ProduceArgs = {
     long: 'from-file',
     description: 'Path to JSON file containing array of MapSheet Codes to Process.',
   }),
-  source: option({
-    type: UrlFolder,
-    long: 'source',
-    description: 'Path or s3 of source parquet vector layers to use for generate map sheets.',
-  }),
   project: option({
     type: Url,
     long: 'project',
-    description: 'Path or s3 of QGIS Project to use for generate map sheets.',
+    description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
   format: option({
     type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff, ExportFormats.Png]),
@@ -92,10 +144,8 @@ export const ProduceCommand = command({
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
-    // Download source files
-    await downloadFiles(args.source);
-    // Download project file
-    const projectFile = await downloadFile(args.project);
+    // Download project file, assets, and source data from the project stac file
+    const { projectPath, sources } = await downloadProject(args.project);
 
     // Prepare tmp path for the outputs
     const tempOutput = new URL('output/', tmpFolder);
@@ -106,7 +156,7 @@ export const ProduceCommand = command({
 
     // Run python qgis export script
     const exportOptions = { dpi: args.dpi, format: args.format };
-    const metadatas = await qgisExport(projectFile, tempOutput, mapSheets, exportOptions);
+    const metadatas = await qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
 
     // Write outputs files to destination
     const projectName = parse(args.project.pathname).name;
@@ -124,7 +174,7 @@ export const ProduceCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const links = await createStacLink(args.source, args.project);
+    const links = await createStacLink(sources, args.project);
     for (const metadata of metadatas) {
       const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));

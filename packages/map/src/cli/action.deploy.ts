@@ -148,6 +148,9 @@ export const deployCommand = command({
           type: 'application/x-tar',
         });
 
+        // TODO: Remove once the nz_topo50_map_sheet data is ready, we need hardcode this data in asset for tracer bullet testing.
+        
+
         // Prepare data assets for stac item
         const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
