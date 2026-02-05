@@ -161,7 +161,6 @@ export const parquetCommand = command({
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
           await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
         }
-
       });
     }
 
