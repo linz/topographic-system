@@ -1,13 +1,7 @@
 import { fsa } from '@chunkd/fs';
 import { createHash } from 'crypto';
-import {
-  AsyncBuffer,
-  asyncBufferFromFile,
-  ColumnChunk,
-  FileMetaData,
-  parquetMetadataAsync,
-  Statistics,
-} from 'hyparquet';
+import type { AsyncBuffer, ColumnChunk, FileMetaData, Statistics } from 'hyparquet';
+import { asyncBufferFromFile, parquetMetadataAsync } from 'hyparquet';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
