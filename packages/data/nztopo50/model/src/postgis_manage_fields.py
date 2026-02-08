@@ -230,7 +230,8 @@ class ModifyTable:
 
         if full_field_set:
             fieldList = [
-                ["source", "VARCHAR(75) DEFAULT 'aerial imagery'", "'database import'"],
+                ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
+                ["source_id", "INTEGER", "DEFAULT"],
                 ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
                 ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
@@ -241,7 +242,8 @@ class ModifyTable:
             ]
         else:
             fieldList = [
-                ["source", "VARCHAR(75) DEFAULT 'aerial imagery'", "'database import'"],
+                ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
+                ["source_id", "INTEGER", "DEFAULT"],
                 ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
             ]
         # uuidv7
@@ -899,7 +901,7 @@ if __name__ == "__main__":
 
     if option == "all" or option == "name":
         tableModifer.add_name_columns()
-        tableModifer.add_collectionid_columns()
+        # tableModifer.add_collectionid_columns()
 
     if option == "all" or option == "additions":
         tableModifer.add_column(f"{schema_name}.trig_point", "code", "VARCHAR(20)")
