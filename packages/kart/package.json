@@ -8,7 +8,6 @@
     "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.js"
   },
   "dependencies": {
-    "@chunkd/fs": "^11.3.0",
     "@linzjs/docker-command": "^8.0.0",
     "@topographic-system/shared": "file:../shared",
     "cmd-ts": "^0.13.0",
