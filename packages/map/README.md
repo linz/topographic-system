@@ -13,7 +13,7 @@ docker build -f packages/map/Dockerfile -t map .
 Run it in the container
 
 ```
-docker run -it --rm -v ~/.aws:/root/.aws:ro -e AWS_PROFILE=li-topo-maps-nonprod map produce --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output --format tiff --dpi 200 AW26 AW27
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map produce --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output --format tiff --dpi 200 AW26 AW27
 ```
 
 ## Download Cli
