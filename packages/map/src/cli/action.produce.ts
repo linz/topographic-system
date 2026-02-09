@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.ts';
+import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';

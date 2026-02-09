@@ -6,8 +6,8 @@ import {
   createStacCatalog,
   createStacCollection,
   createStacItem,
-  getDataFromCatalog,
-} from '@topographic-system/shared/src/stac.ts';
+} from '@topographic-system/shared/src/stac.factory.ts';
+import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
 import { basename } from 'path';

@@ -3,7 +3,8 @@ import { CliDate, CliInfo } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { RootCatalogFile, upsertAssetToCollection } from '@topographic-system/shared/src/stac.ts';
+import { RootCatalogFile } from '@topographic-system/shared/src/stac.constants.ts';
+import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
 import { basename } from 'path';
@@ -17,8 +18,8 @@ function determineAssetLocation(subdir: string, dataset: string, output: string,
     if (isMergeToMaster() || isRelease()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
     } else if (isPullRequest()) {
-      const ref = $.env['GITHUB_REF_NAME'] || '';
-      const prMatch = ref.match(/(\d+)\/merge/);
+      const ref = $.env['GITHUB_REF'] || '';
+      const prMatch = ref.match(/refs\/pull\/(\d+)/);
       if (prMatch) {
         tag = `pull_request/pr-${prMatch[1]}`;
       } else {
@@ -148,6 +149,7 @@ export const parquetCommand = command({
         if (!args.no_sort_by_bbox) {
           command.push('-lco', 'SORT_BY_BBOX=YES');
         }
+        // const command = ['cp', gpkgFile, parquetFile];
         await $`${command}`;
         const assetFile = determineAssetLocation('data', dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
