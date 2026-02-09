@@ -135,5 +135,3 @@ export function registerFileSystem(): FsAwsS3 {
 
   return s3Fs;
 }
-
-export { fsa };

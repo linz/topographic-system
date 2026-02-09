@@ -1,5 +1,5 @@
 import { Tiff } from '@cogeotiff/core';
-import { fsa } from '@topographic-system/shared/src/fs.register.ts';
+import { fsa } from '@chunkd/fs';
 import { parse } from 'path';
 
 import type { SheetMetadata } from './python.runner.ts';

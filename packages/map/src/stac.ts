@@ -1,5 +1,5 @@
 import { type BoundingBox, Bounds } from '@basemaps/geo';
-import { fsa } from '@topographic-system/shared/src/fs.register.ts';
+import { fsa } from '@chunkd/fs';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { createFileStats, createStacCollection, createStacItem } from '@topographic-system/shared/src/stac.ts';
 import type { StacAsset, StacCollection, StacItem, StacLink } from 'stac-ts';
