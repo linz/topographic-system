@@ -1,5 +1,5 @@
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { fsa } from '@chunkd/fs';
+import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import {
   createFileStats,
