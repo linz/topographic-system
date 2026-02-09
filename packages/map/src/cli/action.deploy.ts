@@ -148,9 +148,6 @@ export const deployCommand = command({
           type: 'application/x-tar',
         });
 
-        // TODO: Remove once the nz_topo50_map_sheet data is ready, we need hardcode this data in asset for tracer bullet testing.
-        
-
         // Prepare data assets for stac item
         const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
@@ -161,6 +158,14 @@ export const deployCommand = command({
             ...createFileStats(data),
           } as StacAsset,
         };
+
+        // TODO: Remove once the nz_topo50_map_sheet data is ready, we need hardcode this data in asset for tracer bullet testing.
+        // We need this data to generate mapsheets for produce command in tracer bullet and it's not ready in s3 yet.
+        assets['map_sheet'] = {
+          href: 's3://linz-topography-nonprod/qgis/test/nz_topo50_map_sheet.parquet',
+          type: 'application/vnd.apache.parquet',
+          roles: ['data'],
+        } as StacAsset;
 
         // Add derived_from githash stac if provided
         if (args.githash) {
