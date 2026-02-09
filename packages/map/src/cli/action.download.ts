@@ -1,5 +1,6 @@
+import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
-import { fsa, registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
+import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, option } from 'cmd-ts';
