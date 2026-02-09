@@ -109,11 +109,18 @@ export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFi
     stacCollectionFile = new URL('./collection.json', stacItemFile);
   }
 
-  let stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
-  let stacItem = await createStacItemFromFileName(stacItemFile);
+  let [stacCollection, stacItem] = await Promise.all([
+    createStacCollectionFromFileName(stacCollectionFile),
+    createStacItemFromFileName(stacItemFile),
+  ]);
+
   stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
   stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
-  await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, serializeBigInt, 2));
+  await Promise.all([
+    fsa.write(stacItemFile, JSON.stringify(stacItem, serializeBigInt, 2)),
+    fsa.write(stacCollectionFile, JSON.stringify(stacCollection, serializeBigInt, 2)),
+  ]);
+
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
   await upsertChildToCatalog(stacCollectionFile);
 
