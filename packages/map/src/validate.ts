@@ -1,8 +1,8 @@
 import { Tiff } from '@cogeotiff/core';
+import { fsa } from '@topographic-system/shared/src/fs.register.ts';
 import { parse } from 'path';
 
 import type { SheetMetadata } from './python.runner.ts';
-import { fsa } from '@topographic-system/shared/src/fs.register.ts';
 
 export async function validateTiff(url: URL, metadata: SheetMetadata[]): Promise<void> {
   const sheetCode = parse(url.pathname).name;

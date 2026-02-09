@@ -1,11 +1,11 @@
 import { type BoundingBox, Bounds } from '@basemaps/geo';
+import { fsa } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { createFileStats, createStacCollection, createStacItem } from '@topographic-system/shared/src/stac.ts';
 import type { StacAsset, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { type ExportFormat, getContentType } from './cli/action.produce.ts';
 import { type SheetMetadata } from './python.runner.ts';
-import { fsa } from '@topographic-system/shared/src/fs.register.ts';
 
 export interface CreationOptions {
   /** Map Sheet Code*/
