@@ -14,9 +14,9 @@ const Q = new ConcurrentQueue(Concurrency);
 
 function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
   if (!tag) {
-    if (is_merge_to_master() || is_release()) {
+    if (isMergeToMaster() || isRelease()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
-    } else if (is_pr()) {
+    } else if (isPullRequest()) {
       const ref = $.env['GITHUB_REF_NAME'] || '';
       const prMatch = ref.match(/(\d+)\/merge/);
       if (prMatch) {
@@ -30,25 +30,25 @@ function determineAssetLocation(subdir: string, dataset: string, output: string,
   }
   const s3location = new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
   logger.info(
-    { subdir, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr(), s3location: s3location.href },
+    { subdir, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest(), s3location: s3location.href },
     'DetermineAssetLocation:Variables',
   );
   return s3location;
 }
 
-function is_pr(): boolean {
+function isPullRequest(): boolean {
   const ref = $.env['GITHUB_REF'] || '';
   return ref.startsWith('refs/pull/');
 }
 
-function is_merge_to_master(): boolean {
+function isMergeToMaster(): boolean {
   const ref = $.env['GITHUB_REF'] || '';
-  return !is_pr() && ref.endsWith('/master');
+  return !isPullRequest() && ref.endsWith('/master');
 }
 
-function is_release(): boolean {
+function isRelease(): boolean {
   const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
-  return is_merge_to_master() && workflow.toLowerCase().includes('release');
+  return isMergeToMaster() && workflow.toLowerCase().includes('release');
 }
 
 export const parquetCommand = command({
@@ -154,10 +154,10 @@ export const parquetCommand = command({
         });
         const stacItemFile = await upsertAssetToCollection(assetFile);
         logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
-        if (is_merge_to_master()) {
+        if (isMergeToMaster()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
           await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
-        } else if (is_release()) {
+        } else if (isRelease()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
           await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
         }
