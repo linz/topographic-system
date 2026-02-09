@@ -136,15 +136,15 @@ export const parquetCommand = command({
           'Parquet',
           parquetFile,
           gpkgFile,
-          '-dsco',
+          '-lco',
           `COMPRESSION=${args.compression}`,
-          '-dsco',
+          '-lco',
           `COMPRESSION_LEVEL=${args.compression_level}`,
-          '-dsco',
+          '-lco',
           `ROW_GROUP_SIZE=${args.row_group_size}`,
         ];
         if (!args.no_sort_by_bbox) {
-          command.push('-dsco', 'SORT_BY_BBOX=YES');
+          command.push('-lco', 'SORT_BY_BBOX=YES');
         }
         await $`${command}`;
         const assetFile = determineAssetLocation('data', dataset, parquetFile);
