@@ -1,4 +1,4 @@
-import { StacProvider } from 'stac-ts';
+import type { StacProvider } from 'stac-ts';
 
 import { S3BucketName } from './env.ts';
 
