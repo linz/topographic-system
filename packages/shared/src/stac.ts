@@ -3,7 +3,16 @@ import { createHash } from 'crypto';
 import type { AsyncBuffer, ColumnChunk, FileMetaData, Statistics } from 'hyparquet';
 import { asyncBufferFromFile, parquetMetadataAsync } from 'hyparquet';
 import { basename } from 'path';
-import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink, StacProvider } from 'stac-ts';
+import type {
+  SpatialExtent,
+  StacAsset,
+  StacCatalog,
+  StacCollection,
+  StacItem,
+  StacLink,
+  StacProvider,
+  TemporalExtent,
+} from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
 
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
@@ -328,9 +337,6 @@ export async function createStacAssetFromFileName(assetFile: URL): Promise<StacA
     fileStats = createFileStats(await fsa.read(assetFile));
     if (extension === 'parquet') {
       parquetStats = await getParquetMetadata(assetFile);
-      const bbox = getBBoxFromParquetMetadata(parquetStats);
-      const dates = getDatesFromParquetMetadata(parquetStats);
-      stacAsset['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
     }
     stacAsset.href = assetFile.href;
     stacAsset.title = dataset;
@@ -397,19 +403,19 @@ function combineStats(columns: ColumnChunk[]): ColumnStats {
   return summaryStats;
 }
 
-function getBBoxFromParquetMetadata(parquetStats: RowGroupColumnStats): number[] {
-  const xmin = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.xmin')?.min as number;
-  const xmax = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.xmax')?.max as number;
-  const ymin = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.ymin')?.min as number;
-  const ymax = parquetStats['table:columns'].find((col) => col.name === 'geom_bbox.ymax')?.max as number;
+function getBBoxFromColumnStats(columnStats: ColumnStats[]): SpatialExtent {
+  const xmin = columnStats.find((col) => col.name === 'geom_bbox.xmin')?.min as number;
+  const xmax = columnStats.find((col) => col.name === 'geom_bbox.xmax')?.max as number;
+  const ymin = columnStats.find((col) => col.name === 'geom_bbox.ymin')?.min as number;
+  const ymax = columnStats.find((col) => col.name === 'geom_bbox.ymax')?.max as number;
 
   return [xmin, ymin, xmax, ymax];
 }
 
-function getDatesFromParquetMetadata(parquetStats: RowGroupColumnStats): string[] {
+function getDatesFromColumnStats(columnStats: ColumnStats[]): TemporalExtent {
   const minDates: string[] = [];
   const maxDates: string[] = [];
-  for (const column of parquetStats['table:columns']) {
+  for (const column of columnStats) {
     if (column.name?.toLowerCase().endsWith('_date')) {
       if (column.min && typeof column.min === 'string') minDates.push(column.min);
       if (column.max && typeof column.max === 'string') maxDates.push(column.max);
@@ -417,7 +423,7 @@ function getDatesFromParquetMetadata(parquetStats: RowGroupColumnStats): string[
   }
   const minDate = minDates.length > 0 ? minDates.reduce((a, b) => (a < b ? a : b)) : 'null';
   const maxDate = maxDates.length > 0 ? maxDates.reduce((a, b) => (a > b ? a : b)) : 'null';
-  return maxDate === minDate ? [minDate, 'null'] : [minDate, maxDate];
+  return maxDate === minDate ? [minDate, null] : [minDate, maxDate];
 }
 
 /**
@@ -618,6 +624,12 @@ export async function upsertAssetToCollection(assetFile: URL, stacCollectionFile
     return stacCollectionFile;
   }
   stacCollection.assets[extension] = stacAsset;
+  if (extension === 'parquet') {
+    const bbox = getBBoxFromColumnStats(stacAsset['table:columns'] as ColumnStats[]);
+    const dates = getDatesFromColumnStats(stacAsset['table:columns'] as ColumnStats[]);
+    stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
+  }
+
   await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, bigIntReplacer, 2));
   logger.info({ dataset, asset: assetFile.href, stacItem: stacCollectionFile.href }, 'STAC:AssetInItemAddedOrUpdated');
   await upsertItemToCollection(stacCollectionFile);

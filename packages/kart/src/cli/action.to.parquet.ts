@@ -38,6 +38,7 @@ function determineAssetLocation(subdir: string, dataset: string, output: string,
 
 function isPullRequest(): boolean {
   const ref = $.env['GITHUB_REF'] || '';
+  logger.debug({ ref }, 'IsPullRequest:GITHUB_REF');
   return ref.startsWith('refs/pull/');
 }
 
@@ -48,6 +49,7 @@ function isMergeToMaster(): boolean {
 
 function isRelease(): boolean {
   const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
+  logger.debug({ workflow }, 'IsRelease:GITHUB_WORKFLOW_REF');
   return isMergeToMaster() && workflow.toLowerCase().includes('release');
 }
 
