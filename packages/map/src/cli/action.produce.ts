@@ -182,7 +182,7 @@ export const ProduceCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const links = await createStacLink(sources, args.project);
+    const links = createStacLink(sources, args.project);
     for (const metadata of metadatas) {
       const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));

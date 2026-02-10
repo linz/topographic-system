@@ -90,9 +90,9 @@ function createBasicStacCatalog(): StacCatalog {
 
 // FIXME: This function is very specific to the Map Production use case ("project" and "source" link relations are not standard STAC).
 //  May need to be generalized or move to Map package.
-export async function createStacLink(source: URL, project: URL): Promise<StacLink[]> {
+export function createStacLink(sources: URL[], project: URL): StacLink[] {
   const links: StacLink[] = [];
-  logger.info({ source: source.href, project: project.href }, 'Stac:PrepareStacLinks');
+  logger.info({ source: sources.map((s) => s.href), project: project.href }, 'Stac:PrepareStacLinks');
   // Create stac link for external layer
 
   links.push({
@@ -101,7 +101,7 @@ export async function createStacLink(source: URL, project: URL): Promise<StacLin
     href: project.href,
   });
 
-  for await (const file of fsa.list(source)) {
+  for (const file of sources) {
     links.push({
       rel: 'source',
       name: basename(file.pathname),
