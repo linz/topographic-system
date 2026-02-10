@@ -41,7 +41,7 @@ export async function createStacLink(source: URL[], project: URL): Promise<StacL
     href: project.href,
   });
 
-  for await (const file of source) {
+  for await (const file of sources) {
     links.push({
       rel: 'source',
       name: basename(file.pathname),
