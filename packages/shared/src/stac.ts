@@ -30,9 +30,9 @@ const Providers: StacProvider[] = [
 
 // FIXME: This function is very specific to the Map Production use case ("project" and "source" link relations are not standard STAC).
 //  May need to be generalized or move to Map package.
-export async function createStacLink(source: URL[], project: URL): Promise<StacLink[]> {
+export async function createStacLink(sources: URL[], project: URL): Promise<StacLink[]> {
   const links: StacLink[] = [];
-  logger.info({ source: source.map((s) => s.href), project: project.href }, 'Stac:PrepareStacLinks');
+  logger.info({ source: sources.map((s) => s.href), project: project.href }, 'Stac:PrepareStacLinks');
   // Create stac link for external layer
 
   links.push({
