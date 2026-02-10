@@ -1,119 +1,286 @@
-# Validate topographic datasets
+# Validate Topographic Datasets
 
-**Core code**
+This package provides topology validation for geospatial datasets including GeoPackage, Parquet, and PostGIS sources.
 
-validate_dataset.py - contains various validation routinues including geometry and attribute checks
+## Installation
 
-run from VS Code manually
-run_validation.py - configuration in file
+```bash
+cd packages/validation
+uv sync
+```
 
-Settings
+## Quick Start
 
-    get the validation collections : example - 
-    POSTGRES
-    layers = options_layer_postgres()
-    db_url = "postgresql://postgres:<pwd>@localhost:5432/topo"
+```bash
+# Validate a GeoPackage file
+topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./output"
 
-    GPKG
-    point_in_poly_layers, layers, null_columns, query_rules = options_layer_gpkg()
-    db_url = r"C:\Data\topoedit\topographic-data\topographic-data.gpkg"
+# Validate PostGIS database
+topographic_validation --mode postgis --db-path "postgresql://user:pass@localhost/db" --output-dir "./output"
 
-    output_dir = r"C:\Data\topoedit\validation-data"
+# Validate with spatial filtering
+topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./output" --bbox 174.8 -41.3 174.9 -41.2
+```
 
-    area_crs = 2193
+## Supported Data Sources
 
-    EXPORT OPTIONS
-    export_parquet = False
-    export_parquet_by_geometry_type = False
-    export_gpkg = True
-    use_date_folder = False  Note: when running local just overwrite last run. Easier for QGIS layer. But central useful save by date option.
+- **GeoPackage** (SQLite-based `.gpkg` files)
+- **Parquet** (Apache Parquet files)
+- **PostGIS** (PostgreSQL with PostGIS extension)
 
-    PROCESS QUERY TYPES
-    process_queries = True
-    process_self_intersections = True
-    process_features_on_layer = True
+## Command Line Options
 
-**Concepts**
+### Required Arguments
 
-Locate features that fail a rule
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--mode` | Validation mode: `postgis` or `generic` (default: `generic`) | `--mode generic` |
+| `--db-path` | Database URL or file path | `--db-path "data.gpkg"` |
+| `--output-dir` | Output directory for validation results | `--output-dir "./output"` |
 
-**Supported Data Sources**
+### Optional Configuration
 
-GKPG (sqllite)
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--config-file` | Custom validation config JSON | Auto-selected based on mode |
+| `--area-crs` | CRS for area calculations | `2193` |
 
-PostGIS
+### Export Formats
 
+| Option | Description |
+|--------|-------------|
+| `--export-parquet` | Export to Parquet format |
+| `--export-parquet-by-geometry` | Separate Parquet by geometry type |
+| `--no-export-gpkg` | Disable GeoPackage export (enabled by default) |
 
-**Classes**
+### Processing Options
 
-TopologyValidator - main validation controls
+| Option | Description |
+|--------|-------------|
+| `--use-date-folder` | Create date-based output subfolders |
+| `--report-only` | Don't export validation data - only create report |
+| `--skip-queries` | Skip query-based validations |
+| `--skip-features-on-layer` | Skip features-on-layer checks |
+| `--skip-self-intersections` | Skip self-intersection checks |
 
-TopologyValidatorTools - utilities
+### Filtering Options
 
-    create folders
-    format dates
+| Option | Arguments | Description |
+|--------|-----------|-------------|
+| `--bbox` | minx miny maxx maxy | Spatial bounding box filter |
+| `--date` | YYYY-MM-DD or "today" | Date filter |
+| `--weeks` | number | Filter by weeks back |
 
-**Validation Options**
+### Other Options
 
-point in poly - point intersects polygons (2 layers)
+| Option | Description |
+|--------|-------------|
+| `-v, --verbose` | Enable detailed output |
+| `--help` | Show complete help |
 
-    building points in building polygons
+## Examples
 
-self intersection - polygon/line layer must not self intersect (1 layer)
+### Basic Validation
 
-    vegetation intersects vegetation
+```bash
+topographic_validation --mode generic --db-path "topo50.gpkg" --output-dir "./validation-output"
+```
 
-null columns - column must not be null (1 layer)
+### PostGIS with Custom Output
 
-    column [name] is null
+```bash
+topographic_validation \
+    --mode postgis \
+    --db-path "postgresql://user:pass@localhost/topo50" \
+    --output-dir "/custom/output/path" \
+    --verbose
+```
 
-query rules - features = query rule 
+### Spatial and Temporal Filtering
 
-    "rule": "species IN ('coniferous', 'non-coniferous')"
+```bash
+topographic_validation \
+    --mode generic \
+    --db-path "data.gpkg" \
+    --output-dir "./output" \
+    --bbox 174.81 -41.31 174.82 -41.30 \
+    --date "2024-01-15" \
+    --use-date-folder
+```
 
-**Configuration Options**
+### Custom Export Options
 
-***point_in_poly_layers and self_intersection_layers***
+```bash
+topographic_validation \
+    --mode generic \
+    --db-path "data.parquet" \
+    --output-dir "./output" \
+    --export-parquet \
+    --export-parquet-by-geometry \
+    --skip-queries \
+    --verbose
+```
 
-    "point_table": "building_point"
+### Report Only Mode
 
-    "poly_table": "building"
+```bash
+topographic_validation \
+    --mode generic \
+    --db-path "data.gpkg" \
+    --output-dir "./output" \
+    --report-only
+```
 
-    "layername": "building-points-in-building-polygons"
+## Validation Types
 
-    "message": "Building point features must not fall within building polygon features"
-    
-    Optional 
-    "where": "topo_id in ('uuid', 'uuid') 
-    
-    date or weeks (only have none or one option)
-    "date": "today"     note: will run against changes today
-    "date": "2025-10-01"  note: will run against change from (including) date
-    "weeks": 1  note: will run on changes over the last week
+### Feature Intersection Checks
 
-    OR
-    "bbox": (174.81, -41.31, 174.82, -41.30)
+| Check Type | Description |
+|------------|-------------|
+| `feature_not_on_layers` | Point/line features must intersect specified layer |
+| `feature_in_layers` | Features must not fall within specified layer |
+| `line_not_on_feature_layers` | Line features must lie on specified layer |
+| `line_not_touches_feature_layers` | Line features must not touch specified layer |
+| `feature_not_contains_layers` | Polygon features must contain specified layer |
 
-***null_columns*** 
+### Self-Intersection Checks
 
-    "table": "descriptive_text"
+| Check Type | Description |
+|------------|-------------|
+| `self_intersect_layers` | Features must not self-intersect |
 
-    "column": "info_display"
+### Attribute Checks
 
-    "message": "Descriptive text features must have an info_display attribute"
+| Check Type | Description |
+|------------|-------------|
+| `null_columns` | Specified columns must not be null |
+| `query_rules` | Features must pass specified query rules |
 
-    Optional
+## Configuration
 
-    "where": "(feature_type = 'waterfall' OR feature_type = 'soakhole')"
+Validation rules are defined in JSON configuration files. A default configuration is provided at `config/default_config.json`.
 
-***query_rules***
+The CLI automatically selects configuration files based on mode:
+- **PostGIS mode**: `./validation_postgis_config.json`
+- **Generic mode**: `./validation_generic_config.json`
+- **Custom**: Use `--config-file` option
 
-    "table": "vegetation"
+### Configuration Structure
 
-    "column": "species"
+```json
+{
+  "feature_not_on_layers": [...],
+  "feature_in_layers": [...],
+  "line_not_on_feature_layers": [...],
+  "line_not_touches_feature_layers": [...],
+  "feature_not_contains_layers": [...],
+  "self_intersect_layers": [...],
+  "null_columns": [...],
+  "query_rules": [...]
+}
+```
 
-    "where": "feature_type = 'exotic'"
+### Feature Intersection Configuration
 
-    "rule": "species IN ('coniferous', 'non-coniferous')"
+```json
+{
+  "table": "building_point",
+  "intersection_table": "building",
+  "layername": "building-points-in-building-polygons",
+  "message": "Building point features must not fall within building polygon features"
+}
+```
 
-    "message": 'Exotic vegetation must have species as coniferous or non-coniferous'
+Optional filters:
+- `"where": "feature_type = 'value'"` - SQL where clause filter
+- `"date": "today"` or `"date": "2025-10-01"` - Filter by update date
+- `"weeks": 1` - Filter by changes in last N weeks
+
+### Self-Intersection Configuration
+
+```json
+{
+  "table": "vegetation",
+  "layername": "vegetation-validation",
+  "message": "Vegetation features must not self-intersect"
+}
+```
+
+### Null Column Configuration
+
+```json
+{
+  "table": "descriptive_text",
+  "column": "info_display",
+  "message": "Descriptive text features must have an info_display attribute",
+  "where": "(feature_type = 'waterfall' OR feature_type = 'soakhole')"
+}
+```
+
+### Query Rule Configuration
+
+```json
+{
+  "table": "vegetation",
+  "column": "species",
+  "where": "feature_type = 'exotic'",
+  "rule": "species IN ('coniferous', 'non-coniferous')",
+  "message": "Exotic vegetation must have species as coniferous or non-coniferous"
+}
+```
+
+## Output
+
+Validation results are saved to the output directory:
+
+```
+output-dir/
+├── [date-folder]/              # If --use-date-folder enabled
+├── validation_results.gpkg     # GeoPackage export (default)
+├── *.parquet                   # Parquet exports (if enabled)
+└── validation_summary_report.json  # Summary report
+```
+
+## Architecture
+
+### Core Classes
+
+- **`TopoValidatorSettings`** - Configuration and settings management for validation runs
+- **`ValidateDatasetController`** - Main controller that orchestrates validation execution
+- **`TopologyValidatorFactory`** - Factory for creating appropriate validators based on data source
+- **`TopoValidatorTools`** - Utilities for folder management and date formatting
+
+### Validators
+
+Located in `src/topographic_validation/validators/`:
+
+- **`GpkgValidator`** - Validates GeoPackage files
+- **`ParquetValidator`** - Validates Parquet files
+- **`PostgisValidator`** - Validates PostGIS databases
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Database file not found"**
+   - Check file path is correct and accessible
+   - Use absolute paths for reliability
+
+2. **"PostgreSQL connection failed"**
+   - Verify connection string format: `postgresql://user:pass@host:port/database`
+   - Check database server is running and accessible
+
+3. **"Configuration file not found"**
+   - Ensure config file exists in specified path
+   - Use `--config-file` with absolute path
+
+4. **"Permission denied on output directory"**
+   - Check write permissions for output directory
+
+### Debug Mode
+
+Use `--verbose` flag for detailed logging:
+
+```bash
+topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./output" --verbose
+```
