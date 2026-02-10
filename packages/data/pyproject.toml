@@ -1,0 +1,58 @@
+[project]
+name = "topographic-system-data"
+version = "0.1.0"
+description = "Validation scripts and data loading init tools for LINZ Topographic Data"
+requires-python = ">=3.12"
+authors = [
+    { name = "Andrew McMenamin", email = "AMcMenamin@linz.govt.nz" }
+]
+dependencies = [
+    "shapely>=2.0.0",
+    "pandas>=2.0.0",
+    "geopandas>=1.1.0",
+    "pyogrio",
+    "fiona",
+    "duckdb>=1.2.0",
+    "sqlalchemy>=2.0.0",
+    "apache-sedona",
+    "psycopg",
+    "pyarrow>=12.0.0",
+    "python-pptx"
+]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "ruff",
+    "pandas-stubs",
+    "types-pytz",
+    "types-setuptools",
+    "types-geopandas",  # Includes types-shapely as dependency
+]
+
+[tool.setuptools]
+packages = ["nztopo50"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.md"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "nztopo50.model.src.postgis_create_model"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "nztopo50.model.src.postgis_create_schemas"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "nztopo50.model.src.postgis_manage_fields"
+ignore_errors = true
+
