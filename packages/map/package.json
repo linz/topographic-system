@@ -1,6 +1,6 @@
 {
   "name": "@topographic-system/map",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "build": "tsc -b"
@@ -9,7 +9,7 @@
     "@basemaps/geo": "^8.9.0",
     "@cogeotiff/core": "^9.1.2",
     "@linzjs/docker-command": "^8.0.0",
-    "@topographic-system/shared": "0.4.0",
+    "@topographic-system/shared": "0.5.0",
     "cmd-ts": "^0.13.0",
     "stac-ts": "^1.0.4",
     "tar": "^6.2.1",

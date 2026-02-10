@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/linz/topographic-system/compare/shared-v0.4.0...shared-v0.5.0) (2026-02-10)
+
+
+### Features
+
+* **map:** Define the assets and push to s3 as Tar file. BM-1460 ([#35](https://github.com/linz/topographic-system/issues/35)) ([e897619](https://github.com/linz/topographic-system/commit/e897619f419bd32171207a2bd027fa90de091c41))
+* **map:** Download data from qgis stac item and produce pdf. BM-1478 ([#41](https://github.com/linz/topographic-system/issues/41)) ([5c5e0e0](https://github.com/linz/topographic-system/commit/5c5e0e0546795feb0245ff62e86d3556ef03aafc))
+
+
+### Bug Fixes
+
+* **shared:** mulitple package-lock json in shared causes diverged imports. ([#42](https://github.com/linz/topographic-system/issues/42)) ([71f27d7](https://github.com/linz/topographic-system/commit/71f27d7d66b9681b746a3458f59bfb0dd2e9387e))
+* write updated STAC Item to s3 BM-1509 ([#39](https://github.com/linz/topographic-system/issues/39)) ([0207d5c](https://github.com/linz/topographic-system/commit/0207d5c52c65c72f3132ff5ff4cc61204631d9a1))
+
 ## [0.4.0](https://github.com/linz/topographic-system/compare/shared-v0.3.0...shared-v0.4.0) (2026-01-26)
 
 
