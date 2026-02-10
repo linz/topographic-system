@@ -1,5 +1,15 @@
 {
   "name": "@topographic-system/data",
   "version": "0.1.0",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@chunkd/fs": "^11.3.0",
+    "@topographic-system/shared": "0.4.0",
+    "cmd-ts": "^0.13.0",
+    "stac-ts": "^1.0.4",
+    "@linzjs/docker-command": "^8.0.0"
+  }
 }
