@@ -17,7 +17,14 @@ import { validateTiff } from '../validate.ts';
 import { downloadFile } from './action.download.ts';
 
 /**
- * Downloads the given source vector parquet files for processing
+ * Parses a STAC Item for a QGIS project, determines the assets and
+ * datasets used in QGIS project, and downloads them to a tmp location.
+ *
+ * @param path - a URL ponting to a STAC Item file for a QGIS project
+ *
+ * @returns an object containing two key-value pairs:
+ * - `projectPath` - a URL pointing to the QGIS project file
+ * - `sources` - an array of URLs pointing to the datasets used in the QGIS project
  */
 export async function downloadProject(path: URL): Promise<{ projectPath: URL; sources: URL[] }> {
   logger.info({ source: path.href, downloaded: tmpFolder.href }, 'Download: Start');
