@@ -1,0 +1,44 @@
+[project]
+name = "topographic-system-validation"
+version = "0.1.0"
+description = "Data Validation scripts for LINZ Topographic Data"
+requires-python = ">=3.12"
+authors = [
+    { name = "Andrew McMenamin", email = "AMcMenamin@linz.govt.nz" },
+    { name = "Tobias Schmidt", email = "tschmidt@linz.govt.nz" }
+]
+dependencies = [
+    "shapely>=2.0.0",
+    "pandas>=2.0.0",
+    "geopandas>=1.1.0",
+    "pyogrio",
+    "fiona",
+    "duckdb>=1.2.0",
+    "sqlalchemy>=2.0.0",
+    "apache-sedona",
+    "psycopg",
+    "pyarrow>=12.0.0",
+    "python-pptx"
+]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "ruff",
+    "pandas-stubs",
+    "types-pytz",
+    "types-setuptools",
+    "types-geopandas",  # Includes types-shapely as dependency
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.uv]
+package = true
+
+[project.scripts]
+topographic_validation = "topographic_validation.cli:main"
