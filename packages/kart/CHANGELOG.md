@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.2](https://github.com/linz/topographic-system/compare/kart-v0.3.1...kart-v0.3.2) (2026-02-10)
+
+
+### Bug Fixes
+
+* **shared:** mulitple package-lock json in shared causes diverged imports. ([#42](https://github.com/linz/topographic-system/issues/42)) ([71f27d7](https://github.com/linz/topographic-system/commit/71f27d7d66b9681b746a3458f59bfb0dd2e9387e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from file:../shared to 0.5.0
+
 ## [0.3.1](https://github.com/linz/topographic-system/compare/kart-v0.3.0...kart-v0.3.1) (2026-01-28)
 
 
