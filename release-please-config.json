@@ -5,6 +5,27 @@
     "packages/kart": {},
     "packages/map": {},
     "packages/shared": {},
+    "packages/validation": {
+      "release-type": "python",
+      "package-name": "topography-validation",
+      "extra-files": [
+        {
+          "path": "packages/validation/pyproject.toml",
+          "type": "toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='topographic-system')].version"
+        },
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='topographic-system-validation')].version"
+        }
+      ]
+    },
     ".": {
       "include-component-in-tag": false
     }

@@ -1,10 +1,19 @@
 [project]
 name = "topographic-system"
 version = "0.1.0"
-description = "A collection of tools for LINZ Topographic Data"
+description = "A collection of tools for LINZ Topographic Data Management"
+authors = [
+    { name = "Andrew McMenamin", email = "AMcMenamin@linz.govt.nz" },
+    { name = "Tobias Schmidt", email = "tschmidt@linz.govt.nz" },
+    { name = "Wentao Kuang", email = "wkuang@linz.govt.nz" },
+    { name = "Chris Burlinchon", email = "cburlinchon@linz.govt.nz" },
+    { name = "Tāwera Manaena", email = "tmanaena@linz.govt.nz" },
+]
+
 requires-python = ">=3.12"
 dependencies = [
     "topographic-system-qgis",
+    "topographic-system-validation",
 ]
 
 [dependency-groups]
@@ -12,13 +21,18 @@ dev = [
     "mypy",
     "pytest",
     "ruff",
-]
+    "pandas-stubs",
+    "types-pytz",
+    "types-setuptools",
+    "types-geopandas",  # Includes types-shapely as dependency
+    ]
 
 [tool.uv.sources]
 topographic-system-qgis = { workspace = true }
+topographic-system-validation = { workspace = true }
 
 [tool.uv.workspace]
-members = ["packages/qgis"]
+members = ["packages/qgis", "packages/validation"]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
