@@ -1,9 +1,10 @@
 import { fsa } from '@chunkd/fs';
-import { CliDate, CliInfo } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
+import { recursiveFileSearch } from '@topographic-system/shared/src/fs.util.ts';
+import { isMergeToMaster, isRelease } from '@topographic-system/shared/src/github.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { RootCatalogFile } from '@topographic-system/shared/src/stac.constants.ts';
+import { determineAssetLocation } from '@topographic-system/shared/src/stac.links.ts';
 import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
@@ -12,47 +13,6 @@ import { $ } from 'zx';
 
 const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
-
-function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
-  if (!tag) {
-    if (isMergeToMaster() || isRelease()) {
-      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
-    } else if (isPullRequest()) {
-      const ref = $.env['GITHUB_REF'] || '';
-      const prMatch = ref.match(/refs\/pull\/(\d+)/);
-      if (prMatch) {
-        tag = `pull_request/pr-${prMatch[1]}`;
-      } else {
-        tag = `pull_request/unknown`;
-      }
-    } else {
-      tag = `dev/${CliInfo.hash}`;
-    }
-  }
-  const s3location = new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
-  logger.info(
-    { subdir, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest(), s3location: s3location.href },
-    'DetermineAssetLocation:Variables',
-  );
-  return s3location;
-}
-
-function isPullRequest(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  logger.debug({ ref }, 'IsPullRequest:GITHUB_REF');
-  return ref.startsWith('refs/pull/');
-}
-
-function isMergeToMaster(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  return !isPullRequest() && ref.endsWith('/master');
-}
-
-function isRelease(): boolean {
-  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
-  logger.debug({ workflow }, 'IsRelease:GITHUB_WORKFLOW_REF');
-  return isMergeToMaster() && workflow.toLowerCase().includes('release');
-}
 
 export const parquetCommand = command({
   name: 'to-parquet',
@@ -70,12 +30,11 @@ export const parquetCommand = command({
       description: 'compression level for parquet files (default: 17)',
       defaultValue: () => 17,
     }),
-    // Note: inverted logic due to bug/feature in cmd-ts flag defaults (flag not set always means false, regardless of defaultValue)
-    no_sort_by_bbox: flag({
+    sort_by_bbox: flag({
       type: boolean,
-      defaultValue: () => false,
-      long: 'no-sort-by-bbox',
-      description: 'whether to _not_ sort parquet files by bounding box (default: false)',
+      onMissing: () => true,
+      long: 'sort-by-bbox',
+      description: 'whether to sort parquet files by bounding box (default: true)',
     }),
     row_group_size: option({
       type: optional(number),
@@ -96,30 +55,15 @@ export const parquetCommand = command({
         concurrency: Concurrency,
         compression: args.compression,
         compression_level: args.compression_level,
-        sort_by_bbox: !args.no_sort_by_bbox,
+        sort_by_bbox: args.sort_by_bbox,
       },
       'ToParquet:Start',
     );
-
-    const gpkgFilesToProcess: string[] = [];
+    const extension = '.gpkg';
     const sourceFileArguments = args.sourceFiles.length > 0 ? args.sourceFiles : ['./export'];
-
-    for (const sourceFileArgument of sourceFileArguments) {
-      const sourcePath = fsa.toUrl(sourceFileArgument);
-      const stat = await fsa.head(sourcePath);
-      if (stat && stat.isDirectory) {
-        const filePaths = await fsa.toArray(fsa.list(sourcePath, { recursive: true }));
-        for (const filePath of filePaths) {
-          if (filePath.href.endsWith('.gpkg')) {
-            gpkgFilesToProcess.push(filePath.pathname);
-          }
-        }
-      } else if (stat) {
-        if (sourcePath.href.endsWith('.gpkg')) {
-          gpkgFilesToProcess.push(sourcePath.pathname);
-        }
-      }
-    }
+    const gpkgFilesToProcess = (
+      await Promise.all(sourceFileArguments.map((sourceFile) => recursiveFileSearch(fsa.toUrl(sourceFile), extension)))
+    ).flat();
 
     if (gpkgFilesToProcess.length === 0) {
       logger.info('ToParquet:No files to process');
@@ -128,10 +72,10 @@ export const parquetCommand = command({
 
     const parquetDir = './parquet';
     await $`mkdir -p ${parquetDir}`;
-    logger.info({ gpkgFilesToProcess }, 'ToParquet:Processing');
+    logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
-        const dataset = basename(gpkgFile, '.gpkg');
+        const dataset = basename(gpkgFile.pathname, extension);
         const parquetFile = `${parquetDir}/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
@@ -146,18 +90,17 @@ export const parquetCommand = command({
           '-lco',
           `ROW_GROUP_SIZE=${args.row_group_size}`,
         ];
-        if (!args.no_sort_by_bbox) {
+        if (args.sort_by_bbox) {
           command.push('-lco', 'SORT_BY_BBOX=YES');
         }
-        // const command = ['cp', gpkgFile, parquetFile];
         await $`${command}`;
         const assetFile = determineAssetLocation('data', dataset, parquetFile);
-        logger.info({ assetFile }, 'ToParquet:UploadingParquet');
+        logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
         const stacItemFile = await upsertAssetToCollection(assetFile);
-        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
+        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:AssetToCollectionUpserted');
         if (isMergeToMaster()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
           await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
