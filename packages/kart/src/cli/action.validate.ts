@@ -2,6 +2,7 @@ import { fsa } from '@chunkd/fs';
 import { recursiveFileSearch } from '@topographic-system/shared/src/fs.util.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { determineAssetLocation } from '@topographic-system/shared/src/stac.links.ts';
+import {upsertAssetToCollection, upsertAssetToItem} from '@topographic-system/shared/src/stac.upsert.ts';
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -107,7 +108,12 @@ export const validateCommand = command({
             file.pathname.replace(args['output-dir'] ?? '', ''),
           );
           logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
-          return fsa.write(target, fsa.readStream(file));
+          await fsa.write(target, fsa.readStream(file));
+          if (target.pathname.split('.').pop() === 'parquet') {
+            await upsertAssetToCollection(target);
+          } else {
+            await upsertAssetToItem(target);
+          }
         }),
       );
     }

@@ -99,14 +99,17 @@ export const parquetCommand = command({
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
-        const stacItemFile = await upsertAssetToCollection(assetFile);
-        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:AssetToCollectionUpserted');
+        const stacCollectionFile = await upsertAssetToCollection(assetFile);
+        logger.info(
+          { parquetFile, stacCollectionFile: stacCollectionFile.href },
+          'ToParquet:AssetToCollectionUpserted',
+        );
         if (isMergeToMaster()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
+          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacCollectionFile));
         } else if (isRelease()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
-          await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
+          await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacCollectionFile));
         }
       });
     }
