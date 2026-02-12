@@ -149,7 +149,6 @@ export const parquetCommand = command({
         if (!args.no_sort_by_bbox) {
           command.push('-lco', 'SORT_BY_BBOX=YES');
         }
-        // const command = ['cp', gpkgFile, parquetFile];
         await $`${command}`;
         const assetFile = determineAssetLocation('data', dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
