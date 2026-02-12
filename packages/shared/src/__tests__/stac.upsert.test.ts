@@ -4,7 +4,7 @@ import { afterEach, before, beforeEach, describe, it } from 'node:test';
 import { fsa, FsMemory } from '@chunkd/fs';
 import type { StacCatalog } from 'stac-ts';
 
-import { getDataFromCatalog } from '../stac.ts';
+import { getDataFromCatalog } from '../stac.upsert.ts';
 
 describe('stac-setup', () => {
   const mem = new FsMemory();
