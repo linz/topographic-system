@@ -1,5 +1,3 @@
-import { UUID } from 'node:crypto';
-
 import { fsa } from '@chunkd/fs';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, restPositionals, string } from 'cmd-ts';
