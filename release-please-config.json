@@ -26,6 +26,7 @@
         }
       ]
     },
+    "packages/data-prep": {},
     ".": {
       "include-component-in-tag": false
     }
