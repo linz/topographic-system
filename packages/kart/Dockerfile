@@ -5,6 +5,9 @@ ADD packages/kart/dist/index.* /scripts/
 COPY packages/validation /packages/validation
 RUN uv sync --directory /packages/validation
 
+COPY packages/data-prep /packages/data-prep
+RUN uv sync --directory /packages/data-prep
+
 WORKDIR /tmp/kart
 
 # Disabling kart helper to avoid a bug with handling empty environment variables when running in CI environments in kart v0.17.0

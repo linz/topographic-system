@@ -12,7 +12,7 @@ type DiffOutput = {
     [dataset: string]: {
       feature: Array<{
         [changeType in '+' | '++' | '-' | '--']?: {
-          topo_id: UUID | null;
+          topo_id: null;
           t50_fid: number | null;
           feature_type?: string | null;
           name?: string | null;

@@ -7,6 +7,7 @@ import { exportCommand } from './cli/action.export.ts';
 import { commentCommand } from './cli/action.pr.comment.ts';
 import { parquetCommand } from './cli/action.to.parquet.ts';
 import { versionCommand } from './cli/action.version.ts';
+import { IceContoursCommand } from './cli/action.ice.contours.ts';
 
 const Cli = subcommands({
   name: 'topographic-system',
@@ -18,6 +19,7 @@ const Cli = subcommands({
     'to-parquet': parquetCommand,
     'pr-comment': commentCommand,
     version: versionCommand,
+    'ice-contours': IceContoursCommand,
   },
 });
 

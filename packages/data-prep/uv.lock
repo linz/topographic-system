@@ -373,7 +373,7 @@ wheels = [
 ]
 
 [[package]]
-name = "topographic-system-data"
+name = "topographic-system-data-prep"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
