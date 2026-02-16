@@ -6,16 +6,13 @@ import { createStacCatalog, createStacLink } from '@topographic-system/shared/sr
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
-import path, { basename, parse } from 'path';
-import type { StacCatalog } from 'stac-ts';
+import { basename, parse } from 'path';
+import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { downloadProject } from '../download.ts';
+import { downloadProject, tmpFolder } from '../download.ts';
 import { qgisExport } from '../python.runner.ts';
 import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
-
-// Prepare a temporary folder to store the source data and processed outputs
-const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -117,7 +114,9 @@ export const ProduceCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const links = createStacLink(sources, args.project);
+    const stac = await fsa.readJson<StacItem>(args.project);
+    const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
+    const links = await createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
       const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));
