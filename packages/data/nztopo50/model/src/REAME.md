@@ -14,9 +14,24 @@ Setting up data model and loading data into Postgres
 **This process is currently manually run.
 The default location for the configuration files is c:\data\model**
 
+To help identify change the 2 configuration files - dataset_fields.xlsx and layers_info.xlsx are expected to be in this folder. They have been saved as CSV files in the repo.
+
 The code has a default database "topo" and password. If different ones used these will need to be changed.
 
 ## Process
+
+## The following PRE-PROCESS STEPS are required
+
+Replace lds export with LAMPS direct export
+
+**road_cl.shp** - this is a direct export from LAMPS as it contains additional fields
+
+If road_cl.cpg exists - delete or rename - read has issue if it exists.
+
+**islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box
+
+## MAIN Automated Steps
+
 *Step 1: Create schemas in PostGIS*
 
     Note: Typically done manually. Example code: postgis_create_schemas.py

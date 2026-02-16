@@ -327,8 +327,8 @@ if __name__ == "__main__":
     pyproj.datadir.set_data_dir(folder)
     layer_info_file = r"C:\Data\Model\layers_info.xlsx"
 
-    release = "release62"
-    # release = "release63"
+    # release = "release62"
+    release = "release65"
     data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
 
     # postgis schema name

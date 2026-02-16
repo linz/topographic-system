@@ -223,29 +223,28 @@ class ModifyTable:
             )
 
     def add_metadata_columns(
-        self, mode="add", schema_name="toposource", full_field_set=True
-    ):
+        self, mode="add", schema_name="toposource", 
+        full_field_set=True, 
+        include_source_fields=False):
+
         self.connect()
         schema_tables = self.list_schema_tables(schema_name)
 
         if full_field_set:
             fieldList = [
-                ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
-                ["source_id", "INTEGER", "DEFAULT"],
-                ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
                 ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
-                ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["update_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
-                ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["create_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
-        else:
-            fieldList = [
+        if include_source_fields:
+            fieldList.extend([
                 ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
                 ["source_id", "INTEGER", "DEFAULT"],
-                ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-            ]
+                ["source_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
+            ])
         # uuidv7
         # ["comment", "VARCHAR(255)", "DEFAULT"],
 

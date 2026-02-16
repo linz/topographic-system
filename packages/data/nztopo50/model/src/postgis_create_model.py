@@ -32,14 +32,15 @@ def excel_to_layered_dict(excel_path):
 if __name__ == "__main__":
     commands_options = ["drop_tables", "create_tables"]
     # commands_options = ["drop_tables"]
+    # commands_options = ["create_tables"]
     # commands_options = ["create_indexes"]
     for command_option in commands_options:
         print(f"Executing command: {command_option}")
 
         model_fields_file = r"C:\Data\Model\datasets_fields.xlsx"
         # schema_name = "toposource"
-        schema_name = "release62"
-        # schema_name = "release63"
+        # schema_name = "release62"
+        schema_name = "release65"
 
         primary_key_type = "none"
         # primary_key_type = 'int' #uuid
@@ -79,7 +80,7 @@ if __name__ == "__main__":
                         elif col_type == "DOUBLE":
                             col_def = f"{field_name} DOUBLE PRECISION"
                         elif col_type == "DATE":
-                            col_def = f"{field_name} DATE"
+                            col_def = f"{field_name} TIMESTAMP"
                         elif col_type == "BOOLEAN":
                             col_def = f"{field_name} BOOLEAN"
                         elif col_type == "GUID":
