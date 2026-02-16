@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import path, { basename } from 'path';
-import { StacCollection, StacItem } from 'stac-ts';
+import type { StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 import { fileURLToPath } from 'url';
 
