@@ -35,7 +35,7 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
   const stacAsset = await createStacAssetFromFileName(assetFile);
-  if (!stacItemFile) {
+  if (stacItemFile == null) {
     stacItemFile = new URL(`./${dataset}.json`, assetFile);
   }
   const stacItem = await createStacItemFromFileName(stacItemFile);
@@ -61,15 +61,15 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
  *
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
-export async function upsertAssetToCollection(assetFile: URL, stacCollectionFile?: URL): Promise<URL> {
+export async function upsertAssetToCollection(
+  assetFile: URL,
+  stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
+): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
   const stacAsset = await createStacAssetFromFileName(assetFile);
-  if (!stacCollectionFile) {
-    stacCollectionFile = new URL(`./collection.json`, assetFile);
-  }
   const stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
-  stacCollection['assets'] = stacCollection['assets'] || {};
+  stacCollection['assets'] = stacCollection['assets'] ?? {};
   if (compareStacAssets(stacCollection.assets['data'], stacAsset)) {
     logger.info(
       { dataset, asset: assetFile.href, stacCollection: stacCollectionFile.href },
@@ -104,11 +104,10 @@ export async function upsertAssetToCollection(assetFile: URL, stacCollectionFile
  *
  * @returns The URL of the updated or newly created STAC Collection file.
  */
-export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFile?: URL): Promise<URL> {
-  if (!stacCollectionFile) {
-    stacCollectionFile = new URL('./collection.json', stacItemFile);
-  }
-
+export async function upsertItemToCollection(
+  stacItemFile: URL,
+  stacCollectionFile: URL = new URL('./collection.json', stacItemFile),
+): Promise<URL> {
   let [stacCollection, stacItem] = await Promise.all([
     createStacCollectionFromFileName(stacCollectionFile),
     createStacItemFromFileName(stacItemFile),
@@ -136,15 +135,15 @@ export async function upsertItemToCollection(stacItemFile: URL, stacCollectionFi
  *
  * @returns The URL of the updated or newly created STAC Catalog file.
  */
-async function upsertChildToCatalog(stacChildFile: URL, stacCatalogFile?: URL): Promise<URL> {
+async function upsertChildToCatalog(
+  stacChildFile: URL,
+  stacCatalogFile: URL = new URL('../catalog.json', stacChildFile),
+): Promise<URL> {
   if (stacChildFile.href === RootCatalogFile.href) {
     logger.info({ stacChildFile: stacChildFile.href }, `STAC:ReachedRootCatalog`);
     return stacChildFile;
   }
   const childIsCollection = basename(stacChildFile.href) === 'collection.json';
-  if (!stacCatalogFile) {
-    stacCatalogFile = new URL('../catalog.json', stacChildFile);
-  }
   let stacChild = childIsCollection
     ? await createStacCollectionFromFileName(stacChildFile)
     : await createStacCatalogFromFilename(stacChildFile);
@@ -165,7 +164,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
   if (stacUrl.href.endsWith('catalog.json')) {
     const catalog = await fsa.readJson<StacCatalog>(stacUrl);
     const childLink = catalog.links.find((link) => link.rel === 'child' && link.href.includes(`/${layerName}/`));
-    if (!childLink) throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
+    if (childLink == null) throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
 
     // Recursively search in child catalog
     if (childLink.href.endsWith('catalog.json')) return getDataFromCatalog(new URL(childLink.href), layerName, tag);

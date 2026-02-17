@@ -49,7 +49,7 @@ async function getFeatureCount(diffRange: string[]): Promise<number> {
   try {
     const countOutput = await $`kart -C repo diff ${diffRange} -o json`;
     const featureCount = countOutput.stdout.trim();
-    if (!featureCount) {
+    if (featureCount == null) {
       logger.warn('Diff:FeatureCount:EmptyOutput');
       return 0;
     }

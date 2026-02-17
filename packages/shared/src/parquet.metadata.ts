@@ -3,6 +3,8 @@ import type { AsyncBuffer, ColumnChunk, FileMetaData, Statistics } from 'hyparqu
 import { parquetMetadataAsync } from 'hyparquet';
 import type { SpatialExtent, TemporalExtent } from 'stac-ts';
 
+import { logger } from './log.ts';
+
 export interface ColumnStats extends Statistics {
   name: string;
   type: string;
@@ -18,7 +20,7 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   const source = fsa.source(assetFile);
   const headInfo = await source.head();
   const byteLength = headInfo.size;
-  if (byteLength === undefined) {
+  if (byteLength == null) {
     throw new Error(`Unable to determine file size for ${assetFile.href}`);
   }
 
@@ -26,7 +28,7 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   const asyncBuffer: AsyncBuffer = {
     byteLength,
     slice: (start: number, end?: number): Promise<ArrayBuffer> => {
-      const length = end !== undefined ? end - start : undefined;
+      const length = end != null ? end - start : undefined;
       return source.fetch(start, length);
     },
   };
@@ -39,7 +41,7 @@ export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Ro
   return {
     'table:row_count': parquetMetadata.num_rows,
     'table:columns': Array.from({ length: numColumns }, (_, i) => {
-      const columns = parquetMetadata.row_groups.map((rg) => rg.columns[i]).filter((col) => col !== undefined);
+      const columns = parquetMetadata.row_groups.map((rg) => rg.columns[i]).filter((col) => col != null);
       return aggregateColumnStatsAcrossRowGroups(columns);
     }),
   };
@@ -49,25 +51,25 @@ function aggregateColumnStatsAcrossRowGroups(columns: ColumnChunk[]): ColumnStat
   const summaryStats = {} as ColumnStats;
 
   for (const column of columns) {
-    if (!column?.meta_data) continue;
+    if (column?.meta_data == null) continue;
     summaryStats.name = column.meta_data.path_in_schema.join('.');
     summaryStats.type = column.meta_data.type.toLowerCase();
     summaryStats.codec = column.meta_data.codec;
-    if (!column?.meta_data?.statistics) continue;
+    if (column?.meta_data?.statistics == null) continue;
     const columnStats = column.meta_data.statistics;
 
-    if (columnStats.min !== undefined && (summaryStats.min === undefined || columnStats.min < summaryStats.min)) {
+    if (columnStats.min != null && (summaryStats.min == null || columnStats.min < summaryStats.min)) {
       summaryStats.min = columnStats.min;
     }
-    if (columnStats.max !== undefined && (summaryStats.max === undefined || columnStats.max > summaryStats.max)) {
+    if (columnStats.max != null && (summaryStats.max == null || columnStats.max > summaryStats.max)) {
       summaryStats.max = columnStats.max;
     }
-    if (columnStats.null_count !== undefined) {
+    if (columnStats.null_count != null) {
       summaryStats.null_count = (summaryStats.null_count ?? 0n) + columnStats.null_count;
     }
     if (
-      columnStats.distinct_count !== undefined &&
-      (summaryStats.distinct_count === undefined || columnStats.distinct_count > summaryStats.distinct_count)
+      columnStats.distinct_count != null &&
+      (summaryStats.distinct_count == null || columnStats.distinct_count > summaryStats.distinct_count)
     ) {
       summaryStats.distinct_count = columnStats.distinct_count;
     }
@@ -76,10 +78,15 @@ function aggregateColumnStatsAcrossRowGroups(columns: ColumnChunk[]): ColumnStat
 }
 
 export function extractSpatialExtent(columnStats: ColumnStats[]): SpatialExtent {
-  const xmin = columnStats.find((col) => col.name === 'geom_bbox.xmin')?.min as number;
-  const xmax = columnStats.find((col) => col.name === 'geom_bbox.xmax')?.max as number;
-  const ymin = columnStats.find((col) => col.name === 'geom_bbox.ymin')?.min as number;
-  const ymax = columnStats.find((col) => col.name === 'geom_bbox.ymax')?.max as number;
+  const xmin = columnStats.find((col) => col.name === 'geom_bbox.xmin')?.min;
+  const xmax = columnStats.find((col) => col.name === 'geom_bbox.xmax')?.max;
+  const ymin = columnStats.find((col) => col.name === 'geom_bbox.ymin')?.min;
+  const ymax = columnStats.find((col) => col.name === 'geom_bbox.ymax')?.max;
+
+  if (typeof xmin !== 'number' || typeof xmax !== 'number' || typeof ymin !== 'number' || typeof ymax !== 'number') {
+    logger.error({ columnStats, xmin, xmax, ymin, ymax }, 'SpatialExtent:InvalidColumnStats');
+    throw new Error('SpatialExtent:InvalidColumnStats');
+  }
 
   return [xmin, ymin, xmax, ymax];
 }

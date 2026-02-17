@@ -14,11 +14,11 @@ const Concurrency = os.cpus().length;
 const Q = new ConcurrentQueue(Concurrency);
 
 function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
-  if (!tag) {
+  if (tag == null) {
     if (isMergeToMaster() || isRelease()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
     } else if (isPullRequest()) {
-      const ref = $.env['GITHUB_REF'] || '';
+      const ref = $.env['GITHUB_REF'] ?? '';
       const prMatch = ref.match(/refs\/pull\/(\d+)/);
       if (prMatch) {
         tag = `pull_request/pr-${prMatch[1]}`;
@@ -38,18 +38,18 @@ function determineAssetLocation(subdir: string, dataset: string, output: string,
 }
 
 function isPullRequest(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
+  const ref = $.env['GITHUB_REF'] ?? '';
   logger.debug({ ref }, 'IsPullRequest:GITHUB_REF');
   return ref.startsWith('refs/pull/');
 }
 
 function isMergeToMaster(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
+  const ref = $.env['GITHUB_REF'] ?? '';
   return !isPullRequest() && ref.endsWith('/master');
 }
 
 function isRelease(): boolean {
-  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
+  const workflow = $.env['GITHUB_WORKFLOW_REF'] ?? '';
   logger.debug({ workflow }, 'IsRelease:GITHUB_WORKFLOW_REF');
   return isMergeToMaster() && workflow.toLowerCase().includes('release');
 }

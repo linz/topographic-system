@@ -2,7 +2,7 @@ import { z } from 'zod/v4-mini';
 
 import { logger } from './log.ts';
 
-export const Environment = process.env['ENVIRONMENT'] || 'dev';
+export const Environment = process.env['ENVIRONMENT'] ?? 'dev';
 export const EnvLabel = Environment === 'prod' ? '' : `-${Environment}`;
 export const S3BucketName = `linz-topography${EnvLabel}`;
 

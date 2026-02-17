@@ -14,6 +14,7 @@ export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): stri
 }
 
 export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAsset | StacLink | undefined): boolean {
+  if (a == null && b == null) return true;
   if (a && b)
     return (
       a.href === b.href &&
