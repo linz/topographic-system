@@ -13,6 +13,13 @@ export const listMapSheetsArgs = {
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
+  mapSheetLayer: option({
+    type: string,
+    long: 'map-sheet-layer',
+    description: 'Qgis Map Sheet Layer name to use for export',
+    defaultValue: () => 'nz_topo50_map_sheet',
+    defaultValueIsSerializable: true,
+  }),
   output: option({
     type: string,
     long: 'output',
@@ -35,7 +42,7 @@ export const listMapSheetsCommand = command({
     logger.info({ projectPath: projectPath.href, sourceCount: sources.length }, 'ListMapSheets: Project Downloaded');
 
     // Run python list map sheets script
-    const mapSheets = await listMapSheets(projectPath);
+    const mapSheets = await listMapSheets(projectPath, args.mapSheetLayer);
 
     // Write outputs files to destination
     await fsa.write(fsa.toUrl(args.output), JSON.stringify(mapSheets, null, 2));

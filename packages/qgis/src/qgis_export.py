@@ -13,9 +13,11 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
-export_format = sys.argv[3]
-dpi = int(sys.argv[4])
-sheet_codes = sys.argv[5:]
+project_layout = sys.argv[3]
+topo_map_sheet = sys.argv[4]
+export_format = sys.argv[5]
+dpi = int(sys.argv[6])
+sheet_codes = sys.argv[7:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -26,15 +28,12 @@ success = project.read(project_path)
 if not success:
     raise ValueError(f"Failed to read project file: {project_path}")
 
-manager = project.layoutManager()
-layouts = manager.layouts()
-
-if not layouts:
-    raise RuntimeError("No layouts found in the QGIS project")
-
-layout = layouts[0]  # Use the first layout found
+layout = project.layoutManager().layoutByName(project_layout)
 exporter = QgsLayoutExporter(layout)
 
+if layout is None:
+    raise RuntimeError(f"No layout found with name '{project_layout}'.")
+    
 map_item = None
 for item in layout.items():
     if isinstance(item, QgsLayoutItemMap):
@@ -42,27 +41,12 @@ for item in layout.items():
         break
 
 if map_item is None:
-    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{layout.name()}'.")
+    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
 metadata = []
 map_crs = map_item.crs()
 
-# Find the vector layer with the 'sheet_code' field, i.e. nz_topo50_map_sheets layer
-topo_sheet_layer = None
-for layer in project.mapLayers().values():
-    if not layer.isValid():
-        continue
-    if not hasattr(layer, "fields"):
-        continue
-
-    field_names = [f.name() for f in layer.fields()]
-    if "sheet_code" in field_names:
-        topo_sheet_layer = layer
-        break
-
-if topo_sheet_layer is None:
-    raise RuntimeError("No vector layer with a 'sheet_code' field found in the project")
-
+topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
 
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])

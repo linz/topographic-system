@@ -57,6 +57,8 @@ export async function qgisExport(
   cmd.args.push('qgis/src/qgis_export.py');
   cmd.args.push(toRelative(input));
   cmd.args.push(toRelative(output));
+  cmd.args.push(options.layout);
+  cmd.args.push(options.mapSheetLayer);
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
   for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
@@ -75,7 +77,7 @@ export async function qgisExport(
 /**
  * Running python commands for list_map_sheets
  */
-export async function listMapSheets(input: URL, layerName: string = 'nz_topo_map_sheet'): Promise<string[]> {
+export async function listMapSheets(input: URL, layerName: string): Promise<string[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/list_map_sheets.py');

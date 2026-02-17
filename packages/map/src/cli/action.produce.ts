@@ -24,6 +24,8 @@ export const ExportFormats = {
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
 
 export interface ExportOptions {
+  layout: string;
+  mapSheetLayer: string;
   dpi: number;
   format: ExportFormat;
 }
@@ -64,6 +66,20 @@ export const ProduceArgs = {
     defaultValue: () => ExportFormats.Pdf,
     defaultValueIsSerializable: true,
   }),
+  layout: option({
+    type: string,
+    long: 'layout',
+    description: 'Qgis Layout name to use for export',
+    defaultValue: () => 'tiff-50',
+    defaultValueIsSerializable: true,
+  }),
+  mapSheetLayer: option({
+    type: string,
+    long: 'map-sheet-layer',
+    description: 'Qgis Map Sheet Layer name to use for export',
+    defaultValue: () => 'nz_topo50_map_sheet',
+    defaultValueIsSerializable: true,
+  }),
   dpi: option({
     type: number,
     long: 'dpi',
@@ -95,7 +111,12 @@ export const ProduceCommand = command({
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
 
     // Run python qgis export script
-    const exportOptions = { dpi: args.dpi, format: args.format };
+    const exportOptions = {
+      layout: args.layout,
+      mapSheetLayer: args.mapSheetLayer,
+      dpi: args.dpi,
+      format: args.format,
+    };
     const metadatas = await qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
 
     // Write outputs files to destination
