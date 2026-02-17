@@ -7,7 +7,7 @@
     "packages/shared": {},
     "packages/validation": {
       "release-type": "python",
-      "package-name": "topography-validation",
+      "package-name": "validation",
       "extra-files": [
         {
           "path": "packages/validation/pyproject.toml",
