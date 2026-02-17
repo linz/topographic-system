@@ -29,6 +29,8 @@ export const IceContoursCommand = command({
 
     const cmd = Command.create('uv');
     cmd.args.push('run');
+    cmd.args.push('--directory');
+    cmd.args.push('/packages/data-prep');
     cmd.args.push('src/ice_contours.py');
     cmd.args.push(toRelative(args.contour));
     cmd.args.push(toRelative(args.landcover));
