@@ -1,3 +1,5 @@
+import { UUID } from 'node:crypto';
+
 import { fsa } from '@chunkd/fs';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { command, restPositionals, string } from 'cmd-ts';
@@ -10,7 +12,7 @@ type DiffOutput = {
     [dataset: string]: {
       feature: Array<{
         [changeType in '+' | '++' | '-' | '--']?: {
-          topo_id: null;
+          topo_id: UUID | null;
           t50_fid: number | null;
           feature_type?: string | null;
           name?: string | null;
