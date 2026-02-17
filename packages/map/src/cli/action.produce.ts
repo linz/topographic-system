@@ -1,5 +1,6 @@
 import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
+import { downloadProject, tmpFolder } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
@@ -9,7 +10,6 @@ import { mkdirSync } from 'fs';
 import { basename, parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { downloadProject, tmpFolder } from '../download.ts';
 import { qgisExport } from '../python.runner.ts';
 import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
 import { validateTiff } from '../validate.ts';

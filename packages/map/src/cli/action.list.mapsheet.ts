@@ -1,10 +1,10 @@
 import { fsa } from '@chunkd/fs';
+import { downloadProject } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { Url } from '@topographic-system/shared/src/url.ts';
 import { command, option, string } from 'cmd-ts';
 
-import { downloadProject } from '../download.ts';
 import { listMapSheets } from '../python.runner.ts';
 
 export const listMapSheetsArgs = {

@@ -57,7 +57,7 @@ node src/index.ts list-mapsheets --project s3://linz-topography-nonprod/qgis/lat
 ### Debug in container
 
 ```
-docker run -it --rm --entrypoint /bin/bash -v ~/.aws:/root/.aws:ro -e AWS_PROFILE=li-topo-maps-nonprod map
+docker run -it --rm --entrypoint /bin/bash -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map
 ```
 
 ### Run cli in container
