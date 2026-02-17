@@ -135,21 +135,17 @@ export const parquetCommand = command({
         const parquetFile = `${parquetDir}/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
-          '-f',
-          'Parquet',
+          ['-f', 'Parquet'],
           parquetFile,
           gpkgFile,
-          '-lco',
-          `COMPRESSION=${args.compression}`,
-          '-lco',
-          `COMPRESSION_LEVEL=${args.compression_level}`,
-          '-lco',
-          `ROW_GROUP_SIZE=${args.row_group_size}`,
+          ['-lco', `COMPRESSION=${args.compression}`],
+          ['-lco', `COMPRESSION_LEVEL=${args.compression_level}`],
+          ['-lco', `ROW_GROUP_SIZE=${args.row_group_size}`],
         ];
         if (!args.no_sort_by_bbox) {
-          command.push('-lco', 'SORT_BY_BBOX=YES');
+          command.push(['-lco', 'SORT_BY_BBOX=YES']);
         }
-        await $`${command}`;
+        await $`${command.flat()}`;
         const assetFile = determineAssetLocation('data', dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
