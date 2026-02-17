@@ -5,10 +5,10 @@ contour_path = sys.argv[1]
 landcover_path = sys.argv[2]
 overlap_path = sys.argv[3]
 
-contours_gdf = gpd.read_parquet(contour_path)
+contour_gdf = gpd.read_parquet(contour_path)
 landcover_gdf = gpd.read_parquet(landcover_path)
 
-overlap_gdf = gpd.overlay(contours_gdf, landcover_gdf, how="union", keep_geom_type=True)
+overlap_gdf = gpd.overlay(contour_gdf, landcover_gdf, how="union", keep_geom_type=True)
 
 overlap_gdf = overlap_gdf.rename(columns={"feature_type_1": "feature_type"})
 overlap_gdf = overlap_gdf.rename(columns={"topo_id_1": "topo_id"})
