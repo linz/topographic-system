@@ -24,6 +24,8 @@ export function serializeBigInt(key: string, value: unknown): unknown {
 }
 
 export function deserializeBigInt(key: string, value: unknown): unknown {
+  // Fixme: this will convert any string that looks like a number to a BigInt, which may not be desirable.
+  //  Consider additional checks or adding a suffix to identify BigInt strings.
   const isNumberString = (v: string): boolean => /^-?\d+$/.test(v);
   if (BigIntFields.has(key) && typeof value === 'string' && isNumberString(value)) {
     return BigInt(value);
