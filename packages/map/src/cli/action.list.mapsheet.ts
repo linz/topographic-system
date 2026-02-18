@@ -1,12 +1,12 @@
 import { fsa } from '@chunkd/fs';
-import { downloadFile, downloadFromCollection, downloadProject } from '@topographic-system/shared/src/download.ts';
+import { downloadFile, downloadFromCollection } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { Url } from '@topographic-system/shared/src/url.ts';
 import { command, option, string } from 'cmd-ts';
+import type { StacItem } from 'stac-ts';
 
 import { listMapSheets } from '../python.runner.ts';
-import type { StacItem } from 'stac-ts';
 
 export const listMapSheetsArgs = {
   project: option({
