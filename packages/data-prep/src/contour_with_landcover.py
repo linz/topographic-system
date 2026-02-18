@@ -1,6 +1,7 @@
 import sys
 import geopandas as gpd
 
+
 def run(contour_path: str, landcover_path: str, overlap_path: str) -> None:
     contour_gdf = gpd.read_parquet(contour_path)
     landcover_gdf = gpd.read_parquet(landcover_path)
@@ -21,9 +22,9 @@ def run(contour_path: str, landcover_path: str, overlap_path: str) -> None:
         }
     )
 
-    overlap_gdf["landcover_feature_type"] = (
-        overlap_gdf["landcover_feature_type"].fillna("other")
-    )
+    overlap_gdf["landcover_feature_type"] = overlap_gdf[
+        "landcover_feature_type"
+    ].fillna("other")
 
     overlap_gdf.to_parquet(overlap_path)
 

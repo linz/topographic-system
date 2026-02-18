@@ -5,6 +5,7 @@ from shapely.geometry import Polygon
 
 from contour_with_landcover import run
 
+
 def test_contour_with_landcover(tmp_path: Path):
     poly1 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
     poly2 = Polygon([(1, 1), (3, 1), (3, 3), (1, 3)])
