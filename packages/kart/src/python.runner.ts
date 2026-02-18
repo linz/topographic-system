@@ -9,7 +9,7 @@ export async function contourWithLandcover(contour: URL, landcover: URL, output:
   cmd.args.push('run');
   cmd.args.push('--directory');
   cmd.args.push('/packages/data-prep');
-  cmd.args.push('src/contour_with_landcover.py');
+  cmd.args.push('src/data_prep/contour_with_landcover.py');
   cmd.args.push(toRelative(contour));
   cmd.args.push(toRelative(landcover));
   cmd.args.push(toRelative(output));

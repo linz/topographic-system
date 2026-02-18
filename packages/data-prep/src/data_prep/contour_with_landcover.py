@@ -1,8 +1,10 @@
 import sys
 import geopandas as gpd
 
+from pathlib import Path
 
-def run(contour_path: str, landcover_path: str, overlap_path: str) -> None:
+
+def run(contour_path: Path, landcover_path: Path, overlap_path: Path) -> None:
     contour_gdf = gpd.read_parquet(contour_path)
     landcover_gdf = gpd.read_parquet(landcover_path)
 
@@ -30,4 +32,4 @@ def run(contour_path: str, landcover_path: str, overlap_path: str) -> None:
 
 
 if __name__ == "__main__":
-    run(sys.argv[1], sys.argv[2], sys.argv[3])
+    run(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))

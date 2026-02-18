@@ -3,7 +3,7 @@ from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import Polygon
 
-from contour_with_landcover import run
+from data_prep.contour_with_landcover import run
 
 
 def test_contour_with_landcover(tmp_path: Path):
