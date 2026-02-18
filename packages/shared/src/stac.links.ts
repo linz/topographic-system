@@ -2,7 +2,7 @@ import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 
 
 import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
-import { createFileStats } from './stac.factory.ts';
+import { createFileStatsFromStac } from './stac.factory.ts';
 
 export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
   const selfLink = stac.links.find((link) => link.rel === 'self');
@@ -112,7 +112,7 @@ export function addChildDataToParent(
   const parentIsCollection = stacParent.type === 'Collection';
   const expectedRel = childIsItem ? 'item' : 'child';
   const expectedType = childIsItem ? 'application/geo+json' : 'application/json';
-  const newLinkStats = createFileStats(JSON.stringify(stacChild, null, 2));
+  const newLinkStats = createFileStatsFromStac(stacChild);
   const newLinkToChild = {
     rel: expectedRel,
     href: stacChildFile,

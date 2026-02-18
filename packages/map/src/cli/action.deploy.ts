@@ -149,13 +149,12 @@ export const deployCommand = command({
         });
 
         // Prepare data assets for stac item
-        const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
           project: {
             href: targetPath.href,
             type: 'application/vnd.qgis.qgs+xml',
             roles: ['data'],
-            ...createFileStats(data),
+            ...(await createFileStats(file)),
           } as StacAsset,
         };
 

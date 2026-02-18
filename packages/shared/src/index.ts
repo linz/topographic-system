@@ -12,6 +12,7 @@ export {
   createStacItem,
   createStacItemFromFileName,
   createStacLink,
+  stacToJson,
 } from './stac.factory.ts';
 export { getDataFromCatalog } from './stac.upsert.ts';
 export { toRelative, Url, UrlFolder } from './url.ts';

@@ -1,10 +1,8 @@
 import { fsa } from '@chunkd/fs';
 import { basename } from 'path';
-import type { StacCatalog } from 'stac-ts';
-import type { StacCollection, StacItem } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
 import { CliDate } from './cli.info.ts';
-import { serializeBigInt } from './json.utils.ts';
 import { logger } from './log.ts';
 import type { ColumnStats } from './parquet.metadata.ts';
 import { extractSpatialExtent, extractTemporalExtent } from './parquet.metadata.ts';
@@ -14,9 +12,9 @@ import {
   createStacCatalogFromFilename,
   createStacCollectionFromFileName,
   createStacItemFromFileName,
+  stacToJson,
 } from './stac.factory.ts';
-import { compareStacAssets } from './stac.links.ts';
-import { addChildDataToParent, addParentDataToChild } from './stac.links.ts';
+import { addChildDataToParent, addParentDataToChild, compareStacAssets } from './stac.links.ts';
 
 /**
  * Given a data asset path, create or update the corresponding STAC Item with the asset information.
@@ -45,7 +43,7 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
   }
   stacItem.assets[extension] = stacAsset;
   stacItem.properties.datetime = CliDate;
-  await fsa.write(stacItemFile, JSON.stringify(stacItem, null, 2));
+  await fsa.write(stacItemFile, stacToJson(stacItem));
   logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAddedOrUpdated');
   await upsertItemToCollection(stacItemFile);
   return stacItemFile;
@@ -84,7 +82,7 @@ export async function upsertAssetToCollection(
     stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
   }
 
-  await fsa.write(stacCollectionFile, JSON.stringify(stacCollection, serializeBigInt, 2));
+  await fsa.write(stacCollectionFile, stacToJson(stacCollection));
   logger.info({ dataset, asset: assetFile.href, stacItem: stacCollectionFile.href }, 'STAC:AssetInItemAddedOrUpdated');
   await upsertItemToCollection(stacCollectionFile);
   return stacCollectionFile;
@@ -116,8 +114,8 @@ export async function upsertItemToCollection(
   stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
   stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
   await Promise.all([
-    fsa.write(stacItemFile, JSON.stringify(stacItem, serializeBigInt, 2)),
-    fsa.write(stacCollectionFile, JSON.stringify(stacCollection, serializeBigInt, 2)),
+    fsa.write(stacItemFile, stacToJson(stacItem)),
+    fsa.write(stacCollectionFile, stacToJson(stacCollection)),
   ]);
 
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
@@ -151,7 +149,7 @@ async function upsertChildToCatalog(
   stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
-  await fsa.write(stacCatalogFile, JSON.stringify(stacCatalog, null, 2));
+  await fsa.write(stacCatalogFile, stacToJson(stacCatalog));
   logger.info(
     { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
     `STAC:ChildToCatalogUpserted`,

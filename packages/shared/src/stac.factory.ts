@@ -1,11 +1,13 @@
 import { fsa } from '@chunkd/fs';
+import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { createHash } from 'crypto';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
+import { pipeline } from 'stream/promises';
 
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
-import { deserializeBigInt } from './json.utils.ts';
+import { deserializeBigInt, serializeBigInt } from './json.utils.ts';
 import { logger } from './log.ts';
 import type { RowGroupColumnStats } from './parquet.metadata.ts';
 import { readParquetFileMetadata } from './parquet.metadata.ts';
@@ -171,7 +173,7 @@ export async function createStacAssetFromFileName(assetFile: URL): Promise<StacA
   let parquetStats = {} as RowGroupColumnStats;
 
   if (await fsa.exists(assetFile)) {
-    fileStats = createFileStats(await fsa.read(assetFile));
+    fileStats = await createFileStats(assetFile);
     if (extension === 'parquet') {
       const parquetMetadata = await readParquetFileMetadata(assetFile);
       parquetStats = mapParquetMetadataToStacStats(parquetMetadata);
@@ -234,12 +236,40 @@ export async function createStacCatalogFromFilename(stacFile: URL): Promise<Stac
   return stacCatalog;
 }
 
-/** Generate the STAC file:size and file:checksum fields from a buffer */
-export function createFileStats(data: string | Buffer): FileStats {
+/**
+ * Serialize a STAC object to JSON string with consistent formatting.
+ * Uses serializeBigInt for items and collections, null for catalogs.
+ */
+export function stacToJson(stac: StacItem | StacCollection | StacCatalog): string {
+  // Items and Collections may contain BigInt fields from parquet metadata
+  if (stac.type === 'Feature' || stac.type === 'Collection') {
+    return JSON.stringify(stac, serializeBigInt, 2);
+  }
+  // Catalogs don't have BigInt fields
+  return JSON.stringify(stac, null, 2);
+}
+
+/** Generate the STAC file:size and file:checksum fields by streaming a file */
+export async function createFileStats(assetFile: URL): Promise<FileStats> {
+  const hashStream = new HashTransform('sha256');
+  await pipeline(fsa.readStream(assetFile), hashStream);
+
   return {
-    'file:size': Buffer.isBuffer(data) ? data.byteLength : data.length,
+    'file:size': hashStream.size,
+    'file:checksum': hashStream.multihash,
+  };
+}
+
+/** Generate the STAC file:size and file:checksum fields from a STAC object by serializing to JSON */
+export function createFileStatsFromStac(stac: StacItem | StacCollection | StacCatalog): FileStats {
+  const jsonString = stacToJson(stac);
+  const buffer = Buffer.from(jsonString);
+  const hash = createHash('sha256').update(buffer).digest('hex');
+
+  return {
+    'file:size': buffer.byteLength,
     // Multihash header for sha256 is 0x12 0x20
-    'file:checksum': '1220' + createHash('sha256').update(data).digest('hex'),
+    'file:checksum': '1220' + hash,
   };
 }
 

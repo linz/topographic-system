@@ -24,7 +24,8 @@ export function serializeBigInt(key: string, value: unknown): unknown {
 }
 
 export function deserializeBigInt(key: string, value: unknown): unknown {
-  if (BigIntFields.has(key) && typeof value === 'string') {
+  const isNumberString = (v: string): boolean => /^-?\d+$/.test(v);
+  if (BigIntFields.has(key) && typeof value === 'string' && isNumberString(value)) {
     return BigInt(value);
   }
   return value;
