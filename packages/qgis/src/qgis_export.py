@@ -33,7 +33,7 @@ exporter = QgsLayoutExporter(layout)
 
 if layout is None:
     raise RuntimeError(f"No layout found with name '{project_layout}'.")
-    
+
 map_item = None
 for item in layout.items():
     if isinstance(item, QgsLayoutItemMap):
