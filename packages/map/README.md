@@ -19,7 +19,7 @@ docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-t
 ## List Map Sheets Cli
 
 ```
-node src/index.ts list-mapsheets --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output output.json
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map list-mapsheets --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output ${PWD}/output/output.json
 ```
 
 ## Deploy QGIS Project Cli

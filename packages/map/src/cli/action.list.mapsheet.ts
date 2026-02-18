@@ -1,11 +1,12 @@
 import { fsa } from '@chunkd/fs';
-import { downloadProject } from '@topographic-system/shared/src/download.ts';
+import { downloadFile, downloadFromCollection, downloadProject } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { Url } from '@topographic-system/shared/src/url.ts';
 import { command, option, string } from 'cmd-ts';
 
 import { listMapSheets } from '../python.runner.ts';
+import type { StacItem } from 'stac-ts';
 
 export const listMapSheetsArgs = {
   project: option({
@@ -37,9 +38,23 @@ export const listMapSheetsCommand = command({
     registerFileSystem();
     logger.info({ project: args.project }, 'ListMapSheets: Started');
 
-    // Download project file, assets, and source data from the project stac file
-    const { projectPath, sources } = await downloadProject(args.project);
-    logger.info({ projectPath: projectPath.href, sourceCount: sources.length }, 'ListMapSheets: Project Downloaded');
+    // Download mapshseet layer data from the project stac file
+    const stac = await fsa.readJson<StacItem>(args.project);
+    if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
+    for (const link of stac.links) {
+      if (link.rel === 'dataset' && link.href.includes(args.mapSheetLayer)) {
+        await downloadFromCollection(new URL(link.href));
+      }
+    }
+    // Download project file from the project stac file
+    let projectPath;
+    for (const [key, asset] of Object.entries(stac.assets)) {
+      const downloadedPath = await downloadFile(new URL(asset.href));
+      if (key === 'project') projectPath = downloadedPath;
+    }
+    if (projectPath == null) {
+      throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
+    }
 
     // Run python list map sheets script
     const mapSheets = await listMapSheets(projectPath, args.mapSheetLayer);
