@@ -26,6 +26,16 @@
         }
       ]
     },
+    "packages/data-prep": {
+      "release-type": "python",
+      "extra-files": [
+        {
+          "path": "packages/data-prep/pyproject.toml",
+          "type": "toml",
+          "jsonpath": "$.project.version"
+        }
+      ]
+    },
     ".": {
       "include-component-in-tag": false
     }

@@ -1,0 +1,18 @@
+[project]
+name = "topographic-system-data-prep"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+dependencies = [
+    "pyarrow",
+    "geopandas"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "types-geopandas"
+]
+
+[tool.uv]
+package = true
