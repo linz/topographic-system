@@ -1,7 +1,7 @@
 # Data Preparation
 
-## Ice Contours
+## Contour with landcover features
 
 ```
-uv run src/ice_contours.py contour.parquet landcover.parquet output_location
+uv run src/contour_with_landcover.py contour.parquet landcover.parquet output_location
 ```

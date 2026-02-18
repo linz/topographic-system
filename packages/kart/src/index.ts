@@ -2,9 +2,9 @@ import { run, subcommands } from 'cmd-ts';
 import { ProcessOutput } from 'zx';
 
 import { cloneCommand } from './cli/action.clone.ts';
+import { ContourWithLandcoverCommand } from './cli/action.contour.landcover.ts';
 import { diffCommand } from './cli/action.diff.ts';
 import { exportCommand } from './cli/action.export.ts';
-import { IceContoursCommand } from './cli/action.ice.contours.ts';
 import { commentCommand } from './cli/action.pr.comment.ts';
 import { parquetCommand } from './cli/action.to.parquet.ts';
 import { versionCommand } from './cli/action.version.ts';
@@ -19,7 +19,7 @@ const Cli = subcommands({
     'to-parquet': parquetCommand,
     'pr-comment': commentCommand,
     version: versionCommand,
-    'ice-contours': IceContoursCommand,
+    'contour-with-landcover': ContourWithLandcoverCommand,
   },
 });
 
