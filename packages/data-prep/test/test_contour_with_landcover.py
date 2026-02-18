@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import geopandas as gpd
-import pytest
 from shapely.geometry import Polygon
 
 from contour_with_landcover import run
