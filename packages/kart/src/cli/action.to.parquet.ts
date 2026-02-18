@@ -6,11 +6,10 @@ import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
 import { RootCatalogFile } from '@topographic-system/shared/src/stac.constants.ts';
 import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
-import os from 'os';
 import { basename } from 'path';
 import { $ } from 'zx';
 
-const Concurrency = os.cpus().length;
+const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
 const Q = new ConcurrentQueue(Concurrency);
 
 function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
