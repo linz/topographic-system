@@ -175,7 +175,19 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
       // Check the collection.json of the target layer with full tag
       if (link.href.includes(`/${layerName}/${tag}/collection.json`)) {
         // Found target collection
-        return new URL(link.href);
+        if (tag === 'latest') {
+          // If tag is 'latest', find the derived collection data
+          const collection = await fsa.readJson<StacCollection>(new URL(link.href));
+          if (collection == null) {
+            throw new Error(`Invalid collection at path: ${link.href}`);
+          }
+          if (collection.assets == null || collection.assets['parquet'] == null) {
+            throw new Error(`Data asset not found in collection: ${link.href}`);
+          }
+          return new URL(collection.assets['parquet'].href.replace('parquet', 'collection.json'));
+        } else {
+          return new URL(link.href);
+        }
       }
       // Check layer with partial tag category like 'pull_request', 'dev' or 'year'
       const tagPrefix = tag.split('/')[0];

@@ -74,6 +74,16 @@ describe('stac-setup', () => {
     ],
   };
 
+  const latestCollection = {
+    links: [{ rel: 'self', href: latestCollectionLocation.href, type: 'application/json' }],
+    assets: {
+      parquet: {
+        href: dataTagCollectionLocation.href,
+        type: 'application/octet-stream',
+      },
+    },
+  };
+
   before(() => {
     fsa.register('memory:///', mem); // use 3 slashes to ensure URL is correct
   });
@@ -82,6 +92,7 @@ describe('stac-setup', () => {
     await fsa.write(rootCatalogLocation, JSON.stringify(rootCatalog));
     await fsa.write(dataCatalogLocation, JSON.stringify(dataCatalog));
     await fsa.write(dataYearCatalogLocation, JSON.stringify(dataYearCatalog));
+    await fsa.write(latestCollectionLocation, JSON.stringify(latestCollection));
   });
 
   afterEach(() => {
@@ -93,9 +104,9 @@ describe('stac-setup', () => {
     assert.strictEqual(String(collection.href), String(dataTagCollectionLocation.href));
   });
 
-  it('should find latest collection', async () => {
+  it('should find latest collection with derived datetime location.', async () => {
     const collection = await getDataFromCatalog(rootCatalogLocation, layer);
-    assert.strictEqual(String(collection.href), String(latestCollectionLocation.href));
+    assert.strictEqual(String(collection.href), String(dataTagCollectionLocation.href));
   });
 
   it('should throw an error with wrong layer name', async () => {
