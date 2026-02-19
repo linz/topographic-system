@@ -804,8 +804,8 @@ if __name__ == "__main__":
     option = "all"
     # option = "recreate_table_srid"
     # schema_name = "toposource"
-    schema_name = "release62"
-    release_date = "2025-02-05"
+    schema_name = "release64"
+    release_date = "2025-09-25"
 
     # schema_name = "release63"
     # release_date = "2025-05-14"

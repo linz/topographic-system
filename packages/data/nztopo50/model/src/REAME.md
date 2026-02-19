@@ -80,6 +80,26 @@ If road_cl.cpg exists - delete or rename - read has issue if it exists.
 *Note: Apply Constraints* -while this is code in database_rules - the approach will be to apply this via QGIS
 
 
+## Kart Import and Push
+kart init -b master topographic-data
+
+cd  topographic-data
+
+kart remote add origin git@github.com:linz/topographic-data  [or target repo for other data]
+
+**run the kart_import**
+Note: this uses a force option on the kart push command - that clear all visible tables in the repo
+
+cop the kart_import_topodata.bat into the topographic-data folder and run
+
+@kart_import_topodata.bat
+
+**contours**
+kart init -b master topographic-contour-data
+
+cd  topographic-data
+
+@kart_import_contours
 
 ## Control Files
 

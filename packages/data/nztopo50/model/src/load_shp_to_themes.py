@@ -1,11 +1,11 @@
 import os
 import glob
-import pandas as pd
+import pandas as pd # type: ignore
 import geopandas as gpd  # type: ignore
 
 from pyogrio import read_info, write_dataframe  # type: ignore
 import pyproj
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine # type: ignore
 
 
 class Topo50DataLoader:
@@ -256,9 +256,9 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for testing
-            # if layer_info[3].lower() != 'landcover':
-            #     print(f"Skipping layer: {layer_info[3]}")
-            #     continue
+            if layer_info[3].lower() != 'contour':
+                print(f"Skipping layer: {layer_info[3]}")
+                continue
             layer_name = layer_info[3]
             # theme = layer_info[1]
             dataset = layer_info[4]
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     layer_info_file = r"C:\Data\Model\layers_info.xlsx"
 
     # release = "release62"
-    release = "release65"
+    release = "release64"
     data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
 
     # postgis schema name
