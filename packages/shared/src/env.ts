@@ -5,6 +5,7 @@ import { logger } from './log.ts';
 export const Environment = process.env['ENVIRONMENT'] ?? 'dev';
 export const EnvLabel = Environment === 'prod' ? '' : `-${Environment}`;
 export const S3BucketName = `linz-topography${EnvLabel}`;
+export const isGitHubActions = process.env['GITHUB_ACTIONS'] === 'true';
 
 export function parseEnv<T extends z.ZodMiniObject>(obj: T): z.output<T> {
   const env = obj.safeParse({ ...process.env });

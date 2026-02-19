@@ -1,3 +1,4 @@
+import { isGitHubActions } from '@topographic-system/shared/src/env.ts';
 import { run, subcommands } from 'cmd-ts';
 
 import { deployCommand } from './cli/action.deploy.ts';
@@ -16,4 +17,9 @@ const Cli = subcommands({
 
 run(Cli, process.argv.slice(2)).catch((err) => {
   console.log(err);
+
+  // Only force failure in GitHub Actions
+  if (isGitHubActions) {
+    process.exit(1);
+  }
 });
