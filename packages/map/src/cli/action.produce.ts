@@ -137,7 +137,7 @@ export const ProduceCommand = command({
     // Create Stac Files and upload to destination
     const stac = await fsa.readJson<StacItem>(args.project);
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
-    const links = await createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
+    const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
       const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));
