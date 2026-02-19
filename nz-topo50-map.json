@@ -1,0 +1,256 @@
+{
+  "id": "nz-topo50-map",
+  "type": "Feature",
+  "collection": "01KGK45CE900SF2C4VVTZ5K2SZ",
+  "stac_version": "1.0.0",
+  "stac_extensions": [],
+  "geometry": null,
+  "bbox": [],
+  "links": [
+    {
+      "rel": "self",
+      "href": "./nz-topo50-map.json",
+      "type": "application/geo+json"
+    },
+    {
+      "rel": "collection",
+      "href": "./collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "./collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "root",
+      "href": "s3://linz-topography-dev/catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/airport/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/bridge_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/building/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/building_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/coastline/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/descriptive_text/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/fence_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/ferry_crossing/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/geographic_name/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/island/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/landcover/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/landcover_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/landcover_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/marine/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/physical_infrastructure_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/physical_infrastructure_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/place_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/railway_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/railway_station/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/relief_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/relief_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/residential_area/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/road_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/runway/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/structure/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/structure_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/structure_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/track_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/transport_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/tree_locations/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/trig_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/tunnel_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/vegetation/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/vegetation_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/water/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/water_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/water_point/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/waterway_feature/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "dataset",
+      "href": "s3://linz-topography-nonprod/topographic-data/waterway_feature_line/pr-7/collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "assets",
+      "href": "s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.tar",
+      "type": "application/x-tar"
+    },
+    {
+      "rel": "derived_from",
+      "href": "s3://linz-topography-nonprod/qgis/988bb40d4a7fe10de4a5d98eb4f7b62f0707182d/nztopo50map/nz-topo50-map.json",
+      "type": "application/json"
+    }
+  ],
+  "properties": {
+    "datetime": "2026-02-04T01:27:11.049Z",
+    "linz_topographic_system:generated": {
+      "package": "@topographic-system/shared",
+      "datetime": "2026-02-04T01:27:11.049Z"
+    }
+  },
+  "assets": {
+    "project": {
+      "href": "s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.qgs",
+      "type": "application/vnd.qgis.qgs+xml",
+      "roles": ["data"],
+      "file:size": 3352803,
+      "file:checksum": "1220f8f072ac6ad4657cb0e2b4cb59930244515656d778bb32eff3c1946e97b8a99b"
+    },
+    "map_sheet": {
+      "href": "s3://linz-topography-nonprod/qgis/test/nz_topo50_map_sheet.parquet",
+      "roles": ["data"]
+    }
+  }
+}
