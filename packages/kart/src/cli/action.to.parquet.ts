@@ -3,52 +3,54 @@ import { CliDate, CliInfo } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { RootCatalogFile, upsertAssetToItem, upsertItemToCollection } from '@topographic-system/shared/src/stac.ts';
+import { RootCatalogFile } from '@topographic-system/shared/src/stac.constants.ts';
+import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
-import os from 'os';
 import { basename } from 'path';
 import { $ } from 'zx';
 
-const Concurrency = os.cpus().length;
+const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
 const Q = new ConcurrentQueue(Concurrency);
 
-function determineParquetAssetLocation(dataset: string, output: string, tag?: string): URL {
-  const repo = $.env['GITHUB_REPOSITORY']?.split('/')[1] ?? 'unknown-repo';
-  if (!tag) {
-    if (is_merge_to_master() || is_release()) {
-      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate.split('T')[0]}`;
-    } else if (is_pr()) {
-      const ref = $.env['GITHUB_REF_NAME'] || '';
-      const prMatch = ref.match(/(\d+)\/merge/);
+function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
+  if (tag == null) {
+    if (isMergeToMaster() || isRelease()) {
+      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
+    } else if (isPullRequest()) {
+      const ref = $.env['GITHUB_REF'] ?? '';
+      const prMatch = ref.match(/refs\/pull\/(\d+)/);
       if (prMatch) {
-        tag = `pr-${prMatch[1]}`;
+        tag = `pull_request/pr-${prMatch[1]}`;
       } else {
-        tag = `pr-unknown`;
+        tag = `pull_request/unknown`;
       }
     } else {
-      tag = `dev-${CliInfo.hash}`;
+      tag = `dev/${CliInfo.hash}`;
     }
   }
+  const s3location = new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
   logger.info(
-    { repo, tag, master: is_merge_to_master(), release: is_release(), pr: is_pr() },
-    'DetermineS3Location:ContextVars',
+    { subdir, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest(), s3location: s3location.href },
+    'DetermineAssetLocation:Variables',
   );
-  return new URL(`${repo}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
+  return s3location;
 }
 
-function is_pr(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
+function isPullRequest(): boolean {
+  const ref = $.env['GITHUB_REF'] ?? '';
+  logger.debug({ ref }, 'IsPullRequest:GITHUB_REF');
   return ref.startsWith('refs/pull/');
 }
 
-function is_merge_to_master(): boolean {
-  const ref = $.env['GITHUB_REF'] || '';
-  return !is_pr() && ref.endsWith('/master');
+function isMergeToMaster(): boolean {
+  const ref = $.env['GITHUB_REF'] ?? '';
+  return !isPullRequest() && ref.endsWith('/master');
 }
 
-function is_release(): boolean {
-  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
-  return is_merge_to_master() && workflow.toLowerCase().includes('release');
+function isRelease(): boolean {
+  const workflow = $.env['GITHUB_WORKFLOW_REF'] ?? '';
+  logger.debug({ workflow }, 'IsRelease:GITHUB_WORKFLOW_REF');
+  return isMergeToMaster() && workflow.toLowerCase().includes('release');
 }
 
 export const parquetCommand = command({
@@ -132,35 +134,31 @@ export const parquetCommand = command({
         const parquetFile = `${parquetDir}/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
-          '-f',
-          'Parquet',
+          ['-f', 'Parquet'],
           parquetFile,
           gpkgFile,
-          '-dsco',
-          `COMPRESSION=${args.compression}`,
-          '-dsco',
-          `COMPRESSION_LEVEL=${args.compression_level}`,
-          '-dsco',
-          `ROW_GROUP_SIZE=${args.row_group_size}`,
+          ['-lco', `COMPRESSION=${args.compression}`],
+          ['-lco', `COMPRESSION_LEVEL=${args.compression_level}`],
+          ['-lco', `ROW_GROUP_SIZE=${args.row_group_size}`],
         ];
         if (!args.no_sort_by_bbox) {
-          command.push('-dsco', 'SORT_BY_BBOX=YES');
+          command.push(['-lco', 'SORT_BY_BBOX=YES']);
         }
-        await $`${command}`;
-        const assetFile = determineParquetAssetLocation(dataset, parquetFile);
+        await $`${command.flat()}`;
+        const assetFile = determineAssetLocation('data', dataset, parquetFile);
         logger.info({ assetFile }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
-        const stacItemFile = await upsertAssetToItem(assetFile);
-        if (is_merge_to_master()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertItemToCollection(stacItemFile, new URL('../../next/collection.json', stacItemFile));
-        } else if (is_release()) {
+        const stacItemFile = await upsertAssetToCollection(assetFile);
+        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:AssetToCollectionUpserted');
+        if (isRelease()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
-          await upsertItemToCollection(stacItemFile, new URL('../../latest/collection.json', stacItemFile));
+          await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
+        } else if (isMergeToMaster()) {
+          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
+          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
         }
-        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
       });
     }
 

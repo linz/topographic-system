@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.ts';
+import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { mkdirSync } from 'fs';
@@ -182,7 +182,7 @@ export const ProduceCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const links = await createStacLink(sources, args.project);
+    const links = createStacLink(sources, args.project);
     for (const metadata of metadatas) {
       const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));

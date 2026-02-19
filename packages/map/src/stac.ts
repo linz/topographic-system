@@ -1,7 +1,7 @@
 import { type BoundingBox, Bounds } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { createFileStats, createStacCollection, createStacItem } from '@topographic-system/shared/src/stac.ts';
+import { createFileStats, createStacCollection, createStacItem } from '@topographic-system/shared/src/stac.factory.ts';
 import type { StacAsset, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { type ExportFormat, getContentType } from './cli/action.produce.ts';
@@ -56,14 +56,15 @@ export async function createMapSheetStacItem(
   const extent = getExtentFormat(format);
   const filename = `${metadata.sheetCode}.${extent}`;
   const assetPath = new URL(filename, outputUrl);
-  const data = await fsa.read(assetPath);
-  if (data == null) throw new Error(`Stac: Asset not found for sheet ${metadata.sheetCode} at ${assetPath.href}`);
+  if (!(await fsa.exists(assetPath))) {
+    throw new Error(`Stac: Asset not found for sheet ${metadata.sheetCode} at ${assetPath.href}`);
+  }
   const assets = {
     extent: {
       href: `./${filename}`,
       type: getContentType(format),
       roles: ['data'],
-      ...createFileStats(data),
+      ...(await createFileStats(assetPath)),
     } as StacAsset,
   };
 

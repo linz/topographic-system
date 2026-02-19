@@ -6,8 +6,8 @@ import {
   createStacCatalog,
   createStacCollection,
   createStacItem,
-  getDataFromCatalog,
-} from '@topographic-system/shared/src/stac.ts';
+} from '@topographic-system/shared/src/stac.factory.ts';
+import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, option, optional, string } from 'cmd-ts';
 import { basename } from 'path';
@@ -149,13 +149,12 @@ export const deployCommand = command({
         });
 
         // Prepare data assets for stac item
-        const data = await fsa.read(file);
         const assets: Record<string, StacAsset> = {
           project: {
             href: targetPath.href,
             type: 'application/vnd.qgis.qgs+xml',
             roles: ['data'],
-            ...createFileStats(data),
+            ...(await createFileStats(file)),
           } as StacAsset,
         };
 
