@@ -1,4 +1,5 @@
 export { CliDate, CliId, CliInfo } from './cli.info.ts';
+export { downloadFile, downloadFiles, downloadFromCollection, downloadProject, tmpFolder } from './download.ts';
 export { Environment, EnvLabel, parseEnv, S3BucketName } from './env.ts';
 export { registerFileSystem } from './fs.register.ts';
 export { GithubApi } from './github.api.ts';

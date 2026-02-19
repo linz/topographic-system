@@ -158,18 +158,48 @@ async function upsertChildToCatalog(
   return stacCatalogFile;
 }
 
+/**
+ * Recursively found the target data collection.json from the root catalog, based on the layer name and tag.
+ *
+ * @param stacUrl The URL of the root STAC catalog.
+ * @param layerName The name of the vector layer to find.
+ * @param tag The tag of the layer to find. Or Pull Request tag like 'pull_request/pr-123', dev tag like 'dev/commit-hash' or specific version tag like 'year=2026/date=2026-02-12T02:45:08.853Z'.
+ *
+ * @returns Target data collection.json URL if found, otherwise throws an error.
+ */
 export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
   if (stacUrl.href.endsWith('catalog.json')) {
     const catalog = await fsa.readJson<StacCatalog>(stacUrl);
-    const childLink = catalog.links.find((link) => link.rel === 'child' && link.href.includes(`/${layerName}/`));
-    if (childLink == null) throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
-
-    // Recursively search in child catalog
-    if (childLink.href.endsWith('catalog.json')) return getDataFromCatalog(new URL(childLink.href), layerName, tag);
-
-    // Found collection link
-    if (childLink.href.endsWith('collection.json')) {
-      if (childLink.href.includes(`/${tag}/`)) return new URL(childLink.href);
+    for (const link of catalog.links) {
+      if (link.rel !== 'child') continue;
+      // Check the collection.json of the target layer with full tag
+      if (link.href.includes(`/${layerName}/${tag}/collection.json`)) {
+        // Found target collection
+        if (tag === 'latest') {
+          // If tag is 'latest', find the derived collection data
+          const collection = await fsa.readJson<StacCollection>(new URL(link.href));
+          if (collection == null) {
+            throw new Error(`Invalid collection at path: ${link.href}`);
+          }
+          if (collection.assets == null || collection.assets['parquet'] == null) {
+            throw new Error(`Data asset not found in collection: ${link.href}`);
+          }
+          const dataAsset = collection.assets['parquet'].href;
+          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'));
+        } else {
+          return new URL(link.href);
+        }
+      }
+      // Check layer with partial tag category like 'pull_request', 'dev' or 'year'
+      const tagPrefix = tag.split('/')[0];
+      if (link.href.includes(`/${layerName}/${tagPrefix}/catalog.json`)) {
+        // Recursively search in child catalog until find the full target link
+        return getDataFromCatalog(new URL(link.href), layerName, tag);
+      }
+      // Check the root layer catalog with no tag
+      if (link.href.includes(`/${layerName}/catalog.json`)) {
+        return getDataFromCatalog(new URL(link.href), layerName, tag);
+      }
     }
   }
 

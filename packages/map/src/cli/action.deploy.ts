@@ -115,11 +115,6 @@ export const deployCommand = command({
         // Prepare source layer links for stac item
         const stacItemLinks = [];
         for (const layer of layers) {
-          // TODO: Skip contour and nz_topo layers for now
-          // Delete once the data is ready
-          if (layer === 'contour') continue;
-          if (layer.startsWith('nz_topo')) continue;
-
           const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
           stacItemLinks.push({
             rel: 'dataset',
@@ -157,14 +152,6 @@ export const deployCommand = command({
             ...(await createFileStats(file)),
           } as StacAsset,
         };
-
-        // TODO: Remove once the nz_topo50_map_sheet data is ready, we need hardcode this data in asset for tracer bullet testing.
-        // We need this data to generate mapsheets for produce command in tracer bullet and it's not ready in s3 yet.
-        assets['map_sheet'] = {
-          href: 's3://linz-topography-nonprod/qgis/test/nz_topo50_map_sheet.parquet',
-          type: 'application/vnd.apache.parquet',
-          roles: ['data'],
-        } as StacAsset;
 
         // Add derived_from githash stac if provided
         if (args.githash) {
