@@ -151,13 +151,13 @@ export const parquetCommand = command({
           contentType: 'application/vnd.apache.parquet',
         });
         const stacItemFile = await upsertAssetToCollection(assetFile);
-        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:Completed');
-        if (isMergeToMaster()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
-        } else if (isRelease()) {
+        logger.info({ parquetFile, stacItemFile: stacItemFile.href }, 'ToParquet:AssetToCollectionUpserted');
+        if (isRelease()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
           await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
+        } else if (isMergeToMaster()) {
+          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
+          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacItemFile));
         }
       });
     }

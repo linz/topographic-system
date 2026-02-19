@@ -4,6 +4,7 @@ import { createHash } from 'crypto';
 import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
+import { Writable } from 'stream';
 import { pipeline } from 'stream/promises';
 
 import { CliDate, CliId, CliInfo } from './cli.info.ts';
@@ -252,8 +253,19 @@ export function stacToJson(stac: StacItem | StacCollection | StacCatalog): strin
 /** Generate the STAC file:size and file:checksum fields by streaming a file */
 export async function createFileStats(assetFile: URL): Promise<FileStats> {
   const hashStream = new HashTransform('sha256');
-  await pipeline(fsa.readStream(assetFile), hashStream);
-
+  await pipeline(
+    fsa.readStream(assetFile),
+    hashStream,
+    new Writable({
+      write(_chunk, _encoding, callback): void {
+        callback();
+      },
+    }),
+  );
+  logger.info(
+    { assetFile: assetFile.href, size: hashStream.size, hash: hashStream.multihash },
+    'STAC:HashStreamCompleted',
+  );
   return {
     'file:size': hashStream.size,
     'file:checksum': hashStream.multihash,
