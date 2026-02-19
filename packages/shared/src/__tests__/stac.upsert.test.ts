@@ -78,7 +78,7 @@ describe('stac-setup', () => {
     links: [{ rel: 'self', href: latestCollectionLocation.href, type: 'application/json' }],
     assets: {
       parquet: {
-        href: dataTagCollectionLocation.href,
+        href: fsa.toUrl(`memory:///${layer}/${tag}/${layer}.parquet`).href,
         type: 'application/octet-stream',
       },
     },

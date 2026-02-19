@@ -184,7 +184,8 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
           if (collection.assets == null || collection.assets['parquet'] == null) {
             throw new Error(`Data asset not found in collection: ${link.href}`);
           }
-          return new URL(collection.assets['parquet'].href.replace('parquet', 'collection.json'));
+          const dataAsset = collection.assets['parquet'].href;
+          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'));
         } else {
           return new URL(link.href);
         }
