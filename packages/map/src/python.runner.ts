@@ -75,23 +75,42 @@ export async function qgisExport(
 }
 
 /**
- * Running python commands for list_map_sheets
+ * Running python commands for qgis_export_cover
+ * This command is used to load map sheet layers from the input project and mapsheet data and return geometry and metadata of the mapsheets.
+ * @param input URL of the input QGIS project file
+ * @param options ExportOptions containing layout and mapSheetLayer information
+ *
+ * @param mapsheets Optional to specify which mapsheets to list. If not provided, all mapsheets in the project will be listed.
+ *
+ * @returns mapsheet metadata including sheetcode and geometry information for the stac files
  */
-export async function listMapSheets(input: URL, layerName: string): Promise<string[]> {
+export async function listMapSheets(
+  input: URL,
+  options: ExportOptions,
+  mapsheets?: string[],
+): Promise<SheetMetadata[]> {
   const cmd = Command.create('python3');
 
-  cmd.args.push('qgis/src/list_map_sheets.py');
+  cmd.args.push('qgis/src/qgis_export_cover.py');
   cmd.args.push(toRelative(input));
-  cmd.args.push(layerName);
+  cmd.args.push(options.layout);
+  cmd.args.push(options.mapSheetLayer);
+  // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
+  if (mapsheets) {
+    cmd.args.push('false');
+    for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
+  } else {
+    cmd.args.push('true');
+  }
   const res = await cmd.run();
-  logger.debug('list_map_sheets.py ' + cmd.args.join(' '));
+  logger.debug('qgis_export_cover.py ' + cmd.args.join(' '));
 
   if (res.exitCode !== 0) {
     logger.fatal({ list_map_sheets: res }, 'Failure');
     throw new Error('list_map_sheets.py failed to run');
   }
 
-  return JSON.parse(res.stdout) as string[];
+  return parseSheetsMetadata(res.stdout);
 }
 
 /**

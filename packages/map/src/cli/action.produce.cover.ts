@@ -1,18 +1,18 @@
 import { fsa } from '@chunkd/fs';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
-import { downloadProject, tmpFolder } from '@topographic-system/shared/src/download.ts';
+import { downloadFile, downloadFromCollection } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
-import { createStacCatalog, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
+import { createStacCatalog, createStacItem, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
-import { command, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import { mkdirSync } from 'fs';
-import { basename, parse } from 'path';
+import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
+import { parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { qgisExport } from '../python.runner.ts';
-import { createMapSheetStacCollection, createMapSheetStacItem } from '../stac.ts';
-import { validateTiff } from '../validate.ts';
+import { listMapSheets } from '../python.runner.ts';
+import { createMapSheetStacCollection, type MapSheetStacItem } from '../stac.ts';
+import { fromFile } from './action.produce.ts';
+import { map } from 'zod';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -30,29 +30,18 @@ export interface ExportOptions {
   format: ExportFormat;
 }
 
-/** Ready the json file and parse all the mapsheet code as array */
-export async function fromFile(file: URL): Promise<string[]> {
-  const mapSheets = await fsa.readJson<string[]>(file);
-  if (mapSheets == null || mapSheets.length === 0) {
-    throw new Error(`Invalide or empty map sheets in file: ${file.href}`);
-  }
-  return mapSheets;
-}
-
-export function getContentType(format: ExportFormat): string {
-  if (format === ExportFormats.Pdf) return 'application/pdf';
-  else if (format === ExportFormats.Tiff) return 'image/tiff';
-  else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff';
-  else if (format === ExportFormats.Png) return 'image/png';
-  else throw new Error(`Invalid format`);
-}
-
-export const ProduceArgs = {
+const ProduceArgs = {
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),
   fromFile: option({
     type: optional(Url),
     long: 'from-file',
     description: 'Path to JSON file containing array of MapSheet Codes to Process.',
+  }),
+  all: flag({
+    long: 'all',
+    description: 'Process all map sheets in the project.',
+    defaultValue: () => false,
+    defaultValueIsSerializable: true,
   }),
   project: option({
     type: Url,
@@ -94,57 +83,62 @@ export const ProduceArgs = {
   }),
 };
 
-export const ProduceCommand = command({
-  name: 'produce',
-  description: 'Produce',
+export const produceCoverCommand = command({
+  name: 'produce-cover',
+  description: 'Read a Qgis project and mapsheet data, then generate stac files for the exports.',
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
-    // Download project file, assets, and source data from the project stac file
-    const { projectPath, sources } = await downloadProject(args.project);
+    logger.info({ project: args.project }, 'ProduceCover: Started');
 
-    // Prepare tmp path for the outputs
-    const tempOutput = new URL('output/', tmpFolder);
-    mkdirSync(tempOutput, { recursive: true });
-
-    // Prepare all the map sheets to process
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
 
-    // Run python qgis export script
+    // Download mapshseet layer data from the project stac file
+    const stac = await fsa.readJson<StacItem>(args.project);
+    if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
+    for (const link of stac.links) {
+      if (link.rel === 'dataset' && link.href.includes(args.mapSheetLayer)) {
+        await downloadFromCollection(new URL(link.href));
+      }
+    }
+    // Download project file from the project stac file
+    let projectPath;
+    for (const [key, asset] of Object.entries(stac.assets)) {
+      const downloadedPath = await downloadFile(new URL(asset.href));
+      if (key === 'project') projectPath = downloadedPath;
+    }
+    if (projectPath == null) {
+      throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
+    }
+
+    // Run python list all the mapsheet covering metadata
     const exportOptions = {
       layout: args.layout,
       mapSheetLayer: args.mapSheetLayer,
       dpi: args.dpi,
       format: args.format,
     };
-    const metadatas = await qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
 
-    // Write outputs files to destination
-    const projectName = parse(args.project.pathname).name;
-    for await (const file of fsa.list(tempOutput)) {
-      if (args.format === ExportFormats.GeoTiff || args.format === ExportFormats.Tiff) {
-        await validateTiff(file, metadatas);
-      }
-
-      const destPath = new URL(basename(file.pathname), args.output);
-      const stream = fsa.readStream(file);
-      await fsa.write(destPath, stream, {
-        contentType: getContentType(args.format),
-      });
-      logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
-    }
+    const metadatas = await listMapSheets(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
-    const stac = await fsa.readJson<StacItem>(args.project);
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
+    const sources = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
-      const item = await createMapSheetStacItem(metadata, args.format, args.dpi, args.output, links);
+      const item = createStacItem(metadata.sheetCode, links, {}, metadata.geometry, metadata.bbox) as MapSheetStacItem;
+      item.properties['proj:epsg'] = metadata.epsg;
+      item.properties['linz_topographic_system:options'] = {
+        mapsheet: metadata.sheetCode,
+        format: args.format,
+        dpi: args.dpi,
+      };
       await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));
     }
     const collection = createMapSheetStacCollection(metadatas, links);
     await fsa.write(new URL('collection.json', args.output), JSON.stringify(collection, null, 2));
 
+    const projectName = parse(args.project.pathname).name;
     const catalogPath = new URL(`/${projectName}/catalog.json`, args.output);
     const title = 'Topographic System Map Producer';
     const description =
