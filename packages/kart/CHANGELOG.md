@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/kart-v0.3.1...kart-v0.4.0) (2026-02-20)
+
+
+### Features
+
+* **data-prep:** data preparation of contour with landcover BM-1498 ([#45](https://github.com/linz/topographic-system/issues/45)) ([43bc351](https://github.com/linz/topographic-system/commit/43bc35160139aadfafe12953f90a7f396e1f5d0d))
+* python package to validate topographic data BM-1518 ([#44](https://github.com/linz/topographic-system/issues/44)) ([908e2cb](https://github.com/linz/topographic-system/commit/908e2cb7647e651fa4f17f42f1c6b41b088d911d))
+* stac metadata from parquet BM-1511 ([#40](https://github.com/linz/topographic-system/issues/40)) ([8c6256b](https://github.com/linz/topographic-system/commit/8c6256bf938e0ad70ac4357a0e8ffd8be0b83836))
+
+
+### Bug Fixes
+
+* **shared:** mulitple package-lock json in shared causes diverged imports. ([#42](https://github.com/linz/topographic-system/issues/42)) ([71f27d7](https://github.com/linz/topographic-system/commit/71f27d7d66b9681b746a3458f59bfb0dd2e9387e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @topographic-system/shared bumped from file:../shared to 0.5.0
+
 ## [0.3.1](https://github.com/linz/topographic-system/compare/kart-v0.3.0...kart-v0.3.1) (2026-01-28)
 
 
