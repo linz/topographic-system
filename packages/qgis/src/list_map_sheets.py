@@ -25,7 +25,19 @@ if not layers:
     raise ValueError(f"Layer '{layer_name}' not found in project")
 topo_sheet_layer = layers[0]
 
-# Collect all sheet codes
+map_item = None
+for item in layout.items():
+    if isinstance(item, QgsLayoutItemMap):
+        map_item = item
+        break
+
+if map_item is None:
+    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
+
+metadata = []
+map_crs = map_item.crs()
+
+# Collect all sheet codes and geometries
 map_sheets = []
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
