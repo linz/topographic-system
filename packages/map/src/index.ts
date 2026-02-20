@@ -16,4 +16,7 @@ const Cli = subcommands({
 
 run(Cli, process.argv.slice(2)).catch((err) => {
   console.log(err);
+
+  // Give the logger some time to flush before exiting
+  setTimeout(() => process.exit(1), 25);
 });
