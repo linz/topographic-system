@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/linz/topographic-system/compare/shared-v0.4.0...shared-v0.5.0) (2026-02-20)
+
+
+### Features
+
+* **map:** Define the assets and push to s3 as Tar file. BM-1460 ([#35](https://github.com/linz/topographic-system/issues/35)) ([e897619](https://github.com/linz/topographic-system/commit/e897619f419bd32171207a2bd027fa90de091c41))
+* **map:** Download data from qgis stac item and produce pdf. BM-1478 ([#41](https://github.com/linz/topographic-system/issues/41)) ([5c5e0e0](https://github.com/linz/topographic-system/commit/5c5e0e0546795feb0245ff62e86d3556ef03aafc))
+* **map:** Download source vector data by the correct stac tag. BM-1497 ([#47](https://github.com/linz/topographic-system/issues/47)) ([b32a367](https://github.com/linz/topographic-system/commit/b32a3675a2c4b8dbdc6f00e5297602b31e6cb0bf))
+* **map:** Failure with exit non zero process for github actions runs. ([#49](https://github.com/linz/topographic-system/issues/49)) ([f1d2fd2](https://github.com/linz/topographic-system/commit/f1d2fd231f40112f4148973b97888fc5fe9f1ed0))
+* stac metadata from parquet BM-1511 ([#40](https://github.com/linz/topographic-system/issues/40)) ([8c6256b](https://github.com/linz/topographic-system/commit/8c6256bf938e0ad70ac4357a0e8ffd8be0b83836))
+
+
+### Bug Fixes
+
+* **shared:** mulitple package-lock json in shared causes diverged imports. ([#42](https://github.com/linz/topographic-system/issues/42)) ([71f27d7](https://github.com/linz/topographic-system/commit/71f27d7d66b9681b746a3458f59bfb0dd2e9387e))
+* write updated STAC Item to s3 BM-1509 ([#39](https://github.com/linz/topographic-system/issues/39)) ([0207d5c](https://github.com/linz/topographic-system/commit/0207d5c52c65c72f3132ff5ff4cc61204631d9a1))
+
 ## [0.4.0](https://github.com/linz/topographic-system/compare/shared-v0.3.0...shared-v0.4.0) (2026-01-26)
 
 
