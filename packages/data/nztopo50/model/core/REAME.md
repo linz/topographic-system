@@ -87,10 +87,14 @@ cd  topographic-data
 
 kart remote add origin git@github.com:linz/topographic-data  [or target repo for other data]
 
+**warning - if the tree_locations upload failure has not be fxed follow the tree_location load process 1st**
+instruction currently in another project. To transfer.
+If run - REMOVE the tree_location from the master import file.
+
 **run the kart_import**
 Note: this uses a force option on the kart push command - that clear all visible tables in the repo
 
-cop the kart_import_topodata.bat into the topographic-data folder and run
+copy the kart_import_topodata.bat into the topographic-data folder and run
 
 @kart_import_topodata.bat
 

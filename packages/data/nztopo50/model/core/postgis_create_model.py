@@ -80,7 +80,7 @@ if __name__ == "__main__":
                         elif col_type == "DOUBLE":
                             col_def = f"{field_name} DOUBLE PRECISION"
                         elif col_type == "DATE":
-                            col_def = f"{field_name} TIMESTAMP"
+                            col_def = f"{field_name} DATE"
                         elif col_type == "BOOLEAN":
                             col_def = f"{field_name} BOOLEAN"
                         elif col_type == "GUID":

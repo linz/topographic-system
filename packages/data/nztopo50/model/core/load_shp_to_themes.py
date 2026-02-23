@@ -256,9 +256,9 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for testing
-            if layer_info[3].lower() != 'contour':
-                print(f"Skipping layer: {layer_info[3]}")
-                continue
+            #if layer_info[3].lower() != 'contour':
+            #    print(f"Skipping layer: {layer_info[3]}")
+            #    continue
             layer_name = layer_info[3]
             # theme = layer_info[1]
             dataset = layer_info[4]

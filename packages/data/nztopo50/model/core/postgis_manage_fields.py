@@ -234,16 +234,16 @@ class ModifyTable:
             fieldList = [
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
                 ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
-                ["update_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
-                ["create_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
             fieldList.extend([
                 ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
                 ["source_id", "INTEGER", "DEFAULT"],
-                ["source_date", "TIMESTAMP DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
             ])
         # uuidv7
         # ["comment", "VARCHAR(255)", "DEFAULT"],
@@ -811,9 +811,9 @@ if __name__ == "__main__":
     # release_date = "2025-05-14"
 
     add_full_metadata_fields = True
-    primary_key_type = "none"
+    # primary_key_type = "none"
     # primary_key_type = 'int'
-    # primary_key_type = "uuid"
+    primary_key_type = "uuid"
     update_topoid_from_previous_release = False
     previous_schema = "release62"
     use_hive_partitioning = True
