@@ -8,7 +8,7 @@ export async function validateTiff(url: URL, epsg: number): Promise<void> {
 
   // Validate epsg matches
   if (image.epsg == null || image.epsg !== epsg) {
-    throw new Error(`Invalid EPSG for ${url}: expected ${epsg}, got ${image.epsg}`);
+    throw new Error(`Invalid EPSG for ${url.href}: expected ${epsg}, got ${image.epsg}`);
   }
 
   await tiff.source.close?.();
