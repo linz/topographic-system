@@ -68,7 +68,7 @@ for feature in topo_sheet_layer.getFeatures():
                 bbox.yMaximum(),
             ],
         }
-   )
+    )
 
 json.dump(metadata, sys.stdout, ensure_ascii=False)
 sys.stdout.write("\n")
