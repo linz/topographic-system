@@ -9,10 +9,10 @@ import { command, flag, number, oneOf, option, optional, restPositionals, string
 import { parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { listMapSheets } from '../python.runner.ts';
+import { listSourceLayers, qgisExportCover } from '../python.runner.ts';
 import { createMapSheetStacCollection, type MapSheetStacItem } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
-import { map } from 'zod';
+import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -69,6 +69,16 @@ const ProduceArgs = {
     defaultValue: () => 'nz_topo50_map_sheet',
     defaultValueIsSerializable: true,
   }),
+  source: option({
+    type: optional(Url),
+    long: 'source',
+    description: 'Source data catalog.json that contains the layers.',
+  }),
+  dataTag: option({
+    type: optional(string),
+    long: 'data-tag',
+    description: 'Override data tag to use when looking for source layers.',
+  }),
   dpi: option({
     type: number,
     long: 'dpi',
@@ -96,11 +106,7 @@ export const produceCoverCommand = command({
     // Download mapshseet layer data from the project stac file
     const stac = await fsa.readJson<StacItem>(args.project);
     if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
-    for (const link of stac.links) {
-      if (link.rel === 'dataset' && link.href.includes(args.mapSheetLayer)) {
-        await downloadFromCollection(new URL(link.href));
-      }
-    }
+
     // Download project file from the project stac file
     let projectPath;
     for (const [key, asset] of Object.entries(stac.assets)) {
@@ -111,6 +117,24 @@ export const produceCoverCommand = command({
       throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
     }
 
+    // Override data with dataTag if provided
+    const sources: URL[] = [];
+    if (args.source && args.dataTag) {
+      const layers = await listSourceLayers(projectPath);
+      for (const layer of layers) {
+        const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
+        sources.push(layerCollection);
+      }
+    } else {
+      sources.push(...stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href)));
+    }
+
+    for (const source of sources) {
+      if (source.href.includes(args.mapSheetLayer)) {
+        await downloadFromCollection(source);
+      }
+    }
+
     // Run python list all the mapsheet covering metadata
     const exportOptions = {
       layout: args.layout,
@@ -119,21 +143,27 @@ export const produceCoverCommand = command({
       format: args.format,
     };
 
-    const metadatas = await listMapSheets(projectPath, exportOptions, args.all ? undefined : mapSheets);
+    const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
-    const sources = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
-      const item = createStacItem(metadata.sheetCode, links, {}, metadata.geometry, metadata.bbox) as MapSheetStacItem;
+      const standerizedSheetCode = metadata.sheetCode.replace(/[\/,]/g, '');
+      const item = createStacItem(
+        standerizedSheetCode,
+        links,
+        {},
+        metadata.geometry,
+        metadata.bbox,
+      ) as MapSheetStacItem;
       item.properties['proj:epsg'] = metadata.epsg;
       item.properties['linz_topographic_system:options'] = {
         mapsheet: metadata.sheetCode,
         format: args.format,
         dpi: args.dpi,
       };
-      await fsa.write(new URL(`${metadata.sheetCode}.json`, args.output), JSON.stringify(item, null, 2));
+      await fsa.write(new URL(`${standerizedSheetCode}.json`, args.output), JSON.stringify(item, null, 2));
     }
     const collection = createMapSheetStacCollection(metadatas, links);
     await fsa.write(new URL('collection.json', args.output), JSON.stringify(collection, null, 2));

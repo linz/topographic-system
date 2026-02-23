@@ -84,7 +84,7 @@ export async function qgisExport(
  *
  * @returns mapsheet metadata including sheetcode and geometry information for the stac files
  */
-export async function listMapSheets(
+export async function qgisExportCover(
   input: URL,
   options: ExportOptions,
   mapsheets?: string[],
@@ -97,10 +97,10 @@ export async function listMapSheets(
   cmd.args.push(options.mapSheetLayer);
   // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
   if (mapsheets) {
-    cmd.args.push('false');
+    cmd.args.push('False');
     for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
   } else {
-    cmd.args.push('true');
+    cmd.args.push('True');
   }
   const res = await cmd.run();
   logger.debug('qgis_export_cover.py ' + cmd.args.join(' '));

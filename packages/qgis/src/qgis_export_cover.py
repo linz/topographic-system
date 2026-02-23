@@ -14,7 +14,7 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 project_path = sys.argv[1]
 project_layout = sys.argv[2]
 topo_map_sheet = sys.argv[3]
-list_all_sheet_codes = sys.argv[4]
+list_all_sheet_codes = sys.argv[4].lower() in ("true", "1", "yes")
 sheet_codes = sys.argv[5:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
@@ -48,7 +48,8 @@ topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
 
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
-    if feature_code not in sheet_codes and not list_all_sheet_codes:
+    # Skip if we're not listing all, and feature_code is not in the allowed list
+    if not list_all_sheet_codes and feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
     geom.transform(
