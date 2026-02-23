@@ -1,5 +1,5 @@
 import { Command } from '@linzjs/docker-command';
-import { logger, toRelative } from '@topographic-system/shared/src/index.ts';
+import { logger } from '@topographic-system/shared/src/index.ts';
 
 /**
  * Running python commands to join contour and landcover
@@ -10,9 +10,9 @@ export async function contourWithLandcover(contour: URL, landcover: URL, output:
   cmd.args.push('--directory');
   cmd.args.push('/packages/data-prep');
   cmd.args.push('src/data_prep/contour_with_landcover.py');
-  cmd.args.push(toRelative(contour));
-  cmd.args.push(toRelative(landcover));
-  cmd.args.push(toRelative(output));
+  cmd.args.push(contour.toString());
+  cmd.args.push(landcover.toString());
+  cmd.args.push(output.toString());
   const res = await cmd.run();
   logger.debug('contour_with_landcover.py ' + cmd.args.join(' '));
 
