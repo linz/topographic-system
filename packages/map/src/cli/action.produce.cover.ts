@@ -1,18 +1,19 @@
 import { fsa } from '@chunkd/fs';
+import { isArgo } from '@topographic-system/shared/src/argo.ts';
 import { CliId } from '@topographic-system/shared/src/cli.info.ts';
 import { downloadFile, downloadFromCollection } from '@topographic-system/shared/src/download.ts';
 import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
 import { logger } from '@topographic-system/shared/src/log.ts';
 import { createStacCatalog, createStacItem, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
+import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import { parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
 import { listSourceLayers, qgisExportCover } from '../python.runner.ts';
-import { createMapSheetStacCollection, type MapSheetStacItem } from '../stac.ts';
+import { createMapSheetStacCollection, type ExportOptions, type MapSheetStacItem } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
-import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -22,13 +23,6 @@ export const ExportFormats = {
 } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
-
-export interface ExportOptions {
-  layout: string;
-  mapSheetLayer: string;
-  dpi: number;
-  format: ExportFormat;
-}
 
 const ProduceArgs = {
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),
@@ -136,7 +130,7 @@ export const produceCoverCommand = command({
     }
 
     // Run python list all the mapsheet covering metadata
-    const exportOptions = {
+    const exportOptions: ExportOptions = {
       layout: args.layout,
       mapSheetLayer: args.mapSheetLayer,
       dpi: args.dpi,
@@ -146,6 +140,7 @@ export const produceCoverCommand = command({
     const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
+    const items = [];
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
@@ -158,13 +153,17 @@ export const produceCoverCommand = command({
         metadata.bbox,
       ) as MapSheetStacItem;
       item.properties['proj:epsg'] = metadata.epsg;
-      item.properties['linz_topographic_system:options'] = {
-        mapsheet: metadata.sheetCode,
-        format: args.format,
-        dpi: args.dpi,
-      };
-      await fsa.write(new URL(`${standerizedSheetCode}.json`, args.output), JSON.stringify(item, null, 2));
+      item.properties['mapsheet'] = metadata.sheetCode;
+      item.properties['linz_topographic_system:options'] = exportOptions;
+      // Add assets link if available
+      item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
+
+      const itemPath = new URL(`${standerizedSheetCode}.json`, args.output);
+      items.push({ path: itemPath });
+      await fsa.write(itemPath, JSON.stringify(item, null, 2));
     }
+
+    // Create collection file
     const collection = createMapSheetStacCollection(metadatas, links);
     await fsa.write(new URL('collection.json', args.output), JSON.stringify(collection, null, 2));
 
@@ -180,6 +179,8 @@ export const produceCoverCommand = command({
         type: 'application/json',
       },
     ];
+
+    // Create Catalog file
     let catalog = createStacCatalog(title, description, catalogLinks);
     const existing = await fsa.exists(catalogPath);
     if (existing) {
@@ -191,5 +192,11 @@ export const produceCoverCommand = command({
       });
     }
     await fsa.write(catalogPath, JSON.stringify(catalog, null, 2));
+
+    // If running in argo dump out output information to be used by further steps
+    if (isArgo()) {
+      // Where the JSON files were written to
+      await fsa.write(fsa.toUrl('/tmp/produce/cover-items.json'), JSON.stringify(items));
+    }
   },
 });

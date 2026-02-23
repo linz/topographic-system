@@ -5,6 +5,7 @@ import path, { basename } from 'path';
 import type { StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 import { fileURLToPath } from 'url';
+import { th } from 'zod/locales';
 
 // Prepare a temporary folder to store the source data and processed outputs
 export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
@@ -88,6 +89,26 @@ export async function downloadFromCollection(collectionUrl: URL): Promise<URL> {
   return source;
 }
 
+export async function downloadProjectFile(stac: StacItem): Promise<URL> {
+  // Download from asset if exist
+  for (const [key, asset] of Object.entries(stac.assets)) {
+    if (key === 'project') {
+      return await downloadFile(new URL(asset.href));
+    }
+  }
+
+  // Download from project stac link if exist
+  for (const link of stac.links) {
+    if (link.rel === 'project') {
+      const stac = await fsa.readJson<StacItem>(new URL(link.href));
+      if (stac == null) throw new Error(`Invalid STAC Item at path: ${link.href}`);
+      return await downloadProjectFile(stac);
+    }
+  }
+
+  throw new Error(`Project asset not found in STAC Item: ${stac.id}`);
+}
+
 /**
  * Parses a STAC Item for a QGIS project, determines the assets and
  * datasets used in QGIS project, and downloads them to a tmp location.
@@ -98,25 +119,23 @@ export async function downloadFromCollection(collectionUrl: URL): Promise<URL> {
  * - `projectPath` - a URL pointing to the QGIS project file
  * - `sources` - an array of URLs pointing to the datasets used in the QGIS project
  */
-export async function downloadProject(path: URL): Promise<{ projectPath: URL; sources: URL[] }> {
+export async function downloadProject(path: URL): Promise<URL> {
   logger.info({ source: path.href, downloaded: tmpFolder.href }, 'Download: Start');
   const stac = await fsa.readJson<StacItem>(path);
   if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
+  // Download the qgis project file
+  const projectPath = await downloadProjectFile(stac);
 
-  let projectPath;
+  // Download all the assets from project
   for (const [key, asset] of Object.entries(stac.assets)) {
-    const downloadedPath = await downloadFile(new URL(asset.href));
-    if (key === 'project') projectPath = downloadedPath;
-  }
-
-  if (projectPath == null) {
-    throw new Error(`Project asset not found in STAC Item: ${path.href}`);
+    if (key === 'project') continue;
+    await downloadFile(new URL(asset.href));
   }
 
   const links = stac.links;
   const sources = [];
   for (const link of links) {
-    if (link.rel === 'dataset') {
+    if (link.rel === 'dataset' || link.rel === 'source') {
       // Download Source data
       sources.push(await downloadFromCollection(new URL(link.href)));
     } else if (link.rel === 'assets') {
@@ -129,6 +148,10 @@ export async function downloadProject(path: URL): Promise<{ projectPath: URL; so
     }
   }
 
+  if (projectPath == null) {
+    throw new Error(`Project asset not found in STAC Item: ${path.href}`);
+  }
+
   logger.info({ destination: tmpFolder.href, project: projectPath.href }, 'Download: End');
-  return { projectPath, sources };
+  return projectPath;
 }

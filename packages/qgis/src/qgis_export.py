@@ -17,7 +17,7 @@ project_layout = sys.argv[3]
 topo_map_sheet = sys.argv[4]
 export_format = sys.argv[5]
 dpi = int(sys.argv[6])
-sheet_codes = sys.argv[7:]
+sheet_code = sys.argv[7]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -43,7 +43,6 @@ for item in layout.items():
 if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
-metadata = []
 map_crs = map_item.crs()
 
 topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
@@ -51,7 +50,7 @@ topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
     # skip if this sheet_code is not in the list passed from CLI
-    if feature_code not in sheet_codes:
+    if feature_code != sheet_code:
         continue
     geom = feature.geometry()
     geom.transform(
@@ -59,7 +58,6 @@ for feature in topo_sheet_layer.getFeatures():
     )
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
-
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
@@ -79,24 +77,8 @@ for feature in topo_sheet_layer.getFeatures():
         raise ValueError(f"Unsupported format: {export_format}")
 
     if export_result == QgsLayoutExporter.Success:
-        metadata.append(
-            {
-                "sheetCode": feature_code,
-                "geometry": geom.asJson(),
-                "epsg": map_crs.postgisSrid(),
-                "bbox": [
-                    bbox.xMinimum(),
-                    bbox.yMinimum(),
-                    bbox.xMaximum(),
-                    bbox.yMaximum(),
-                ],
-            }
-        )
+        print(output_file)
     else:
         print(f"Error exporting map: {exporter.errorMessage()}")
-
-json.dump(metadata, sys.stdout, ensure_ascii=False)
-sys.stdout.write("\n")
-sys.stdout.flush()
 
 qgs.exitQgis()

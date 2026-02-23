@@ -4,7 +4,8 @@ import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geoj
 
 import { logger } from '../../shared/src/log.ts';
 import { toRelative } from '../../shared/src/url.ts';
-import type { ExportOptions } from './cli/action.produce.ts';
+import type { ExportOptions } from './stac.ts';
+import { pathToFileURL } from 'url';
 
 interface SheetMetadataStdOut {
   sheetCode: string;
@@ -46,12 +47,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(
-  input: URL,
-  output: URL,
-  mapsheets: string[],
-  options: ExportOptions,
-): Promise<SheetMetadata[]> {
+export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -61,7 +57,7 @@ export async function qgisExport(
   cmd.args.push(options.mapSheetLayer);
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
-  for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
+  cmd.args.push(sheetCode);
 
   const res = await cmd.run();
   logger.debug('qgis_export.py ' + cmd.args.join(' '));
@@ -71,7 +67,7 @@ export async function qgisExport(
     throw new Error('qgis_export.py failed to run');
   }
 
-  return parseSheetsMetadata(res.stdout);
+  return pathToFileURL(res.stdout.trim());
 }
 
 /**
