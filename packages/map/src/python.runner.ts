@@ -1,11 +1,11 @@
 import { Command } from '@linzjs/docker-command';
 import path from 'path';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
+import { pathToFileURL } from 'url';
 
 import { logger } from '../../shared/src/log.ts';
 import { toRelative } from '../../shared/src/url.ts';
 import type { ExportOptions } from './stac.ts';
-import { pathToFileURL } from 'url';
 
 interface SheetMetadataStdOut {
   sheetCode: string;

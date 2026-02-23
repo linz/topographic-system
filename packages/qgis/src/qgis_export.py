@@ -7,7 +7,6 @@ from qgis.core import (
 )
 import sys
 import os
-import json
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
