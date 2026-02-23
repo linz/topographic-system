@@ -78,10 +78,10 @@ function aggregateColumnStatsAcrossRowGroups(columns: ColumnChunk[]): ColumnStat
 }
 
 export function extractSpatialExtent(columnStats: ColumnStats[]): SpatialExtent {
-  const xmin = columnStats.find((col) => col.name === 'geom_bbox.xmin')?.min;
-  const xmax = columnStats.find((col) => col.name === 'geom_bbox.xmax')?.max;
-  const ymin = columnStats.find((col) => col.name === 'geom_bbox.ymin')?.min;
-  const ymax = columnStats.find((col) => col.name === 'geom_bbox.ymax')?.max;
+  const xmin = columnStats.find((col) => col.name === 'bbox.xmin')?.min;
+  const xmax = columnStats.find((col) => col.name === 'bbox.xmax')?.max;
+  const ymin = columnStats.find((col) => col.name === 'bbox.ymin')?.min;
+  const ymax = columnStats.find((col) => col.name === 'bbox.ymax')?.max;
 
   if (typeof xmin !== 'number' || typeof xmax !== 'number' || typeof ymin !== 'number' || typeof ymax !== 'number') {
     logger.error({ columnStats, xmin, xmax, ymin, ymax }, 'SpatialExtent:InvalidColumnStats');
