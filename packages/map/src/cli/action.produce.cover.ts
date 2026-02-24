@@ -11,7 +11,7 @@ import { command, flag, number, oneOf, option, optional, restPositionals, string
 import { parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { listSourceLayers, qgisExportCover } from '../python.runner.ts';
+import { qgisExportCover } from '../python.runner.ts';
 import { createMapSheetStacCollection, type ExportOptions, type MapSheetStacItem } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
 
@@ -23,6 +23,38 @@ export const ExportFormats = {
 } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
+
+interface dataTag {
+  layer: string;
+  tag: string;
+}
+
+/**
+ * Parse a input data tag string into an array of dataTag,
+ * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ laer: "airport", tag: "pull_request/pr-18/" }, { laer: "contours", tag: "pull_request/pr-18/" }]
+ */
+function parseDataTag(input: string): dataTag[] {
+  const tags: dataTag[] = [];
+  const pairs = input.split(',').map((part) => part.trim());
+  for (const pair of pairs) {
+    const splits = pair.split('/');
+    const layer = splits[0];
+    const tag = splits.slice(1).join('/');
+    if (layer && tag) {
+      tags.push({ layer, tag });
+    } else {
+      logger.warn({ pair }, 'Invalid data tag format, expected "layer/tag"');
+    }
+  }
+  return tags;
+}
+
+/**
+ * Standerize the mapsheet code to remove / and , in the paths.
+ */
+export function sheetCodeToPath(sheetCode: string): string {
+  return sheetCode.replace(/[\/,]/g, '');
+}
 
 const ProduceArgs = {
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),
@@ -71,7 +103,8 @@ const ProduceArgs = {
   dataTag: option({
     type: optional(string),
     long: 'data-tag',
-    description: 'Override data tag to use when looking for source layers.',
+    description:
+      'Override data tag in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
   }),
   dpi: option({
     type: number,
@@ -111,18 +144,22 @@ export const produceCoverCommand = command({
       throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
     }
 
+    const sources: URL[] = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
     // Override data with dataTag if provided
-    const sources: URL[] = [];
     if (args.source && args.dataTag) {
-      const layers = await listSourceLayers(projectPath);
-      for (const layer of layers) {
-        const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
-        sources.push(layerCollection);
+      const tags = parseDataTag(args.dataTag);
+      for (const source of sources) {
+        for (const tag of tags) {
+          if (source.href.includes(tag.layer)) {
+            logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
+            const layerCollection = await getDataFromCatalog(args.source, tag.layer, tag.tag);
+            source.href = layerCollection.href;
+          }
+        }
       }
-    } else {
-      sources.push(...stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href)));
     }
 
+    // Download mapsheet layer to parse geometry and metadata for the export
     for (const source of sources) {
       if (source.href.includes(args.mapSheetLayer)) {
         await downloadFromCollection(source);
@@ -136,7 +173,6 @@ export const produceCoverCommand = command({
       dpi: args.dpi,
       format: args.format,
     };
-
     const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
@@ -144,7 +180,7 @@ export const produceCoverCommand = command({
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
-      const standerizedSheetCode = metadata.sheetCode.replace(/[\/,]/g, '');
+      const standerizedSheetCode = sheetCodeToPath(metadata.sheetCode);
       const item = createStacItem(
         standerizedSheetCode,
         links,

@@ -26,6 +26,8 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 
   const metadata: SheetMetadata[] = [];
   for (const item of raw) {
+    // FIXME: Missing some floating number like 0.25 and 0.5 and adding some floating number like 0.000000001 in the output of qgis_export_cover.py,
+    // which cause the bbox to be different from the original one in qgis project and cause the stac item to be different from the original one. Need to investigate why this happens and how to fix it.
     const geom = JSON.parse(item.geometry) as GeoJSON.Geometry;
 
     // Only could be a polygon or multipolygons for a mapsheet.

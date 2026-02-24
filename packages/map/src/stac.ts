@@ -2,7 +2,7 @@ import { type BoundingBox, Bounds } from '@basemaps/geo';
 import { createStacCollection } from '@topographic-system/shared/src/stac.factory.ts';
 import type { StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import type { ExportFormat } from './cli/action.produce.cover.ts';
+import { sheetCodeToPath, type ExportFormat } from './cli/action.produce.cover.ts';
 import type { SheetMetadata } from './python.runner.ts';
 
 export interface ExportOptions {
@@ -43,7 +43,7 @@ export function createMapSheetStacCollection(metadata: SheetMetadata[], links: S
     if (item.bbox) allBbox.push(Bounds.fromBbox(item.bbox));
     links.push({
       rel: 'item',
-      href: `./${item.sheetCode}.json`,
+      href: `./${sheetCodeToPath(item.sheetCode)}.json`,
     });
   }
   const description = 'LINZ Topographic System Generated Maps.';

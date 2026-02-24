@@ -116,6 +116,9 @@ export const deployCommand = command({
         const stacItemLinks = [];
         for (const layer of layers) {
           const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
+          if (layerCollection == null) {
+            throw new Error(`Source layer ${layer} with tag ${args.dataTag} not found in catalog ${args.source.href}`);
+          }
           stacItemLinks.push({
             rel: 'dataset',
             href: layerCollection.href,
