@@ -2,7 +2,7 @@ import { type BoundingBox, Bounds } from '@basemaps/geo';
 import { createStacCollection } from '@topographic-system/shared/src/stac.factory.ts';
 import type { StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { sheetCodeToPath, type ExportFormat } from './cli/action.produce.cover.ts';
+import { type ExportFormat, sheetCodeToPath } from './cli/action.produce.cover.ts';
 import type { SheetMetadata } from './python.runner.ts';
 
 export interface ExportOptions {
