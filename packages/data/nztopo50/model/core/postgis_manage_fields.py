@@ -2,7 +2,7 @@ import os
 import psycopg
 import pandas as pd
 import pyarrow as pa  # type: ignore
-import pyarrow.parquet as pq  # type: ignore
+import pyarrow.parquet as pq # type: ignore
 
 # Database connection parameters
 DB_PARAMS = {
@@ -33,7 +33,7 @@ class ModifyTable:
 
         query = f"""
         SELECT table_schema, table_name FROM information_schema.tables
-        WHERE table_schema = '{schema_name}'
+        WHERE table_schema = '{schema_name}' 
         ORDER BY table_schema, table_name
         """
         with self.conn.cursor() as cur:
@@ -107,6 +107,14 @@ class ModifyTable:
                 f"Added column '{column_name}' to table '{table_name}' with data type '{data_type}'"
             )
 
+    def carto_text_geom_update(self, schema, table):
+            self.connect()
+            with self.conn.cursor() as cur:
+                update_query = f"UPDATE {schema}.{table} SET geometry = ST_SnapToGrid(geometry, 1.0);"
+                cur.execute(update_query)
+                self.conn.commit()
+                print(f"Updated geometry field in '{schema}.{table}' with ST_SnapToGrid")
+    
     def update_column_with_default(
         self, schema, table, column_name, default_value, where_clause=None
     ):
@@ -532,15 +540,22 @@ class ModifyTable:
         self.connect()
         with self.conn.cursor() as cur:
             if self.column_exists(schema, table, column_name):
+                process=True
                 if from_column_name.lower() == "null":
                     update_query = f"UPDATE {schema}.{table} SET {column_name} = NULL;"
-                else:
+                elif self.column_exists(schema, table, from_column_name):
                     update_query = f"UPDATE {schema}.{table} SET {column_name} = {from_column_name};"
-                cur.execute(update_query)
-                self.conn.commit()
-                print(
-                    f"Set value of column '{column_name}' to '{from_column_name}' in table '{schema}.{table}'"
-                )
+                else:
+                    print(
+                        f"Column '{from_column_name}' does not exist in table '{schema}.{table}'"
+                    )
+                    process=False
+                if process:
+                    cur.execute(update_query)
+                    self.conn.commit()
+                    print(
+                        f"Set value of column '{column_name}' to '{from_column_name}' in table '{schema}.{table}'"
+                    )
             else:
                 print(
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
@@ -802,7 +817,7 @@ class ModifyTable:
 if __name__ == "__main__":
     tableModifer = ModifyTable(DB_PARAMS)
     option = "all"
-    # option = "recreate_table_srid"
+    # option = "carto_text_geom_update"
     # schema_name = "toposource"
     schema_name = "release64"
     release_date = "2025-09-25"
@@ -980,6 +995,11 @@ if __name__ == "__main__":
                 tableModifer.rename_columns(
                     schema, table, old_column_name, new_column_name
                 )
+
+    if option == "all" or option == "carto_text_geom_update":
+        schema = schema_name
+        table = "nz_topo50_map_sheet"
+        tableModifer.carto_text_geom_update(schema, table)
 
     if option == "all" or option == "recreate_table_srid":
         tableModifer.recreate_table_srid(schema_name, primary_key_type)
