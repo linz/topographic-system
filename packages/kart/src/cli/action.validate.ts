@@ -27,8 +27,8 @@ export function parseBbox(bbox: string | undefined): string[] {
 /** Argument types for validation command */
 export interface ValidateArgs {
   mode: string;
-  'db-path': string | undefined;
-  'config-file': string | undefined;
+  'db-path': string;
+  'config-file': string;
   'output-dir': string | undefined;
   'area-crs': number;
   'export-parquet': boolean;
@@ -49,25 +49,21 @@ export interface ValidateArgs {
 export async function buildValidationArgs(args: ValidateArgs): Promise<string[]> {
   const cmdArgs: string[] = [];
 
-  const dbPath = args['db-path'] ?? '/tmp/kart/parquet/files.parquet';
-  const configFile = args['config-file'] ?? '/packages/validation/config/default_config.json';
-
   // Check available layers and create filtered config
-  const availableLayers = await getAvailableLayers(dbPath);
+  const availableLayers = await getAvailableLayers(args['db-path']);
   logger.info({ layerCount: availableLayers.size, layers: [...availableLayers] }, 'ValidateCommand:AvailableLayers');
 
   if (availableLayers.size === 0) {
-    logger.error({ dbPath }, 'ValidateCommand:NoLayersFound');
-    throw new Error(`No parquet files found in: ${dbPath}`);
+    logger.error({ dbPath: args['db-path'] }, 'ValidateCommand:NoLayersFound');
+    throw new Error(`No parquet files found in: ${args['db-path']}`);
   }
-  const filteredConfigPath = await createFilteredConfig(configFile, availableLayers, true);
+  const filteredConfigPath = await createFilteredConfig(args['config-file'], availableLayers, true);
 
   // Use filtered config instead of original
   cmdArgs.push('--config-file', filteredConfigPath);
-  cmdArgs.push('--db-path', dbPath);
 
   // Options with values or only keys
-  const valueKeys = ['db-path', 'output-dir', 'mode', 'config-file', 'area-crs', 'date', 'weeks'] as const;
+  const valueKeys = ['db-path', 'output-dir', 'mode', 'area-crs', 'date', 'weeks'] as const;
   const boolKeys = [
     'export-parquet',
     'export-parquet-by-geometry',
@@ -171,16 +167,18 @@ export const validateCommand = command({
       description: 'Validation mode: generic for GPKG/Parquet, postgis for PostgreSQL/PostGIS',
       defaultValue: () => 'generic',
     }),
-    'db-path': strOption(
-      'db-path',
-      'File path (GPKG/Parquet), Database URL (PostgreSQL connection string)',
-      '/tmp/kart/parquet/files.parquet',
-    ),
-    'config-file': strOption(
-      'config-file',
-      'Path to validation configuration JSON file',
-      '/packages/validation/config/default_config.json',
-    ),
+    'db-path': option({
+      type: string,
+      long: 'db-path',
+      description: 'File path (GPKG/Parquet), Database URL (PostgreSQL connection string)',
+      defaultValue: () => '/tmp/kart/parquet/files.parquet',
+    }),
+    'config-file': option({
+      type: string,
+      long: 'config-file',
+      description: 'Path to validation configuration JSON file',
+      defaultValue: () => '/packages/validation/config/default_config.json',
+    }),
     'output-dir': strOption('output-dir', 'Output directory for validation results', '/tmp/validation-output'),
     'area-crs': option({
       type: number,
