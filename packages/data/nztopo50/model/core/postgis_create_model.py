@@ -31,7 +31,7 @@ def excel_to_layered_dict(excel_path):
 
 if __name__ == "__main__":
     commands_options = ["drop_tables", "create_tables"]
-    #commands_options = ["drop_tables"]
+    # commands_options = ["drop_tables"]
     commands_options = ["create_tables"]
     # commands_options = ["create_indexes"]
     for command_option in commands_options:
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                     geom = "LINESTRING"
 
                 table = layer.lower()
-                # TEMP - only create one named table 
+                # TEMP - only create one named table
                 # if table != "contour":
                 #     continue
                 if primary_key_type == "int":

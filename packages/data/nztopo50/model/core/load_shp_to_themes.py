@@ -1,11 +1,11 @@
 import os
 import glob
-import pandas as pd # type: ignore
+import pandas as pd  # type: ignore
 import geopandas as gpd  # type: ignore
 
 from pyogrio import read_info, write_dataframe  # type: ignore
 import pyproj
-from sqlalchemy import create_engine # type: ignore
+from sqlalchemy import create_engine  # type: ignore
 
 
 class Topo50DataLoader:
@@ -256,7 +256,7 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for testing
-            #if layer_info[3].lower() != 'contour':
+            # if layer_info[3].lower() != 'contour':
             #    print(f"Skipping layer: {layer_info[3]}")
             #    continue
             layer_name = layer_info[3]

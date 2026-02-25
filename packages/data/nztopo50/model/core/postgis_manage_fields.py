@@ -2,7 +2,7 @@ import os
 import psycopg
 import pandas as pd
 import pyarrow as pa  # type: ignore
-import pyarrow.parquet as pq # type: ignore
+import pyarrow.parquet as pq  # type: ignore
 
 # Database connection parameters
 DB_PARAMS = {
@@ -108,13 +108,15 @@ class ModifyTable:
             )
 
     def carto_text_geom_update(self, schema, table):
-            self.connect()
-            with self.conn.cursor() as cur:
-                update_query = f"UPDATE {schema}.{table} SET geometry = ST_SnapToGrid(geometry, 1.0);"
-                cur.execute(update_query)
-                self.conn.commit()
-                print(f"Updated geometry field in '{schema}.{table}' with ST_SnapToGrid")
-    
+        self.connect()
+        with self.conn.cursor() as cur:
+            update_query = (
+                f"UPDATE {schema}.{table} SET geometry = ST_SnapToGrid(geometry, 1.0);"
+            )
+            cur.execute(update_query)
+            self.conn.commit()
+            print(f"Updated geometry field in '{schema}.{table}' with ST_SnapToGrid")
+
     def update_column_with_default(
         self, schema, table, column_name, default_value, where_clause=None
     ):
@@ -231,10 +233,12 @@ class ModifyTable:
             )
 
     def add_metadata_columns(
-        self, mode="add", schema_name="toposource", 
-        full_field_set=True, 
-        include_source_fields=False):
-
+        self,
+        mode="add",
+        schema_name="toposource",
+        full_field_set=True,
+        include_source_fields=False,
+    ):
         self.connect()
         schema_tables = self.list_schema_tables(schema_name)
 
@@ -248,11 +252,17 @@ class ModifyTable:
                 ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
-            fieldList.extend([
-                ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
-                ["source_id", "INTEGER", "DEFAULT"],
-                ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-            ])
+            fieldList.extend(
+                [
+                    [
+                        "source",
+                        "VARCHAR(75) DEFAULT 'nz aerial imagery'",
+                        "'database import'",
+                    ],
+                    ["source_id", "INTEGER", "DEFAULT"],
+                    ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ]
+            )
         # uuidv7
         # ["comment", "VARCHAR(255)", "DEFAULT"],
 
@@ -540,7 +550,7 @@ class ModifyTable:
         self.connect()
         with self.conn.cursor() as cur:
             if self.column_exists(schema, table, column_name):
-                process=True
+                process = True
                 if from_column_name.lower() == "null":
                     update_query = f"UPDATE {schema}.{table} SET {column_name} = NULL;"
                 elif self.column_exists(schema, table, from_column_name):
@@ -549,7 +559,7 @@ class ModifyTable:
                     print(
                         f"Column '{from_column_name}' does not exist in table '{schema}.{table}'"
                     )
-                    process=False
+                    process = False
                 if process:
                     cur.execute(update_query)
                     self.conn.commit()

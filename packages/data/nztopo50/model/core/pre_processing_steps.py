@@ -1,6 +1,6 @@
 import geopandas as gpd  # type: ignore
 
-# offshore (1) or inland island (0) - intersect using sea_coastline poly shapefile 
+# offshore (1) or inland island (0) - intersect using sea_coastline poly shapefile
 # create from coastline and outer box
 
 islands = r"C:\Data\Topo50\Release64_NZ50_Shape\island_poly.shp"
@@ -22,4 +22,3 @@ island_Joined_gdf["location"] = 1
 island_gdf.loc[island_gdf.index.isin(island_Joined_gdf.index), "location"] = 1
 
 island_gdf.to_file(islands_out, driver="ESRI Shapefile")
-
