@@ -24,14 +24,6 @@ def run(contour_path: Path, landcover_path: Path, overlap_path: Path) -> None:
         }
     )
 
-    # keep geometry and bbox column same as gdal generated ones
-    overlap_gdf = overlap_gdf.rename(
-        columns={
-            "geometry": "geom",
-            "bbox": "geom_bbox",
-        }
-    )
-
     overlap_gdf["landcover_feature_type"] = overlap_gdf[
         "landcover_feature_type"
     ].fillna("other")
