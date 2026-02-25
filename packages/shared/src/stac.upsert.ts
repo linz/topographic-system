@@ -31,6 +31,10 @@ import { addChildDataToParent, addParentDataToChild, compareStacAssets } from '.
  * */
 export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
+  if (extension === 'json') {
+    logger.warn({ asset: assetFile.href }, 'STAC:UpsertAssetToItemSkippedForJson');
+    return assetFile;
+  }
   const dataset = basename(assetFile.href, `.${extension}`);
   const stacAsset = await createStacAssetFromFileName(assetFile);
   if (stacItemFile == null) {
