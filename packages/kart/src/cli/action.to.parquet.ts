@@ -100,6 +100,7 @@ export const parquetCommand = command({
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
           ['-lco', 'BBOX_NAME=bbox'],
+          ['-lco', 'WRITE_COVERING_BBOX=YES'],
         ];
         if (args.sortByBbox) {
           command.push(['-lco', 'SORT_BY_BBOX=YES']);
