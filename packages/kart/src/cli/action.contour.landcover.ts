@@ -29,12 +29,14 @@ export const ContourWithLandcoverArgs = {
   output: option({
     type: UrlFolder,
     long: 'output',
-    description: 'Path or s3 of the output directory to write to',
+    description: 'Path or s3 of output directory to write to',
   }),
 };
 
 // Prepare a temporary folder to store the source data and processed outputs
 const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
+
+const topo50ContourName = 'nz_topo50_contour';
 
 export const ContourWithLandcoverCommand = command({
   name: 'contour with landcover',
@@ -58,12 +60,12 @@ export const ContourWithLandcoverCommand = command({
     }
     const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href));
 
-    const tempOutputParquet = new URL('nz_topo50_contour.parquet', tmpFolder);
+    const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, tmpFolder);
 
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
     const assetFile = new URL(
-      `nz_topo50_contour/year=${CliDate.slice(0, 4)}/date=${CliDate}/nz_topo50_contour.parquet`,
+      `${topo50ContourName}/year=${CliDate.slice(0, 4)}/date=${CliDate}/${topo50ContourName}.parquet`,
       args.output,
     );
 
