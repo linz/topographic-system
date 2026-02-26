@@ -33,17 +33,26 @@ interface dataTag {
  * Parse a input data tag string into an array of dataTag,
  * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ laer: "airport", tag: "pull_request/pr-18/" }, { laer: "contours", tag: "pull_request/pr-18/" }]
  */
-function parseDataTag(input: string): dataTag[] {
+export function parseDataTag(input: string): dataTag[] {
   const tags: dataTag[] = [];
   const pairs = input.split(',').map((part) => part.trim());
-  for (const pair of pairs) {
+  const error = `Invalid data tag format, expected "layer/latest", "layer/pull_request/pr-<number>", or "layer/year/<date>", got ${input}`;
+  for (const rawPair of pairs) {
+    // Remove leading and trailing slashes
+    const pair = rawPair.replace(/^\/+|\/+$/g, '');
     const splits = pair.split('/');
-    const layer = splits[0];
-    const tag = splits.slice(1).join('/');
-    if (layer && tag) {
-      tags.push({ layer, tag });
+
+    if (splits.length === 2) {
+      // If only one tag provided, it should be always 'latest' tag, for example "airport/latest/"
+      if (splits[1] !== 'latest') {
+        throw new Error(error);
+      }
+      tags.push({ layer: splits[0]!, tag: 'latest' });
+    } else if (splits.length === 3) {
+      // Other tags like pull request or date tags should have 3 parts, for example "airport/pull_request/pr-18/"
+      tags.push({ layer: splits[0]!, tag: `${splits[1]}/${splits[2]}` });
     } else {
-      logger.warn({ pair }, 'Invalid data tag format, expected "layer/tag"');
+      throw new Error(error);
     }
   }
   return tags;
@@ -54,6 +63,30 @@ function parseDataTag(input: string): dataTag[] {
  */
 export function sheetCodeToPath(sheetCode: string): string {
   return sheetCode.replace(/[\/,]/g, '');
+}
+
+/**
+ * Override the sorce data link with provide data tags return.
+ *
+ * @param sources the original source data links from the project stac file
+ * @param tags the data tags to override the source links, for example [{ layer: "airport", tag: "pull_request/pr-18/" }]
+ * @param catalogUrl the catalog url to look for the source layer with tag
+ *
+ * @returns the override source links with the data tag applied
+ *
+ */
+export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl: URL): Promise<URL[]> {
+  for (const source of sources) {
+    for (const tag of tags) {
+      if (source.href.includes(tag.layer)) {
+        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
+        // Find the source layer with the tag from the catalog and override the source link
+        const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer, tag.tag);
+        source.href = layerCollection.href;
+      }
+    }
+  }
+  return sources;
 }
 
 const ProduceArgs = {
@@ -100,11 +133,11 @@ const ProduceArgs = {
     long: 'source',
     description: 'Source data catalog.json that contains the layers.',
   }),
-  dataTag: option({
+  dataTags: option({
     type: optional(string),
-    long: 'data-tag',
+    long: 'data-tags',
     description:
-      'Override data tag in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
+      'Override data tags in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
   }),
   dpi: option({
     type: number,
@@ -126,7 +159,7 @@ export const produceCoverCommand = command({
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
-    logger.info({ project: args.project }, 'ProduceCover: Started');
+    logger.info({ project: args.project }, 'ProduceCover: Start');
 
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
 
@@ -135,6 +168,7 @@ export const produceCoverCommand = command({
     if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
     // Download project file from the project stac file
+    logger.info({ project: args.project.href }, 'DownloadProject: Start');
     let projectPath;
     for (const [key, asset] of Object.entries(stac.assets)) {
       const downloadedPath = await downloadFile(new URL(asset.href));
@@ -143,28 +177,28 @@ export const produceCoverCommand = command({
     if (projectPath == null) {
       throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
     }
+    logger.info({ project: args.project.href }, 'DownloadProject: End');
 
+    logger.info({ project: args.project.href }, 'ProduceCover: PrepareSources');
     const sources: URL[] = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
     // Override data with dataTag if provided
-    if (args.source && args.dataTag) {
-      const tags = parseDataTag(args.dataTag);
-      for (const source of sources) {
-        for (const tag of tags) {
-          if (source.href.includes(tag.layer)) {
-            logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
-            const layerCollection = await getDataFromCatalog(args.source, tag.layer, tag.tag);
-            source.href = layerCollection.href;
-          }
-        }
-      }
+    if (args.source && args.dataTags) {
+      logger.info(
+        { project: args.project.href, sources: sources.length, dataTag: args.dataTags },
+        'ProduceCover: OverRideSources',
+      );
+      const tags = parseDataTag(args.dataTags);
+      await overrideSource(sources, tags, args.source);
     }
 
     // Download mapsheet layer to parse geometry and metadata for the export
+    logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
       if (source.href.includes(args.mapSheetLayer)) {
         await downloadFromCollection(source);
       }
     }
+    logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
 
     // Run python list all the mapsheet covering metadata
     const exportOptions: ExportOptions = {
@@ -173,9 +207,12 @@ export const produceCoverCommand = command({
       dpi: args.dpi,
       format: args.format,
     };
+    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
     const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
+    logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
+    const projectName = parse(args.project.pathname).name;
     const items = [];
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
@@ -194,17 +231,22 @@ export const produceCoverCommand = command({
       // Add assets link if available
       item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
 
-      const itemPath = new URL(`${standerizedSheetCode}.json`, args.output);
+      const itemPath = new URL(`/${CliId}/${standerizedSheetCode}.json`, args.output);
       items.push({ path: itemPath });
       await fsa.write(itemPath, JSON.stringify(item, null, 2));
     }
 
     // Create collection file
+    const collectionPath = new URL(`/${CliId}/collection.json`, args.output);
+    logger.info(
+      { project: args.project.href, collectionPath: collectionPath.href },
+      'ProduceCover: CreateStacCollection',
+    );
     const collection = createMapSheetStacCollection(metadatas, links);
-    await fsa.write(new URL('collection.json', args.output), JSON.stringify(collection, null, 2));
+    await fsa.write(collectionPath, JSON.stringify(collection, null, 2));
 
-    const projectName = parse(args.project.pathname).name;
-    const catalogPath = new URL(`/${projectName}/catalog.json`, args.output);
+    const catalogPath = new URL(`catalog.json`, args.output);
+    logger.info({ project: args.project.href, catalogPath: catalogPath.href }, 'ProduceCover: CreateStacCatalog');
     const title = 'Topographic System Map Producer';
     const description =
       'Topographic System Map Producer to generate maps from Qgis project in pdf, tiff, geotiff formats';
@@ -215,8 +257,6 @@ export const produceCoverCommand = command({
         type: 'application/json',
       },
     ];
-
-    // Create Catalog file
     let catalog = createStacCatalog(title, description, catalogLinks);
     const existing = await fsa.exists(catalogPath);
     if (existing) {

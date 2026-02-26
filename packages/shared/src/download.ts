@@ -17,7 +17,8 @@ export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
  * @returns Downloaded local file URL
  */
 export async function downloadFile(file: URL): Promise<URL> {
-  logger.info({ project: file.href, downloaded: tmpFolder.href }, 'DownloadProjectFile: Start');
+  const startTime = Date.now();
+  logger.info({ project: file.href, downloaded: tmpFolder.href, startTime }, 'DownloadProjectFile: Start');
   try {
     const downloadFile = new URL(basename(file.pathname), tmpFolder);
     if (await fsa.exists(downloadFile)) return downloadFile;
@@ -41,7 +42,8 @@ export async function downloadFile(file: URL): Promise<URL> {
       throw new Error(`Failed to download file: ${downloadFile.href}`);
     }
 
-    logger.info({ destination: downloadFile.href }, 'DownloadFile: End');
+    const duration = Date.now() - startTime;
+    logger.info({ destination: downloadFile.href, duration }, 'DownloadFile: End');
     return downloadFile;
   } catch (error) {
     logger.error({ project: file.href }, 'DownloadFile: Error');
