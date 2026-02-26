@@ -29,7 +29,7 @@ export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAs
 }
 
 export function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
-  if (!tag) {
+  if (tag == null) {
     if (isMergeToMaster() || isRelease()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
     } else if (isPullRequest()) {
@@ -38,7 +38,8 @@ export function determineAssetLocation(subdir: string, dataset: string, output: 
       if (prMatch) {
         tag = `pull_request/pr-${prMatch[1]}`;
       } else {
-        tag = `pull_request/unknown`;
+        logger.error({ ref }, 'STAC:CouldNotDeterminePullRequestNumber');
+        throw new Error(`Could not determine pull request number from GITHUB_REF: ${ref}`);
       }
     } else {
       tag = `dev-${CliInfo.hash}`;
