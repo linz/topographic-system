@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import {
   CliDate,
   CliId,
-  downloadFile,
+  downloadFromCollection,
   logger,
   registerFileSystem,
   Url,
@@ -11,7 +11,6 @@ import {
 import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { command, option } from 'cmd-ts';
 import path from 'path';
-import { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
 
@@ -46,19 +45,8 @@ export const ContourWithLandcoverCommand = command({
     registerFileSystem();
     logger.info({ args }, 'Prepare contour with landcover: Started');
 
-    const contourCollection = await fsa.readJson<StacCollection>(args.contour);
-    const contourParquetAsset = contourCollection.assets?.['parquet'];
-    if (contourParquetAsset == null) {
-      throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
-    }
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href));
-
-    const landcoverCollection = await fsa.readJson<StacCollection>(args.landcover);
-    const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
-    if (landcoverParquetAsset == null) {
-      throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
-    }
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href));
+    const contourParquet = await downloadFromCollection(args.contour);
+    const landcoverParquet = await downloadFromCollection(args.landcover);
 
     const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, tmpFolder);
 
@@ -74,12 +62,11 @@ export const ContourWithLandcoverCommand = command({
       contentType: 'application/vnd.apache.parquet',
     });
 
-    const stacItemFile = await upsertAssetToCollection(assetFile);
-    logger.info({ assetFile, stacItemFile: stacItemFile.href }, 'AssetToCollectionUpserted');
+    const stacCollectionFile = await upsertAssetToCollection(assetFile);
+    logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
 
     logger.debug({ assetFile }, 'UpdatingLatestCollection');
-    await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacItemFile));
-
+    await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacCollectionFile));
     logger.info('Prepare contour with landcover: Finished');
   },
 });
