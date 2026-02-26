@@ -60,9 +60,9 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_REF_NAME'] = 'invalid-ref';
 
-    const result = determineAssetLocation('subdir', 'dataset', 'output.parquet');
-
-    assert.ok(result.href.includes('pull_request/unknown'));
+    assert.throws(() => determineAssetLocation('subdir', 'dataset', 'output.parquet'), {
+      message: `Could not determine pull request number from GITHUB_REF: invalid-ref`,
+    });
   });
 
   it('should use dev tag with hash for non-CI environment', () => {
