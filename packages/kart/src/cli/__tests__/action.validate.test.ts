@@ -78,10 +78,8 @@ describe('action.validate', () => {
 
     beforeEach(async () => {
       await rm(testBasePath, { recursive: true, force: true });
-      // Create test parquet files
       await fsa.write(fsa.toUrl(`${testDbPath}/railway_station.parquet`), '');
       await fsa.write(fsa.toUrl(`${testDbPath}/railway_line.parquet`), '');
-      // Create test config
       await fsa.write(fsa.toUrl(testConfigPath), JSON.stringify(testConfig));
     });
 
@@ -366,6 +364,7 @@ describe('action.validate', () => {
       // Config has rules for:
       // - feature_not_on_layers: railway_station + railway_line (both exist)
       // - feature_not_on_layers: railway_station + missing_table (only one exists)
+      // - feature_not_on_layers: missing_table_2 + railway_line (only one exists)
       // - feature_in_layers: building_point + building (neither exists)
       // Only railway_station.parquet and railway_line.parquet exist
 
@@ -391,11 +390,8 @@ describe('action.validate', () => {
 
       await buildValidationArgs(args);
 
-      // Read the filtered config
       const filteredConfig: ValidationConfig = await fsa.readJson(fsa.toUrl('/tmp/filtered_config.json'));
-      // const filteredConfig = JSON.parse(filteredConfigContent) as ValidationConfig;
 
-      // feature_not_on_layers should have 1 rule (railway_station + railway_line both exist)
       const featureNotOnLayers = filteredConfig['feature_not_on_layers'];
       assert.ok(featureNotOnLayers, 'feature_not_on_layers should exist');
       assert.strictEqual(featureNotOnLayers.length, 2);
@@ -403,7 +399,6 @@ describe('action.validate', () => {
       assert.strictEqual(featureNotOnLayers[0]?.intersection_table, 'railway_line');
       assert.strictEqual(featureNotOnLayers[1]?.table, 'railway_line');
 
-      // feature_in_layers should be empty (building_point and building don't exist)
       const featureInLayers = filteredConfig['feature_in_layers'];
       assert.ok(featureInLayers, 'feature_in_layers should exist');
       assert.strictEqual(featureInLayers.length, 0);
