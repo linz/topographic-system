@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@topographic-system/shared": "0.4.0",
-    "cmd-ts": "^0.13.0",
+    "cmd-ts": "^0.14.3",
     "stac-ts": "^1.0.4",
     "@linzjs/docker-command": "^8.0.0"
   }
