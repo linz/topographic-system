@@ -29,7 +29,7 @@ export interface ValidateArgs {
   mode: string;
   'db-path': string;
   'config-file': string;
-  'output-dir': string | undefined;
+  'output-dir': string;
   'area-crs': number;
   'export-parquet': boolean;
   'export-parquet-by-geometry': boolean;
@@ -120,11 +120,11 @@ interface Rule {
   [key: string]: unknown;
 }
 
-interface ValidationConfig {
+export interface ValidationConfig {
   [key: string]: Rule[];
 }
 
-async function createFilteredConfig(
+export async function createFilteredConfig(
   configPath: string,
   availableLayers: Set<string>,
   strict: boolean = false,
@@ -137,7 +137,6 @@ async function createFilteredConfig(
 
   for (const [key, rules] of Object.entries(config)) {
     filteredConfig[key] = rules.filter((rule) => {
-      // const tables = [rule.table, rule.intersection_table, rule.line_table].filter(Boolean);
       const tables = [rule.table, rule.intersection_table, rule.line_table].filter((t): t is string => t != null);
       if (strict) {
         return tables.every((t) => availableLayers.has(t));
@@ -179,7 +178,12 @@ export const validateCommand = command({
       description: 'Path to validation configuration JSON file',
       defaultValue: () => '/packages/validation/config/default_config.json',
     }),
-    'output-dir': strOption('output-dir', 'Output directory for validation results', '/tmp/validation-output'),
+    'output-dir': option({
+      type: string,
+      long: 'output-dir',
+      description: 'Output directory for validation results',
+      defaultValue: () => '/tmp/validation-output',
+    }),
     'area-crs': option({
       type: number,
       long: 'area-crs',
