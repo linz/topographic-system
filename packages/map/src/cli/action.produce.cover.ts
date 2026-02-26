@@ -8,7 +8,6 @@ import { createStacCatalog, createStacItem, createStacLink } from '@topographic-
 import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
 import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import { parse } from 'path';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
 import { qgisExportCover } from '../python.runner.ts';
@@ -212,7 +211,6 @@ export const produceCoverCommand = command({
 
     // Create Stac Files and upload to destination
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
-    const projectName = parse(args.project.pathname).name;
     const items = [];
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
