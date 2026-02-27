@@ -75,7 +75,7 @@ export async function upsertAssetToCollection(
   if (compareStacAssets(stacCollection.assets['data'], stacAsset)) {
     logger.info(
       { dataset, asset: assetFile.href, stacCollection: stacCollectionFile.href },
-      'STAC:AssetInItemAlreadyUpToDate',
+      'STAC:AssetInCollectionAlreadyUpToDate',
     );
     return stacCollectionFile;
   }
@@ -87,8 +87,11 @@ export async function upsertAssetToCollection(
   }
 
   await fsa.write(stacCollectionFile, stacToJson(stacCollection));
-  logger.info({ dataset, asset: assetFile.href, stacItem: stacCollectionFile.href }, 'STAC:AssetInItemAddedOrUpdated');
-  await upsertItemToCollection(stacCollectionFile);
+  logger.info(
+    { dataset, asset: assetFile.href, stacCollection: stacCollectionFile.href },
+    'STAC:AssetInCollectionAddedOrUpdated',
+  );
+  await upsertChildToCatalog(stacCollectionFile);
   return stacCollectionFile;
 }
 
@@ -114,6 +117,10 @@ export async function upsertItemToCollection(
     createStacCollectionFromFileName(stacCollectionFile),
     createStacItemFromFileName(stacItemFile),
   ]);
+  if (stacItemFile.href === stacCollectionFile.href) {
+    logger.error({ stacItemFile: stacItemFile.href }, 'STAC:ItemAndCollectionSameFileError');
+    throw new Error(`STAC Item file and Collection file cannot be the same: ${stacItemFile.href}`);
+  }
 
   stacItem = addParentDataToChild(stacItem, stacCollection) as StacItem;
   stacCollection = addChildDataToParent(stacCollection, stacItem) as StacCollection;
@@ -153,7 +160,10 @@ async function upsertChildToCatalog(
   stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
-  await fsa.write(stacCatalogFile, stacToJson(stacCatalog));
+  await Promise.all([
+    fsa.write(stacChildFile, stacToJson(stacChild)),
+    fsa.write(stacCatalogFile, stacToJson(stacCatalog)),
+  ]);
   logger.info(
     { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
     `STAC:ChildToCatalogUpserted`,
