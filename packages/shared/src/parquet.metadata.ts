@@ -96,11 +96,12 @@ export function extractTemporalExtent(columnStats: ColumnStats[]): TemporalExten
   const maxDates: string[] = [];
   for (const column of columnStats) {
     if (column.name?.toLowerCase().endsWith('_date')) {
-      if (column.min && typeof column.min === 'string') minDates.push(column.min);
-      if (column.max && typeof column.max === 'string') maxDates.push(column.max);
+      if (column.min instanceof Date) minDates.push(column.min.toISOString());
+      if (column.max instanceof Date) maxDates.push(column.max.toISOString());
     }
   }
+  logger.debug({ minDates, maxDates }, 'TemporalExtent:CollectedDates');
   const minDate = minDates.length > 0 ? minDates.reduce((a, b) => (a < b ? a : b)) : 'null';
   const maxDate = maxDates.length > 0 ? maxDates.reduce((a, b) => (a > b ? a : b)) : 'null';
-  return maxDate === minDate ? [minDate, null] : [minDate, maxDate];
+  return maxDate === minDate ? [minDate, 'null'] : [minDate, maxDate];
 }

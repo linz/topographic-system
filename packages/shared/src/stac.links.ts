@@ -1,7 +1,10 @@
+import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { CliDate } from './cli.info.ts';
+import { CliDate, CliInfo } from './cli.info.ts';
+import { isMergeToMaster, isPullRequest, isRelease } from './github.ts';
 import { logger } from './log.ts';
+import { RootCatalogFile } from './stac.constants.ts';
 import { createFileStatsFromStac } from './stac.factory.ts';
 
 export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
@@ -23,6 +26,30 @@ export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAs
       a['file:size'] === b['file:size']
     );
   return false;
+}
+
+export function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
+  if (tag == null) {
+    if (isMergeToMaster() || isRelease()) {
+      tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
+    } else if (isPullRequest()) {
+      const ref = process.env['GITHUB_REF_NAME'] ?? '';
+      const prMatch = ref.match(/(\d+)\/merge/); // TODO: Check if better with GITHUB_REF
+      if (prMatch) {
+        tag = `pull_request/pr-${prMatch[1]}`;
+      } else {
+        logger.error({ ref }, 'STAC:CouldNotDeterminePullRequestNumber');
+        throw new Error(`Could not determine pull request number from GITHUB_REF: ${ref}`);
+      }
+    } else {
+      tag = `dev-${CliInfo.hash}`;
+    }
+  }
+  logger.info(
+    { subdir, dataset, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest() },
+    'ToParquet:DetermineS3LocationContextVars',
+  );
+  return new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
 }
 
 /**
