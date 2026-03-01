@@ -1,4 +1,4 @@
-FROM ghcr.io/linz/action-kart:v0.2.1
+FROM ghcr.io/linz/action-kart:v0.3.0
 ADD packages/kart/dist/index.* /scripts/
 
 # Copy the validation python code into kart cli and install

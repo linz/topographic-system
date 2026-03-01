@@ -28,7 +28,17 @@ def run(contour_path: Path, landcover_path: Path, overlap_path: Path) -> None:
         "landcover_feature_type"
     ].fillna("other")
 
-    overlap_gdf.to_parquet(overlap_path)
+    compression_level = 19
+    row_group_size = 10000
+    overlap_gdf.to_parquet(
+        overlap_path,
+        engine="pyarrow",
+        compression="zstd",
+        compression_level=compression_level,
+        row_group_size=row_group_size,
+        write_covering_bbox=True,
+        schema_version="1.1.0",
+    )
 
 
 if __name__ == "__main__":
