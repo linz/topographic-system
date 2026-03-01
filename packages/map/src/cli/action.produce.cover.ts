@@ -30,7 +30,7 @@ interface dataTag {
 
 /**
  * Parse a input data tag string into an array of dataTag,
- * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ laer: "airport", tag: "pull_request/pr-18/" }, { laer: "contours", tag: "pull_request/pr-18/" }]
+ * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ layer: "airport", tag: "pull_request/pr-18/" }, { layer: "contours", tag: "pull_request/pr-18/" }]
  */
 export function parseDataTag(input: string): dataTag[] {
   const tags: dataTag[] = [];
@@ -58,14 +58,14 @@ export function parseDataTag(input: string): dataTag[] {
 }
 
 /**
- * Standerize the mapsheet code to remove / and , in the paths.
+ * Standardize the mapsheet code to remove / and , in the paths.
  */
 export function sheetCodeToPath(sheetCode: string): string {
   return sheetCode.replace(/[\/,]/g, '');
 }
 
 /**
- * Override the sorce data link with provide data tags return.
+ * Override the source data link with provided data tags return.
  *
  * @param sources the original source data links from the project stac file
  * @param tags the data tags to override the source links, for example [{ layer: "airport", tag: "pull_request/pr-18/" }]
@@ -215,21 +215,21 @@ export const produceCoverCommand = command({
     const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
     const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
     for (const metadata of metadatas) {
-      const standerizedSheetCode = sheetCodeToPath(metadata.sheetCode);
+      const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
       const item = createStacItem(
-        standerizedSheetCode,
+        standardizedSheetCode,
         links,
         {},
         metadata.geometry,
         metadata.bbox,
       ) as MapSheetStacItem;
       item.properties['proj:epsg'] = metadata.epsg;
-      item.properties['mapsheet'] = metadata.sheetCode;
+      item.properties['linz:mapsheet'] = metadata.sheetCode;
       item.properties['linz_topographic_system:options'] = exportOptions;
       // Add assets link if available
       item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
 
-      const itemPath = new URL(`/${CliId}/${standerizedSheetCode}.json`, args.output);
+      const itemPath = new URL(`/${CliId}/${standardizedSheetCode}.json`, args.output);
       items.push({ path: itemPath });
       await fsa.write(itemPath, JSON.stringify(item, null, 2));
     }

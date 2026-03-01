@@ -74,7 +74,7 @@ export const ProduceCommand = command({
       // Run python qgis export script
       const stac = await fsa.readJson<StacItem>(path);
       const exportOptions = stac.properties['linz_topographic_system:options'] as ExportOptions;
-      const mapSheets = stac.properties['mapsheet'] as string;
+      const mapSheets = stac.properties['linz:mapsheet'] as string;
 
       const destPath = new URL(path.href.replace('.json', `.${getExtentFormat(exportOptions.format)}`));
       if ((await fsa.exists(destPath)) && !args.force) {
