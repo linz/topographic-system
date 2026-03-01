@@ -1,0 +1,21 @@
+{
+  "extends": "@linzjs/style/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "paths": {
+      "@linzjs/topographic-system-shared": ["./packages/shared/src/index.ts"],
+      "@linzjs/topographic-system-kart": ["./packages/kart/src/index.ts"],
+      "@linzjs/topographic-system-map": ["./packages/map/src/index.ts"]
+    },
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": ["dist/", "node_modules/"]
+}

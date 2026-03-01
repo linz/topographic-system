@@ -1,4 +1,4 @@
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { logger } from '@linzjs/topographic-system-shared';
 import { command } from 'cmd-ts';
 import { $ } from 'zx';
 

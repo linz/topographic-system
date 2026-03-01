@@ -1,5 +1,4 @@
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
+import { ConcurrentQueue, logger } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import os from 'os';
 import { $ } from 'zx';

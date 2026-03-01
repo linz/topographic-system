@@ -1,9 +1,11 @@
 import { fsa } from '@chunkd/fs';
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
-import { recursiveFileSearch } from '@topographic-system/shared/src/fs.util.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { determineAssetLocation } from '@topographic-system/shared/src/stac.links.ts';
-import { upsertAssetToItem } from '@topographic-system/shared/src/stac.upsert.ts';
+import {
+  determineAssetLocation,
+  logger,
+  recursiveFileSearch,
+  registerFileSystem,
+  upsertAssetToItem,
+} from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -216,7 +218,7 @@ export const validateCommand = command({
     if (args['output-dir']) {
       const filesToProcess = await recursiveFileSearch(fsa.toUrl(args['output-dir']));
       await Promise.all(
-        filesToProcess.map(async (file) => {
+        filesToProcess.map(async (file: URL) => {
           const target = determineAssetLocation(
             'data-validation',
             'validation-results',

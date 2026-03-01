@@ -1,10 +1,14 @@
 {
-  "extends": "@linzjs/style/tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2023"],
-    "target": "es2024",
-    "outDir": "build",
-    "noEmit": true,
-    "allowImportingTsExtensions": true
-  }
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./packages/kart"
+    },
+    {
+      "path": "./packages/map"
+    }
+  ]
 }

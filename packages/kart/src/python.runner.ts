@@ -1,5 +1,5 @@
 import { Command } from '@linzjs/docker-command';
-import { logger, toRelative } from '@topographic-system/shared/src/index.ts';
+import { logger, toRelative } from '@linzjs/topographic-system-shared';
 
 /**
  * Running python commands to join contour and landcover

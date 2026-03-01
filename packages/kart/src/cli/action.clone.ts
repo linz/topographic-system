@@ -1,5 +1,4 @@
-import { parseEnv } from '@topographic-system/shared/src/env.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { logger, parseEnv } from '@linzjs/topographic-system-shared';
 import { command, option, optional, positional, string } from 'cmd-ts';
 import { z } from 'zod/mini';
 import { $ } from 'zx';

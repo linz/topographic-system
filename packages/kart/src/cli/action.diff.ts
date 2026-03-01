@@ -1,7 +1,7 @@
 import { UUID } from 'node:crypto';
 
 import { fsa } from '@chunkd/fs';
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { logger } from '@linzjs/topographic-system-shared';
 import { command, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
 import { $ } from 'zx';

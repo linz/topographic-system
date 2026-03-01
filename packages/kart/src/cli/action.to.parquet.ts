@@ -1,11 +1,14 @@
 import { fsa } from '@chunkd/fs';
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
-import { recursiveFileSearch } from '@topographic-system/shared/src/fs.util.ts';
-import { isMergeToMaster, isRelease } from '@topographic-system/shared/src/github.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { determineAssetLocation } from '@topographic-system/shared/src/stac.links.ts';
-import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
+import {
+  ConcurrentQueue,
+  determineAssetLocation,
+  isMergeToMaster,
+  isRelease,
+  logger,
+  recursiveFileSearch,
+  registerFileSystem,
+  upsertAssetToCollection,
+} from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { basename } from 'path';
 import { $ } from 'zx';
@@ -71,7 +74,7 @@ export const parquetCommand = command({
 
     const parquetDir = './parquet';
     await $`mkdir -p ${parquetDir}`;
-    logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url) => url.pathname) }, 'ToParquet:Processing');
+    logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = basename(gpkgFile.pathname, extension);
