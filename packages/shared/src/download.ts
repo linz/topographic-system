@@ -32,8 +32,6 @@ export async function downloadFile(file: URL): Promise<URL> {
       return downloadFile;
     }
 
-    console.log(sourceHead);
-
     logger.trace(
       {
         file: file.href,
