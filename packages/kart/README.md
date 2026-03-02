@@ -119,6 +119,16 @@ By default, validates all parquet files in `/tmp/kart/parquet/*.parquet` using t
 Validation results are uploaded to S3, so AWS credentials and the `ENVIRONMENT` variable are required.
 
 See [data-review.yml](../../.github/workflows/data-review.yml) for a usage example.
+The workflow above can be called by a data repository as follows:
+```yaml
+name: PR Review
+
+on: pull_request
+
+jobs:
+  data-review:
+    uses: linz/topographic-system/.github/workflows/data-review.yml@master
+```
 
 **With defaults:**
 ```
