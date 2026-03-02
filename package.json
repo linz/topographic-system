@@ -1,5 +1,6 @@
 {
-  "name": "@topographic-system/core",
+  "name": "@linzjs/topographic-system-core",
+  "private": true,
   "version": "0.5.1",
   "workspaces": [
     "packages/*"
