@@ -1,5 +1,18 @@
 import { fsa } from '@chunkd/fs';
-import { CliId, createStacCatalog, createStacItem, createStacLink, downloadFile, downloadFromCollection, getDataFromCatalog, isArgo, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import {
+  CliId,
+  createStacCatalog,
+  createStacItem,
+  createStacLink,
+  downloadFile,
+  downloadFromCollection,
+  getDataFromCatalog,
+  isArgo,
+  logger,
+  registerFileSystem,
+  Url,
+  UrlFolder,
+} from '@linzjs/topographic-system-shared';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
