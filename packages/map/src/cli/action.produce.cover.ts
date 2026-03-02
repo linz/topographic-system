@@ -235,7 +235,7 @@ export const produceCoverCommand = command({
       // Add assets link if available
       item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
 
-      const itemPath = new URL(`/${CliId}/${standardizedSheetCode}.json`, args.output);
+      const itemPath = new URL(`./${CliId}/${standardizedSheetCode}.json`, args.output);
       items.push({ path: itemPath });
       await fsa.write(itemPath, JSON.stringify(item, null, 2));
     }
