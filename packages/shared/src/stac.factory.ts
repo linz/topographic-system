@@ -100,15 +100,15 @@ export function createStacLink(sources: URL[], project: URL): StacLink[] {
 
   links.push({
     rel: 'project',
-    name: basename(project.pathname),
     href: project.href,
+    type: 'application/json',
   });
 
   for (const file of sources) {
     links.push({
       rel: 'source',
-      name: basename(file.pathname),
       href: file.href,
+      type: 'application/json',
     });
   }
   return links;

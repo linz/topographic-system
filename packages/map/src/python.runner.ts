@@ -1,10 +1,11 @@
 import { Command } from '@linzjs/docker-command';
 import path from 'path';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
+import { pathToFileURL } from 'url';
 
 import { logger } from '../../shared/src/log.ts';
 import { toRelative } from '../../shared/src/url.ts';
-import type { ExportOptions } from './cli/action.produce.ts';
+import type { ExportOptions } from './stac.ts';
 
 interface SheetMetadataStdOut {
   sheetCode: string;
@@ -25,6 +26,8 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 
   const metadata: SheetMetadata[] = [];
   for (const item of raw) {
+    // FIXME: Missing some floating number like 0.25 and 0.5 and adding some floating number like 0.000000001 in the output of qgis_export_cover.py,
+    // which cause the bbox to be different from the original one in qgis project and cause the stac item to be different from the original one. Need to investigate why this happens and how to fix it.
     const geom = JSON.parse(item.geometry) as GeoJSON.Geometry;
 
     // Only could be a polygon or multipolygons for a mapsheet.
@@ -46,12 +49,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(
-  input: URL,
-  output: URL,
-  mapsheets: string[],
-  options: ExportOptions,
-): Promise<SheetMetadata[]> {
+export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -61,7 +59,7 @@ export async function qgisExport(
   cmd.args.push(options.mapSheetLayer);
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
-  for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
+  cmd.args.push(sheetCode);
 
   const res = await cmd.run();
   logger.debug('qgis_export.py ' + cmd.args.join(' '));
@@ -71,27 +69,46 @@ export async function qgisExport(
     throw new Error('qgis_export.py failed to run');
   }
 
-  return parseSheetsMetadata(res.stdout);
+  return pathToFileURL(res.stdout.trim());
 }
 
 /**
- * Running python commands for list_map_sheets
+ * Running python commands for qgis_export_cover
+ * This command is used to load map sheet layers from the input project and mapsheet data and return geometry and metadata of the mapsheets.
+ * @param input URL of the input QGIS project file
+ * @param options ExportOptions containing layout and mapSheetLayer information
+ *
+ * @param mapsheets Optional to specify which mapsheets to list. If not provided, all mapsheets in the project will be listed.
+ *
+ * @returns mapsheet metadata including sheetcode and geometry information for the stac files
  */
-export async function listMapSheets(input: URL, layerName: string): Promise<string[]> {
+export async function qgisExportCover(
+  input: URL,
+  options: ExportOptions,
+  mapsheets?: string[],
+): Promise<SheetMetadata[]> {
   const cmd = Command.create('python3');
 
-  cmd.args.push('qgis/src/list_map_sheets.py');
+  cmd.args.push('qgis/src/qgis_export_cover.py');
   cmd.args.push(toRelative(input));
-  cmd.args.push(layerName);
+  cmd.args.push(options.layout);
+  cmd.args.push(options.mapSheetLayer);
+  // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
+  if (mapsheets) {
+    cmd.args.push('False');
+    for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
+  } else {
+    cmd.args.push('True');
+  }
   const res = await cmd.run();
-  logger.debug('list_map_sheets.py ' + cmd.args.join(' '));
+  logger.debug('qgis_export_cover.py ' + cmd.args.join(' '));
 
   if (res.exitCode !== 0) {
     logger.fatal({ list_map_sheets: res }, 'Failure');
     throw new Error('list_map_sheets.py failed to run');
   }
 
-  return JSON.parse(res.stdout) as string[];
+  return parseSheetsMetadata(res.stdout);
 }
 
 /**

@@ -7,16 +7,15 @@ from qgis.core import (
 )
 import sys
 import os
+import json
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
-file_output_path = sys.argv[2]
-project_layout = sys.argv[3]
-topo_map_sheet = sys.argv[4]
-export_format = sys.argv[5]
-dpi = int(sys.argv[6])
-sheet_code = sys.argv[7]
+project_layout = sys.argv[2]
+topo_map_sheet = sys.argv[3]
+list_all_sheet_codes = sys.argv[4].lower() in ("true", "1", "yes")
+sheet_codes = sys.argv[5:]
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -42,42 +41,37 @@ for item in layout.items():
 if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
+metadata = []
 map_crs = map_item.crs()
 
 topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
 
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
-    # skip if this sheet_code is not in the list passed from CLI
-    if feature_code != sheet_code:
+    # Skip if we're not listing all, and feature_code is not in the allowed list
+    if not list_all_sheet_codes and feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
     geom.transform(
         QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance())
     )
     bbox = geom.boundingBox()
-    map_item.setExtent(bbox)
-    export_result = None
-    if export_format == "pdf":
-        output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
-        pdf_settings = QgsLayoutExporter.PdfExportSettings()
-        pdf_settings.dpi = dpi
-        pdf_settings.rasterizeWholeImage = False
-        export_result = exporter.exportToPdf(output_file, pdf_settings)
-    elif export_format in ["tiff", "geotiff", "png"]:
-        ext = "tiff" if export_format in ["tiff", "geotiff"] else "png"
-        output_file = os.path.join(file_output_path, f"{feature_code}.{ext}")
-        img_settings = QgsLayoutExporter.ImageExportSettings()
-        img_settings.dpi = dpi
-        if export_format == "geotiff":
-            img_settings.exportMetadata = True  # Only for geotif
-        export_result = exporter.exportToImage(output_file, img_settings)
-    else:
-        raise ValueError(f"Unsupported format: {export_format}")
+    metadata.append(
+        {
+            "sheetCode": feature_code,
+            "geometry": geom.asJson(),
+            "epsg": map_crs.postgisSrid(),
+            "bbox": [
+                bbox.xMinimum(),
+                bbox.yMinimum(),
+                bbox.xMaximum(),
+                bbox.yMaximum(),
+            ],
+        }
+    )
 
-    if export_result == QgsLayoutExporter.Success:
-        print(output_file)
-    else:
-        print(f"Error exporting map: {exporter.errorMessage()}")
+json.dump(metadata, sys.stdout, ensure_ascii=False)
+sys.stdout.write("\n")
+sys.stdout.flush()
 
 qgs.exitQgis()

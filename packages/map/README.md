@@ -8,18 +8,18 @@ Build docker at root directory to include python project.
 docker build -f packages/map/Dockerfile -t map .
 ```
 
-## Produce cli
+## Map Produce Cover Cli
+
+```
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map produce-cover --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output --format tiff --dpi 200 --all
+```
+
+## Map Produce cli
 
 Run it in the container
 
 ```
-docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map produce --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output --format tiff --dpi 200 AW26 AW27
-```
-
-## List Map Sheets Cli
-
-```
-docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map list-mapsheets --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output ${PWD}/output/output.json
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map produce $PWD/output/AW26.json
 ```
 
 ## Deploy QGIS Project Cli
