@@ -1,12 +1,5 @@
 import { fsa } from '@chunkd/fs';
-import { isArgo } from '@topographic-system/shared/src/argo.ts';
-import { CliId } from '@topographic-system/shared/src/cli.info.ts';
-import { downloadFile, downloadFromCollection } from '@topographic-system/shared/src/download.ts';
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { createStacCatalog, createStacItem, createStacLink } from '@topographic-system/shared/src/stac.factory.ts';
-import { getDataFromCatalog } from '@topographic-system/shared/src/stac.upsert.ts';
-import { Url, UrlFolder } from '@topographic-system/shared/src/url.ts';
+import { CliId, createStacCatalog, createStacItem, createStacLink, downloadFile, downloadFromCollection, getDataFromCatalog, isArgo, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
