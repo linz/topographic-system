@@ -1,5 +1,5 @@
 {
-  "name": "@topographic-system/data-prep",
+  "name": "@linzjs/topographic-system-data-prep",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
