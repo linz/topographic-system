@@ -22,7 +22,7 @@ export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
  * @returns Downloaded local file URL
  */
 export async function downloadFile(file: URL): Promise<URL> {
-  const startTime = Date.now();
+  const startTime = performance.now();
   logger.debug({ project: file.href, downloaded: tmpFolder.href, startTime }, 'DownloadFile:Start');
   try {
     const downloadFile = new URL(basename(file.pathname), tmpFolder);
@@ -57,7 +57,7 @@ export async function downloadFile(file: URL): Promise<URL> {
 
     const digest = fileHash.multihash;
 
-    const duration = Date.now() - startTime;
+    const duration = performance.now() - startTime;
     logger.info({ destination: downloadFile.href, fileHash: digest, size: head.size, duration }, 'DownloadFile:Done');
     return downloadFile;
   } catch (error) {
@@ -75,17 +75,17 @@ export async function downloadFile(file: URL): Promise<URL> {
  */
 export async function downloadFiles(path: URL, q = pLimit(DefaultConcurrency)): Promise<URL[]> {
   logger.info({ source: path.href, downloaded: tmpFolder.href }, 'DownloadSourceFile: Start');
-  const downloadFiles = [];
-  for await (const file of fsa.list(path)) downloadFiles.push(await q(() => downloadFile(file)));
-  await Promise.all(downloadFiles);
+  const downloadFiles: Promise<URL>[] = [];
+  for await (const file of fsa.list(path)) downloadFiles.push(q(() => downloadFile(file)));
+  const results = await Promise.all(downloadFiles);
   logger.info({ destination: tmpFolder.href, number: downloadFiles.length }, 'DownloadSourceFile: End');
-  return downloadFiles;
+  return results;
 }
 
 /**
  * Parses a Valid STAC Collection for a parquet data from s3, and download the parquet file to a tmp location for processing.
  *
- * @param collectionUrl - a URL ponting to a STAC Collection file for a parquet data
+ * @param collectionUrl - a URL pointing to a STAC Collection file for a parquet data
  *
  * @returns Downloaded local file URL
  */
@@ -93,25 +93,24 @@ export async function downloadFromCollection(collectionUrl: URL): Promise<URL> {
   const sourcedCollection = await fsa.readJson<StacCollection>(new URL(collectionUrl.href));
   const data = sourcedCollection.assets?.['parquet'];
   if (data == null) throw new Error(`Parquet asset not found in source collection: ${collectionUrl.href}`);
-  const source = new URL(data.href);
-  await downloadFile(source);
-  return source;
+  return downloadFile(new URL(data.href, collectionUrl));
 }
 
-export async function downloadProjectFile(stac: StacItem): Promise<URL> {
+export async function downloadProjectFile(stac: StacItem, sourceUrl: URL): Promise<URL> {
   // Download from asset if exist
   for (const [key, asset] of Object.entries(stac.assets)) {
     if (key === 'project') {
-      return await downloadFile(new URL(asset.href));
+      return await downloadFile(new URL(asset.href, sourceUrl));
     }
   }
 
   // Download from project stac link if exist
   for (const link of stac.links) {
     if (link.rel === 'project') {
-      const stac = await fsa.readJson<StacItem>(new URL(link.href));
+      const targetUrl = new URL(link.href, sourceUrl);
+      const stac = await fsa.readJson<StacItem>(targetUrl);
       if (stac == null) throw new Error(`Invalid STAC Item at path: ${link.href}`);
-      return await downloadProjectFile(stac);
+      return await downloadProjectFile(stac, targetUrl);
     }
   }
 
@@ -122,40 +121,47 @@ export async function downloadProjectFile(stac: StacItem): Promise<URL> {
  * Parses a STAC Item for a QGIS project, determines the assets and
  * datasets used in QGIS project, and downloads them to a tmp location.
  *
- * @param path - a URL ponting to a STAC Item file for a QGIS project
+ * @param projectUrl - a URL pointing to a STAC Item file for a QGIS project
  *
  * @returns an object containing two key-value pairs:
  * - `projectPath` - a URL pointing to the QGIS project file
  * - `sources` - an array of URLs pointing to the datasets used in the QGIS project
  */
-export async function downloadProject(path: URL, q = pLimit(DefaultConcurrency)): Promise<URL> {
-  logger.info({ source: path.href, downloaded: tmpFolder.href }, 'Download:Start');
-  const stac = await fsa.readJson<StacItem>(path);
-  if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
+export async function downloadProject(projectUrl: URL, q = pLimit(DefaultConcurrency)): Promise<URL> {
+  const startTime = performance.now();
+  logger.info({ source: projectUrl.href, downloaded: tmpFolder.href }, 'Download:Start');
+  const stac = await fsa.readJson<StacItem>(projectUrl);
+  if (stac == null) throw new Error(`Invalid STAC Item at path: ${projectUrl.href}`);
   // Download the qgis project file
-  const projectPath = await downloadProjectFile(stac);
+  const projectPath = await downloadProjectFile(stac, projectUrl);
+
+  if (projectPath == null) {
+    throw new Error(`Project asset not found in STAC Item: ${projectUrl.href}`);
+  }
+
+  const sources: Promise<URL>[] = [];
 
   // Download all the assets from project
   for (const [key, asset] of Object.entries(stac.assets)) {
     if (key === 'project') continue;
-    await q(() => downloadFile(new URL(asset.href, path)));
+    sources.push(q(() => downloadFile(new URL(asset.href, projectUrl))));
   }
 
   const links = stac.links;
-  const sources = [];
   for (const link of links) {
     if (link.rel === 'dataset' || link.rel === 'source') {
       // Download Source data
-      sources.push(q(() => downloadFromCollection(new URL(link.href, path))));
+      sources.push(q(() => downloadFromCollection(new URL(link.href, projectUrl))));
     } else if (link.rel === 'assets') {
       sources.push(
         q(async () => {
           // Download assets tar file and extract to tmp folder for processing
-          const assetTarPath = await downloadFile(new URL(link.href, path));
+          const assetTarPath = await downloadFile(new URL(link.href, projectUrl));
           await tar.extract({
             file: fileURLToPath(assetTarPath),
             cwd: fileURLToPath(tmpFolder),
           });
+          return assetTarPath;
         }),
       );
     }
@@ -163,10 +169,14 @@ export async function downloadProject(path: URL, q = pLimit(DefaultConcurrency))
 
   const results = await Promise.all(sources);
 
-  if (projectPath == null) {
-    throw new Error(`Project asset not found in STAC Item: ${path.href}`);
-  }
-
-  logger.info({ destination: tmpFolder.href, files: results.length, project: projectPath.href }, 'Download:Done');
+  logger.info(
+    {
+      destination: tmpFolder.href,
+      files: results.length,
+      project: projectPath.href,
+      duration: performance.now() - startTime,
+    },
+    'Download:Done',
+  );
   return projectPath;
 }
