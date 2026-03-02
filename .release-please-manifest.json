@@ -1,7 +1,9 @@
 {
-  "packages/data": "0.1.0",
-  "packages/kart": "0.3.1",
-  "packages/map": "0.5.0",
-  "packages/shared": "0.4.0",
-  ".": "0.5.1"
+  "packages/data": "0.2.0",
+  "packages/kart": "0.4.0",
+  "packages/map": "0.6.0",
+  "packages/shared": "0.5.0",
+  ".": "0.6.0",
+  "packages/validation": "0.1.0",
+  "packages/data-prep": "0.1.0"
 }
