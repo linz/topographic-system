@@ -1,17 +1,14 @@
 import { fsa } from '@chunkd/fs';
 import {
-  CliId,
-  createStacCatalog,
-  createStacLink,
+  createFileStats,
   downloadProject,
   logger,
   registerFileSystem,
   tmpFolder,
   Url,
   UrlArrayJsonFile,
-  UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import type { StacAsset, StacItem } from 'stac-ts';
 

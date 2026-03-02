@@ -24,4 +24,4 @@ export {
   upsertAssetToItem,
   upsertItemToCollection,
 } from './stac.upsert.ts';
-export { toRelative, Url, UrlFolder } from './url.ts';
+export { toRelative, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
