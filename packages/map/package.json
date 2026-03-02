@@ -1,15 +1,19 @@
 {
-  "name": "@topographic-system/map",
+  "name": "@linzjs/topographic-system-map",
   "version": "0.5.0",
   "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
-    "build": "tsc -b"
+    "lint": "eslint src/ --quiet --fix --report-unused-disable-directives --ignore-path ../../.gitignore",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs"
   },
   "dependencies": {
     "@basemaps/geo": "^8.9.0",
     "@cogeotiff/core": "^9.1.2",
     "@linzjs/docker-command": "^8.0.0",
-    "@topographic-system/shared": "0.4.0",
+    "@linzjs/topographic-system-shared": "^0.4.0",
     "cmd-ts": "^0.14.3",
     "stac-ts": "^1.0.4",
     "tar-stream": "^2.2.0"

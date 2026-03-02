@@ -1,6 +1,5 @@
 import { fsa } from '@chunkd/fs';
-import { CliId } from '@topographic-system/shared/src/cli.info.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { CliId, logger } from '@linzjs/topographic-system-shared';
 import path, { basename } from 'path';
 import type { StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';

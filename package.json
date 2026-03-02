@@ -6,8 +6,9 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
-    "test": "node --test 'packages/**/*.test.ts'",
+    "lint": "lerna run lint --stream --",
+    "test": "lerna run test",
+    "bundle": "lerna run bundle --stream",
     "lint:py": "uv run ruff check",
     "format:py": "uv run ruff format --check",
     "typecheck:py": "uv run mypy .",

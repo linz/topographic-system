@@ -1,4 +1,4 @@
-import { logger, Url } from '@topographic-system/shared/src/index.ts';
+import { logger, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';

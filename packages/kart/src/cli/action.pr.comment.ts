@@ -1,6 +1,5 @@
 import { fsa } from '@chunkd/fs';
-import { GithubApi } from '@topographic-system/shared/src/github.api.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { GithubApi, logger } from '@linzjs/topographic-system-shared';
 import { command, number, option, optional, restPositionals, string } from 'cmd-ts';
 
 export const commentCommand = command({

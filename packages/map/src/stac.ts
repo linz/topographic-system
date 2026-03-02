@@ -1,5 +1,5 @@
 import { type BoundingBox, Bounds } from '@basemaps/geo';
-import { createStacCollection } from '@topographic-system/shared/src/stac.factory.ts';
+import { createStacCollection } from '@linzjs/topographic-system-shared';
 import type { StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { type ExportFormat, sheetCodeToPath } from './cli/action.produce.cover.ts';

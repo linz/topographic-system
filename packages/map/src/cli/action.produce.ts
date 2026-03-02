@@ -1,9 +1,13 @@
 import { fsa } from '@chunkd/fs';
-import { downloadProject, tmpFolder } from '@topographic-system/shared/src/download.ts';
-import { registerFileSystem } from '@topographic-system/shared/src/fs.register.ts';
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { createFileStats } from '@topographic-system/shared/src/stac.factory.ts';
-import { Url, UrlArrayJsonFile } from '@topographic-system/shared/src/url.ts';
+import {
+  createFileStats,
+  downloadProject,
+  logger,
+  registerFileSystem,
+  tmpFolder,
+  Url,
+  UrlArrayJsonFile,
+} from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import { mkdirSync } from 'fs';
 import type { StacAsset, StacItem } from 'stac-ts';
