@@ -1,7 +1,8 @@
 import path, { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { fsa, WriteOptions } from '@chunkd/fs';
+import { fsa } from '@chunkd/fs';
+import type { WriteOptions } from '@chunkd/fs/build/src/file.system.js';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { CliId, logger } from '@linzjs/topographic-system-shared';
 import pLimit from 'p-limit';
