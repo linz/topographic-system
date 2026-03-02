@@ -1,4 +1,4 @@
-name: PR Review
+name: Data PR Review
 
 on:
   workflow_call:
