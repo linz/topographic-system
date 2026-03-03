@@ -1,7 +1,8 @@
 import pLimit from 'p-limit';
+import type { LimitFunction } from 'p-limit';
 
 export class ConcurrentQueue {
-  Q: pLimit.Limit;
+  Q: LimitFunction;
   todo = new Map<number, Promise<unknown>>();
   taskId = 0;
 
@@ -20,6 +21,6 @@ export class ConcurrentQueue {
 
   /** Wait for all tasks to finish */
   async join(): Promise<void> {
-    while (this.todo.size > 0) await Promise.all([...this.todo.values()]);
+    while (this.todo.size > 0) await Promise.all(this.todo.values());
   }
 }

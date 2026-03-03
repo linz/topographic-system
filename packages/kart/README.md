@@ -29,6 +29,7 @@ docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart clon
 ```
 
 **Clone specific branch or commit:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart clone linz/topographic-data --ref feature-branch
 ```
@@ -38,11 +39,13 @@ docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart clon
 Run diff commands on a cloned kart repository to compare changes between commits or branches.
 
 **Default diff (master..FETCH_HEAD):**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart diff
 ```
 
 **Custom diff range:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart diff commit1..commit2
 ```
@@ -53,21 +56,25 @@ Mount a local folder containing the cloned repo to export geopackage.
 When no arguments are provided, this will export all datasets from the cloned repository.
 
 **All datasets:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export
 ```
 
 **Only datasets with changes:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export --changed-datasets-only
 ```
 
 **Specific dataset(s):**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export marine airport
 ```
 
 **Export from specific commit:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export --ref commit-sha
 ```
@@ -79,11 +86,13 @@ When no arguments are provided, this will convert all datasets from the `./expor
 Output parquet files will be saved to `./parquet` folder.
 
 **All datasets:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart to-parquet
 ```
 
 **Specific dataset(s):**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart to-parquet export/marine.gpkg export/airport.gpkg
 ```
@@ -93,16 +102,19 @@ docker run -it --rm -v /tmp/docker:/tmp kart to-parquet export/marine.gpkg expor
 Add or update a pull request comment with diff results.
 
 **Auto-detect PR and repo:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart pr-comment
 ```
 
 **Specify PR number and repo:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart pr-comment --pr 123 --repo linz/topographic-data
 ```
 
 **Custom comment body file:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart pr-comment custom_summary.md
 ```
@@ -110,6 +122,7 @@ docker run -it --rm -e GITHUB_TOKEN="GITHUB_TOKEN" -v /tmp/docker:/tmp kart pr-c
 ## Version cli
 
 Output the kart version.
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart version
 ```
@@ -159,6 +172,7 @@ jobs:
 ```
 
 This workflow will:
+
 1. Check the kart version for debugging
 2. Clone the repository with the PR branch
 3. Generate a diff comparing the PR changes against master

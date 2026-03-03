@@ -103,7 +103,7 @@ async function getAvailableLayers(dbPath: string): Promise<Set<string>> {
   const dbBasepath = new URL('./', dbLocation);
   const files = await recursiveFileSearch(dbBasepath, '.parquet');
   const layers = new Set<string>();
-  for await (const file of files) {
+  for (const file of files) {
     const fileName = file.pathname.split('/').pop() ?? '';
     layers.add(fileName.replace(/\.parquet$/, ''));
   }

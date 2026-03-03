@@ -1,4 +1,5 @@
 import { PassThrough } from 'node:stream';
+import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import {
@@ -13,7 +14,6 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
 import tar from 'tar-stream';
 

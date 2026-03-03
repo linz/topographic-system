@@ -1,4 +1,5 @@
-import { basename } from 'path';
+import { basename } from 'node:path';
+
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { CliDate, CliInfo } from './cli.info.ts';

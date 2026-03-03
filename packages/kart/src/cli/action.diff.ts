@@ -1,9 +1,9 @@
-import { UUID } from 'node:crypto';
+import type { UUID } from 'node:crypto';
+import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import { logger } from '@linzjs/topographic-system-shared';
 import { command, restPositionals, string } from 'cmd-ts';
-import { basename } from 'path';
 import { $ } from 'zx';
 
 type GeoJson = { type: string; features: unknown[] };

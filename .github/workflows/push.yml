@@ -7,9 +7,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: linz/action-typescript@v3
+      - uses: actions/checkout@v5
         with:
-          node-version: 24.10.0
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run check
+      - run: npm run test
 
       - name: Python CI
         uses: ./.github/actions/python-ci
