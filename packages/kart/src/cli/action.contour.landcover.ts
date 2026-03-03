@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import {
   CliDate,
   CliId,
-  downloadFromCollection,
+  downloadFile,
   logger,
   registerFileSystem,
   Url,
@@ -11,6 +11,7 @@ import {
 import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
 import { command, option } from 'cmd-ts';
 import path from 'path';
+import { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
 
@@ -45,8 +46,33 @@ export const ContourWithLandcoverCommand = command({
     registerFileSystem();
     logger.info({ args }, 'Prepare contour with landcover: Started');
 
-    const contourParquet = await downloadFromCollection(args.contour);
-    const landcoverParquet = await downloadFromCollection(args.landcover);
+    const contourCollection = await fsa.readJson<StacCollection>(args.contour);
+    const contourParquetAsset = contourCollection.assets?.['parquet'];
+    if (contourParquetAsset == null) {
+      throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
+    }
+
+    const landcoverCollection = await fsa.readJson<StacCollection>(args.landcover);
+    const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
+    if (landcoverParquetAsset == null) {
+      throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
+    }
+
+    const latestCollection = await fsa.readJson<StacCollection>(
+      new URL(`${topo50ContourName}/latest/collection.json`, args.output),
+    );
+    if (
+      latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === contourParquetAsset.href) &&
+      latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === landcoverParquetAsset.href)
+    ) {
+      logger.info(
+        'Latest output collection is already up to date with contour and landcover source, skipping processing',
+      );
+      return;
+    }
+
+    const contourParquet = await downloadFile(new URL(contourParquetAsset.href));
+    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href));
 
     const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, tmpFolder);
 
@@ -62,7 +88,18 @@ export const ContourWithLandcoverCommand = command({
       contentType: 'application/vnd.apache.parquet',
     });
 
-    const stacCollectionFile = await upsertAssetToCollection(assetFile);
+    const derivedFromContour = {
+      rel: 'derived_from',
+      href: contourParquetAsset.href,
+    };
+    const derivedFromLandcover = {
+      rel: 'derived_from',
+      href: landcoverParquetAsset.href,
+    };
+    const stacCollectionFile = await upsertAssetToCollection(assetFile, new URL(`./collection.json`, assetFile), [
+      derivedFromContour,
+      derivedFromLandcover,
+    ]);
     logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
 
     logger.debug({ assetFile }, 'UpdatingLatestCollection');

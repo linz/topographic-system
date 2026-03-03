@@ -1,7 +1,6 @@
-import { basename } from 'node:path';
-
 import { fsa } from '@chunkd/fs';
-import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import { basename } from 'path';
+import type { StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
@@ -67,6 +66,7 @@ export async function upsertAssetToCollection(
   rootCatalog: URL,
   assetFile: URL,
   stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
+  extraLinks: StacLink[] = [],
 ): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
@@ -86,6 +86,8 @@ export async function upsertAssetToCollection(
     const dates = extractTemporalExtent(stacAsset['table:columns'] as ColumnStats[]);
     stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
   }
+
+  stacCollection.links.push(...extraLinks);
 
   await fsa.write(stacCollectionFile, stacToJson(stacCollection));
   logger.info(
