@@ -42,13 +42,18 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: linz/action-typescript@v3
+      - uses: actions/setup-node@v5
         with:
-          node-version: 24.10.0
+          node-version-file: .node-version
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run check
+      - run: npm run test
 
       - name: Bundle the packages
         run: npx lerna run bundle --stream
