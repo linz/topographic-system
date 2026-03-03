@@ -7,8 +7,8 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
-} from '@topographic-system/shared/src/index.ts';
-import { upsertAssetToCollection } from '@topographic-system/shared/src/stac.upsert.ts';
+} from '@linzjs/topographic-system-shared';
+import { upsertAssetToCollection } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 import path from 'path';
 import { StacCollection } from 'stac-ts';
