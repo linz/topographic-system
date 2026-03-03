@@ -18,6 +18,5 @@
     "@typescript-eslint/no-unused-vars": ["error", { "caughtErrors": "none" }],
     "@typescript-eslint/consistent-type-imports": ["error", {}]
   },
-  "ignorePatterns": ["build/", "node_modules/"],
   "jsPlugins": []
 }
