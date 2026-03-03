@@ -1,9 +1,8 @@
-import path from 'path';
-import { pathToFileURL } from 'url';
 
-import { Command } from '@linzjs/docker-command';
 import { logger, toRelative } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
+import { pathToFileURL } from 'url';
+import { $ } from 'zx';
 
 import type { ExportOptions } from './stac.ts';
 
@@ -50,19 +49,19 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
  * Running python commands for qgis_export
  */
 export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
-  const cmd = Command.create('python3');
+  const command = [
+    'python3 qgis/src/qgis_export.py',
+    toRelative(input),
+    toRelative(output),
+    options.layout,
+    options.mapSheetLayer,
+    options.format,
+    options.dpi.toFixed(),
+    sheetCode,
+  ];
 
-  cmd.args.push('qgis/src/qgis_export.py');
-  cmd.args.push(toRelative(input));
-  cmd.args.push(toRelative(output));
-  cmd.args.push(options.layout);
-  cmd.args.push(options.mapSheetLayer);
-  cmd.args.push(options.format);
-  cmd.args.push(options.dpi.toFixed());
-  cmd.args.push(sheetCode);
-
-  const res = await cmd.run();
-  logger.debug('qgis_export.py ' + cmd.args.join(' '));
+  const res = await $`${command.join(' ')}`;
+  logger.debug('qgis_export.py ' + command.join(' '));
 
   if (res.exitCode !== 0) {
     logger.fatal({ qgis_export: res }, 'Failure');
@@ -87,22 +86,18 @@ export async function qgisExportCover(
   options: ExportOptions,
   mapsheets?: string[],
 ): Promise<SheetMetadata[]> {
-  const cmd = Command.create('python3');
+  const command = ['python3 qgis/src/qgis_export_cover.py', toRelative(input), options.layout, options.mapSheetLayer];
 
-  cmd.args.push('qgis/src/qgis_export_cover.py');
-  cmd.args.push(toRelative(input));
-  cmd.args.push(options.layout);
-  cmd.args.push(options.mapSheetLayer);
   // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
   if (mapsheets) {
-    cmd.args.push('False');
-    for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
+    command.push('False');
+    for (const mapsheet of mapsheets) command.push(mapsheet);
   } else {
-    cmd.args.push('True');
+    command.push('True');
   }
-  const res = await cmd.run();
-  logger.debug('qgis_export_cover.py ' + cmd.args.join(' '));
 
+  const res = await $`${command.join(' ')}`;
+  logger.debug('qgis_export_cover.py ' + command.join(' '));
   if (res.exitCode !== 0) {
     logger.fatal({ list_map_sheets: res }, 'Failure');
     throw new Error('list_map_sheets.py failed to run');
@@ -115,13 +110,10 @@ export async function qgisExportCover(
  * Running python commands for list_source_layers
  */
 export async function listSourceLayers(input: URL): Promise<string[]> {
-  const cmd = Command.create('python3');
+  const command = ['python3 qgis/src/list_source_layers.py', toRelative(input)];
 
-  cmd.args.push('qgis/src/list_source_layers.py');
-  cmd.args.push(toRelative(input));
-  const res = await cmd.run();
-  logger.debug('list_source_layers.py ' + cmd.args.join(' '));
-
+  const res = await $`${command.join(' ')}`;
+  logger.debug('list_source_layers.py ' + command.join(' '));
   if (res.exitCode !== 0) {
     logger.fatal({ list_source_layers: res }, 'Failure');
     throw new Error('list_source_layers.py failed to run');
