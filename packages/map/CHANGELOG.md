@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.6.0...topographic-system-map-v0.6.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* correct path to be relative ([#58](https://github.com/linz/topographic-system/issues/58)) ([7ceaaf2](https://github.com/linz/topographic-system/commit/7ceaaf25b0bb96088f2422ee58eb310d82a6a81a))
+
 ## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.5.0...topographic-system-map-v0.6.0) (2026-03-02)
 
 ### Features
