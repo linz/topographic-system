@@ -1,20 +1,21 @@
-import { Command } from '@linzjs/docker-command';
 import { logger } from '@linzjs/topographic-system-shared';
+import { $ } from 'zx';
 
 /**
  * Running python commands to join contour and landcover
  */
 export async function contourWithLandcover(contour: URL, landcover: URL, output: URL): Promise<void> {
-  const cmd = Command.create('uv');
-  cmd.args.push('run');
-  cmd.args.push('--directory');
-  cmd.args.push('/packages/data-prep');
-  cmd.args.push('src/data_prep/contour_with_landcover.py');
-  cmd.args.push(contour.toString());
-  cmd.args.push(landcover.toString());
-  cmd.args.push(output.toString());
-  const res = await cmd.run();
-  logger.debug('contour_with_landcover.py ' + cmd.args.join(' '));
+  const command = [
+    'uv run',
+    '--directory /packages/data-prep',
+    'src/data_prep/contour_with_landcover.py',
+    contour.toString(),
+    landcover.toString(),
+    output.toString(),
+  ];
+
+  const res = await $`${command.join(' ')}`;
+  logger.debug('contour_with_landcover.py ' + command.join(' '));
 
   if (res.exitCode !== 0) {
     logger.fatal({ contour_with_landcover: res }, 'Failure');
