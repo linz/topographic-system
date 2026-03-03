@@ -1,6 +1,12 @@
-node_modules
-tmp
+node_modules/
+tmp/
 tsconfig.tsbuildinfo
-.venv
-.ruff_cache
+.venv/
+.ruff_cache/
+__pycache__/
 dist/
+build/
+topographic_system_qgis.egg-info/
+topographic_system_validation.egg-info/
+topographic_system_data_prep.egg-info/
+.idea/
