@@ -1,5 +1,5 @@
 import { fsa } from '@chunkd/fs';
-import { basename } from 'path';
+import { basename } from 'node:path';
 import type { StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { CliDate } from './cli.info.ts';

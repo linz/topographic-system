@@ -1,4 +1,4 @@
-
+import path from 'node:path';
 import { logger, toRelative } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 import { pathToFileURL } from 'url';
