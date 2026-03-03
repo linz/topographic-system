@@ -7,8 +7,9 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "check": "oxlint . --type-aware",
+    "lint": "oxlint . --type-aware --fix",
     "format": "oxfmt . --write",
+    "check": "oxlint . --type-aware && oxfmt . --check",
     "test": "lerna run test",
     "bundle": "lerna run bundle --stream",
     "lint:py": "uv run ruff check",

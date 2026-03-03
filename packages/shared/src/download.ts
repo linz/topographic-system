@@ -1,5 +1,5 @@
-import path, { basename } from 'path';
-import { fileURLToPath } from 'url';
+import path, { basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import { CliId, logger } from '@linzjs/topographic-system-shared';

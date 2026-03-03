@@ -1,4 +1,4 @@
-import { basename } from 'path';
+import { basename } from 'node:path';
 
 import { fsa } from '@chunkd/fs';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';

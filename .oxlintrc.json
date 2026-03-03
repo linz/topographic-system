@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript"],
+  "plugins": ["typescript", "unicorn"],
   "categories": { "correctness": "error" },
   "options": { "typeAware": true },
   "env": {
@@ -15,7 +15,8 @@
       "error",
       { "allowForKnownSafeCalls": [{ "from": "package", "name": ["it", "describe"], "package": "node:test" }] }
     ],
-    "@typescript-eslint/no-unused-vars": ["error", { "caughtErrors": "none" }]
+    "@typescript-eslint/no-unused-vars": ["error", { "caughtErrors": "none" }],
+    "@typescript-eslint/consistent-type-imports": ["error", { }],
   },
   "jsPlugins": []
 }
