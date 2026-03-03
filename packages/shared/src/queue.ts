@@ -1,7 +1,8 @@
 import pLimit from 'p-limit';
+import type { LimitFunction } from 'p-limit';
 
 export class ConcurrentQueue {
-  Q: pLimit.Limit;
+  Q: LimitFunction;
   todo = new Map<number, Promise<unknown>>();
   taskId = 0;
 

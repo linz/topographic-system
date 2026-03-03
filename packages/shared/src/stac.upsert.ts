@@ -1,7 +1,6 @@
 import { fsa } from '@chunkd/fs';
 import { basename } from 'path';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
-
 import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
 import type { ColumnStats } from './parquet.metadata.ts';

@@ -7,7 +7,8 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "lerna run lint --stream --",
+    "check": "oxlint . --type-aware",
+    "format": "oxfmt . --write",
     "test": "lerna run test",
     "bundle": "lerna run bundle --stream",
     "lint:py": "uv run ruff check",
@@ -20,12 +21,15 @@
     "node": "^24.5.0"
   },
   "devDependencies": {
-    "@linzjs/style": "^5.4.0",
     "@types/node": "24.10.0",
     "esbuild": "^0.27.2",
-    "lerna": "^9.0.3"
+    "lerna": "^9.0.3",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "oxlint-tsgolint": "^0.15.0",
     "zod": "^4.2.1"
   }
 }

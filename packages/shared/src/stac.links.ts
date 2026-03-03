@@ -1,11 +1,10 @@
-import { basename } from 'path';
-import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
-
+import { basename } from 'node:path';
 import { CliDate, CliInfo } from './cli.info.ts';
+import { createFileStatsFromStac } from './stac.factory.ts';
 import { isMergeToMaster, isPullRequest, isRelease } from './github.ts';
 import { logger } from './log.ts';
 import { RootCatalogFile } from './stac.constants.ts';
-import { createFileStatsFromStac } from './stac.factory.ts';
+import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
   const selfLink = stac.links.find((link) => link.rel === 'self');

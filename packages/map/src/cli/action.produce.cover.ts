@@ -67,7 +67,7 @@ export function parseDataTag(input: string): dataTag[] {
  * Standardize the mapsheet code to remove / and , in the paths.
  */
 export function sheetCodeToPath(sheetCode: string): string {
-  return sheetCode.replace(/[\/,]/g, '');
+  return sheetCode.replace(/[/,]/g, '');
 }
 
 /**
