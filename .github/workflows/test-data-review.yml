@@ -1,0 +1,10 @@
+name: Test Data PR Review Workflow
+on: pull_request
+
+jobs:
+  test:
+    uses: ./.github/workflows/data-review.yml
+    with:
+      clone_url: https://github.com/linz/topographic-product-data.git
+      head_ref: master
+      environment: nonprod
