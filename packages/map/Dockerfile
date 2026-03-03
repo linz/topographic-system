@@ -1,9 +1,4 @@
-FROM archlinux:base-20251019.0.436919
-
-RUN pacman-key --init && \
-    pacman-key --populate archlinux && \
-    pacman -Sy --noconfirm archlinux-keyring && \
-    pacman -Syu --noconfirm arrow qgis nodejs npm
+FROM ghcr.io/linz/qgis-flatpak:linz-qgis_c03dd3-988492_build-24
 
 WORKDIR /app
 
