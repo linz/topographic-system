@@ -1,3 +1,5 @@
+import { basename } from 'path';
+
 import { fsa } from '@chunkd/fs';
 import {
   ConcurrentQueue,
@@ -10,7 +12,6 @@ import {
   upsertAssetToCollection,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
-import { basename } from 'path';
 import { $ } from 'zx';
 
 const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel

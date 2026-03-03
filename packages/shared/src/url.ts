@@ -1,7 +1,8 @@
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { relative } from 'path';
+
 import { fsa } from '@chunkd/fs';
 import cmdts, { type Type } from 'cmd-ts';
-import { relative } from 'path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /**
  * Convert a path to a relative path

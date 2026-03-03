@@ -1,9 +1,10 @@
+import path, { basename } from 'path';
+import { fileURLToPath } from 'url';
+
 import { fsa } from '@chunkd/fs';
 import { CliId, logger } from '@linzjs/topographic-system-shared';
-import path, { basename } from 'path';
 import type { StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
-import { fileURLToPath } from 'url';
 
 // Prepare a temporary folder to store the source data and processed outputs
 export const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
