@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { fsa } from '@chunkd/fs';
 import {
   CliDate,
@@ -10,8 +12,7 @@ import {
 } from '@linzjs/topographic-system-shared';
 import { upsertAssetToCollection } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
-import path from 'path';
-import { StacCollection } from 'stac-ts';
+import type { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
 
