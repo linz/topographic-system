@@ -1,5 +1,5 @@
-import { fileURLToPath, pathToFileURL } from 'node:url';
 import { relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import type cmdts from 'cmd-ts';

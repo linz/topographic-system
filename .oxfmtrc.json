@@ -8,7 +8,7 @@
   "tabWidth": 2,
   "endOfLine": "lf",
   "sortPackageJson": false,
-  "ignorePatterns": ["CHANGELOG.md", "pyproject.toml"],
+  "ignorePatterns": ["CHANGELOG.md", "pyproject.toml", "build/", "node_modules/"],
   "experimentalSortImports": {
     "newlinesBetweenGroups": true
   }
