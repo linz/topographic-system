@@ -128,7 +128,6 @@ export const deployCommand = command({
             href: layerCollection.href,
             type: 'application/json',
           });
-          console.log(layerCollection, layer);
         }
 
         // Upload the QGS file to target location
