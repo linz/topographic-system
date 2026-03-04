@@ -30,9 +30,7 @@ export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAs
 
 interface AssetLocationContext {
   category: string;
-
   dataset: string;
-
   fileName: string;
   tag?: string;
   /** root location eg "s3://linz-topography-nonprod/" */

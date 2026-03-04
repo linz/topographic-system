@@ -1,3 +1,5 @@
+import { basename } from 'node:path';
+
 import { fsa } from '@chunkd/fs';
 import {
   determineAssetLocation,
@@ -213,20 +215,23 @@ export const validateCommand = command({
     logger.info({ args }, 'ValidateCommand:Start');
     const cmdArgs = await buildValidationArgs(args);
 
+    const rootCatalog = new URL('catalog.json', 's3://something');
+
     logger.info({ command: cmdArgs.join(' ') }, 'ValidateCommand:ArgumentsPrepared');
     const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
     if (args['output-dir']) {
       const filesToProcess = await recursiveFileSearch(fsa.toUrl(args['output-dir']));
       await Promise.all(
         filesToProcess.map(async (file: URL) => {
-          const target = determineAssetLocation(
-            'data-validation',
-            'validation-results',
-            file.pathname.replace(args['output-dir'] ?? '', ''),
-          );
+          const target = determineAssetLocation({
+            category: 'data-validation',
+            dataset: 'validation-results',
+            fileName: basename(file.pathname.replace(args['output-dir'] ?? '', '')),
+            root: rootCatalog,
+          });
           logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
           await fsa.write(target, fsa.readStream(file));
-          await upsertAssetToItem(target);
+          await upsertAssetToItem(rootCatalog, target);
         }),
       );
     }

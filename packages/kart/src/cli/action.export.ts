@@ -15,17 +15,18 @@ export const exportCommand = command({
     context: option({
       type: optional(string),
       long: 'context',
-      short:'C',
-      description: 'Run as if git was started in <path> instead of the current working directory see git -C for more details',
-      defaultValue: () => "repo",
-      defaultValueIsSerializable: true
+      short: 'C',
+      description:
+        'Run as if git was started in <path> instead of the current working directory see git -C for more details',
+      defaultValue: () => 'repo',
+      defaultValueIsSerializable: true,
     }),
     output: option({
       type: string,
       long: 'output',
       description: 'Optional output directory for export results (default: "export")',
       defaultValue: () => 'export',
-      defaultValueIsSerializable: true
+      defaultValueIsSerializable: true,
     }),
     ref: option({
       type: optional(string),
@@ -45,7 +46,7 @@ export const exportCommand = command({
   },
   async handler(args) {
     const ref = args.ref ?? 'FETCH_HEAD';
-    // const 
+    // const
     logger.info({ ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();

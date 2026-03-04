@@ -164,6 +164,7 @@ export const produceCoverCommand = command({
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
+    const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project }, 'ProduceCover: Start');
 
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
@@ -223,6 +224,7 @@ export const produceCoverCommand = command({
     for (const metadata of metadatas) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
       const item = createStacItem(
+        rootCatalog,
         standardizedSheetCode,
         links,
         {},
@@ -241,12 +243,12 @@ export const produceCoverCommand = command({
     }
 
     // Create collection file
-    const collectionPath = new URL(`/${CliId}/collection.json`, args.output);
+    const collectionPath = new URL(`./${CliId}/collection.json`, args.output);
     logger.info(
       { project: args.project.href, collectionPath: collectionPath.href },
       'ProduceCover: CreateStacCollection',
     );
-    const collection = createMapSheetStacCollection(metadatas, links);
+    const collection = createMapSheetStacCollection(rootCatalog, metadatas, links);
     await fsa.write(collectionPath, JSON.stringify(collection, null, 2));
 
     const catalogPath = new URL(`catalog.json`, args.output);
@@ -261,7 +263,7 @@ export const produceCoverCommand = command({
         type: 'application/json',
       },
     ];
-    let catalog = createStacCatalog(title, description, catalogLinks);
+    let catalog = createStacCatalog(catalogPath, title, description, catalogLinks);
     const existing = await fsa.exists(catalogPath);
     if (existing) {
       catalog = await fsa.readJson<StacCatalog>(catalogPath);

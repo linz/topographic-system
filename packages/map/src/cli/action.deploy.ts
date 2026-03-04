@@ -96,6 +96,8 @@ export const deployCommand = command({
     registerFileSystem();
     logger.info({ project: args.project, commit: args.commit }, 'Deploy: Started');
 
+    const rootCatalog = new URL('catalog.json', args.target); // TODO is this actually the root
+
     // Find all the qgs files from the path
     const files = await fsa.toArray(fsa.list(args.project));
     const stacItems: Map<string, StacItem> = new Map();
@@ -172,7 +174,7 @@ export const deployCommand = command({
         // Create Stac Item for the QGS file
         const stacItemPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.json`, args.target);
         logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
-        const item = createStacItem(projectName, stacItemLinks, assets);
+        const item = createStacItem(rootCatalog, projectName, stacItemLinks, assets);
         stacItems.set(projectSeries, item);
         if (args.commit) {
           logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Upload Stac Item File');
@@ -201,7 +203,7 @@ export const deployCommand = command({
         });
       }
       const description = `LINZ Topographic QGIS Project Series ${series}.`;
-      const collection = createStacCollection(description, [], collectionLinks);
+      const collection = createStacCollection(rootCatalog, description, [], collectionLinks);
       catalogLinks.push({
         rel: 'collection',
         href: `./${series}/collection.json`,
@@ -219,7 +221,7 @@ export const deployCommand = command({
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
 
-    let catalog = createStacCatalog(title, description, catalogLinks);
+    let catalog = createStacCatalog(rootCatalog, title, description, catalogLinks);
     if (args.commit) {
       // Only try to update the catalog if committing
       const existing = await fsa.exists(catalogPath);

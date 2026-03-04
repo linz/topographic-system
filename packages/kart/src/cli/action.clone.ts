@@ -40,7 +40,7 @@ export const cloneCommand = command({
       throw new Error('Invalid host: ' + targetUrl.host);
     }
 
-    if (env.GITHUB_TOKEN != null){
+    if (env.GITHUB_TOKEN != null) {
       targetUrlCredentials.username = 'x-access-token';
       targetUrlCredentials.password = env.GITHUB_TOKEN;
     }

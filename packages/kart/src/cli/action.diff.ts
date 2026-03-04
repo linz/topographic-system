@@ -4,7 +4,6 @@ import { basename } from 'node:path';
 import { fsa } from '@chunkd/fs';
 import { logger } from '@linzjs/topographic-system-shared';
 import { command, option, optional, restPositionals, string } from 'cmd-ts';
-
 import { $ } from 'zx';
 
 type GeoJson = { type: string; features: unknown[] };
@@ -52,7 +51,10 @@ async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
     const textDiff = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text`;
     await fsa.write(fsa.toUrl(`${ctx.output}/kart_diff.txt`), textDiff.stdout);
-    logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, `Diff:Text diff written to ${ctx.output}/kart_diff.txt`);
+    logger.info(
+      { textDiffLines: textDiff.stdout.split('\n').length },
+      `Diff:Text diff written to ${ctx.output}/kart_diff.txt`,
+    );
     return textDiff.stdout;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:Text diff failed');
@@ -147,15 +149,14 @@ async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string
   }
 }
 
-  // const gitDiffOutput =
-  //     await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
- 
+// const gitDiffOutput =
+//     await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
 
 async function getGitDiff(ctx: GitContext): Promise<string> {
   try {
-    await $`mv ${ctx.repo}/.kart/index ${ctx.repo}/.kart/no.index`
+    await $`mv ${ctx.repo}/.kart/index ${ctx.repo}/.kart/no.index`;
     const gitDiffOutput = await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange}`;
-    await $`mv ${ctx.repo}/.kart/no.index ${ctx.repo}/.kart/index`
+    await $`mv ${ctx.repo}/.kart/no.index ${ctx.repo}/.kart/index`;
 
     await fsa.write(fsa.toUrl(`${ctx.output}/git_diff.txt`), gitDiffOutput.stdout);
     return gitDiffOutput.stdout;
@@ -181,15 +182,16 @@ export const diffCommand = command({
     context: option({
       type: optional(string),
       long: 'context',
-      short:'C',
-      description: 'Run as if git was started in <path> instead of the current working directory see git -C for more details',
+      short: 'C',
+      description:
+        'Run as if git was started in <path> instead of the current working directory see git -C for more details',
     }),
     output: option({
       type: string,
       long: 'output',
       description: 'Optional output directory for diff results (default: "diff")',
       defaultValue: () => 'diff',
-      defaultValueIsSerializable: true
+      defaultValueIsSerializable: true,
     }),
     diff: restPositionals({
       description: 'Commit SHA or branches to diff (default: master..FETCH_HEAD)',
@@ -202,8 +204,8 @@ export const diffCommand = command({
     const ctx: GitContext = {
       repo: args.context ?? 'repo',
       diffRange: [],
-      output: args.output
-    }
+      output: args.output,
+    };
     if (args.diff.length > 0) {
       ctx.diffRange = args.diff;
     } else {

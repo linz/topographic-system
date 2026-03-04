@@ -7,7 +7,6 @@ import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
 import type { ColumnStats } from './parquet.metadata.ts';
 import { extractSpatialExtent, extractTemporalExtent } from './parquet.metadata.ts';
-import { RootCatalogFile } from './stac.constants.ts';
 import {
   createStacAssetFromFileName,
   createStacCatalogFromFilename,
@@ -30,7 +29,7 @@ import { addChildDataToParent, addParentDataToChild, compareStacAssets } from '.
  *
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
-export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Promise<URL> {
+export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacItemFile?: URL): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   if (extension === 'json') {
     logger.warn({ asset: assetFile.href }, 'STAC:UpsertAssetToItemSkippedForJson');
@@ -41,7 +40,7 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
   if (stacItemFile == null) {
     stacItemFile = new URL(`./${dataset}.json`, assetFile);
   }
-  const stacItem = await createStacItemFromFileName(stacItemFile);
+  const stacItem = await createStacItemFromFileName(rootCatalog, stacItemFile);
   if (compareStacAssets(stacItem.assets[extension], stacAsset)) {
     logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAlreadyUpToDate');
     return stacItemFile;
@@ -50,7 +49,7 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
   stacItem.properties.datetime = CliDate;
   await fsa.write(stacItemFile, stacToJson(stacItem));
   logger.info({ dataset, asset: assetFile.href, stacItem: stacItemFile.href }, 'STAC:AssetInItemAddedOrUpdated');
-  await upsertItemToCollection(stacItemFile);
+  await upsertItemToCollection(rootCatalog, stacItemFile);
   return stacItemFile;
 }
 
@@ -65,13 +64,14 @@ export async function upsertAssetToItem(assetFile: URL, stacItemFile?: URL): Pro
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
 export async function upsertAssetToCollection(
+  rootCatalog: URL,
   assetFile: URL,
   stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
 ): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
   const stacAsset = await createStacAssetFromFileName(assetFile);
-  const stacCollection = await createStacCollectionFromFileName(stacCollectionFile);
+  const stacCollection = await createStacCollectionFromFileName(rootCatalog, stacCollectionFile);
   stacCollection['assets'] = stacCollection['assets'] ?? {};
   if (compareStacAssets(stacCollection.assets['data'], stacAsset)) {
     logger.info(
@@ -92,7 +92,7 @@ export async function upsertAssetToCollection(
     { dataset, asset: assetFile.href, stacCollection: stacCollectionFile.href },
     'STAC:AssetInCollectionAddedOrUpdated',
   );
-  await upsertChildToCatalog(stacCollectionFile);
+  await upsertChildToCatalog(rootCatalog, stacCollectionFile);
   return stacCollectionFile;
 }
 
@@ -111,12 +111,13 @@ export async function upsertAssetToCollection(
  * @returns The URL of the updated or newly created STAC Collection file.
  */
 export async function upsertItemToCollection(
+  rootCatalog: URL,
   stacItemFile: URL,
   stacCollectionFile: URL = new URL('./collection.json', stacItemFile),
 ): Promise<URL> {
   let [stacCollection, stacItem] = await Promise.all([
-    createStacCollectionFromFileName(stacCollectionFile),
-    createStacItemFromFileName(stacItemFile),
+    createStacCollectionFromFileName(rootCatalog, stacCollectionFile),
+    createStacItemFromFileName(rootCatalog, stacItemFile),
   ]);
   if (stacItemFile.href === stacCollectionFile.href) {
     logger.error({ stacItemFile: stacItemFile.href }, 'STAC:ItemAndCollectionSameFileError');
@@ -131,7 +132,7 @@ export async function upsertItemToCollection(
   ]);
 
   logger.info({ stacCollectionFile: stacCollectionFile.href }, 'ToParquet:STACItemToCollectionUpserted');
-  await upsertChildToCatalog(stacCollectionFile);
+  await upsertChildToCatalog(rootCatalog, stacCollectionFile);
 
   return stacCollectionFile;
 }
@@ -146,18 +147,19 @@ export async function upsertItemToCollection(
  * @returns The URL of the updated or newly created STAC Catalog file.
  */
 async function upsertChildToCatalog(
+  rootCatalog: URL,
   stacChildFile: URL,
   stacCatalogFile: URL = new URL('../catalog.json', stacChildFile),
 ): Promise<URL> {
-  if (stacChildFile.href === RootCatalogFile.href) {
+  if (stacChildFile.href === rootCatalog.href) {
     logger.info({ stacChildFile: stacChildFile.href }, `STAC:ReachedRootCatalog`);
     return stacChildFile;
   }
   const childIsCollection = basename(stacChildFile.href) === 'collection.json';
   let stacChild = childIsCollection
-    ? await createStacCollectionFromFileName(stacChildFile)
-    : await createStacCatalogFromFilename(stacChildFile);
-  let stacCatalog = await createStacCatalogFromFilename(stacCatalogFile);
+    ? await createStacCollectionFromFileName(rootCatalog, stacChildFile)
+    : await createStacCatalogFromFilename(rootCatalog, stacChildFile);
+  let stacCatalog = await createStacCatalogFromFilename(rootCatalog, stacCatalogFile);
   stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
@@ -169,7 +171,7 @@ async function upsertChildToCatalog(
     { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
     `STAC:ChildToCatalogUpserted`,
   );
-  await upsertChildToCatalog(stacCatalogFile);
+  await upsertChildToCatalog(rootCatalog, stacCatalogFile);
   return stacCatalogFile;
 }
 

@@ -59,6 +59,8 @@ export const parquetCommand = command({
   async handler(args) {
     registerFileSystem();
 
+    const rootCatalog = new URL('catalog.json', args.output);
+
     logger.info(
       {
         concurrency: Concurrency,
@@ -109,7 +111,7 @@ export const parquetCommand = command({
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
-        const stacCollectionFile = await upsertAssetToCollection(assetFile);
+        const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile);
         logger.info(
           { parquetFile, stacCollectionFile: stacCollectionFile.href },
           'ToParquet:AssetToCollectionUpserted',
