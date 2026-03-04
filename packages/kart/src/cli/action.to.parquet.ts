@@ -10,6 +10,7 @@ import {
   recursiveFileSearch,
   registerFileSystem,
   upsertAssetToCollection,
+  UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
@@ -27,23 +28,28 @@ export const parquetCommand = command({
       description: 'compression type for parquet files (default: zstd)',
       defaultValue: () => 'zstd',
     }),
-    compression_level: option({
+    compressionLevel: option({
       type: optional(number),
       long: 'compression-level',
       description: 'compression level for parquet files (default: 17)',
       defaultValue: () => 17,
     }),
-    sort_by_bbox: flag({
+    sortByBbox: flag({
       type: boolean,
       onMissing: () => true,
       long: 'sort-by-bbox',
       description: 'whether to sort parquet files by bounding box (default: true)',
     }),
-    row_group_size: option({
+    rowGroupSize: option({
       type: optional(number),
       long: 'row-group-size',
       description: 'row group size for parquet files (default: 4096)',
       defaultValue: () => 4096,
+    }),
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Output location for parquet',
     }),
     sourceFiles: restPositionals({
       type: string,
@@ -57,8 +63,8 @@ export const parquetCommand = command({
       {
         concurrency: Concurrency,
         compression: args.compression,
-        compression_level: args.compression_level,
-        sort_by_bbox: args.sort_by_bbox,
+        compressionLevel: args.compressionLevel,
+        sortByBbox: args.sortByBbox,
       },
       'ToParquet:Start',
     );
@@ -86,14 +92,19 @@ export const parquetCommand = command({
           parquetFile,
           gpkgFile.pathname,
           ['-lco', `COMPRESSION=${args.compression}`],
-          ['-lco', `COMPRESSION_LEVEL=${args.compression_level}`],
-          ['-lco', `ROW_GROUP_SIZE=${args.row_group_size}`],
+          ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
+          ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
         ];
-        if (args.sort_by_bbox) {
+        if (args.sortByBbox) {
           command.push(['-lco', 'SORT_BY_BBOX=YES']);
         }
         await $`${command.flat()}`;
-        const assetFile = determineAssetLocation('data', dataset, parquetFile);
+        const assetFile = determineAssetLocation({
+          category: 'data',
+          dataset,
+          fileName: basename(parquetFile),
+          root: args.output,
+        });
         logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',

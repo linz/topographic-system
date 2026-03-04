@@ -12,7 +12,13 @@ export const cloneCommand = command({
   description: 'Clone a kart repository and fetch a specific commit',
   args: {
     repository: positional({
+      displayName: 'repository',
       description: 'Repository to clone (e.g. linz/topographic-data)',
+    }),
+    output: positional({
+      type: optional(string),
+      displayName: 'output',
+      description: 'Output directory for the cloned repository (default: repo)',
     }),
     ref: option({
       type: optional(string),
@@ -22,6 +28,7 @@ export const cloneCommand = command({
     }),
   },
   async handler(args) {
+    const target = args.output ?? 'repo';
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
 
     const env = parseEnv(EnvParser);
@@ -38,15 +45,15 @@ export const cloneCommand = command({
       targetUrlCredentials.password = env.GITHUB_TOKEN;
     }
 
-    await $`kart clone ${targetUrlCredentials.href} --no-checkout repo`;
+    await $`kart clone ${targetUrlCredentials.href} --no-checkout ${target}`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
 
     if (args.ref) {
       logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:PR branch');
-      await $`kart -C repo fetch origin ${args.ref}`;
+      await $`kart -C ${target} fetch origin ${args.ref}`;
     } else {
       logger.info({ repoUrl: targetUrl.href }, 'Fetch:Default branch');
-      await $`kart -C repo fetch origin`;
+      await $`kart -C ${target} fetch origin`;
     }
     logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
   },
