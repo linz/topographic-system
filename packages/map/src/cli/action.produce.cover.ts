@@ -157,7 +157,7 @@ const ProduceArgs = {
     long: 'output',
     description: 'Path or s3 of the output directory to write generated map sheets.',
   }),
-  tempLocation
+  tempLocation,
 };
 
 export const produceCoverCommand = command({

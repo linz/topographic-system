@@ -7,7 +7,7 @@ import {
   logger,
   registerFileSystem,
   Url,
-  UrlArrayJsonFile
+  UrlArrayJsonFile,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
