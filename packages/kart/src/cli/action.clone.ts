@@ -4,7 +4,7 @@ import { z } from 'zod/mini';
 import { $ } from 'zx';
 
 const EnvParser = z.object({
-  GITHUB_TOKEN: z.string(),
+  GITHUB_TOKEN: z.optional(z.string()),
 });
 
 export const cloneCommand = command({
@@ -32,8 +32,11 @@ export const cloneCommand = command({
     if (targetUrlCredentials.host !== 'github.com') {
       throw new Error('Invalid host: ' + targetUrl.host);
     }
-    targetUrlCredentials.username = 'x-access-token';
-    targetUrlCredentials.password = env.GITHUB_TOKEN;
+
+    if (env.GITHUB_TOKEN != null){
+      targetUrlCredentials.username = 'x-access-token';
+      targetUrlCredentials.password = env.GITHUB_TOKEN;
+    }
 
     await $`kart clone ${targetUrlCredentials.href} --no-checkout repo`;
     logger.debug({ repoUrl: targetUrl.href }, 'Clone:Completed');
