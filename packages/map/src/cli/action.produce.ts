@@ -73,19 +73,19 @@ export const ProduceCommand = command({
     for (const path of paths) {
       logger.info({ path: path.href }, 'Produce: Started');
 
-      // Download project file, assets, and source data from the project stac file
-      const projectPath = await downloadProject(path);
-
       // Run python qgis export script
       const stac = await fsa.readJson<StacItem>(path);
       const exportOptions = stac.properties['linz_topographic_system:options'] as ExportOptions;
       const mapSheets = stac.properties['linz:mapsheet'] as string;
 
       const destPath = new URL(path.href.replace('.json', `.${getExtentFormat(exportOptions.format)}`));
-      if ((await fsa.exists(destPath)) && !args.force) {
-        logger.info({ destPath: destPath.href }, 'Produce: File already exists, skipping');
+      if (args.force !== true && (await fsa.exists(destPath))) {
+        logger.info({ destPath: destPath.href }, 'Produce:Exists, skipping');
         continue;
       }
+
+      // Download project file, assets, and source data from the project stac file
+      const projectPath = await downloadProject(path);
 
       // Start to export file
       const file = await qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
