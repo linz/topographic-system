@@ -114,7 +114,7 @@ export async function qgisExportCover(
 /**
  * Running python commands for list_source_layers
  */
-export async function listSourceLayers(input: URL): Promise<string[]> {
+async function listSourceLayers(input: URL): Promise<string[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/list_source_layers.py');
@@ -133,3 +133,6 @@ export async function listSourceLayers(input: URL): Promise<string[]> {
 
   return layerNames;
 }
+
+/** Redefined for testing */
+export const pyRunner = { listSourceLayers };

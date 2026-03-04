@@ -194,7 +194,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
         // Found target collection
         if (tag === 'latest') {
           // If tag is 'latest', find the derived collection data
-          const collection = await fsa.readJson<StacCollection>(new URL(link.href));
+          const collection = await fsa.readJson<StacCollection>(new URL(link.href, stacUrl));
           if (collection == null) {
             throw new Error(`Invalid collection at path: ${link.href}`);
           }
@@ -202,7 +202,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
             throw new Error(`Data asset not found in collection: ${link.href}`);
           }
           const dataAsset = collection.assets['parquet'].href;
-          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'));
+          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), stacUrl);
         } else {
           return new URL(link.href);
         }

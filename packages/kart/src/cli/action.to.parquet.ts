@@ -25,14 +25,16 @@ export const parquetCommand = command({
     compression: option({
       type: optional(string),
       long: 'compression',
-      description: 'compression type for parquet files (default: zstd)',
+      description: 'compression type for parquet files',
       defaultValue: () => 'zstd',
+      defaultValueIsSerializable: true,
     }),
     compressionLevel: option({
       type: optional(number),
       long: 'compression-level',
-      description: 'compression level for parquet files (default: 17)',
+      description: 'compression level for parquet files',
       defaultValue: () => 17,
+      defaultValueIsSerializable: true,
     }),
     sortByBbox: flag({
       type: boolean,
@@ -43,8 +45,9 @@ export const parquetCommand = command({
     rowGroupSize: option({
       type: optional(number),
       long: 'row-group-size',
-      description: 'row group size for parquet files (default: 4096)',
+      description: 'row group size for parquet files',
       defaultValue: () => 4096,
+      defaultValueIsSerializable: true,
     }),
     output: option({
       type: UrlFolder,
