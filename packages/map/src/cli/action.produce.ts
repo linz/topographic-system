@@ -1,3 +1,5 @@
+import { mkdirSync } from 'fs';
+
 import { fsa } from '@chunkd/fs';
 import {
   createFileStats,
@@ -9,7 +11,6 @@ import {
   UrlArrayJsonFile,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
-import { mkdirSync } from 'fs';
 import type { StacAsset, StacItem } from 'stac-ts';
 
 import { qgisExport } from '../python.runner.ts';

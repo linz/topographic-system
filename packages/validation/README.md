@@ -32,51 +32,51 @@ topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./outp
 
 ### Required Arguments
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--mode` | Validation mode: `postgis` or `generic` (default: `generic`) | `--mode generic` |
-| `--db-path` | Database URL or file path | `--db-path "data.gpkg"` |
-| `--output-dir` | Output directory for validation results | `--output-dir "./output"` |
+| Option         | Description                                                  | Example                   |
+| -------------- | ------------------------------------------------------------ | ------------------------- |
+| `--mode`       | Validation mode: `postgis` or `generic` (default: `generic`) | `--mode generic`          |
+| `--db-path`    | Database URL or file path                                    | `--db-path "data.gpkg"`   |
+| `--output-dir` | Output directory for validation results                      | `--output-dir "./output"` |
 
 ### Optional Configuration
 
-| Option | Description | Default |
-|--------|-------------|---------|
+| Option          | Description                   | Default                     |
+| --------------- | ----------------------------- | --------------------------- |
 | `--config-file` | Custom validation config JSON | Auto-selected based on mode |
-| `--area-crs` | CRS for area calculations | `2193` |
+| `--area-crs`    | CRS for area calculations     | `2193`                      |
 
 ### Export Formats
 
-| Option | Description |
-|--------|-------------|
-| `--export-parquet` | Export to Parquet format |
-| `--export-parquet-by-geometry` | Separate Parquet by geometry type |
-| `--no-export-gpkg` | Disable GeoPackage export (enabled by default) |
+| Option                         | Description                                    |
+| ------------------------------ | ---------------------------------------------- |
+| `--export-parquet`             | Export to Parquet format                       |
+| `--export-parquet-by-geometry` | Separate Parquet by geometry type              |
+| `--no-export-gpkg`             | Disable GeoPackage export (enabled by default) |
 
 ### Processing Options
 
-| Option | Description |
-|--------|-------------|
-| `--use-date-folder` | Create date-based output subfolders |
-| `--report-only` | Don't export validation data - only create report |
-| `--skip-queries` | Skip query-based validations |
-| `--skip-features-on-layer` | Skip features-on-layer checks |
-| `--skip-self-intersections` | Skip self-intersection checks |
+| Option                      | Description                                       |
+| --------------------------- | ------------------------------------------------- |
+| `--use-date-folder`         | Create date-based output subfolders               |
+| `--report-only`             | Don't export validation data - only create report |
+| `--skip-queries`            | Skip query-based validations                      |
+| `--skip-features-on-layer`  | Skip features-on-layer checks                     |
+| `--skip-self-intersections` | Skip self-intersection checks                     |
 
 ### Filtering Options
 
-| Option | Arguments | Description |
-|--------|-----------|-------------|
-| `--bbox` | minx miny maxx maxy | Spatial bounding box filter |
-| `--date` | YYYY-MM-DD or "today" | Date filter |
-| `--weeks` | number | Filter by weeks back |
+| Option    | Arguments             | Description                 |
+| --------- | --------------------- | --------------------------- |
+| `--bbox`  | minx miny maxx maxy   | Spatial bounding box filter |
+| `--date`  | YYYY-MM-DD or "today" | Date filter                 |
+| `--weeks` | number                | Filter by weeks back        |
 
 ### Other Options
 
-| Option | Description |
-|--------|-------------|
+| Option          | Description            |
+| --------------- | ---------------------- |
 | `-v, --verbose` | Enable detailed output |
-| `--help` | Show complete help |
+| `--help`        | Show complete help     |
 
 ## Examples
 
@@ -135,32 +135,33 @@ topographic_validation \
 
 ### Feature Intersection Checks
 
-| Check Type | Description |
-|------------|-------------|
-| `feature_not_on_layers` | Point/line features must intersect specified layer |
-| `feature_in_layers` | Features must not fall within specified layer |
-| `line_not_on_feature_layers` | Line features must lie on specified layer |
-| `line_not_touches_feature_layers` | Line features must not touch specified layer |
-| `feature_not_contains_layers` | Polygon features must contain specified layer |
+| Check Type                        | Description                                        |
+| --------------------------------- | -------------------------------------------------- |
+| `feature_not_on_layers`           | Point/line features must intersect specified layer |
+| `feature_in_layers`               | Features must not fall within specified layer      |
+| `line_not_on_feature_layers`      | Line features must lie on specified layer          |
+| `line_not_touches_feature_layers` | Line features must not touch specified layer       |
+| `feature_not_contains_layers`     | Polygon features must contain specified layer      |
 
 ### Self-Intersection Checks
 
-| Check Type | Description |
-|------------|-------------|
+| Check Type              | Description                      |
+| ----------------------- | -------------------------------- |
 | `self_intersect_layers` | Features must not self-intersect |
 
 ### Attribute Checks
 
-| Check Type | Description |
-|------------|-------------|
-| `null_columns` | Specified columns must not be null |
-| `query_rules` | Features must pass specified query rules |
+| Check Type     | Description                              |
+| -------------- | ---------------------------------------- |
+| `null_columns` | Specified columns must not be null       |
+| `query_rules`  | Features must pass specified query rules |
 
 ## Configuration
 
 Validation rules are defined in JSON configuration files. A default configuration is provided at `config/default_config.json`.
 
 The CLI automatically selects configuration files based on mode:
+
 - **PostGIS mode**: `./validation_postgis_config.json`
 - **Generic mode**: `./validation_generic_config.json`
 - **Custom**: Use `--config-file` option
@@ -192,6 +193,7 @@ The CLI automatically selects configuration files based on mode:
 ```
 
 Optional filters:
+
 - `"where": "feature_type = 'value'"` - SQL where clause filter
 - `"date": "today"` or `"date": "2025-10-01"` - Filter by update date
 - `"weeks": 1` - Filter by changes in last N weeks

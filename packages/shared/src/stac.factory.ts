@@ -1,10 +1,10 @@
+import { createHash } from 'crypto';
 import { Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { createHash } from 'crypto';
-import { basename } from 'path';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import type { GeoJSONGeometry } from 'stac-ts/src/types/geojson.d.ts';
 

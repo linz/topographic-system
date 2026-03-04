@@ -1,6 +1,7 @@
+import os from 'os';
+
 import { ConcurrentQueue, logger } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
-import os from 'os';
 import { $ } from 'zx';
 
 const Q = new ConcurrentQueue(os.cpus().length);

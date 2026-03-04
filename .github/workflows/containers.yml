@@ -6,16 +6,16 @@ on:
       manifest:
         required: true
         type: string
-        description: "JSON object mapping package names to tag lists, e.g. \"{'map': ['latest']}\""
+        description: 'JSON object mapping package names to tag lists, e.g. "{''map'': [''latest'']}"'
       push:
         required: false
         type: boolean
-        description: "Whether to push the image to the registry"
+        description: 'Whether to push the image to the registry'
         default: true
       environment:
         required: true
         type: string
-        description: "GitHub environment to use"
+        description: 'GitHub environment to use'
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -42,13 +42,18 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: linz/action-typescript@v3
+      - uses: actions/setup-node@v5
         with:
-          node-version: 24.10.0
+          node-version-file: .node-version
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run check
+      - run: npm run test
 
       - name: Bundle the packages
         run: npx lerna run bundle --stream
@@ -83,17 +88,17 @@ jobs:
             const manifest = JSON.parse(`${{ inputs.manifest }}`);
             const pkg = '${{ matrix.package }}';
             const fullRepo = '${{ github.repository }}';
-            
+
             const rawTags = manifest[pkg];
             if (!Array.isArray(rawTags)) throw new Error(`No tags found for package ${pkg}`);
-            
+
             const imageTags = rawTags.map(t => `ghcr.io/${fullRepo}/${pkg}:${t}`);
-            
+
             // Add git describe tag only if the only tag is "latest"
             if (rawTags.length === 1 && rawTags[0] === 'latest') {
               imageTags.push(`ghcr.io/${fullRepo}/${pkg}:${{ steps.version.outputs.version }}`);
             }
-            
+
             return imageTags.join('\n');
 
       - name: Build and push container

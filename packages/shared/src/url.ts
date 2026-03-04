@@ -1,7 +1,9 @@
+import { relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
 import { fsa } from '@chunkd/fs';
-import cmdts, { type Type } from 'cmd-ts';
-import { relative } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import type cmdts from 'cmd-ts';
+import type { Type } from 'cmd-ts';
 
 /**
  * Convert a path to a relative path
@@ -23,7 +25,7 @@ export const Url: cmdts.Type<string, URL> = {
   from(str) {
     try {
       return Promise.resolve(new URL(str));
-    } catch (e) {
+    } catch (_e) {
       return Promise.resolve(pathToFileURL(str));
     }
   },
