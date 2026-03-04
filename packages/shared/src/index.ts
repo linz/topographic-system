@@ -1,6 +1,6 @@
 export { isArgo } from './argo.ts';
 export { CliDate, CliId, CliInfo } from './cli.info.ts';
-export { downloadFile, downloadFiles, downloadFromCollection, downloadProject, tmpFolder } from './download.ts';
+export { downloadFile, downloadFiles, downloadFromCollection, downloadProject } from './download.ts';
 export { Environment, EnvLabel, parseEnv } from './env.ts';
 export { registerFileSystem } from './fs.register.ts';
 export { recursiveFileSearch } from './fs.util.ts';

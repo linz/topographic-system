@@ -49,7 +49,6 @@ describe('action.deploy', () => {
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href),
       [
         'memory://target/qgis/latest/topo50maps/topo50.qgs',
-        'memory://target/qgis/latest/topo50maps/topo50.tar',
         'memory://target/qgis/latest/topo50maps/topo50.json',
         'memory://target/qgis/latest/topo50maps/collection.json',
         'memory://target/qgis/latest/catalog.json',

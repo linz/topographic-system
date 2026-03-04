@@ -193,8 +193,9 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
       if (link.href.includes(`/${layerName}/${tag}/collection.json`)) {
         // Found target collection
         if (tag === 'latest') {
+          const collectionUrl = new URL(link.href, stacUrl);
           // If tag is 'latest', find the derived collection data
-          const collection = await fsa.readJson<StacCollection>(new URL(link.href, stacUrl));
+          const collection = await fsa.readJson<StacCollection>(collectionUrl);
           if (collection == null) {
             throw new Error(`Invalid collection at path: ${link.href}`);
           }
@@ -202,7 +203,9 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
             throw new Error(`Data asset not found in collection: ${link.href}`);
           }
           const dataAsset = collection.assets['parquet'].href;
-          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), stacUrl);
+          // TODO this logic should really look for the "latest-version" record
+          // https://github.com/stac-extensions/version
+          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
         } else {
           return new URL(link.href);
         }

@@ -16,9 +16,10 @@ import {
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { qgisExportCover } from '../python.runner.ts';
+import { pyRunner } from '../python.runner.ts';
 import { createMapSheetStacCollection, type ExportOptions, type MapSheetStacItem } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
+import { tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -156,6 +157,7 @@ const ProduceArgs = {
     long: 'output',
     description: 'Path or s3 of the output directory to write generated map sheets.',
   }),
+  tempLocation
 };
 
 export const produceCoverCommand = command({
@@ -177,7 +179,7 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href }, 'DownloadProject: Start');
     let projectPath;
     for (const [key, asset] of Object.entries(stac.assets)) {
-      const downloadedPath = await downloadFile(new URL(asset.href));
+      const downloadedPath = await downloadFile(new URL(asset.href, args.project), args.tempLocation);
       if (key === 'project') projectPath = downloadedPath;
     }
     if (projectPath == null) {
@@ -186,7 +188,9 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href }, 'DownloadProject: End');
 
     logger.info({ project: args.project.href }, 'ProduceCover: PrepareSources');
-    const sources: URL[] = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
+    const sources: URL[] = stac.links
+      .filter((link) => link.rel === 'dataset')
+      .map((link) => new URL(link.href, args.project));
     // Override data with dataTag if provided
     if (args.source && args.dataTags) {
       logger.info(
@@ -201,7 +205,7 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
       if (source.href.includes(args.mapSheetLayer)) {
-        await downloadFromCollection(source);
+        await downloadFromCollection(source, args.tempLocation);
       }
     }
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
@@ -214,7 +218,7 @@ export const produceCoverCommand = command({
       format: args.format,
     };
     logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
-    const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
+    const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');

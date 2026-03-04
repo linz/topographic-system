@@ -49,7 +49,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -135,4 +135,4 @@ async function listSourceLayers(input: URL): Promise<string[]> {
 }
 
 /** Redefined for testing */
-export const pyRunner = { listSourceLayers };
+export const pyRunner = { listSourceLayers, qgisExport, qgisExportCover };

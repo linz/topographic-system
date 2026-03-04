@@ -19,12 +19,13 @@ import tar from 'tar-stream';
 
 import { pyRunner } from '../python.runner.ts';
 
-async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL> {
+async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL | null> {
   const tarPack = tar.pack();
   const pass = new PassThrough();
   tarPack.pipe(pass);
 
   const projectFiles = await fsa.toArray(fsa.list(projectFolder));
+  if (projectFiles.length === 0) return null;
   for (const file of projectFiles) {
     const filename = basename(file.href);
     if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
@@ -127,6 +128,7 @@ export const deployCommand = command({
             href: layerCollection.href,
             type: 'application/json',
           });
+          console.log(layerCollection, layer);
         }
 
         // Upload the QGS file to target location
@@ -143,11 +145,13 @@ export const deployCommand = command({
         const projectFolder = new URL(`${projectSeries}/`, args.project);
         const targetAssetPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.tar`, qgisCatalog);
         const assetLocation = await deployAssetsAsTar(projectFolder, targetAssetPath, args.commit);
-        stacItemLinks.push({
-          rel: 'assets',
-          href: assetLocation.href,
-          type: 'application/x-tar',
-        });
+        if (assetLocation) {
+          stacItemLinks.push({
+            rel: 'assets',
+            href: assetLocation.href,
+            type: 'application/x-tar',
+          });
+        }
 
         // Prepare data assets for stac item
         const assets: Record<string, StacAsset> = {
