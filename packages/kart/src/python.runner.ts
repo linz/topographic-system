@@ -1,4 +1,5 @@
 import { logger } from '@linzjs/topographic-system-shared';
+import { fileURLToPath } from 'node:url';
 import { $ } from 'zx';
 
 /**
@@ -9,9 +10,9 @@ export async function contourWithLandcover(contour: URL, landcover: URL, output:
     'uv run',
     '--directory /packages/data-prep',
     'src/data_prep/contour_with_landcover.py',
-    contour.toString(),
-    landcover.toString(),
-    output.toString(),
+    fileURLToPath(contour),
+    fileURLToPath(landcover),
+    fileURLToPath(output),
   ];
 
   const res = await $`${command.join(' ')}`;
