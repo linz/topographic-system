@@ -1,12 +1,10 @@
-import path from 'node:path';
-
 import { fsa } from '@chunkd/fs';
 import {
   CliDate,
-  CliId,
   downloadFile,
   logger,
   registerFileSystem,
+  tmpFolder,
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
@@ -33,9 +31,6 @@ export const ContourWithLandcoverArgs = {
     description: 'Path or s3 of output directory to write to',
   }),
 };
-
-// Prepare a temporary folder to store the source data and processed outputs
-const tmpFolder = fsa.toUrl(path.join(process.cwd(), `tmp/${CliId}/`));
 
 const topo50ContourName = 'nz_topo50_contour';
 
