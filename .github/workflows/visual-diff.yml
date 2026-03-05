@@ -40,7 +40,7 @@ jobs:
 
       - name: Produce mapsheets
         run: |
-          docker run --rm -v ${PWD}:${PWD} -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN -e AWS_REGION -e AWS_DEFAULT_REGION map --output $PWD/.artifacts/visual-snapshots --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
+          docker run --rm -v ${PWD}:${PWD} -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN -e AWS_REGION -e AWS_DEFAULT_REGION map visual-diff --output $PWD/.artifacts/visual-snapshots --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.1
