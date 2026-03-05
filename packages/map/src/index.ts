@@ -1,18 +1,18 @@
-import { run, subcommands } from "cmd-ts";
+import { run, subcommands } from 'cmd-ts';
 
-import { deployCommand } from "./cli/action.deploy.ts";
-import { produceCoverCommand } from "./cli/action.produce.cover.ts";
-import { ProduceCommand } from "./cli/action.produce.ts";
-import { VisualDiffCommand } from "./cli/action.visual.diff.ts";
+import { deployCommand } from './cli/action.deploy.ts';
+import { produceCoverCommand } from './cli/action.produce.cover.ts';
+import { ProduceCommand } from './cli/action.produce.ts';
+import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 
 const Cli = subcommands({
-  name: "topographic-system",
-  description: "",
+  name: 'topographic-system',
+  description: '',
   cmds: {
     produce: ProduceCommand,
-    "produce-cover": produceCoverCommand,
+    'produce-cover': produceCoverCommand,
     deploy: deployCommand,
-    "visual-diff": VisualDiffCommand,
+    'visual-diff': VisualDiffCommand,
   },
 });
 

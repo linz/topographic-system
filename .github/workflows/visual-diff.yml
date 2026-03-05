@@ -71,5 +71,5 @@ jobs:
         id: visual-snapshots-diff
         uses: linz/action-visual-snapshot@v2.1
         with:
-          storage-prefix: "s3://linz-topography-screenshot-nonprod"
-          storage-url: "https://d2glsbt6gvd4ll.cloudfront.net"
+          storage-prefix: 's3://linz-topography-screenshot-nonprod'
+          storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'
