@@ -1,0 +1,74 @@
+name: visual-diff
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  visual-diff:
+    environment: nonprod
+    permissions:
+      id-token: write
+      contents: read
+    name: Produce Png Mapsheets
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: (visual-diff) AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
+
+      - name: (visual-diff) Build Map Containers
+        run: |
+          docker build -f packages/map/Dockerfile -t map .
+
+      - name: (visual-diff) Pull Request Changes
+        run: |
+          docker run --rm -v ${PWD}:${PWD} -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN -e AWS_REGION -e AWS_DEFAULT_REGION map --output $PWD/.artifacts/visual-snapshots --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
+
+      - name: Save snapshots
+        uses: linz/action-visual-snapshot@v2.1
+        with:
+          save-only: true
+          snapshot-path: .artifacts/visual-snapshots
+
+  visual-diff:
+    environment: nonprod
+    permissions:
+      id-token: write
+      contents: write
+      checks: write
+    needs: [visual-diff]
+    name: Compare Visual Diff
+    if: github.ref != 'refs/heads/master' && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
+
+      - name: Diff snapshots
+        id: visual-snapshots-diff
+        uses: linz/action-visual-snapshot@v2.1
+        with:
+          storage-prefix: "s3://linz-topography-screenshot-nonprod"
+          storage-url: "https://d2glsbt6gvd4ll.cloudfront.net"
