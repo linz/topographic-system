@@ -149,9 +149,6 @@ async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string
   }
 }
 
-// const gitDiffOutput =
-//     await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
-
 async function getGitDiff(ctx: GitContext): Promise<string> {
   try {
     await $`mv ${ctx.repo}/.kart/index ${ctx.repo}/.kart/no.index`;

@@ -70,3 +70,12 @@ export const UrlArrayJsonFile: Type<string, URL[]> = {
     return urls;
   },
 };
+
+/**
+ *  Ensure a folder has a trailing slash
+ **/
+export function stringToUrlFolder(str: string): URL {
+  const url = fsa.toUrl(str);
+  if (url.pathname.endsWith('/')) return url;
+  return new URL(url.href + '/');
+}
