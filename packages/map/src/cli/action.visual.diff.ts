@@ -10,6 +10,8 @@ import { command, option, optional } from "cmd-ts";
 import { qgisExport } from "../python.runner.ts";
 import type { ExportOptions } from "../stac.ts";
 
+import { mkdirSync } from "fs";
+
 interface TestProject {
   name: string; // Matches the project filename from the input project
   mapSheetLayer: string;
@@ -70,8 +72,10 @@ export const VisualDiffCommand = command({
       testProjects = await fsa.readJson<TestProject[]>(args.testFile);
     }
 
+    mkdirSync(args.output, { recursive: true });
+
     for (const test of testProjects) {
-      if (args.project.href.endsWith(`${test.name}.qgs`)) {
+      if (args.project.href.includes(`${test.name}`)) {
         logger.info({ project: args.project.href }, `Visual Diff: Start`);
 
         // Download project file, assets, and source data from the project stac file
