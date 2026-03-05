@@ -20,7 +20,7 @@ const defaultTests: TestProject[] = [
     name: 'nz-topo50-map',
     mapSheetLayer: 'nz_topo50_map_sheet',
     layout: 'tiff-50',
-    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA32', 'BJ29', 'BX32', 'BA31'],
+    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA32', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 200,
   },
 ];
