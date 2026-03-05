@@ -1,9 +1,5 @@
 import type { StacProvider } from 'stac-ts';
 
-import { S3BucketName } from './env.ts';
-
-export const RootCatalogFile = new URL(`s3://${S3BucketName}/catalog.json`);
-
 export const MediaTypes = {
   parquet: 'application/vnd.apache.parquet',
   geojson: 'application/geo+json',

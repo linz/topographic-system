@@ -9,49 +9,50 @@ describe('determineAssetLocation', () => {
   const originalEnv = { ...$.env };
   const originalProcessEnv = { ...process.env };
 
+  const root = new URL('memory://fake/');
+
   beforeEach(() => {
     $.env = { ...originalEnv };
     process.env = { ...originalProcessEnv };
   });
 
   it('should use provided tag when tag is specified', () => {
-    const result = determineAssetLocation('subdir', 'dataset', '/path/to/output.parquet', 'custom-tag');
+    const result = determineAssetLocation({
+      category: 'subdir',
+      dataset: 'dataset',
+      fileName: '/path/to/output.parquet',
+      tag: 'custom-tag',
+      root,
+    });
 
-    assert.ok(result.href.includes('subdir/dataset/custom-tag/output.parquet'));
-  });
-
-  it('should extract basename from output path', () => {
-    const result = determineAssetLocation('subdir', 'dataset', '/some/long/path/to/file.parquet', 'tag');
-
-    assert.ok(result.href.endsWith('file.parquet'));
-    assert.ok(!result.href.includes('/some/long/path'));
+    assert.equal(result.href, 'memory://fake/subdir/dataset/custom-tag/output.parquet');
   });
 
   it('should use date-based tag for merge to master', () => {
     $.env['GITHUB_REF'] = 'refs/heads/master';
     $.env['GITHUB_WORKFLOW_REF'] = '';
 
-    const result = determineAssetLocation('subdir', 'dataset', 'output.parquet');
+    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
 
-    assert.ok(result.href.includes('year='));
-    assert.ok(result.href.includes('date='));
+    assert.ok(result.href.includes('/year='));
+    assert.ok(result.href.includes('/date='));
   });
 
   it('should use date-based tag for release workflow', () => {
     $.env['GITHUB_REF'] = 'refs/heads/master';
     $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/release.yml@refs/heads/master';
 
-    const result = determineAssetLocation('subdir', 'dataset', 'output.parquet');
+    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
 
-    assert.ok(result.href.includes('year='));
-    assert.ok(result.href.includes('date='));
+    assert.ok(result.href.includes('/year='));
+    assert.ok(result.href.includes('/date='));
   });
 
   it('should use pull_request tag with PR number for pull requests', () => {
     $.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_REF_NAME'] = '123/merge';
 
-    const result = determineAssetLocation('subdir', 'dataset', 'output.parquet');
+    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
 
     assert.ok(result.href.includes('pull_request/pr-123'));
   });
@@ -60,9 +61,12 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_REF_NAME'] = 'invalid-ref';
 
-    assert.throws(() => determineAssetLocation('subdir', 'dataset', 'output.parquet'), {
-      message: `Could not determine pull request number from GITHUB_REF: invalid-ref`,
-    });
+    assert.throws(
+      () => determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root }),
+      {
+        message: `Could not determine pull request number from GITHUB_REF: invalid-ref`,
+      },
+    );
   });
 
   it('should use dev tag with hash for non-CI environment', () => {
@@ -70,21 +74,32 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_WORKFLOW_REF'] = '';
     process.env['GIT_HASH'] = 'abc123';
 
-    const result = determineAssetLocation('subdir', 'dataset', 'output.parquet');
+    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
 
     assert.ok(result.href.includes('dev-'));
   });
 
-  it('should return URL with correct S3 bucket structure', () => {
-    const result = determineAssetLocation('layer', 'water', '/path/to/water.parquet', 'v1');
+  it('should return URL with correct bucket structure', () => {
+    const result = determineAssetLocation({
+      category: 'layer',
+      dataset: 'water',
+      fileName: 'water.parquet',
+      tag: 'v1',
+      root,
+    });
 
-    assert.ok(result.protocol === 's3:');
-    assert.ok(result.href.includes('layer/water/v1/water.parquet'));
+    assert.equal(result.href, 'memory://fake/layer/water/v1/water.parquet');
   });
 
   it('should handle nested subdir paths', () => {
-    const result = determineAssetLocation('data/layers', 'buildings', 'output.gpkg', 'latest');
+    const result = determineAssetLocation({
+      category: 'data/layers',
+      dataset: 'buildings',
+      fileName: 'output.gpkg',
+      tag: 'latest',
+      root,
+    });
 
-    assert.ok(result.href.includes('data/layers/buildings/latest/output.gpkg'));
+    assert.equal(result.href, 'memory://fake/data/layers/buildings/latest/output.gpkg');
   });
 });

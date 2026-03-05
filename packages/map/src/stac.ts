@@ -37,7 +37,11 @@ export type MapSheetStacItem = StacItem & {
   };
 };
 
-export function createMapSheetStacCollection(metadata: SheetMetadata[], links: StacLink[]): StacCollection {
+export function createMapSheetStacCollection(
+  rootCatalog: URL,
+  metadata: SheetMetadata[],
+  links: StacLink[],
+): StacCollection {
   const allBbox: BoundingBox[] = [];
   for (const item of metadata) {
     if (item.bbox) allBbox.push(Bounds.fromBbox(item.bbox));
@@ -49,5 +53,5 @@ export function createMapSheetStacCollection(metadata: SheetMetadata[], links: S
   const description = 'LINZ Topographic System Generated Maps.';
   const bbox = Bounds.union(allBbox).toBbox();
 
-  return createStacCollection(description, bbox, links);
+  return createStacCollection(rootCatalog, description, bbox, links);
 }
