@@ -28,6 +28,8 @@ Replace lds export with LAMPS direct export
 
 If road_cl.cpg exists - delete or rename - read has issue if it exists.
 
+Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script has a SQL command to update the IDS once in Postgres.
+
 **islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box
 
 ## MAIN Automated Steps

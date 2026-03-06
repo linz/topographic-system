@@ -299,11 +299,9 @@ class ModifyTable:
         update_dict = {
             f"{schema_name}.runway": [("surface", "'grass'", "")],
             f"{schema_name}.vegetation": [
-                ("species", "'coniferous'", "AND feature_type = 'exotic'")
-            ],
-            f"{schema_name}.road_line": [("level", "0", "")],
+                ("species", "'coniferous'", "AND feature_type = 'exotic'")],
             f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
-            # Add more entries as needed
+            # Add more entries as needed - should be pre-existing
         }
 
         for schema, tables in schema_tables.items():
@@ -571,6 +569,24 @@ class ModifyTable:
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
                 )
 
+    def update_column_by_value(self, schema, table, column_name, value):
+        self.connect()
+        with self.conn.cursor() as cur:
+            if self.column_exists(schema, table, column_name):
+                if isinstance(value, str) and not value.startswith("'"):
+                    value = f"'{value}'"
+                update_query = f"UPDATE {schema}.{table} SET {column_name} = {value};"
+            
+                cur.execute(update_query)
+                self.conn.commit()
+                print(
+                    f"Set value of column '{column_name}' to '{value}' in table '{schema}.{table}'"
+                )
+            else:
+                print(
+                    f"Column '{column_name}' does not exist in table '{schema}.{table}'"
+                )
+
     def update_topoid_from_previous_release(self, schema, table, previous_schema):
         self.connect()
         with self.conn.cursor() as cur:
@@ -581,6 +597,12 @@ class ModifyTable:
                     FROM {previous_schema}.{table} AS old
                     WHERE new.t50_fid = old.t50_fid;
                 """
+                try:
+                    cur.execute(update_query)
+                    self.conn.commit()
+                except Exception as e:
+                    print(f"Error updating 'topo_id' in '{schema}.{table}' from '{previous_schema}.{table}': {e}")
+                    self.conn.rollback()
                 cur.execute(update_query)
                 self.conn.commit()
                 print(
@@ -827,7 +849,7 @@ class ModifyTable:
 if __name__ == "__main__":
     tableModifer = ModifyTable(DB_PARAMS)
     option = "all"
-    # option = "carto_text_geom_update"
+    # option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
     release_date = "2025-09-25"
@@ -840,6 +862,7 @@ if __name__ == "__main__":
     # primary_key_type = 'int'
     primary_key_type = "uuid"
     update_topoid_from_previous_release = False
+    repeat_update_toid_ids = False
     previous_schema = "release62"
     use_hive_partitioning = True
     change_logs_path = r"c:\data\topo-data-vector\changelogs"
@@ -852,7 +875,7 @@ if __name__ == "__main__":
             mode="add", schema_name=schema_name, full_field_set=add_full_metadata_fields
         )
 
-    # TEST -= DOUBLE CHECK THIS WORKING AS EXPECTED
+
     if option == "all" or option == "columns":
         update_dict = {
             (schema_name, "structure_point"): [
@@ -927,6 +950,10 @@ if __name__ == "__main__":
         tableModifer.add_name_columns()
         # tableModifer.add_collectionid_columns()
 
+
+    if option == "all" or option == "null_updates":
+        tableModifer.populate_defined_null_values(schema_name)
+
     if option == "all" or option == "additions":
         tableModifer.add_column(f"{schema_name}.trig_point", "code", "VARCHAR(20)")
         tableModifer.update_value_by_column(schema_name, "trig_point", "code", "name")
@@ -943,6 +970,9 @@ if __name__ == "__main__":
         tableModifer.add_column(f"{schema_name}.landcover", "sub_type", "VARCHAR(50)")
 
         tableModifer.add_column(f"{schema_name}.road_line", "level", "INTEGER")
+        tableModifer.update_column_by_value(
+            schema_name, "road_line", "level", 0
+        )
         tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(50)")
 
         tableModifer.add_column(f"{schema_name}.descriptive_text", "nzgb_id", "BIGINT")
@@ -982,9 +1012,6 @@ if __name__ == "__main__":
 
         # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
         # tableModifer.add_column(f"{schema_name}.island", "location", "INTEGER")
-
-    if option == "all" or option == "null_updates":
-        tableModifer.populate_defined_null_values(schema_name)
 
     if option == "all" or option == "defaults":
         tableModifer.set_default_values(schema_name)
@@ -1033,22 +1060,25 @@ if __name__ == "__main__":
     # if option == "all" or option == "collections":
     #    tableModifer.create_collections_table(schema_name)
 
-    if update_topoid_from_previous_release and option == "all":
-        schema_tables = tableModifer.list_schema_tables(schema_name)
-        for schema, tables in schema_tables.items():
-            for table in tables:
-                tableModifer.update_topoid_from_previous_release(
-                    schema, table, previous_schema
-                )
-
     if update_topoid_from_previous_release and (option == "all" or option == "compare"):
         schema_tables = tableModifer.list_schema_tables(schema_name)
+        
+        if repeat_update_toid_ids:
+            for schema, tables in schema_tables.items():
+                for table in tables:
+                    tableModifer.update_topoid_from_previous_release(
+                        schema, table, previous_schema
+                    )
+        
         df_order = ["added", "removed", "updated"]
         i = 0
         for schema, tables in schema_tables.items():
             for table in tables:
                 if table == "collections":
                     continue
+                # temp
+                # if table != "fence_line":
+                #     continue
                 dfs = tableModifer.compare_table_data(
                     schema, table, previous_schema, release_date
                 )
