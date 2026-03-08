@@ -49,7 +49,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -82,7 +82,11 @@ export async function qgisExport(input: URL, output: URL, sheetCode: string, opt
  *
  * @returns mapsheet metadata including sheetcode and geometry information for the stac files
  */
-async function qgisExportCover(input: URL, options: ExportOptions, mapsheets?: string[]): Promise<SheetMetadata[]> {
+export async function qgisExportCover(
+  input: URL,
+  options: ExportOptions,
+  mapsheets?: string[],
+): Promise<SheetMetadata[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export_cover.py');
