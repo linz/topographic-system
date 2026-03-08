@@ -132,6 +132,7 @@ Validation results are uploaded to S3, so AWS credentials and the `ENVIRONMENT` 
 
 See [data-review.yml](../../.github/workflows/data-review.yml) for a usage example.
 The workflow above can be called by a data repository as follows:
+
 ```yaml
 name: PR Review
 
@@ -143,16 +144,19 @@ jobs:
 ```
 
 **With defaults:**
+
 ```
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart validate
 ```
 
 **Custom db path and output directory:**
+
 ```
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart validate --db-path /tmp/kart/parquet/files.parquet --output-dir /tmp/kart/validation/
 ```
 
 **With bounding box filter and verbose output:**
+
 ```
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart validate --export-parquet --verbose --bbox 174.711,-41.349,175.04,-41.17  --output-dir /tmp/kart/validation/
 ```
@@ -168,6 +172,7 @@ docker run -it --rm -v /tmp/docker:/tmp kart contour-with-landcover --contour ./
 ## Version cli
 
 Output the kart version.
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart version
 ```
@@ -177,6 +182,7 @@ docker run -it --rm -v /tmp/docker:/tmp kart version
 See [data-review.yml](../../.github/workflows/data-review.yml) for a complete example of how to use the kart CLI commands in a GitHub Actions workflow for pull request data reviews.
 
 That workflow will:
+
 1. Check the kart version for debugging
 2. Clone the repository with the PR branch
 3. Generate a diff comparing the PR changes against master

@@ -3,19 +3,19 @@ on:
   workflow_call:
     inputs:
       clone_url:
-        description: "URL of the repository to clone. Defaults to the calling repository."
+        description: 'URL of the repository to clone. Defaults to the calling repository.'
         type: string
-        default: ""
+        default: ''
       head_ref:
-        description: "Branch ref to checkout. Defaults to the calling pull request branch."
+        description: 'Branch ref to checkout. Defaults to the calling pull request branch.'
         type: string
-        default: ""
+        default: ''
       environment:
-        description: "GitHub environment to run the workflow in."
+        description: 'GitHub environment to run the workflow in.'
         type: string
         required: true
       changed_datasets_only:
-        description: "Whether to only process changed datasets."
+        description: 'Whether to only process changed datasets.'
         type: boolean
         default: true
 
