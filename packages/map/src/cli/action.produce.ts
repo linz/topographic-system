@@ -1,21 +1,22 @@
+import { mkdirSync } from 'fs';
+
 import { fsa } from '@chunkd/fs';
 import {
   createFileStats,
   downloadProject,
   logger,
   registerFileSystem,
-  tmpFolder,
   Url,
   UrlArrayJsonFile,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
-import { mkdirSync } from 'fs';
 import type { StacAsset, StacItem } from 'stac-ts';
 
-import { qgisExport } from '../python.runner.ts';
+import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
 import { type ExportFormat, ExportFormats } from './action.produce.cover.ts';
+import { tempLocation } from './shared.args.ts';
 
 function getExtentFormat(format: ExportFormat): string {
   if (format === 'pdf') return 'pdf';
@@ -50,6 +51,7 @@ export const ProduceArgs = {
       'Path to JSON file containing array of paths to items configurations. ' +
       'File must be an array of objects with key "path" and value of a path to an item configuration.',
   }),
+  tempLocation,
   force: flag({ long: 'force', description: 'Overwrite existing exported files' }),
 };
 
@@ -66,14 +68,14 @@ export const ProduceCommand = command({
     }
 
     // Prepare tmp path for the outputs
-    const tempOutput = new URL('output/', tmpFolder);
-    mkdirSync(tempOutput, { recursive: true });
+    const tempOutput = new URL('output/', args.tempLocation);
+    if (tempOutput.protocol === 'file:') mkdirSync(tempOutput, { recursive: true });
 
     for (const path of paths) {
       logger.info({ path: path.href }, 'Produce: Started');
 
       // Download project file, assets, and source data from the project stac file
-      const projectPath = await downloadProject(path);
+      const projectPath = await downloadProject(path, args.tempLocation);
 
       // Run python qgis export script
       const stac = await fsa.readJson<StacItem>(path);
@@ -87,7 +89,7 @@ export const ProduceCommand = command({
       }
 
       // Start to export file
-      const file = await qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
+      const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
       if (exportOptions.format === ExportFormats.GeoTiff || exportOptions.format === ExportFormats.Tiff) {
         await validateTiff(file, Number(stac.properties['proj:epsg']));
       }

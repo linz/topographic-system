@@ -16,9 +16,10 @@ import {
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
-import { qgisExportCover } from '../python.runner.ts';
+import { pyRunner } from '../python.runner.ts';
 import { createMapSheetStacCollection, type ExportOptions, type MapSheetStacItem } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
+import { tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -67,7 +68,7 @@ export function parseDataTag(input: string): dataTag[] {
  * Standardize the mapsheet code to remove / and , in the paths.
  */
 export function sheetCodeToPath(sheetCode: string): string {
-  return sheetCode.replace(/[\/,]/g, '');
+  return sheetCode.replace(/[/,]/g, '');
 }
 
 /**
@@ -156,6 +157,7 @@ const ProduceArgs = {
     long: 'output',
     description: 'Path or s3 of the output directory to write generated map sheets.',
   }),
+  tempLocation,
 };
 
 export const produceCoverCommand = command({
@@ -164,6 +166,7 @@ export const produceCoverCommand = command({
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
+    const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project }, 'ProduceCover: Start');
 
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
@@ -176,7 +179,7 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href }, 'DownloadProject: Start');
     let projectPath;
     for (const [key, asset] of Object.entries(stac.assets)) {
-      const downloadedPath = await downloadFile(new URL(asset.href));
+      const downloadedPath = await downloadFile(new URL(asset.href, args.project), args.tempLocation);
       if (key === 'project') projectPath = downloadedPath;
     }
     if (projectPath == null) {
@@ -185,7 +188,9 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href }, 'DownloadProject: End');
 
     logger.info({ project: args.project.href }, 'ProduceCover: PrepareSources');
-    const sources: URL[] = stac.links.filter((link) => link.rel === 'dataset').map((link) => new URL(link.href));
+    const sources: URL[] = stac.links
+      .filter((link) => link.rel === 'dataset')
+      .map((link) => new URL(link.href, args.project));
     // Override data with dataTag if provided
     if (args.source && args.dataTags) {
       logger.info(
@@ -200,7 +205,7 @@ export const produceCoverCommand = command({
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
       if (source.href.includes(args.mapSheetLayer)) {
-        await downloadFromCollection(source);
+        await downloadFromCollection(source, args.tempLocation);
       }
     }
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
@@ -213,7 +218,7 @@ export const produceCoverCommand = command({
       format: args.format,
     };
     logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
-    const metadatas = await qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
+    const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
@@ -223,6 +228,7 @@ export const produceCoverCommand = command({
     for (const metadata of metadatas) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
       const item = createStacItem(
+        rootCatalog,
         standardizedSheetCode,
         links,
         {},
@@ -235,18 +241,18 @@ export const produceCoverCommand = command({
       // Add assets link if available
       item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
 
-      const itemPath = new URL(`/${CliId}/${standardizedSheetCode}.json`, args.output);
+      const itemPath = new URL(`./${CliId}/${standardizedSheetCode}.json`, args.output);
       items.push({ path: itemPath });
       await fsa.write(itemPath, JSON.stringify(item, null, 2));
     }
 
     // Create collection file
-    const collectionPath = new URL(`/${CliId}/collection.json`, args.output);
+    const collectionPath = new URL(`./${CliId}/collection.json`, args.output);
     logger.info(
       { project: args.project.href, collectionPath: collectionPath.href },
       'ProduceCover: CreateStacCollection',
     );
-    const collection = createMapSheetStacCollection(metadatas, links);
+    const collection = createMapSheetStacCollection(rootCatalog, metadatas, links);
     await fsa.write(collectionPath, JSON.stringify(collection, null, 2));
 
     const catalogPath = new URL(`catalog.json`, args.output);
@@ -261,7 +267,7 @@ export const produceCoverCommand = command({
         type: 'application/json',
       },
     ];
-    let catalog = createStacCatalog(title, description, catalogLinks);
+    let catalog = createStacCatalog(catalogPath, title, description, catalogLinks);
     const existing = await fsa.exists(catalogPath);
     if (existing) {
       catalog = await fsa.readJson<StacCatalog>(catalogPath);

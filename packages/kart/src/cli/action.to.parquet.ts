@@ -1,3 +1,5 @@
+import { basename } from 'path';
+
 import { fsa } from '@chunkd/fs';
 import {
   ConcurrentQueue,
@@ -8,9 +10,9 @@ import {
   recursiveFileSearch,
   registerFileSystem,
   upsertAssetToCollection,
+  UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
-import { basename } from 'path';
 import { $ } from 'zx';
 
 const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
@@ -23,26 +25,34 @@ export const parquetCommand = command({
     compression: option({
       type: optional(string),
       long: 'compression',
-      description: 'compression type for parquet files (default: zstd)',
+      description: 'compression type for parquet files',
       defaultValue: () => 'zstd',
+      defaultValueIsSerializable: true,
     }),
-    compression_level: option({
+    compressionLevel: option({
       type: optional(number),
       long: 'compression-level',
-      description: 'compression level for parquet files (default: 17)',
+      description: 'compression level for parquet files',
       defaultValue: () => 17,
+      defaultValueIsSerializable: true,
     }),
-    sort_by_bbox: flag({
+    sortByBbox: flag({
       type: boolean,
       onMissing: () => true,
       long: 'sort-by-bbox',
       description: 'whether to sort parquet files by bounding box (default: true)',
     }),
-    row_group_size: option({
+    rowGroupSize: option({
       type: optional(number),
       long: 'row-group-size',
-      description: 'row group size for parquet files (default: 4096)',
+      description: 'row group size for parquet files',
       defaultValue: () => 4096,
+      defaultValueIsSerializable: true,
+    }),
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Output location for parquet',
     }),
     sourceFiles: restPositionals({
       type: string,
@@ -52,12 +62,14 @@ export const parquetCommand = command({
   async handler(args) {
     registerFileSystem();
 
+    const rootCatalog = new URL('catalog.json', args.output);
+
     logger.info(
       {
         concurrency: Concurrency,
         compression: args.compression,
-        compression_level: args.compression_level,
-        sort_by_bbox: args.sort_by_bbox,
+        compressionLevel: args.compressionLevel,
+        sortByBbox: args.sortByBbox,
       },
       'ToParquet:Start',
     );
@@ -85,19 +97,24 @@ export const parquetCommand = command({
           parquetFile,
           gpkgFile.pathname,
           ['-lco', `COMPRESSION=${args.compression}`],
-          ['-lco', `COMPRESSION_LEVEL=${args.compression_level}`],
-          ['-lco', `ROW_GROUP_SIZE=${args.row_group_size}`],
+          ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
+          ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
         ];
-        if (args.sort_by_bbox) {
+        if (args.sortByBbox) {
           command.push(['-lco', 'SORT_BY_BBOX=YES']);
         }
         await $`${command.flat()}`;
-        const assetFile = determineAssetLocation('data', dataset, parquetFile);
+        const assetFile = determineAssetLocation({
+          category: 'data',
+          dataset,
+          fileName: basename(parquetFile),
+          root: args.output,
+        });
         logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
         await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
           contentType: 'application/vnd.apache.parquet',
         });
-        const stacCollectionFile = await upsertAssetToCollection(assetFile);
+        const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile);
         logger.info(
           { parquetFile, stacCollectionFile: stacCollectionFile.href },
           'ToParquet:AssetToCollectionUpserted',

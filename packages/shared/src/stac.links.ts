@@ -1,10 +1,10 @@
-import { basename } from 'path';
+import { basename } from 'node:path';
+
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { CliDate, CliInfo } from './cli.info.ts';
 import { isMergeToMaster, isPullRequest, isRelease } from './github.ts';
 import { logger } from './log.ts';
-import { RootCatalogFile } from './stac.constants.ts';
 import { createFileStatsFromStac } from './stac.factory.ts';
 
 export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
@@ -28,7 +28,17 @@ export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAs
   return false;
 }
 
-export function determineAssetLocation(subdir: string, dataset: string, output: string, tag?: string): URL {
+interface AssetLocationContext {
+  category: string;
+  dataset: string;
+  fileName: string;
+  tag?: string;
+  /** root location eg "s3://linz-topography-nonprod/" */
+  root: URL;
+}
+
+export function determineAssetLocation(ctx: AssetLocationContext): URL {
+  let tag = ctx.tag;
   if (tag == null) {
     if (isMergeToMaster() || isRelease()) {
       tag = `year=${CliDate.slice(0, 4)}/date=${CliDate}`;
@@ -46,10 +56,10 @@ export function determineAssetLocation(subdir: string, dataset: string, output: 
     }
   }
   logger.info(
-    { subdir, dataset, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest() },
+    { ...ctx, root: ctx.root.href, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest() },
     'ToParquet:DetermineS3LocationContextVars',
   );
-  return new URL(`${subdir}/${dataset}/${tag}/${basename(output)}`, RootCatalogFile);
+  return new URL(`${ctx.category}/${ctx.dataset}/${tag}/${basename(ctx.fileName)}`, ctx.root);
 }
 
 /**

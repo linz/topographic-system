@@ -1,9 +1,9 @@
-import { UUID } from 'node:crypto';
+import type { UUID } from 'node:crypto';
+import { basename } from 'node:path';
 
 import { fsa } from '@chunkd/fs';
 import { logger } from '@linzjs/topographic-system-shared';
-import { command, restPositionals, string } from 'cmd-ts';
-import { basename } from 'path';
+import { command, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
 type GeoJson = { type: string; features: unknown[] };
@@ -33,21 +33,38 @@ type DiffOutput = {
 };
 const MAX_GEOJSON_LENGTH = 25_000;
 
-async function getTextDiff(diffRange: string[]): Promise<string> {
+export function gitContext(repo?: string): string[] {
+  return repo ? ['-C', repo] : [];
+}
+
+interface GitContext {
+  /** Repository context path to operate on eg "repo" */
+  repo: string;
+
+  diffRange: string[];
+
+  /** Location to output files too */
+  output: string;
+}
+
+async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
-    const textDiff = await $`kart -C repo diff ${diffRange} -o text`;
-    await fsa.write(fsa.toUrl('diff/kart_diff.txt'), textDiff.stdout);
-    logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, 'Diff:Text diff written to diff/kart_diff.txt');
+    const textDiff = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text`;
+    await fsa.write(fsa.toUrl(`${ctx.output}/kart_diff.txt`), textDiff.stdout);
+    logger.info(
+      { textDiffLines: textDiff.stdout.split('\n').length },
+      `Diff:Text diff written to ${ctx.output}/kart_diff.txt`,
+    );
     return textDiff.stdout;
   } catch (error) {
-    logger.error({ error, diffRange }, 'Diff:Text diff failed');
+    logger.error({ error, ...ctx }, 'Diff:Text diff failed');
     throw error;
   }
 }
 
-async function getFeatureCount(diffRange: string[]): Promise<number> {
+async function getFeatureCount(ctx: GitContext): Promise<number> {
   try {
-    const countOutput = await $`kart -C repo diff ${diffRange} -o json`;
+    const countOutput = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o json`;
     const featureCount = countOutput.stdout.trim();
     if (featureCount == null) {
       logger.warn('Diff:FeatureCount:EmptyOutput');
@@ -63,31 +80,31 @@ async function getFeatureCount(diffRange: string[]): Promise<number> {
     }
     for (const formatKey of Object.keys(changes)) {
       const dataset = changes[formatKey];
-      if (dataset === undefined) continue;
+      if (dataset == null) continue;
       for (const datasetKey of Object.keys(dataset)) {
-        if (dataset[datasetKey] === undefined) continue;
+        if (dataset[datasetKey] == null) continue;
         totalFeaturesChanged += dataset[datasetKey]?.feature?.length ?? 0;
       }
     }
-    logger.info({ diffRange, totalFeaturesChanged }, 'Diff:FeatureCount');
+    logger.info({ ...ctx, totalFeaturesChanged }, 'Diff:FeatureCount');
     return totalFeaturesChanged;
   } catch (error) {
-    logger.error({ error, diffRange }, 'Diff:Feature count failed');
+    logger.error({ error, ...ctx }, 'Diff:Feature count failed');
     throw error;
   }
 }
 
-async function createHtmlDiff(diffRange: string[]): Promise<URL> {
+async function createHtmlDiff(ctx: GitContext): Promise<URL> {
   try {
-    const htmlFile = 'diff/kart_diff.html';
+    const htmlFile = `${ctx.output}/kart_diff.html`;
     const htmlPath = fsa.toUrl(htmlFile);
-    await $`kart -C repo diff ${diffRange} -o html --output "${htmlFile}"`;
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output "${htmlFile}"`;
     const content = await readFileWithRetry(htmlPath);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
     await fsa.write(htmlPath, fixedContent);
     return htmlPath;
   } catch (error) {
-    logger.error({ error, diffRange }, 'Diff:HTML diff failed');
+    logger.error({ error, ...ctx }, 'Diff:HTML diff failed');
     throw error;
   }
 }
@@ -103,11 +120,11 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
   return undefined;
 }
 
-async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, string>> {
+async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
   try {
-    const geojsonOutName = 'diff/kart_diff.geojson/';
+    const geojsonOutName = `${ctx.output}/kart_diff.geojson/`;
     const geojsonPath = fsa.toUrl(geojsonOutName);
-    await $`kart -C repo diff ${diffRange} -o geojson --output "${geojsonOutName}"`;
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${geojsonOutName}"`;
     const stat = await fsa.head(geojsonPath);
     const featureChangesPerDataset: Record<string, string> = {};
 
@@ -127,19 +144,21 @@ async function createGeojsonDiff(diffRange: string[]): Promise<Record<string, st
     }
     return featureChangesPerDataset;
   } catch (error) {
-    logger.error({ error, diffRange }, 'Diff:GeoJSON diff failed');
+    logger.error({ error, ...ctx }, 'Diff:GeoJSON diff failed');
     throw error;
   }
 }
 
-async function getGitDiff(diffRange: string[]): Promise<string> {
+async function getGitDiff(ctx: GitContext): Promise<string> {
   try {
-    const gitDiffOutput =
-      await $`mv repo/.kart/index repo/.kart/no.index && git --no-pager -C repo diff --no-color "${diffRange}" && mv repo/.kart/no.index repo/.kart/index`;
-    await fsa.write(fsa.toUrl('diff/git_diff.txt'), gitDiffOutput.stdout);
+    await $`mv ${ctx.repo}/.kart/index ${ctx.repo}/.kart/no.index`;
+    const gitDiffOutput = await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange}`;
+    await $`mv ${ctx.repo}/.kart/no.index ${ctx.repo}/.kart/index`;
+
+    await fsa.write(fsa.toUrl(`${ctx.output}/git_diff.txt`), gitDiffOutput.stdout);
     return gitDiffOutput.stdout;
   } catch (error) {
-    logger.error({ error, diffRange }, 'Diff:Git diff failed');
+    logger.error({ error, ...ctx }, 'Diff:Git diff failed');
     throw error;
   }
 }
@@ -157,6 +176,20 @@ export const diffCommand = command({
   name: 'diff',
   description: 'Run specified diff commands on a cloned kart repository',
   args: {
+    context: option({
+      type: optional(string),
+      long: 'context',
+      short: 'C',
+      description:
+        'Run as if git was started in <path> instead of the current working directory see git -C for more details',
+    }),
+    output: option({
+      type: string,
+      long: 'output',
+      description: 'Optional output directory for diff results (default: "diff")',
+      defaultValue: () => 'diff',
+      defaultValueIsSerializable: true,
+    }),
     diff: restPositionals({
       description: 'Commit SHA or branches to diff (default: master..FETCH_HEAD)',
       type: string,
@@ -165,33 +198,37 @@ export const diffCommand = command({
   async handler(args) {
     logger.info({ ref: args.diff }, 'Diff:Start');
 
-    let diffRange: string[];
+    const ctx: GitContext = {
+      repo: args.context ?? 'repo',
+      diffRange: [],
+      output: args.output,
+    };
     if (args.diff.length > 0) {
-      diffRange = args.diff;
+      ctx.diffRange = args.diff;
     } else {
       try {
         // First try to find the merge base between master and FETCH_HEAD
-        const mergeBase = await $`git -C repo merge-base origin/master FETCH_HEAD`;
+        const mergeBase = await $`git ${gitContext(ctx.repo)} merge-base origin/master FETCH_HEAD`;
         const baseCommit = mergeBase.stdout.trim();
-        diffRange = [`${baseCommit}..FETCH_HEAD`];
-        logger.info({ baseCommit, diffRange }, 'Diff:Using merge-base strategy');
+        ctx.diffRange = [`${baseCommit}..FETCH_HEAD`];
+        logger.info({ baseCommit, diffRange: ctx.diffRange }, 'Diff:Using merge-base strategy');
       } catch (mergeBaseError) {
         // If merge-base fails, fall back to comparing against origin/master directly
         logger.warn({ error: mergeBaseError }, 'Diff:Merge-base failed, falling back to direct comparison');
-        diffRange = ['origin/master', 'FETCH_HEAD'];
+        ctx.diffRange = ['origin/master', 'FETCH_HEAD'];
       }
     }
 
-    logger.info({ diffRange }, 'Diff:Using range');
+    logger.info(ctx, 'Diff:Using range');
 
     try {
-      const featureCount = await getFeatureCount(diffRange);
-      const textDiff = await getTextDiff(diffRange);
-      await createHtmlDiff(diffRange);
+      const featureCount = await getFeatureCount(ctx);
+      const textDiff = await getTextDiff(ctx);
+      await createHtmlDiff(ctx);
 
-      const featureChangesPerDataset = await createGeojsonDiff(diffRange);
+      const featureChangesPerDataset = await createGeojsonDiff(ctx);
 
-      const gitDiff = await getGitDiff(diffRange);
+      const gitDiff = await getGitDiff(ctx);
 
       const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
       await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
@@ -199,7 +236,7 @@ export const diffCommand = command({
 
       logger.info('Diff command completed');
     } catch (error) {
-      logger.error({ error, diffRange }, 'Diff:Failed');
+      logger.error({ error, ...ctx }, 'Diff:Failed');
       throw error;
     }
   },

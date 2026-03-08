@@ -1,8 +1,9 @@
+import path from 'path';
+import { pathToFileURL } from 'url';
+
 import { Command } from '@linzjs/docker-command';
 import { logger, toRelative } from '@linzjs/topographic-system-shared';
-import path from 'path';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
-import { pathToFileURL } from 'url';
 
 import type { ExportOptions } from './stac.ts';
 
@@ -48,7 +49,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
 /**
  * Running python commands for qgis_export
  */
-export async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/qgis_export.py');
@@ -113,7 +114,7 @@ export async function qgisExportCover(
 /**
  * Running python commands for list_source_layers
  */
-export async function listSourceLayers(input: URL): Promise<string[]> {
+async function listSourceLayers(input: URL): Promise<string[]> {
   const cmd = Command.create('python3');
 
   cmd.args.push('qgis/src/list_source_layers.py');
@@ -132,3 +133,6 @@ export async function listSourceLayers(input: URL): Promise<string[]> {
 
   return layerNames;
 }
+
+/** Redefined for testing */
+export const pyRunner = { listSourceLayers, qgisExport, qgisExportCover };

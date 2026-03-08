@@ -33,6 +33,7 @@ docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart clone linz/topograp
 ```
 
 **Clone specific branch or commit:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart clone https://github.com/linz/topographic-data.git --ref feature-branch
 ```
@@ -42,11 +43,13 @@ docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart clone https://githu
 Run diff commands on a cloned kart repository to compare changes between commits or branches.
 
 **Default diff (master..FETCH_HEAD):**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart diff
 ```
 
 **Custom diff range:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart diff commit1..commit2
 ```
@@ -57,21 +60,25 @@ Mount a local folder containing the cloned repo to export geopackage.
 When no arguments are provided, this will export all datasets from the cloned repository.
 
 **All datasets:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export
 ```
 
 **Only datasets with changes:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export --changed-datasets-only
 ```
 
 **Specific dataset(s):**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export marine airport
 ```
 
 **Export from specific commit:**
+
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart export --ref commit-sha
 ```
@@ -84,11 +91,13 @@ Output parquet files will be saved to `./parquet` folder.
 Converted parquet files are uploaded to S3, so AWS credentials and the `ENVIRONMENT` variable are required.
 
 **All datasets:**
+
 ```
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart to-parquet
 ```
 
 **Specific dataset(s):**
+
 ```
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart to-parquet export/marine.gpkg export/airport.gpkg
 ```
@@ -98,16 +107,19 @@ docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-sou
 Add or update a pull request comment with diff results.
 
 **Auto-detect PR and repo:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart pr-comment
 ```
 
 **Specify PR number and repo:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart pr-comment --pr 123 --repo linz/topographic-data
 ```
 
 **Custom comment body file:**
+
 ```
 docker run -it --rm -e GITHUB_TOKEN -v /tmp/docker:/tmp kart pr-comment custom_summary.md
 ```
@@ -169,6 +181,8 @@ That workflow will:
 2. Clone the repository with the PR branch
 3. Generate a diff comparing the PR changes against master
 4. Post a comment on the PR with the diff results
-5. Export changed datasets as geopackages
-6. Convert geopackages to parquet files, generate stac and upload to s3
+5. Export all datasets with changes as geopackages
+6. Convert all geopackages to parquet files, generate stac and upload to s3
 7. Validate the datasets and upload results to s3
+
+The workflow runs on every pull request and provides automated quality checks and diff visualization for topographic data changes.
