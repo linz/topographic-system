@@ -1,14 +1,18 @@
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
 import { fsa } from '@chunkd/fs';
 import {
   CliDate,
+  CliId,
   downloadFile,
   logger,
   registerFileSystem,
-  tmpFolder,
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { upsertAssetToCollection } from '@linzjs/topographic-system-shared';
+import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
@@ -29,6 +33,12 @@ export const ContourWithLandcoverArgs = {
     type: UrlFolder,
     long: 'output',
     description: 'Path or s3 of output directory to write to',
+  }),
+  tempLocation: option({
+    type: UrlFolder,
+    long: 'temp-location',
+    description: 'Where temporary files are stored, generally in /tmp/...',
+    defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `topo-system-${CliId}`)),
   }),
 };
 
@@ -68,10 +78,10 @@ export const ContourWithLandcoverCommand = command({
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href));
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href));
+    const contourParquet = await downloadFile(new URL(contourParquetAsset.href), args.tempLocation);
+    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href), args.tempLocation);
 
-    const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, tmpFolder);
+    const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, args.tempLocation);
 
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
@@ -93,14 +103,17 @@ export const ContourWithLandcoverCommand = command({
       rel: 'derived_from',
       href: landcoverParquetAsset.href,
     };
-    const stacCollectionFile = await upsertAssetToCollection(assetFile, new URL(`./collection.json`, assetFile), [
-      derivedFromContour,
-      derivedFromLandcover,
-    ]);
+    const rootCatalog = new URL('catalog.json', args.output);
+    const stacCollectionFile = await upsertAssetToCollection(
+      rootCatalog,
+      assetFile,
+      new URL(`./collection.json`, assetFile),
+      [derivedFromContour, derivedFromLandcover],
+    );
     logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
 
     logger.debug({ assetFile }, 'UpdatingLatestCollection');
-    await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacCollectionFile), [
+    await upsertAssetToCollection(rootCatalog, assetFile, new URL('../../latest/collection.json', stacCollectionFile), [
       derivedFromContour,
       derivedFromLandcover,
     ]);

@@ -99,7 +99,6 @@ export const parquetCommand = command({
           ['-lco', `COMPRESSION=${args.compression}`],
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
-          ['-lco', 'BBOX_NAME=bbox'],
           ['-lco', 'WRITE_COVERING_BBOX=YES'],
           ['-lco', 'COVERING_BBOX_NAME=bbox'],
         ];
