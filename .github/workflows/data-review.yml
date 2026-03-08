@@ -22,12 +22,16 @@ on:
         description: 'Location of root catalog.'
         type: string
         required: true
+      kart_version:
+        description: 'Version of kart to use.'
+        type: string
+        default: 'v0.4.0' # x-release-please-version
 
 jobs:
   kart:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/linz/topographic-system/kart:v0.4.0 # x-release-please-version
+      image: ghcr.io/linz/topographic-system/kart:${{ inputs.kart_version }}
     permissions:
       id-token: write
       contents: read

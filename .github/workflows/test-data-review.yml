@@ -10,3 +10,4 @@ jobs:
       environment: nonprod
       changed_datasets_only: false
       output: file://$(pwd)/test-output/
+      kart_version: latest
