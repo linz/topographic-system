@@ -14,7 +14,7 @@ import { logger } from './log.ts';
 import type { RowGroupColumnStats } from './parquet.metadata.ts';
 import { readParquetFileMetadata } from './parquet.metadata.ts';
 import { mapParquetMetadataToStacStats } from './parquet.metadata.ts';
-import { MediaTypes, Providers, Roles, RootCatalogFile } from './stac.constants.ts';
+import { MediaTypes, Providers, Roles } from './stac.constants.ts';
 import { getSelfLink } from './stac.links.ts';
 
 interface FileStats {
@@ -116,6 +116,7 @@ export function createStacLink(sources: URL[], project: URL): StacLink[] {
 }
 
 export function createStacItem(
+  rootCatalog: URL,
   id: string,
   links: StacLink[],
   assets: Record<string, StacAsset>,
@@ -128,7 +129,7 @@ export function createStacItem(
     { rel: 'self', href: `./${id}.json`, type: 'application/geo+json' },
     { rel: 'collection', href: './collection.json', type: 'application/json' },
     { rel: 'parent', href: './collection.json', type: 'application/json' },
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     ...links,
   );
   stacItem.assets = assets;
@@ -141,26 +142,36 @@ export function createStacItem(
   return stacItem;
 }
 
-export function createStacCollection(description: string, bbox: number[], links: StacLink[]): StacCollection {
+export function createStacCollection(
+  rootCatalog: URL,
+  description: string,
+  bbox: number[],
+  links: StacLink[],
+): StacCollection {
   const stacCollection = createBasicStacCollection();
   stacCollection.extent.spatial.bbox = [bbox];
   stacCollection.description = description;
   stacCollection.links.push(
     { rel: 'self', href: './collection.json', type: 'application/json' },
     { rel: 'parent', href: './catalog.json', type: 'application/json' },
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     ...links,
   );
   return stacCollection;
 }
 
-export function createStacCatalog(title: string, description: string, links: StacLink[]): StacCatalog {
+export function createStacCatalog(
+  rootCatalog: URL,
+  title: string,
+  description: string,
+  links: StacLink[],
+): StacCatalog {
   const stacCatalog = createBasicStacCatalog();
   stacCatalog.title = title;
   stacCatalog.description = description;
   stacCatalog.links.push(
     { rel: 'self', href: './catalog.json', type: 'application/json' },
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     ...links,
   );
   return stacCatalog;
@@ -190,20 +201,20 @@ export async function createStacAssetFromFileName(assetFile: URL): Promise<StacA
   return { ...stacAsset, ...fileStats, ...parquetStats };
 }
 
-export async function createStacItemFromFileName(stacFile: URL): Promise<StacItem> {
+export async function createStacItemFromFileName(rootCatalog: URL, stacFile: URL): Promise<StacItem> {
   if (await fsa.exists(stacFile)) {
     return await fsa.readJson<StacItem>(stacFile);
   }
   const stacItem = createBasicStacItem();
   stacItem.id = await readOrCreateStacIdFromFileName(stacFile);
   stacItem.links.push(
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     { rel: 'self', href: stacFile.href, type: 'application/geo+json' },
   );
   return stacItem;
 }
 
-export async function createStacCollectionFromFileName(stacFile: URL): Promise<StacCollection> {
+export async function createStacCollectionFromFileName(rootCatalog: URL, stacFile: URL): Promise<StacCollection> {
   if (await fsa.exists(stacFile)) {
     return await fsa.readJson<StacCollection>(stacFile);
   }
@@ -211,13 +222,13 @@ export async function createStacCollectionFromFileName(stacFile: URL): Promise<S
   stacCollection.id = await readOrCreateStacIdFromFileName(stacFile);
   stacCollection.description = `Collection of${urlToTitle(stacFile)}`;
   stacCollection.links.push(
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
   return stacCollection;
 }
 
-export async function createStacCatalogFromFilename(stacFile: URL): Promise<StacCatalog> {
+export async function createStacCatalogFromFilename(rootCatalog: URL, stacFile: URL): Promise<StacCatalog> {
   if (await fsa.exists(stacFile)) {
     const stacContent = await fsa.read(stacFile);
     return JSON.parse(stacContent.toString(), deserializeBigInt) as StacCatalog;
@@ -226,11 +237,11 @@ export async function createStacCatalogFromFilename(stacFile: URL): Promise<Stac
   stacCatalog.id = await readOrCreateStacIdFromFileName(stacFile);
   stacCatalog.description = `Catalog of${urlToTitle(stacFile)}`;
   stacCatalog.links.push(
-    { rel: 'root', href: RootCatalogFile.href, type: 'application/json' },
+    { rel: 'root', href: rootCatalog.href, type: 'application/json' },
     { rel: 'self', href: stacFile.href, type: 'application/json' },
   );
 
-  if (getSelfLink(stacCatalog) === RootCatalogFile.href) {
+  if (getSelfLink(stacCatalog) === rootCatalog.href) {
     stacCatalog.title = 'LINZ Topographic Data Catalog';
     stacCatalog.description = 'Root Catalog of LINZ Topographic Data';
   }

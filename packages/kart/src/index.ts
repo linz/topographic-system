@@ -32,4 +32,6 @@ run(Cli, process.argv.slice(2)).catch((err) => {
   } else {
     console.log(err);
   }
+
+  setTimeout(() => process.exit(1), 10);
 });

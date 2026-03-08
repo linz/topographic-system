@@ -12,6 +12,22 @@ export const exportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
   args: {
+    context: option({
+      type: optional(string),
+      long: 'context',
+      short: 'C',
+      description:
+        'Run as if git was started in <path> instead of the current working directory see git -C for more details',
+      defaultValue: () => 'repo',
+      defaultValueIsSerializable: true,
+    }),
+    output: option({
+      type: string,
+      long: 'output',
+      description: 'Optional output directory for export results (default: "export")',
+      defaultValue: () => 'export',
+      defaultValueIsSerializable: true,
+    }),
     ref: option({
       type: optional(string),
       long: 'ref',
@@ -35,23 +51,23 @@ export const exportCommand = command({
     let datasets = new Set<string>();
     if (args.changed) {
       logger.info('Export:OnlyChangedDatasets');
-      const kartData = await $`kart -C repo diff master..${ref} -o json --only-feature-count exact`;
+      const kartData = await $`kart -C ${args.context} diff master..${ref} -o json --only-feature-count exact`;
       const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
       datasets = new Set(Object.keys(diffOutput));
     } else {
       logger.info('Export:AllDatasets');
-      const kartData = await $`kart -C repo data ls`;
+      const kartData = await $`kart -C ${args.context} data ls`;
       datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
     }
     logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
-    const exportDir = './export';
+    const exportDir = args.output;
     await $`mkdir -p ${exportDir}`; // kart will fail with unclear error if this doesn't exist
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart -C repo export ${dataset} --ref ${ref} ${exportDir}/${dataset}.gpkg`),
+      Q.push(() => $`kart -C ${args.context} export ${dataset} --ref ${ref} ${exportDir}/${dataset}.gpkg`),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');
