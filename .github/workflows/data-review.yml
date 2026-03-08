@@ -18,6 +18,10 @@ on:
         description: 'Whether to only process changed datasets.'
         type: boolean
         default: true
+      output:
+        description: 'Location of root catalog.'
+        type: string
+        required: true
 
 jobs:
   kart:
@@ -71,7 +75,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Convert to parquet
-        run: node /scripts/index.cjs to-parquet
+        run: node /scripts/index.cjs to-parquet --output ${{ inputs.output }}
 
       - name: Validate datasets
-        run: node /scripts/index.cjs validate
+        run: node /scripts/index.cjs validate --output ${{ inputs.output }}
