@@ -10,8 +10,8 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
+  upsertAssetToCollection,
 } from '@linzjs/topographic-system-shared';
-import { upsertAssetToCollection } from '@linzjs/topographic-system-shared';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
