@@ -74,7 +74,7 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
  */
 export async function downloadFiles(path: URL, target: URL, q = pLimit(DefaultConcurrency)): Promise<URL[]> {
   logger.info({ source: path.href, downloaded: target.href }, 'DownloadSourceFile: Start');
-  const downloadFiles: Promise<URL>[] = [];
+  const pendingDownloads: Promise<URL>[] = [];
   for await (const file of fsa.list(path)) downloadFiles.push(q(() => downloadFile(file, target)));
   const results = await Promise.all(downloadFiles);
   logger.info({ destination: target.href, number: downloadFiles.length }, 'DownloadSourceFile: End');
