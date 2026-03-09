@@ -28,6 +28,7 @@
     },
     "packages/data-prep": {
       "release-type": "python",
+      "package-name": "topographic-system-data-prep",
       "extra-files": [
         {
           "path": "packages/data-prep/pyproject.toml",
