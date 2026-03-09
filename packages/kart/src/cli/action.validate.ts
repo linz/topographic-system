@@ -6,8 +6,8 @@ import {
   logger,
   recursiveFileSearch,
   registerFileSystem,
-  upsertAssetToItem,
-} from '@linzjs/topographic-system-shared';
+  upsertAssetToItem, UrlFolder
+} from "@linzjs/topographic-system-shared";
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -164,6 +164,11 @@ export const validateCommand = command({
   name: 'validate',
   description: 'Run topographic data validation',
   args: {
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Destination for validation results',
+    }),
     mode: option({
       type: string,
       long: 'mode',
@@ -185,7 +190,7 @@ export const validateCommand = command({
     'output-dir': option({
       type: string,
       long: 'output-dir',
-      description: 'Output directory for validation results',
+      description: 'Output directory for validation results (local / temporary)',
       defaultValue: () => '/tmp/validation-output',
     }),
     'area-crs': option({
@@ -215,7 +220,7 @@ export const validateCommand = command({
     logger.info({ args }, 'ValidateCommand:Start');
     const cmdArgs = await buildValidationArgs(args);
 
-    const rootCatalog = new URL('catalog.json', 's3://something');
+    const rootCatalog = new URL('catalog.json', args.output);
 
     logger.info({ command: cmdArgs.join(' ') }, 'ValidateCommand:ArgumentsPrepared');
     const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
