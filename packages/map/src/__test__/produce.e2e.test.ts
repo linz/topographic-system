@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { after, before, describe, it } from 'node:test';
-import assert from 'node:assert'
 
 import { fsa, FsMemory } from '@chunkd/fs';
 import { CliId } from '@linzjs/topographic-system-shared';
@@ -26,14 +26,16 @@ describe('QGIS Process', () => {
 
   after(async () => {
     BaseCommandOptions.useDocker = false;
-    if (tempLocation != null) await rm(tempLocation, {recursive: true})
+    if (tempLocation != null) await rm(tempLocation, { recursive: true });
   });
 
   it('should ensure base container matches the Dockerfile', async () => {
-    const dockerFile = new URL("../../Dockerfile", import.meta.url);
-    const from = String(await fsa.read(dockerFile)).split('\n').find(f => f.toLowerCase().startsWith('from'));
-    assert.equal(from , `FROM ${BaseCommandOptions.container}`);
-  })
+    const dockerFile = new URL('../../Dockerfile', import.meta.url);
+    const from = String(await fsa.read(dockerFile))
+      .split('\n')
+      .find((f) => f.toLowerCase().startsWith('from'));
+    assert.equal(from, `FROM ${BaseCommandOptions.container}`);
+  });
 
   const baseDeployArgs = {
     githash: undefined,
