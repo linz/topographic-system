@@ -6,8 +6,9 @@ import {
   logger,
   recursiveFileSearch,
   registerFileSystem,
-  upsertAssetToItem, UrlFolder
-} from "@linzjs/topographic-system-shared";
+  upsertAssetToItem,
+  UrlFolder,
+} from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
 import { $ } from 'zx';
 
