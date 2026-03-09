@@ -26,8 +26,7 @@ describe('QGIS Process', () => {
   after(async () => {
     BaseCommandOptions.useDocker = false;
     if (tempLocation == null) throw new Error('no temp location');
-    await rm(tempLocation, {recursive: true})
-    
+    await rm(tempLocation, { recursive: true });
   });
 
   const baseDeployArgs = {

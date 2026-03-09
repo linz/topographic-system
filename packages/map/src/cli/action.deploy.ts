@@ -25,7 +25,7 @@ async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?
   tarPack.pipe(pass);
 
   const projectFiles = await fsa.toArray(fsa.list(projectFolder));
-  console.log({projectFiles})
+  console.log({ projectFiles });
   if (projectFiles.length === 0) return null;
   let fileCount = 0;
   for (const file of projectFiles) {
@@ -35,7 +35,7 @@ async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?
 
     const data = await fsa.read(file);
     tarPack.entry({ name: filename, size: data.byteLength }, data);
-    fileCount ++;
+    fileCount++;
   }
   if (fileCount === 0) return null;
 

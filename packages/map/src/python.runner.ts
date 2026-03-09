@@ -1,14 +1,17 @@
-import { fsa } from '@chunkd/fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
+import { fsa } from '@chunkd/fs';
 import { Command } from '@linzjs/docker-command';
 import { logger } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import type { ExportOptions } from './stac.ts';
 
-export const BaseCommandOptions =  {useDocker: false, container:'ghcr.io/linz/qgis-flatpak:linz-qgis_c03dd3-5052c5_build-33'}
+export const BaseCommandOptions = {
+  useDocker: false,
+  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_c03dd3-5052c5_build-33',
+};
 
 interface SheetMetadataStdOut {
   sheetCode: string;
@@ -25,17 +28,15 @@ export type SheetMetadata = {
 };
 
 async function findQgisSource(): Promise<URL> {
-  const sameFolder = new URL('qgis/src/qgis_export.py', import.meta.url)
-  const isSameFolder = await fsa.head(sameFolder);
-  if(isSameFolder?.size > 0) return new URL('.', sameFolder)
+  const sameFolder = new URL('qgis/src/qgis_export.py', import.meta.url);
+  const isSameFolder = await fsa.exists(sameFolder);
+  if (isSameFolder === true) return new URL('.', sameFolder);
 
-    const parentLocation = new URL('../../qgis/src/qgis_export.py', import.meta.url);
-      const isParentLocation = await fsa.head(parentLocation);
-      if (isParentLocation?.size > 0) return new URL('.', parentLocation)
+  const parentLocation = new URL('../../qgis/src/qgis_export.py', import.meta.url);
+  const isParentLocation = await fsa.exists(parentLocation);
+  if (isParentLocation === true) return new URL('.', parentLocation);
 
-        console.log(parentLocation)
-        console.log(isSameFolder, isParentLocation)
-        throw new Error('Unable to find QGIS source files')
+  throw new Error('Unable to find QGIS source files');
 }
 
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
@@ -72,8 +73,8 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   const cmd = Command.create('python3', BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
-  cmd.mount(fileURLToPath(new URL(".", input)))
-  cmd.mount(fileURLToPath(new URL(".", output)))
+  cmd.mount(fileURLToPath(new URL('.', input)));
+  cmd.mount(fileURLToPath(new URL('.', output)));
 
   cmd.args.push(fileURLToPath(new URL('qgis_export.py', sourceLocation)));
   cmd.args.push(fileURLToPath(input));
@@ -114,7 +115,7 @@ export async function qgisExportCover(
   const cmd = Command.create('python3', BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
-  cmd.mount(fileURLToPath(new URL(".", input)))
+  cmd.mount(fileURLToPath(new URL('.', input)));
 
   cmd.args.push(fileURLToPath(new URL('qgis_export_cover.py', sourceLocation)));
   cmd.args.push(fileURLToPath(input));
@@ -146,7 +147,7 @@ async function listSourceLayers(input: URL): Promise<string[]> {
   const cmd = Command.create('python3', BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
-  cmd.mount(fileURLToPath(new URL(".", input)))
+  cmd.mount(fileURLToPath(new URL('.', input)));
 
   cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
   cmd.args.push(fileURLToPath(input));
