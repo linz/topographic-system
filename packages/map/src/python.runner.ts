@@ -1,7 +1,9 @@
-import path from 'path';
+import path, { basename } from 'path';
+import { cwd } from 'process';
 import { fileURLToPath, pathToFileURL } from 'url';
 
 import { fsa } from '@chunkd/fs';
+import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-command';
 import { Command } from '@linzjs/docker-command';
 import { logger } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
@@ -28,15 +30,32 @@ export type SheetMetadata = {
 };
 
 async function findQgisSource(): Promise<URL> {
-  const sameFolder = new URL('qgis/src/qgis_export.py', import.meta.url);
+  const currentUrl = import.meta.url ?? pathToFileURL(cwd());
+  const sameFolder = new URL('qgis/src/qgis_export.py', currentUrl);
   const isSameFolder = await fsa.exists(sameFolder);
   if (isSameFolder === true) return new URL('.', sameFolder);
 
-  const parentLocation = new URL('../../qgis/src/qgis_export.py', import.meta.url);
+  const parentLocation = new URL('../../qgis/src/qgis_export.py', currentUrl);
   const isParentLocation = await fsa.exists(parentLocation);
   if (isParentLocation === true) return new URL('.', parentLocation);
 
   throw new Error('Unable to find QGIS source files');
+}
+
+async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult> {
+  const script = basename(cmd.args[0] ?? 'unknown');
+  logger.debug({ script, args: cmd.args.slice(1) }, 'Python:Start');
+
+  const startTime = performance.now();
+  const res = await cmd.run();
+
+  logger.info({ script, duration: performance.now() - startTime }, 'Python:Done');
+
+  if (res.exitCode !== 0) {
+    logger.fatal({ script }, 'Failure');
+    throw new Error(`${script} failed to run`);
+  }
+  return res;
 }
 
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
@@ -85,14 +104,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(options.dpi.toFixed());
   cmd.args.push(sheetCode);
 
-  const res = await cmd.run();
-  logger.debug('qgis_export.py ' + cmd.args.join(' '));
-
-  if (res.exitCode !== 0) {
-    logger.fatal({ qgis_export: res }, 'Failure');
-    throw new Error('qgis_export.py failed to run');
-  }
-
+  const res = await runAndLog(cmd);
   return pathToFileURL(res.stdout.trim());
 }
 
@@ -128,14 +140,7 @@ export async function qgisExportCover(
   } else {
     cmd.args.push('True');
   }
-  const res = await cmd.run();
-  logger.debug('qgis_export_cover.py ' + cmd.args.join(' '));
-
-  if (res.exitCode !== 0) {
-    logger.fatal({ list_map_sheets: res }, 'Failure');
-    throw new Error('list_map_sheets.py failed to run');
-  }
-
+  const res = await runAndLog(cmd);
   return parseSheetsMetadata(res.stdout);
 }
 
@@ -151,13 +156,7 @@ async function listSourceLayers(input: URL): Promise<string[]> {
 
   cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
   cmd.args.push(fileURLToPath(input));
-  const res = await cmd.run();
-  logger.debug('list_source_layers.py ' + cmd.args.join(' '));
-
-  if (res.exitCode !== 0) {
-    logger.fatal({ list_source_layers: res }, 'Failure');
-    throw new Error('list_source_layers.py failed to run');
-  }
+  const res = await runAndLog(cmd);
 
   // Get all layers names and remove duplicates
   const layerPaths = JSON.parse(res.stdout) as string[];
