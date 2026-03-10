@@ -1,7 +1,7 @@
 import { basename } from 'node:path';
 
 import { fsa } from '@chunkd/fs';
-import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
@@ -67,6 +67,7 @@ export async function upsertAssetToCollection(
   rootCatalog: URL,
   assetFile: URL,
   stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
+  extraLinks: StacLink[] = [],
 ): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
@@ -86,6 +87,8 @@ export async function upsertAssetToCollection(
     const dates = extractTemporalExtent(stacAsset['table:columns'] as ColumnStats[]);
     stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
   }
+
+  stacCollection.links.push(...extraLinks);
 
   await fsa.write(stacCollectionFile, stacToJson(stacCollection));
   logger.info(
@@ -202,6 +205,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
           if (collection.assets == null || collection.assets['parquet'] == null) {
             throw new Error(`Data asset not found in collection: ${link.href}`);
           }
+          // TODO we should be looking for the "asset" type not the asset named "parquet"
           const dataAsset = collection.assets['parquet'].href;
           // TODO this logic should really look for the "latest-version" record
           // https://github.com/stac-extensions/version

@@ -10,7 +10,6 @@
     "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs"
   },
   "dependencies": {
-    "@linzjs/docker-command": "^8.0.0",
     "@linzjs/topographic-system-shared": "^0.5.0",
     "cmd-ts": "^0.14.3",
     "zx": "^8.8.5"

@@ -1,11 +1,17 @@
 import path from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
+import { fsa } from '@chunkd/fs';
 import { Command } from '@linzjs/docker-command';
-import { logger, toRelative } from '@linzjs/topographic-system-shared';
+import { logger } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import type { ExportOptions } from './stac.ts';
+
+export const BaseCommandOptions = {
+  useDocker: false,
+  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_1ddcee-a6a40d_build-34',
+};
 
 interface SheetMetadataStdOut {
   sheetCode: string;
@@ -20,6 +26,18 @@ export type SheetMetadata = {
   epsg: number;
   bbox: [number, number, number, number];
 };
+
+async function findQgisSource(): Promise<URL> {
+  const sameFolder = new URL('qgis/src/qgis_export.py', import.meta.url);
+  const isSameFolder = await fsa.exists(sameFolder);
+  if (isSameFolder === true) return new URL('.', sameFolder);
+
+  const parentLocation = new URL('../../qgis/src/qgis_export.py', import.meta.url);
+  const isParentLocation = await fsa.exists(parentLocation);
+  if (isParentLocation === true) return new URL('.', parentLocation);
+
+  throw new Error('Unable to find QGIS source files');
+}
 
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
   const raw = JSON.parse(stdoutBuffer) as SheetMetadataStdOut[];
@@ -50,11 +68,17 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
  * Running python commands for qgis_export
  */
 async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
-  const cmd = Command.create('python3');
+  const sourceLocation = await findQgisSource();
 
-  cmd.args.push('qgis/src/qgis_export.py');
-  cmd.args.push(toRelative(input));
-  cmd.args.push(toRelative(output));
+  const cmd = Command.create('python3', BaseCommandOptions);
+
+  cmd.mount(fileURLToPath(sourceLocation));
+  cmd.mount(fileURLToPath(new URL('.', input)));
+  cmd.mount(fileURLToPath(new URL('.', output)));
+
+  cmd.args.push(fileURLToPath(new URL('qgis_export.py', sourceLocation)));
+  cmd.args.push(fileURLToPath(input));
+  cmd.args.push(fileURLToPath(output));
   cmd.args.push(options.layout);
   cmd.args.push(options.mapSheetLayer);
   cmd.args.push(options.format);
@@ -87,10 +111,14 @@ export async function qgisExportCover(
   options: ExportOptions,
   mapsheets?: string[],
 ): Promise<SheetMetadata[]> {
-  const cmd = Command.create('python3');
+  const sourceLocation = await findQgisSource();
+  const cmd = Command.create('python3', BaseCommandOptions);
 
-  cmd.args.push('qgis/src/qgis_export_cover.py');
-  cmd.args.push(toRelative(input));
+  cmd.mount(fileURLToPath(sourceLocation));
+  cmd.mount(fileURLToPath(new URL('.', input)));
+
+  cmd.args.push(fileURLToPath(new URL('qgis_export_cover.py', sourceLocation)));
+  cmd.args.push(fileURLToPath(input));
   cmd.args.push(options.layout);
   cmd.args.push(options.mapSheetLayer);
   // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
@@ -115,10 +143,14 @@ export async function qgisExportCover(
  * Running python commands for list_source_layers
  */
 async function listSourceLayers(input: URL): Promise<string[]> {
-  const cmd = Command.create('python3');
+  const sourceLocation = await findQgisSource();
+  const cmd = Command.create('python3', BaseCommandOptions);
 
-  cmd.args.push('qgis/src/list_source_layers.py');
-  cmd.args.push(toRelative(input));
+  cmd.mount(fileURLToPath(sourceLocation));
+  cmd.mount(fileURLToPath(new URL('.', input)));
+
+  cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
+  cmd.args.push(fileURLToPath(input));
   const res = await cmd.run();
   logger.debug('list_source_layers.py ' + cmd.args.join(' '));
 

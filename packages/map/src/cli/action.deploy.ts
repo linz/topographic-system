@@ -26,6 +26,7 @@ async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?
 
   const projectFiles = await fsa.toArray(fsa.list(projectFolder));
   if (projectFiles.length === 0) return null;
+  let fileCount = 0;
   for (const file of projectFiles) {
     const filename = basename(file.href);
     if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
@@ -33,7 +34,9 @@ async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?
 
     const data = await fsa.read(file);
     tarPack.entry({ name: filename, size: data.byteLength }, data);
+    fileCount++;
   }
+  if (fileCount === 0) return null;
 
   tarPack.finalize();
 
