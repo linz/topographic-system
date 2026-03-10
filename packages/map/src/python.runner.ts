@@ -30,6 +30,7 @@ export type SheetMetadata = {
 };
 
 async function findQgisSource(): Promise<URL> {
+  // import.meta.url will not exist in commonjs contexts so attempt to use the CWD as a fall back
   const currentUrl = import.meta.url ?? pathToFileURL(cwd());
   const sameFolder = new URL('qgis/src/qgis_export.py', currentUrl);
   const isSameFolder = await fsa.exists(sameFolder);
