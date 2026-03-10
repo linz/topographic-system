@@ -205,6 +205,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: s
           if (collection.assets == null || collection.assets['parquet'] == null) {
             throw new Error(`Data asset not found in collection: ${link.href}`);
           }
+          // TODO we should be looking for the "asset" type not the asset named "parquet"
           const dataAsset = collection.assets['parquet'].href;
           // TODO this logic should really look for the "latest-version" record
           // https://github.com/stac-extensions/version

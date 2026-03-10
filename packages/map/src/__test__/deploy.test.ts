@@ -10,7 +10,6 @@ describe('action.deploy', () => {
   const mem = new FsMemory();
 
   before(() => {
-    console.log('before');
     fsa.register('memory://', mem);
   });
 
