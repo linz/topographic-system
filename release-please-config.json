@@ -36,9 +36,6 @@
           "jsonpath": "$.project.version"
         }
       ]
-    },
-    ".": {
-      "include-component-in-tag": false
     }
   },
   "group-pull-request-title-pattern": "release: v${version}",
