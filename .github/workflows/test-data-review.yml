@@ -5,7 +5,7 @@ jobs:
   build:
     uses: ./.github/workflows/containers.yml
     with:
-      manifest: '{"kart": ["test-${{ github.event.number }}"]}'
+      manifest: '{"kart": ["test-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}"]}'
       push: true
       environment: nonprod
 
@@ -18,7 +18,7 @@ jobs:
       environment: nonprod
       changed_datasets_only: false
       output: file:///work/test-output/
-      kart_version: test-${{ github.event.number }}
+      kart_version: 'test-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}'
 
   cleanup:
     needs: test
@@ -32,7 +32,7 @@ jobs:
           script: |
             const org = context.repo.owner;
             const pkg = `${context.repo.repo}/kart`;
-            const tag = `test-${context.payload.pull_request.number}`;
+            const tag = `test-${context.payload.pull_request.number}-${context.payload.pull_request.head.sha}`;
             const versions = await github.paginate(
               github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg,
               {

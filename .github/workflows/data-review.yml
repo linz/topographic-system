@@ -43,8 +43,13 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
     steps:
-      - name: Check kart version
-        run: node /scripts/index.cjs version
+      - name: Check versions
+        run: |
+          node --version
+          ogr2ogr --version
+          git --version
+          kart --version
+          node /scripts/index.cjs version
 
       - name: Clone repository
         run: node /scripts/index.cjs clone ${{ inputs.clone_url != '' && inputs.clone_url || github.event.repository.clone_url }} --ref ${{ inputs.head_ref != '' && inputs.head_ref || github.head_ref }}
