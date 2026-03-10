@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.5.0...topographic-system-shared-v0.6.0) (2026-03-10)
+
+
+### Features
+
+* data prep stac generation BM-1499 ([#50](https://github.com/linz/topographic-system/issues/50)) ([5249ca6](https://github.com/linz/topographic-system/commit/5249ca64814db7456abd527c9e695c526593572f))
+
+
+### Bug Fixes
+
+* correct command usage ([#63](https://github.com/linz/topographic-system/issues/63)) ([ba63f34](https://github.com/linz/topographic-system/commit/ba63f34798185eeb0c94d929e1aaea2d27479357))
+* downloads should run concurrently ([#60](https://github.com/linz/topographic-system/issues/60)) ([876d5fe](https://github.com/linz/topographic-system/commit/876d5fed7ee04bd645367d59f75a892dff8444f6))
+
 ## [0.5.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.4.0...topographic-system-shared-v0.5.0) (2026-03-02)
 
 
