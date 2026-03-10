@@ -5,7 +5,6 @@ import {
   ConcurrentQueue,
   determineAssetLocation,
   isMergeToMaster,
-  isRelease,
   logger,
   recursiveFileSearch,
   registerFileSystem,
@@ -121,10 +120,11 @@ export const parquetCommand = command({
         );
         if (isMergeToMaster()) {
           logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertAssetToCollection(assetFile, new URL('../../next/collection.json', stacCollectionFile));
-        } else if (isRelease()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
-          await upsertAssetToCollection(assetFile, new URL('../../latest/collection.json', stacCollectionFile));
+          await upsertAssetToCollection(
+            rootCatalog,
+            assetFile,
+            new URL('../../latest/collection.json', stacCollectionFile),
+          );
         }
       });
     }
