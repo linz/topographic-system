@@ -29,16 +29,20 @@ export type SheetMetadata = {
   bbox: [number, number, number, number];
 };
 
+const Python3 = new Command('python3', BaseCommandOptions);
+
 async function findQgisSource(): Promise<URL> {
   // import.meta.url will not exist in commonjs contexts so attempt to use the CWD as a fall back
-  const currentUrl = import.meta.url ?? pathToFileURL(cwd());
+  const currentUrl = import.meta.url ?? pathToFileURL(cwd() + path.sep);
   const sameFolder = new URL('qgis/src/qgis_export.py', currentUrl);
   const isSameFolder = await fsa.exists(sameFolder);
   if (isSameFolder === true) return new URL('.', sameFolder);
+  logger.debug({ target: sameFolder.href }, 'Python:Source:Missing');
 
   const parentLocation = new URL('../../qgis/src/qgis_export.py', currentUrl);
   const isParentLocation = await fsa.exists(parentLocation);
   if (isParentLocation === true) return new URL('.', parentLocation);
+  logger.debug({ target: parentLocation.href }, 'Python:Source:Missing');
 
   throw new Error('Unable to find QGIS source files');
 }
@@ -89,8 +93,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
  */
 async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const sourceLocation = await findQgisSource();
-
-  const cmd = Command.create('python3', BaseCommandOptions);
+  const cmd = Python3.create(BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
   cmd.mount(fileURLToPath(new URL('.', input)));
@@ -125,7 +128,7 @@ export async function qgisExportCover(
   mapsheets?: string[],
 ): Promise<SheetMetadata[]> {
   const sourceLocation = await findQgisSource();
-  const cmd = Command.create('python3', BaseCommandOptions);
+  const cmd = Python3.create(BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
   cmd.mount(fileURLToPath(new URL('.', input)));
@@ -150,7 +153,7 @@ export async function qgisExportCover(
  */
 async function listSourceLayers(input: URL): Promise<string[]> {
   const sourceLocation = await findQgisSource();
-  const cmd = Command.create('python3', BaseCommandOptions);
+  const cmd = Python3.create(BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
   cmd.mount(fileURLToPath(new URL('.', input)));
