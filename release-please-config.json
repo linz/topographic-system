@@ -7,7 +7,7 @@
     "packages/shared": {},
     "packages/validation": {
       "release-type": "python",
-      "package-name": "validation",
+      "package-name": "topographic-system-validation",
       "extra-files": [
         {
           "path": "packages/validation/pyproject.toml",
@@ -28,6 +28,7 @@
     },
     "packages/data-prep": {
       "release-type": "python",
+      "package-name": "topographic-system-data-prep",
       "extra-files": [
         {
           "path": "packages/data-prep/pyproject.toml",
@@ -35,9 +36,6 @@
           "jsonpath": "$.project.version"
         }
       ]
-    },
-    ".": {
-      "include-component-in-tag": false
     }
   },
   "group-pull-request-title-pattern": "release: v${version}",
