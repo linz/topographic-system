@@ -2,15 +2,15 @@ name: Test Data PR Review Workflow
 on: pull_request
 
 jobs:
-  build:
+  test-build:
     uses: ./.github/workflows/containers.yml
     with:
       manifest: '{"kart": ["test-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}"]}'
       push: true
       environment: nonprod
 
-  test:
-    needs: build
+  test-run:
+    needs: test-build
     uses: ./.github/workflows/data-review.yml
     with:
       clone_url: https://github.com/blacha/kart-test.git
@@ -21,7 +21,7 @@ jobs:
       kart_version: 'test-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}'
 
   cleanup:
-    needs: test
+    needs: test-run
     if: always()
     runs-on: ubuntu-latest
     permissions:
