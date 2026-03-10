@@ -51,7 +51,14 @@ export const parquetCommand = command({
     output: option({
       type: UrlFolder,
       long: 'output',
-      description: 'Output location for parquet',
+      description: 'Destination for parquet files and STAC',
+    }),
+    tempLocation: option({
+      type: string,
+      long: 'temp-location',
+      description: 'Temporary location for intermediate files',
+      defaultValue: () => '/tmp/kart/parquet',
+      defaultValueIsSerializable: true,
     }),
     sourceFiles: restPositionals({
       type: string,
@@ -83,13 +90,12 @@ export const parquetCommand = command({
       return;
     }
 
-    const parquetDir = './parquet';
-    await $`mkdir -p ${parquetDir}`;
+    await $`mkdir -p ${args.tempLocation}`;
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = basename(gpkgFile.pathname, extension);
-        const parquetFile = `${parquetDir}/${dataset}.parquet`;
+        const parquetFile = `${args.tempLocation}/${dataset}.parquet`;
         const command = [
           'ogr2ogr',
           ['-f', 'Parquet'],
