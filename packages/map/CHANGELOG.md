@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.1](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.6.0...topographic-system-map-v0.6.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* correct command usage ([#63](https://github.com/linz/topographic-system/issues/63)) ([ba63f34](https://github.com/linz/topographic-system/commit/ba63f34798185eeb0c94d929e1aaea2d27479357))
+* correct path to be relative ([#58](https://github.com/linz/topographic-system/issues/58)) ([7ceaaf2](https://github.com/linz/topographic-system/commit/7ceaaf25b0bb96088f2422ee58eb310d82a6a81a))
+* downloads should run concurrently ([#60](https://github.com/linz/topographic-system/issues/60)) ([876d5fe](https://github.com/linz/topographic-system/commit/876d5fed7ee04bd645367d59f75a892dff8444f6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.5.0 to ^0.6.0
+
 ## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.5.0...topographic-system-map-v0.6.0) (2026-03-02)
 
 ### Features
