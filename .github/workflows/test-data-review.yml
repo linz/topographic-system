@@ -13,11 +13,11 @@ jobs:
     needs: test-build
     uses: ./.github/workflows/data-review.yml
     with:
-      clone_url: https://github.com/blacha/kart-test.git
+      clone_url: https://github.com/linz/topographic-test-data.git
       head_ref: master
       environment: nonprod
       changed_datasets_only: false
-      output: file:///work/test-output/
+      output: file:///tmp/topographic-data/
       kart_version: 'test-${{ github.event.number }}-${{ github.event.pull_request.head.sha }}'
 
   cleanup:
