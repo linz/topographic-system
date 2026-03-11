@@ -21,13 +21,13 @@ jobs:
         with:
           script: |
             const manifest = JSON.parse("${{ inputs.manifest }}");
-            const isMaster = "${{ github.ref }}" === "master";
+            const isMaster = "${{ github.ref }}" === "refs/heads/master";
             const isPullRequest = "${{ github.event_name }}" === "pull_request";
 
             const environment = isMaster ? "prod" : "nonprod";
 
             const newTags = ["git-${{ github.sha }}"];
-            if (isPullRequest) newTags.push("pr-${{ github.event.number }}"));
+            if (isPullRequest) newTags.push("pr-${{ github.event.number }}");
             if (isMaster) newTags.push("latest")
 
             for (const tags of Object.values(manifest)) {
