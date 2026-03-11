@@ -7,32 +7,43 @@ on:
         required: true
         type: string
         description: 'JSON object mapping package names to tag lists, e.g. "{''map'': [''latest'']}"'
-      push:
-        required: false
-        type: boolean
-        description: 'Whether to push the image to the registry'
-        default: true
-      environment:
-        required: true
-        type: string
-        description: 'GitHub environment to use'
+
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      manifest: ${{ steps.matrix.outputs.manifest }}
+      environment: ${{ steps.matrix.outputs.environment }}
     steps:
       - id: matrix
         uses: actions/github-script@v8
         with:
           script: |
-            const manifest = JSON.parse(`${{ inputs.manifest }}`);
+            const manifest = JSON.parse("${{ inputs.manifest }}");
+            const isMaster = "${{ github.ref }}" === "master";
+            const isPullRequest = "${{ github.event_name }}" === "pull_request";
+
+            const environment = isMaster ? "prod" : "nonprod";
+
+            const newTags = ["git-${{ github.sha }}"];
+            if (isPullRequest) newTags.push("pr-${{ github.event.number }}"));
+            if (isMaster) newTags.push("latest")
+
+            for (const tags of Object.values(manifest)) {
+              for (const newTag of newTags){
+                if (!tags.includes(newTag)) tags.push(newTag);
+              }
+            }
+
             core.setOutput('matrix', JSON.stringify(Object.keys(manifest)));
+            core.setOutput('manifest', JSON.stringify(manifest));
+            core.setOutput('environment', environment);
 
   build:
     needs: setup
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ needs.setup.outputs.environment }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,8 +87,8 @@ jobs:
       - name: Calculate Version for Build Args
         id: version
         run: |
-          GIT_VERSION=$(git describe --tags --always --match 'v*')
-          echo "version=${GIT_VERSION}" >> $GITHUB_OUTPUT
+          GIT_VERSION=$(git describe --tags --always --match '${{ matrix.package }}-v*')
+          echo "version=${GIT_VERSION#${{matrix.package}}-}" >> $GITHUB_OUTPUT
 
       - name: Generate Tags
         id: tags
@@ -95,11 +106,21 @@ jobs:
             const imageTags = rawTags.map(t => `ghcr.io/${fullRepo}/${pkg}:${t}`);
 
             // Add git describe tag only if the only tag is "latest"
-            if (rawTags.length === 1 && rawTags[0] === 'latest') {
+            if (rawTags.includes('latest')) {
               imageTags.push(`ghcr.io/${fullRepo}/${pkg}:${{ steps.version.outputs.version }}`);
             }
 
             return imageTags.join('\n');
+
+
+      - name: Create docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          labels: |
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.licenses=MIT
+
 
       - name: Build and push container
         uses: docker/build-push-action@v6
@@ -107,8 +128,8 @@ jobs:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
-          push: ${{ inputs.push }}
-
+          push: true
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           build-args: |
             GIT_HASH=${{ github.sha }}
