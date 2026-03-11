@@ -96,7 +96,7 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const manifest = JSON.parse(`${{ inputs.manifest }}`);
+            const manifest = JSON.parse(`${{ needs.setup.outputs.manifest }}`);
             const pkg = '${{ matrix.package }}';
             const fullRepo = '${{ github.repository }}';
 
