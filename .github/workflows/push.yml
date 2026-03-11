@@ -24,9 +24,10 @@ jobs:
         uses: ./.github/actions/python-ci
 
   build-containers:
+    if: github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:')
     uses: ./.github/workflows/containers.yml
     with:
       manifest: '{"map": ["latest"], "kart": ["latest"]}'
-      push: ${{ github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:') }}
+      push: true
       environment: nonprod
     secrets: inherit
