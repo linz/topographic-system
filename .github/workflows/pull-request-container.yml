@@ -9,8 +9,8 @@ jobs:
     with:
       manifest: |
         {
-          "map": ["pr-${{ github.event.number }}"],
-          "kart": ["pr-${{ github.event.number }}"]
+          "map": ["pr-${{ github.event.number }}","pr-${{ github.event.number }}-{{ github.sha }}"],
+          "kart": ["pr-${{ github.event.number }},"pr-${{ github.event.number }}-{{ github.sha }}"]
         }
       environment: nonprod
     secrets: inherit
