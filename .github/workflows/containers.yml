@@ -112,7 +112,6 @@ jobs:
 
             return imageTags.join('\n');
 
-
       - name: Create docker metadata
         id: meta
         uses: docker/metadata-action@v6
@@ -120,7 +119,6 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
             org.opencontainers.image.licenses=MIT
-
 
       - name: Build and push container
         uses: docker/build-push-action@v6

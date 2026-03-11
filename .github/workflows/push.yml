@@ -28,5 +28,5 @@ jobs:
   build-container:
     uses: ./.github/workflows/containers.yml
     with:
-      manifest: "{ \"map\": [], \"kart\": [] }"
+      manifest: '{ "map": [], "kart": [] }'
     secrets: inherit
