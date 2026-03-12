@@ -24,11 +24,6 @@
         {
           "path": "uv.lock",
           "type": "toml",
-          "jsonpath": "$.package[?(@.name.value=='topographic-system')].version"
-        },
-        {
-          "path": "uv.lock",
-          "type": "toml",
           "jsonpath": "$.package[?(@.name.value=='topographic-system-validation')].version"
         }
       ]
@@ -41,6 +36,11 @@
           "path": "packages/data-prep/pyproject.toml",
           "type": "toml",
           "jsonpath": "$.project.version"
+        },
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='topographic-system-data-prep')].version"
         }
       ]
     }
