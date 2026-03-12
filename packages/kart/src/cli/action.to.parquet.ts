@@ -1,4 +1,6 @@
-import { basename } from 'path';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import {
@@ -11,6 +13,7 @@ import {
   upsertAssetToCollection,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
+import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -57,7 +60,7 @@ export const parquetCommand = command({
       type: UrlFolder,
       long: 'temp-location',
       description: 'Temporary location for intermediate files',
-      defaultValue: () => new URL('file:///tmp/kart/parquet/'),
+      defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'parquet')),
       defaultValueIsSerializable: true,
     }),
     sourceFiles: restPositionals({
@@ -94,14 +97,14 @@ export const parquetCommand = command({
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
-        const dataset = basename(gpkgFile.pathname, extension);
+        const dataset = path.basename(gpkgFile.pathname, extension);
         const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
         logger.trace({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
         const command = [
           'ogr2ogr',
           ['-f', 'Parquet'],
-          parquetFile.pathname,
-          gpkgFile.pathname,
+          fileURLToPath(parquetFile),
+          fileURLToPath(gpkgFile),
           ['-lco', `COMPRESSION=${args.compression}`],
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
