@@ -1,6 +1,8 @@
-name: Build
-
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -23,10 +25,8 @@ jobs:
       - name: Python CI
         uses: ./.github/actions/python-ci
 
-  build-containers:
+  build-container:
     uses: ./.github/workflows/containers.yml
     with:
-      manifest: '{"map": ["latest"], "kart": ["latest"]}'
-      push: ${{ github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:') }}
-      environment: nonprod
+      manifest: '{ "map": [], "kart": [] }'
     secrets: inherit

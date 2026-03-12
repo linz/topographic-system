@@ -60,6 +60,4 @@ jobs:
     uses: ./.github/workflows/containers.yml
     with:
       manifest: ${{ needs.release-please.outputs.manifest }}
-      push: true
-      environment: prod
     secrets: inherit
