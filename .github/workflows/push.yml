@@ -30,3 +30,10 @@ jobs:
     with:
       manifest: '{ "map": [], "kart": [] }'
     secrets: inherit
+
+  visual-diff:
+    needs: build-container
+    uses: ./.github/workflows/visual-diff.yml
+    with:
+      environment: nonprod
+    secrets: inherit

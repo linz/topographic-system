@@ -61,3 +61,11 @@ jobs:
     with:
       manifest: ${{ needs.release-please.outputs.manifest }}
     secrets: inherit
+
+  visual-diff:
+    needs: build-container
+    if: needs.release-please.outputs.releases_created == 'true' && needs.release-please.outputs.manifest != '{}'
+    uses: ./.github/workflows/visual-diff.yml
+    with:
+      environment: prod
+    secrets: inherit

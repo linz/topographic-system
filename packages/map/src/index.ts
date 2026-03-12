@@ -3,6 +3,7 @@ import { run, subcommands } from 'cmd-ts';
 import { deployCommand } from './cli/action.deploy.ts';
 import { produceCoverCommand } from './cli/action.produce.cover.ts';
 import { ProduceCommand } from './cli/action.produce.ts';
+import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 
 const Cli = subcommands({
   name: 'topographic-system',
@@ -11,6 +12,7 @@ const Cli = subcommands({
     produce: ProduceCommand,
     'produce-cover': produceCoverCommand,
     deploy: deployCommand,
+    'visual-diff': VisualDiffCommand,
   },
 });
 
