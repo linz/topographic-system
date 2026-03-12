@@ -37,7 +37,7 @@ jobs:
     needs: build-container
     uses: ./.github/workflows/visual-diff.yml
     with:
-      environment: nonprod
+      environment: "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
     secrets: inherit
     
   test-kart:
