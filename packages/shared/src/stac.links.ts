@@ -31,7 +31,7 @@ export function compareStacAssets(a: StacAsset | StacLink | undefined, b: StacAs
 interface AssetLocationContext {
   category: string;
   dataset: string;
-  fileName: string;
+  file: URL;
   tag?: string;
   /** root location eg "s3://linz-topography-nonprod/" */
   root: URL;
@@ -59,7 +59,7 @@ export function determineAssetLocation(ctx: AssetLocationContext): URL {
     { ...ctx, root: ctx.root.href, tag, master: isMergeToMaster(), release: isRelease(), pr: isPullRequest() },
     'ToParquet:DetermineS3LocationContextVars',
   );
-  return new URL(`${ctx.category}/${ctx.dataset}/${tag}/${basename(ctx.fileName)}`, ctx.root);
+  return new URL(`${ctx.category}/${ctx.dataset}/${tag}/${basename(ctx.file.pathname)}`, ctx.root);
 }
 
 /**

@@ -20,7 +20,7 @@ describe('determineAssetLocation', () => {
     const result = determineAssetLocation({
       category: 'subdir',
       dataset: 'dataset',
-      fileName: '/path/to/output.parquet',
+      file: new URL('file:///path/to/output.parquet'),
       tag: 'custom-tag',
       root,
     });
@@ -32,7 +32,12 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_REF'] = 'refs/heads/master';
     $.env['GITHUB_WORKFLOW_REF'] = '';
 
-    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
+    const result = determineAssetLocation({
+      category: 'subdir',
+      dataset: 'dataset',
+      file: new URL('file:///output.parquet'),
+      root,
+    });
 
     assert.ok(result.href.includes('/year='));
     assert.ok(result.href.includes('/date='));
@@ -42,7 +47,12 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_REF'] = 'refs/heads/master';
     $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/release.yml@refs/heads/master';
 
-    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
+    const result = determineAssetLocation({
+      category: 'subdir',
+      dataset: 'dataset',
+      file: new URL('file:///output.parquet'),
+      root,
+    });
 
     assert.ok(result.href.includes('/year='));
     assert.ok(result.href.includes('/date='));
@@ -52,7 +62,12 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_REF_NAME'] = '123/merge';
 
-    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
+    const result = determineAssetLocation({
+      category: 'subdir',
+      dataset: 'dataset',
+      file: new URL('file:///output.parquet'),
+      root,
+    });
 
     assert.ok(result.href.includes('pull_request/pr-123'));
   });
@@ -62,7 +77,13 @@ describe('determineAssetLocation', () => {
     process.env['GITHUB_REF_NAME'] = 'invalid-ref';
 
     assert.throws(
-      () => determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root }),
+      () =>
+        determineAssetLocation({
+          category: 'subdir',
+          dataset: 'dataset',
+          file: new URL('file:///output.parquet'),
+          root,
+        }),
       {
         message: `Could not determine pull request number from GITHUB_REF: invalid-ref`,
       },
@@ -74,7 +95,12 @@ describe('determineAssetLocation', () => {
     $.env['GITHUB_WORKFLOW_REF'] = '';
     process.env['GIT_HASH'] = 'abc123';
 
-    const result = determineAssetLocation({ category: 'subdir', dataset: 'dataset', fileName: 'output.parquet', root });
+    const result = determineAssetLocation({
+      category: 'subdir',
+      dataset: 'dataset',
+      file: new URL('file:///output.parquet'),
+      root,
+    });
 
     assert.ok(result.href.includes('dev-'));
   });
@@ -83,7 +109,7 @@ describe('determineAssetLocation', () => {
     const result = determineAssetLocation({
       category: 'layer',
       dataset: 'water',
-      fileName: 'water.parquet',
+      file: new URL('file:///water.parquet'),
       tag: 'v1',
       root,
     });
@@ -95,7 +121,7 @@ describe('determineAssetLocation', () => {
     const result = determineAssetLocation({
       category: 'data/layers',
       dataset: 'buildings',
-      fileName: 'output.gpkg',
+      file: new URL('file:///output.gpkg'),
       tag: 'latest',
       root,
     });

@@ -1,8 +1,10 @@
 import assert from 'node:assert';
 import { mkdir, rm } from 'node:fs/promises';
 import { afterEach, beforeEach, describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import { stringToUrlFolder } from '@linzjs/topographic-system-shared';
 
 import type { ValidationConfig } from '../action.validate.ts';
 import { buildValidationArgs, createFilteredConfig, parseBbox } from '../action.validate.ts';
@@ -36,9 +38,9 @@ describe('action.validate', () => {
   });
 
   describe('buildValidationArgs', () => {
-    const testBasePath = '/tmp/test/validate-test';
-    const testDbPath = `${testBasePath}/parquet`;
-    const testConfigPath = `${testBasePath}/config.json`;
+    const testBasePath = stringToUrlFolder('/tmp/test/validate-test');
+    const testDbPath = new URL('parquet/', testBasePath);
+    const testConfigPath = new URL('config.json', testBasePath);
 
     const testConfig = {
       feature_not_on_layers: [
@@ -78,9 +80,9 @@ describe('action.validate', () => {
 
     beforeEach(async () => {
       await rm(testBasePath, { recursive: true, force: true });
-      await fsa.write(fsa.toUrl(`${testDbPath}/railway_station.parquet`), '');
-      await fsa.write(fsa.toUrl(`${testDbPath}/railway_line.parquet`), '');
-      await fsa.write(fsa.toUrl(testConfigPath), JSON.stringify(testConfig));
+      await fsa.write(new URL('railway_station.parquet', testDbPath), '');
+      await fsa.write(new URL('railway_line.parquet', testDbPath), '');
+      await fsa.write(testConfigPath, JSON.stringify(testConfig));
     });
 
     afterEach(async () => {
@@ -90,9 +92,9 @@ describe('action.validate', () => {
     it('should build basic args with default values', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': '/tmp/output',
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -111,13 +113,13 @@ describe('action.validate', () => {
       const result = await buildValidationArgs(args);
 
       assert.ok(result.includes('--db-path'));
-      assert.ok(result.includes(`${testDbPath}/files.parquet`));
+      assert.ok(result.includes(fileURLToPath(new URL('files.parquet', testDbPath))));
       assert.ok(result.includes('--mode'));
       assert.ok(result.includes('generic'));
       assert.ok(result.includes('--config-file'));
       assert.ok(result.includes('/tmp/filtered_config.json'));
       assert.ok(result.includes('--output-dir'));
-      assert.ok(result.includes('/tmp/output'));
+      assert.ok(result.includes(fileURLToPath(new URL('output/', testDbPath))));
       assert.ok(result.includes('--area-crs'));
       assert.ok(result.includes('2193'));
     });
@@ -125,9 +127,9 @@ describe('action.validate', () => {
     it('should handle postgis mode', async () => {
       const args = {
         mode: 'postgis',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': '/tmp/output',
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -146,13 +148,13 @@ describe('action.validate', () => {
       const result = await buildValidationArgs(args);
 
       assert.ok(result.includes('--db-path'));
-      assert.ok(result.includes(`${testDbPath}/files.parquet`));
+      assert.ok(result.includes(fileURLToPath(new URL('files.parquet', testDbPath))));
       assert.ok(result.includes('--mode'));
       assert.ok(result.includes('postgis'));
       assert.ok(result.includes('--config-file'));
       assert.ok(result.includes('/tmp/filtered_config.json'));
       assert.ok(result.includes('--output-dir'));
-      assert.ok(result.includes('/tmp/output'));
+      assert.ok(result.includes(fileURLToPath(new URL('output/', testDbPath))));
       assert.ok(result.includes('--area-crs'));
       assert.ok(result.includes('2193'));
     });
@@ -160,9 +162,9 @@ describe('action.validate', () => {
     it('should include boolean flags when true', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': '/tmp/output',
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': true,
         'export-parquet-by-geometry': true,
@@ -194,9 +196,9 @@ describe('action.validate', () => {
     it('should include bbox when valid 4 values provided', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -225,9 +227,9 @@ describe('action.validate', () => {
     it('should throw error for invalid bbox (not 4 values)', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -251,9 +253,9 @@ describe('action.validate', () => {
     it('should include date when provided', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -278,9 +280,9 @@ describe('action.validate', () => {
     it('should include weeks when provided', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -305,9 +307,9 @@ describe('action.validate', () => {
     it('should handle different area-crs values', async () => {
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 4326,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -332,14 +334,14 @@ describe('action.validate', () => {
     });
 
     it('should throw error when no parquet files found', async () => {
-      const emptyDir = `${testBasePath}/empty`;
+      const emptyDir = new URL('empty/', testBasePath);
       await mkdir(emptyDir, { recursive: true });
 
       const args = {
         mode: 'generic',
-        'db-path': `${emptyDir}/files.parquet`,
+        'db-path': new URL('files.parquet', emptyDir),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -356,7 +358,7 @@ describe('action.validate', () => {
       };
 
       await assert.rejects(async () => await buildValidationArgs(args), {
-        message: `No parquet files found in: ${args['db-path']}`,
+        message: `No parquet files found in: ${args['db-path'].href}`,
       });
     });
 
@@ -370,9 +372,9 @@ describe('action.validate', () => {
 
       const args = {
         mode: 'generic',
-        'db-path': `${testDbPath}/files.parquet`,
+        'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
-        'output-dir': `${testDbPath}/output/`,
+        'output-dir': new URL('output/', testDbPath),
         'area-crs': 2193,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
@@ -406,8 +408,8 @@ describe('action.validate', () => {
   });
 
   describe('createFilteredConfig', () => {
-    const testBasePath = '/tmp/test/validate-test';
-    const testConfigPath = `${testBasePath}/config.json`;
+    const testBasePath = stringToUrlFolder('/tmp/test/validate-test');
+    const testConfigPath = new URL('config.json', testBasePath);
 
     const testConfig: ValidationConfig = {
       ruleset: [
@@ -434,7 +436,7 @@ describe('action.validate', () => {
 
     beforeEach(async () => {
       await rm(testBasePath, { recursive: true, force: true });
-      await fsa.write(fsa.toUrl(testConfigPath), JSON.stringify(testConfig));
+      await fsa.write(testConfigPath, JSON.stringify(testConfig));
     });
 
     afterEach(async () => {
@@ -443,7 +445,7 @@ describe('action.validate', () => {
     it('should return config rules with only existing tables in strict mode', async () => {
       const availableLayers = new Set(['existing_table', 'existing_intersection']);
       const result = await createFilteredConfig(testConfigPath, availableLayers, true);
-      const filteredConfig: ValidationConfig = await fsa.readJson(fsa.toUrl(result));
+      const filteredConfig: ValidationConfig = await fsa.readJson(result);
 
       const ruleset = filteredConfig['ruleset'];
       assert.ok(ruleset, 'ruleset should exist');
@@ -453,7 +455,7 @@ describe('action.validate', () => {
     it('should return config rules with at least one existing table', async () => {
       const availableLayers = new Set(['existing_table', 'existing_intersection']);
       const result = await createFilteredConfig(testConfigPath, availableLayers, false);
-      const filteredConfig: ValidationConfig = await fsa.readJson(fsa.toUrl(result));
+      const filteredConfig: ValidationConfig = await fsa.readJson(result);
       const ruleset = filteredConfig['ruleset'];
       assert.ok(ruleset, 'ruleset should exist');
       assert.strictEqual(ruleset.length, 2);
