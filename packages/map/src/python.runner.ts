@@ -48,7 +48,7 @@ async function findQgisSource(): Promise<URL> {
 }
 
 async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult> {
-  const script = basename(cmd.args[0] ?? 'unkown');
+  const script = basename(cmd.args[0] ?? 'unknown');
   return trace(`python.${script}`, async (span) => {
     span.setAttribute('script.name', script);
     span.setAttribute('script.arguments', cmd.args.slice(1));
