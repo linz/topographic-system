@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.6.0...topographic-system-shared-v0.7.0) (2026-03-12)
+
+
+### Features
+
+* shared data release workflow for data repositories BM-1494 ([#59](https://github.com/linz/topographic-system/issues/59)) ([7c5704e](https://github.com/linz/topographic-system/commit/7c5704e868e96de6f346bb92ac3ba26d6205a5ce))
+
 ## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.5.0...topographic-system-shared-v0.6.0) (2026-03-10)
 
 
