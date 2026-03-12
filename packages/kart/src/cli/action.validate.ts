@@ -1,4 +1,6 @@
-import { basename } from 'node:path';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import {
@@ -6,7 +8,10 @@ import {
   logger,
   recursiveFileSearch,
   registerFileSystem,
+  stringToUrlFolder,
   upsertAssetToItem,
+  Url,
+  UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
 import { $ } from 'zx';
@@ -31,9 +36,9 @@ export function parseBbox(bbox: string | undefined): string[] {
 /** Argument types for validation command */
 export interface ValidateArgs {
   mode: string;
-  'db-path': string;
-  'config-file': string;
-  'output-dir': string;
+  'db-path': URL;
+  'config-file': URL;
+  'output-dir': URL;
   'area-crs': number;
   'export-parquet': boolean;
   'export-parquet-by-geometry': boolean;
@@ -59,15 +64,16 @@ export async function buildValidationArgs(args: ValidateArgs): Promise<string[]>
 
   if (availableLayers.size === 0) {
     logger.error({ dbPath: args['db-path'] }, 'ValidateCommand:NoLayersFound');
-    throw new Error(`No parquet files found in: ${args['db-path']}`);
+    throw new Error(`No parquet files found in: ${args['db-path'].href}`);
   }
   const filteredConfigPath = await createFilteredConfig(args['config-file'], availableLayers, true);
 
   // Use filtered config instead of original
-  cmdArgs.push('--config-file', filteredConfigPath);
+  cmdArgs.push('--config-file', fileURLToPath(filteredConfigPath));
 
   // Options with values or only keys
-  const valueKeys = ['db-path', 'output-dir', 'mode', 'area-crs', 'date', 'weeks'] as const;
+  const urlKeys = ['db-path', 'output-dir'] as const;
+  const valueKeys = ['mode', 'area-crs', 'date', 'weeks'] as const;
   const boolKeys = [
     'export-parquet',
     'export-parquet-by-geometry',
@@ -79,6 +85,10 @@ export async function buildValidationArgs(args: ValidateArgs): Promise<string[]>
     'skip-self-intersections',
     'verbose',
   ] as const;
+
+  for (const key of urlKeys) {
+    if (args[key] != null) cmdArgs.push(`--${key}`, fileURLToPath(args[key]));
+  }
 
   for (const key of valueKeys) {
     if (args[key] != null) cmdArgs.push(`--${key}`, String(args[key]));
@@ -100,8 +110,7 @@ export async function buildValidationArgs(args: ValidateArgs): Promise<string[]>
   return cmdArgs;
 }
 
-async function getAvailableLayers(dbPath: string): Promise<Set<string>> {
-  const dbLocation = fsa.toUrl(dbPath);
+async function getAvailableLayers(dbLocation: URL): Promise<Set<string>> {
   const dbBasepath = new URL('./', dbLocation);
   const files = await recursiveFileSearch(dbBasepath, '.parquet');
   const layers = new Set<string>();
@@ -129,12 +138,11 @@ export interface ValidationConfig {
 }
 
 export async function createFilteredConfig(
-  configPath: string,
+  configLocation: URL,
   availableLayers: Set<string>,
   strict: boolean = false,
-): Promise<string> {
-  logger.info({ configPath, availableLayers }, 'ValidateCommand:CreatingFilteredConfig');
-  const configLocation = fsa.toUrl(configPath);
+): Promise<URL> {
+  logger.info({ configLocation: configLocation.href, availableLayers }, 'ValidateCommand:CreatingFilteredConfig');
   const configContent = await fsa.read(configLocation);
   const config = JSON.parse(configContent.toString()) as ValidationConfig;
   const filteredConfig: ValidationConfig = {};
@@ -154,8 +162,8 @@ export async function createFilteredConfig(
     );
   }
 
-  const filteredConfigPath = '/tmp/filtered_config.json';
-  await fsa.write(fsa.toUrl(filteredConfigPath), JSON.stringify(filteredConfig, null, 2));
+  const filteredConfigPath = pathToFileURL('/tmp/filtered_config.json');
+  await fsa.write(filteredConfigPath, JSON.stringify(filteredConfig, null, 2));
   logger.info({ availableLayers: [...availableLayers], filteredConfigPath }, 'ValidateCommand:FilteredConfigCreated');
   return filteredConfigPath;
 }
@@ -164,35 +172,45 @@ export const validateCommand = command({
   name: 'validate',
   description: 'Run topographic data validation',
   args: {
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Destination for validation results',
+    }),
     mode: option({
       type: string,
       long: 'mode',
       description: 'Validation mode: generic for GPKG/Parquet, postgis for PostgreSQL/PostGIS',
       defaultValue: () => 'generic',
+      defaultValueIsSerializable: true,
     }),
     'db-path': option({
-      type: string,
+      type: Url,
       long: 'db-path',
       description: 'File path (GPKG/Parquet), Database URL (PostgreSQL connection string)',
-      defaultValue: () => '/tmp/kart/parquet/files.parquet',
+      defaultValue: () => fsa.toUrl(path.join(tmpdir(), 'kart', 'parquet', 'files.parquet')),
+      defaultValueIsSerializable: true,
     }),
     'config-file': option({
-      type: string,
+      type: Url,
       long: 'config-file',
       description: 'Path to validation configuration JSON file',
-      defaultValue: () => '/packages/validation/config/default_config.json',
+      defaultValue: () => pathToFileURL('/packages/validation/config/default_config.json'),
+      defaultValueIsSerializable: true,
     }),
     'output-dir': option({
-      type: string,
+      type: UrlFolder,
       long: 'output-dir',
-      description: 'Output directory for validation results',
-      defaultValue: () => '/tmp/validation-output',
+      description: 'Output directory for validation results (local / temporary)',
+      defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'validation-output')),
+      defaultValueIsSerializable: true,
     }),
     'area-crs': option({
       type: number,
       long: 'area-crs',
       description: 'CRS code for area calculations (default: 2193)',
       defaultValue: () => 2193,
+      defaultValueIsSerializable: true,
     }),
     'export-parquet': boolFlag('export-parquet', 'Export results to Parquet format'),
     'export-parquet-by-geometry': boolFlag(
@@ -215,18 +233,18 @@ export const validateCommand = command({
     logger.info({ args }, 'ValidateCommand:Start');
     const cmdArgs = await buildValidationArgs(args);
 
-    const rootCatalog = new URL('catalog.json', 's3://something');
+    const rootCatalog = new URL('catalog.json', args.output);
 
     logger.info({ command: cmdArgs.join(' ') }, 'ValidateCommand:ArgumentsPrepared');
     const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
     if (args['output-dir']) {
-      const filesToProcess = await recursiveFileSearch(fsa.toUrl(args['output-dir']));
+      const filesToProcess = await recursiveFileSearch(args['output-dir']);
       await Promise.all(
         filesToProcess.map(async (file: URL) => {
           const target = determineAssetLocation({
             category: 'data-validation',
             dataset: 'validation-results',
-            fileName: basename(file.pathname.replace(args['output-dir'] ?? '', '')),
+            file: file,
             root: rootCatalog,
           });
           logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
