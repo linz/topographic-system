@@ -39,7 +39,7 @@ jobs:
     with:
       environment: "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
     secrets: inherit
-    
+
   test-kart:
     needs: build-container
     uses: ./.github/workflows/data-review.yml
