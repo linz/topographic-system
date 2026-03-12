@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.1](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.0...topographic-system-map-v0.7.1) (2026-03-12)
+
+
+### Bug Fixes
+
+* missing seperator and bad arg passing ([#72](https://github.com/linz/topographic-system/issues/72)) ([7fa51ae](https://github.com/linz/topographic-system/commit/7fa51aeaf63c0b9f8d206938afcf308f54a1ba4c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.6.0 to ^0.7.0
+
 ## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.6.0...topographic-system-map-v0.7.0) (2026-03-10)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.5.0...topographic-system-kart-v0.6.0) (2026-03-12)
+
+
+### Features
+
+* shared data release workflow for data repositories BM-1494 ([#59](https://github.com/linz/topographic-system/issues/59)) ([7c5704e](https://github.com/linz/topographic-system/commit/7c5704e868e96de6f346bb92ac3ba26d6205a5ce))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.6.0 to ^0.7.0
+
 ## [0.5.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.4.0...topographic-system-kart-v0.5.0) (2026-03-10)
 
 
