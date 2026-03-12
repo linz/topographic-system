@@ -73,5 +73,5 @@ jobs:
         env:
           GITHUB_WORKFLOW: push
         with:
-          storage-prefix: 's3://linz-topography-screenshot-{inputs.environment}'
+          storage-prefix: 's3://linz-topography-screenshot-${{inputs.environment}}'
           storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'
