@@ -54,10 +54,10 @@ export const parquetCommand = command({
       description: 'Destination for parquet files and STAC',
     }),
     tempLocation: option({
-      type: string,
+      type: UrlFolder,
       long: 'temp-location',
       description: 'Temporary location for intermediate files',
-      defaultValue: () => '/tmp/kart/parquet',
+      defaultValue: () => new URL('file:///tmp/kart/parquet/'),
       defaultValueIsSerializable: true,
     }),
     sourceFiles: restPositionals({
@@ -90,16 +90,17 @@ export const parquetCommand = command({
       return;
     }
 
-    await $`mkdir -p ${args.tempLocation}`;
+    await $`mkdir -p ${args.tempLocation.pathname}`;
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = basename(gpkgFile.pathname, extension);
-        const parquetFile = `${args.tempLocation}/${dataset}.parquet`;
+        const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
+        logger.trace({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
         const command = [
           'ogr2ogr',
           ['-f', 'Parquet'],
-          parquetFile,
+          parquetFile.pathname,
           gpkgFile.pathname,
           ['-lco', `COMPRESSION=${args.compression}`],
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
@@ -114,11 +115,11 @@ export const parquetCommand = command({
         const assetFile = determineAssetLocation({
           category: 'data',
           dataset,
-          fileName: basename(parquetFile),
+          file: parquetFile,
           root: args.output,
         });
         logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
-        await fsa.write(assetFile, fsa.readStream(fsa.toUrl(parquetFile)), {
+        await fsa.write(assetFile, fsa.readStream(parquetFile), {
           contentType: 'application/vnd.apache.parquet',
         });
         const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile);

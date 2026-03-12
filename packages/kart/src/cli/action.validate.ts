@@ -1,5 +1,3 @@
-import { basename } from 'node:path';
-
 import { fsa } from '@chunkd/fs';
 import {
   determineAssetLocation,
@@ -237,7 +235,7 @@ export const validateCommand = command({
           const target = determineAssetLocation({
             category: 'data-validation',
             dataset: 'validation-results',
-            fileName: basename(file.pathname.replace(args['output-dir'] ?? '', '')),
+            file: file,
             root: rootCatalog,
           });
           logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
