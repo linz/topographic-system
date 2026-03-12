@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { fsa } from '@chunkd/fs';
 import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-command';
 import { Command } from '@linzjs/docker-command';
-import { logger } from '@linzjs/topographic-system-shared';
+import { trace, logger } from '@linzjs/topographic-system-shared';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import type { ExportOptions } from './stac.ts';
@@ -49,18 +49,24 @@ async function findQgisSource(): Promise<URL> {
 
 async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult> {
   const script = basename(cmd.args[0] ?? 'unknown');
-  logger.debug({ script, args: cmd.args.slice(1) }, 'Python:Start');
+  return trace(`python.${script}`, async (span) => {
+    span.setAttribute('script.name', script);
+    span.setAttribute('script.arguments', cmd.args.slice(1));
 
-  const startTime = performance.now();
-  const res = await cmd.run();
+    logger.debug({ script, args: cmd.args.slice(1) }, 'Python:Start');
 
-  logger.info({ script, duration: performance.now() - startTime }, 'Python:Done');
+    const startTime = performance.now();
+    const res = await cmd.run();
 
-  if (res.exitCode !== 0) {
-    logger.fatal({ script }, 'Failure');
-    throw new Error(`${script} failed to run`);
-  }
-  return res;
+    logger.info({ script, duration: performance.now() - startTime }, 'Python:Done');
+    span.setAttribute('script.exit', res.exitCode);
+
+    if (res.exitCode !== 0) {
+      logger.fatal({ script, stderr: res.stderr, stdout: res.stdout }, 'Failure');
+      throw new Error(`${script} failed to run`);
+    }
+    return res;
+  });
 }
 
 function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
