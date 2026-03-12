@@ -19,6 +19,17 @@ export function getTracer(): Tracer {
   return tracer;
 }
 
+function readGithubEnv(): Record<string, string | undefined> | null {
+  if (process.env['GITHUB_RUN_ID'] == null) return null;
+
+  return {
+    'github.run_id': process.env['GITHUB_RUN_ID'],
+    'github.run_attempt': process.env['GITHUB_RUN_ATTEMPT'],
+    'github.repository': process.env['GITHUB_REPOSITORY'],
+    'github.workflow': process.env['GITHUB_WORKFLOW'],
+  };
+}
+
 export function createOtelSdk(packageName: string): NodeSDK | null {
   if (process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] == null) return null;
   if (process.env['OTEL_SDK_DISABLED']) return null;
@@ -31,6 +42,8 @@ export function createOtelSdk(packageName: string): NodeSDK | null {
       [ATTR_SERVICE_NAMESPACE]: 'li-topo-maps',
       [ATTR_SERVICE_VERSION]: CliInfo.version,
       [ATTR_SERVICE_INSTANCE_ID]: CliId,
+
+      ...readGithubEnv(),
     }),
     instrumentations: [],
   });
