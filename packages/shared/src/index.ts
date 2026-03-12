@@ -25,3 +25,5 @@ export {
   upsertItemToCollection,
 } from './stac.upsert.ts';
 export { stringToUrlFolder, toRelative, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
+export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
+export { monitor } from './otel/instrument.ts';
