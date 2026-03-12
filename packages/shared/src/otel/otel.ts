@@ -10,6 +10,7 @@ import {
 } from '@opentelemetry/semantic-conventions';
 
 import { CliId, CliInfo } from '../cli.info.ts';
+import { logger } from '../log.ts';
 import { instrumentFsa } from './instrument.fsa.ts';
 
 let tracer: null | Tracer = null;
@@ -20,6 +21,9 @@ export function getTracer(): Tracer {
 
 export function createOtelSdk(packageName: string): NodeSDK | null {
   if (process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] == null) return null;
+  if (process.env['OTEL_SDK_DISABLED']) return null;
+
+  const otelEnv = Object.keys(process.env).filter((f) => f.startsWith('OTEL_'));
 
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({
@@ -32,6 +36,8 @@ export function createOtelSdk(packageName: string): NodeSDK | null {
   });
 
   instrumentFsa();
+
+  logger.info({ otelEnv }, 'OpenTelemetry:Enabled');
 
   return sdk;
 }
