@@ -70,6 +70,9 @@ jobs:
       - name: Diff snapshots
         id: visual-snapshots-diff
         uses: linz/action-visual-snapshot@v2.1
+        env:
+          GITHUB_WORKFLOW: visual-diff
         with:
           storage-prefix: 's3://linz-topography-screenshot-{inputs.environment}'
           storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'
+          workflow-id: visual-diff

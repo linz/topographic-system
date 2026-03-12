@@ -46,7 +46,7 @@ export const VisualDiffArgs = {
   concurrency: option({
     type: number,
     long: 'concurrency',
-    description: 'Number of concurrent exports to run (default: 1)',
+    description: 'Number of concurrent exports to run (default: 20)',
     defaultValue: () => 20,
     defaultValueIsSerializable: true,
   }),
