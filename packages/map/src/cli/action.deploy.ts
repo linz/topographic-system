@@ -92,7 +92,7 @@ export const DeployArgs = {
   }),
 };
 
-export const deployCommand = command({
+export const DeployCommand = command({
   name: 'deploy',
   description: 'Deploy all the qgs project files and assets into target s3 location.',
   args: DeployArgs,

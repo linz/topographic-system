@@ -6,8 +6,8 @@ import { fsa, FsMemory } from '@chunkd/fs';
 import { CliId } from '@linzjs/topographic-system-shared';
 import type { StacCatalog } from 'stac-ts';
 
-import { deployCommand } from '../cli/action.deploy.ts';
-import { produceCoverCommand } from '../cli/action.produce.cover.ts';
+import { DeployCommand } from '../cli/action.deploy.ts';
+import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
 import { ProduceCommand } from '../cli/action.produce.ts';
 import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
 
@@ -75,7 +75,7 @@ describe('QGIS Process', () => {
     await writeLatestAsset('topo50', topo50Data);
 
     // Deploy the QGIS project into memory
-    await deployCommand.handler({
+    await DeployCommand.handler({
       ...baseDeployArgs,
       project: new URL('source/', tempLocation),
       target: new URL('memory://target-deploy/'),
@@ -87,7 +87,7 @@ describe('QGIS Process', () => {
       return [{ sheetCode: 'BQ31', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
     });
 
-    await produceCoverCommand.handler({
+    await ProduceCoverCommand.handler({
       mapSheet: ['BQ31'],
       project: new URL('memory://target-deploy/qgis/latest/beehive/beehive.json'),
       layout: 'tiff-50',

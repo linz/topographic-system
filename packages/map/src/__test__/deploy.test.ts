@@ -3,7 +3,7 @@ import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 
-import { deployCommand } from '../cli/action.deploy.ts';
+import { DeployCommand } from '../cli/action.deploy.ts';
 import { pyRunner } from '../python.runner.ts';
 
 describe('action.deploy', () => {
@@ -37,7 +37,7 @@ describe('action.deploy', () => {
 
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 
-    await deployCommand.handler({
+    await DeployCommand.handler({
       ...baseArgs,
       project: new URL('memory://source/topo50maps/'),
       target: new URL('memory://target/'),

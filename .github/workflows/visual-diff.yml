@@ -55,7 +55,7 @@ jobs:
       id-token: write
       contents: write
       checks: write
-    needs: [produce-mapsheets]
+    needs: produce-mapsheets
     name: Compare Visual Diff
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -73,5 +73,5 @@ jobs:
         env:
           GITHUB_WORKFLOW: push
         with:
-          storage-prefix: 's3://linz-topography-screenshot-${{inputs.environment}}'
+          storage-prefix: ${{ inputs.environment == 'prod' && 's3://linz-topography-screenshot' || 's3://linz-topography-screenshot-nonprod' }}
           storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'

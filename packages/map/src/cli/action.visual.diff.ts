@@ -22,7 +22,7 @@ const defaultTests: TestProject[] = [
     name: 'nz-topo50-map',
     mapSheetLayer: 'nz_topo50_map_sheet',
     layout: 'tiff-50',
-    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA32', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
+    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 100,
   },
 ];
@@ -67,6 +67,7 @@ export const VisualDiffCommand = command({
     }
 
     mkdirSync(args.output, { recursive: true });
+    const tasks = [];
 
     for (const test of testProjects) {
       if (args.project.href.includes(`${test.name}`)) {
@@ -84,14 +85,15 @@ export const VisualDiffCommand = command({
         };
 
         // Start to export file
-        const tasks = test.sheetCodes.map((sheetCode) =>
+        const task = test.sheetCodes.map((sheetCode) =>
           q(async () => {
             const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
             logger.info({ file: file.href }, `Visual Diff: Exported ${sheetCode}`);
           }),
         );
-        await Promise.all(tasks);
+        tasks.push(...task);
       }
     }
+    await Promise.all(tasks);
   },
 });

@@ -160,7 +160,7 @@ const ProduceArgs = {
   tempLocation,
 };
 
-export const produceCoverCommand = command({
+export const ProduceCoverCommand = command({
   name: 'produce-cover',
   description: 'Read a Qgis project and mapsheet data, then generate stac files for the exports.',
   args: ProduceArgs,
