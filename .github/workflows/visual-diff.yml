@@ -6,9 +6,6 @@ on:
       environment:
         required: true
         type: string
-      is-pr:
-        required: true
-        type: boolean
       map_version:
         required: true
         type: string
@@ -60,7 +57,7 @@ jobs:
 
   visual-diff:
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.is-pr }}
+    if: github.ref != 'refs/heads/master'
     permissions:
       id-token: write
       contents: write
