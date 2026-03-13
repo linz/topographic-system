@@ -34,6 +34,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
 
       - name: Determine container tag
+        id: set-tag
         run: |
           if [ "${{ inputs.is-pr }}" = "true" ]; then
             echo "tag=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
@@ -49,7 +50,7 @@ jobs:
           -e AWS_SECRET_ACCESS_KEY \
           -e AWS_SESSION_TOKEN \
           -e AWS_REGION \
-          -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:${{ steps.container.outputs.tag }} \
+          -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:${{ steps.set-tag.outputs.tag }} \
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
