@@ -47,6 +47,9 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
     steps:
+      - name: Setup Otel
+        uses: linz/action-otel@master
+
       - name: Check versions
         run: |
           node --version
