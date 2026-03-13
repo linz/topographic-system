@@ -6,6 +6,9 @@ on:
       environment:
         required: true
         type: string
+      is-pr:
+        required: true
+        type: boolean
 
 jobs:
   produce-mapsheets:
