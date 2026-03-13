@@ -12,6 +12,9 @@ on:
       map_version:
         required: true
         type: string
+      project:
+        required: true
+        type: string
 
 jobs:
   produce-mapsheets:
@@ -47,7 +50,7 @@ jobs:
           -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:${{ inputs.map_version }} \
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
-          --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
+          --project ${{ inputs.project }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.1
