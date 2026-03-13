@@ -39,6 +39,7 @@ jobs:
     with:
       environment: "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
       is-pr: ${{ github.ref != 'refs/heads/master' && github.event_name == 'pull_request' }}
+      map_version: 'git-${{ github.sha }}'
     secrets: inherit
 
   test-kart:
