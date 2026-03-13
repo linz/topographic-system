@@ -11,14 +11,14 @@ export function instrumentFsa() {
   monitor(fsa, 'head', { name: (loc) => `fsa.head.${monitorName(loc)}` });
   monitor(fsa, 'read', {
     name: (loc) => `fsa.read.${monitorName(loc)}`,
-    after: (span, value) => {
+    after: (_instance, span, value) => {
       span.setAttribute('file.size', value.byteLength);
       return value;
     },
   });
   monitor(fsa, 'write', {
     name: (loc) => `fsa.write.${monitorName(loc)}`,
-    after: (span, value, _loc, buf) => {
+    after: (_instance, span, value, _loc, buf) => {
       if (typeof buf === 'string') {
         span.setAttribute('file.size', buf.length);
       } else if ('byteLength' in buf) {
