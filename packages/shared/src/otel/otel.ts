@@ -1,5 +1,9 @@
-import type { Span, Tracer } from '@opentelemetry/api';
+import { createHash } from 'node:crypto';
+
+import type { Context, Span, Tracer } from '@opentelemetry/api';
 import { trace as otelTrace } from '@opentelemetry/api';
+import { propagation, context } from '@opentelemetry/api';
+import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import {
@@ -12,7 +16,7 @@ import {
 import { CliId, CliInfo } from '../cli.info.ts';
 import { logger } from '../log.ts';
 import { instrumentFsa } from './instrument.fsa.ts';
-
+import { instrumentZx } from './instrument.zx.ts';
 let tracer: null | Tracer = null;
 export function getTracer(): Tracer {
   if (tracer == null) tracer = otelTrace.getTracer('default');
@@ -30,10 +34,16 @@ function readGithubEnv(): Record<string, string | undefined> | null {
   };
 }
 
-export function createOtelSdk(packageName: string): NodeSDK | null {
-  if (process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] == null) return null;
+function maskKey(val: string): string {
+  return createHash('sha256').update(val).digest('hex').slice(0, 12);
+}
+
+export function createOtelSdk(packageName: string): { sdk: NodeSDK; parentContext: Context } | null {
+  const endPoint = process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ?? '';
+  if (endPoint.trim() === '') return null;
   if (process.env['OTEL_SDK_DISABLED']) return null;
 
+  propagation.setGlobalPropagator(new W3CTraceContextPropagator());
   const otelEnv = Object.keys(process.env).filter((f) => f.startsWith('OTEL_'));
 
   const sdk = new NodeSDK({
@@ -49,14 +59,21 @@ export function createOtelSdk(packageName: string): NodeSDK | null {
   });
 
   instrumentFsa();
+  instrumentZx();
 
-  logger.info({ otelEnv }, 'OpenTelemetry:Enabled');
+  const parentContext = propagation.extract(context.active(), {
+    traceparent: process.env['TRACEPARENT'],
+  });
 
-  return sdk;
+  const otel: Record<string, unknown> = {};
+  for (const key of otelEnv) otel[key] = maskKey(process.env[key] ?? '');
+
+  logger.info({ otel, traceParent: process.env['TRACEPARENT'] }, 'OpenTelemetry:Enabled');
+  return { sdk, parentContext };
 }
 
-export async function trace<T>(name: string, fn: (span: Span) => Promise<T>): Promise<T> {
-  return getTracer().startActiveSpan(name, async (span) => {
+export async function trace<T>(name: string, fn: (span: Span) => Promise<T>, ctx?: Context): Promise<T> {
+  const runner = async (span: Span) => {
     try {
       return await fn(span);
     } catch (error) {
@@ -66,5 +83,7 @@ export async function trace<T>(name: string, fn: (span: Span) => Promise<T>): Pr
     } finally {
       span.end();
     }
-  });
+  };
+  if (ctx) return getTracer().startActiveSpan(name, {}, ctx, runner);
+  return getTracer().startActiveSpan(name, runner);
 }

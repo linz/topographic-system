@@ -40,6 +40,10 @@ jobs:
     env:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       ENVIRONMENT: ${{ inputs.environment }}
+
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=github.${{ inputs.environment }}'
     environment:
       name: ${{ inputs.environment }}
     steps:
