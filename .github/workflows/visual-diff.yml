@@ -6,6 +6,12 @@ on:
       environment:
         required: true
         type: string
+      map_version:
+        required: true
+        type: string
+      project:
+        required: true
+        type: string
 
 jobs:
   produce-mapsheets:
@@ -38,10 +44,10 @@ jobs:
           -e AWS_SECRET_ACCESS_KEY \
           -e AWS_SESSION_TOKEN \
           -e AWS_REGION \
-          -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:pr-${{ github.event.number }} \
+          -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:${{ inputs.map_version }} \
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
-          --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
+          --project ${{ inputs.project }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.1
@@ -51,6 +57,7 @@ jobs:
 
   visual-diff:
     environment: ${{ inputs.environment }}
+    if: github.ref != 'refs/heads/master'
     permissions:
       id-token: write
       contents: write
