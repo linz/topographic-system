@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.1...topographic-system-map-v0.8.0) (2026-03-13)
+
+
+### Features
+
+* add open telemetry ([#77](https://github.com/linz/topographic-system/issues/77)) ([b87004f](https://github.com/linz/topographic-system/commit/b87004fd6122526b01333f4497559e7ade272fba))
+* **ci:** Show Visual diff when making changes in Pull Requests. BM-1553 ([#64](https://github.com/linz/topographic-system/issues/64)) ([976b9da](https://github.com/linz/topographic-system/commit/976b9da4b719b6ef06852e87c0eebb3fb371f49a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.7.0 to ^0.8.0
+
 ## [0.7.1](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.0...topographic-system-map-v0.7.1) (2026-03-12)
 
 
