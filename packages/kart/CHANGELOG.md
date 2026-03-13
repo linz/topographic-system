@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.6.0...topographic-system-kart-v0.6.1) (2026-03-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.7.0 to ^0.8.0
+
 ## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.5.0...topographic-system-kart-v0.6.0) (2026-03-12)
 
 

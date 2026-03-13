@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.7.0...topographic-system-shared-v0.8.0) (2026-03-13)
+
+
+### Features
+
+* add open telemetry ([#77](https://github.com/linz/topographic-system/issues/77)) ([b87004f](https://github.com/linz/topographic-system/commit/b87004fd6122526b01333f4497559e7ade272fba))
+
 ## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.6.0...topographic-system-shared-v0.7.0) (2026-03-12)
 
 
