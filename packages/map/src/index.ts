@@ -2,14 +2,16 @@ import { CliInfo, createOtelSdk, trace } from '@linzjs/topographic-system-shared
 import { monitor } from '@linzjs/topographic-system-shared';
 import { run, subcommands } from 'cmd-ts';
 
-import { deployCommand } from './cli/action.deploy.ts';
-import { produceCoverCommand } from './cli/action.produce.cover.ts';
+import { DeployCommand } from './cli/action.deploy.ts';
+import { ProduceCoverCommand } from './cli/action.produce.cover.ts';
 import { ProduceCommand } from './cli/action.produce.ts';
+import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 
 const cmds = {
   produce: ProduceCommand,
-  'produce-cover': produceCoverCommand,
-  deploy: deployCommand,
+  'produce-cover': ProduceCoverCommand,
+  deploy: DeployCommand,
+  'visual-diff': VisualDiffCommand,
 };
 
 const Cli = subcommands({

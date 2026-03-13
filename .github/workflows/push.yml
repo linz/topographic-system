@@ -1,3 +1,5 @@
+name: push
+
 on:
   pull_request:
   push:
@@ -29,6 +31,13 @@ jobs:
     uses: ./.github/workflows/containers.yml
     with:
       manifest: '{ "map": [], "kart": [] }'
+    secrets: inherit
+
+  visual-diff:
+    needs: build-container
+    uses: ./.github/workflows/visual-diff.yml
+    with:
+      environment: "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
     secrets: inherit
 
   test-kart:

@@ -4,8 +4,8 @@ import { before, describe, it } from 'node:test';
 import { fsa, FsMemory } from '@chunkd/fs';
 import { CliId } from '@linzjs/topographic-system-shared';
 
-import { deployCommand } from '../cli/action.deploy.ts';
-import { produceCoverCommand } from '../cli/action.produce.cover.ts';
+import { DeployCommand } from '../cli/action.deploy.ts';
+import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
 import { ProduceCommand } from '../cli/action.produce.ts';
 import { pyRunner } from '../python.runner.ts';
 
@@ -42,7 +42,7 @@ describe('deploy -> produce-cover -> produce', () => {
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 
     // Deploy the QGIS project into memory
-    await deployCommand.handler({
+    await DeployCommand.handler({
       ...baseDeployArgs,
       project: new URL('memory://source/topo50maps/'),
       target: new URL('memory://target-deploy/'),
@@ -63,7 +63,7 @@ describe('deploy -> produce-cover -> produce', () => {
       return [{ sheetCode: 'BQ32', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
     });
 
-    await produceCoverCommand.handler({
+    await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
       project: new URL('memory://target-deploy/qgis/latest/topo50maps/topo50.json'),
       layout: 'tiff-50',
