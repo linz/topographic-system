@@ -1,8 +1,11 @@
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
 import { fsa } from '@chunkd/fs';
-import { GithubApi, logger } from '@linzjs/topographic-system-shared';
+import { GithubApi, logger, Url } from '@linzjs/topographic-system-shared';
 import { command, number, option, optional, restPositionals, string } from 'cmd-ts';
 
-export const commentCommand = command({
+export const CommentCommand = command({
   name: 'pr-comment',
   description: 'Add or update a pull request comment',
   args: {
@@ -18,15 +21,15 @@ export const commentCommand = command({
     }),
     bodyFile: restPositionals({
       description: 'Path to a file containing the comment body (default: pr_summary.md)',
-      type: string,
+      type: Url,
     }),
   },
 
   async handler(args) {
     logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile }, 'PRComment:Start');
-
-    const summaryMd = (await fsa.read(fsa.toUrl(args.bodyFile[0] ?? 'pr_summary.md'))).toString('utf-8');
-    logger.info({ bodyFile: args.bodyFile[0] ?? 'pr_summary.md' }, 'PRComment:Markdown Summary Loaded');
+    const summaryFile = args.bodyFile[0] ?? pathToFileURL(path.join(process.cwd(), 'pr_summary.md'));
+    const summaryMd = (await fsa.read(summaryFile)).toString('utf-8');
+    logger.info({ summaryFile: summaryFile.href }, 'PRComment:MarkdownSummaryLoaded');
 
     const repoName = args.repo ?? (await GithubApi.findRepo());
     const prNumber = args.pr ?? (await GithubApi.findPullRequest());

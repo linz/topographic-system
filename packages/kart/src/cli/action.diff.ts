@@ -1,8 +1,11 @@
 import type { UUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { basename } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { logger } from '@linzjs/topographic-system-shared';
+import { logger, stringToUrlFolder, Url, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
 import { command, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -33,31 +36,24 @@ type DiffOutput = {
 };
 const MAX_GEOJSON_LENGTH = 25_000;
 
-export function gitContext(repo?: string): string[] {
-  return repo ? ['-C', repo] : [];
-}
-
 interface GitContext {
   /** Repository context path to operate on eg "repo" */
-  repo: string;
+  repo: URL;
 
   diffRange: string[];
 
-  /** Location to output files too */
-  output: string;
+  /** Location to output files to */
+  output: URL;
 }
 
 async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
     const textDiff = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text`;
-    await fsa.write(fsa.toUrl(`${ctx.output}/kart_diff.txt`), textDiff.stdout);
-    logger.info(
-      { textDiffLines: textDiff.stdout.split('\n').length },
-      `Diff:Text diff written to ${ctx.output}/kart_diff.txt`,
-    );
+    await fsa.write(new URL('kart_diff.txt', ctx.output), textDiff.stdout);
+    logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, `Diff:TextDiffSaved`);
     return textDiff.stdout;
   } catch (error) {
-    logger.error({ error, ...ctx }, 'Diff:Text diff failed');
+    logger.error({ error, ...ctx }, 'Diff:TextDiffFailed');
     throw error;
   }
 }
@@ -96,13 +92,12 @@ async function getFeatureCount(ctx: GitContext): Promise<number> {
 
 async function createHtmlDiff(ctx: GitContext): Promise<URL> {
   try {
-    const htmlFile = `${ctx.output}/kart_diff.html`;
-    const htmlPath = fsa.toUrl(htmlFile);
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output "${htmlFile}"`;
-    const content = await readFileWithRetry(htmlPath);
+    const htmlDiffLocation = new URL('kart_diff.html', ctx.output);
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output "${fileURLToPath(htmlDiffLocation)}"`;
+    const content = await readFileWithRetry(htmlDiffLocation);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
-    await fsa.write(htmlPath, fixedContent);
-    return htmlPath;
+    await fsa.write(htmlDiffLocation, fixedContent);
+    return htmlDiffLocation;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:HTML diff failed');
     throw error;
@@ -122,14 +117,13 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
 
 async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
   try {
-    const geojsonOutName = `${ctx.output}/kart_diff.geojson/`;
-    const geojsonPath = fsa.toUrl(geojsonOutName);
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${geojsonOutName}"`;
-    const stat = await fsa.head(geojsonPath);
+    const geojsonDiffLocation = new URL('kart_diff.geojson', ctx.output);
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${fileURLToPath(geojsonDiffLocation)}"`;
+    const stat = await fsa.head(geojsonDiffLocation);
     const featureChangesPerDataset: Record<string, string> = {};
 
     if (stat && stat.isDirectory) {
-      const files = await fsa.toArray(fsa.list(geojsonPath, { recursive: true }));
+      const files = await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }));
       for (const file of files) {
         const jsonFile = await readGeojsonFile(file);
         if (jsonFile) {
@@ -137,7 +131,7 @@ async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string
         }
       }
     } else if (stat) {
-      const jsonFile = await readGeojsonFile(geojsonPath);
+      const jsonFile = await readGeojsonFile(geojsonDiffLocation);
       if (jsonFile) {
         featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
       }
@@ -151,14 +145,16 @@ async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string
 
 async function getGitDiff(ctx: GitContext): Promise<string> {
   try {
-    await $`mv ${ctx.repo}/.kart/index ${ctx.repo}/.kart/no.index`;
+    const tempIndexPath = fileURLToPath(new URL('.kart/no.index', ctx.repo));
+    const indexPath = fileURLToPath(new URL('.kart/index', ctx.repo));
+    await $`mv ${indexPath} ${tempIndexPath}`;
     const gitDiffOutput = await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange}`;
-    await $`mv ${ctx.repo}/.kart/no.index ${ctx.repo}/.kart/index`;
+    await $`mv ${tempIndexPath} ${indexPath}`;
 
-    await fsa.write(fsa.toUrl(`${ctx.output}/git_diff.txt`), gitDiffOutput.stdout);
+    await fsa.write(new URL('git_diff.txt', ctx.output), gitDiffOutput.stdout);
     return gitDiffOutput.stdout;
   } catch (error) {
-    logger.error({ error, ...ctx }, 'Diff:Git diff failed');
+    logger.error({ error, ...ctx }, 'Diff:GitDiffFailed');
     throw error;
   }
 }
@@ -172,23 +168,29 @@ async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promis
   throw new Error(`Failed to read file ${filePath.href} after ${retries} retries`);
 }
 
-export const diffCommand = command({
+export const DiffCommand = command({
   name: 'diff',
   description: 'Run specified diff commands on a cloned kart repository',
   args: {
     context: option({
-      type: optional(string),
+      type: optional(UrlFolder),
       long: 'context',
       short: 'C',
       description:
         'Run as if git was started in <path> instead of the current working directory see git -C for more details',
     }),
     output: option({
-      type: string,
+      type: UrlFolder,
       long: 'output',
       description: 'Optional output directory for diff results (default: "diff")',
-      defaultValue: () => 'diff',
+      defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'diff')),
       defaultValueIsSerializable: true,
+    }),
+    summaryFile: option({
+      type: Url,
+      long: 'summary-file',
+      description: 'Optional output file for summary markdown (default: pr_summary.md)',
+      defaultValue: () => pathToFileURL(path.join(process.cwd(), 'pr_summary.md')),
     }),
     diff: restPositionals({
       description: 'Commit SHA or branches to diff (default: master..FETCH_HEAD)',
@@ -199,7 +201,7 @@ export const diffCommand = command({
     logger.info({ ref: args.diff }, 'Diff:Start');
 
     const ctx: GitContext = {
-      repo: args.context ?? 'repo',
+      repo: args.context ?? stringToUrlFolder(path.join(process.cwd(), 'repo')),
       diffRange: [],
       output: args.output,
     };
@@ -219,7 +221,7 @@ export const diffCommand = command({
       }
     }
 
-    logger.info(ctx, 'Diff:Using range');
+    logger.info(ctx, 'Diff:UsingRange');
 
     try {
       const featureCount = await getFeatureCount(ctx);
@@ -231,10 +233,8 @@ export const diffCommand = command({
       const gitDiff = await getGitDiff(ctx);
 
       const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
-      await fsa.write(fsa.toUrl('pr_summary.md'), summaryMd);
-      logger.info('Diff:Markdown Summary Generated');
-
-      logger.info('Diff command completed');
+      await fsa.write(args.summaryFile, summaryMd);
+      logger.info('Diff:CommandCompleted');
     } catch (error) {
       logger.error({ error, ...ctx }, 'Diff:Failed');
       throw error;
