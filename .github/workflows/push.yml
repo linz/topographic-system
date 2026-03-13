@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/visual-diff.yml
     with:
       environment: "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
-      is-pr: ${{ github.event_name == 'pull_request' }}
+      is-pr: ${{ github.ref != 'refs/heads/master' && github.event_name == 'pull_request' }}
     secrets: inherit
 
   test-kart:
