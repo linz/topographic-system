@@ -162,13 +162,13 @@ export async function createFilteredConfig(
     );
   }
 
-  const filteredConfigPath = pathToFileURL('/tmp/filtered_config.json');
+  const filteredConfigPath = pathToFileURL(path.join(tmpdir(), 'filtered_config.json'));
   await fsa.write(filteredConfigPath, JSON.stringify(filteredConfig, null, 2));
   logger.info({ availableLayers: [...availableLayers], filteredConfigPath }, 'ValidateCommand:FilteredConfigCreated');
   return filteredConfigPath;
 }
 
-export const validateCommand = command({
+export const ValidateCommand = command({
   name: 'validate',
   description: 'Run topographic data validation',
   args: {

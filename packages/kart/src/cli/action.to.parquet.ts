@@ -11,6 +11,7 @@ import {
   recursiveFileSearch,
   registerFileSystem,
   upsertAssetToCollection,
+  Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
@@ -20,7 +21,7 @@ import { $ } from 'zx';
 const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
 const Q = new ConcurrentQueue(Concurrency);
 
-export const parquetCommand = command({
+export const ParquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
   args: {
@@ -64,7 +65,7 @@ export const parquetCommand = command({
       defaultValueIsSerializable: true,
     }),
     sourceFiles: restPositionals({
-      type: string,
+      type: Url,
       description: 'List of folders or files to convert (default: all .gpkg files in ./export)',
     }),
   },
@@ -83,23 +84,24 @@ export const parquetCommand = command({
       'ToParquet:Start',
     );
     const extension = '.gpkg';
-    const sourceFileArguments = args.sourceFiles.length > 0 ? args.sourceFiles : ['./export'];
+    const sourceFileArguments =
+      args.sourceFiles.length > 0 ? args.sourceFiles : [stringToUrlFolder(path.join(tmpdir(), 'kart', 'export'))];
     const gpkgFilesToProcess = (
-      await Promise.all(sourceFileArguments.map((sourceFile) => recursiveFileSearch(fsa.toUrl(sourceFile), extension)))
+      await Promise.all(sourceFileArguments.map((sourceFile) => recursiveFileSearch(sourceFile, extension)))
     ).flat();
 
     if (gpkgFilesToProcess.length === 0) {
-      logger.info('ToParquet:No files to process');
+      logger.info({ sourceFileArguments }, 'ToParquet:NoFilesToProcess');
       return;
     }
 
-    await $`mkdir -p ${args.tempLocation.pathname}`;
+    await $`mkdir -p ${fileURLToPath(args.tempLocation)}`;
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = path.basename(gpkgFile.pathname, extension);
         const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
-        logger.trace({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
+        logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
         const command = [
           'ogr2ogr',
           ['-f', 'Parquet'],

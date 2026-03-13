@@ -3,7 +3,7 @@ import { afterEach, describe, it } from 'node:test';
 
 import { $ } from 'zx';
 
-import { isMergeToMaster, isPullRequest, isRelease } from '../github.ts';
+import { isMergeToMaster, isPullRequest, gitContext } from '../github.ts';
 
 describe('github', () => {
   const originalEnv = { ...$.env };
@@ -61,41 +61,21 @@ describe('github', () => {
     });
   });
 
-  describe('isRelease', () => {
-    it('should return true when merge to master and workflow includes release', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/release.yml@refs/heads/master';
-      assert.strictEqual(isRelease(), true);
+  describe('gitContext', () => {
+    it('should return an empty array when no repo is provided', () => {
+      assert.deepStrictEqual(gitContext(), []);
     });
 
-    it('should return true when workflow includes Release (case insensitive)', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/Release.yml@refs/heads/master';
-      assert.strictEqual(isRelease(), true);
+    it('should return the correct context for a given repo URL', () => {
+      const repoUrl = new URL('file:///path/to/repo');
+      const expectedContext = ['-C', '/path/to/repo'];
+      assert.deepStrictEqual(gitContext(repoUrl), expectedContext);
     });
 
-    it('should return false when not merge to master', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/develop';
-      $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/release.yml@refs/heads/develop';
-      assert.strictEqual(isRelease(), false);
-    });
-
-    it('should return false when workflow does not include release', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      $.env['GITHUB_WORKFLOW_REF'] = 'owner/repo/.github/workflows/ci.yml@refs/heads/master';
-      assert.strictEqual(isRelease(), false);
-    });
-
-    it('should return false when GITHUB_WORKFLOW_REF is empty', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      $.env['GITHUB_WORKFLOW_REF'] = '';
-      assert.strictEqual(isRelease(), false);
-    });
-
-    it('should return false when GITHUB_WORKFLOW_REF is undefined', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      delete $.env['GITHUB_WORKFLOW_REF'];
-      assert.strictEqual(isRelease(), false);
+    it('should handle URLs with special characters', () => {
+      const repoUrl = new URL('file:///path/to/repo%20with%20spaces');
+      const expectedContext = ['-C', '/path/to/repo with spaces'];
+      assert.deepStrictEqual(gitContext(repoUrl), expectedContext);
     });
   });
 });

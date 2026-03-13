@@ -1,26 +1,28 @@
 import { run, subcommands } from 'cmd-ts';
 import { ProcessOutput } from 'zx';
 
-import { cloneCommand } from './cli/action.clone.ts';
+import { CloneCommand } from './cli/action.clone.ts';
 import { ContourWithLandcoverCommand } from './cli/action.contour.landcover.ts';
-import { diffCommand } from './cli/action.diff.ts';
-import { exportCommand } from './cli/action.export.ts';
-import { commentCommand } from './cli/action.pr.comment.ts';
-import { parquetCommand } from './cli/action.to.parquet.ts';
-import { validateCommand } from './cli/action.validate.ts';
-import { versionCommand } from './cli/action.version.ts';
+import { DiffCommand } from './cli/action.diff.ts';
+import { ExportCommand } from './cli/action.export.ts';
+import { FlowCommand } from './cli/action.flow.ts';
+import { CommentCommand } from './cli/action.pr.comment.ts';
+import { ParquetCommand } from './cli/action.to.parquet.ts';
+import { ValidateCommand } from './cli/action.validate.ts';
+import { VersionCommand } from './cli/action.version.ts';
 
 const Cli = subcommands({
   name: 'topographic-system',
   description: '',
   cmds: {
-    clone: cloneCommand,
-    diff: diffCommand,
-    export: exportCommand,
-    'to-parquet': parquetCommand,
-    'pr-comment': commentCommand,
-    validate: validateCommand,
-    version: versionCommand,
+    'kart-flow': FlowCommand,
+    clone: CloneCommand,
+    diff: DiffCommand,
+    export: ExportCommand,
+    'to-parquet': ParquetCommand,
+    'pr-comment': CommentCommand,
+    validate: ValidateCommand,
+    version: VersionCommand,
     'contour-with-landcover': ContourWithLandcoverCommand,
   },
 });
