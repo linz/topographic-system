@@ -22,14 +22,12 @@ export const ExportCommand = command({
       description:
         'Run as if git was started in <path> instead of the current working directory see git -C for more details',
       defaultValue: () => stringToUrlFolder(path.join(process.cwd(), 'repo')),
-      defaultValueIsSerializable: true,
     }),
     output: option({
       type: UrlFolder,
       long: 'output',
-      description: 'Optional output directory for export results (default: "export")',
+      description: 'Optional output directory for export results (default: $TMPDIR/kart/export)',
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'export')),
-      defaultValueIsSerializable: true,
     }),
     ref: option({
       type: optional(string),

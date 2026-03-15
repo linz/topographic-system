@@ -60,9 +60,8 @@ export const ParquetCommand = command({
     tempLocation: option({
       type: UrlFolder,
       long: 'temp-location',
-      description: 'Temporary location for intermediate files',
+      description: 'Optional output directory for temporary intermediate results (default: $TMPDIR/kart/parquet)',
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'parquet')),
-      defaultValueIsSerializable: true,
     }),
     sourceFiles: restPositionals({
       type: Url,

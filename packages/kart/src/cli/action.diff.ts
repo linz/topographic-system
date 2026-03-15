@@ -182,9 +182,8 @@ export const DiffCommand = command({
     output: option({
       type: UrlFolder,
       long: 'output',
-      description: 'Optional output directory for diff results (default: "diff")',
+      description: 'Optional output directory for diff results (default: $TMPDIR/kart/diff)',
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'diff')),
-      defaultValueIsSerializable: true,
     }),
     summaryFile: option({
       type: Url,
