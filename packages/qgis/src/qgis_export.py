@@ -44,14 +44,9 @@ for item in layout.items():
 if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
-# Exclude selected layers from this map item
-current_layers = map_item.layers()
-render_layers = [
-    lyr for lyr in current_layers if lyr.name() not in excluded_layer_names
-]
-
-map_item.setKeepLayerSet(True)
-map_item.setLayers(render_layers)
+for layer in list(project.mapLayers().values()):
+    if layer.name() in excluded_layer_names:
+        project.removeMapLayer(layer.id())
 
 map_crs = map_item.crs()
 
