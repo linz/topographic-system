@@ -45,11 +45,10 @@ if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
 # Exclude selected layers from this map item
-all_layers = list(project.mapLayers().values())
-render_layers = [lyr for lyr in all_layers if lyr.name() not in excluded_layer_names]
+current_layers = map_item.layers()
+render_layers = [lyr for lyr in current_layers if lyr.name() not in excluded_layer_names]
 
 map_item.setKeepLayerSet(True)
-map_item.setFollowVisibilityPreset(False)
 map_item.setLayers(render_layers)
 
 map_crs = map_item.crs()

@@ -24,8 +24,8 @@ const defaultTests: TestProject[] = [
     mapSheetLayer: 'nz_topo50_map_sheet',
     layout: 'tiff-50',
     sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
-    dpi: 60,
-    excludeLayers: ['Hillshade Igor Color ramp', 'Grid lines'],
+    dpi: 100,
+    excludeLayers: ['Hillshade Igor Color ramp'],
   },
 ];
 

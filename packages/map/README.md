@@ -22,6 +22,15 @@ Run it in the container
 docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map produce $PWD/output/AW26.json
 ```
 
+## Visual Diff Cli
+
+Run it in the container
+
+```
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map visual-diff --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output
+```
+
+
 ## Deploy QGIS Project Cli
 
 ### Write files locally
