@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import { GithubApi, logger, Url } from '@linzjs/topographic-system-shared';
-import { command, number, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, number, option, optional, string } from 'cmd-ts';
 
 export const CommentCommand = command({
   name: 'pr-comment',
@@ -19,20 +19,21 @@ export const CommentCommand = command({
       long: 'repo',
       description: 'Repository to comment on (e.g. linz/topographic-data) (default: auto-detect)',
     }),
-    bodyFile: restPositionals({
-      description: 'Path to a file containing the comment body (default: pr_summary.md)',
+    bodyFile: option({
       type: Url,
+      long: 'bodyFile',
+      description: 'Path to a file containing the comment body (default: pr_summary.md)',
+      defaultValue: () => pathToFileURL(path.join(process.cwd(), 'pr_summary.md')),
     }),
   },
 
   async handler(args) {
-    logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile }, 'PRComment:Start');
-    const summaryFile = args.bodyFile[0] ?? pathToFileURL(path.join(process.cwd(), 'pr_summary.md'));
-    const summaryMd = (await fsa.read(summaryFile)).toString('utf-8');
-    logger.info({ summaryFile: summaryFile.href }, 'PRComment:MarkdownSummaryLoaded');
+    logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile.href }, 'PRComment:Start');
+    const summaryMd = (await fsa.read(args.bodyFile)).toString('utf-8');
 
     const repoName = args.repo ?? (await GithubApi.findRepo());
     const prNumber = args.pr ?? (await GithubApi.findPullRequest());
+    logger.info({ bodyFile: args.bodyFile.href, repoName, prNumber }, 'PRComment:MarkdownSummaryLoaded');
 
     if (repoName && prNumber) {
       try {

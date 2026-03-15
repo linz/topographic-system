@@ -199,7 +199,8 @@ export const ValidateCommand = command({
     'output-dir': option({
       type: UrlFolder,
       long: 'output-dir',
-      description: 'Optional output directory for temporary intermediate results (default: $TMPDIR/kart/validation-output)',
+      description:
+        'Optional output directory for temporary intermediate results (default: $TMPDIR/kart/validation-output)',
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'validation-output')),
     }),
     'area-crs': option({

@@ -16,7 +16,7 @@ export const ExportCommand = command({
   description: 'Export a kart repository and fetch a specific commit',
   args: {
     context: option({
-      type: optional(UrlFolder),
+      type: UrlFolder,
       long: 'context',
       short: 'C',
       description:
