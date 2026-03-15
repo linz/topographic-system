@@ -6,12 +6,12 @@ export type InferArgs<T, K extends keyof T> = T[K] extends (...args: infer P) =>
   ? (...args: P) => string
   : never;
 
-export type InferArgsWithSpan<T, K extends keyof T> = T[K] extends (...args: infer P) => infer R
-  ? (span: Span, ...args: P) => Promise<R>
+export type InferArgsWithSpan<T, K extends keyof T> = T[K] extends (...args: infer P) => any
+  ? (instance: T, span: Span, ...args: P) => Promise<void> | void
   : never;
 
 export type InferArgsWithSpanReturn<T, K extends keyof T> = T[K] extends (...args: infer P) => Promise<infer R>
-  ? (span: Span, value: Awaited<R>, ...args: P) => R
+  ? (instance: T, span: Span, value: Awaited<R>, ...args: P) => R
   : never;
 
 interface MonitorOpts<T, K extends keyof T> {
@@ -30,19 +30,21 @@ export function monitor<T, K extends keyof T>(c: T, key: K, opts: MonitorOpts<T,
     throw new Error(`${String(key)} Already monitored`);
   }
 
-  const newFn = (...args: unknown[]) => {
+  function newFn(...args: unknown[]) {
     const spanActual = typeof opts.name === 'function' ? opts.name(...args) : opts.name;
     return trace(spanActual, async (span) => {
+      // @ts-ignore - typescript really doesnt like this `any`
+      const ctx = this as any;
       try {
-        if (opts.before) await opts.before(span, ...args);
-        const result = await oldHandler.apply(c, args);
-        if (opts.after) return opts.after(span, result, ...args);
+        if (opts.before) await opts.before(ctx, span, ...args);
+        const result = await oldHandler.apply(ctx, args);
+        if (opts.after) return opts.after(ctx, span, result, ...args);
         return result;
       } finally {
         span.end();
       }
     });
-  };
+  }
 
   newFn[MonitorKey] = MonitorSym;
   c[key] = newFn as unknown as T[K];
