@@ -127,7 +127,12 @@ export async function downloadProjectFile(sourceUrl: URL, stac: StacItem, target
  * - `projectPath` - a URL pointing to the QGIS project file
  * - `sources` - an array of URLs pointing to the datasets used in the QGIS project
  */
-export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimit(DefaultConcurrency)): Promise<URL> {
+export async function downloadProject(
+  projectUrl: URL,
+  targetUrl: URL,
+  q = pLimit(DefaultConcurrency),
+  excluded?: string[],
+): Promise<URL> {
   const startTime = performance.now();
   logger.info({ source: projectUrl.href, downloaded: targetUrl.href }, 'Download:Start');
   const stac = await fsa.readJson<StacItem>(projectUrl);

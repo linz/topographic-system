@@ -113,6 +113,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
   cmd.args.push(sheetCode);
+  cmd.args.push(JSON.stringify(options.excludeLayers ?? []));
 
   const res = await runAndLog(cmd);
   return pathToFileURL(res.stdout.trim());
