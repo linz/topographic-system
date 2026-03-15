@@ -46,7 +46,9 @@ if map_item is None:
 
 # Exclude selected layers from this map item
 current_layers = map_item.layers()
-render_layers = [lyr for lyr in current_layers if lyr.name() not in excluded_layer_names]
+render_layers = [
+    lyr for lyr in current_layers if lyr.name() not in excluded_layer_names
+]
 
 map_item.setKeepLayerSet(True)
 map_item.setLayers(render_layers)
