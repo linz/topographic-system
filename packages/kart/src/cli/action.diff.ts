@@ -189,7 +189,7 @@ export const DiffCommand = command({
       type: Url,
       long: 'summary-file',
       description: 'Optional output file for summary markdown (default: pr_summary.md)',
-      defaultValue: () => pathToFileURL(path.join(process.cwd(), 'pr_summary.md')),
+      defaultValue: () => pathToFileURL('pr_summary.md'),
     }),
     diff: restPositionals({
       description: 'Commit SHA or branches to diff (default: master..FETCH_HEAD)',
@@ -200,7 +200,7 @@ export const DiffCommand = command({
     logger.info({ ref: args.diff }, 'Diff:Start');
 
     const ctx: GitContext = {
-      repo: args.context ?? stringToUrlFolder(path.join(process.cwd(), 'repo')),
+      repo: args.context ?? stringToUrlFolder('repo'),
       diffRange: [],
       output: args.output,
     };

@@ -21,7 +21,7 @@ export const ExportCommand = command({
       short: 'C',
       description:
         'Run as if git was started in <path> instead of the current working directory see git -C for more details',
-      defaultValue: () => stringToUrlFolder(path.join(process.cwd(), 'repo')),
+      defaultValue: () => stringToUrlFolder('repo'),
     }),
     output: option({
       type: UrlFolder,

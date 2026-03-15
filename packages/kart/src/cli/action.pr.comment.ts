@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
@@ -23,7 +22,7 @@ export const CommentCommand = command({
       type: Url,
       long: 'bodyFile',
       description: 'Path to a file containing the comment body (default: pr_summary.md)',
-      defaultValue: () => pathToFileURL(path.join(process.cwd(), 'pr_summary.md')),
+      defaultValue: () => pathToFileURL('pr_summary.md'),
     }),
   },
 

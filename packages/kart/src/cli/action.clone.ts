@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { gitContext, logger, parseEnv, stringToUrlFolder, UrlFolder } from '@linzjs/topographic-system-shared';
@@ -31,7 +30,7 @@ export const CloneCommand = command({
     }),
   },
   async handler(args) {
-    const target = args.output ?? stringToUrlFolder(path.join(process.cwd(), 'repo'));
+    const target = args.output ?? stringToUrlFolder('repo');
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
 
     const env = parseEnv(EnvParser);
