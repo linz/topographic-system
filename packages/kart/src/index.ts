@@ -1,6 +1,7 @@
-import { run, subcommands } from 'cmd-ts';
-import { ProcessOutput } from 'zx';
+import { traceAndRun } from '@linzjs/topographic-system-shared';
+import { subcommands } from 'cmd-ts';
 
+import packageJson from '../package.json' with { type: 'json' };
 import { cloneCommand } from './cli/action.clone.ts';
 import { ContourWithLandcoverCommand } from './cli/action.contour.landcover.ts';
 import { diffCommand } from './cli/action.diff.ts';
@@ -10,28 +11,21 @@ import { parquetCommand } from './cli/action.to.parquet.ts';
 import { validateCommand } from './cli/action.validate.ts';
 import { versionCommand } from './cli/action.version.ts';
 
+const cmds = {
+  clone: cloneCommand,
+  diff: diffCommand,
+  export: exportCommand,
+  'to-parquet': parquetCommand,
+  'pr-comment': commentCommand,
+  validate: validateCommand,
+  version: versionCommand,
+  'contour-with-landcover': ContourWithLandcoverCommand,
+};
+
 const Cli = subcommands({
   name: 'topographic-system',
   description: '',
-  cmds: {
-    clone: cloneCommand,
-    diff: diffCommand,
-    export: exportCommand,
-    'to-parquet': parquetCommand,
-    'pr-comment': commentCommand,
-    validate: validateCommand,
-    version: versionCommand,
-    'contour-with-landcover': ContourWithLandcoverCommand,
-  },
+  cmds,
 });
 
-run(Cli, process.argv.slice(2)).catch((err) => {
-  // handle zx errors
-  if (err instanceof ProcessOutput) {
-    console.log(err.stderr);
-  } else {
-    console.log(err);
-  }
-
-  setTimeout(() => process.exit(1), 10);
-});
+void traceAndRun(Cli, cmds, packageJson.name);

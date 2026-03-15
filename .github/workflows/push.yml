@@ -45,6 +45,7 @@ jobs:
   test-kart:
     needs: build-container
     uses: ./.github/workflows/data-review.yml
+    secrets: inherit
     with:
       clone_url: https://github.com/linz/topographic-test-data.git
       head_ref: master
