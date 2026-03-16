@@ -67,7 +67,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Kart Flow
-        run: node /app/index.cjs kart-flow ${{ inputs.clone_url != '' && inputs.clone_url || github.event.repository.clone_url }} --ref ${{ inputs.head_ref != '' && inputs.head_ref || github.head_ref }}
+        run: node /app/index.cjs kart-flow ${{ inputs.clone_url != '' && inputs.clone_url || github.event.repository.clone_url }} --ref ${{ inputs.head_ref != '' && inputs.head_ref || github.head_ref }} --output ${{ inputs.output }} --changed-datasets-only=${{ inputs.changed_datasets_only }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
