@@ -14,6 +14,8 @@ export interface ExportOptions {
   format: ExportFormat;
   /** Creation dpi */
   dpi: number;
+  /** Optional list of layer names to exclude from export */
+  excludeLayers?: string[];
 }
 
 export interface GeneratedProperties {

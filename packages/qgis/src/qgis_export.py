@@ -7,6 +7,7 @@ from qgis.core import (
 )
 import sys
 import os
+import json
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -17,6 +18,7 @@ topo_map_sheet = sys.argv[4]
 export_format = sys.argv[5]
 dpi = int(sys.argv[6])
 sheet_code = sys.argv[7]
+excluded_layer_names = set(json.loads(sys.argv[8]))
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -41,6 +43,10 @@ for item in layout.items():
 
 if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
+
+for layer in list(project.mapLayers().values()):
+    if layer.name() in excluded_layer_names:
+        project.removeMapLayer(layer.id())
 
 map_crs = map_item.crs()
 

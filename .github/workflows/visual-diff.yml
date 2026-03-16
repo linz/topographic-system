@@ -15,19 +15,32 @@ on:
 
 jobs:
   produce-mapsheets:
+    runs-on: ubuntu-latest
+
     environment: ${{ inputs.environment }}
+    container:
+      image: ghcr.io/linz/topographic-system/map:${{ inputs.map_version }}
     permissions:
       id-token: write
       contents: read
     name: Produce Png Mapsheets
-    runs-on: ubuntu-latest
+    env:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      ENVIRONMENT: ${{ inputs.environment }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=github.${{ inputs.environment }}'
 
     steps:
+      - name: Setup Otel
+        uses: linz/action-otel@master
+
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: .node-version
+      - name: Check versions
+        run: |
+          node --version
+          node /app/index.cjs version
 
       - name: AWS Configure
         uses: aws-actions/configure-aws-credentials@v4.0.1
@@ -38,13 +51,7 @@ jobs:
 
       - name: Produce mapsheets
         run: |
-          docker run --rm \
-          -v ${PWD}:${PWD} \
-          -e AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN \
-          -e AWS_REGION \
-          -e AWS_DEFAULT_REGION ghcr.io/linz/topographic-system/map:${{ inputs.map_version }} \
+          node /app/index.cjs \
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }}

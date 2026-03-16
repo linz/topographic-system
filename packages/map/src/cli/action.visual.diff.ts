@@ -15,6 +15,7 @@ interface TestProject {
   layout: string;
   sheetCodes: string[];
   dpi: number;
+  excludeLayers?: string[];
 }
 
 const defaultTests: TestProject[] = [
@@ -24,6 +25,7 @@ const defaultTests: TestProject[] = [
     layout: 'tiff-50',
     sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 100,
+    excludeLayers: ['Hillshade Igor Color ramp'],
   },
 ];
 
@@ -82,6 +84,7 @@ export const VisualDiffCommand = command({
           layout: test.layout,
           dpi: test.dpi,
           format: 'png',
+          excludeLayers: test.excludeLayers,
         };
 
         // Start to export file
