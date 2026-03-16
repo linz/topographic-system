@@ -31,18 +31,39 @@ export type SheetMetadata = {
 
 const Python3 = new Command('python3', BaseCommandOptions);
 
-async function findQgisSource(): Promise<URL> {
-  // import.meta.url will not exist in commonjs contexts so attempt to use the CWD as a fall back
-  const currentUrl = import.meta.url ?? pathToFileURL(cwd() + path.sep);
-  const sameFolder = new URL('qgis/src/qgis_export.py', currentUrl);
-  const isSameFolder = await fsa.exists(sameFolder);
-  if (isSameFolder === true) return new URL('.', sameFolder);
-  logger.debug({ target: sameFolder.href }, 'Python:Source:Missing');
+/** Location of the source files if they have been found by {@link findQgisSource} */
+let sourceUrl: URL | null = null;
 
-  const parentLocation = new URL('../../qgis/src/qgis_export.py', currentUrl);
-  const isParentLocation = await fsa.exists(parentLocation);
-  if (isParentLocation === true) return new URL('.', parentLocation);
-  logger.debug({ target: parentLocation.href }, 'Python:Source:Missing');
+/**
+ * The QGIS source python files can be located in a few locations
+ * depending opn how the script has been deployed
+ *
+ * Search a few locations to try and find the "qgis_export.py" script
+ *
+ * @throws if it cannot find the qgis_export.py script
+ */
+async function findQgisSource(): Promise<URL> {
+  if (sourceUrl) return sourceUrl;
+  const fileSourceUrl = import.meta.url ?? pathToFileURL(__filename);
+  // import.meta.url will not exist in commonjs contexts so attempt to use the CWD as a fall back
+  for (const currentUrl of [fileSourceUrl, pathToFileURL(cwd() + path.sep)]) {
+    if (currentUrl == null) continue;
+    const sameFolder = new URL('qgis/src/qgis_export.py', currentUrl);
+    const isSameFolder = await fsa.exists(sameFolder);
+    if (isSameFolder === true) {
+      sourceUrl = new URL('.', sameFolder);
+      return sourceUrl;
+    }
+    logger.debug({ target: sameFolder.href }, 'Python:Source:Missing');
+
+    const parentLocation = new URL('../../qgis/src/qgis_export.py', currentUrl);
+    const isParentLocation = await fsa.exists(parentLocation);
+    if (isParentLocation === true) {
+      sourceUrl = new URL('.', parentLocation);
+      return sourceUrl;
+    }
+    logger.debug({ target: parentLocation.href }, 'Python:Source:Missing');
+  }
 
   throw new Error('Unable to find QGIS source files');
 }
@@ -158,6 +179,23 @@ export async function qgisExportCover(
 }
 
 /**
+ * Load and print the QGIS verison from python
+ *
+ * @example "4.0.0-Norrköping"
+ *
+ * @returns Qgis version from python
+ */
+async function qgisVersion(): Promise<string> {
+  const sourceLocation = await findQgisSource();
+  const cmd = Python3.create(BaseCommandOptions);
+  cmd.args.push(fileURLToPath(new URL('qgis_version.py', sourceLocation)));
+
+  const res = await runAndLog(cmd);
+
+  return res.stdout.trim();
+}
+
+/**
  * Running python commands for list_source_layers
  */
 async function listSourceLayers(input: URL): Promise<string[]> {
@@ -179,4 +217,4 @@ async function listSourceLayers(input: URL): Promise<string[]> {
 }
 
 /** Redefined for testing */
-export const pyRunner = { listSourceLayers, qgisExport, qgisExportCover };
+export const pyRunner = { listSourceLayers, qgisExport, qgisExportCover, qgisVersion };

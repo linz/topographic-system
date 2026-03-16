@@ -5,6 +5,7 @@ import { run, subcommands } from 'cmd-ts';
 import { DeployCommand } from './cli/action.deploy.ts';
 import { ProduceCoverCommand } from './cli/action.produce.cover.ts';
 import { ProduceCommand } from './cli/action.produce.ts';
+import { VersionCommand } from './cli/action.version.ts';
 import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 
 const cmds = {
@@ -12,6 +13,7 @@ const cmds = {
   'produce-cover': ProduceCoverCommand,
   deploy: DeployCommand,
   'visual-diff': VisualDiffCommand,
+  version: VersionCommand,
 };
 
 const Cli = subcommands({
