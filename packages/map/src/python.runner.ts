@@ -98,6 +98,7 @@ function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
  * Running python commands for qgis_export
  */
 async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+  const startTime = performance.now();
   const sourceLocation = await findQgisSource();
   const cmd = Python3.create(BaseCommandOptions);
 
@@ -116,6 +117,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(JSON.stringify(options.excludeLayers ?? []));
 
   const res = await runAndLog(cmd);
+  logger.info({ sheetCode, output: res.stdout.trim(), duration: performance.now() - startTime }, 'Export:Done');
   return pathToFileURL(res.stdout.trim());
 }
 
