@@ -722,7 +722,7 @@ class ModifyTable:
         Returns a list of columns that should not be compared when checking for differences between tables.
         """
         non_compare_columns = [
-            "topo_id",
+            #"topo_id",
             "t50_fid",
             "feature_type",
             "theme",
@@ -849,9 +849,10 @@ class ModifyTable:
 if __name__ == "__main__":
     tableModifer = ModifyTable(DB_PARAMS)
     option = "all"
-    # option = "compare"
+    option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
+    # schema_name = "model"
     release_date = "2025-09-25"
 
     # schema_name = "release63"
@@ -861,10 +862,10 @@ if __name__ == "__main__":
     # primary_key_type = "none"
     # primary_key_type = 'int'
     primary_key_type = "uuid"
-    update_topoid_from_previous_release = False
+    update_topoid_from_previous_release = True
     repeat_update_toid_ids = False
     previous_schema = "release62"
-    use_hive_partitioning = True
+    use_hive_partitioning = False
     change_logs_path = r"c:\data\topo-data-vector\changelogs"
     if update_topoid_from_previous_release:
         if not os.path.exists(change_logs_path):
