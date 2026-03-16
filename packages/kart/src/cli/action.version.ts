@@ -2,7 +2,7 @@ import { logger } from '@linzjs/topographic-system-shared';
 import { command } from 'cmd-ts';
 import { $ } from 'zx';
 
-export const versionCommand = command({
+export const VersionCommand = command({
   name: 'version',
   description: 'Get kart version',
   args: {},

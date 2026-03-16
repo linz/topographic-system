@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import { $ } from 'zx';
 
 import { logger } from './log.ts';
@@ -10,11 +12,9 @@ export function isPullRequest(): boolean {
 
 export function isMergeToMaster(): boolean {
   const ref = $.env['GITHUB_REF'] || '';
-  return !isPullRequest() && ref.endsWith('/master');
+  return !isPullRequest() && ref === 'refs/heads/master';
 }
 
-export function isRelease(): boolean {
-  const workflow = $.env['GITHUB_WORKFLOW_REF'] || '';
-  logger.debug({ workflow }, 'IsRelease:GITHUB_WORKFLOW_REF');
-  return isMergeToMaster() && workflow.toLowerCase().includes('release');
+export function gitContext(repo?: URL): string[] {
+  return repo ? ['-C', fileURLToPath(repo)] : [];
 }

@@ -5,7 +5,7 @@ export { Environment, EnvLabel, parseEnv } from './env.ts';
 export { registerFileSystem } from './fs.register.ts';
 export { recursiveFileSearch } from './fs.util.ts';
 export { GithubApi } from './github.api.ts';
-export { isMergeToMaster, isRelease } from './github.ts';
+export { isMergeToMaster, isPullRequest, gitContext } from './github.ts';
 export { logger } from './log.ts';
 export { ConcurrentQueue } from './queue.ts';
 export {

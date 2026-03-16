@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import { fsa } from '@chunkd/fs';
 import {
-  CliDate,
   CliId,
   downloadFile,
   logger,
@@ -11,6 +10,7 @@ import {
   Url,
   UrlFolder,
   upsertAssetToCollection,
+  determineAssetLocation,
 } from '@linzjs/topographic-system-shared';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { command, option } from 'cmd-ts';
@@ -85,10 +85,12 @@ export const ContourWithLandcoverCommand = command({
 
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
-    const assetFile = new URL(
-      `${topo50ContourName}/year=${CliDate.slice(0, 4)}/date=${CliDate}/${topo50ContourName}.parquet`,
-      args.output,
-    );
+    const assetFile = determineAssetLocation({
+      category: 'prepared-data',
+      dataset: topo50ContourName,
+      file: tempOutputParquet,
+      root: args.output,
+    });
 
     logger.info({ assetFile }, 'UploadingParquet');
     await fsa.write(assetFile, fsa.readStream(tempOutputParquet), {

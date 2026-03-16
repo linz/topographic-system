@@ -11,7 +11,7 @@ import type { Type } from 'cmd-ts';
  * @param path the path to convert
  * @param base the path to be relative to default to current path
  */
-export function toRelative(path: URL, base: URL = fsa.toUrl(process.cwd())): string {
+export function toRelative(path: URL, base: URL = fsa.toUrl('')): string {
   if (path.protocol !== 'file:' || base.protocol !== 'file:') throw new Error('Must be file: URL');
   return './' + relative(fileURLToPath(base), fileURLToPath(path));
 }

@@ -162,13 +162,13 @@ export async function createFilteredConfig(
     );
   }
 
-  const filteredConfigPath = pathToFileURL('/tmp/filtered_config.json');
+  const filteredConfigPath = pathToFileURL(path.join(tmpdir(), 'filtered_config.json'));
   await fsa.write(filteredConfigPath, JSON.stringify(filteredConfig, null, 2));
   logger.info({ availableLayers: [...availableLayers], filteredConfigPath }, 'ValidateCommand:FilteredConfigCreated');
   return filteredConfigPath;
 }
 
-export const validateCommand = command({
+export const ValidateCommand = command({
   name: 'validate',
   description: 'Run topographic data validation',
   args: {
@@ -189,21 +189,19 @@ export const validateCommand = command({
       long: 'db-path',
       description: 'File path (GPKG/Parquet), Database URL (PostgreSQL connection string)',
       defaultValue: () => fsa.toUrl(path.join(tmpdir(), 'kart', 'parquet', 'files.parquet')),
-      defaultValueIsSerializable: true,
     }),
     'config-file': option({
       type: Url,
       long: 'config-file',
       description: 'Path to validation configuration JSON file',
       defaultValue: () => pathToFileURL('/packages/validation/config/default_config.json'),
-      defaultValueIsSerializable: true,
     }),
     'output-dir': option({
       type: UrlFolder,
       long: 'output-dir',
-      description: 'Output directory for validation results (local / temporary)',
+      description:
+        'Optional output directory for temporary intermediate results (default: $TMPDIR/kart/validation-output)',
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'validation-output')),
-      defaultValueIsSerializable: true,
     }),
     'area-crs': option({
       type: number,
