@@ -9,6 +9,42 @@ const EnvParser = z.object({
   GITHUB_TOKEN: z.optional(z.string()),
 });
 
+export interface CloneArgs {
+  repository: string;
+  output?: URL;
+  ref?: string;
+}
+
+export interface CloneContext {
+  target: URL;
+  repoUrl: URL;
+  credentialUrl: URL;
+  ref: string;
+}
+
+/**
+ * Build the clone context: resolve the output path, construct the repo URL,
+ * and inject credentials when a GITHUB_TOKEN is available.
+ */
+export function buildCloneContext(args: CloneArgs, token?: string): CloneContext {
+  const target = args.output ?? stringToUrlFolder('repo');
+  const ref = args.ref ?? 'master';
+
+  const repoUrl = new URL(args.repository, 'https://github.com/');
+
+  if (repoUrl.host !== 'github.com') {
+    throw new Error('Invalid host: ' + repoUrl.host);
+  }
+
+  const credentialUrl = new URL(repoUrl);
+  if (token != null) {
+    credentialUrl.username = 'x-access-token';
+    credentialUrl.password = token;
+  }
+
+  return { target, repoUrl, credentialUrl, ref };
+}
+
 export const CloneCommand = command({
   name: 'clone',
   description: 'Clone a kart repository and fetch a specific commit',
@@ -30,27 +66,15 @@ export const CloneCommand = command({
     }),
   },
   async handler(args) {
-    const target = args.output ?? stringToUrlFolder('repo');
     logger.info({ repository: args.repository, ref: args.ref }, 'Clone:Start');
 
     const env = parseEnv(EnvParser);
+    const ctx = buildCloneContext(args, env.GITHUB_TOKEN);
 
-    const targetUrl = new URL(args.repository, `https://github.com/`);
-
-    const targetUrlCredentials = new URL(targetUrl);
-    if (targetUrlCredentials.host !== 'github.com') {
-      throw new Error('Invalid host: ' + targetUrl.host);
-    }
-
-    if (env.GITHUB_TOKEN != null) {
-      targetUrlCredentials.username = 'x-access-token';
-      targetUrlCredentials.password = env.GITHUB_TOKEN;
-    }
-
-    logger.debug({ repoUrl: targetUrl.href }, 'Clone:NoCheckout');
-    await $`kart clone ${targetUrlCredentials.href} --no-checkout ${fileURLToPath(target)}`;
-    logger.debug({ repoUrl: targetUrl.href, ref: args.ref }, 'Clone:Completed');
-    await $`kart ${gitContext(target)} fetch origin ${args.ref}`;
-    logger.info({ repoUrl: targetUrl.href, ref: args.ref }, 'Fetch:Completed');
+    logger.debug({ repoUrl: ctx.repoUrl.href }, 'Clone:NoCheckout');
+    await $`kart clone ${ctx.credentialUrl.href} --no-checkout ${fileURLToPath(ctx.target)}`;
+    logger.debug({ repoUrl: ctx.repoUrl.href, ref: ctx.ref }, 'Clone:Completed');
+    await $`kart ${gitContext(ctx.target)} fetch origin ${ctx.ref}`;
+    logger.info({ repoUrl: ctx.repoUrl.href, ref: ctx.ref }, 'Fetch:Completed');
   },
 });
