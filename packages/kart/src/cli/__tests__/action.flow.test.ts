@@ -1,5 +1,8 @@
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
+import path from 'node:path';
+import { afterEach, before, describe, it, mock } from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 
@@ -38,14 +41,58 @@ function mockAllHandlers(callOrder?: string[]) {
   };
 }
 
-const defaultFlowArgs = {
-  repository: 'linz/topographic-test-data',
-  ref: 'master',
-  output: stringToUrlFolder('/tmp/test-flow-output'),
-  changedDatasetsOnly: false,
-};
-
 describe('action.flow', () => {
+  let testDir: string;
+  let defaultFlowArgs: Parameters<typeof FlowCommand.handler>[0];
+
+  before(async () => {
+    testDir = 'kart-flow-test/';
+
+    defaultFlowArgs = {
+      // Flow-level args
+      repository: 'linz/topographic-test-data',
+      ref: 'master',
+      output: stringToUrlFolder(path.join(testDir, 'output')),
+      changedDatasetsOnly: false,
+
+      // Clone
+      cloneOutput: stringToUrlFolder(path.join(testDir, 'repo')),
+
+      // Diff
+      diffOutput: stringToUrlFolder(path.join(testDir, 'diff')),
+      summaryFile: pathToFileURL(path.join(testDir, 'pr_summary.md')),
+
+      // Export
+      exportOutput: stringToUrlFolder(path.join(testDir, 'export')),
+      exportRef: 'FETCH_HEAD',
+
+      // To-parquet
+      compression: 'zstd',
+      compressionLevel: 17,
+      sortByBbox: true,
+      rowGroupSize: 4096,
+      parquetTempLocation: stringToUrlFolder(path.join(testDir, 'parquet')),
+
+      // Validate
+      validationMode: 'generic',
+      configFile: pathToFileURL('/packages/validation/config/default_config.json'),
+      validationOutputDir: stringToUrlFolder(path.join(testDir, 'validation-output')),
+      areaCrs: 2193,
+      'export-parquet': false,
+      'export-parquet-by-geometry': false,
+      'no-export-gpkg': false,
+      'use-date-folder': false,
+      'report-only': false,
+      'skip-queries': false,
+      'skip-features-on-layer': false,
+      'skip-self-intersections': false,
+      verbose: false,
+      bbox: undefined,
+      date: undefined,
+      weeks: undefined,
+    };
+  });
+
   afterEach(() => {
     mock.restoreAll();
   });
