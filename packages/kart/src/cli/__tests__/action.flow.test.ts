@@ -1,9 +1,9 @@
 import assert from 'node:assert';
 import path from 'node:path';
-import { afterEach, before, describe, it, mock } from 'node:test';
+import { after, afterEach, before, describe, it, mock } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
+import { stringToUrlFolder } from '@linzjs/topographic-system-shared';
 
 import { CloneCommand } from '../action.clone.ts';
 import { DiffCommand } from '../action.diff.ts';
@@ -43,10 +43,15 @@ function mockAllHandlers(callOrder?: string[]) {
 describe('action.flow', () => {
   let testDir: string;
   let defaultFlowArgs: Parameters<typeof FlowCommand.handler>[0];
+  const defaultEnv = { ...process.env };
 
   before(async () => {
     testDir = 'kart-flow-test/';
-
+    // Make canCommentOnPr() return true for all flow tests
+    process.env['GITHUB_REF'] = 'refs/pull/123/merge';
+    process.env['GITHUB_TOKEN'] = 'fake-token';
+    delete process.env['GITHUB_PR_NUMBER'];
+    delete process.env['GITHUB_EVENT_PATH'];
     defaultFlowArgs = {
       // Flow-level args
       repository: 'linz/topographic-test-data',
@@ -94,6 +99,13 @@ describe('action.flow', () => {
 
   afterEach(() => {
     mock.restoreAll();
+  });
+
+  after(async () => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in defaultEnv)) delete process.env[key];
+    }
+    Object.assign(process.env, defaultEnv);
   });
 
   it('should run all steps in order', async () => {
