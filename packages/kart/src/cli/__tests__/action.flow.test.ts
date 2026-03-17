@@ -1,5 +1,4 @@
 import assert from 'node:assert';
-import { afterEach, describe, it, mock } from 'node:test';
 import path from 'node:path';
 import { afterEach, before, describe, it, mock } from 'node:test';
 import { pathToFileURL } from 'node:url';
