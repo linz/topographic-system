@@ -132,11 +132,29 @@ export const ParquetCommand = command({
           'ToParquet:AssetToCollectionUpserted',
         );
         if (isMergeToMaster()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
+          const latestAssetFile = determineAssetLocation({
+            category: 'data',
+            dataset,
+            file: parquetFile,
+            root: args.output,
+            tag: 'latest',
+          });
+          logger.info({ latestAssetFile: latestAssetFile.href }, 'ToParquet:UploadingParquetLatest');
+          await fsa.write(latestAssetFile, fsa.readStream(parquetFile), {
+            contentType: 'application/vnd.apache.parquet',
+          });
+          const stacCollectionFile = await upsertAssetToCollection(rootCatalog, latestAssetFile);
+          logger.info(
+            { parquetFile, stacCollectionFile: stacCollectionFile.href },
+            'ToParquet:AssetToCollectionUpserted',
+          );
+          const derivedFromOriginal = { rel: 'derived_from', href: assetFile.href };
+          logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
           await upsertAssetToCollection(
             rootCatalog,
             assetFile,
             new URL('../../latest/collection.json', stacCollectionFile),
+            [derivedFromOriginal],
           );
         }
       });
