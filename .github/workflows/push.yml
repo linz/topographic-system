@@ -63,7 +63,7 @@ jobs:
       - uses: actions/checkout@v5
       - run: npm ci
       - name: Run kart integration tests
-        run: node --test packages/kart/src/cli/__tests__/action.flow.integration.test.ts
+        run: npm run test:integration
         env:
           CI_REQUIRE_TOOLS: 'true'
           KART_ENTRYPOINT: /app/index.cjs
