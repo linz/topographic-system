@@ -78,22 +78,8 @@ describe('action.flow', () => {
       parquetTempLocation: stringToUrlFolder(path.join(testDir, 'parquet')),
 
       // Validate
-      validationMode: 'generic',
       configFile: pathToFileURL('/packages/validation/config/default_config.json'),
       validationOutputDir: stringToUrlFolder(path.join(testDir, 'validation-output')),
-      areaCrs: 2193,
-      exportParquet: false,
-      exportParquetByGeometry: false,
-      noExportGpkg: false,
-      useDateFolder: false,
-      reportOnly: false,
-      skipQueries: false,
-      skipFeaturesOnLayer: false,
-      skipSelfIntersections: false,
-      verbose: false,
-      bbox: undefined,
-      date: undefined,
-      weeks: undefined,
     };
   });
 
