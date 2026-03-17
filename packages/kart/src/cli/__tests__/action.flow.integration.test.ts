@@ -81,6 +81,12 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
   const seedGeojson = new URL('seed.geojson', baseDir);
   const seedGpkg = new URL('seed.gpkg', baseDir);
   const bareRepo = new URL('fixture.kart/', baseDir);
+  const gitEnv = {
+    GIT_AUTHOR_NAME: process.env['GIT_AUTHOR_NAME'] ?? 'kart-test',
+    GIT_AUTHOR_EMAIL: process.env['GIT_AUTHOR_EMAIL'] ?? 'kart-test@localhost',
+    GIT_COMMITTER_NAME: process.env['GIT_COMMITTER_NAME'] ?? 'kart-test',
+    GIT_COMMITTER_EMAIL: process.env['GIT_COMMITTER_EMAIL'] ?? 'kart-test@localhost',
+  };
 
   await fsa.write(
     seedGeojson,
@@ -97,7 +103,9 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
   );
 
   await $`ogr2ogr -f GPKG ${fileURLToPath(seedGpkg)} ${fileURLToPath(seedGeojson)} -nln test_points`;
-  await $`kart init --import ${`GPKG:${fileURLToPath(seedGpkg)}`} ${fileURLToPath(bareRepo)} --bare -b master`;
+  await $({
+    env: { ...process.env, ...gitEnv },
+  })`kart init --import ${`GPKG:${fileURLToPath(seedGpkg)}`} ${fileURLToPath(bareRepo)} --bare -b master`;
 
   return bareRepo;
 }
