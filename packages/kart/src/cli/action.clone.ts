@@ -9,16 +9,64 @@ const EnvParser = z.object({
   GITHUB_TOKEN: z.optional(z.string()),
 });
 
+/** Input arguments for the `clone` command */
 export interface CloneArgs {
+  /**
+   * Repository to clone. Accepts full URL or shorthand org/repo slug.
+   * Only accepts github.com hosted repositories (others will throw at runtime).
+   *
+   * @example "https://github.com/linz/topographic-data"
+   * @example "linz/topographic-data"
+   */
   repository: string;
+
+  /**
+   * Output directory for the cloned repository. Defaults to "./repo" in the current working directory.
+   *
+   * @example new URL("file:///tmp/repo/")
+   */
   output?: URL;
+
+  /**
+   * Commit SHA or branch to fetch after cloning. If omitted, uses the `master` branch.
+   *
+   * @example "master"
+   */
   ref?: string;
 }
 
+/**
+ * Resolved context built by {@link buildCloneContext} from {@link CloneArgs}
+ * and an optional GitHub token.
+ */
 export interface CloneContext {
+  /**
+   * Local directory where the repository will be cloned. Mirrors {@link CloneArgs.output}.
+   */
   target: URL;
+
+  /**
+   * Resolved `github.com` URL of the repository, from {@link CloneArgs.repository}.
+   * Does not include credentials, even if a token is provided.
+   * Use this for logging.
+   *
+   * @example new URL("https://github.com/linz/topographic-data")
+   */
   repoUrl: URL;
+
+  /**
+   * Clone of {@link repoUrl} with credentials injected when a `GITHUB_TOKEN`
+   * is available (`username = "x-access-token"`, `password = token`).
+   * Without a token this is identical to `repoUrl`.
+   * Treat as a secret. Do not log.
+   *
+   * @example new URL("https://x-access-token:ghp_token@github.com/linz/topographic-data")
+   */
   credentialUrl: URL;
+
+  /**
+   * Resolved ref to fetch after cloning. Mirrors {@link CloneArgs.ref}.
+   */
   ref: string;
 }
 

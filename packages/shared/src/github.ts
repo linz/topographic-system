@@ -7,9 +7,7 @@ import { logger } from './log.ts';
 export function isPullRequest(): boolean {
   logger.debug(
     {
-      github_pr_number: $.env['GITHUB_PR_NUMBER'],
-      github_ref: $.env['GITHUB_REF'],
-      github_event_path: $.env['GITHUB_EVENT_PATH'],
+      github: { prNumber: $.env['GITHUB_PR_NUMBER'], ref: $.env['GITHUB_REF'], eventPath: $.env['GITHUB_EVENT_PATH'] },
     },
     'IsPullRequest:env',
   );

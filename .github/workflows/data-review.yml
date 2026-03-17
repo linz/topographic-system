@@ -67,9 +67,13 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Kart Flow
-        run: node /app/index.cjs kart-flow ${{ inputs.clone_url != '' && inputs.clone_url || github.event.repository.clone_url }} --ref ${{ inputs.head_ref != '' && inputs.head_ref || github.head_ref }} --output ${{ inputs.output }} --changed-datasets-only=${{ inputs.changed_datasets_only }}
+        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only "$CHANGED_DATASETS_ONLY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          OUTPUT: ${{ inputs.output }}
+          CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
       - name: Upload diff artifacts
         uses: actions/upload-artifact@v5
