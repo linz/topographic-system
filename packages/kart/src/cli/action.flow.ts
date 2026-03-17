@@ -235,7 +235,7 @@ export const FlowCommand = command({
       logger.info('Flow:Step [4/7] pr-comment');
       await CommentCommand.handler({ pr: undefined, repo: undefined, bodyFile: args.summaryFile });
     } else {
-      logger.info('Flow:Step [4/7] pr-comment (skipped – no PR detected)');
+      logger.info('Flow:Step [4/7] pr-comment (skipped - no PR detected)');
     }
 
     logger.info('Flow:Step [5/7] export');
