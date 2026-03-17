@@ -56,33 +56,42 @@ describe('github', () => {
     });
   });
 
-  describe('isMergeToMaster', () => {
-    it('should return true when not a pull request and ref ends with /master', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/master';
-      assert.strictEqual(isMergeToMaster(), true);
-    });
-
-    it('should return false when ref is a pull request', () => {
-      $.env['GITHUB_REF'] = 'refs/pull/123/merge';
-      assert.strictEqual(isMergeToMaster(), false);
-    });
-
-    it('should return false when ref does not end with /master', () => {
-      $.env['GITHUB_REF'] = 'refs/heads/develop';
-      assert.strictEqual(isMergeToMaster(), false);
-    });
-
-    it('should return false when GITHUB_REF is empty', () => {
-      $.env['GITHUB_REF'] = '';
-      assert.strictEqual(isMergeToMaster(), false);
-    });
-
-    it('should return false when GITHUB_REF is undefined', () => {
-      delete $.env['GITHUB_REF'];
-      assert.strictEqual(isMergeToMaster(), false);
-    });
+describe('isMergeToMaster', () => {
+  it('should return true when not a pull request and ref ends with /master', () => {
+    $.env['GITHUB_REF'] = 'refs/heads/master';
+    delete $.env['GITHUB_PR_NUMBER'];
+    delete $.env['GITHUB_EVENT_PATH'];
+    assert.strictEqual(isMergeToMaster(), true);
   });
 
+  it('should return false when ref is a pull request', () => {
+    $.env['GITHUB_REF'] = 'refs/pull/123/merge';
+    delete $.env['GITHUB_PR_NUMBER'];
+    delete $.env['GITHUB_EVENT_PATH'];
+    assert.strictEqual(isMergeToMaster(), false);
+  });
+
+  it('should return false when ref does not end with /master', () => {
+    $.env['GITHUB_REF'] = 'refs/heads/develop';
+    delete $.env['GITHUB_PR_NUMBER'];
+    delete $.env['GITHUB_EVENT_PATH'];
+    assert.strictEqual(isMergeToMaster(), false);
+  });
+
+  it('should return false when GITHUB_REF is empty', () => {
+    $.env['GITHUB_REF'] = '';
+    delete $.env['GITHUB_PR_NUMBER'];
+    delete $.env['GITHUB_EVENT_PATH'];
+    assert.strictEqual(isMergeToMaster(), false);
+  });
+
+  it('should return false when GITHUB_REF is undefined', () => {
+    delete $.env['GITHUB_REF'];
+    delete $.env['GITHUB_PR_NUMBER'];
+    delete $.env['GITHUB_EVENT_PATH'];
+    assert.strictEqual(isMergeToMaster(), false);
+  });
+});
   describe('gitContext', () => {
     it('should return an empty array when no repo is provided', () => {
       assert.deepStrictEqual(gitContext(), []);
