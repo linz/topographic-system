@@ -42,7 +42,7 @@ jobs:
       project: s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
     secrets: inherit
 
-  test-kart:
+  test-kart-workflow:
     needs: build-container
     uses: ./.github/workflows/data-review.yml
     secrets: inherit
