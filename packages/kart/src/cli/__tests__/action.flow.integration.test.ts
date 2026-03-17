@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
@@ -123,26 +123,18 @@ const skipSuite = skipOrFail(
 const skipParquet = skipOrFail(!hasGdal313 ? [`ogr2ogr ≥ 3.13 (have ${gdalVersion})`] : []);
 
 describe('action.flow integration', { skip: skipSuite }, () => {
-  let tempDir: URL;
-
-  let repoUrl: URL;
-  let diffUrl: URL;
-  let summaryUrl: URL;
-  let exportUrl: URL;
-  let parquetUrl: URL;
-  let outputUrl: URL;
-  let validationUrl: URL;
+  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-flow-integration'));
+  const repoUrl = new URL('repo/', tempDir);
+  const diffUrl = new URL('diff/', tempDir);
+  const summaryUrl = new URL('pr_summary.md', tempDir);
+  const exportUrl = new URL('export/', tempDir);
+  const parquetUrl = new URL('parquet/', tempDir);
+  const outputUrl = new URL('s3-output/', tempDir);
+  const validationUrl = new URL('validation-output/', tempDir);
 
   before(async () => {
-    tempDir = stringToUrlFolder(await mkdtemp(path.join(tmpdir(), 'kart-flow-integration-')));
+    await mkdir(fileURLToPath(tempDir), { recursive: true });
     logger.debug({ tempDir: tempDir.href }, 'Created temporary directory for test');
-    repoUrl = new URL('repo/', tempDir);
-    diffUrl = new URL('diff/', tempDir);
-    summaryUrl = new URL('pr_summary.md', tempDir);
-    exportUrl = new URL('export/', tempDir);
-    parquetUrl = new URL('parquet/', tempDir);
-    outputUrl = new URL('s3-output/', tempDir);
-    validationUrl = new URL('validation-output/', tempDir);
 
     // Create a bare kart repo with a single dataset, then clone + fetch.
     const bareRepo = await createFixtureRepo(new URL('source/', tempDir));
@@ -154,10 +146,8 @@ describe('action.flow integration', { skip: skipSuite }, () => {
   });
 
   after(async () => {
-    if (tempDir) {
-      logger.info({ tempDir }, 'Cleaning up temporary directory after test');
-      await rm(tempDir, { recursive: true, force: true });
-    }
+    logger.info({ tempDir }, 'Cleaning up temporary directory after test');
+    await rm(tempDir, { recursive: true, force: true });
   });
 
   it('should get a version string when running step 1 – version', async () => {
