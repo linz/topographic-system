@@ -4,7 +4,6 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import {
   createFileStats,
-  createStacCatalog,
   createStacCollection,
   createStacItem,
   getDataFromCatalog,
@@ -14,10 +13,11 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import type { StacAsset, StacCatalog, StacItem } from 'stac-ts';
+import type { StacAsset, StacItem } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { pyRunner } from '../python.runner.ts';
+import { createMapSheetCatalog } from '../stac.ts';
 
 async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL | null> {
   const tarPack = tar.pack();
@@ -134,7 +134,7 @@ export const DeployCommand = command({
         }
 
         // Upload the QGS file to target location
-        const targetPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.qgs`, qgisCatalog);
+        const targetPath = new URL(`${projectSeries}/${args.deployTag}/${projectName}.qgs`, qgisCatalog);
         if (args.commit) {
           logger.info({ source: file.href, destination: targetPath }, 'Deploy: Upload QGS File');
           const stream = fsa.readStream(file);
@@ -145,7 +145,7 @@ export const DeployCommand = command({
 
         // Found and deploy all the assets file for the project as a tar file
         const projectFolder = new URL(`${projectSeries}/`, args.project);
-        const targetAssetPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.tar`, qgisCatalog);
+        const targetAssetPath = new URL(`${projectSeries}/${args.deployTag}/${projectName}.tar`, qgisCatalog);
         const assetLocation = await deployAssetsAsTar(projectFolder, targetAssetPath, args.commit);
         if (assetLocation) {
           stacItemLinks.push({
@@ -167,7 +167,7 @@ export const DeployCommand = command({
 
         // Add derived_from githash stac if provided
         if (args.githash) {
-          const sourcedStacItem = new URL(`${args.githash}/${projectSeries}/${projectName}.json`, qgisCatalog);
+          const sourcedStacItem = new URL(`${projectSeries}/${args.githash}/${projectName}.json`, qgisCatalog);
           if (await fsa.exists(sourcedStacItem)) {
             stacItemLinks.push({
               rel: 'derived_from',
@@ -180,7 +180,7 @@ export const DeployCommand = command({
         }
 
         // Create Stac Item for the QGS file
-        const stacItemPath = new URL(`${args.deployTag}/${projectSeries}/${projectName}.json`, qgisCatalog);
+        const stacItemPath = new URL(`${projectSeries}/${args.deployTag}/${projectName}.json`, qgisCatalog);
         logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
         const item = createStacItem(rootCatalog, projectName, stacItemLinks, assets);
         stacItems.set(projectSeries, item);
@@ -203,49 +203,44 @@ export const DeployCommand = command({
         type: 'application/json',
       });
       if (args.githash) {
-        const sourcedCollection = new URL(`${args.githash}/${series}/collection.json`, qgisCatalog);
+        const sourcedCollection = new URL(`${series}/${args.githash}/collection.json`, qgisCatalog);
         collectionLinks.push({
           rel: 'derived_from',
           href: sourcedCollection.href,
           type: 'application/json',
         });
       }
+      const title = `Topographic System QGIS ${series} Projects`;
       const description = `LINZ Topographic QGIS Project Series ${series}.`;
       const collection = createStacCollection(rootCatalog, description, [], collectionLinks);
-      catalogLinks.push({
-        rel: 'collection',
-        href: `./${series}/collection.json`,
-        type: 'application/json',
-      });
       if (args.commit) {
-        const stacCollectionPath = new URL(`${args.deployTag}/${series}/collection.json`, qgisCatalog);
+        const stacCollectionPath = new URL(`${series}/${args.deployTag}/collection.json`, qgisCatalog);
         logger.info({ mapSeries: series, destination: stacCollectionPath.href }, 'Deploy: Upload Stac Collections');
         await fsa.write(stacCollectionPath, JSON.stringify(collection, null, 2));
+        const seriesCatalogPath = new URL(`${series}/catalog.json`, qgisCatalog);
+        const catalogLink = {
+          rel: 'collection',
+          href: `./${args.deployTag}/collection.json`,
+          type: 'application/json',
+        };
+        const catalog = await createMapSheetCatalog(seriesCatalogPath, rootCatalog, title, description, [catalogLink]);
+        logger.info({ destination: seriesCatalogPath.href }, 'Deploy: Upload Stac Catalog File');
+        await fsa.write(seriesCatalogPath, JSON.stringify(catalog, null, 2));
+        catalogLinks.push({
+          rel: 'child',
+          href: `./${series}/catalog.json`,
+          type: 'application/json',
+        });
       }
     }
 
     logger.info({ project: args.project }, 'Deploy: Create Stac Catalog');
-    const catalogPath = new URL(`${args.deployTag}/catalog.json`, qgisCatalog);
+    const catalogPath = new URL(`catalog.json`, qgisCatalog);
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
-
-    let catalog = createStacCatalog(rootCatalog, title, description, catalogLinks);
+    const catalog = await createMapSheetCatalog(catalogPath, rootCatalog, title, description, catalogLinks);
     if (args.commit) {
-      // Only try to update the catalog if committing
-      const existing = await fsa.exists(catalogPath);
-      if (existing) {
-        catalog = await fsa.readJson<StacCatalog>(catalogPath);
-        for (const series of stacItems.keys()) {
-          if (catalog.links.find((link) => link.href === `./${series}/collection.json`)) continue;
-          // Push new series collection link if not exists
-          catalog.links.push({
-            rel: 'collection',
-            href: `./${series}/collection.json`,
-            type: 'application/json',
-          });
-        }
-        logger.info({ destination: catalogPath.href }, 'Deploy: Upload Stac Catalog File');
-      }
+      logger.info({ destination: catalogPath.href }, 'Deploy: Upload Stac Catalog File');
       await fsa.write(catalogPath, JSON.stringify(catalog, null, 2));
     }
 
