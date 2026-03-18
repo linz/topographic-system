@@ -24,11 +24,25 @@ export function createCollectionExtentFromParquet(
   return { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
 }
 
+/**
+ * Checks whether the extent of a STAC Collection has changed, with a given precision to avoid unnecessary updates due to minor floating point differences.
+ * @param currentExtent
+ * @param nextExtent
+ * @param precision Number of decimal places to consider when comparing the spatial extent bbox. Defaults to 8.
+ */
 export function hasCollectionExtentChanged(
   currentExtent: StacCollection['extent'],
   nextExtent: StacCollection['extent'],
+  precision: number = 8,
 ): boolean {
-  return !isDeepStrictEqual(currentExtent, nextExtent);
+  const roundBbox = (extent: StacCollection['extent']): StacCollection['extent'] => ({
+    ...extent,
+    spatial: {
+      ...extent.spatial,
+      bbox: extent.spatial.bbox.map((bbox) => bbox.map((coord) => Number(coord.toFixed(precision)))) as StacCollection['extent']['spatial']['bbox'],
+    },
+  });
+  return !isDeepStrictEqual(roundBbox(currentExtent), roundBbox(nextExtent));
 }
 
 /**

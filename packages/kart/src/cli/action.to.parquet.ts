@@ -95,7 +95,7 @@ export const ParquetCommand = command({
       return;
     }
 
-    await mkdir(args.tempLocation);
+    await mkdir(args.tempLocation, {recursive: true});
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
