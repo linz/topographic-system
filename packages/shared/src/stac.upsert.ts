@@ -38,6 +38,7 @@ export function hasCollectionExtentChanged(
  * Running this function multiple times with different assets for the same dataset will update the same STAC Item.
  * Running this in parallel for different assets of the same dataset may lead to race conditions,
  * as STAC Collection and Catalogs up to the RootCatalog are updated.
+ *
  * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
