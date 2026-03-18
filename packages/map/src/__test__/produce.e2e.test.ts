@@ -38,7 +38,7 @@ describe('QGIS Process', () => {
   });
 
   const baseDeployArgs = {
-    githash: undefined,
+    githash: '4aba34b5accb0002867af66f6a92a35e0a4be7cab',
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -89,7 +89,7 @@ describe('QGIS Process', () => {
 
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ31'],
-      project: new URL('memory://target-deploy/qgis/latest/beehive/beehive.json'),
+      project: new URL('memory://target-deploy/qgis/beehive/latest/beehive.json'),
       layout: 'tiff-50',
       mapSheetLayer: 'topo50',
       source: baseDeployArgs.source,

@@ -16,8 +16,9 @@ describe('deploy -> produce-cover -> produce', () => {
     fsa.register('memory://', mem);
   });
 
+  const githash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
   const baseDeployArgs = {
-    githash: undefined,
+    githash,
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -50,13 +51,17 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href).sort(),
       [
-        'memory://target-deploy/qgis/latest/topo50maps/topo50.qgs',
-        'memory://target-deploy/qgis/latest/topo50maps/topo50.json',
-        'memory://target-deploy/qgis/latest/topo50maps/collection.json',
-        'memory://target-deploy/qgis/latest/catalog.json',
-      ],
+        'memory://target-deploy/qgis/topo50maps/latest/topo50.json',
+        'memory://target-deploy/qgis/topo50maps/latest/collection.json',
+        `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.json`,
+        `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/collection.json`,
+        `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.qgs`,
+        'memory://target-deploy/qgis/topo50maps/catalog.json',
+        'memory://target-deploy/qgis/catalog.json',
+        'memory://target-deploy/catalog.json',
+      ].sort(),
     );
 
     t.mock.method(pyRunner, 'qgisExportCover', () => {
@@ -65,7 +70,7 @@ describe('deploy -> produce-cover -> produce', () => {
 
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
-      project: new URL('memory://target-deploy/qgis/latest/topo50maps/topo50.json'),
+      project: new URL('memory://target-deploy/qgis/topo50maps/latest/topo50.json'),
       layout: 'tiff-50',
       mapSheetLayer: 'nz_topo50_map_sheet',
       source: baseDeployArgs.source,

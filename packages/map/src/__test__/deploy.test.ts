@@ -13,8 +13,9 @@ describe('action.deploy', () => {
     fsa.register('memory://', mem);
   });
 
+  const githash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
   const baseArgs = {
-    githash: undefined,
+    githash,
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -45,13 +46,17 @@ describe('action.deploy', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href).sort(),
       [
-        'memory://target/qgis/latest/topo50maps/topo50.qgs',
-        'memory://target/qgis/latest/topo50maps/topo50.json',
-        'memory://target/qgis/latest/topo50maps/collection.json',
-        'memory://target/qgis/latest/catalog.json',
-      ],
+        'memory://target/qgis/topo50maps/latest/topo50.json',
+        'memory://target/qgis/topo50maps/latest/collection.json',
+        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.json`,
+        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/collection.json`,
+        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.qgs`,
+        'memory://target/qgis/topo50maps/catalog.json',
+        'memory://target/qgis/catalog.json',
+        'memory://target/catalog.json',
+      ].sort(),
     );
   });
 });
