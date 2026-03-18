@@ -39,7 +39,9 @@ export function hasCollectionExtentChanged(
     ...extent,
     spatial: {
       ...extent.spatial,
-      bbox: extent.spatial.bbox.map((bbox) => bbox.map((coord) => Number(coord.toFixed(precision)))) as StacCollection['extent']['spatial']['bbox'],
+      bbox: extent.spatial.bbox.map((bbox) =>
+        bbox.map((coord) => Number(coord.toFixed(precision))),
+      ) as StacCollection['extent']['spatial']['bbox'],
     },
   });
   return !isDeepStrictEqual(roundBbox(currentExtent), roundBbox(nextExtent));
