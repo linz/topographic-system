@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,7 +95,7 @@ export const ParquetCommand = command({
       return;
     }
 
-    await $`mkdir -p ${fileURLToPath(args.tempLocation)}`;
+    await mkdir(args.tempLocation);
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
@@ -145,12 +146,7 @@ export const ParquetCommand = command({
           });
           const derivedFromOriginal = { rel: 'derived_from', href: assetFile.href };
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
-          await upsertAssetToCollection(
-            rootCatalog,
-            latestAssetFile,
-            new URL('../../latest/collection.json', stacCollectionFile),
-            [derivedFromOriginal],
-          );
+          await upsertAssetToCollection(rootCatalog, latestAssetFile, [derivedFromOriginal]);
         }
       });
     }

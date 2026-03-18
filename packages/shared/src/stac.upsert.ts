@@ -1,7 +1,8 @@
 import { basename } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 
 import { fsa } from '@chunkd/fs';
-import type { StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
+import type { SpatialExtent, StacCatalog, StacCollection, StacItem, StacLink, TemporalExtent } from 'stac-ts';
 
 import { CliDate } from './cli.info.ts';
 import { logger } from './log.ts';
@@ -16,6 +17,20 @@ import {
 } from './stac.factory.ts';
 import { addChildDataToParent, addParentDataToChild, compareStacAssets } from './stac.links.ts';
 
+export function createCollectionExtentFromParquet(
+  bbox: SpatialExtent,
+  dates: TemporalExtent,
+): StacCollection['extent'] {
+  return { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
+}
+
+export function hasCollectionExtentChanged(
+  currentExtent: StacCollection['extent'],
+  nextExtent: StacCollection['extent'],
+): boolean {
+  return !isDeepStrictEqual(currentExtent, nextExtent);
+}
+
 /**
  * Given a data asset path, create or update the corresponding STAC Item with the asset information.
  * Note:
@@ -26,6 +41,7 @@ import { addChildDataToParent, addParentDataToChild, compareStacAssets } from '.
  * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
+ *
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
 export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacItemFile?: URL): Promise<URL> {
@@ -59,16 +75,16 @@ export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacIt
  *
  * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
- * @param stacCollectionFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
  * @param replaceExtraLinks - Any additional links to be added to the Collection, e.g. derived_from.
  *
+ * @param stacCollectionFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
 export async function upsertAssetToCollection(
   rootCatalog: URL,
   assetFile: URL,
-  stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
   replaceExtraLinks: StacLink[] = [],
+  stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
 ): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
@@ -86,7 +102,10 @@ export async function upsertAssetToCollection(
   if (extension === 'parquet') {
     const bbox = extractSpatialExtent(stacAsset['table:columns'] as ColumnStats[]);
     const dates = extractTemporalExtent(stacAsset['table:columns'] as ColumnStats[]);
-    stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
+    const nextExtent = createCollectionExtentFromParquet(bbox, dates);
+    if (hasCollectionExtentChanged(stacCollection.extent, nextExtent)) {
+      stacCollection.extent = nextExtent;
+    }
   }
 
   if (replaceExtraLinks.length > 0) {

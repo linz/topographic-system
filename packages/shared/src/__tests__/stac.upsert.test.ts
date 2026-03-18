@@ -4,7 +4,35 @@ import { afterEach, before, beforeEach, describe, it } from 'node:test';
 import { fsa, FsMemory } from '@chunkd/fs';
 import type { StacCatalog } from 'stac-ts';
 
-import { getDataFromCatalog } from '../stac.upsert.ts';
+import { createCollectionExtentFromParquet, getDataFromCatalog, hasCollectionExtentChanged } from '../stac.upsert.ts';
+
+describe('stac.upsert extent helpers', () => {
+  it('should not report a change when parquet extent values are unchanged', () => {
+    const currentExtent = createCollectionExtentFromParquet(
+      [172.1, -41.4, 172.9, -41.0],
+      ['2026-03-18T00:00:00.000Z', '2026-03-18T00:00:00.000Z'],
+    );
+    const nextExtent = createCollectionExtentFromParquet(
+      [172.1, -41.4, 172.9, -41.0],
+      ['2026-03-18T00:00:00.000Z', '2026-03-18T00:00:00.000Z'],
+    );
+
+    assert.strictEqual(hasCollectionExtentChanged(currentExtent, nextExtent), false);
+  });
+
+  it('should report a change when parquet extent values differ', () => {
+    const currentExtent = createCollectionExtentFromParquet(
+      [172.1, -41.4, 172.9, -41.0],
+      ['2026-03-18T00:00:00.000Z', '2026-03-18T00:00:00.000Z'],
+    );
+    const nextExtent = createCollectionExtentFromParquet(
+      [172.1, -41.4, 173.1, -40.8],
+      ['2026-03-18T00:00:00.000Z', '2026-03-19T00:00:00.000Z'],
+    );
+
+    assert.strictEqual(hasCollectionExtentChanged(currentExtent, nextExtent), true);
+  });
+});
 
 describe('stac-setup', () => {
   const mem = new FsMemory();
