@@ -58,7 +58,7 @@ jobs:
     needs: build-container
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}/kart:git-${{ github.sha }}
+      image: ghcr.io/linz/topographic-system/kart:git-${{ github.sha }}
     steps:
       - uses: actions/checkout@v5
       - run: npm ci
