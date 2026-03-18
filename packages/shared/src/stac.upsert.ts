@@ -23,10 +23,9 @@ import { addChildDataToParent, addParentDataToChild, compareStacAssets } from '.
  * Running this function multiple times with different assets for the same dataset will update the same STAC Item.
  * Running this in parallel for different assets of the same dataset may lead to race conditions,
  * as STAC Collection and Catalogs up to the RootCatalog are updated.
- *
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
- *
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
 export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacItemFile?: URL): Promise<URL> {
@@ -58,8 +57,10 @@ export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacIt
  * Note:
  * One STAC Collection per geoparquet file, with additional related assets.
  *
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param stacCollectionFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
+ * @param replaceExtraLinks - Any additional links to be added to the Collection, e.g. derived_from.
  *
  * @returns The updated or newly created STAC Item, which includes the new asset and has been saved to s3.
  * */
@@ -67,7 +68,7 @@ export async function upsertAssetToCollection(
   rootCatalog: URL,
   assetFile: URL,
   stacCollectionFile: URL = new URL(`./collection.json`, assetFile),
-  extraLinks: StacLink[] = [],
+  replaceExtraLinks: StacLink[] = [],
 ): Promise<URL> {
   const extension = assetFile.href.split('.').pop() ?? '';
   const dataset = basename(assetFile.href, `.${extension}`);
@@ -88,7 +89,13 @@ export async function upsertAssetToCollection(
     stacCollection['extent'] = { spatial: { bbox: [bbox] }, temporal: { interval: [dates] } };
   }
 
-  stacCollection.links.push(...extraLinks);
+  if (replaceExtraLinks.length > 0) {
+    const extraRels = new Set(replaceExtraLinks.map((l) => l.rel));
+    stacCollection.links = stacCollection.links.filter((l) => !extraRels.has(l.rel));
+    stacCollection.links.push(...replaceExtraLinks);
+  }
+
+  stacCollection['updated'] = CliDate;
 
   await fsa.write(stacCollectionFile, stacToJson(stacCollection));
   logger.info(

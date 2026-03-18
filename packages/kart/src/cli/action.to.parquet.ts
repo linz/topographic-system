@@ -143,16 +143,11 @@ export const ParquetCommand = command({
           await fsa.write(latestAssetFile, fsa.readStream(parquetFile), {
             contentType: 'application/vnd.apache.parquet',
           });
-          const stacCollectionFile = await upsertAssetToCollection(rootCatalog, latestAssetFile);
-          logger.info(
-            { parquetFile, stacCollectionFile: stacCollectionFile.href },
-            'ToParquet:AssetToCollectionUpserted',
-          );
           const derivedFromOriginal = { rel: 'derived_from', href: assetFile.href };
           logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
           await upsertAssetToCollection(
             rootCatalog,
-            assetFile,
+            latestAssetFile,
             new URL('../../latest/collection.json', stacCollectionFile),
             [derivedFromOriginal],
           );
