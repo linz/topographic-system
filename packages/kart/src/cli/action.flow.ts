@@ -15,9 +15,19 @@ import { VersionCommand } from './action.version.ts';
 
 const baseOutputLocation = path.join(tmpdir(), 'kart');
 
-function ghGroupLog(name: string) {
-  console.log(`::group::${name}`);
-  logger.info(name);
+/**
+ * Helper to start a new group for GitHub actions logging.
+ * Previous group will close implicitly when a new groups starts.
+ * If no name is provided, it will just close the current group.
+ * @param name - Name of the group to start. If not provided, it will close the current group.
+ */
+function ghGroupLog(name?: string) {
+  if (!name) {
+    console.log('::endgroup::');
+  } else {
+    console.log(`::group::${name}`);
+    logger.info(name);
+  }
 }
 
 export const FlowCommand = command({
@@ -203,5 +213,9 @@ export const FlowCommand = command({
     });
 
     ghGroupLog('Flow:Completed');
+    logger.info(
+      'Note: If you want to run individual steps separately, you can use the corresponding commands: clone → diff → pr-comment → export → to-parquet → validate',
+    );
+    ghGroupLog();
   },
 });
