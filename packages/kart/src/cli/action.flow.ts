@@ -23,7 +23,6 @@ const baseOutputLocation = path.join(tmpdir(), 'kart');
  * @param name - Name of the group to start. If not provided, it will close the current group.
  */
 function ghGroupLog(name?: string) {
-  logger.flush();
   if (!name) {
     console.log('::endgroup::');
   } else {
