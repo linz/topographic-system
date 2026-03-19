@@ -76,7 +76,7 @@ jobs:
           CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
       - name: Upload diff artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: diff
           path: |

@@ -11,6 +11,7 @@ import {
   UrlFolder,
   upsertAssetToCollection,
   determineAssetLocation,
+  isMergeToMaster,
 } from '@linzjs/topographic-system-shared';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { command, option } from 'cmd-ts';
@@ -86,7 +87,7 @@ export const ContourWithLandcoverCommand = command({
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
     const assetFile = determineAssetLocation({
-      category: 'prepared-data',
+      category: 'data',
       dataset: topo50ContourName,
       file: tempOutputParquet,
       root: args.output,
@@ -106,19 +107,23 @@ export const ContourWithLandcoverCommand = command({
       href: landcoverParquetAsset.href,
     };
     const rootCatalog = new URL('catalog.json', args.output);
-    const stacCollectionFile = await upsertAssetToCollection(
-      rootCatalog,
-      assetFile,
-      new URL(`./collection.json`, assetFile),
-      [derivedFromContour, derivedFromLandcover],
-    );
-    logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
-
-    logger.debug({ assetFile }, 'UpdatingLatestCollection');
-    await upsertAssetToCollection(rootCatalog, assetFile, new URL('../../latest/collection.json', stacCollectionFile), [
+    const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile, [
       derivedFromContour,
       derivedFromLandcover,
     ]);
-    logger.info('Prepare contour with landcover: Finished');
+    logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
+
+    if (isMergeToMaster()) {
+      const latestAssetFile = determineAssetLocation({
+        category: 'data',
+        dataset: topo50ContourName,
+        file: tempOutputParquet,
+        root: args.output,
+        tag: 'latest',
+      });
+      logger.debug({ latestAssetFile }, 'UpdatingLatestCollection');
+      await upsertAssetToCollection(rootCatalog, latestAssetFile, [derivedFromContour, derivedFromLandcover]);
+      logger.info('Prepare contour with landcover: Finished');
+    }
   },
 });

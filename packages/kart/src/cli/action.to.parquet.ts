@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,7 +95,7 @@ export const ParquetCommand = command({
       return;
     }
 
-    await $`mkdir -p ${fileURLToPath(args.tempLocation)}`;
+    await mkdir(args.tempLocation, { recursive: true });
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
@@ -132,12 +133,20 @@ export const ParquetCommand = command({
           'ToParquet:AssetToCollectionUpserted',
         );
         if (isMergeToMaster()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertAssetToCollection(
-            rootCatalog,
-            assetFile,
-            new URL('../../latest/collection.json', stacCollectionFile),
-          );
+          const latestAssetFile = determineAssetLocation({
+            category: 'data',
+            dataset,
+            file: parquetFile,
+            root: args.output,
+            tag: 'latest',
+          });
+          logger.info({ latestAssetFile: latestAssetFile.href }, 'ToParquet:UploadingParquetLatest');
+          await fsa.write(latestAssetFile, fsa.readStream(parquetFile), {
+            contentType: 'application/vnd.apache.parquet',
+          });
+          const derivedFromOriginal = { rel: 'derived_from', href: assetFile.href };
+          logger.debug({ assetFile }, 'ToParquet:UpdatingLatestCollection');
+          await upsertAssetToCollection(rootCatalog, latestAssetFile, [derivedFromOriginal]);
         }
       });
     }
