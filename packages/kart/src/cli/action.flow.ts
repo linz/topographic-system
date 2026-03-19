@@ -15,6 +15,11 @@ import { VersionCommand } from './action.version.ts';
 
 const baseOutputLocation = path.join(tmpdir(), 'kart');
 
+function ghGroupLog(name: string) {
+  console.log(`::group::${name}`);
+  logger.info(name);
+}
+
 export const FlowCommand = command({
   name: 'kart-flow',
   description:
@@ -134,13 +139,13 @@ export const FlowCommand = command({
 
     const parquetLocationForValidation = new URL('files.parquet', args.parquetTempLocation);
 
-    logger.info('Flow:Step [1/7] version');
+    ghGroupLog('Flow:Step [1/7] version');
     await VersionCommand.handler({});
 
-    logger.info('Flow:Step [2/7] clone');
+    ghGroupLog('Flow:Step [2/7] clone');
     await CloneCommand.handler({ repository: args.repository, ref: args.ref, output: args.cloneOutput });
 
-    logger.info('Flow:Step [3/7] diff');
+    ghGroupLog('Flow:Step [3/7] diff');
     await DiffCommand.handler({
       context: args.cloneOutput,
       output: args.diffOutput,
@@ -149,13 +154,13 @@ export const FlowCommand = command({
     });
 
     if (canCommentOnPr()) {
-      logger.info('Flow:Step [4/7] pr-comment');
+      ghGroupLog('Flow:Step [4/7] pr-comment');
       await CommentCommand.handler({ pr: undefined, repo: undefined, bodyFile: args.summaryFile });
     } else {
-      logger.info('Flow:Step [4/7] pr-comment (skipped - no PR detected)');
+      ghGroupLog('Flow:Step [4/7] pr-comment (skipped - no PR detected)');
     }
 
-    logger.info('Flow:Step [5/7] export');
+    ghGroupLog('Flow:Step [5/7] export');
     await ExportCommand.handler({
       context: args.cloneOutput,
       output: args.exportOutput,
@@ -164,7 +169,7 @@ export const FlowCommand = command({
       datasets: [],
     });
 
-    logger.info('Flow:Step [6/7] to-parquet');
+    ghGroupLog('Flow:Step [6/7] to-parquet');
     await ParquetCommand.handler({
       compression: args.compression,
       compressionLevel: args.compressionLevel,
@@ -175,7 +180,7 @@ export const FlowCommand = command({
       sourceFiles: [args.exportOutput],
     });
 
-    logger.info('Flow:Step [7/7] validate');
+    ghGroupLog('Flow:Step [7/7] validate');
     await ValidateCommand.handler({
       output: args.output,
       mode: 'generic',
@@ -197,6 +202,6 @@ export const FlowCommand = command({
       weeks: undefined,
     });
 
-    logger.info('Flow:Completed');
+    ghGroupLog('Flow:Completed');
   },
 });
