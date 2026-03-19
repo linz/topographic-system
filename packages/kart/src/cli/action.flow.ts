@@ -19,9 +19,11 @@ const baseOutputLocation = path.join(tmpdir(), 'kart');
  * Helper to start a new group for GitHub actions logging.
  * Previous group will close implicitly when a new groups starts.
  * If no name is provided, it will just close the current group.
+ * Flushes the logger so messages appear in the correct group.
  * @param name - Name of the group to start. If not provided, it will close the current group.
  */
 function ghGroupLog(name?: string) {
+  logger.flush();
   if (!name) {
     console.log('::endgroup::');
   } else {
