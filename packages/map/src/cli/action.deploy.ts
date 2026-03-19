@@ -12,7 +12,7 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import type { StacAsset, StacItem } from 'stac-ts';
+import type { StacAsset, StacItem, StacLink } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { pyRunner } from '../python.runner.ts';
@@ -117,7 +117,7 @@ function getProjectPaths(
   };
 }
 
-async function createDatasetLinks(source: URL, layers: string[], dataTag: string) {
+async function createDatasetLinks(source: URL, layers: string[], dataTag: string): Promise<StacLink[]> {
   const links = [];
   for (const layer of layers) {
     const layerCollection = await getDataFromCatalog(source, layer, dataTag);
@@ -130,7 +130,7 @@ async function createDatasetLinks(source: URL, layers: string[], dataTag: string
   return links;
 }
 
-function withAssetsLink(datasetLinks: Array<{ rel: string; href: string; type: string }>, tarPath: URL | null) {
+function withAssetsLink(datasetLinks: StacLink[], tarPath: URL | null): StacLink[] {
   const links = [...datasetLinks];
   if (tarPath) {
     links.push({
@@ -300,7 +300,7 @@ export const DeployCommand = command({
     }
 
     // Group stac items by project series and create stac collections
-    const qgisCatalogLinks = [];
+    const qgisCatalogLinks: StacLink[] = [];
     const seriesMap = new Map<string, DeployedProject[]>();
 
     for (const deployed of deployedProjects) {
