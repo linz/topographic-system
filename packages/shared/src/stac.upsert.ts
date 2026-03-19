@@ -210,7 +210,11 @@ async function upsertChildToCatalog(
   let stacCatalog = await createStacCatalogFromFilename(rootCatalog, stacCatalogFile);
 
   logger.debug(
-    { file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href, updated: stacChild['updated'], childLinks: stacChild.links.filter((l) => l.rel === 'child').length },
+    {
+      file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href,
+      updated: stacChild['updated'],
+      childLinks: stacChild.links.filter((l) => l.rel === 'child').length,
+    },
     'STAC:CurrentChild',
   );
   const childBefore = stacToJson(stacChild);
@@ -220,7 +224,11 @@ async function upsertChildToCatalog(
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
   logger.debug(
-    { file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href, updated: stacChild['updated'], childLinks: stacChild.links.filter((l) => l.rel === 'child').length },
+    {
+      file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href,
+      updated: stacChild['updated'],
+      childLinks: stacChild.links.filter((l) => l.rel === 'child').length,
+    },
     'STAC:WritingChild',
   );
   await Promise.all([
