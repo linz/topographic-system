@@ -59,7 +59,7 @@ export function createMapSheetStacCollection(
   return createStacCollection(rootCatalog, description, bbox, links);
 }
 
-export async function createMapSheetCatalog(
+export async function createCatalog(
   path: URL,
   rootCatalog: URL,
   title: string,

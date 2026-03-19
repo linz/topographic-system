@@ -1,4 +1,3 @@
-import { PassThrough } from 'node:stream';
 import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
@@ -17,15 +16,39 @@ import type { StacAsset, StacItem } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { pyRunner } from '../python.runner.ts';
-import { createMapSheetCatalog } from '../stac.ts';
+import { createCatalog } from '../stac.ts';
 
-async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?: boolean): Promise<URL | null> {
+type ProjectInfo = {
+  file: URL;
+  projectName: string;
+  projectSeries: string;
+  projectFolder: URL;
+};
+
+type ProjectPaths = {
+  commitQgsPath: URL;
+  derivedQgsPath: URL;
+  commitTarPath: URL;
+  derivedTarPath: URL;
+  commitItemPath: URL;
+  derivedItemPath: URL;
+};
+
+type DeployedProject = {
+  series: string;
+  projectName: string;
+  item: StacItem;
+};
+
+async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
   const tarPack = tar.pack();
-  const pass = new PassThrough();
-  tarPack.pipe(pass);
+  const chunks: Buffer[] = [];
+
+  tarPack.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
 
   const projectFiles = await fsa.toArray(fsa.list(projectFolder));
   if (projectFiles.length === 0) return null;
+
   let fileCount = 0;
   for (const file of projectFiles) {
     const filename = basename(file.href);
@@ -36,19 +59,166 @@ async function deployAssetsAsTar(projectFolder: URL, tarTargetPath: URL, commit?
     tarPack.entry({ name: filename, size: data.byteLength }, data);
     fileCount++;
   }
+
   if (fileCount === 0) return null;
 
   tarPack.finalize();
 
-  if (commit) {
-    await fsa.write(tarTargetPath, pass, {
-      contentType: 'application/x-tar',
-    });
+  await new Promise<void>((resolve, reject) => {
+    tarPack.on('end', resolve);
+    tarPack.on('error', reject);
+  });
 
-    logger.info({ destination: tarTargetPath.href }, 'Deploy: Upload Tar Asset File');
+  return Buffer.concat(chunks);
+}
+
+async function uploadFile(source: URL, target: URL, contentType: string): Promise<void> {
+  logger.info({ source: source.href, destination: target.href }, 'Deploy: Upload File');
+  const stream = fsa.readStream(source);
+  await fsa.write(target, stream, { contentType });
+}
+
+async function uploadBuffer(buffer: Buffer, target: URL, contentType: string): Promise<void> {
+  logger.info({ destination: target.href }, 'Deploy: Upload Buffer');
+  await fsa.write(target, buffer, { contentType });
+}
+
+function getProjectInfo(projectRoot: URL, file: URL): ProjectInfo {
+  const splits = file.href.split('/');
+  const projectName = basename(file.href, '.qgs');
+  const projectSeries = splits[splits.length - 2];
+
+  if (projectName == null || projectSeries == null) {
+    throw new Error(`Deploy: Invalid project file path ${file.href}`);
   }
 
-  return tarTargetPath;
+  return {
+    file,
+    projectName,
+    projectSeries,
+    projectFolder: new URL(`${projectSeries}/`, projectRoot),
+  };
+}
+
+function getProjectPaths(
+  qgisCatalogPath: URL,
+  projectSeries: string,
+  projectName: string,
+  commitTag: string,
+  deployTag: string,
+): ProjectPaths {
+  return {
+    commitQgsPath: new URL(`${projectSeries}/${commitTag}/${projectName}.qgs`, qgisCatalogPath),
+    derivedQgsPath: new URL(`${projectSeries}/${deployTag}/${projectName}.qgs`, qgisCatalogPath),
+    commitTarPath: new URL(`${projectSeries}/${commitTag}/${projectName}.tar`, qgisCatalogPath),
+    derivedTarPath: new URL(`${projectSeries}/${deployTag}/${projectName}.tar`, qgisCatalogPath),
+    commitItemPath: new URL(`${projectSeries}/${commitTag}/${projectName}.json`, qgisCatalogPath),
+    derivedItemPath: new URL(`${projectSeries}/${deployTag}/${projectName}.json`, qgisCatalogPath),
+  };
+}
+
+async function createDatasetLinks(source: URL, layers: string[], dataTag: string) {
+  const links = [];
+  for (const layer of layers) {
+    const layerCollection = await getDataFromCatalog(source, layer, dataTag);
+    links.push({
+      rel: 'dataset',
+      href: layerCollection.href,
+      type: 'application/json',
+    });
+  }
+  return links;
+}
+
+function withAssetsLink(datasetLinks: Array<{ rel: string; href: string; type: string }>, tarPath: URL | null) {
+  const links = [...datasetLinks];
+  if (tarPath) {
+    links.push({
+      rel: 'assets',
+      href: tarPath.href,
+      type: 'application/x-tar',
+    });
+  }
+  return links;
+}
+
+async function createProjectAsset(qgsPath: URL, file: URL): Promise<Record<string, StacAsset>> {
+  return {
+    project: {
+      href: qgsPath.href,
+      type: 'application/vnd.qgis.qgs+xml',
+      roles: ['data'],
+      ...(await createFileStats(file)),
+    } as StacAsset,
+  };
+}
+
+async function deployProject(
+  project: ProjectInfo,
+  paths: ProjectPaths,
+  rootCatalogPath: URL,
+  args: {
+    source: URL;
+    dataTag?: string;
+    deployTag: string;
+    commit: boolean;
+  },
+): Promise<DeployedProject> {
+  const layers = await pyRunner.listSourceLayers(project.file);
+  if (layers.length === 0) throw new Error(`No source layers found in project ${project.file.href}`);
+
+  const datasetLinks = await createDatasetLinks(args.source, layers, args.dataTag ?? 'latest');
+  const tarBuffer = await buildTarBuffer(project.projectFolder);
+
+  if (args.commit) {
+    await uploadFile(project.file, paths.commitQgsPath, 'application/vnd.qgis.qgs+xml');
+    await uploadFile(project.file, paths.derivedQgsPath, 'application/vnd.qgis.qgs+xml');
+
+    if (tarBuffer) {
+      await uploadBuffer(tarBuffer, paths.commitTarPath, 'application/x-tar');
+      await uploadBuffer(tarBuffer, paths.derivedTarPath, 'application/x-tar');
+    }
+  }
+
+  const commitLinks = withAssetsLink(datasetLinks, tarBuffer ? paths.commitTarPath : null);
+  const derivedLinks = withAssetsLink(datasetLinks, tarBuffer ? paths.derivedTarPath : null);
+
+  const commitAssets = await createProjectAsset(paths.commitQgsPath, project.file);
+  const derivedAssets = await createProjectAsset(paths.derivedQgsPath, project.file);
+
+  logger.info({ source: project.file.href, destination: paths.commitItemPath.href }, 'Deploy: Create Commit Stac Item');
+  const commitItem = createStacItem(rootCatalogPath, project.projectName, commitLinks, commitAssets);
+
+  logger.info(
+    { source: project.file.href, destination: paths.derivedItemPath.href },
+    'Deploy: Create Derived Stac Item',
+  );
+  const derivedItem = {
+    ...createStacItem(rootCatalogPath, project.projectName, derivedLinks, derivedAssets),
+    id: `${args.deployTag}-${project.projectName}`,
+    links: [
+      ...derivedLinks,
+      {
+        rel: 'derived_from',
+        href: paths.commitItemPath.href,
+        type: 'application/json',
+      },
+    ],
+  };
+
+  if (args.commit) {
+    logger.info({ destination: paths.commitItemPath.href }, 'Deploy: Upload Commit Stac Item');
+    await fsa.write(paths.commitItemPath, JSON.stringify(commitItem, null, 2));
+
+    logger.info({ destination: paths.derivedItemPath.href }, 'Deploy: Upload Derived Stac Item');
+    await fsa.write(paths.derivedItemPath, JSON.stringify(derivedItem, null, 2));
+  }
+
+  return {
+    series: project.projectSeries,
+    projectName: project.projectName,
+    item: commitItem,
+  };
 }
 
 export const DeployArgs = {
@@ -105,123 +275,72 @@ export const DeployCommand = command({
     const qgisCatalogPath = new URL('./qgis/catalog.json', rootCatalogPath);
     const commitTag = `commit_prefix=${args.githash.charAt(0)}/commit=${args.githash}`;
 
-    // Find all the qgs files from the path
     const files = await fsa.toArray(fsa.list(args.project));
-    const stacItems: Map<string, StacItem> = new Map();
+    const deployedProjects: DeployedProject[] = [];
+
     for (const file of files) {
-      if (file.href.endsWith('.qgs')) {
-        const splits = file.href.split('/');
-        const projectName = basename(file.href, '.qgs'); // example "nz-topo50-map"
-        const projectSeries = splits[splits.length - 2]; // example "nztopo50map"
-        if (projectName == null || projectSeries == null) {
-          throw new Error(`Deploy: Invalid project file path ${file.href}`);
-        }
-        if (stacItems.has(projectSeries)) {
-          throw new Error(`Multiple projects ${projectSeries} found at ${projectSeries} folder.`);
-        }
+      if (!file.href.endsWith('.qgs')) continue;
 
-        // Find all the source layers for project
-        const layers = await pyRunner.listSourceLayers(file);
-        if (layers.length === 0) throw new Error(`No source layers found in project ${file.href}`);
-        // Prepare source layer links for stac item
-        const stacItemLinks = [];
-        for (const layer of layers) {
-          const layerCollection = await getDataFromCatalog(args.source, layer, args.dataTag);
-          stacItemLinks.push({
-            rel: 'dataset',
-            href: layerCollection.href,
-            type: 'application/json',
-          });
-        }
+      const project = getProjectInfo(args.project, file);
+      const paths = getProjectPaths(
+        qgisCatalogPath,
+        project.projectSeries,
+        project.projectName,
+        commitTag,
+        args.deployTag,
+      );
 
-        // Upload the QGS file to target location
-        const targetPath = new URL(`${projectSeries}/${commitTag}/${projectName}.qgs`, qgisCatalogPath);
-        if (args.commit) {
-          logger.info({ source: file.href, destination: targetPath }, 'Deploy: Upload QGS File');
-          const stream = fsa.readStream(file);
-          await fsa.write(targetPath, stream, {
-            contentType: 'application/vnd.qgis.qgs+xml',
-          });
-        }
-
-        // Found and deploy all the assets file for the project as a tar file
-        const projectFolder = new URL(`${projectSeries}/`, args.project);
-        const targetAssetPath = new URL(`${projectSeries}/${commitTag}/${projectName}.tar`, qgisCatalogPath);
-        const assetLocation = await deployAssetsAsTar(projectFolder, targetAssetPath, args.commit);
-        if (assetLocation) {
-          stacItemLinks.push({
-            rel: 'assets',
-            href: assetLocation.href,
-            type: 'application/x-tar',
-          });
-        }
-
-        // Prepare data assets for stac item
-        const assets: Record<string, StacAsset> = {
-          project: {
-            href: targetPath.href,
-            type: 'application/vnd.qgis.qgs+xml',
-            roles: ['data'],
-            ...(await createFileStats(file)),
-          } as StacAsset,
-        };
-
-        // Create Stac Item for the QGS file
-        const stacItemPath = new URL(`${projectSeries}/${commitTag}/${projectName}.json`, qgisCatalogPath);
-        const derivedStacItemPath = new URL(`${projectSeries}/${args.deployTag}/${projectName}.json`, qgisCatalogPath);
-        logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Create Stac Item');
-        const item = createStacItem(rootCatalogPath, projectName, stacItemLinks, assets);
-        const derivedStacItem = {
-          ...item,
-          id: `${args.deployTag}-${item.id}`,
-          links: [...item.links, { rel: 'derived_from', href: stacItemPath.href, type: 'application/json' }],
-        };
-        stacItems.set(projectSeries, item);
-        if (args.commit) {
-          // Upload stac item for the project
-          logger.info({ source: file.href, destination: stacItemPath.href }, 'Deploy: Upload Stac Item');
-          await fsa.write(stacItemPath, JSON.stringify(item, null, 2));
-          logger.info({ source: file.href, destination: derivedStacItemPath.href }, 'Deploy: Upload Derived Stac Item');
-          await fsa.write(derivedStacItemPath, JSON.stringify(derivedStacItem, null, 2));
-        }
-      }
+      // Deploy project, assets, and create stac items
+      const deployed = await deployProject(project, paths, rootCatalogPath, args);
+      deployedProjects.push(deployed);
     }
 
-    if (stacItems.size === 0) throw new Error(`Deploy: No QGS project files found in ${args.project.href}`);
+    if (deployedProjects.length === 0) {
+      throw new Error(`Deploy: No QGS project files found in ${args.project.href}`);
+    }
 
+    // Group stac items by project series and create stac collections
     const qgisCatalogLinks = [];
-    for (const [series, item] of stacItems) {
+    const seriesMap = new Map<string, DeployedProject[]>();
+
+    for (const deployed of deployedProjects) {
+      const items = seriesMap.get(deployed.series) ?? [];
+      items.push(deployed);
+      seriesMap.set(deployed.series, items);
+    }
+
+    for (const [series, projects] of seriesMap) {
       logger.info({ mapSeries: series }, 'Deploy: Create Stac Collection');
-      const collectionLinks = [];
-      collectionLinks.push({
-        rel: 'item',
-        href: `./${item.id}.json`,
-        type: 'application/json',
-      });
+
       const title = `Topographic System QGIS ${series} Projects`;
       const description = `LINZ Topographic QGIS Project Series ${series}.`;
+
+      const collectionLinks = projects.map((project) => ({
+        rel: 'item',
+        href: `./${project.projectName}.json`,
+        type: 'application/json',
+      }));
+
       const collection = createStacCollection(rootCatalogPath, description, [], collectionLinks);
+
       if (args.commit) {
-        // Upload stac collections
         const stacCollectionPath = new URL(`${series}/${commitTag}/collection.json`, qgisCatalogPath);
         logger.info({ mapSeries: series, destination: stacCollectionPath.href }, 'Deploy: Upload Stac Collections');
         await fsa.write(stacCollectionPath, JSON.stringify(collection, null, 2));
+
         const derivedCollectionPath = new URL(`${series}/${args.deployTag}/collection.json`, qgisCatalogPath);
         const derivedCollection = {
           ...collection,
           id: `${args.deployTag}-${collection.id}`,
-          links: [
-            ...collection.links,
-            { rel: 'derived_from', href: stacCollectionPath.href, type: 'application/json' },
-          ],
+          links: [...collectionLinks, { rel: 'derived_from', href: stacCollectionPath.href, type: 'application/json' }],
         };
+
         logger.info(
           { mapSeries: series, destination: derivedCollectionPath.href },
           'Deploy: Upload Derived Stac Collections',
         );
         await fsa.write(derivedCollectionPath, JSON.stringify(derivedCollection, null, 2));
 
-        // Create and upload catalog for project series
         const seriesCatalogPath = new URL(`${series}/catalog.json`, qgisCatalogPath);
         const catalogLinks = [
           {
@@ -235,15 +354,12 @@ export const DeployCommand = command({
             type: 'application/json',
           },
         ];
-        const catalog = await createMapSheetCatalog(
-          seriesCatalogPath,
-          rootCatalogPath,
-          title,
-          description,
-          catalogLinks,
-        );
+
+        const seriesCatalog = await createCatalog(seriesCatalogPath, rootCatalogPath, title, description, catalogLinks);
+
         logger.info({ destination: seriesCatalogPath.href }, 'Deploy: Upload Stac Catalog File');
-        await fsa.write(seriesCatalogPath, JSON.stringify(catalog, null, 2));
+        await fsa.write(seriesCatalogPath, JSON.stringify(seriesCatalog, null, 2));
+
         qgisCatalogLinks.push({
           rel: 'child',
           href: `./${series}/catalog.json`,
@@ -253,33 +369,31 @@ export const DeployCommand = command({
     }
 
     logger.info({ project: args.project }, 'Deploy: Create Stac Catalog');
+
     const title = 'Topographic System QGIS Projects';
     const description = 'Topographic System QGIS Projects for generating maps.';
-    const qgisCatalog = await createMapSheetCatalog(
-      qgisCatalogPath,
-      rootCatalogPath,
-      title,
-      description,
-      qgisCatalogLinks,
-    );
+    const qgisCatalog = await createCatalog(qgisCatalogPath, rootCatalogPath, title, description, qgisCatalogLinks);
+
     if (args.commit) {
       logger.info({ destination: qgisCatalogPath.href }, 'Deploy: Upload Stac Catalog File');
       await fsa.write(qgisCatalogPath, JSON.stringify(qgisCatalog, null, 2));
-      // Update root catalog
+
       const link = {
         rel: 'child',
         href: `./qgis/catalog.json`,
         type: 'application/json',
       };
-      const catalog = await createMapSheetCatalog(
+
+      const rootCatalog = await createCatalog(
         rootCatalogPath,
         rootCatalogPath,
         'LINZ Topographic System',
         'LINZ Topographic System Catalog',
         [link],
       );
+
       logger.info({ destination: rootCatalogPath.href }, 'Deploy: Update Root Catalog File');
-      await fsa.write(rootCatalogPath, JSON.stringify(catalog, null, 2));
+      await fsa.write(rootCatalogPath, JSON.stringify(rootCatalog, null, 2));
     }
 
     logger.info({ project: args.project, commit: args.commit ? 'Uploaded' : 'Dry Run' }, 'Deploy: Finished');

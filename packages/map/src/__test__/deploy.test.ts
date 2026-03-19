@@ -50,6 +50,7 @@ describe('action.deploy', () => {
       [
         'memory://target/qgis/topo50maps/latest/topo50.json',
         'memory://target/qgis/topo50maps/latest/collection.json',
+        'memory://target/qgis/topo50maps/latest/topo50.qgs',
         `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.json`,
         `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/collection.json`,
         `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.qgs`,

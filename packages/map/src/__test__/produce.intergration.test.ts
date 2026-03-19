@@ -55,6 +55,7 @@ describe('deploy -> produce-cover -> produce', () => {
       [
         'memory://target-deploy/qgis/topo50maps/latest/topo50.json',
         'memory://target-deploy/qgis/topo50maps/latest/collection.json',
+        'memory://target-deploy/qgis/topo50maps/latest/topo50.qgs',
         `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.json`,
         `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/collection.json`,
         `memory://target-deploy/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.qgs`,
