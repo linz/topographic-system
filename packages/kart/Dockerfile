@@ -1,5 +1,5 @@
 FROM ghcr.io/linz/action-kart:v0.4.0
-COPY packages/kart/dist/ /scripts/
+COPY packages/kart/dist/ /app/
 
 # Copy the validation python code into kart cli and install
 COPY packages/validation /packages/validation
@@ -16,4 +16,4 @@ ENV KART_USE_HELPER=0
 # Disabling git terminal prompt to avoid hanging (asking for user/pass) when git credentials are missing
 ENV GIT_TERMINAL_PROMPT=0
 
-ENTRYPOINT ["node", "/scripts/index.cjs"]
+ENTRYPOINT ["node", "/app/index.cjs"]

@@ -55,7 +55,7 @@ export function hasCollectionExtentChanged(
  * Running this in parallel for different assets of the same dataset may lead to race conditions,
  * as STAC Collection and Catalogs up to the RootCatalog are updated.
  *
- * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs (e.g. s3://linz-topography/catalog.json)
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param stacItemFile - Optional URL of the STAC Item file. If not provided, it will be derived from the data asset path.
  *
@@ -90,7 +90,7 @@ export async function upsertAssetToItem(rootCatalog: URL, assetFile: URL, stacIt
  * Note:
  * One STAC Collection per geoparquet file, with additional related assets.
  *
- * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs. This is used to ensure that the correct parent-child relationships are maintained when creating or updating the STAC Collection and its parent Catalogs.
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs (e.g. s3://linz-topography/catalog.json)
  * @param assetFile - The URL of the data asset to be added to the STAC Item.
  * @param replaceExtraLinks - Any additional links to be added to the Collection, e.g. derived_from.
  *
@@ -151,6 +151,7 @@ export async function upsertAssetToCollection(
  * an update of the parent Catalogs up to the RootCatalog
  * as well as an update of the ITEM's collection ID if necessary.
  *
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs (e.g. s3://linz-topography/catalog.json)
  * @param stacItemFile - The URL of the STAC Item file to be upserted into the collection.
  * @param stacCollectionFile - Optional URL of the STAC Collection file. If not provided, it will be derived from the STAC Item file.
  *
@@ -187,6 +188,7 @@ export async function upsertItemToCollection(
  * If the parent Catalog does not exist, it will be created.
  * This function will recursively ensure that all parent Catalogs up to the RootCatalog are updated.
  *
+ * @param rootCatalog - The URL of the root catalog to which the STAC Collection belongs (e.g. s3://linz-topography/catalog.json)
  * @param stacChildFile - The URL of the STAC child (Collection or Sub-Catalog) file to be upserted into the parent Catalog.
  * @param stacCatalogFile - Optional URL of the STAC parent (Catalog) file. If not provided, it will be derived from the STAC child file.
  *
@@ -206,15 +208,35 @@ async function upsertChildToCatalog(
     ? await createStacCollectionFromFileName(rootCatalog, stacChildFile)
     : await createStacCatalogFromFilename(rootCatalog, stacChildFile);
   let stacCatalog = await createStacCatalogFromFilename(rootCatalog, stacCatalogFile);
+
+  logger.debug(
+    {
+      file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href,
+      updated: stacChild['updated'],
+      childLinks: stacChild.links.filter((l) => l.rel === 'child').length,
+    },
+    'STAC:CurrentChild',
+  );
+  const childBefore = stacToJson(stacChild);
   stacChild = addParentDataToChild(stacChild, stacCatalog) as StacCollection | StacCatalog;
+  const childChanged = stacToJson(stacChild) !== childBefore;
+
   stacCatalog = addChildDataToParent(stacCatalog, stacChild) as StacCatalog;
 
+  logger.debug(
+    {
+      file: stacChild.links.filter((l) => l.rel === 'self')[0]?.href,
+      updated: stacChild['updated'],
+      childLinks: stacChild.links.filter((l) => l.rel === 'child').length,
+    },
+    'STAC:WritingChild',
+  );
   await Promise.all([
-    fsa.write(stacChildFile, stacToJson(stacChild)),
+    childChanged ? fsa.write(stacChildFile, stacToJson(stacChild)) : Promise.resolve(),
     fsa.write(stacCatalogFile, stacToJson(stacCatalog)),
   ]);
   logger.info(
-    { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href },
+    { stacChildFile: stacChildFile.href, stacCatalogFile: stacCatalogFile.href, childChanged },
     `STAC:ChildToCatalogUpserted`,
   );
   await upsertChildToCatalog(rootCatalog, stacCatalogFile);
