@@ -24,9 +24,9 @@ const baseOutputLocation = path.join(tmpdir(), 'kart');
  */
 function ghGroupLog(name?: string) {
   if (!name) {
-    console.log('::endgroup::');
+    process.stdout.write('::endgroup::\n');
   } else {
-    console.log(`::group::${name}`);
+    process.stdout.write(`::group::${name}\n`);
     logger.info(name);
   }
 }
