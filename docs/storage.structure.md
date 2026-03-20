@@ -9,17 +9,19 @@ Key components across all storage structures
 - `/thumbnail.webp` - (Optional) A image representation of the component
 - `/covering.geojson` - (Optional) A complex feature representing a detailed
 
-## Date based versioning
+A component may opt into multiple storage structures, such as both "date" and "pull_request" where merging to master deploys the "date" structure and pull requests deploy the "pull_request" structure.
+
+## Date based versioning - "date"
 
 For a dataset where commits to the master record (table or kart repository), as records are updated on the master they are exported at fixed times which could be hourly, daily or on every update.
 
-With a attempt to keep the number of items per folder under 1000, multiple levels of heirarchy for the date could be used, for rough guide lines
+With a attempt to keep the number of items per folder under 1000, multiple levels of hierarchy for the date could be used, for rough guide lines
 
 - `year=2026` - A few times a day 5 days a week
 - `year=2026/month=12` - Every hour
 - `year=2026/month=12/day=01` - Every minute
 
-To keep the date based versions immutable a full ISO timestamp of the publised record should also be stored
+To keep the date based versions immutable a full ISO timestamp of the published record should also be stored
 
 ```
 year=2026/date=2026-01-01T12_00_00Z/collection.json
@@ -53,7 +55,7 @@ example-bucket:
               - airport.parquet
 ```
 
-### Release based Versioning
+### Release based Versioning - "release"
 
 For components that have a fixed release process such as semver or a quarterly release, it is recommended to store in a similar structure as date based versioning with the addition of `next/` to store the next development release.
 
@@ -78,21 +80,15 @@ example-bucket:
           - airport.parquet
 ```
 
-### Git context
+### Git context 
 
-For components that are deployed into storage from a git environment and need to be accessed from unpublished locations (eg pull requests) these component can be stored against their git context.
+For components that are deployed into storage from a git environment and need to be accessed from unpublished locations (eg pull requests or commits) these component can be stored against their git context.
+
+#### Commit - "commit"
 
 Commits are shared into `commit_prefix=${0-f}` to prevent their folders from growing too large, for very large git repositories a larger shard `commit_prefix=${00-ff}` could be used.
 
 ```yaml
-- pull_request=1: # Mutable - updates as pull request updates
-    - collection.json
-    - airport.parquet # links to commit=36125a7fbbae012f2809c5f8c3af6a2363c0a305
-
-- pull_request=2: # Mutable
-    - collection.json
-    - airport.parquet # links to commit=4aba34b5accb0002867af66f6a92a35e0a4be7ca
-
 - commit_prefix=3: # Immutable
     - catalog.json
 
@@ -110,4 +106,16 @@ Commits are shared into `commit_prefix=${0-f}` to prevent their folders from gro
     - commit=4aba34b5accb0002867af66f6a92a35e0a4be7ca:
         - collection.json
         - airport.parquet
+```
+
+#### Pull Request - "pull_request"
+
+```yaml
+- pull_request=1: # Mutable - updates as pull request updates
+    - collection.json
+    - airport.parquet # links to commit=36125a7fbbae012f2809c5f8c3af6a2363c0a305
+
+- pull_request=2: # Mutable
+    - collection.json
+    - airport.parquet # links to commit=4aba34b5accb0002867af66f6a92a35e0a4be7ca
 ```
