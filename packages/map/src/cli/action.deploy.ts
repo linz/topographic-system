@@ -2,17 +2,18 @@ import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import {
-  createFileStats,
+  createDatasetLinks,
+  createProjectAsset,
   createStacCollection,
   createStacItem,
-  getDataFromCatalog,
   logger,
   registerFileSystem,
   Url,
   UrlFolder,
+  withAssetsLink,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, string } from 'cmd-ts';
-import type { StacAsset, StacItem, StacLink } from 'stac-ts';
+import type { StacItem, StacLink } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { pyRunner } from '../python.runner.ts';
@@ -114,42 +115,6 @@ function getProjectPaths(
     derivedTarPath: new URL(`${projectSeries}/${deployTag}/${projectName}.tar`, qgisCatalogPath),
     commitItemPath: new URL(`${projectSeries}/${commitTag}/${projectName}.json`, qgisCatalogPath),
     derivedItemPath: new URL(`${projectSeries}/${deployTag}/${projectName}.json`, qgisCatalogPath),
-  };
-}
-
-async function createDatasetLinks(source: URL, layers: string[], dataTag: string): Promise<StacLink[]> {
-  const links = [];
-  for (const layer of layers) {
-    const layerCollection = await getDataFromCatalog(source, layer, dataTag);
-    links.push({
-      rel: 'dataset',
-      href: layerCollection.href,
-      type: 'application/json',
-    });
-  }
-  return links;
-}
-
-function withAssetsLink(datasetLinks: StacLink[], tarPath: URL | null): StacLink[] {
-  const links = [...datasetLinks];
-  if (tarPath) {
-    links.push({
-      rel: 'assets',
-      href: tarPath.href,
-      type: 'application/x-tar',
-    });
-  }
-  return links;
-}
-
-async function createProjectAsset(qgsPath: URL, file: URL): Promise<Record<string, StacAsset>> {
-  return {
-    project: {
-      href: qgsPath.href,
-      type: 'application/vnd.qgis.qgs+xml',
-      roles: ['data'],
-      ...(await createFileStats(file)),
-    } as StacAsset,
   };
 }
 

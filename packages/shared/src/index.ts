@@ -17,7 +17,7 @@ export {
   createStacLink,
   stacToJson,
 } from './stac.factory.ts';
-export { determineAssetLocation } from './stac.links.ts';
+export { determineAssetLocation, createDatasetLinks, withAssetsLink, createProjectAsset } from './stac.links.ts';
 export {
   getDataFromCatalog,
   upsertAssetToCollection,
