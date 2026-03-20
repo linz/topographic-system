@@ -25,7 +25,7 @@ on:
       kart_version:
         description: 'Version of kart to use.'
         type: string
-        default: 'v0.6.0' # x-release-please-version
+        default: 'v0.7.0' # x-release-please-version
 
 jobs:
   kart:
