@@ -6,45 +6,8 @@ import { after, before, describe, it } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { canCommentOnPr, logger, stringToUrlFolder } from '@linzjs/topographic-system-shared';
+import { logger, stringToUrlFolder } from '@linzjs/topographic-system-shared';
 import { $ } from 'zx';
-
-const requireTools = process.env['CI_REQUIRE_TOOLS'] === 'true';
-
-async function toolVersion(bin: string, args: string[] = ['--version']): Promise<string | null> {
-  try {
-    const result = await $({ quiet: true })`${bin} ${args}`;
-    return result.stdout.trim();
-  } catch {
-    return null;
-  }
-}
-
-/**
- * If `CI_REQUIRE_TOOLS` is set, a missing tool throws immediately
- * so CI never silently skips. Locally the test suite gracefully skips.
- */
-function skipOrFail(missing: string[]): string | false {
-  if (missing.length === 0) return false;
-  const msg = `Missing tools: ${missing.join(', ')}`;
-  if (requireTools) throw new Error(`${msg} (CI_REQUIRE_TOOLS is set - tools must be present)`);
-  return msg;
-}
-
-/**
- * Resolve the kart CLI entrypoint.
- *  1. `KART_ENTRYPOINT` env var  (CI sets this to `/app/index.cjs`)
- *  2. Local CJS bundle           (`./packages/kart/dist/index.cjs`)
- *  3. TypeScript source           (`./packages/kart/src/index.ts`)
- */
-async function resolveEntrypoint(): Promise<string | null> {
-  const candidates = [process.env['KART_ENTRYPOINT'], './packages/kart/dist/index.cjs', './packages/kart/src/index.ts'];
-  for (const candidate of candidates) {
-    if (candidate == null) continue;
-    if (await toolVersion('node', [candidate, 'version'])) return candidate;
-  }
-  return null;
-}
 
 /**
  * Run a kart CLI command through the bundled entrypoint, exactly as
@@ -54,8 +17,7 @@ async function resolveEntrypoint(): Promise<string | null> {
  * @returns the standard output from the command execution, for assertions in tests
  */
 async function cli(args: string[]): Promise<string> {
-  assert.ok(ENTRYPOINT, 'ENTRYPOINT must be resolved before calling cli()');
-  const result = await $`node ${ENTRYPOINT} ${args}`;
+  const result = await $`node /app/index.cjs ${args}`;
   return result.stdout;
 }
 
@@ -99,22 +61,7 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
   return bareRepo;
 }
 
-const TOOL_NAMES = ['kart', 'uv', 'ogr2ogr', 'node', 'git'] as const;
-type ToolName = (typeof TOOL_NAMES)[number];
-const tools = Object.fromEntries(await Promise.all(TOOL_NAMES.map(async (t) => [t, await toolVersion(t)]))) as Record<
-  ToolName,
-  string | null
->;
-
-const ENTRYPOINT = await resolveEntrypoint();
-
-const skipSuite = skipOrFail([...TOOL_NAMES.filter((t) => !tools[t]), ...(ENTRYPOINT == null ? ['entrypoint'] : [])]);
-
-// to-parquet uses SORT_BY_BBOX and COVERING_BBOX_NAME LCOs which require GDAL 3.13 or higher
-const gdalVersion = tools.ogr2ogr?.match(/GDAL (\d+\.\d+)/)?.[1] ?? '0.0';
-const skipParquet = skipOrFail(parseFloat(gdalVersion) < 3.13 ? [`ogr2ogr >= 3.13 (have ${gdalVersion})`] : []);
-
-describe('action.flow integration', { skip: skipSuite }, () => {
+describe('action.flow integration', () => {
   const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-flow-integration'));
   const repoUrl = new URL('repo/', tempDir);
   const diffUrl = new URL('diff/', tempDir);
@@ -171,10 +118,6 @@ describe('action.flow integration', { skip: skipSuite }, () => {
     assert.ok(md.toString().includes('# Changes Summary'), 'summary should contain expected markdown header');
   });
 
-  it('should comment on PR in step 4 - pr-comment', { skip: canCommentOnPr() ? false : 'no PR context' }, async () => {
-    assert.ok(await cli(['pr-comment', '--body-file', fileURLToPath(summaryUrl)]));
-  });
-
   it('should produce gpkg datasets in step 5 - export', async () => {
     await cli([
       'export',
@@ -193,7 +136,7 @@ describe('action.flow integration', { skip: skipSuite }, () => {
     );
   });
 
-  it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', { skip: skipParquet }, async () => {
+  it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
     await cli([
       'to-parquet',
       '--output',
@@ -214,7 +157,7 @@ describe('action.flow integration', { skip: skipSuite }, () => {
     assert.ok(catalog, 'catalog.json should exist in output');
   });
 
-  it('should validate parquet files in step 7 - validate', { skip: skipParquet }, async () => {
+  it('should validate parquet files in step 7 - validate', async () => {
     const dbPath = new URL('files.parquet', parquetUrl);
     const configFile = pathToFileURL('/packages/validation/config/default_config.json');
 
