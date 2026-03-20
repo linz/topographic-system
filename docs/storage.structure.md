@@ -80,7 +80,7 @@ example-bucket:
           - airport.parquet
 ```
 
-### Git context 
+### Git context
 
 For components that are deployed into storage from a git environment and need to be accessed from unpublished locations (eg pull requests or commits) these component can be stored against their git context.
 
