@@ -137,4 +137,5 @@ jobs:
 
       - name: Ensure container built
         run: |
-          docker run --rm ${{steps.tags.outputs.result}}
+          FIRST_TAG=$(echo "${{ steps.tags.outputs.result }}" | head -n 1)
+          docker run --rm ${FIRST_TAG}
