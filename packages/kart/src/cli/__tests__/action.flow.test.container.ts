@@ -89,79 +89,81 @@ describe('action.flow integration', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should get a version string when running step 1 - version', async () => {
-    const output = await cli(['version']);
-    assert.ok(/\d+\.\d+\.\d+/.test(output), `Expected version string in output, got: ${output}`);
-  });
+  it('should run kart-flow', async () => {
+    it('should get a version string when running step 1 - version', async () => {
+      const output = await cli(['version']);
+      assert.ok(/\d+\.\d+\.\d+/.test(output), `Expected version string in output, got: ${output}`);
+    });
 
-  it('should be able to clone a public repo in step 2 - clone', async () => {
-    const outputLocation = new URL('temp-test-repo', tempDir);
-    await cli(['clone', 'linz/topographic-test-data', fileURLToPath(outputLocation), '--ref', 'master']);
+    it('should be able to clone a public repo in step 2 - clone', async () => {
+      const outputLocation = new URL('temp-test-repo', tempDir);
+      await cli(['clone', 'linz/topographic-test-data', fileURLToPath(outputLocation), '--ref', 'master']);
 
-    const clonedDatasets = await $`kart -C ${fileURLToPath(outputLocation)} data ls`;
-    assert.ok(clonedDatasets.stdout.includes('test'), 'cloned repo should contain one or more test datasets');
-  });
+      const clonedDatasets = await $`kart -C ${fileURLToPath(outputLocation)} data ls`;
+      assert.ok(clonedDatasets.stdout.includes('test'), 'cloned repo should contain one or more test datasets');
+    });
 
-  it('it should produce a summary file in step 3 - diff', async () => {
-    await cli(
-      'diff',
-      ['--context', fileURLToPath(repoUrl)],
-      ['--output', fileURLToPath(diffUrl)],
-      ['--summary-file', fileURLToPath(summaryUrl)],
-    );
+    it('it should produce a summary file in step 3 - diff', async () => {
+      await cli(
+        'diff',
+        ['--context', fileURLToPath(repoUrl)],
+        ['--output', fileURLToPath(diffUrl)],
+        ['--summary-file', fileURLToPath(summaryUrl)],
+      );
 
-    const md = await fsa.read(summaryUrl);
-    assert.ok(md.length > 0, 'pr_summary.md should have content');
-    assert.ok(md.toString().includes('# Changes Summary'), 'summary should contain expected markdown header');
-  });
+      const md = await fsa.read(summaryUrl);
+      assert.ok(md.length > 0, 'pr_summary.md should have content');
+      assert.ok(md.toString().includes('# Changes Summary'), 'summary should contain expected markdown header');
+    });
 
-  it('should produce gpkg datasets in step 5 - export', async () => {
-    await cli(
-      'export',
-      ['--context', fileURLToPath(repoUrl)],
-      ['--output', fileURLToPath(exportUrl)],
-      ['--ref', 'FETCH_HEAD'],
-    );
+    it('should produce gpkg datasets in step 5 - export', async () => {
+      await cli(
+        'export',
+        ['--context', fileURLToPath(repoUrl)],
+        ['--output', fileURLToPath(exportUrl)],
+        ['--ref', 'FETCH_HEAD'],
+      );
 
-    const files = await fsa.toArray(fsa.list(exportUrl));
-    assert.ok(
-      files.some((f) => f.href.endsWith('.gpkg')),
-      `Expected .gpkg files in ${exportUrl.href}, got: ${files.map((f) => f.href).join(', ')}`,
-    );
-  });
+      const files = await fsa.toArray(fsa.list(exportUrl));
+      assert.ok(
+        files.some((f) => f.href.endsWith('.gpkg')),
+        `Expected .gpkg files in ${exportUrl.href}, got: ${files.map((f) => f.href).join(', ')}`,
+      );
+    });
 
-  it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
-    await cli(
-      'to-parquet',
-      ['--output', fileURLToPath(outputUrl)],
-      ['--temp-location', fileURLToPath(parquetUrl)],
-      fileURLToPath(exportUrl),
-    );
+    it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
+      await cli(
+        'to-parquet',
+        ['--output', fileURLToPath(outputUrl)],
+        ['--temp-location', fileURLToPath(parquetUrl)],
+        fileURLToPath(exportUrl),
+      );
 
-    const parquetFiles = await fsa.toArray(fsa.list(parquetUrl));
-    assert.ok(
-      parquetFiles.some((f) => f.href.endsWith('.parquet')),
-      `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
-    );
+      const parquetFiles = await fsa.toArray(fsa.list(parquetUrl));
+      assert.ok(
+        parquetFiles.some((f) => f.href.endsWith('.parquet')),
+        `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
+      );
 
-    const catalogUrl = new URL('catalog.json', outputUrl);
-    const catalog = await fsa.readJson(catalogUrl);
-    assert.ok(catalog, 'catalog.json should exist in output');
-  });
+      const catalogUrl = new URL('catalog.json', outputUrl);
+      const catalog = await fsa.readJson(catalogUrl);
+      assert.ok(catalog, 'catalog.json should exist in output');
+    });
 
-  it('should validate parquet files in step 7 - validate', async () => {
-    const dbPath = new URL('files.parquet', parquetUrl);
-    const configFile = pathToFileURL('/packages/validation/config/default_config.json');
+    it('should validate parquet files in step 7 - validate', async () => {
+      const dbPath = new URL('files.parquet', parquetUrl);
+      const configFile = pathToFileURL('/packages/validation/config/default_config.json');
 
-    await cli(
-      'validate',
-      ['--output', fileURLToPath(outputUrl)],
-      ['--db-path', fileURLToPath(dbPath)],
-      ['--config-file', fileURLToPath(configFile)],
-      ['--output-dir', fileURLToPath(validationUrl)],
-    );
+      await cli(
+        'validate',
+        ['--output', fileURLToPath(outputUrl)],
+        ['--db-path', fileURLToPath(dbPath)],
+        ['--config-file', fileURLToPath(configFile)],
+        ['--output-dir', fileURLToPath(validationUrl)],
+      );
 
-    const validationFiles = await fsa.toArray(fsa.list(validationUrl));
-    assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
+      const validationFiles = await fsa.toArray(fsa.list(validationUrl));
+      assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
+    });
   });
 });

@@ -127,6 +127,7 @@ jobs:
           file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
           push: true
+          load: true
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           build-args: |
