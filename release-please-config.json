@@ -5,7 +5,7 @@
     "packages/kart": {
       "extra-files": [
         {
-          "path": ".github/workflows/data-review.yml",
+          "path": "../../.github/workflows/data-review.yml",
           "type": "generic"
         }
       ]
