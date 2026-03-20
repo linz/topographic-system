@@ -54,7 +54,7 @@ describe('QGIS Process', () => {
     await fsa.write(new URL(`source/${name}/latest/${name}.geojson`, tempLocation), fsa.readStream(source));
   }
 
-  it('should deploy a qgs file', async (t) => {
+  it('should deploy a qgs file', async () => {
     const qgisProject = new URL('../../assets/beehive.qgs', import.meta.url);
     const qgisData = new URL('../../assets/beehive.geojson', import.meta.url);
     const topo50Data = new URL('../../assets/topo50.geojson', import.meta.url);

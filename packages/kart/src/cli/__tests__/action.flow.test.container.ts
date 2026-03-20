@@ -16,8 +16,8 @@ import { $ } from 'zx';
  * @param args the CLI arguments to pass through
  * @returns the standard output from the command execution, for assertions in tests
  */
-async function cli(args: string[]): Promise<string> {
-  const result = await $`node /app/index.cjs ${args}`;
+async function cli(...args: (string | string[])[]): Promise<string> {
+  const result = await $`node /app/index.cjs ${args.flat()}`;
   return result.stdout;
 }
 
@@ -103,15 +103,12 @@ describe('action.flow integration', () => {
   });
 
   it('it should produce a summary file in step 3 - diff', async () => {
-    await cli([
+    await cli(
       'diff',
-      '--context',
-      fileURLToPath(repoUrl),
-      '--output',
-      fileURLToPath(diffUrl),
-      '--summary-file',
-      fileURLToPath(summaryUrl),
-    ]);
+      ['--context', fileURLToPath(repoUrl)],
+      ['--output', fileURLToPath(diffUrl)],
+      ['--summary-file', fileURLToPath(summaryUrl)],
+    );
 
     const md = await fsa.read(summaryUrl);
     assert.ok(md.length > 0, 'pr_summary.md should have content');
@@ -119,15 +116,12 @@ describe('action.flow integration', () => {
   });
 
   it('should produce gpkg datasets in step 5 - export', async () => {
-    await cli([
+    await cli(
       'export',
-      '--context',
-      fileURLToPath(repoUrl),
-      '--output',
-      fileURLToPath(exportUrl),
-      '--ref',
-      'FETCH_HEAD',
-    ]);
+      ['--context', fileURLToPath(repoUrl)],
+      ['--output', fileURLToPath(exportUrl)],
+      ['--ref', 'FETCH_HEAD'],
+    );
 
     const files = await fsa.toArray(fsa.list(exportUrl));
     assert.ok(
@@ -137,14 +131,12 @@ describe('action.flow integration', () => {
   });
 
   it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
-    await cli([
+    await cli(
       'to-parquet',
-      '--output',
-      fileURLToPath(outputUrl),
-      '--temp-location',
-      fileURLToPath(parquetUrl),
+      ['--output', fileURLToPath(outputUrl)],
+      ['--temp-location', fileURLToPath(parquetUrl)],
       fileURLToPath(exportUrl),
-    ]);
+    );
 
     const parquetFiles = await fsa.toArray(fsa.list(parquetUrl));
     assert.ok(
@@ -161,17 +153,13 @@ describe('action.flow integration', () => {
     const dbPath = new URL('files.parquet', parquetUrl);
     const configFile = pathToFileURL('/packages/validation/config/default_config.json');
 
-    await cli([
+    await cli(
       'validate',
-      '--output',
-      fileURLToPath(outputUrl),
-      '--db-path',
-      fileURLToPath(dbPath),
-      '--config-file',
-      fileURLToPath(configFile),
-      '--output-dir',
-      fileURLToPath(validationUrl),
-    ]);
+      ['--output', fileURLToPath(outputUrl)],
+      ['--db-path', fileURLToPath(dbPath)],
+      ['--config-file', fileURLToPath(configFile)],
+      ['--output-dir', fileURLToPath(validationUrl)],
+    );
 
     const validationFiles = await fsa.toArray(fsa.list(validationUrl));
     assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
