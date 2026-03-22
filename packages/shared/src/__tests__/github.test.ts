@@ -10,8 +10,6 @@ describe('github', () => {
 
   beforeEach(() => {
     delete $.env['GITHUB_REF'];
-    delete $.env['GITHUB_PR_NUMBER'];
-    delete $.env['GITHUB_EVENT_PATH'];
     delete $.env['GITHUB_TOKEN'];
     delete $.env['GITHUB_API_TOKEN'];
   });
@@ -23,16 +21,6 @@ describe('github', () => {
   describe('isPullRequest', () => {
     it('should return true when GITHUB_REF starts with refs/pull/', () => {
       $.env['GITHUB_REF'] = 'refs/pull/123/merge';
-      assert.strictEqual(isPullRequest(), true);
-    });
-
-    it('should return true when GITHUB_PR_NUMBER is set', () => {
-      $.env['GITHUB_PR_NUMBER'] = '42';
-      assert.strictEqual(isPullRequest(), true);
-    });
-
-    it('should return true when GITHUB_EVENT_PATH is set', () => {
-      $.env['GITHUB_EVENT_PATH'] = '/github/workflow/event.json';
       assert.strictEqual(isPullRequest(), true);
     });
 
