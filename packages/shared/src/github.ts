@@ -5,17 +5,9 @@ import { $ } from 'zx';
 import { logger } from './log.ts';
 
 export function isPullRequest(): boolean {
-  logger.debug(
-    {
-      github: { prNumber: $.env['GITHUB_PR_NUMBER'], ref: $.env['GITHUB_REF'], eventPath: $.env['GITHUB_EVENT_PATH'] },
-    },
-    'IsPullRequest:env',
-  );
-  return (
-    Boolean($.env['GITHUB_PR_NUMBER']) ||
-    ($.env['GITHUB_REF']?.startsWith('refs/pull/') ?? false) ||
-    Boolean($.env['GITHUB_EVENT_PATH'])
-  );
+  const ref = $.env['GITHUB_REF'] || '';
+  logger.debug({ ref }, 'IsPullRequest:GITHUB_REF');
+  return ref.startsWith('refs/pull/');
 }
 
 /**
