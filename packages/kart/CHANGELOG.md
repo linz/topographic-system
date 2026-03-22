@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.6.0...topographic-system-kart-v0.7.0) (2026-03-22)
+
+
+### Features
+
+* instrument kart cli ([#79](https://github.com/linz/topographic-system/issues/79)) ([f132b3d](https://github.com/linz/topographic-system/commit/f132b3db0eafde1312d4a3e9b41b0f9f4e9a3231))
+* kart flow implementation BM-1494 ([#86](https://github.com/linz/topographic-system/issues/86)) ([355ef1f](https://github.com/linz/topographic-system/commit/355ef1fbdd0be2ff7c73c9e33685c5cc6695b070))
+* otel action ([#81](https://github.com/linz/topographic-system/issues/81)) ([bac740a](https://github.com/linz/topographic-system/commit/bac740a672952f611b08508e7e08f2778b9d323b))
+
+
+### Bug Fixes
+
+* STAC `latest` collection and assets BM-1507 ([#88](https://github.com/linz/topographic-system/issues/88)) ([cd02e56](https://github.com/linz/topographic-system/commit/cd02e5660dd94b1ed7ef626f14ba85a05acfeac6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.7.0 to ^0.8.0
+
 ## [0.6.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.5.0...topographic-system-kart-v0.6.0) (2026-03-12)
 
 
