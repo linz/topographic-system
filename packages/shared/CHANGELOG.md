@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.7.0...topographic-system-shared-v0.8.0) (2026-03-22)
+
+
+### Features
+
+* add open telemetry ([#77](https://github.com/linz/topographic-system/issues/77)) ([b87004f](https://github.com/linz/topographic-system/commit/b87004fd6122526b01333f4497559e7ade272fba))
+* instrument kart cli ([#79](https://github.com/linz/topographic-system/issues/79)) ([f132b3d](https://github.com/linz/topographic-system/commit/f132b3db0eafde1312d4a3e9b41b0f9f4e9a3231))
+* kart flow implementation BM-1494 ([#86](https://github.com/linz/topographic-system/issues/86)) ([355ef1f](https://github.com/linz/topographic-system/commit/355ef1fbdd0be2ff7c73c9e33685c5cc6695b070))
+* otel action ([#81](https://github.com/linz/topographic-system/issues/81)) ([bac740a](https://github.com/linz/topographic-system/commit/bac740a672952f611b08508e7e08f2778b9d323b))
+
+
+### Bug Fixes
+
+* isPullRequest logic BM-1580 ([#97](https://github.com/linz/topographic-system/issues/97)) ([a4dde75](https://github.com/linz/topographic-system/commit/a4dde75dede4b3f01ff7a7e135071ad21ce98409))
+* STAC `latest` collection and assets BM-1507 ([#88](https://github.com/linz/topographic-system/issues/88)) ([cd02e56](https://github.com/linz/topographic-system/commit/cd02e5660dd94b1ed7ef626f14ba85a05acfeac6))
+
 ## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.6.0...topographic-system-shared-v0.7.0) (2026-03-12)
 
 
