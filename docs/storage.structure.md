@@ -39,7 +39,7 @@ example-bucket:
       - catalog.json
 
       - latest: # Mutable latest released copy
-          - collection.json # References to the latest immutable tag year=2025/ate=2026-03-01T12-00-00Z:
+          - collection.json # References to the latest immutable tag year=2026/date=2026-03-01T12-00-00Z:
           - airport.parquet
 
       - year=2026: # Immutable releases that have been specifically tagged (eg a daily release)
