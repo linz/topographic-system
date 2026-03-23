@@ -103,7 +103,7 @@ describe('action.flow integration', () => {
       assert.ok(clonedDatasets.stdout.includes('test'), 'cloned repo should contain one or more test datasets');
     });
 
-    it('it should produce a summary file in step 3 - diff', async () => {
+    it('should produce a summary file in step 3 - diff', async () => {
       await cli(
         'diff',
         ['--context', fileURLToPath(repoUrl)],
@@ -115,6 +115,8 @@ describe('action.flow integration', () => {
       assert.ok(md.length > 0, 'pr_summary.md should have content');
       assert.ok(md.toString().includes('# Changes Summary'), 'summary should contain expected markdown header');
     });
+
+    it('should skip 4 - diff', () => {});
 
     it('should produce gpkg datasets in step 5 - export', async () => {
       await cli(
