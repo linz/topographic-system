@@ -1,5 +1,8 @@
+REM kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tree_locations 
+REM kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id airport 
-kart push origin master --force
+kart push origin master 
+REM kart push origin master --force
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id bridge_line 
 kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id building 
@@ -29,8 +32,6 @@ kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landuse_line 
 kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id marine 
-kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id nz_topo50_map_sheet 
 kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id physical_infrastructure_line 
 kart push origin master
@@ -80,6 +81,5 @@ kart import postgresql://postgres:landinformation@localhost/topo/release64 --pri
 kart push origin master
 kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id waterway_feature_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tree_locations 
-kart push origin master
+
 

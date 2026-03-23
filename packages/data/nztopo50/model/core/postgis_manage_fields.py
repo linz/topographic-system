@@ -107,6 +107,26 @@ class ModifyTable:
                 f"Added column '{column_name}' to table '{table_name}' with data type '{data_type}'"
             )
 
+    def get_srid(self, schema, table, geometry_field_name="geometry"):
+        self.connect()
+        query = f"""
+            SELECT Find_SRID('{schema}', '{table}', '{geometry_field_name}');
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            result = cur.fetchone()
+            return result[0] if result else None
+        
+    def get_geometry_type(self, schema, table, geometry_field_name="geometry"):
+        self.connect()
+        query = f"""
+            SELECT GeometryType("{geometry_field_name}") FROM "{schema}"."{table}" LIMIT 1;
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            result = cur.fetchone()
+            return result[0] if result else None
+        
     def carto_text_geom_update(self, schema, table):
         self.connect()
         with self.conn.cursor() as cur:
@@ -363,72 +383,78 @@ class ModifyTable:
             for table in tables:
                 if table == "collections" or table == "nz_topo50_map_sheet":
                     continue
+
+                # if table == "contour":
+                #     continue
+
                 fields = self.get_ordered_columns(schema, table, primary_key_type)
-                if self.column_exists(schema, table, "geom"):
-                    geom_field = "geom"
-                else:
-                    geom_field = "ST_Transform(geometry, 4167) AS geom"
-                if not self.table_exists(schema, f"{table}_4167"):
-                    create_query = f"""
-                        CREATE TABLE "{schema}"."{table}_4167" AS
-                        SELECT {", ".join([f'"{field}"' for field in fields])},
-                               {geom_field} 
-                        FROM "{schema}"."{table}";
-                    """
+                if self.get_srid(schema, table) == 2193:
+                    geom_field = "ST_Transform(geometry, 4167) AS geometry"
 
+                    geom_type = self.get_geometry_type(schema, table)
+
+                    if not self.table_exists(schema, f"{table}_4167"):
+                        create_query = f"""
+                            CREATE TABLE "{schema}"."{table}_4167" AS
+                            SELECT {", ".join([f'"{field}"' for field in fields])},
+                                {geom_field} 
+                            FROM "{schema}"."{table}";
+                        """
+
+                        with self.conn.cursor() as cur:
+                            cur.execute(create_query)
+                            self.conn.commit()
+                            print(f"Created table '{schema}.{table}_4167' with SRID 4167")
+
+                    # Drop the original table and rename the new table
                     with self.conn.cursor() as cur:
-                        cur.execute(create_query)
+                        drop_query = f'DROP TABLE "{schema}"."{table}" CASCADE;'
+                        rename_query = (
+                            f'ALTER TABLE "{schema}"."{table}_4167" RENAME TO "{table}";'
+                        )
+                        cur.execute(drop_query)
+                        cur.execute(rename_query)
                         self.conn.commit()
-                        print(f"Created table '{schema}.{table}_4167' with SRID 4167")
+                        print(
+                            f"Dropped original table '{schema}.{table}' and renamed '{schema}.{table}_4167' to '{schema}.{table}'"
+                        )
 
-                # Drop the original table and rename the new table
-                with self.conn.cursor() as cur:
-                    drop_query = f'DROP TABLE "{schema}"."{table}" CASCADE;'
-                    rename_query = (
-                        f'ALTER TABLE "{schema}"."{table}_4167" RENAME TO "{table}";'
-                    )
-                    cur.execute(drop_query)
-                    cur.execute(rename_query)
-                    self.conn.commit()
-                    print(
-                        f"Dropped original table '{schema}.{table}' and renamed '{schema}.{table}_4167' to '{schema}.{table}'"
-                    )
+                    # update the SRID information 
+                    with self.conn.cursor() as cur:
+                        query = f'ALTER TABLE "{schema}"."{table}" ALTER COLUMN geometry TYPE geometry({geom_type}, 4167) USING ST_SetSRID(geometry, 4167);'
 
-                # Add indexes
-                index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_geom ON {schema}.{table} USING GIST (geom);"
-                with self.conn.cursor() as cur:
-                    try:
-                        cur.execute(index_sql)
+                        cur.execute(query)
                         self.conn.commit()
-                    except Exception as e:
-                        print(f"Error creating index for '{table}': {e}")
-                        continue
-                print(f"Index for '{table}' created successfully.")
+                        print(
+                            f"Set SRID for table '{schema}.{table}' to 4167"
+                        )
 
-                index_fields = ["use", "type", "name"]
-                for field_name in index_fields:
-                    columns = tableModifer.column_list(schema, table, field_name)
-                    if columns:
-                        for field in columns:
-                            if field == "change_type":
-                                continue
-                            sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_{field_name} ON {schema}.{table}({field});"
-                            with self.conn.cursor() as cur:
-                                try:
-                                    cur.execute(sql)
-                                except Exception as e:
-                                    print(f"Error creating index for '{table}': {e}")
+                    # Add indexes
+                    index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_geom ON {schema}.{table} USING GIST (geometry);"
+                    with self.conn.cursor() as cur:
+                        try:
+                            cur.execute(index_sql)
+                            self.conn.commit()
+                        except Exception as e:
+                            print(f"Error creating index for '{table}': {e}")
+                            continue
+                    print(f"Index for '{table}' created successfully.")
+
+                    index_fields = ["use", "type", "name"]
+                    for field_name in index_fields:
+                        columns = tableModifer.column_list(schema, table, field_name)
+                        if columns:
+                            for field in columns:
+                                if field == "change_type":
                                     continue
+                                sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_{field_name} ON {schema}.{table}({field});"
+                                with self.conn.cursor() as cur:
+                                    try:
+                                        cur.execute(sql)
+                                    except Exception as e:
+                                        print(f"Error creating index for '{table}': {e}")
+                                        continue
 
-                # index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema}.{table}(feature_type);"
-                # with self.conn.cursor() as cur:
-                #    try:
-                #        cur.execute(index_sql)
-                #        self.conn.commit()
-                #    except Exception as e:
-                #        print(f"Error creating index for '{table}': {e}")
-                #        continue
-                # print(f"Index for '{table}' created successfully.")
 
     def add_name_columns(self):
         self.connect()
@@ -585,32 +611,6 @@ class ModifyTable:
             else:
                 print(
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
-                )
-
-    def update_topoid_from_previous_release(self, schema, table, previous_schema):
-        self.connect()
-        with self.conn.cursor() as cur:
-            if self.column_exists(schema, table, "t50_fid"):
-                update_query = f"""
-                    UPDATE {schema}.{table} AS new
-                    SET topo_id = old.topo_id
-                    FROM {previous_schema}.{table} AS old
-                    WHERE new.t50_fid = old.t50_fid;
-                """
-                try:
-                    cur.execute(update_query)
-                    self.conn.commit()
-                except Exception as e:
-                    print(f"Error updating 'topo_id' in '{schema}.{table}' from '{previous_schema}.{table}': {e}")
-                    self.conn.rollback()
-                cur.execute(update_query)
-                self.conn.commit()
-                print(
-                    f"Updated 'topo_id' in '{schema}.{table}' from '{previous_schema}.{table}'"
-                )
-            else:
-                print(
-                    f"'t50_fid' column does not exist in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
                 )
 
     def all_ordered_columns(self, primary_key_type="int"):
@@ -849,27 +849,19 @@ class ModifyTable:
 if __name__ == "__main__":
     tableModifer = ModifyTable(DB_PARAMS)
     option = "all"
-    option = "compare"
+    # option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
     # schema_name = "model"
     release_date = "2025-09-25"
 
-    # schema_name = "release63"
-    # release_date = "2025-05-14"
+    # schema_name = "release62"
+    # release_date = "2024-11-15"
 
     add_full_metadata_fields = True
     # primary_key_type = "none"
     # primary_key_type = 'int'
     primary_key_type = "uuid"
-    update_topoid_from_previous_release = True
-    repeat_update_toid_ids = False
-    previous_schema = "release62"
-    use_hive_partitioning = False
-    change_logs_path = r"c:\data\topo-data-vector\changelogs"
-    if update_topoid_from_previous_release:
-        if not os.path.exists(change_logs_path):
-            os.makedirs(change_logs_path)
 
     if option == "all" or option == "metadata":
         tableModifer.add_metadata_columns(
@@ -941,7 +933,7 @@ if __name__ == "__main__":
 
         tableModifer.update_column_with_default(
             schema_name,
-            "physical_Infrastructure_line",
+            "physical_infrastructure_line",
             "support_type",
             "'pole'",
             "feature_type ='telephone'",
@@ -970,10 +962,10 @@ if __name__ == "__main__":
 
         tableModifer.add_column(f"{schema_name}.landcover", "sub_type", "VARCHAR(50)")
 
-        tableModifer.add_column(f"{schema_name}.road_line", "level", "INTEGER")
-        tableModifer.update_column_by_value(
-            schema_name, "road_line", "level", 0
-        )
+        # tableModifer.add_column(f"{schema_name}.road_line", "level", "INTEGER")
+        # tableModifer.update_column_by_value(
+        #     schema_name, "road_line", "level", 0
+        # )
         tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(50)")
 
         tableModifer.add_column(f"{schema_name}.descriptive_text", "nzgb_id", "BIGINT")
@@ -1060,86 +1052,6 @@ if __name__ == "__main__":
     # turn the concept of collections off for now as no direct requirement
     # if option == "all" or option == "collections":
     #    tableModifer.create_collections_table(schema_name)
-
-    if update_topoid_from_previous_release and (option == "all" or option == "compare"):
-        schema_tables = tableModifer.list_schema_tables(schema_name)
-        
-        if repeat_update_toid_ids:
-            for schema, tables in schema_tables.items():
-                for table in tables:
-                    tableModifer.update_topoid_from_previous_release(
-                        schema, table, previous_schema
-                    )
-        
-        df_order = ["added", "removed", "updated"]
-        i = 0
-        for schema, tables in schema_tables.items():
-            for table in tables:
-                if table == "collections":
-                    continue
-                # temp
-                # if table != "fence_line":
-                #     continue
-                dfs = tableModifer.compare_table_data(
-                    schema, table, previous_schema, release_date
-                )
-                i += 1
-                if dfs is None:
-                    print(
-                        f"No comparable columns for {schema}.{table}, skipping comparison."
-                    )
-                    continue
-                else:
-                    if i == 1:
-                        insert_df, delete_df, update_df = dfs
-                    else:
-                        insert_df_new, delete_df_new, update_df_new = dfs
-                        insert_df = pd.concat(
-                            [insert_df, insert_df_new], ignore_index=True
-                        )
-                        delete_df = pd.concat(
-                            [delete_df, delete_df_new], ignore_index=True
-                        )
-                        update_df = pd.concat(
-                            [update_df, update_df_new], ignore_index=True
-                        )
-
-                    all_dfs = [insert_df, delete_df, update_df]
-        i = 0
-        for df in all_dfs:
-            if df.empty:
-                print(f"No {df_order[i]} changes detected for {schema}.{table}")
-            else:
-                if not use_hive_partitioning:
-                    output_file = os.path.join(
-                        change_logs_path,
-                        schema,
-                        f"{schema}_{table}_{df_order[i]}_changelog.parquet",
-                    )
-                    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-                    df.to_parquet(output_file, index=False)
-                    print(
-                        f"Exported {df_order[i]} changes for {schema}.{table} to {output_file}"
-                    )
-                else:
-                    partition_path = os.path.join(change_logs_path, schema)
-
-                    os.makedirs(partition_path, exist_ok=True)
-                    partition_path = partition_path.replace("\\", "/")
-                    output_file = os.path.join(
-                        partition_path,
-                        f"{schema}_{table}_{df_order[i]}_changelog.parquet",
-                    )
-
-                    pq.write_to_dataset(
-                        pa.Table.from_pandas(df),
-                        root_path=partition_path,
-                        partition_cols=["year", "month", "day", "change_type"],
-                    )
-                    print(
-                        f"Exported {df_order[i]} changes for {schema}.{table} to {output_file}"
-                    )
-            i += 1
 
     if option == "all" or option == "process_carto_tables":
         tables_to_copy = ["nz_topo50_map_sheet"]

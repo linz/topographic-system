@@ -5,42 +5,56 @@ import uuid
 
 # Database connection parameters
 db_params = "postgresql://postgres:landinformation@localhost:5432/topo"
-path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\nz-contours-topo-150k.gpkg"
+path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\nz-contours-topo-150k_2d.gpkg"
 layer = "nz_contours_topo_150k"
-
-# Read the shapefile using geopandas
-gdf = gpd.read_file(path, layer=layer, engine="pyogrio")
-
-# gdf = gdf.drop(columns=["FID"])
-gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(gdf))])
-gdf["feature_type"] = "contour"
-print(gdf.columns)
+schema = "release64"
+load_data = True
+remove_geometryZ = False 
 
 engine = create_engine(db_params)
-schema = "release64"
 
-if_exists_option = "replace"
+if load_data:
+    print(f"Loading data from {path} (layer: {layer}) into {schema}.contour...")
+    # Read the shapefile using geopandas
+    gdf = gpd.read_file(path, layer=layer, engine="pyogrio")
 
-chunk_size = len(gdf) // 10
-chunks = [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
+    # gdf = gdf.drop(columns=["FID"])
+    gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(gdf))])
+    gdf["feature_type"] = "contour"
+    print(gdf.columns)
 
-for i, chunk in enumerate(chunks):
-    print(f"Loading chunk {i + 1} of {len(chunks)}...")
-    chunk.to_postgis(
-        name="contour",
-        con=engine,
-        schema=schema,
-        if_exists="append" if i > 0 else if_exists_option,
-        index=False,
-    )
+    if_exists_option = "replace"
+
+    chunk_size = len(gdf) // 10
+    chunks = [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
+
+    for i, chunk in enumerate(chunks):
+        print(f"Loading chunk {i + 1} of {len(chunks)}...")
+        chunk.to_postgis(
+            name="contour",
+            con=engine,
+            schema=schema,
+            if_exists="append" if i > 0 else if_exists_option,
+            index=False,
+        )
 
 
-with engine.connect() as conn:
-    conn.execute(
-        text(f"""
-            ALTER TABLE {schema}.contour ADD PRIMARY KEY (topo_id);
+    with engine.connect() as conn:
+        conn.execute(
+            text(f"""
+                ALTER TABLE {schema}.contour ADD PRIMARY KEY (topo_id);
+            """)
+        )
+    
+if remove_geometryZ:
+    # Convert 3D LineString Z to 2D LineString by dropping Z values
+    with engine.connect() as conn:
+        conn.execute(
+            text(f"""
+                UPDATE {schema}.contour SET geometry = ST_Force2D(geometry);
         """)
-    )
-
+        )
+        conn.commit()
+    
 
 print("Data imported successfully")

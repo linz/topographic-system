@@ -1,7 +1,7 @@
 # NZTOPO50 Data Processing Workflow
 
 ## Overview
-This document describes the comprehensive data processing workflow implemented in `postgis_manage_fields.py` for transforming topographic data from source shapefiles to the standardized NZTOPO50 model.
+This document describes the comprehensive data processing workflow implemented in `postgis_manage_fields.py` for transforming topographic data from source shapefiles to the standardized topographic model.
 
 ## Data Transformations
 
@@ -126,15 +126,6 @@ fieldList = [
     ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
     ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
     ["version", "INTEGER DEFAULT 1", "DEFAULT"],
-]
-```
-
-#### Optional Source Fields
-```python
-[
-    ["source", "VARCHAR(75) DEFAULT 'nz aerial imagery'", "'database import'"],
-    ["source_id", "INTEGER", "DEFAULT"],
-    ["source_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
 ]
 ```
 

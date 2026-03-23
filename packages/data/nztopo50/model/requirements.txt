@@ -1,0 +1,27 @@
+# Database and SQL
+psycopg>=3.0.0
+sqlalchemy>=1.4.0
+duckdb>=0.8.0
+
+# Data Analysis and Processing
+pandas>=1.5.0
+numpy>=1.20.0
+
+# Geospatial Libraries
+geopandas>=0.12.0
+pyogrio>=0.5.0
+pyproj>=3.4.0
+shapely>=2.0.0
+fiona>=1.8.0
+gdal>=3.4.0
+
+# Data Formats
+pyarrow>=10.0.0
+
+# Visualization and Documentation
+graphviz>=0.20.0
+python-pptx>=0.6.21
+
+# Utilities
+# Standard library modules (os, glob, json, sqlite3, subprocess, shutil, time, uuid, typing)
+# are included with Python and don't need to be listed here

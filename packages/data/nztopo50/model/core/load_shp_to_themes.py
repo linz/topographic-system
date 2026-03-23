@@ -260,6 +260,12 @@ class Topo50DataLoader:
             #     print(f"Skipping layer: {layer_info[3]}")
             #     continue
             layer_name = layer_info[3]
+
+            # Currently contours are processed from LDS data - see contours/import_contours.py - so skipping processing of contours from shapefiles for now
+            if layer_name.lower() == "contour":
+                print(f"Skipping layer: {layer_name} - use import_contours.py to process contour data from LDS ")
+                continue
+
             # theme = layer_info[1]
             dataset = layer_info[4]
             if layer_name not in processed_layer:
@@ -290,15 +296,34 @@ class Topo50DataLoader:
             print(gdf.shape[0], "rows in layer", layer_name)
             self.count_log_file.write(f"{layer_name}, {gdf.shape[0]}\n")
 
-            # test = r"c:\\temp\\data.gpkg"
-            # self.write_dataset("gpkg", gdf, test, layer_name, dataset, True)
-            if target == "gdb":
-                self.write_dataset("gdb", gdf, self.output, layer_name, dataset, True)
-                print(f"Layer {layer_name} saved to GDB: {self.output}")
+            if layer_name == 'contour':
+                gdf_part1 = gdf.iloc[:len(gdf)//2]
+                gdf_part2 = gdf.iloc[len(gdf)//2:]
+                self.save_dataset(target, schema_name, gdf_part1, layer_name, dataset)
+                self.save_dataset(target, schema_name, gdf_part2, layer_name, dataset)
+                self.save_dataset(target, schema_name, gdf, layer_name, dataset)
             else:
+                self.save_dataset(target, schema_name, gdf, layer_name, dataset)
+
+    def save_dataset(self, target, schema_name, gdf, layer_name, dataset):
+        if target == "gdb":
+            try:
+                self.write_dataset("gdb", gdf, self.output, layer_name, dataset, True)
+            except Exception as e:
+                print(f"Error writing layer '{layer_name}' to GDB: {e}")
+                self.count_log_file.close()
+                raise
+            print(f"Layer {layer_name} saved to GDB: {self.output}")
+        else:
+            try:
                 self.write_dataset(
-                    "postgis", gdf, self.output, layer_name, dataset, True, schema_name
-                )
+                        "postgis", gdf, self.output, layer_name, dataset, True, schema_name
+                    )
+            except Exception as e:
+                print(f"Error writing layer '{layer_name}' to PostGIS: {e}")
+                self.count_log_file.close()
+                raise
+            print(f"Layer {layer_name} saved to PostGIS schema: {schema_name}")
 
     def run(self):
         print("Starting...")
