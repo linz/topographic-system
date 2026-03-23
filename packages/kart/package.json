@@ -6,7 +6,7 @@
   "types": "src/index.ts",
   "scripts": {
     "test": "node --test \"src/**/*.test.ts\"",
-    "test:integration": "node --test \"src/**/*.integration.test.ts\"",
+    "test:container": "node --test \"src/**/*.test.container.ts\"",
     "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs"
   },
   "dependencies": {

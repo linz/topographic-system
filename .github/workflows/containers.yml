@@ -127,9 +127,17 @@ jobs:
           file: packages/${{ matrix.package }}/Dockerfile
           tags: ${{ steps.tags.outputs.result }}
           push: true
+          load: true
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           build-args: |
             GIT_HASH=${{ github.sha }}
             GIT_VERSION=${{ steps.version.outputs.version }} 
             GITHUB_RUN_ID=${{ github.run_id}}
+
+      - name: Ensure container built
+        run: |
+          FIRST_TAG=$(echo "${{ steps.tags.outputs.result }}" | head -n 1)
+          docker run --rm ${FIRST_TAG}
+
+          docker run --rm -v $PWD:$PWD --entrypoint "sh" ${FIRST_TAG} -c "cd $PWD/packages/${{matrix.package}} && npm run test:container --if-present"

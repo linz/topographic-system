@@ -7,13 +7,21 @@ import { CliId } from '@linzjs/topographic-system-shared';
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
 import { ProduceCommand } from '../cli/action.produce.ts';
-import { pyRunner } from '../python.runner.ts';
+import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
 
 describe('deploy -> produce-cover -> produce', () => {
   const mem = new FsMemory();
 
   before(() => {
     fsa.register('memory://', mem);
+  });
+
+  it('should ensure base container matches the Dockerfile', async () => {
+    const dockerFile = new URL('../../Dockerfile', import.meta.url);
+    const from = String(await fsa.read(dockerFile))
+      .split('\n')
+      .find((f) => f.toLowerCase().startsWith('from'));
+    assert.equal(from, `FROM ${BaseCommandOptions.container}`);
   });
 
   const baseDeployArgs = {
