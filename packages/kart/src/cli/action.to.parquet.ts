@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +10,7 @@ import {
   recursiveFileSearch,
   registerFileSystem,
   Url,
-  UrlFolder
+  UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
@@ -67,11 +68,12 @@ export const ParquetCommand = command({
       type: Url,
       description: 'List of folders or files to convert (default: all .gpkg files in ./export)',
     }),
-  strategies: multioption({
-    long: 'strategy',
-    type: StorageStrategyMulti,
-    description: 'Storage strategies to use, for example --strategy=latest',
-  }),  },
+    strategies: multioption({
+      long: 'strategy',
+      type: StorageStrategyMulti,
+      description: 'Storage strategies to use, for example --strategy=latest',
+    }),
+  },
   async handler(args) {
     registerFileSystem();
 
@@ -83,7 +85,7 @@ export const ParquetCommand = command({
         compression: args.compression,
         compressionLevel: args.compressionLevel,
         sortByBbox: args.sortByBbox,
-        strategies: args.strategies
+        strategies: args.strategies,
       },
       'ToParquet:Start',
     );
@@ -99,10 +101,10 @@ export const ParquetCommand = command({
       return;
     }
 
-    await $`mkdir -p ${fileURLToPath(args.tempLocation)}`;
+    await mkdir(args.tempLocation, { recursive: true });
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
 
-    const datasets: {dataset: string, source:URL, metadata: ParquetStacMetadata }[] = []
+    const datasets: { dataset: string; source: URL; metadata: ParquetStacMetadata }[] = [];
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = path.basename(gpkgFile.pathname, extension);
@@ -122,25 +124,35 @@ export const ParquetCommand = command({
         if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
         await $`${command.flat()}`;
 
-        const stat = await fsa.head(parquetFile)
+        const stat = await fsa.head(parquetFile);
 
-        const parquetStats = await parquetToStac(parquetFile)
-        logger.info({dataset, size: stat?.size, fields: parquetStats.table['table:columns'].map(c => c.name), rowCount: parquetStats.table['table:row_count'] }, 'ToParquet:Written')
-        datasets.push({ dataset, source: parquetFile, metadata: parquetStats})
+        const parquetStats = await parquetToStac(parquetFile);
+        logger.info(
+          {
+            dataset,
+            size: stat?.size,
+            fields: parquetStats.table['table:columns'].map((c) => c.name),
+            rowCount: parquetStats.table['table:row_count'],
+          },
+          'ToParquet:Written',
+        );
+        datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
       });
     }
     await Q.join();
 
-    const todo:Promise<URL[]>[] = [];
+    const todo: Promise<URL[]>[] = [];
     for (const ds of datasets) {
-        const sw = new StacCollectionWriter('data', ds.dataset);
-        sw.asset('parquet', ds.source, { 
-          href: `./${ds.dataset}.parquet`, roles: ['data'], type: "application/vnd.apache.parquet",
-          ...ds.metadata.table
-        }) 
-        sw.collection.extent = ds.metadata.extent
-        for (const strat of args.strategies) sw.strategy(strat);
-        todo.push(sw.write(args.output, Q.Q, true));
+      const sw = new StacCollectionWriter('data', ds.dataset);
+      sw.asset('parquet', ds.source, {
+        href: `./${ds.dataset}.parquet`,
+        roles: ['data'],
+        type: 'application/vnd.apache.parquet',
+        ...ds.metadata.table,
+      });
+      sw.collection.extent = ds.metadata.extent;
+      for (const strat of args.strategies) sw.strategy(strat);
+      todo.push(sw.write(args.output, Q.Q, true));
     }
 
     const collections = await Promise.all(todo);
@@ -149,5 +161,3 @@ export const ParquetCommand = command({
     logger.info('ToParquet:Completed');
   },
 });
-
-

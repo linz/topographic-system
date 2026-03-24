@@ -1,11 +1,10 @@
 {
   "name": "@linzjs/topographic-system-shared",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "lint": "eslint src/ --quiet --fix --report-unused-disable-directives --ignore-path ../../.gitignore",
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {

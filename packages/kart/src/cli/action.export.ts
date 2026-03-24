@@ -1,13 +1,13 @@
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import os from 'os';
 
 import { ConcurrentQueue, logger, stringToUrlFolder, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
-const Q = new ConcurrentQueue(os.cpus().length);
+const numParallelExportProcesses = 1;
+const Q = new ConcurrentQueue(numParallelExportProcesses);
 
 type KartDiffOutput = Record<string, number>;
 
@@ -66,7 +66,7 @@ export const ExportCommand = command({
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
-    logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
+    logger.info({ numParallelExportProcesses, datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
       Q.push(
         () =>

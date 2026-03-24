@@ -14,6 +14,17 @@ describe('determineAssetLocation', () => {
   beforeEach(() => {
     $.env = { ...originalEnv };
     process.env = { ...originalProcessEnv };
+    for (const key of [
+      'GITHUB_REF',
+      'GITHUB_PR_NUMBER',
+      'GITHUB_EVENT_PATH',
+      'GITHUB_WORKFLOW_REF',
+      'GITHUB_REF_NAME',
+      'GIT_HASH',
+    ]) {
+      delete $.env[key];
+      delete process.env[key];
+    }
   });
 
   it('should use provided tag when tag is specified', () => {

@@ -25,7 +25,7 @@ on:
       kart_version:
         description: 'Version of kart to use.'
         type: string
-        default: 'v0.6.0' # x-release-please-version
+        default: 'v0.7.0' # x-release-please-version
 
 jobs:
   kart:
@@ -50,37 +50,13 @@ jobs:
       - name: Setup Otel
         uses: linz/action-otel@master
 
-      - name: Check versions
+      - name: Versions
         run: |
           node --version
           ogr2ogr --version
           git --version
           kart --version
-          node /scripts/index.cjs version
-
-      - name: Clone repository
-        run: node /scripts/index.cjs clone ${{ inputs.clone_url != '' && inputs.clone_url || github.event.repository.clone_url }} --ref ${{ inputs.head_ref != '' && inputs.head_ref || github.head_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate diff
-        run: node /scripts/index.cjs diff
-
-      - name: Comment on PR
-        run: node /scripts/index.cjs pr-comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload diff artifacts
-        uses: actions/upload-artifact@v5
-        with:
-          name: diff
-          path: |
-            pr_summary.md
-            diff/
-
-      - name: Export changed datasets
-        run: node /scripts/index.cjs export --changed-datasets-only=${{ inputs.changed_datasets_only }}
+          node /app/index.cjs version
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_ROLE_ARN != '' }}
@@ -90,8 +66,19 @@ jobs:
           mask-aws-account-id: true
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Convert to parquet
-        run: node /scripts/index.cjs to-parquet --output ${{ inputs.output }}
+      - name: Kart Flow
+        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          OUTPUT: ${{ inputs.output }}
+          CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
-      - name: Validate datasets
-        run: node /scripts/index.cjs validate --output ${{ inputs.output }}
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: diff
+          path: |
+            pr_summary.md
+            diff/

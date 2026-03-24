@@ -1,12 +1,18 @@
 import assert from 'node:assert';
-import { afterEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import { $ } from 'zx';
 
-import { isMergeToMaster, isPullRequest, gitContext } from '../github.ts';
+import { isMergeToMaster, isPullRequest, gitContext, canCommentOnPr } from '../github.ts';
 
 describe('github', () => {
   const originalEnv = { ...$.env };
+
+  beforeEach(() => {
+    delete $.env['GITHUB_REF'];
+    delete $.env['GITHUB_TOKEN'];
+    delete $.env['GITHUB_API_TOKEN'];
+  });
 
   afterEach(() => {
     $.env = { ...originalEnv };
@@ -29,11 +35,9 @@ describe('github', () => {
     });
 
     it('should return false when GITHUB_REF is undefined', () => {
-      delete $.env['GITHUB_REF'];
       assert.strictEqual(isPullRequest(), false);
     });
   });
-
   describe('isMergeToMaster', () => {
     it('should return true when not a pull request and ref ends with /master', () => {
       $.env['GITHUB_REF'] = 'refs/heads/master';
@@ -56,11 +60,9 @@ describe('github', () => {
     });
 
     it('should return false when GITHUB_REF is undefined', () => {
-      delete $.env['GITHUB_REF'];
       assert.strictEqual(isMergeToMaster(), false);
     });
   });
-
   describe('gitContext', () => {
     it('should return an empty array when no repo is provided', () => {
       assert.deepStrictEqual(gitContext(), []);
@@ -76,6 +78,77 @@ describe('github', () => {
       const repoUrl = new URL('file:///path/to/repo%20with%20spaces');
       const expectedContext = ['-C', '/path/to/repo with spaces'];
       assert.deepStrictEqual(gitContext(repoUrl), expectedContext);
+    });
+  });
+  describe('canCommentOnPr', () => {
+    // Helpers to set up a clean PR/non-PR context via $.env
+    function setPrEnv(): void {
+      $.env['GITHUB_REF'] = 'refs/pull/123/merge';
+    }
+
+    function setNonPrEnv(): void {
+      $.env['GITHUB_REF'] = 'refs/heads/master';
+    }
+
+    it('should return true when in a PR context with only GITHUB_TOKEN present', () => {
+      setPrEnv();
+      $.env['GITHUB_TOKEN'] = 'fake-token';
+      assert.strictEqual(isPullRequest(), true);
+      assert.strictEqual(canCommentOnPr(), true);
+    });
+
+    it('should return true when in a PR context with only GITHUB_API_TOKEN present', () => {
+      setPrEnv();
+      $.env['GITHUB_API_TOKEN'] = 'fake-api-token';
+      assert.strictEqual(isPullRequest(), true);
+      assert.strictEqual(canCommentOnPr(), true);
+    });
+
+    it('should return true when in a PR context with both GITHUB_TOKEN and GITHUB_API_TOKEN present', () => {
+      setPrEnv();
+      $.env['GITHUB_TOKEN'] = 'fake-token';
+      $.env['GITHUB_API_TOKEN'] = 'fake-api-token';
+      assert.strictEqual(isPullRequest(), true);
+      assert.strictEqual(canCommentOnPr(), true);
+    });
+
+    it('should return false when in a PR context but neither GITHUB_TOKEN nor GITHUB_API_TOKEN is present', () => {
+      setPrEnv();
+      assert.strictEqual(isPullRequest(), true);
+      assert.strictEqual(canCommentOnPr(), false);
+    });
+
+    it('should return false when in a PR context but both GITHUB_TOKEN and GITHUB_API_TOKEN are empty strings', () => {
+      setPrEnv();
+      $.env['GITHUB_TOKEN'] = '';
+      $.env['GITHUB_API_TOKEN'] = '';
+      assert.strictEqual(isPullRequest(), true);
+      assert.strictEqual(canCommentOnPr(), false);
+    });
+
+    it('should return false when not in a PR context even with GITHUB_TOKEN present', () => {
+      setNonPrEnv();
+      $.env['GITHUB_TOKEN'] = 'fake-token';
+      assert.strictEqual(isPullRequest(), false);
+      assert.strictEqual(canCommentOnPr(), false);
+    });
+
+    it('should return false when not in a PR context even with GITHUB_API_TOKEN present', () => {
+      setNonPrEnv();
+      $.env['GITHUB_API_TOKEN'] = 'fake-api-token';
+      assert.strictEqual(isPullRequest(), false);
+      assert.strictEqual(canCommentOnPr(), false);
+    });
+
+    it('should return false when not in a PR context and neither token is present', () => {
+      setNonPrEnv();
+      assert.strictEqual(isPullRequest(), false);
+      assert.strictEqual(canCommentOnPr(), false);
+    });
+
+    it('should return false when GITHUB_REF is undefined and neither token is present', () => {
+      assert.strictEqual(isPullRequest(), false);
+      assert.strictEqual(canCommentOnPr(), false);
     });
   });
 });

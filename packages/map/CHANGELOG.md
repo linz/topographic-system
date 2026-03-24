@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.1...topographic-system-map-v0.8.0) (2026-03-22)
+
+
+### Features
+
+* add open telemetry ([#77](https://github.com/linz/topographic-system/issues/77)) ([b87004f](https://github.com/linz/topographic-system/commit/b87004fd6122526b01333f4497559e7ade272fba))
+* **ci:** Show Visual diff when making changes in Pull Requests. BM-1553 ([#64](https://github.com/linz/topographic-system/issues/64)) ([976b9da](https://github.com/linz/topographic-system/commit/976b9da4b719b6ef06852e87c0eebb3fb371f49a))
+* instrument kart cli ([#79](https://github.com/linz/topographic-system/issues/79)) ([f132b3d](https://github.com/linz/topographic-system/commit/f132b3db0eafde1312d4a3e9b41b0f9f4e9a3231))
+* **map:** Exclude layers from the visual-diff. ([#83](https://github.com/linz/topographic-system/issues/83)) ([0a12ae4](https://github.com/linz/topographic-system/commit/0a12ae435d94f422d16bb93d8ee8af6a638b03ed))
+* otel action ([#81](https://github.com/linz/topographic-system/issues/81)) ([bac740a](https://github.com/linz/topographic-system/commit/bac740a672952f611b08508e7e08f2778b9d323b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.7.0 to ^0.8.0
+
 ## [0.7.1](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.0...topographic-system-map-v0.7.1) (2026-03-12)
 
 
