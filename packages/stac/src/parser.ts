@@ -1,6 +1,7 @@
-import type { Type } from "cmd-ts";
-import type { StorageStrategy, StorageStrategyName } from "./stac.storage.ts";
-import { StorageStrategySep, StorageStrategyParsers } from "./stac.storage.ts";
+import type { Type } from 'cmd-ts';
+
+import type { StorageStrategy, StorageStrategyName } from './stac.storage.ts';
+import { StorageStrategySep, StorageStrategyParsers } from './stac.storage.ts';
 
 function parseStrategy(str: string): StorageStrategy {
   const key = str.split(StorageStrategySep)[0];

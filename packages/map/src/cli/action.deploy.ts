@@ -2,15 +2,15 @@ import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import type { StorageStrategy } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
+import { StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import tar from 'tar-stream';
 
 import { qFromArgs } from '../limit.ts';
 import { pyRunner } from '../python.runner.ts';
-import type { StorageStrategy } from '@linzjs/topographic-system-stac';
-import { StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
-import { StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 
 async function buildTarBuffer(projectFolder: URL): Promise<URL | null> {
   const tarPack = tar.pack();
@@ -162,7 +162,7 @@ export const DeployCommand = command({
 
     logger.info({ project: args.project }, 'Deploy: Create Stac Catalog');
 
-    await StacUpsert.collections(rootCatalog , [...collections.values()], args.commit)
+    await StacUpsert.collections(rootCatalog, [...collections.values()], args.commit);
 
     logger.info({ project: args.project, commit: args.commit ? 'Uploaded' : 'Dry Run' }, 'Deploy: Finished');
   },

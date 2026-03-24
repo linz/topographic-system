@@ -1,6 +1,6 @@
 /**
  * High level grouping of storage structure
- * 
+ *
  * These are the only valid top level keys in the target catalog
  * ```
  * - catalog.json
@@ -10,25 +10,24 @@
  */
 export type StacStorageCategory = 'qgis' | 'data';
 
-
 export type StorageStrategy = StorageStrategyLatest | StorageStrategyCommit | StorageStrategyDate;
 
 /**
  * Store a mutable copy of the assets `latest/` location
- * 
+ *
  * If another stategy is present latest will have a canonical link to the next strategy
  */
 export type StorageStrategyLatest = { type: 'latest' };
 /**
- * Stores a immutable copy of the assets inside commit_prefix={}/commit={} 
- * 
+ * Stores a immutable copy of the assets inside commit_prefix={}/commit={}
+ *
  * If "latest" is also preset will have a "latest-version" link to the latest folder
  */
 export type StorageStrategyCommit = { type: 'commit'; commit: string };
 
 /**
- * Stores a immutable copy of the assets inside year={}/date={} 
- * 
+ * Stores a immutable copy of the assets inside year={}/date={}
+ *
  * If "latest" is also preset will have a "latest-version" link to the latest folder
  */
 export type StorageStrategyDate = { type: 'date'; date: Date };

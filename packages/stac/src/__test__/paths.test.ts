@@ -21,7 +21,7 @@ describe('makeRelative', () => {
   });
 
   it('should not make relative if protocol hosts or other parts differ', () => {
-    assert.equal(getRelativePath(new URL('s3://foo/a.txt'), new URL('s3://foo/b.txt')), './a.txt')
+    assert.equal(getRelativePath(new URL('s3://foo/a.txt'), new URL('s3://foo/b.txt')), './a.txt');
     assert.equal(getRelativePath(new URL('file:///foo/a.txt'), new URL('https://bar/b.txt')), 'file:///foo/a.txt');
     assert.equal(getRelativePath(new URL('s3://foo/a.txt'), new URL('https://bar/b.txt')), 's3://foo/a.txt');
     assert.equal(getRelativePath(new URL('https://foo/a.txt'), new URL('https://bar/b.txt')), 'https://foo/a.txt');

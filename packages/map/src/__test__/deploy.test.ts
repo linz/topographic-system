@@ -42,7 +42,7 @@ describe('action.deploy', () => {
       project: [new URL('memory://source/nztopo50/nztopo50.qgs')],
       target: new URL('memory://target/'),
       commit: true,
-      strategies: [ {type: 'latest'}, {type: 'commit', commit: gitHash}]
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
     });
 
     assert.deepEqual(

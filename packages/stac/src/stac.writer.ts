@@ -15,7 +15,7 @@ const StacSource = Symbol('stac.source');
 export const HashWriter = {
   async write(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer | URL) {
     if (buffer instanceof URL) return HashWriter.stream(asset, target, buffer);
-    return HashWriter.file(asset, target, buffer)
+    return HashWriter.file(asset, target, buffer);
   },
   async file(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer): Promise<void> {
     const hash = createHash('sha256').update(buffer).digest('hex');
@@ -71,7 +71,7 @@ export class StacCollectionWriter {
     return current;
   }
 
-  itemAsset(itemName: string, assetName: string, source: URL|Buffer, asset: StacAsset) {
+  itemAsset(itemName: string, assetName: string, source: URL | Buffer, asset: StacAsset) {
     const item = this.item(itemName);
     item.assets ??= {};
     if (item.assets[assetName]) throw new Error(`Overriding asset on ${itemName}.${assetName}`);
@@ -86,7 +86,7 @@ export class StacCollectionWriter {
     Object.defineProperty(asset, StacSource, { enumerable: false, value: source });
   }
 
-  async write(prefix: URL, q: LimitFunction, _commit: boolean = false): Promise<URL[]> {
+  async write(prefix: URL, q: LimitFunction, commit: boolean = false): Promise<URL[]> {
     const items = [...this.items.values()];
 
     const ctx = { prefix, category: this.category, label: this.label };
@@ -110,7 +110,7 @@ export class StacCollectionWriter {
         const target = new URL(asset.href, baseUrl);
         const source = getSource(asset);
         if (source == null) continue; // TODO should this throw
-        todo.push(q(() => HashWriter.write(asset, target, source)));
+        if (commit) todo.push(q(() => HashWriter.write(asset, target, source)));
       }
     }
 
@@ -138,7 +138,7 @@ export class StacCollectionWriter {
             const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
             if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
-            await HashWriter.file(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
+            if (commit) await HashWriter.file(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
           });
         }),
       );
@@ -152,15 +152,16 @@ export class StacCollectionWriter {
       // and everything else links to latest
       if (s.type === 'latest') {
         if (strats.canonical != null) {
-          const targetUrl = new URL("collection.json", StacStorage.url(strats.canonical, ctx));
+          const targetUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
           targetCollection.links.push({ rel: 'canonical', href: getRelativePath(targetUrl, collectionUrl) });
         }
       } else if (strats.latest != null) {
-        const targetUrl = new URL("collection.json", StacStorage.url(strats.latest, ctx));
+        const targetUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
         targetCollection.links.push({ rel: 'latest-version', href: getRelativePath(targetUrl, collectionUrl) });
       }
 
-      await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
+      if (commit)
+        await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
       collectionUrls.push(collectionUrl);
     }
 

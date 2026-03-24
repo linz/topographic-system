@@ -22,8 +22,8 @@ export interface RowGroupColumnStats {
 }
 
 export interface ParquetStacMetadata {
-  table: RowGroupColumnStats
-  extent: Extents
+  table: RowGroupColumnStats;
+  extent: Extents;
 }
 
 export async function parquetToStac(assetFile: URL): Promise<ParquetStacMetadata> {
@@ -63,7 +63,7 @@ export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Pa
       const current = (tableStats[name] ??= { name, type: col.meta_data.type.toLowerCase() });
       aggregateStats(current, col);
       if (name.endsWith('bbox.xmin')) extentKey = name.slice(0, name.lastIndexOf('.'));
-      if (createDateKey !== 'create_date' && name.endsWith('_date')) createDateKey = name; 
+      if (createDateKey !== 'create_date' && name.endsWith('_date')) createDateKey = name;
     }
   }
 
@@ -83,7 +83,7 @@ export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Pa
     const yMax = tableStats[`${extentKey}.ymax`]?.max;
 
     const extent = [xMin, yMin, xMax, yMax];
-    console.log({ extent })
+    console.log({ extent });
     const invalidKeys = extent.find((f) => typeof f !== 'number' || isNaN(f));
     if (invalidKeys == null) extents.spatial = { bbox: [extent as number[]] };
   }
@@ -131,7 +131,6 @@ function aggregateStats(out: Partial<ColumnStats>, chunk: ColumnChunk): void {
   setMin(out, stats.min);
   setMax(out, stats.max);
 }
-
 
 // TODO delete
 export function extractSpatialExtent(columnStats: ColumnStats[]): SpatialExtent {

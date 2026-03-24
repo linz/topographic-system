@@ -4,7 +4,6 @@ import { fsa } from '@chunkd/fs';
 import type cmdts from 'cmd-ts';
 import type { Type } from 'cmd-ts';
 
-
 /**
  * Parse an input parameter as a URL.
  *

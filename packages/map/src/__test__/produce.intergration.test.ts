@@ -16,8 +16,8 @@ describe('deploy -> produce-cover -> produce', () => {
     fsa.register('memory://', mem);
   });
 
-  const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab'
-  
+  const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
+
   it('should ensure base container matches the Dockerfile', async () => {
     const dockerFile = new URL('../../Dockerfile', import.meta.url);
     const from = String(await fsa.read(dockerFile))
@@ -55,7 +55,7 @@ describe('deploy -> produce-cover -> produce', () => {
       ...baseDeployArgs,
       project: [new URL('memory://source/topo50maps/')],
       target: new URL('memory://target-deploy/'),
-      strategies: [{  type: 'latest' }, {type: 'commit', commit: gitHash}],
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
       commit: true,
     });
 

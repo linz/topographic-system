@@ -24,8 +24,8 @@ export {
   upsertAssetToItem,
   upsertItemToCollection,
 } from './stac.upsert.ts';
-export { stringToUrlFolder,  Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
+export { stringToUrlFolder, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
 export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
 export { monitor } from './otel/instrument.ts';
 export { traceAndRun } from './otel/instrument.cli.ts';
-export {parquetToStac} from './parquet.metadata.ts'
+export { parquetToStac } from './parquet.metadata.ts';

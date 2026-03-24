@@ -245,9 +245,9 @@ async function upsertChildToCatalog(
 
 async function getAssetFromCollection(collectionUrl: URL) {
   const collection = await fsa.readJson<StacCollection>(collectionUrl);
-  // TODO we should be looking for the "asset" type not the asset named "parquet"
+  // TODO we should be looking for the "data" role,  not the asset named "parquet" ?
   const dataAsset = collection?.assets?.['parquet']?.href;
-  if (dataAsset == null) throw new Error(`Invalid collection at path: ${collectionUrl}`);
+  if (dataAsset == null) throw new Error(`Invalid collection at path: ${collectionUrl.href}`);
 
   return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
 }
@@ -264,7 +264,7 @@ async function getAssetFromCollection(collectionUrl: URL) {
 export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
   // TODO come back to this
   if (tag === 'latest') {
-    return new URL(`${layerName}/latest/collection.json`, stacUrl)
+    return new URL(`${layerName}/latest/collection.json`, stacUrl);
     // /data/catalog.json -> /data/:layer/latest/collection.json
     // possibly just return /data/:layer/latest/:layer.parquet
     // return getAssetFromCollection(new URL(`${layerName}/latest/collection.json`, stacUrl));

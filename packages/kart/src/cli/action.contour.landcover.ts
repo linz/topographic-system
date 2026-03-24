@@ -9,13 +9,12 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
-  stringToUrlFolder
+  stringToUrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { command, option } from 'cmd-ts';
-import type { StacCollection } from 'stac-ts';
-import pLimit from 'p-limit';
-
 import { StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
+import { command, option } from 'cmd-ts';
+import pLimit from 'p-limit';
+import type { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
 
@@ -91,13 +90,17 @@ export const ContourWithLandcoverCommand = command({
 
     const sw = new StacCollectionWriter('data', topo50ContourName);
 
-    sw.asset('parquet', tempOutputParquet, { href: `./${topo50ContourName}.parquet`, type: 'application/vnd.apache.parquet', roles: ['data'] })
+    sw.asset('parquet', tempOutputParquet, {
+      href: `./${topo50ContourName}.parquet`,
+      type: 'application/vnd.apache.parquet',
+      roles: ['data'],
+    });
 
-    sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href })
-    sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href })
+    sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
+    sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
 
-    const collections = await sw.write(rootCatalog, pLimit(4), true)
+    const collections = await sw.write(rootCatalog, pLimit(4), true);
 
-    await StacUpsert.collections(rootCatalog, collections, true)
+    await StacUpsert.collections(rootCatalog, collections, true);
   },
 });

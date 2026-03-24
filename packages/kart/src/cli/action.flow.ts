@@ -189,6 +189,7 @@ export const FlowCommand = command({
       output: args.output,
       tempLocation: args.parquetTempLocation,
       sourceFiles: [args.exportOutput],
+      strategies: [{ type: 'latest' }],
     });
 
     ghGroupLog('Flow:Step [7/7] validate');

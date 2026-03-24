@@ -78,7 +78,7 @@ describe('QGIS Process', () => {
       ...baseDeployArgs,
       project: [new URL('source/beehive/beehive.qgs', tempLocation)],
       target: new URL('memory://target-deploy/'),
-      strategies: [{ type: 'latest' }, {type: 'commit', commit: '4aba34b5accb0002867af66f6a92a35e0a4be7cab'}],
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: '4aba34b5accb0002867af66f6a92a35e0a4be7cab' }],
       commit: true,
     });
 
