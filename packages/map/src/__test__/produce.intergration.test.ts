@@ -2,7 +2,6 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
-import { CliId } from '@linzjs/topographic-system-shared';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
@@ -65,6 +64,7 @@ describe('deploy -> produce-cover -> produce', () => {
         'memory://target-deploy/qgis/topo50/latest/topo50.json',
         'memory://target-deploy/qgis/topo50/latest/collection.json',
         'memory://target-deploy/qgis/topo50/latest/topo50.qgs',
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
         `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
         `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
         `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
@@ -85,7 +85,7 @@ describe('deploy -> produce-cover -> produce', () => {
       mapSheetLayer: 'nz_topo50_map_sheet',
       source: baseDeployArgs.source,
       dpi: 300,
-      output: new URL('memory://target-produce/working/'),
+      output: new URL('memory://target-produce/'),
       fromFile: undefined,
       all: false,
       format: 'pdf',
@@ -95,34 +95,38 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/working/${CliId}/BQ32.json`,
-        `memory://target-produce/working/${CliId}/collection.json`,
-        'memory://target-produce/working/catalog.json',
-      ],
+        `memory://target-produce/product/topo50/latest/BQ32.json`,
+        `memory://target-produce/product/topo50/latest/collection.json`,
+        `memory://target-produce/product/topo50/catalog.json`,
+        'memory://target-produce/product/catalog.json',
+        'memory://target-produce/catalog.json',
+      ].sort(),
     );
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL) => {
-      const outputFile = new URL('BQ32.pdf', output);
+      const outputFile = new URL('product/latest/BQ32.pdf', output);
       await fsa.write(outputFile, 'BQ32.pdf');
       return outputFile;
     });
     await ProduceCommand.handler({
-      path: [new URL(`memory://target-produce/working/${CliId}/BQ32.json`)],
+      path: [new URL(`memory://target-produce/product/topo50/latest/BQ32.json`)],
       tempLocation: new URL('memory://temp-produce/'),
       fromFile: undefined,
       force: false,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/working/${CliId}/BQ32.json`,
-        `memory://target-produce/working/${CliId}/collection.json`,
-        'memory://target-produce/working/catalog.json',
-        `memory://target-produce/working/${CliId}/BQ32.pdf`, // :tada: a export happened
-      ],
+        `memory://target-produce/product/topo50/latest/BQ32.json`,
+        `memory://target-produce/product/topo50/latest/collection.json`,
+        `memory://target-produce/product/topo50/catalog.json`,
+        'memory://target-produce/product/catalog.json',
+        'memory://target-produce/catalog.json',
+        `memory://target-produce/product/topo50/latest/BQ32.pdf`, // :tada: a export happened
+      ].sort(),
     );
   });
 });

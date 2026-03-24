@@ -229,7 +229,7 @@ export const ProduceCoverCommand = command({
     const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
-    const projectName = basename(args.project.href, '.qgs');
+    const projectName = basename(args.project.href, '.json');
     const sw = new StacCollectionWriter('product', projectName);
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
@@ -268,7 +268,7 @@ export const ProduceCoverCommand = command({
       item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
     }
 
-    const itemTarget = new URL(`./product/${projectName}.json`, args.output);
+    const itemTarget = new URL(`./${projectName}.json`, args.output);
     logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
     const collections = await sw.write(itemTarget, q, true);
 
