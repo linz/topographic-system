@@ -53,7 +53,7 @@ describe('deploy -> produce-cover -> produce', () => {
     // Deploy the QGIS project into memory
     await DeployCommand.handler({
       ...baseDeployArgs,
-      project: [new URL('memory://source/topo50maps/')],
+      project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: new URL('memory://target-deploy/'),
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
       commit: true,
@@ -62,13 +62,13 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.deepEqual(
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href).sort(),
       [
-        'memory://target-deploy/qgis/topo50maps/latest/topo50.json',
-        'memory://target-deploy/qgis/topo50maps/latest/collection.json',
-        'memory://target-deploy/qgis/topo50maps/latest/topo50.qgs',
-        `memory://target-deploy/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target-deploy/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target-deploy/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target-deploy/qgis/topo50maps/catalog.json',
+        'memory://target-deploy/qgis/topo50/latest/topo50.json',
+        'memory://target-deploy/qgis/topo50/latest/collection.json',
+        'memory://target-deploy/qgis/topo50/latest/topo50.qgs',
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'memory://target-deploy/qgis/topo50/catalog.json',
         'memory://target-deploy/qgis/catalog.json',
         'memory://target-deploy/catalog.json',
       ].sort(),
@@ -80,7 +80,7 @@ describe('deploy -> produce-cover -> produce', () => {
 
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
-      project: new URL('memory://target-deploy/qgis/topo50maps/latest/topo50.json'),
+      project: new URL('memory://target-deploy/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
       mapSheetLayer: 'nz_topo50_map_sheet',
       source: baseDeployArgs.source,
