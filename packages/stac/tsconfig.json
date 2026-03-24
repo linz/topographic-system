@@ -4,13 +4,5 @@
     "rootDir": "./src",
     "outDir": "./build/"
   },
-  "include": ["src/"],
-  "references": [
-    {
-      "path": "../stac"
-    },
-    {
-      "path": "../shared"
-    }
-  ]
+  "include": ["src/"]
 }

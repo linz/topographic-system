@@ -13,9 +13,8 @@ describe('action.deploy', () => {
     fsa.register('memory://', mem);
   });
 
-  const githash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
+  const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
   const baseArgs = {
-    githash,
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -40,9 +39,10 @@ describe('action.deploy', () => {
 
     await DeployCommand.handler({
       ...baseArgs,
-      project: new URL('memory://source/topo50maps/'),
+      project: [new URL('memory://source/nztopo50/nztopo50.qgs')],
       target: new URL('memory://target/'),
       commit: true,
+      strategies: [ {type: 'latest'}, {type: 'commit', commit: gitHash}]
     });
 
     assert.deepEqual(
@@ -51,9 +51,9 @@ describe('action.deploy', () => {
         'memory://target/qgis/topo50maps/latest/topo50.json',
         'memory://target/qgis/topo50maps/latest/collection.json',
         'memory://target/qgis/topo50maps/latest/topo50.qgs',
-        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.json`,
-        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/collection.json`,
-        `memory://target/qgis/topo50maps/commit_prefix=${githash.charAt(0)}/commit=${githash}/topo50.qgs`,
+        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
         'memory://target/qgis/topo50maps/catalog.json',
         'memory://target/qgis/catalog.json',
         'memory://target/catalog.json',

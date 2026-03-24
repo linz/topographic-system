@@ -38,7 +38,6 @@ describe('QGIS Process', () => {
   });
 
   const baseDeployArgs = {
-    githash: '4aba34b5accb0002867af66f6a92a35e0a4be7cab',
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -77,8 +76,9 @@ describe('QGIS Process', () => {
     // Deploy the QGIS project into memory
     await DeployCommand.handler({
       ...baseDeployArgs,
-      project: new URL('source/', tempLocation),
+      project: [new URL('source/beehive/beehive.qgs', tempLocation)],
       target: new URL('memory://target-deploy/'),
+      strategies: [{ type: 'latest' }, {type: 'commit', commit: '4aba34b5accb0002867af66f6a92a35e0a4be7cab'}],
       commit: true,
     });
 

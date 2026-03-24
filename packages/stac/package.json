@@ -1,0 +1,12 @@
+{
+  "name": "@linzjs/topographic-system-stac",
+  "version": "0.7.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

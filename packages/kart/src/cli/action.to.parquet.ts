@@ -5,17 +5,17 @@ import { fileURLToPath } from 'node:url';
 import { fsa } from '@chunkd/fs';
 import {
   ConcurrentQueue,
-  determineAssetLocation,
-  isMergeToMaster,
   logger,
   recursiveFileSearch,
   registerFileSystem,
-  upsertAssetToCollection,
   Url,
-  UrlFolder,
+  UrlFolder
 } from '@linzjs/topographic-system-shared';
+import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
+import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
-import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
+import { StacCollectionWriter, StacUpsert, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import { boolean, command, flag, multioption, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
 const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
@@ -67,7 +67,11 @@ export const ParquetCommand = command({
       type: Url,
       description: 'List of folders or files to convert (default: all .gpkg files in ./export)',
     }),
-  },
+  strategies: multioption({
+    long: 'strategy',
+    type: StorageStrategyMulti,
+    description: 'Storage strategies to use, for example --strategy=latest',
+  }),  },
   async handler(args) {
     registerFileSystem();
 
@@ -79,6 +83,7 @@ export const ParquetCommand = command({
         compression: args.compression,
         compressionLevel: args.compressionLevel,
         sortByBbox: args.sortByBbox,
+        strategies: args.strategies
       },
       'ToParquet:Start',
     );
@@ -96,6 +101,8 @@ export const ParquetCommand = command({
 
     await $`mkdir -p ${fileURLToPath(args.tempLocation)}`;
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
+
+    const datasets: {dataset: string, source:URL, metadata: ParquetStacMetadata }[] = []
     for (const gpkgFile of gpkgFilesToProcess) {
       Q.push(async () => {
         const dataset = path.basename(gpkgFile.pathname, extension);
@@ -110,42 +117,37 @@ export const ParquetCommand = command({
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
           ['-lco', 'WRITE_COVERING_BBOX=YES'],
-          ['-lco', 'COVERING_BBOX_NAME=bbox'],
+          // ['-lco', 'COVERING_BBOX_NAME=bbox'],
         ];
-        if (args.sortByBbox) {
-          command.push(['-lco', 'SORT_BY_BBOX=YES']);
-        }
+        if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
         await $`${command.flat()}`;
-        const assetFile = determineAssetLocation({
-          category: 'data',
-          dataset,
-          file: parquetFile,
-          root: args.output,
-        });
-        logger.info({ assetFile: assetFile.href }, 'ToParquet:UploadingParquet');
-        await fsa.write(assetFile, fsa.readStream(parquetFile), {
-          contentType: 'application/vnd.apache.parquet',
-        });
-        const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile);
-        logger.info(
-          { parquetFile, stacCollectionFile: stacCollectionFile.href },
-          'ToParquet:AssetToCollectionUpserted',
-        );
-        if (isMergeToMaster()) {
-          logger.debug({ assetFile }, 'ToParquet:UpdatingNextCollection');
-          await upsertAssetToCollection(
-            rootCatalog,
-            assetFile,
-            new URL('../../latest/collection.json', stacCollectionFile),
-          );
-        }
+
+        const stat = await fsa.head(parquetFile)
+
+        const parquetStats = await parquetToStac(parquetFile)
+        logger.info({dataset, size: stat?.size, fields: parquetStats.table['table:columns'].map(c => c.name), rowCount: parquetStats.table['table:row_count'] }, 'ToParquet:Written')
+        datasets.push({ dataset, source: parquetFile, metadata: parquetStats})
       });
     }
+    await Q.join();
 
-    await Q.join().catch((err: unknown) => {
-      logger.fatal({ err }, 'ToParquet:Error');
-      throw err;
-    });
+    const todo:Promise<URL[]>[] = [];
+    for (const ds of datasets) {
+        const sw = new StacCollectionWriter('data', ds.dataset);
+        sw.asset('parquet', ds.source, { 
+          href: `./${ds.dataset}.parquet`, roles: ['data'], type: "application/vnd.apache.parquet",
+          ...ds.metadata.table
+        }) 
+        sw.collection.extent = ds.metadata.extent
+        for (const strat of args.strategies) sw.strategy(strat);
+        todo.push(sw.write(args.output, Q.Q, true));
+    }
+
+    const collections = await Promise.all(todo);
+    await StacUpsert.collections(rootCatalog, collections.flat(), true);
+
     logger.info('ToParquet:Completed');
   },
 });
+
+

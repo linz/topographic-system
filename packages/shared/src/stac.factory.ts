@@ -189,7 +189,7 @@ export async function createStacAssetFromFileName(assetFile: URL): Promise<StacA
     fileStats = await createFileStats(assetFile);
     if (extension === 'parquet') {
       const parquetMetadata = await readParquetFileMetadata(assetFile);
-      parquetStats = mapParquetMetadataToStacStats(parquetMetadata);
+      parquetStats = mapParquetMetadataToStacStats(parquetMetadata).table;
     }
     stacAsset.href = assetFile.href;
     stacAsset.title = dataset;

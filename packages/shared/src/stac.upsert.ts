@@ -178,6 +178,15 @@ async function upsertChildToCatalog(
   return stacCatalogFile;
 }
 
+async function getAssetFromCollection(collectionUrl: URL) {
+  const collection = await fsa.readJson<StacCollection>(collectionUrl);
+  // TODO we should be looking for the "asset" type not the asset named "parquet"
+  const dataAsset = collection?.assets?.['parquet']?.href;
+  if (dataAsset == null) throw new Error(`Invalid collection at path: ${collectionUrl}`);
+
+  return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
+}
+
 /**
  * Recursively found the target data collection.json from the root catalog, based on the layer name and tag.
  *
@@ -188,41 +197,38 @@ async function upsertChildToCatalog(
  * @returns Target data collection.json URL if found, otherwise throws an error.
  */
 export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
+  // TODO come back to this
+  if (tag === 'latest') {
+    return new URL(`${layerName}/latest/collection.json`, stacUrl)
+    // /data/catalog.json -> /data/:layer/latest/collection.json
+    // possibly just return /data/:layer/latest/:layer.parquet
+    // return getAssetFromCollection(new URL(`${layerName}/latest/collection.json`, stacUrl));
+  }
+
   if (stacUrl.href.endsWith('catalog.json')) {
     const catalog = await fsa.readJson<StacCatalog>(stacUrl);
     for (const link of catalog.links) {
       if (link.rel !== 'child') continue;
+      const actualUrl = new URL(link.href, stacUrl);
       // Check the collection.json of the target layer with full tag
-      if (link.href.includes(`/${layerName}/${tag}/collection.json`)) {
+      if (actualUrl.href.includes(`/${layerName}/${tag}/collection.json`)) {
         // Found target collection
         if (tag === 'latest') {
-          const collectionUrl = new URL(link.href, stacUrl);
+          return getAssetFromCollection(actualUrl);
           // If tag is 'latest', find the derived collection data
-          const collection = await fsa.readJson<StacCollection>(collectionUrl);
-          if (collection == null) {
-            throw new Error(`Invalid collection at path: ${link.href}`);
-          }
-          if (collection.assets == null || collection.assets['parquet'] == null) {
-            throw new Error(`Data asset not found in collection: ${link.href}`);
-          }
-          // TODO we should be looking for the "asset" type not the asset named "parquet"
-          const dataAsset = collection.assets['parquet'].href;
-          // TODO this logic should really look for the "latest-version" record
-          // https://github.com/stac-extensions/version
-          return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
         } else {
-          return new URL(link.href);
+          return actualUrl;
         }
       }
       // Check layer with partial tag category like 'pull_request', 'dev' or 'year'
       const tagPrefix = tag.split('/')[0];
-      if (link.href.includes(`/${layerName}/${tagPrefix}/catalog.json`)) {
+      if (actualUrl.href.includes(`/${layerName}/${tagPrefix}/catalog.json`)) {
         // Recursively search in child catalog until find the full target link
-        return getDataFromCatalog(new URL(link.href), layerName, tag);
+        return getDataFromCatalog(actualUrl, layerName, tag);
       }
       // Check the root layer catalog with no tag
-      if (link.href.includes(`/${layerName}/catalog.json`)) {
-        return getDataFromCatalog(new URL(link.href), layerName, tag);
+      if (actualUrl.href.includes(`/${layerName}/catalog.json`)) {
+        return getDataFromCatalog(actualUrl, layerName, tag);
       }
     }
   }

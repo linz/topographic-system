@@ -5,8 +5,7 @@ import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 
 import { CliDate, CliInfo } from './cli.info.ts';
 import { isMergeToMaster, isPullRequest } from './github.ts';
 import { logger } from './log.ts';
-import { createFileStats, createFileStatsFromStac } from './stac.factory.ts';
-import { getDataFromCatalog } from './stac.upsert.ts';
+import { createFileStatsFromStac } from './stac.factory.ts';
 
 export function getSelfLink(stac: StacItem | StacCollection | StacCatalog): string {
   const selfLink = stac.links.find((link) => link.rel === 'self');
@@ -199,49 +198,4 @@ function addExtentFromItemToCollection(stacCollection: StacCollection, stacItem:
     ]);
   }
   return stacCollection;
-}
-
-/**
- * Loop through the required layers for a qgis project and create dataset links for each layer
- */
-export async function createDatasetLinks(source: URL, layers: string[], dataTag: string): Promise<StacLink[]> {
-  const links = [];
-  for (const layer of layers) {
-    const layerCollection = await getDataFromCatalog(source, layer, dataTag);
-    links.push({
-      rel: 'dataset',
-      href: layerCollection.href,
-      type: 'application/json',
-    });
-  }
-  return links;
-}
-
-/**
- * Attach asset tar link for the qgis project if available.
- */
-export function withAssetsLink(datasetLinks: StacLink[], tarPath: URL | null): StacLink[] {
-  const links = [...datasetLinks];
-  if (tarPath) {
-    links.push({
-      rel: 'assets',
-      href: tarPath.href,
-      type: 'application/x-tar',
-    });
-  }
-  return links;
-}
-
-/**
- * Create a qgist project asset for the qgis stac item, and include file stats if the file exists
- */
-export async function createProjectAsset(qgsPath: URL, file: URL): Promise<Record<string, StacAsset>> {
-  return {
-    project: {
-      href: qgsPath.href,
-      type: 'application/vnd.qgis.qgs+xml',
-      roles: ['data'],
-      ...(await createFileStats(file)),
-    } as StacAsset,
-  };
 }

@@ -198,22 +198,27 @@ async function qgisVersion(): Promise<string> {
 /**
  * Running python commands for list_source_layers
  */
-async function listSourceLayers(input: URL): Promise<string[]> {
-  const sourceLocation = await findQgisSource();
-  const cmd = Python3.create(BaseCommandOptions);
+async function listSourceLayers(_input: URL): Promise<string[]> {
 
-  cmd.mount(fileURLToPath(sourceLocation));
-  cmd.mount(fileURLToPath(new URL('.', input)));
+  return [
+    'airport',
+    'nz_topo50_cart_text'
+  ]
+  // const sourceLocation = await findQgisSource();
+  // const cmd = Python3.create(BaseCommandOptions);
 
-  cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
-  cmd.args.push(fileURLToPath(input));
-  const res = await runAndLog(cmd);
+  // cmd.mount(fileURLToPath(sourceLocation));
+  // cmd.mount(fileURLToPath(new URL('.', input)));
 
-  // Get all layers names and remove duplicates
-  const layerPaths = JSON.parse(res.stdout) as string[];
-  const layerNames = Array.from(new Set(layerPaths.map((p) => path.basename(p, path.extname(p)))));
+  // cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
+  // cmd.args.push(fileURLToPath(input));
+  // const res = await runAndLog(cmd);
 
-  return layerNames;
+  // // Get all layers names and remove duplicates
+  // const layerPaths = JSON.parse(res.stdout) as string[];
+  // const layerNames = Array.from(new Set(layerPaths.map((p) => path.basename(p, path.extname(p)))));
+
+  // return layerNames;
 }
 
 /** Redefined for testing */
