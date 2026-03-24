@@ -160,8 +160,9 @@ export class StacCollectionWriter {
         targetCollection.links.push({ rel: 'latest-version', href: getRelativePath(targetUrl, collectionUrl) });
       }
 
-      if (commit)
+      if (commit){
         await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
+      }
       collectionUrls.push(collectionUrl);
     }
 

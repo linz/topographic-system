@@ -94,7 +94,7 @@ async function deployProject(
   }
 
   logger.info({ source: project.href, destination: args.target }, 'Deploy: Create Commit Stac Item');
-  return await sw.write(new URL(`./qgis/${projectName}/`, args.target), q, args.commit);
+  return await sw.write(args.target, q, args.commit);
 }
 
 export const DeployArgs = {
