@@ -1,9 +1,11 @@
 import sys
 import geopandas as gpd
 import pandas as pd
+import argparse
 
 from pathlib import Path
 from multiprocessing import cpu_count, get_context
+from parquet_utils import write_parquet
 
 
 def process_chunk(args):
@@ -33,7 +35,6 @@ def process_chunk(args):
 
 
 def split_gdf(gdf, n_chunks):
-    """Split GeoDataFrame into chunks while preserving type."""
     if n_chunks <= 1:
         return [gdf]
 
@@ -57,24 +58,18 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
             [(chunk, landcover_gdf) for chunk in contour_chunks],
         )
 
-    # Remove empty results
     results = [r for r in results if r is not None and not r.empty]
 
     overlay_gdf = gpd.GeoDataFrame(pd.concat(results, ignore_index=True))
 
-    compression_level = 19
-    row_group_size = 10000
-
-    overlay_gdf.to_parquet(
-        overlay_path,
-        engine="pyarrow",
-        compression="zstd",
-        compression_level=compression_level,
-        row_group_size=row_group_size,
-        write_covering_bbox=True,
-        schema_version="1.1.0",
-    )
+    write_parquet(overlay_gdf, overlay_path)
 
 
 if __name__ == "__main__":
-    run(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))
+    parser = argparse.ArgumentParser(description="Overlay contour with landcover")
+    parser.add_argument("--contour", required=True, help="Path to contour parquet")
+    parser.add_argument("--landcover", required=True, help="Path to contour parquet")
+    parser.add_argument("--output", required=True, help="Path to output directory")
+    args = parser.parse_args()
+
+    run(Path(args.contour), Path(args.landcover), Path(args.output))
