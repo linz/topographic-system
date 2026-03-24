@@ -39,7 +39,7 @@ describe('action.deploy', () => {
 
     await DeployCommand.handler({
       ...baseArgs,
-      project: [new URL('memory://source/nztopo50/nztopo50.qgs')],
+      project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: new URL('memory://target/'),
       commit: true,
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
@@ -48,13 +48,14 @@ describe('action.deploy', () => {
     assert.deepEqual(
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href).sort(),
       [
-        'memory://target/qgis/topo50maps/latest/topo50.json',
-        'memory://target/qgis/topo50maps/latest/collection.json',
-        'memory://target/qgis/topo50maps/latest/topo50.qgs',
-        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target/qgis/topo50maps/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target/qgis/topo50maps/catalog.json',
+        'memory://target/qgis/topo50/latest/topo50.json',
+        'memory://target/qgis/topo50/latest/collection.json',
+        'memory://target/qgis/topo50/latest/topo50.qgs',
+        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'memory://target/qgis/topo50/catalog.json',
         'memory://target/qgis/catalog.json',
         'memory://target/catalog.json',
       ].sort(),
