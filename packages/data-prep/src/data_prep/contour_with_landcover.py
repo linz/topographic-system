@@ -1,11 +1,10 @@
-import sys
 import geopandas as gpd
 import pandas as pd
 import argparse
 
 from pathlib import Path
 from multiprocessing import cpu_count, get_context
-from parquet_utils import write_parquet
+from data_prep.parquet_utils import write_parquet
 
 
 def process_chunk(args):
