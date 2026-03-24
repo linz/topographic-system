@@ -115,7 +115,7 @@ The t50_fid processed for LDS datasets is a life value (same feature same id). T
 To sync the TOPO_ID (as the new primary key) between 2 releases use the **sync_topo_ids.py** script. This does a join based on the t50_fid.  If there are any 0's in the t50_fid this will throw an error (see roads pre-processing). The script can safely be re-run.
 
 
-## Kart Import and Push
+# Kart Import and Push
 
 More information - https://toitutewhenua.atlassian.net/wiki/spaces/LI/pages/1171718236/Kart+Data+Import+and+Environment
 
@@ -125,43 +125,44 @@ Repeat as needed for:
 
 >topographic-contour-data
 
+## Clean existing repo
 
-**By default kart will create a main branch so use -b master for a forced load.**
+If data is in an existing repo and this is a clean rebuild follow the following steps:
 
-Using command line - cd to working folder. For example c:\data\toposource
+*In GitHub*
 
-kart init -b master topographic-data
+Remove any branches
 
-OR..
+Delete the Branch protection rules on the master branch - Settings / Branch - NOTE: you need correct permissions
 
-if work flow is going to load to branch and then PR into master create a branch (reflect release version)
+We want to remove the old data this is down by using force - this disconnects the data and backend clean up will delete it. The delete can be forced.
 
->Make sure it is a new branch
+Open your CLI (supporting Kart) and go to your work area - for example c:\data\toposource
 
-kart init -b release64 topographic-data
+Create an empty kart repo and run a push
 
-THEN...
+> kart init -b master topographic-data
 
-cd  topographic-data  [or other target repo]
+> cd topographic-data
 
-kart remote add origin git@github.com:linz/topographic-data  [or target repo for other data]
+> kart remote add origin git@github.com:linz/topographic-data  [or target repo for other data]
 
-**CHECK** the remote is correct. If not correct remove - kart remote remove origin and redo last command.
+> kart remote -v
 
-kart remote -v
+This will be an empty repo.
 
-**WARNINGS - if the tree_locations upload failure has not be fxed follow the tree_location load process 1st**
+Import a small datasets - this will then be deleted.
 
-instruction currently in another project. To transfer.
-If run - REMOVE the tree_location from the master import file.
+> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id airport 
 
-**run the kart_import**
-Note: this uses a force option on the kart push command - force clears all tables and code in the repo. Remove in check step if loading to branch.
+> kart push origin master --force
 
-> copy the kart_import_topodata.bat into the topographic-data folder 
+> kart data rm airport
+
+> kart push origin master
 
 
-**CHECK**
+**CHECK the import BAT file has the correct settings**
 
 1. tree_locations should be commented out (default) or removed if loading via manual method
 
@@ -171,30 +172,118 @@ Note: this uses a force option on the kart push command - force clears all table
 
 4. Confirm you are pushing to the correct branch e.g kart push origin master **versus** kart push origin release64 
 
-Run: bat file (windows). This does a push after each load so don't hit timeout issues.
+
+## Main Process - Approach 1
+
+Approach 1 - In the clean repo - Add any requirments before load.
+
+Typically this is the ACTIONS code.
+
+Could include a README.md file to document current load (not these files are not visible via Kart Download)
+
+In this approach we clone the repo
+
+> Using CLI (Kart enabled) - cd to working folder. For example c:\data\toposource
+
+> kart clone git@github.com:linz/topographic-data   [or target repo for other data]
+
+Check all ok
+> kart remote -v
+
+> copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
+
 
 DO first: Run the tree_locations manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
+
+Run: bat file (windows). This does a push after each load so don't hit timeout issues.
 
 When ready - run...
 
 @kart_import_topodata.bat
 
-**contours**
+
+## Main Process - Approach 2
+
+Approach 2 - We do a force which removes all content of the repo. In this approach any additional requirement like ACTIONS are added after the data is loaded.
+
+**By default kart will create a main branch so use -b master for a forced load.**
+
+Using CLI (Kart enabled) - cd to working folder. For example c:\data\toposource
+
+> kart init -b master topographic-data
+
+OR..
+
+**Note: This is aim if loading a single layer - typically fails for builk replacement**
+if work flow is going to load to branch and then PR into master create a branch (reflect release version)
+
+Make sure it is a new branch
+
+kart init -b release64 topographic-data
+
+THEN...
+
+> cd  topographic-data  [or other target repo]
+
+> kart remote add origin git@github.com:linz/topographic-data   [or target repo for other data]
+
+**CHECK** the remote is correct. If not correct remove - kart remote remove origin and redo last command.
+
+> kart remote -v
+
+**WARNINGS - if the tree_locations upload failure has not be fxed follow the tree_location load process 1st**
+
+instruction currently in another project. To transfer.
+If run - REMOVE the tree_location from the master import file.
+
+**run the kart_import**
+Note: this uses a force option on the kart push command - force clears all tables and code in the repo. Remove in check step if loading to branch.
+
+> copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
+
+
+DO first: Run the tree_locations manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
+
+Run: bat file (windows). This does a push after each load so don't hit timeout issues.
+
+When ready - run...
+
+@kart_import_topodata.bat
+
+## RESET GITHUB BRANCH PROTECTION
+
+APPLY the Branch protection rules on the master branch. Requires correct level of permissions.
+
+
+# PROCESS CONTOURS
+
+**FOLLOW THE SAME PROCESS AS MAIN TOPOGRAPHIC DATA ABOVE**
+
 As for instructions above - check branch and schema. Data comes from the same schema as topographic-data just into its own repo.
+
+*Use Approach 1 or Approach 2*
+
+**Example - use topographic-contour-data**
 
 kart init -b master topographic-contour-data
 
 cd  topographic-contour-data
 
+kart remote add origin git@github.com:linz/topographic-contour-data
+
+Single layer so can run manually or
+
 copy kart_import_contours.bat into topographic-contour-data
 
 @kart_import_contours
 
-**products**
+# PROCESS PRODUCTS
 
 See README_PRODUCTS.md for instructions on loading and processing product datasets.
 
-## Control Files
+# Control Files Information
+
+CSV versions of these files are stored in the core code folder
 
 ***LAYERS_INFO excel***
 object_name - LAMBS object name
