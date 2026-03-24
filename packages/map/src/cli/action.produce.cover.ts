@@ -1,9 +1,7 @@
+import { basename } from 'path';
+
 import { fsa } from '@chunkd/fs';
 import {
-  CliId,
-  createStacCatalog,
-  createStacItem,
-  createStacLink,
   downloadFile,
   downloadFromCollection,
   getDataFromCatalog,
@@ -13,11 +11,13 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
+import { parseStrategy, StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import type { StacCatalog, StacItem } from 'stac-ts';
+import type { StacCollection, StacItem } from 'stac-ts';
 
+import { qFromArgs } from '../limit.ts';
 import { pyRunner } from '../python.runner.ts';
-import { createMapSheetStacCollection, type ExportOptions, type MapSheetStacItem } from '../stac.ts';
+import { type ExportOptions } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
 import { tempLocation } from './shared.args.ts';
 
@@ -155,7 +155,12 @@ const ProduceArgs = {
   output: option({
     type: UrlFolder,
     long: 'output',
-    description: 'Path or s3 of the output directory to write generated map sheets.',
+    description: 'Path or s3 bucket of the output directory to write generated map sheets.',
+  }),
+  strategy: option({
+    long: 'strategy',
+    type: string,
+    description: 'Storage strategies to use, for example --strategy=latest',
   }),
   tempLocation,
 };
@@ -167,7 +172,10 @@ export const ProduceCoverCommand = command({
   async handler(args) {
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
-    logger.info({ project: args.project }, 'ProduceCover: Start');
+    logger.info({ project: args.project.href }, 'ProduceCover: Start');
+    const strategy = parseStrategy(args.strategy);
+
+    const q = qFromArgs(args);
 
     const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
 
@@ -221,66 +229,67 @@ export const ProduceCoverCommand = command({
     const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
+    const projectName = basename(args.project.href, '.qgs');
+    const sw = new StacCollectionWriter('product', projectName);
+    sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
+    sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
+    sw.strategy(strategy);
+
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
-    const items = [];
-    const derivedProjectLink = stac.links.find((link) => link.rel === 'derived_from');
-    const links = createStacLink(sources, derivedProjectLink ? new URL(derivedProjectLink.href) : args.project);
+
     for (const metadata of metadatas) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
-      const item = createStacItem(
-        rootCatalog,
-        standardizedSheetCode,
-        links,
-        {},
-        metadata.geometry,
-        metadata.bbox,
-      ) as MapSheetStacItem;
+
+      const item = sw.item(standardizedSheetCode);
+      item.geometry = metadata.geometry;
+      item.bbox = metadata.bbox;
       item.properties['proj:epsg'] = metadata.epsg;
       item.properties['linz:mapsheet'] = metadata.sheetCode;
       item.properties['linz_topographic_system:options'] = exportOptions;
-      // Add assets link if available
-      item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
 
-      const itemPath = new URL(`./${CliId}/${standardizedSheetCode}.json`, args.output);
-      items.push({ path: itemPath });
-      await fsa.write(itemPath, JSON.stringify(item, null, 2));
-    }
-
-    // Create collection file
-    const collectionPath = new URL(`./${CliId}/collection.json`, args.output);
-    logger.info(
-      { project: args.project.href, collectionPath: collectionPath.href },
-      'ProduceCover: CreateStacCollection',
-    );
-    const collection = createMapSheetStacCollection(rootCatalog, metadatas, links);
-    await fsa.write(collectionPath, JSON.stringify(collection, null, 2));
-
-    const catalogPath = new URL(`catalog.json`, args.output);
-    logger.info({ project: args.project.href, catalogPath: catalogPath.href }, 'ProduceCover: CreateStacCatalog');
-    const title = 'Topographic System Map Producer';
-    const description =
-      'Topographic System Map Producer to generate maps from Qgis project in pdf, tiff, geotiff formats';
-    const catalogLinks = [
-      {
-        rel: 'collection',
-        href: `./${CliId}/collection.json`,
-        type: 'application/json',
-      },
-    ];
-    let catalog = createStacCatalog(catalogPath, title, description, catalogLinks);
-    const existing = await fsa.exists(catalogPath);
-    if (existing) {
-      catalog = await fsa.readJson<StacCatalog>(catalogPath);
-      catalog.links.push({
-        rel: 'collection',
-        href: `./${CliId}/collection.json`,
+      // Add project link
+      const canonicalLink = stac.links.find((link) => link.rel === 'canonical');
+      item.links.push({
+        rel: 'project',
+        href: canonicalLink ? canonicalLink.href : args.project.href,
         type: 'application/json',
       });
+
+      // Add source data links
+      for (const file of sources) {
+        item.links.push({
+          rel: 'source',
+          href: file.href,
+          type: 'application/json',
+        });
+      }
+
+      // Add assets link if available
+      item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
     }
-    await fsa.write(catalogPath, JSON.stringify(catalog, null, 2));
+
+    const itemTarget = new URL(`./product/${projectName}.json`, args.output);
+    logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
+    const collections = await sw.write(itemTarget, q, true);
+
+    if (collections.length !== 1) {
+      throw new Error(`ProduceCover: Wrong number of collections for project ${args.project.href}`);
+    }
+    const collectionUrl = collections[0]!;
+
+    logger.info({ project: args.project.href }, 'ProduceCover: UpsertStacCatalog');
+    await StacUpsert.collections(rootCatalog, [...collections.values()], true);
+
+    logger.info({ project: args.project.href, target: args.output.href }, 'ProduceCover: Finished');
 
     // If running in argo dump out output information to be used by further steps
     if (isArgo()) {
+      // Prepare the item paths for group step in Argo
+      const collection = await fsa.readJson<StacCollection>(collectionUrl);
+      if (collection == null) throw new Error(`Invalid STAC Collection generated for project ${args.project.href}`);
+      const itemsLinks = collection.links.filter((link) => link.rel === 'item');
+      const items = itemsLinks.map((link) => ({ path: new URL(link.href, collectionUrl).href }));
+
       // Where the JSON files were written to
       await fsa.write(fsa.toUrl('/tmp/produce/cover-items.json'), JSON.stringify(items));
     }

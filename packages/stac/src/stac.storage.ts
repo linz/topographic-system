@@ -8,7 +8,7 @@
  * - qgis/catalog.json
  * ```
  */
-export type StacStorageCategory = 'qgis' | 'data';
+export type StacStorageCategory = 'qgis' | 'data' | 'product';
 
 export type StorageStrategy = StorageStrategyLatest | StorageStrategyCommit | StorageStrategyDate;
 
