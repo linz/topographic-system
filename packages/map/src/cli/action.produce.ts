@@ -1,14 +1,8 @@
 import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
-import {
-  createFileStats,
-  downloadProject,
-  logger,
-  registerFileSystem,
-  Url,
-  UrlArrayJsonFile,
-} from '@linzjs/topographic-system-shared';
+import { downloadProject, logger, registerFileSystem, Url, UrlArrayJsonFile } from '@linzjs/topographic-system-shared';
+import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
@@ -90,28 +84,38 @@ export const ProduceCommand = command({
 
       // Start to export file
       const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
+
       if (exportOptions.format === ExportFormats.GeoTiff || exportOptions.format === ExportFormats.Tiff) {
+        // TODO optimize tiff to COG / lossless webp
         await validateTiff(file, Number(stac.properties['proj:epsg']));
       }
 
       logger.info({ file: file.href }, 'Produce: FileExported');
-      const stream = fsa.readStream(file);
-      await fsa.write(destPath, stream, {
-        contentType: getContentType(exportOptions.format),
-      });
+
+      const asset = await HashWriter.write(destPath, file, { contentType: getContentType(exportOptions.format) });
       logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
 
-      // Add stac asset for the generated file
-      const assets = {
-        extent: {
+      // TODO this changes the hash of the item.json so the collection should be updated
+      await StacUpdater.readWriteJson<StacItem>(path, (stac) => {
+        if (stac == null) throw new Error(`Failed to read: ${path.href}`);
+        stac.assets ??= {};
+
+        if (stac.assets[exportOptions.format]) throw new Error('Asset already exists');
+
+        const date = new Date().toISOString();
+        stac.assets[exportOptions.format] = {
           href: `./${destPath.pathname.split('/').pop()}`,
           type: getContentType(exportOptions.format),
           roles: ['data'],
-          ...(await createFileStats(destPath)),
-        } as StacAsset,
-      };
-      stac.assets = assets;
-      await fsa.write(path, JSON.stringify(stac, null, 2));
+          updated: date,
+          created: date,
+          ...asset,
+        } as StacAsset;
+
+        return stac;
+      });
+      
+
       logger.info({ destPath: destPath.href }, 'Produce: StacUpdated');
     }
   },

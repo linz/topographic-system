@@ -3,7 +3,7 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import type { StorageStrategy } from '@linzjs/topographic-system-stac';
-import { StacCollectionWriter, StacUpsert, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import tar from 'tar-stream';
@@ -154,7 +154,7 @@ export const DeployCommand = command({
 
     logger.info({ project: args.project }, 'Deploy: Create Stac Catalog');
 
-    await StacUpsert.collections(rootCatalog, [...collections.values()], args.commit);
+    await StacUpdater.collections(rootCatalog, [...collections.values()], args.commit);
 
     logger.info({ project: args.project, commit: args.commit ? 'Uploaded' : 'Dry Run' }, 'Deploy: Finished');
   },

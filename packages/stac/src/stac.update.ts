@@ -4,7 +4,7 @@ import type { StacCatalog } from 'stac-ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
 
-export const StacUpsert = {
+export const StacUpdater = {
   async collections(root: URL, collections: URL[], commit: boolean): Promise<URL[]> {
     const targetCatalogs = new Map<string, { url: URL; children: Set<string> }>();
 
@@ -52,7 +52,7 @@ export const StacUpsert = {
 
     const updatedCatalogs: URL[] = [];
     for (const ctx of toWrite) {
-      await StacUpsert.readWriteJson<StacCatalog>(ctx.url, (catalog) => {
+      await StacUpdater.readWriteJson<StacCatalog>(ctx.url, (catalog) => {
         const targetCatalog = catalog ?? StacBasic.catalog();
         let hasChanges = false;
 
