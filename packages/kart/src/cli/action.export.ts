@@ -70,7 +70,7 @@ export const ExportCommand = command({
     datasetsToProcess.map((dataset) =>
       Q.push(
         () =>
-          $`kart ${gitContext(args.context)} export ${dataset} --ref ${ref} ${path.join(exportDir, `${dataset}.gpkg`)}`,
+          $`kart ${gitContext(args.context)} export -lco GEOMETRY_NAME=geometry ${dataset} --ref ${ref} ${path.join(exportDir, `${dataset}.gpkg`)}`,
       ),
     );
     await Q.join().catch((err: unknown) => {
