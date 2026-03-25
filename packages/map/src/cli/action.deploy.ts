@@ -11,7 +11,7 @@ import tar from 'tar-stream';
 import { qFromArgs } from '../limit.ts';
 import { pyRunner } from '../python.runner.ts';
 
-async function buildTarBuffer(projectFolder: URL): Promise<URL | null> {
+async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
   const tarPack = tar.pack();
   const chunks: Buffer[] = [];
 
@@ -41,8 +41,7 @@ async function buildTarBuffer(projectFolder: URL): Promise<URL | null> {
     tarPack.on('error', reject);
   });
 
-  await fsa.write(new URL('assets.tar', projectFolder), Buffer.concat(chunks));
-  return new URL('assets.tar', projectFolder);
+  return Buffer.concat(chunks)
 }
 
 async function deployProject(
