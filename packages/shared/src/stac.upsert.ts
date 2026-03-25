@@ -252,51 +252,37 @@ async function getAssetFromCollection(collectionUrl: URL) {
   return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
 }
 
+const CatalogCache = new Map<string, Promise<StacCatalog>>()
+
+function readCatalog(url: URL):Promise<StacCatalog> {
+  let existing = CatalogCache.get(url.href);
+  if (existing) return existing;
+  existing = fsa.readJson<StacCatalog>(url);
+  CatalogCache.set(url.href, existing);
+  return existing;
+}
+
 /**
  * Recursively found the target data collection.json from the root catalog, based on the layer name and tag.
  *
  * @param stacUrl The URL of the root STAC catalog.
  * @param layerName The name of the vector layer to find.
- * @param tag The tag of the layer to find. Or Pull Request tag like 'pull_request/pr-123', dev tag like 'dev/commit-hash' or specific version tag like 'year=2026/date=2026-02-12T02:45:08.853Z'.
  *
  * @returns Target data collection.json URL if found, otherwise throws an error.
  */
-export async function getDataFromCatalog(stacUrl: URL, layerName: string, tag: string = 'latest'): Promise<URL> {
-  // TODO come back to this
-  if (tag === 'latest') {
-    return new URL(`${layerName}/latest/collection.json`, stacUrl);
-    // /data/catalog.json -> /data/:layer/latest/collection.json
-    // possibly just return /data/:layer/latest/:layer.parquet
-    // return getAssetFromCollection(new URL(`${layerName}/latest/collection.json`, stacUrl));
+export async function getDataFromCatalog(stacUrl: URL, layerName: string): Promise<URL> {
+  const catalog = await readCatalog(stacUrl);
+
+  const targetLayer = `/${layerName}/catalog.json`
+  const catLink = catalog.links.find(link => link.href.endsWith(targetLayer));
+  if (catLink) {
+    const catUrl = new URL(catLink.href, stacUrl) // /data/airport/catalog.json
+    return getAssetFromCollection(new URL('latest/collection.json', catUrl)); // /data/airport/latest/collection.json
   }
 
-  if (stacUrl.href.endsWith('catalog.json')) {
-    const catalog = await fsa.readJson<StacCatalog>(stacUrl);
-    for (const link of catalog.links) {
-      if (link.rel !== 'child') continue;
-      const actualUrl = new URL(link.href, stacUrl);
-      // Check the collection.json of the target layer with full tag
-      if (actualUrl.href.includes(`/${layerName}/${tag}/collection.json`)) {
-        // Found target collection
-        if (tag === 'latest') {
-          return getAssetFromCollection(actualUrl);
-          // If tag is 'latest', find the derived collection data
-        } else {
-          return actualUrl;
-        }
-      }
-      // Check layer with partial tag category like 'pull_request', 'dev' or 'year'
-      const tagPrefix = tag.split('/')[0];
-      if (actualUrl.href.includes(`/${layerName}/${tagPrefix}/catalog.json`)) {
-        // Recursively search in child catalog until find the full target link
-        return getDataFromCatalog(actualUrl, layerName, tag);
-      }
-      // Check the root layer catalog with no tag
-      if (actualUrl.href.includes(`/${layerName}/catalog.json`)) {
-        return getDataFromCatalog(actualUrl, layerName, tag);
-      }
-    }
-  }
+  const dataLink = catalog.links.find(link => link.href.endsWith('/data/catalog.json'));
+  if (dataLink) return getDataFromCatalog(new URL(dataLink.href, stacUrl), layerName);
 
-  throw new Error(`Layer ${layerName} with tag ${tag} not found in catalog ${stacUrl.href}`);
+
+  throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
 }

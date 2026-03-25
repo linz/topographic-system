@@ -36,8 +36,8 @@ export async function fromFile(file: URL): Promise<string[]> {
 
 export function getContentType(format: ExportFormat): string {
   if (format === ExportFormats.Pdf) return 'application/pdf';
-  else if (format === ExportFormats.Tiff) return 'image/tiff';
-  else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff';
+  else if (format === ExportFormats.Tiff) return 'image/tiff;';
+  else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff; profile=cloud-optimized';
   else if (format === ExportFormats.Png) return 'image/png';
   else throw new Error(`Invalid format`);
 }

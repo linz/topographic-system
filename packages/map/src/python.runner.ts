@@ -199,20 +199,21 @@ async function qgisVersion(): Promise<string> {
  * Running python commands for list_source_layers
  */
 async function listSourceLayers(input: URL): Promise<string[]> {
+  // return ['testmapsheet']
   const sourceLocation = await findQgisSource();
   const cmd = Python3.create(BaseCommandOptions);
-
+// 
   cmd.mount(fileURLToPath(sourceLocation));
   cmd.mount(fileURLToPath(new URL('.', input)));
-
+// 
   cmd.args.push(fileURLToPath(new URL('list_source_layers.py', sourceLocation)));
   cmd.args.push(fileURLToPath(input));
   const res = await runAndLog(cmd);
-
+// 
   // Get all layers names and remove duplicates
   const layerPaths = JSON.parse(res.stdout) as string[];
   const layerNames = Array.from(new Set(layerPaths.map((p) => path.basename(p, path.extname(p)))));
-
+// 
   return layerNames;
 }
 

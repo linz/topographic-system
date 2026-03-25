@@ -62,7 +62,7 @@ async function deployProject(
   if (layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
 
   const datasetLinks = await Promise.all(
-    layers.map((layer) => q(async () => await getDataFromCatalog(args.source, layer, args.dataTag ?? 'latest'))),
+    layers.map((layer) => q(async () => await getDataFromCatalog(args.source, layer))),
   );
   const tarLocation = await buildTarBuffer(new URL('.', project));
 
@@ -108,16 +108,9 @@ export const DeployArgs = {
     description: 'Target location to deploy the files. (eg "s3://linz-topographic/") ',
   }),
   source: option({
-    type: Url,
+    type: optional(Url),
     long: 'source',
-    description: 'Source data catalog.json that contains the layers.',
-  }),
-  dataTag: option({
-    type: optional(string),
-    long: 'data-tag',
-    defaultValue: () => 'latest',
-    defaultValueIsSerializable: true,
-    description: 'data tag to use when looking for source layers. Default to latest if not provided.',
+    description: 'Source data catalog.json that contains the layers. defaults to target catalog',
   }),
   commit: flag({
     long: 'commit',
@@ -143,8 +136,8 @@ export const DeployCommand = command({
     if (args.strategies.length === 0) throw new Error('--strategy is missing');
     const q = qFromArgs(args);
 
-    args.source ??= new URL('data/catalog.json', args.target);
     const rootCatalog = new URL('catalog.json', args.target);
+    args.source ??= rootCatalog;
 
     const collections = new Set<URL>();
 

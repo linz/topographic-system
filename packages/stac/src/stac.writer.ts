@@ -1,36 +1,15 @@
-import { createHash } from 'crypto';
 
 import { fsa } from '@chunkd/fs';
-import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import type { LimitFunction } from 'p-limit';
-import type { StacAsset, StacCollection, StacItem, StacLink } from 'stac-ts';
+import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
 
+import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
 import type { StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
-
 const StacSource = Symbol('stac.source');
 
-export const HashWriter = {
-  async write(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer | URL) {
-    if (buffer instanceof URL) return HashWriter.stream(asset, target, buffer);
-    return HashWriter.file(asset, target, buffer);
-  },
-  async file(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer): Promise<void> {
-    const hash = createHash('sha256').update(buffer).digest('hex');
-    await fsa.write(target, buffer, { contentType: asset.type });
-    asset['file:checksum'] = `1220` + hash;
-    asset['file:size'] = buffer.length;
-  },
-  async stream(asset: StacAsset | StacLink, target: URL, source: URL): Promise<void> {
-    const ht = new HashTransform('sha256');
-    const readStream = fsa.readStream(source).pipe(ht);
-    await fsa.write(target, readStream, { contentType: asset.type });
-    asset['file:checksum'] = ht.multihash;
-    asset['file:size'] = ht.size;
-  },
-};
 
 function getSource(x: unknown): URL | Buffer | string | null {
   if (typeof x !== 'object' || x == null) return null;
@@ -110,7 +89,7 @@ export class StacCollectionWriter {
         const target = new URL(asset.href, baseUrl);
         const source = getSource(asset);
         if (source == null) continue; // TODO should this throw
-        if (commit) todo.push(q(() => HashWriter.write(asset, target, source)));
+        if (commit) todo.push(q(() => HashWriter.writeStac(asset, target, source)));
       }
     }
 
@@ -138,7 +117,7 @@ export class StacCollectionWriter {
             const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
             if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
-            if (commit) await HashWriter.file(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
+            if (commit) await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
           });
         }),
       );
@@ -160,7 +139,7 @@ export class StacCollectionWriter {
         targetCollection.links.push({ rel: 'latest-version', href: getRelativePath(targetUrl, collectionUrl) });
       }
 
-      if (commit){
+      if (commit) {
         await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
       }
       collectionUrls.push(collectionUrl);
