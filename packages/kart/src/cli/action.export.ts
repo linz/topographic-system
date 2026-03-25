@@ -11,6 +11,18 @@ const Q = new ConcurrentQueue(numParallelExportProcesses);
 
 type KartDiffOutput = Record<string, number>;
 
+export function buildKartExportArgs(dataset: string, outputPath: string, ref: string, context?: URL): string[] {
+  const outputFile = path.join(outputPath, `${dataset}.gpkg`);
+  return [
+    gitContext(context),
+    'export',
+    ['-lco', 'GEOMETRY_NAME=geometry'],
+    dataset,
+    ['--ref', ref],
+    outputFile,
+  ].flat();
+}
+
 export const ExportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
@@ -68,10 +80,7 @@ export const ExportCommand = command({
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ numParallelExportProcesses, datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(
-        () =>
-          $`kart ${gitContext(args.context)} export ${dataset} --ref ${ref} ${path.join(exportDir, `${dataset}.gpkg`)}`,
-      ),
+      Q.push(() => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');
