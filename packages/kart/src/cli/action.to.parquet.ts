@@ -15,7 +15,7 @@ import {
 import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
-import { StacCollectionWriter, StacUpsert, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { boolean, command, flag, multioption, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
@@ -119,7 +119,7 @@ export const ParquetCommand = command({
           ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
           ['-lco', 'WRITE_COVERING_BBOX=YES'],
-          // ['-lco', 'COVERING_BBOX_NAME=bbox'],
+          ['-lco', 'COVERING_BBOX_NAME=bbox'],
         ];
         if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
         await $`${command.flat()}`;
@@ -156,7 +156,7 @@ export const ParquetCommand = command({
     }
 
     const collections = await Promise.all(todo);
-    await StacUpsert.collections(rootCatalog, collections.flat(), true);
+    await StacUpdater.collections(rootCatalog, collections.flat(), true);
 
     logger.info('ToParquet:Completed');
   },

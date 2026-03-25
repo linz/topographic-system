@@ -11,7 +11,7 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { parseStrategy, StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
+import { parseStrategy, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
 
@@ -87,7 +87,7 @@ export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl
       if (source.href.includes(tag.layer)) {
         logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
         // Find the source layer with the tag from the catalog and override the source link
-        const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer, tag.tag);
+        const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer);
         source.href = layerCollection.href;
       }
     }
@@ -278,7 +278,7 @@ export const ProduceCoverCommand = command({
     const collectionUrl = collections[0]!;
 
     logger.info({ project: args.project.href }, 'ProduceCover: UpsertStacCatalog');
-    await StacUpsert.collections(rootCatalog, [...collections.values()], true);
+    await StacUpdater.collections(rootCatalog, [...collections.values()], true);
 
     logger.info({ project: args.project.href, target: args.output.href }, 'ProduceCover: Finished');
 

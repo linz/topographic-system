@@ -6,7 +6,7 @@ import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { logger } from '@linzjs/topographic-system-shared';
 import pLimit from 'p-limit';
-import type { StacCollection, StacItem } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 
 export const DefaultConcurrency = 20;
@@ -179,4 +179,50 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
     'Download:Done',
   );
   return projectPath;
+}
+
+
+
+
+async function getAssetFromCollection(collectionUrl: URL) {
+  const collection = await fsa.readJson<StacCollection>(collectionUrl);
+  // TODO we should be looking for the "data" role,  not the asset named "parquet" ?
+  const dataAsset = collection?.assets?.['parquet']?.href;
+  if (dataAsset == null) throw new Error(`Invalid collection at path: ${collectionUrl.href}`);
+
+  return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
+}
+
+const CatalogCache = new Map<string, Promise<StacCatalog>>();
+
+function readCatalog(url: URL): Promise<StacCatalog> {
+  let existing = CatalogCache.get(url.href);
+  if (existing) return existing;
+  existing = fsa.readJson<StacCatalog>(url);
+  CatalogCache.set(url.href, existing);
+  return existing;
+}
+
+/**
+ * Recursively found the target data collection.json from the root catalog, based on the layer name and tag.
+ *
+ * @param stacUrl The URL of the root STAC catalog.
+ * @param layerName The name of the vector layer to find.
+ *
+ * @returns Target data collection.json URL if found, otherwise throws an error.
+ */
+export async function getDataFromCatalog(stacUrl: URL, layerName: string): Promise<URL> {
+  const catalog = await readCatalog(stacUrl);
+
+  const targetLayer = `/${layerName}/catalog.json`;
+  const catLink = catalog.links.find((link) => link.href.endsWith(targetLayer));
+  if (catLink) {
+    const catUrl = new URL(catLink.href, stacUrl); // /data/airport/catalog.json
+    return getAssetFromCollection(new URL('latest/collection.json', catUrl)); // /data/airport/latest/collection.json
+  }
+
+  const dataLink = catalog.links.find((link) => link.href.endsWith('/data/catalog.json'));
+  if (dataLink) return getDataFromCatalog(new URL(dataLink.href, stacUrl), layerName);
+
+  throw new Error(`Layer ${layerName} not found in catalog ${stacUrl.href}`);
 }

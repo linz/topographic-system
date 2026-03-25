@@ -1,7 +1,7 @@
 import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
-import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import {  getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import type { StorageStrategy } from '@linzjs/topographic-system-stac';
 import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals } from 'cmd-ts';
@@ -136,7 +136,6 @@ export const DeployCommand = command({
     const q = qFromArgs(args);
 
     const rootCatalog = new URL('catalog.json', args.target);
-    args.source ??= rootCatalog;
 
     const collections = new Set<URL>();
 
@@ -144,7 +143,7 @@ export const DeployCommand = command({
       if (!proj.href.endsWith('.qgs')) throw new Error(`${proj.href} needs to end with .qgs`);
 
       // Deploy project, assets, and create stac items
-      const deployed = await deployProject(proj, args, q);
+      const deployed = await deployProject(proj, {...args, source: args.source ?? rootCatalog }, q);
       for (const u of deployed) collections.add(u);
     }
 

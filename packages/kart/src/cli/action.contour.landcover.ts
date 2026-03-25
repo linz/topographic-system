@@ -11,7 +11,7 @@ import {
   UrlFolder,
   stringToUrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
 import pLimit from 'p-limit';
 import type { StacCollection } from 'stac-ts';
@@ -101,6 +101,6 @@ export const ContourWithLandcoverCommand = command({
 
     const collections = await sw.write(rootCatalog, pLimit(4), true);
 
-    await StacUpsert.collections(rootCatalog, collections, true);
+    await StacUpdater.collections(rootCatalog, collections, true);
   },
 });
