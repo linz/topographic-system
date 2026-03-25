@@ -17,17 +17,20 @@ describe('buildKartExportArgs', () => {
   });
 
   it('should build args with context', () => {
-    assert.deepStrictEqual(buildKartExportArgs('buildings', '/tmp/output', 'feat/my-feature-branch', new URL('file:///tmp/repo-path/')), [
-      '-C',
-      '/tmp/repo-path/',
-      'export',
-      '-lco',
-      'GEOMETRY_NAME=geometry',
-      'buildings',
-      '--ref',
-      'feat/my-feature-branch',
-      '/tmp/output/buildings.gpkg',
-    ]);
+    assert.deepStrictEqual(
+      buildKartExportArgs('buildings', '/tmp/output', 'feat/my-feature-branch', new URL('file:///tmp/repo-path/')),
+      [
+        '-C',
+        '/tmp/repo-path/',
+        'export',
+        '-lco',
+        'GEOMETRY_NAME=geometry',
+        'buildings',
+        '--ref',
+        'feat/my-feature-branch',
+        '/tmp/output/buildings.gpkg',
+      ],
+    );
   });
 
   it('should handle dataset names with underscore', () => {
