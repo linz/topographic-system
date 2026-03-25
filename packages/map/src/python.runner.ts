@@ -2,10 +2,12 @@ import path, { basename } from 'path';
 import { cwd } from 'process';
 import { fileURLToPath, pathToFileURL } from 'url';
 
+import { Bounds, Projection, ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-command';
 import { Command } from '@linzjs/docker-command';
 import { trace, logger } from '@linzjs/topographic-system-shared';
+import { multipolygonToWgs84, polygonToWgs84, round } from '@linzjs/topographic-system-stac';
 import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
 
 import type { ExportOptions } from './stac.ts';
@@ -90,7 +92,7 @@ async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult>
   });
 }
 
-export function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
+export async function parseSheetsMetadata(stdoutBuffer: string): Promise<SheetMetadata[]> {
   const raw = JSON.parse(stdoutBuffer) as SheetMetadataStdOut[];
 
   const metadata: SheetMetadata[] = [];
@@ -104,11 +106,24 @@ export function parseSheetsMetadata(stdoutBuffer: string): SheetMetadata[] {
       throw new Error(`Unexpected geometry type for ${item.sheetCode}: ${geom.type}`);
     }
 
+    // Convert the geometries and bbox into wsg84
+    const epsg = await ProjectionLoader.load(item.epsg);
+    const proj = Projection.get(epsg);
+    if (geom.type === 'Polygon') {
+      geom.coordinates = polygonToWgs84(proj, geom.coordinates);
+    } else if (geom.type === 'MultiPolygon') {
+      geom.coordinates = multipolygonToWgs84(proj, geom.coordinates);
+    }
+
+    // Convert bbox to wgs84
+    const bounds = Bounds.fromBbox(item.bbox);
+    const bbox = proj.boundsToWgs84BoundingBox(bounds);
+
     metadata.push({
       sheetCode: item.sheetCode,
       geometry: geom.type === 'Polygon' ? (geom as GeoJSONPolygon) : (geom as GeoJSONMultiPolygon),
       epsg: item.epsg,
-      bbox: item.bbox,
+      bbox: [round(bbox[0]), round(bbox[1]), round(bbox[2]), round(bbox[3])],
     });
   }
 
@@ -175,7 +190,7 @@ export async function qgisExportCover(
     cmd.args.push('True');
   }
   const res = await runAndLog(cmd);
-  return parseSheetsMetadata(res.stdout);
+  return await parseSheetsMetadata(res.stdout);
 }
 
 /**

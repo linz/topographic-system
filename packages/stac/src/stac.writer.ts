@@ -1,3 +1,4 @@
+import { type BoundingBox, Bounds } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
@@ -98,9 +99,11 @@ export class StacCollectionWriter {
       const targetCollection = structuredClone(this.collection);
       targetCollection.id = StacStorage.id(s, ctx);
 
+      const allBbox: BoundingBox[] = [];
       await Promise.all(
         [...this.items].map(([itemName, item]) => {
           return q(async () => {
+            if (item.bbox) allBbox.push(Bounds.fromBbox(item.bbox));
             const itemUrl = new URL(`./${itemName}.json`, baseUrl);
             const targetItem = structuredClone(item);
             targetItem.links.unshift({ rel: 'self', href: `./${itemName}.json`, type: 'application/json' });
@@ -127,6 +130,10 @@ export class StacCollectionWriter {
       targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
       targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
+      if (allBbox.length > 0) {
+        const bbox = Bounds.union(allBbox).toBbox();
+        targetCollection.extent.spatial.bbox = [bbox];
+      }
       // Ensure latest links to canonical
       // and everything else links to latest
       if (s.type === 'latest') {
