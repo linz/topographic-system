@@ -46,15 +46,17 @@ commit;
 
 **Clone the repo and load data via kart import**
 
->kart clone git@github.com:linz/topographic-data 
+If you are starting from scratch...
 
->cd topographic-data
+> kart clone git@github.com:linz/topographic-data 
 
->kart import postgresql://postgres:landinformation@localhost/topo/release64  --primary-key topo_id tree_locations
+> cd topographic-data
+
+> kart import postgresql://postgres:landinformation@localhost/topo/release64  --primary-key topo_id tree_locations
 
 **ONLY if doing first use force to clear repo - see main process**
 
->kart push origin main [--force]
+> kart push origin master [--force]
 
 # 4 In database drop tree_locations and rename master to tree_locations
 
@@ -71,7 +73,7 @@ manually run commit and push commands between each sql
 
 > kart commit -m "insert trees"
 
-> kart push origin main
+> kart push origin master
 
 repeat for next steps - update value + 1 until all done
 

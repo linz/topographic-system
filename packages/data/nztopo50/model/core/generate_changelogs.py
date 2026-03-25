@@ -10,8 +10,8 @@ changes as parquet files for analysis.
 import os
 import psycopg
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
+import pyarrow as pa # type: ignore
+import pyarrow.parquet as pq # type: ignore
 
 # Database connection parameters
 DB_PARAMS = {

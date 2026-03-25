@@ -1,5 +1,5 @@
-import geopandas as gpd
-from shapely import force_2d  # Shapely 2.x
+import geopandas as gpd # type: ignore
+from shapely import force_2d  # type: ignore
 
 source_contours = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\nz-contours-topo-150k.gpkg"
 source_layer = "nz_contours_topo_150k"
