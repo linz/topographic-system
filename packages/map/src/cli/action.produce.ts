@@ -114,5 +114,7 @@ export const ProduceCommand = command({
       await fsa.write(path, JSON.stringify(stac, null, 2));
       logger.info({ destPath: destPath.href }, 'Produce: StacUpdated');
     }
+
+    logger.info('Produce: Done');
   },
 });

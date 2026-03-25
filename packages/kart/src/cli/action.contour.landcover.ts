@@ -75,6 +75,7 @@ export const ContourWithLandcoverCommand = command({
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
         );
+        logger.info('ContourLandcover: Skip');
         return;
       }
     }
@@ -125,5 +126,7 @@ export const ContourWithLandcoverCommand = command({
       await upsertAssetToCollection(rootCatalog, latestAssetFile, [derivedFromContour, derivedFromLandcover]);
       logger.info('Prepare contour with landcover: Finished');
     }
+
+    logger.info('ContourLandcover: Done');
   },
 });
