@@ -3,9 +3,8 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import type { StorageStrategy } from '@linzjs/topographic-system-stac';
-import { StacCollectionWriter, StacUpsert } from '@linzjs/topographic-system-stac';
-import { StorageStrategyMulti } from '@linzjs/topographic-system-stac';
-import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
+import { StacCollectionWriter, StacUpsert, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import { command, flag, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import tar from 'tar-stream';
 

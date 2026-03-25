@@ -58,15 +58,15 @@ jobs:
     needs: build-container
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
 
-    - run: |
-        node e2e/index.ts \
-          --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
-          --container-map==ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
+      - run: |
+          node e2e/index.ts \
+            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
+            --container-map==ghcr.io/linz/topographic-system/map:git-${{ github.sha }}

@@ -5,7 +5,6 @@ import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import type { StacAsset, StacLink } from 'stac-ts';
 
-
 interface StacFileChecksum {
   'file:checksum': string;
   'file:size': number;

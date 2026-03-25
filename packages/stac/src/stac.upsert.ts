@@ -100,19 +100,30 @@ export const StacUpsert = {
 function catalogContext(root: URL, catalogUrl: URL): { id: string; title: string; description: string } {
   const relativeLink = getRelativePath(catalogUrl, root);
 
-  const idParts = relativeLink.slice(2).split('/').slice(0, -1)
+  const idParts = relativeLink.slice(2).split('/').slice(0, -1);
 
   // Root Catalog, this should only happen in tests, as the root catalog should generally always exist
   if (idParts.length === 0) {
-    return { id: 'linz-topographic', title: 'LINZ Topographic', description: 'Root catalog for LINZ Topographic Datasets, Product and System' }
+    return {
+      id: 'linz-topographic',
+      title: 'LINZ Topographic',
+      description: 'Root catalog for LINZ Topographic Datasets, Product and System',
+    };
   }
 
   // Top level category and dataset/product level
   if (idParts.length < 3) {
-    return { id: idParts.join('_'), title: `${idParts.at(-1)}`, description: `${idParts.at(-1)!} catalog for LINZ Topographic` }
+    return {
+      id: idParts.join('_'),
+      title: `${idParts.at(-1)}`,
+      description: `${idParts.at(-1)!} catalog for LINZ Topographic`,
+    };
   }
 
   // All other datasets
-  return { id: idParts.join('_'), title: `${idParts.slice(1).join('-')}`, description: `${idParts.slice(1).join('-')}` }
-  
+  return {
+    id: idParts.join('_'),
+    title: `${idParts.slice(1).join('-')}`,
+    description: `${idParts.slice(1).join('-')}`,
+  };
 }

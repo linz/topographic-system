@@ -9,4 +9,4 @@ export type {
   StorageStrategyLatest,
 } from './stac.storage.ts';
 export type { StacStorageCategory } from './stac.storage.ts';
-export {HashWriter} from './hash.writer.ts'
+export { HashWriter } from './hash.writer.ts';

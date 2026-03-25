@@ -1,4 +1,3 @@
-
 import { fsa } from '@chunkd/fs';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
@@ -9,7 +8,6 @@ import { getRelativePath } from './stac.paths.ts';
 import type { StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
 const StacSource = Symbol('stac.source');
-
 
 function getSource(x: unknown): URL | Buffer | string | null {
   if (typeof x !== 'object' || x == null) return null;

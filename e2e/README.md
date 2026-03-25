@@ -1,6 +1,6 @@
 ## End to End testing
 
-Using the two build docker containers, 
+Using the two build docker containers,
 
 - Clone a kart repository and export it to parquet
 - Deploy a testing [topo-test.qgs](./topo-test.qgs) QGIS project file
