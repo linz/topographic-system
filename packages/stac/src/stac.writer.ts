@@ -96,6 +96,7 @@ export class StacCollectionWriter {
     for (const s of this.strategies) {
       const baseUrl = StacStorage.url(s, ctx);
       const targetCollection = structuredClone(this.collection);
+      targetCollection.id = StacStorage.id(s, ctx);
 
       await Promise.all(
         [...this.items].map(([itemName, item]) => {
@@ -107,6 +108,7 @@ export class StacCollectionWriter {
             targetItem.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
             targetItem.id = StacStorage.id(s, ctx);
+            targetItem.collection = targetCollection.id;
 
             for (const itemLink of targetItem.links) {
               itemLink.href = getRelativePath(new URL(itemLink.href, itemUrl), itemUrl);
@@ -121,8 +123,8 @@ export class StacCollectionWriter {
       );
 
       const collectionUrl = new URL('collection.json', baseUrl);
-      targetCollection.id = StacStorage.id(s, ctx);
       targetCollection.links.unshift({ rel: 'self', href: './collection.json', type: 'application/json' });
+      targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
       targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
       // Ensure latest links to canonical
