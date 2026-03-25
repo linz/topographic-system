@@ -150,8 +150,10 @@ export const ParquetCommand = command({
         type: 'application/vnd.apache.parquet',
         ...ds.metadata.table,
       });
+      sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
+      sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      for (const strat of args.strategies) sw.strategy(strat);
+      for (const s of args.strategies) sw.strategy(s);
       todo.push(sw.write(args.output, Q.Q, true));
     }
 
