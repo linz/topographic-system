@@ -87,22 +87,30 @@ const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K
   },
 };
 
-const storeToId = (store: StorageContext): string => `${store.category}_${store.label}`;
+interface StorageContextWithItem extends StorageContext {
+  /** Optional item name */
+  item?: string;
+}
+const storeToId = (store: StorageContextWithItem): string => `${store.category}_${store.label}`;
+const storeToSuffix = (store: StorageContextWithItem): string => {
+  if (store.item) return `-${store.item}`
+  return ''
+}
 const StorageStrategyId: { [K in StorageStrategyName]: StorageStrategyIdGen<K> } = {
-  latest(store: StorageContext): string {
-    return storeToId(store) + '_latest';
+  latest(store: StorageContextWithItem): string {
+    return storeToId(store) + '_latest' + storeToSuffix(store);
   },
-  commit(store: StorageContext, s: StorageStrategyCommit): string {
-    return storeToId(store) + `_${s.commit}`;
+  commit(store: StorageContextWithItem, s: StorageStrategyCommit): string {
+    return storeToId(store) + `_${s.commit}` + storeToSuffix(store);
   },
-  date: function (store: StorageContext, s: StorageStrategyDate): string {
-    return storeToId(store) + `_${s.date.toISOString().replaceAll(':', '-')}`;
+  date: function (store: StorageContextWithItem, s: StorageStrategyDate): string {
+    return storeToId(store) + `_${s.date.toISOString().replaceAll(':', '-')}` + storeToSuffix(store);
   },
 };
 
 export const StacStorage = {
   /** Generate a id for a item or collection   */
-  id(s: StorageStrategy, ctx: StorageContext) {
+  id(s: StorageStrategy, ctx: StorageContext & { item?: string}) {
     return StorageStrategyId[s.type](ctx, s as any);
   },
   /** Generate a target folder URL for where the assets should be stored */

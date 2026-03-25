@@ -110,7 +110,7 @@ export class StacCollectionWriter {
             targetItem.links.unshift({ rel: 'parent', href: `./collection.json`, type: 'application/json' });
             targetItem.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
-            targetItem.id = StacStorage.id(s, ctx);
+            targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
             targetItem.collection = targetCollection.id;
 
             for (const itemLink of targetItem.links) {
@@ -134,8 +134,9 @@ export class StacCollectionWriter {
         const bbox = Bounds.union(allBbox).toBbox();
         targetCollection.extent.spatial.bbox = [bbox];
       }
-      // Ensure latest links to canonical
-      // and everything else links to latest
+
+      // Ensure "latest" links to "canonical"
+      // and everything else links to "latest"
       if (s.type === 'latest') {
         if (strats.canonical != null) {
           const targetUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
