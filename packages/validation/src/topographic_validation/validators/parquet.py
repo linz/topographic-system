@@ -41,7 +41,7 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
         self.db_url = db_url.replace("files.parquet", "")
         self.pkey = "topo_id"
         self.source = "parquet"
-        self.geom_column = "geom"
+        self.geom_column = "geometry"
 
     def _read_data(self) -> None:
         """Read data from Parquet files"""
