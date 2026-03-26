@@ -26,7 +26,11 @@ describe('action.deploy', () => {
 
     await fsa.write(
       fsa.toUrl('memory://source/catalog.json'),
-      JSON.stringify({ links: [{ rel: 'child', href: './water/latest/collection.json' }] }),
+      JSON.stringify({ links: [{ rel: 'child', href: './water/catalog.json' }] }),
+    );
+        await fsa.write(
+      fsa.toUrl('memory://source/water/catalog.json'),
+      JSON.stringify({ links: [{ rel: 'child', href: './latest/collection.json' }] }),
     );
     await fsa.write(
       fsa.toUrl('memory://source/water/latest/collection.json'),

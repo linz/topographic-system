@@ -1,4 +1,4 @@
-import type { WriteOptions } from '@chunkd/fs';
+import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
 import type { StacCatalog, StacItem } from 'stac-ts';
 
@@ -95,10 +95,7 @@ export const StacUpdater = {
    */
   async readWriteJson<T>(url: URL, cb: (f: T | null) => T | null, opts?: StacReadWrite): Promise<void> {
     return retryWrite(async () => {
-      const source = await fsa.read(url).catch((e) => {
-        if (e.code === 404) return null;
-        throw e;
-      });
+      const source = await tryRead(url);
 
       const ret = cb(source == null ? null : JSON.parse(String(source)));
       if (ret == null) return;
@@ -113,6 +110,15 @@ export const StacUpdater = {
     }, opts);
   },
 };
+
+async function tryRead(u: URL): Promise<ReadResponse | null> {
+  try {
+    return await fsa.read(u);
+  } catch (e) {
+    if (FsError.is(e) && e.code === 404) return null;
+    throw e
+  }
+}
 
 function isStacItem(x: {}): x is StacItem {
   return 'type' in x && x['type'] === 'Feature';
@@ -133,7 +139,7 @@ async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promis
     }
   }
   if (lastError != null) throw lastError;
-  // Should not be possible to get here
+  // Should not be possible to get here unless retries is 0
   throw new Error('Unable to write');
 }
 
