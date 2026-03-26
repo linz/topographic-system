@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.8.0...topographic-system-map-v0.9.0) (2026-03-26)
+
+
+### Features
+
+* add logger statements to surface a command's runtime status BM-1584 ([#89](https://github.com/linz/topographic-system/issues/89)) ([94194a7](https://github.com/linz/topographic-system/commit/94194a7941da847c39b49e4be5b47637c99b7b4e))
+
+
+### Bug Fixes
+
+* make the integration tests run the same ([#96](https://github.com/linz/topographic-system/issues/96)) ([ab7787d](https://github.com/linz/topographic-system/commit/ab7787d3de114f7e28c216ece8b97c1fb687647d))
+
 ## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.7.1...topographic-system-map-v0.8.0) (2026-03-22)
 
 
