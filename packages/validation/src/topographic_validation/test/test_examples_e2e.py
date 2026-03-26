@@ -20,10 +20,6 @@ CONFIG_PATH = files("topographic_validation").joinpath(
     "../../config/default_config.json"
 )
 
-VALIDATION_RULE_SETTINGS = {
-    "feature_not_on_layers": {"table_key": "table", "method": "not_intersect"},
-}
-
 
 def _write_fixtures(geojson_files: list[Path], dest: Path) -> dict[str, str]:
     """Returns {"gpkg": path, "parquet": path}."""
@@ -43,11 +39,10 @@ def _write_fixtures(geojson_files: list[Path], dest: Path) -> dict[str, str]:
 
 def _build_config(full_config: dict, rule_name: str, table: str, scenario: str) -> dict:
     """Extract just the relevant rule entry into a minimal config."""
-    table_key = VALIDATION_RULE_SETTINGS[rule_name]["table_key"]
     matching = [
         entry
         for entry in full_config[rule_name]
-        if entry.get("layername") == scenario and entry.get(table_key) == table
+        if entry.get("layername") == scenario and entry.get("table") == table
     ]
     if not matching:
         raise LookupError(f"No config entry for {rule_name}/{table}/{scenario}")
