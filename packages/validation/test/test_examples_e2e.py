@@ -15,10 +15,8 @@ from importlib.resources import files, as_file
 import geopandas as gpd
 import pytest
 
-FIXTURES_DIR = files("topographic_validation.test.fixtures")
-CONFIG_PATH = files("topographic_validation").joinpath(
-    "../../config/default_config.json"
-)
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+CONFIG_PATH = Path(__file__).parent.parent / "config" / "default_config.json"
 
 
 def _write_fixtures(geojson_files: list[Path], dest: Path) -> dict[str, str]:
