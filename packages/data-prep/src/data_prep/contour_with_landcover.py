@@ -90,7 +90,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Overlay contour with landcover")
     parser.add_argument("--contour", required=True, help="Path to contour parquet")
     parser.add_argument("--landcover", required=True, help="Path to landcover parquet")
-    parser.add_argument("--output", required=True, help="Path to output directory")
+    parser.add_argument("--output", required=True, help="Path to output parquet")
     args = parser.parse_args()
 
     run(Path(args.contour), Path(args.landcover), Path(args.output))
