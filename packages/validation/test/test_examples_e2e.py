@@ -10,7 +10,7 @@ asserts that
 import json
 import subprocess
 from pathlib import Path
-from importlib.resources import files, as_file
+from importlib.resources import as_file
 
 import geopandas as gpd
 import pytest
