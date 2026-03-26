@@ -23,16 +23,17 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
   console.log(`run: ${containerName} - ${JSON.stringify(args)}`);
   const ret = await $`docker run \
     --rm  \
-    --user ${uid}:${uid} \
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
     ${containerName} ${args.flat()}`;
   if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
   if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
+  return ret;
 }
 
 const tsKart = runContainer.bind(null, kartContainer);
 const tsMap = runContainer.bind(null, mapContainer);
+const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
 const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
 
@@ -128,4 +129,10 @@ describe('topographic-system.e2e', async () => {
       // TODO validate STAC catalog and validate
     });
   });
+
+  await describe('stac.validate', async () => {
+    it('should validate stac', async () => {
+      await tsArgo('stac-validate', '--recursive', '/target/bucket/catalog.json')
+    })
+  } )
 });
