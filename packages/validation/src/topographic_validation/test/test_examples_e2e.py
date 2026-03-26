@@ -35,7 +35,9 @@ def _write_fixtures(geojson_files: list[Path], dest: Path) -> dict[str, str]:
         gdf.to_parquet(dest / f"{file.stem}.parquet")
     return {
         "gpkg": str(gpkg_path),
-        "parquet": str(dest / "files.parquet"),  # files.parquet is expected by validation CLI
+        "parquet": str(
+            dest / "files.parquet"
+        ),  # files.parquet is expected by validation CLI
     }
 
 
@@ -43,7 +45,8 @@ def _build_config(full_config: dict, rule_name: str, table: str, scenario: str) 
     """Extract just the relevant rule entry into a minimal config."""
     table_key = VALIDATION_RULE_SETTINGS[rule_name]["table_key"]
     matching = [
-        entry for entry in full_config[rule_name]
+        entry
+        for entry in full_config[rule_name]
         if entry.get("layername") == scenario and entry.get(table_key) == table
     ]
     if not matching:
@@ -82,9 +85,10 @@ def full_config() -> dict:
     """Load the validation config once per session."""
     if CONFIG_PATH.is_file():
         with CONFIG_PATH.open() as fh:
-            return json.load(fh)
+            data = json.load(fh)
+        assert isinstance(data, dict)
+        return data
     raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
-
 
 
 @pytest.mark.parametrize(
@@ -105,10 +109,15 @@ def test_validation_e2e(
 
             result = subprocess.run(
                 [
-                    "uv", "run", "topographic_validation",
-                    "--db-path", db_path,
-                    "--config-file", str(config_file),
-                    "--output-dir", str(out_dir),
+                    "uv",
+                    "run",
+                    "topographic_validation",
+                    "--db-path",
+                    db_path,
+                    "--config-file",
+                    str(config_file),
+                    "--output-dir",
+                    str(out_dir),
                     "--report-only",
                 ],
                 capture_output=True,
