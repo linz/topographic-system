@@ -71,7 +71,6 @@ def _discover_examples() -> list:
                         table,
                         rule_name,
                         scenario,
-                        geojsons,
                         id="-".join(scenario_id),
                     )
                 )
@@ -91,17 +90,18 @@ def full_config() -> dict:
     raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
 
 
-@pytest.mark.parametrize(
-    "role, table, rule_name, scenario, geojson_files", _discover_examples()
-)
+@pytest.mark.parametrize("role, table, rule_name, scenario", _discover_examples())
 def test_validation_e2e(
-    role, table, rule_name, scenario, geojson_files, full_config, tmp_path, subtests
+    role, table, rule_name, scenario, full_config, tmp_path, subtests
 ):
     minimal_config = _build_config(full_config, rule_name, table, scenario)
     config_file = tmp_path / "config.json"
     config_file.write_text(json.dumps(minimal_config, indent=2))
 
-    db_paths = _write_fixtures(geojson_files, tmp_path / "data")
+    with as_file(FIXTURES_DIR) as fixtures_path:
+        scenario_dir = fixtures_path / role / table / rule_name / scenario
+        geojson_files = sorted(scenario_dir.glob("*.geojson"))
+        db_paths = _write_fixtures(geojson_files, tmp_path / "data")
 
     for file_format, db_path in db_paths.items():
         with subtests.test(msg=f"{file_format}: {role}/{table}/{rule_name}/{scenario}"):
