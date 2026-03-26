@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.7.0...topographic-system-kart-v0.8.0) (2026-03-26)
+
+
+### Features
+
+* add logger statements to surface a command's runtime status BM-1584 ([#89](https://github.com/linz/topographic-system/issues/89)) ([94194a7](https://github.com/linz/topographic-system/commit/94194a7941da847c39b49e4be5b47637c99b7b4e))
+
+
+### Bug Fixes
+
+* kart to use geometry column name BM-1588 ([#100](https://github.com/linz/topographic-system/issues/100)) ([2eb545d](https://github.com/linz/topographic-system/commit/2eb545d4b54e37b71d46d1c5d1bbb3c54ef8887d))
+* make the integration tests run the same ([#96](https://github.com/linz/topographic-system/issues/96)) ([ab7787d](https://github.com/linz/topographic-system/commit/ab7787d3de114f7e28c216ece8b97c1fb687647d))
+
 ## [0.7.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.6.0...topographic-system-kart-v0.7.0) (2026-03-22)
 
 
