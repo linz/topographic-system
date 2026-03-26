@@ -3,19 +3,37 @@ import pandas as pd
 import argparse
 
 from pathlib import Path
-from multiprocessing import cpu_count, get_context
+from multiprocessing import cpu_count, Pool
 from data_prep.parquet_utils import write_parquet
+from datetime import datetime
+
+# Module-level globals so forked workers inherit via copy-on-write
+# instead of pickling gigabytes of geodata per worker
+_landcover_gdf = None
+_contour_chunks = None
 
 
-def process_chunk(args):
-    contour_chunk, landcover_gdf = args
+def process_chunk(chunk_idx):
+    contour_chunk = _contour_chunks[chunk_idx]
 
+    # Clip landcover to only geometries that intersect
+    bounds = contour_chunk.total_bounds  # (minx, miny, maxx, maxy)
+    landcover_subset = _landcover_gdf.cx[bounds[0] : bounds[2], bounds[1] : bounds[3]]
+
+    if landcover_subset.empty:
+        overlay_gdf = contour_chunk.copy()
+        overlay_gdf["landcover_feature_type"] = "other"
+        overlay_gdf["landcover_topo_id"] = pd.NA
+        return overlay_gdf
+
+    print("start overlay:", datetime.now())
     overlay_gdf = gpd.overlay(
         contour_chunk,
-        landcover_gdf,
+        landcover_subset,
         how="union",
         keep_geom_type=True,
     )
+    print("end overlay:", datetime.now())
 
     overlay_gdf = overlay_gdf.rename(
         columns={
@@ -42,22 +60,26 @@ def split_gdf(gdf, n_chunks):
 
 
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
+    global _landcover_gdf, _contour_chunks
+
     contour_gdf = gpd.read_parquet(contour_path)
-    landcover_gdf = gpd.read_parquet(landcover_path)
+    _landcover_gdf = gpd.read_parquet(landcover_path)
 
-    # Don't use more workers than rows
-    n_workers = min(cpu_count(), len(contour_gdf))
+    n_workers = cpu_count()
+    n_chunks = 100
 
-    contour_chunks = split_gdf(contour_gdf, n_workers)
+    _contour_chunks = split_gdf(contour_gdf, n_chunks)
+    del contour_gdf
 
-    # Use spawn to avoid fork-related issues with GeoPandas/Shapely
-    with get_context("spawn").Pool(n_workers) as pool:
-        results = pool.map(
-            process_chunk,
-            [(chunk, landcover_gdf) for chunk in contour_chunks],
-        )
+    with Pool(n_workers, maxtasksperchild=1) as pool:
+        results = [
+            r
+            for r in pool.imap_unordered(process_chunk, range(len(_contour_chunks)))
+            if r is not None and not r.empty
+        ]
 
-    results = [r for r in results if r is not None and not r.empty]
+    _landcover_gdf = None
+    _contour_chunks = None
 
     overlay_gdf = gpd.GeoDataFrame(pd.concat(results, ignore_index=True))
 
