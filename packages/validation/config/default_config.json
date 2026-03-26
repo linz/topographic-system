@@ -30,21 +30,21 @@
   ],
   "line_not_on_feature_layers": [
     {
-      "line_table": "bridge_line",
+      "table": "bridge_line",
       "intersection_table": "road_line",
       "layername": "bridges-not-on-road-line",
       "message": "Bridge line features must fall on a road line",
       "where": "bridge_use = 'vehicle'"
     },
     {
-      "line_table": "bridge_line",
+      "table": "bridge_line",
       "intersection_table": "railway_line",
       "layername": "bridges-not-on-railway-line",
       "message": "Bridge line features must fall on a railway line",
       "where": "bridge_use = 'train'"
     },
     {
-      "line_table": "tunnel_line",
+      "table": "tunnel_line",
       "intersection_table": "railway_line",
       "layername": "tunnels-not-on-railway-line",
       "message": "Train tunnel line features must fall on a railway line",
@@ -53,7 +53,7 @@
   ],
   "line_not_touches_feature_layers": [
     {
-      "line_table": "ferry_crossing",
+      "table": "ferry_crossing",
       "intersection_table": "structure_line",
       "layername": "ferry-not-touches-structure-line",
       "message": "Ferry line features must not touch structure line features"
