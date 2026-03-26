@@ -33,12 +33,8 @@ function createBasicStacCollection(id = '', date = new Date()): StacCollection {
     id: id,
     description: '',
     extent: {
-      spatial: {
-        bbox: [[]],
-      },
-      temporal: {
-        interval: [['', '']],
-      },
+      spatial: { bbox: [[0, 0, 0, 0]] },
+      temporal: { interval: [[date.toISOString(), null]] },
     },
     links: [],
     license: 'CC-BY-4.0',
