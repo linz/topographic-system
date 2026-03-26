@@ -34,13 +34,15 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
 const tsKart = runContainer.bind(null, kartContainer);
 const tsMap = runContainer.bind(null, mapContainer);
 
+const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
+
+if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
+  console.log(`Removing ${targetFolder}`);
+  await $`rm -fr ${fileURLToPath(targetFolder)}`;
+}
+
 describe('topographic-system.e2e', async () => {
   await it('should ensure the output folder exists', async () => {
-    if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
-      console.log(`Removing ${targetFolder}`);
-      await $`rm -fr ${fileURLToPath(targetFolder)}`;
-    }
-
     await $`mkdir -p ${fileURLToPath(targetFolder)}`;
   });
 
@@ -82,6 +84,7 @@ describe('topographic-system.e2e', async () => {
           ['--temp-location', '/target/temp/kart.to-parquet'],
           ['--output', '/target/bucket/'],
           ['--strategy', 'latest'],
+          ['--strategy', `commit=${commitId}`],
         );
         assert.ok(await fsa.exists(new URL('bucket/data/catalog.json', targetFolder)));
         // TODO load catalog and validate
@@ -96,6 +99,7 @@ describe('topographic-system.e2e', async () => {
         'deploy',
         '/assets/topo-test.qgs',
         ['--strategy', 'latest'],
+        ['--strategy', `commit=${commitId}`],
         ['--target', '/target/bucket/'],
         '--commit',
       );

@@ -15,7 +15,7 @@ export type StorageStrategy = StorageStrategyLatest | StorageStrategyCommit | St
 /**
  * Store a mutable copy of the assets `latest/` location
  *
- * If another stategy is present latest will have a canonical link to the next strategy
+ * If another strategy is present latest will have a canonical link to the next strategy
  */
 export type StorageStrategyLatest = { type: 'latest' };
 /**
@@ -93,9 +93,9 @@ interface StorageContextWithItem extends StorageContext {
 }
 const storeToId = (store: StorageContextWithItem): string => `${store.category}_${store.label}`;
 const storeToSuffix = (store: StorageContextWithItem): string => {
-  if (store.item) return `-${store.item}`
-  return ''
-}
+  if (store.item) return `-${store.item}`;
+  return '';
+};
 const StorageStrategyId: { [K in StorageStrategyName]: StorageStrategyIdGen<K> } = {
   latest(store: StorageContextWithItem): string {
     return storeToId(store) + '_latest' + storeToSuffix(store);
@@ -110,7 +110,7 @@ const StorageStrategyId: { [K in StorageStrategyName]: StorageStrategyIdGen<K> }
 
 export const StacStorage = {
   /** Generate a id for a item or collection   */
-  id(s: StorageStrategy, ctx: StorageContext & { item?: string}) {
+  id(s: StorageStrategy, ctx: StorageContext & { item?: string }) {
     return StorageStrategyId[s.type](ctx, s as any);
   },
   /** Generate a target folder URL for where the assets should be stored */

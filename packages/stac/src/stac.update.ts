@@ -1,8 +1,13 @@
-import { fsa } from '@chunkd/fs';
-import type { StacCatalog } from 'stac-ts';
+import type { WriteOptions } from '@chunkd/fs';
+import { fsa, FsError } from '@chunkd/fs';
+import type { StacCatalog, StacItem } from 'stac-ts';
 
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
+
+interface StacReadWrite {
+  retries: number;
+}
 
 export const StacUpdater = {
   async collections(root: URL, collections: URL[], commit: boolean): Promise<URL[]> {
@@ -79,23 +84,58 @@ export const StacUpdater = {
     return updatedCatalogs;
   },
 
-  async readWriteJson<T>(url: URL, cb: (f: T | null) => T | null): Promise<void> {
-    const source = await fsa.readJson<T>(url).catch((e) => {
-      if (e.code === 404) return null;
-      throw e;
-    });
+  /**
+   * Attempt to write a location, by doing a read/write swap
+   *
+   * will attempt to retry upto {@see StacReadWrite.retries}
+   *
+   * @param url
+   * @param cb
+   * @returns
+   */
+  async readWriteJson<T>(url: URL, cb: (f: T | null) => T | null, opts?: StacReadWrite): Promise<void> {
+    return retryWrite(async () => {
+      const source = await fsa.read(url).catch((e) => {
+        if (e.code === 404) return null;
+        throw e;
+      });
 
-    const ret = cb(source);
-    if (ret == null) return;
+      const ret = cb(source == null ? null : JSON.parse(String(source)));
+      if (ret == null) return;
 
-    await fsa.write(url, JSON.stringify(ret, null, 2), {
-      contentType: 'application/json',
-      // TODO use atomic writes
-      // ifMatch: source?.$response.eTag,
-      // ifNoneMatch: source == null ? '*' : undefined
-    });
+      const flags: WriteOptions = { contentType: 'application/json' };
+      if (isStacItem(ret)) flags.contentType = 'application/geo+json';
+
+      if (source == null) flags.ifNoneMatch = '*';
+      else flags.ifMatch = source.$metadata?.eTag;
+
+      await fsa.write(url, JSON.stringify(ret, null, 2), flags);
+    }, opts);
   },
 };
+
+function isStacItem(x: {}): x is StacItem {
+  return 'type' in x && x['type'] === 'Feature';
+}
+
+async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promise<T> {
+  let lastError: FsError | null = null;
+  const retries = opts?.retries ?? 3;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await cb();
+    } catch (e) {
+      if (FsError.is(e) && e.code === 412) {
+        lastError = e;
+        continue;
+      }
+      throw e;
+    }
+  }
+  if (lastError != null) throw lastError;
+  // Should not be possible to get here
+  throw new Error('Unable to write');
+}
 
 function catalogContext(root: URL, catalogUrl: URL): { id: string; title: string; description: string } {
   const relativeLink = getRelativePath(catalogUrl, root);

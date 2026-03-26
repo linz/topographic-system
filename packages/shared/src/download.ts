@@ -181,9 +181,6 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
   return projectPath;
 }
 
-
-
-
 async function getAssetFromCollection(collectionUrl: URL) {
   const collection = await fsa.readJson<StacCollection>(collectionUrl);
   // TODO we should be looking for the "data" role,  not the asset named "parquet" ?

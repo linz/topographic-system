@@ -1,7 +1,7 @@
 import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
-import {  getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import type { StorageStrategy } from '@linzjs/topographic-system-stac';
 import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals } from 'cmd-ts';
@@ -41,7 +41,7 @@ async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
     tarPack.on('error', reject);
   });
 
-  return Buffer.concat(chunks)
+  return Buffer.concat(chunks);
 }
 
 async function deployProject(
@@ -142,7 +142,7 @@ export const DeployCommand = command({
       if (!proj.href.endsWith('.qgs')) throw new Error(`${proj.href} needs to end with .qgs`);
 
       // Deploy project, assets, and create stac items
-      const deployed = await deployProject(proj, {...args, source: args.source ?? rootCatalog }, q);
+      const deployed = await deployProject(proj, { ...args, source: args.source ?? rootCatalog }, q);
       for (const u of deployed) collections.add(u);
     }
 
