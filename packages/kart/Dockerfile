@@ -1,5 +1,4 @@
 FROM ghcr.io/linz/action-kart:v0.4.0
-COPY packages/kart/dist/ /app/
 
 # Copy the validation python code into kart cli and install
 COPY packages/validation /packages/validation
@@ -7,6 +6,8 @@ RUN uv sync --directory /packages/validation
 
 COPY packages/data-prep /packages/data-prep
 RUN uv sync --directory /packages/data-prep
+
+COPY packages/kart/dist/ /app/
 
 WORKDIR /tmp/kart
 
