@@ -134,5 +134,54 @@ describe('topographic-system.e2e', async () => {
     it('should validate stac', async () => {
       await tsArgo('stac-validate', '--recursive', '/target/bucket/catalog.json')
     })
-  } )
+  })
+
+
+    await describe('kart.update', async () => {
+      const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`
+    await it(
+      'should clone topographic-test-data',
+      await skipIfExists(new URL('source/topographic-test-data', targetFolder)),
+      async () => {
+        await tsKart(
+          `clone`,
+          `https://github.com/linz/topographic-test-data.git`,
+          `/target/source/topographic-test-data`,
+        );
+
+        assert.ok(await fsa.exists(new URL('source/topographic-test-data/', targetFolder)));
+      },
+    );
+
+    await it(
+      'should export topographic-test-data',
+      await skipIfExists(new URL('source/topographic-test-data-export', targetFolder)),
+      async () => {
+        await tsKart(
+          `export`,
+          ['-C', `/target/source/topographic-test-data`],
+          ['--output', '/target/source/topographic-test-data-export'],
+        );
+        assert.ok(await fsa.exists(new URL('source/topographic-test-data-export', targetFolder)));
+      },
+    );
+
+    await it(
+      'should convert topographic-test-data to parquet',
+      await skipIfExists(new URL('bucket/data/catalog.json', targetFolder)),
+      async () => {
+        await tsKart(
+          `to-parquet`,
+          '/target/source/topographic-test-data-export',
+          ['--temp-location', '/target/temp/kart.to-parquet'],
+          ['--output', '/target/bucket/'],
+          ['--strategy', 'latest'],
+          ['--strategy', `commit=${newCommitId}`],
+        );
+        assert.ok(await fsa.exists(new URL('bucket/data/catalog.json', targetFolder)));
+        // TODO load catalog and validate
+      },
+    );
+  });
+
 });
