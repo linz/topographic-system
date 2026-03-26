@@ -153,36 +153,3 @@ function aggregateStats(out: Partial<ColumnStats>, chunk: ColumnChunk): void {
   setMin(out, stats.min);
   setMax(out, stats.max);
 }
-
-// TODO delete
-export function extractSpatialExtent(columnStats: ColumnStats[]): SpatialExtent {
-  const bboxName = columnStats.find((f) => f.name.startsWith('bbox.')) ? 'bbox' : 'geom_bbox';
-
-  const xmin = columnStats.find((col) => col.name === bboxName + '.xmin')?.min;
-  const xmax = columnStats.find((col) => col.name === bboxName + '.xmax')?.max;
-  const ymin = columnStats.find((col) => col.name === bboxName + '.ymin')?.min;
-  const ymax = columnStats.find((col) => col.name === bboxName + '.ymax')?.max;
-
-  if (typeof xmin !== 'number' || typeof xmax !== 'number' || typeof ymin !== 'number' || typeof ymax !== 'number') {
-    logger.error({ columnStats, xmin, xmax, ymin, ymax }, 'SpatialExtent:InvalidColumnStats');
-    throw new Error('SpatialExtent:InvalidColumnStats');
-  }
-
-  return [xmin, ymin, xmax, ymax];
-}
-
-export function extractTemporalExtent(columnStats: ColumnStats[]): TemporalExtent {
-  const minDates: string[] = [];
-  const maxDates: string[] = [];
-  for (const column of columnStats) {
-    // TODO this is wrong it should only be the created date
-    if (column.name?.toLowerCase().endsWith('_date')) {
-      if (typeof column.min === 'string') minDates.push(column.min);
-      if (typeof column.max === 'string') maxDates.push(column.max);
-    }
-  }
-  logger.debug({ minDates, maxDates }, 'TemporalExtent:CollectedDates');
-  const minDate = minDates.length > 0 ? minDates.reduce((a, b) => (a < b ? a : b)) : 'null';
-  const maxDate = maxDates.length > 0 ? maxDates.reduce((a, b) => (a > b ? a : b)) : 'null';
-  return maxDate === minDate ? [minDate, 'null'] : [minDate, maxDate];
-}
