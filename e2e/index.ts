@@ -20,7 +20,9 @@ async function skipIfExists(url: URL) {
 }
 
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
-  console.log(`run: ${containerName} - ${JSON.stringify(args)}`);
+  console.log(`run: ${containerName}: `);
+  for (const arg of args) console.log(`\t${(Array.isArray(arg) ? arg.join('=') : arg)}`)
+
   const ret = await $`docker run \
     --rm  \
     -v ${fileURLToPath(targetFolder)}:/target \
@@ -115,7 +117,7 @@ describe('topographic-system.e2e', async () => {
         ['--strategy', 'latest'],
         ['--format', 'geotiff'],
         ['--dpi', '120'],
-        ['BQ26', 'BQ27'],
+        'BQ26', 'BQ27',
       );
 
       await tsMap(
@@ -132,13 +134,12 @@ describe('topographic-system.e2e', async () => {
 
   await describe('stac.validate', async () => {
     it('should validate stac', async () => {
-      await tsArgo('stac-validate', '--recursive', '/target/bucket/catalog.json')
-    })
-  })
+      await tsArgo('stac-validate', '--recursive', '/target/bucket/catalog.json');
+    });
+  });
 
-
-    await describe('kart.update', async () => {
-      const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`
+  await describe('kart.update', async () => {
+    const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`;
     await it(
       'should clone topographic-test-data',
       await skipIfExists(new URL('source/topographic-test-data', targetFolder)),
@@ -183,5 +184,4 @@ describe('topographic-system.e2e', async () => {
       },
     );
   });
-
 });
