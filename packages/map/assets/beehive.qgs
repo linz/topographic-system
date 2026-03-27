@@ -1580,7 +1580,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" destinationLayerName="topo50" destinationLayerProvider="ogr" destinationLayerSource="/home/blacha/git/linz/topographic-system/packages/map/assets/topo50.geojson">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" destinationLayerName="topo50" destinationLayerProvider="ogr" destinationLayerSource="./topo50.geojson">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>

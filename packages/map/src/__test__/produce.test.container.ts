@@ -1,15 +1,22 @@
 import assert from 'node:assert';
-import { writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { after, before, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import type { StacCatalog, StacItem } from 'stac-ts';
+import { StacBasic, StacUpdater } from '@linzjs/topographic-system-stac';
+import type { StacCollection, StacItem } from 'stac-ts';
 import { $ } from 'zx';
 
+let cliLocation = '/app/index.cjs';
+async function findCli(): Promise<string> {
+  if (await fsa.exists(fsa.toUrl('/app/index.cjs'))) return '/app/index.cjs';
+  if (await fsa.exists(fsa.toUrl('./src/index.ts'))) return './src/index.ts';
+  throw new Error('Unable to find index.js');
+}
+
 async function cli(...args: (string | string[])[]): Promise<string> {
-  const result = await $`node /app/index.cjs ${args.flat()}`;
+  const result = await $`node ${cliLocation} ${args.flat()}`;
   if (result.exitCode !== 0) throw new Error('Error running CLI');
   return result.stdout;
 }
@@ -21,6 +28,7 @@ async function cli(...args: (string | string[])[]): Promise<string> {
 describe('QGIS Process', () => {
   let tempLocation: URL = new URL('memory://empty');
   before(async () => {
+    cliLocation = await findCli();
     tempLocation = fsa.toUrl((await mkdtemp('topographic-system-test')) + '/');
     baseDeployArgs.source = new URL('source/catalog.json', tempLocation);
   });
@@ -39,19 +47,18 @@ describe('QGIS Process', () => {
 
   async function writeLatestAsset(name: string, source: URL): Promise<void> {
     const catalog = new URL('source/catalog.json', tempLocation);
-    const existingCatalog: StacCatalog = (await fsa.readJson(catalog).catch(() => {
-      return { links: [] };
-    })) as StacCatalog;
-    existingCatalog.links.push({ rel: 'child', href: `./${name}/latest/collection.json` });
 
-    await fsa.write(catalog, JSON.stringify(existingCatalog));
-    await fsa.write(
-      new URL(`source/${name}/latest/collection.json`, tempLocation),
-      JSON.stringify({
-        assets: { parquet: { href: `./${name}.geojson` } },
-      }),
-    );
-    await fsa.write(new URL(`source/${name}/latest/${name}.geojson`, tempLocation), fsa.readStream(source));
+    const collectionJson = new URL(`source/data/${name}/latest/collection.json`, tempLocation);
+    await StacUpdater.readWriteJson<StacCollection>(collectionJson, () => {
+      const col = StacBasic.collection();
+      col.assets = { parquet: { href: `./${name}.geojson` } };
+      col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
+      return col;
+    });
+
+    await fsa.write(new URL(`${name}.geojson`, collectionJson), fsa.readStream(source));
+
+    await StacUpdater.collections(catalog, [collectionJson], true);
   }
 
   it('should export a png', async () => {
@@ -59,7 +66,7 @@ describe('QGIS Process', () => {
     const qgisData = new URL('../../assets/beehive.geojson', import.meta.url);
     const topo50Data = new URL('../../assets/topo50.geojson', import.meta.url);
 
-    await fsa.write(new URL('source/beehive/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
+    await fsa.write(new URL('source/project/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
 
     await writeLatestAsset('beehive', qgisData);
     await writeLatestAsset('topo50', topo50Data);
@@ -69,37 +76,32 @@ describe('QGIS Process', () => {
       const deploy = await cli(
         'deploy',
         ['--source', fileURLToPath(baseDeployArgs.source)],
-        ['--project', fileURLToPath(new URL('source/', tempLocation))],
         ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
-        ['--tag', 'latest'],
+        ['--strategy', 'latest'],
+        fileURLToPath(new URL('source/project/beehive.qgs', tempLocation)),
         '--commit',
       );
       console.log(deploy);
     });
 
     await it('produce-cover', async () => {
-      // TODO this should not be getting destroyed, this logic should really be removed
-      const bq31Sheet = [
-        { sheetCode: 'BQ31', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000], geometry: { type: 'Polygon' } },
-      ];
-      writeFileSync('/app/qgis/src/qgis_export_cover.py', `print('${JSON.stringify(bq31Sheet)}')`);
-
       const produceCover = await cli(
         'produce-cover',
-        ['--project', fileURLToPath(new URL('target-deploy/qgis/latest/beehive/beehive.json', tempLocation))],
+        ['--project', fileURLToPath(new URL('target-deploy/qgis/beehive/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
+        ['--strategy', 'latest'],
         ['--format', 'png'],
         ['--dpi', '200'],
+        'BQ31',
       );
       console.log(produceCover);
     });
 
     await it('produce', async () => {
-      const [first] = await fsa.toArray(fsa.list(new URL('target-produce/working/', tempLocation)));
-      const targetJson = new URL(`BQ31.json`, first);
+      const targetJson = new URL('target-produce/working/product/beehive/latest/BQ31.json', tempLocation);
 
       await cli('produce', fileURLToPath(targetJson), [
         '--temp-location',
