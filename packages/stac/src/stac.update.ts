@@ -117,7 +117,7 @@ async function tryRead(u: URL): Promise<ReadResponse | null> {
     return await fsa.read(u);
   } catch (e) {
     if (FsError.is(e) && e.code === 404) return null;
-    throw e
+    throw e;
   }
 }
 

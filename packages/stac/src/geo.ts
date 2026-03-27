@@ -69,7 +69,7 @@ function bboxToMultiPolygon(bbox: number[] | [number, number, number, number]): 
 }
 
 function unionPolygon(polys: GeoJSONMultiPolygon['coordinates'][]): GeoJSONMultiPolygon['coordinates'] {
-  return union(polys[0] as MultiPolygon,...polys.slice(1) as MultiPolygon[]) as  GeoJSONMultiPolygon['coordinates']
+  return union(polys[0] as MultiPolygon, ...(polys.slice(1) as MultiPolygon[])) as GeoJSONMultiPolygon['coordinates'];
 }
 
 function toFeature(x: number[][][][]): GeoJSONPolygon | GeoJSONMultiPolygon {
@@ -94,7 +94,9 @@ function extendCollectionFromItem(base: StacCollection, extension: StacItem) {
   for (const bbox of base.extent.spatial.bbox) bounds.push(bboxToMultiPolygon(bbox));
   const target = unionPolygon(bounds);
 
-  base.extent.spatial.bbox = target.map(m => Wgs84.multiPolygonToBbox([m] as MultiPolygon) as SpatialExtent) as SpatialExtents 
+  base.extent.spatial.bbox = target.map(
+    (m) => Wgs84.multiPolygonToBbox([m] as MultiPolygon) as SpatialExtent,
+  ) as SpatialExtents;
 }
 
 // oxlint-disable no-unused-vars

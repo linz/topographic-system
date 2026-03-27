@@ -181,8 +181,6 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
   return projectPath;
 }
 
-
-
 const CatalogCache = new Map<string, Promise<StacCatalog>>();
 
 function readCatalog(url: URL): Promise<StacCatalog> {

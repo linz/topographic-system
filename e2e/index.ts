@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import { $ } from 'zx';
-const uid = process.geteuid?.();
 
 const kartContainer = process.argv.find((f) => f.startsWith('--container-kart='))?.split('=')[1] ?? 'ts-kart';
 const mapContainer = process.argv.find((f) => f.startsWith('--container-map='))?.split('=')[1] ?? 'ts-map';
@@ -21,7 +20,7 @@ async function skipIfExists(url: URL) {
 
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   console.log(`run: ${containerName}: `);
-  for (const arg of args) console.log(`\t${(Array.isArray(arg) ? arg.join('=') : arg)}`)
+  for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
 
   const ret = await $`docker run \
     --rm  \
@@ -117,7 +116,8 @@ describe('topographic-system.e2e', async () => {
         ['--strategy', 'latest'],
         ['--format', 'geotiff'],
         ['--dpi', '120'],
-        'BQ26', 'BQ27',
+        'BQ26',
+        'BQ27',
       );
 
       await tsMap(

@@ -5,7 +5,7 @@ import { fsa, FsMemory } from '@chunkd/fs';
 import { StacUpdater } from '@linzjs/topographic-system-stac';
 import { StacBasic } from '@linzjs/topographic-system-stac/src/stac.basic.ts';
 import type { StacCollection, StacItem } from 'stac-ts';
-import type { GeoJSONMultiPolygon } from 'stac-ts/src/types/geojson.js';
+import type { GeoJSONMultiPolygon } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { pyRunner } from '../python.runner.ts';
@@ -56,7 +56,7 @@ describe('action.deploy', () => {
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
     });
 
-        const assets = [
+    const assets = [
       'memory://target/qgis/topo50/latest/topo50.json',
       'memory://target/qgis/topo50/latest/collection.json',
       // 'memory://target/qgis/topo50/latest/topo50.qgs',
@@ -121,9 +121,10 @@ describe('action.deploy', () => {
       'memory://source/water-chat/latest/collection.json',
     ]);
 
-    
-
-    console.log(latest.collection.extent.spatial.bbox)
-    assert.deepEqual(latest.collection.extent.spatial.bbox, [[ -177.3, -44.7, -175.5, -43.3 ], [ 166, -47.5, 179, -34 ]])
+    console.log(latest.collection.extent.spatial.bbox);
+    assert.deepEqual(latest.collection.extent.spatial.bbox, [
+      [-177.3, -44.7, -175.5, -43.3],
+      [166, -47.5, 179, -34],
+    ]);
   });
 });

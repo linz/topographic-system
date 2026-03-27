@@ -8,7 +8,7 @@ import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-co
 import { Command } from '@linzjs/docker-command';
 import { trace, logger } from '@linzjs/topographic-system-shared';
 import { multipolygonToWgs84, polygonToWgs84, round } from '@linzjs/topographic-system-stac';
-import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.ts';
+import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts';
 
 import type { ExportOptions } from './stac.ts';
 
