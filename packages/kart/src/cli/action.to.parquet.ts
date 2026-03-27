@@ -120,6 +120,7 @@ export const ParquetCommand = command({
           ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
           ['-lco', 'WRITE_COVERING_BBOX=YES'],
           ['-lco', 'COVERING_BBOX_NAME=bbox'],
+          ['-a_srs', 'epsg:4326'],
         ];
         if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
         await $`${command.flat()}`;

@@ -2,6 +2,9 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
+import { StacUpdater } from '@linzjs/topographic-system-stac';
+import { StacBasic } from '@linzjs/topographic-system-stac/src/stac.basic.ts';
+import type { StacCollection } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
@@ -34,18 +37,16 @@ describe('deploy -> produce-cover -> produce', () => {
 
   it('should deploy a qgs file', async (t) => {
     await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
-    await fsa.write(fsa.toUrl('memory://source/water/latest/water.parquet'), 'Hello World');
+    const waterUrl = fsa.toUrl('memory://source/data/water/latest/');
+    await fsa.write(new URL('water.parquet', waterUrl), 'Hello World');
 
-    await fsa.write(
-      fsa.toUrl('memory://source/catalog.json'),
-      JSON.stringify({ links: [{ rel: 'child', href: './water/latest/collection.json' }] }),
-    );
-    await fsa.write(
-      fsa.toUrl('memory://source/water/latest/collection.json'),
-      JSON.stringify({
-        assets: { parquet: { href: './water.parquet' } },
-      }),
-    );
+    await StacUpdater.readWriteJson<StacCollection>(new URL('collection.json', waterUrl), () => {
+      const col = StacBasic.collection();
+      col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
+      col.assets = { parquet: { href: './water.parquet' } };
+      return col;
+    });
+    await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl], true);
 
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 

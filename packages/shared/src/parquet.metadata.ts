@@ -50,13 +50,20 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   return parquetMetadataAsync(asyncBuffer);
 }
 
+interface BasicProjJson {
+  /** CRS is optional and defaults to 4326 */
+  crs?: { id: { code: number } };
+  bbox: number[];
+}
+
 async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
   const geom = parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo');
   if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
-  const geomMeta = JSON.parse(geom.value ?? '{}');
-  const geometry = geomMeta.columns?.geom ?? geomMeta.columns?.geometry;
+  const geomMeta = JSON.parse(geom.value ?? '{}') as { columns: Record<string, BasicProjJson>; primary_column: string };
+  const geometry = geomMeta.columns[geomMeta.primary_column];
   if (geometry == null) throw new Error('Unable to find geometry column metadata in parquet file');
-  const code = geometry.crs?.id?.code;
+  // geoparquet 1.1.0 will default to 4326
+  const code = geometry.crs?.id?.code ?? 4326;
   const epsg = await ProjectionLoader.load(code); // validate the epsg code
   const bbox = geometry.bbox;
   return { bbox, epsg };
@@ -90,7 +97,6 @@ export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaDat
 
   const bounds = Bounds.fromBbox(bbox);
   const wsg84Bbox = proj.boundsToWgs84BoundingBox(bounds);
-  console.log({ epsg, bbox, wsg84Bbox });
   extents.spatial = { bbox: [wsg84Bbox] };
 
   return {

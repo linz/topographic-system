@@ -199,14 +199,10 @@ export const ProduceCoverCommand = command({
     const sources: URL[] = stac.links
       .filter((link) => link.rel === 'dataset')
       .map((link) => new URL(link.href, args.project));
+
     // Override data with dataTag if provided
     if (args.source && args.dataTags) {
-      logger.info(
-        { project: args.project.href, sources: sources.length, dataTag: args.dataTags },
-        'ProduceCover: OverRideSources',
-      );
-      const tags = parseDataTag(args.dataTags);
-      await overrideSource(sources, tags, args.source);
+      throw new Error('--data-tags not supported');
     }
 
     // Download mapsheet layer to parse geometry and metadata for the export

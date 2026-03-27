@@ -56,23 +56,6 @@ describe('action.deploy', () => {
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
     });
 
-    const assets = [
-      'memory://target/qgis/topo50/latest/topo50.json',
-      'memory://target/qgis/topo50/latest/collection.json',
-      // 'memory://target/qgis/topo50/latest/topo50.qgs',
-      // `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
-      // `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-      // `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-      // `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-      // 'memory://target/qgis/topo50/catalog.json',
-      // 'memory://target/qgis/catalog.json',
-      // 'memory://target/catalog.json',
-    ];
-
-    for (const ass of assets) {
-      await fsa.write(fsa.toUrl(ass.replace('memory://', './')), fsa.readStream(new URL(ass)));
-    }
-
     assert.deepEqual(
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href).sort(),
       [
