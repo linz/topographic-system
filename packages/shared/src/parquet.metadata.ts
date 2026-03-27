@@ -50,25 +50,24 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   return parquetMetadataAsync(asyncBuffer);
 }
 
-async function parquetEpsg(parquetMetadata: FileMetaData): Promise<Epsg> {
-  let geom =
-    parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo') ??
-    parquetMetadata.key_value_metadata?.find((f) => f.key === 'geometry');
+async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
+  const geom = parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo');
   if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
   const geomMeta = JSON.parse(geom.value ?? '{}');
-  const code = geomMeta.columns?.geom?.crs?.id?.code;
+  const geometry = geomMeta.columns?.geom ?? geomMeta.columns?.geometry;
+  if (geometry == null) throw new Error('Unable to find geometry column metadata in parquet file');
+  const code = geometry.crs?.id?.code;
   const epsg = await ProjectionLoader.load(code); // validate the epsg code
-
-  return epsg;
+  const bbox = geometry.bbox;
+  return { bbox, epsg };
 }
 
 export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Promise<ParquetStacMetadata> {
   const tableStats: Record<string, Partial<ColumnStats>> = {};
 
-  let extentKey: string | null = null;
   let createDateKey: string | null = null;
 
-  const epsg = await parquetEpsg(parquetMetadata);
+  const { bbox, epsg } = await parquetGeometryStats(parquetMetadata);
   const proj = Projection.get(epsg);
 
   for (const rg of parquetMetadata.row_groups) {
@@ -77,7 +76,6 @@ export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaDat
       const name = col.meta_data.path_in_schema.join('.');
       const current = (tableStats[name] ??= { name, type: col.meta_data.type.toLowerCase() });
       aggregateStats(current, col);
-      if (name.endsWith('bbox.xmin')) extentKey = name.slice(0, name.lastIndexOf('.'));
       if (createDateKey !== 'create_date' && name.endsWith('_date')) createDateKey = name;
     }
   }
@@ -90,24 +88,10 @@ export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaDat
     extents.temporal = { interval: min === max ? ([[min, null]] as const) : ([[min, max]] as const) };
   }
 
-  if (extentKey != null) {
-    const xMin = tableStats[`${extentKey}.xmin`]?.min;
-    const xMax = tableStats[`${extentKey}.xmax`]?.max;
-
-    const yMin = tableStats[`${extentKey}.ymin`]?.min;
-    const yMax = tableStats[`${extentKey}.ymax`]?.max;
-
-    const extent = [xMin, yMin, xMax, yMax];
-
-    // Reproject the spatial extent to WGS84
-    const invalidKeys = extent.find((f) => typeof f !== 'number' || isNaN(f));
-    if (invalidKeys == null) {
-      const bounds = Bounds.fromBbox(extent as [number, number, number, number]);
-      const bbox = proj.boundsToWgs84BoundingBox(bounds);
-      console.log({ bbox });
-      extents.spatial = { bbox: [bbox as number[]] };
-    }
-  }
+  const bounds = Bounds.fromBbox(bbox);
+  const wsg84Bbox = proj.boundsToWgs84BoundingBox(bounds);
+  console.log({ epsg, bbox, wsg84Bbox });
+  extents.spatial = { bbox: [wsg84Bbox] };
 
   return {
     table: {
