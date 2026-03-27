@@ -77,6 +77,7 @@ export const ContourWithLandcoverCommand = command({
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
         );
+        logger.info('ContourLandcover: Skip');
         return;
       }
     }

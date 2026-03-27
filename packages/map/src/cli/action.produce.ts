@@ -117,5 +117,7 @@ export const ProduceCommand = command({
 
       logger.info({ destPath: destPath.href }, 'Produce: StacUpdated');
     }
+
+    logger.info('Produce: Done');
   },
 });
