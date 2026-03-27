@@ -3,9 +3,10 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import type { StorageStrategy } from '@linzjs/topographic-system-stac';
-import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacGeometry, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
+import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { qFromArgs } from '../limit.ts';
@@ -60,12 +61,17 @@ async function deployProject(
   if (layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
 
   const datasetLinks = await Promise.all(
-    layers.map((layer) => q(async () => await getDataFromCatalog(args.source, layer))),
+    layers.map((layer) =>
+      q(async () => {
+        const collectionUrl = await getDataFromCatalog(args.source, layer);
+        const collection = await fsa.readJson<StacCollection>(collectionUrl);
+        return { collection, url: collectionUrl };
+      }),
+    ),
   );
-  const tarLocation = await buildTarBuffer(new URL('.', project));
+  const tarBuffer = await buildTarBuffer(new URL('.', project));
 
   const sw = new StacCollectionWriter('qgis', projectName);
-  // TODO get from QGIS project file ??
   sw.collection.title = `Topographic System QGIS ${projectName} Projects.`;
   sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName}.`;
 
@@ -73,8 +79,9 @@ async function deployProject(
 
   const item = sw.item(projectName);
 
-  for (const url of datasetLinks) {
-    item.links.push({ rel: 'dataset', href: url.href, type: 'application/json' });
+  for (const link of datasetLinks) {
+    StacGeometry.extend(item, link.collection);
+    item.links.push({ rel: 'dataset', href: link.url.href, type: 'application/json' });
   }
 
   sw.itemAsset(projectName, 'project', project, {
@@ -83,8 +90,8 @@ async function deployProject(
     roles: ['data'],
   });
 
-  if (tarLocation) {
-    sw.itemAsset(projectName, 'assets', tarLocation, {
+  if (tarBuffer) {
+    sw.itemAsset(projectName, 'assets', tarBuffer, {
       href: `./${projectName}.tar`,
       type: 'application/x-tar',
       roles: ['data'],

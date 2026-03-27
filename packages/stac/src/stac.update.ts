@@ -1,7 +1,8 @@
 import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
-import type { StacCatalog, StacItem } from 'stac-ts';
+import type { StacCatalog } from 'stac-ts';
 
+import { StacIs } from './geo.ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
 
@@ -101,7 +102,7 @@ export const StacUpdater = {
       if (ret == null) return;
 
       const flags: WriteOptions = { contentType: 'application/json' };
-      if (isStacItem(ret)) flags.contentType = 'application/geo+json';
+      if (StacIs.item(ret)) flags.contentType = 'application/geo+json';
 
       if (source == null) flags.ifNoneMatch = '*';
       else flags.ifMatch = source.$metadata?.eTag;
@@ -118,10 +119,6 @@ async function tryRead(u: URL): Promise<ReadResponse | null> {
     if (FsError.is(e) && e.code === 404) return null;
     throw e
   }
-}
-
-function isStacItem(x: {}): x is StacItem {
-  return 'type' in x && x['type'] === 'Feature';
 }
 
 async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promise<T> {

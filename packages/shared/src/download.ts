@@ -181,14 +181,7 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
   return projectPath;
 }
 
-async function getAssetFromCollection(collectionUrl: URL) {
-  const collection = await fsa.readJson<StacCollection>(collectionUrl);
-  // TODO we should be looking for the "data" role,  not the asset named "parquet" ?
-  const dataAsset = collection?.assets?.['parquet']?.href;
-  if (dataAsset == null) throw new Error(`Invalid collection at path: ${collectionUrl.href}`);
 
-  return new URL(dataAsset.replace(basename(dataAsset), 'collection.json'), collectionUrl);
-}
 
 const CatalogCache = new Map<string, Promise<StacCatalog>>();
 
@@ -201,7 +194,7 @@ function readCatalog(url: URL): Promise<StacCatalog> {
 }
 
 /**
- * Recursively found the target data collection.json from the root catalog, based on the layer name and tag.
+ * Recursively find the target data collection.json from the root catalog,
  *
  * @param stacUrl The URL of the root STAC catalog.
  * @param layerName The name of the vector layer to find.
@@ -215,7 +208,7 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string): Promi
   const catLink = catalog.links.find((link) => link.href.endsWith(targetLayer));
   if (catLink) {
     const catUrl = new URL(catLink.href, stacUrl); // /data/airport/catalog.json
-    return getAssetFromCollection(new URL('latest/collection.json', catUrl)); // /data/airport/latest/collection.json
+    return new URL('latest/collection.json', catUrl); // /data/airport/latest/collection.json
   }
 
   const dataLink = catalog.links.find((link) => link.href.endsWith('/data/catalog.json'));

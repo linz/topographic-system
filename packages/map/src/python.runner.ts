@@ -115,6 +115,7 @@ export async function parseSheetsMetadata(stdoutBuffer: string): Promise<SheetMe
       geom.coordinates = multipolygonToWgs84(proj, geom.coordinates);
     }
 
+    // geom.coordinates = truncate(geom.coordinates)
     // Convert bbox to wgs84
     const bounds = Bounds.fromBbox(item.bbox);
     const bbox = proj.boundsToWgs84BoundingBox(bounds);
