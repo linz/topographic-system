@@ -108,7 +108,7 @@ export class StacCollectionWriter {
             const itemUrl = new URL(`./${itemName}.json`, baseUrl);
             const targetItem = structuredClone(item);
             targetItem.links.unshift({ rel: 'self', href: `./${itemName}.json`, type: 'application/json' });
-            targetItem.links.unshift({ rel: 'parent', href: `./collection.json`, type: 'application/json' });
+            targetItem.links.unshift({ rel: 'collection', href: `./collection.json`, type: 'application/json' });
             targetItem.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
             targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });

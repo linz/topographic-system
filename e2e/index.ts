@@ -134,7 +134,12 @@ describe('topographic-system.e2e', async () => {
 
   await describe('stac.validate', async () => {
     it('should validate stac', async () => {
-      await tsArgo('stac-validate', '--recursive', '/target/bucket/catalog.json');
+      await tsArgo('stac-validate', 
+        '--recursive',
+        '--checksum-assets',
+        '--checksum-links',
+         '/target/bucket/catalog.json'
+      );
     });
   });
 
