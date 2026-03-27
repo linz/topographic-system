@@ -2,8 +2,15 @@ import type { Projection } from '@basemaps/geo';
 import type { MultiPolygon } from '@linzjs/geojson';
 import { union, Wgs84 } from '@linzjs/geojson';
 import type { Position } from 'geojson';
-import type { SpatialExtent, SpatialExtents, StacCatalog, StacCollection, StacItem } from 'stac-ts';
-import type { GeoJSONMultiPolygon, GeoJSONPolygon } from 'stac-ts/src/types/geojson.js';
+import type {
+  SpatialExtent,
+  SpatialExtents,
+  StacCatalog,
+  StacCollection,
+  StacItem,
+  GeoJSONMultiPolygon,
+  GeoJSONPolygon,
+} from 'stac-ts';
 
 export function round(n: number, digits = 6): number {
   return Number(n.toFixed(digits));
