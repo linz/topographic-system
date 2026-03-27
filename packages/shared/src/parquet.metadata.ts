@@ -1,3 +1,4 @@
+import { Bounds, Epsg, Projection, ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import type { AsyncBuffer, ColumnChunk, FileMetaData } from 'hyparquet';
 import { parquetMetadataAsync } from 'hyparquet';
@@ -28,7 +29,7 @@ export interface ParquetStacMetadata {
 
 export async function parquetToStac(assetFile: URL): Promise<ParquetStacMetadata> {
   const meta = await readParquetFileMetadata(assetFile);
-  return mapParquetMetadataToStacStats(meta);
+  return await mapParquetMetadataToStacStats(meta);
 }
 
 export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaData> {
@@ -50,11 +51,26 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   return parquetMetadataAsync(asyncBuffer);
 }
 
-export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): ParquetStacMetadata {
+async function parquetEpsg(parquetMetadata: FileMetaData): Promise<Epsg> {
+  let geom =
+    parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo') ??
+    parquetMetadata.key_value_metadata?.find((f) => f.key === 'geometry');
+  if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
+  const geomMeta = JSON.parse(geom.value ?? '{}');
+  const code = geomMeta.columns?.geom?.crs?.id?.code;
+  const epsg = await ProjectionLoader.load(code); // validate the epsg code
+
+  return epsg;
+}
+
+export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Promise<ParquetStacMetadata> {
   const tableStats: Record<string, Partial<ColumnStats>> = {};
 
   let extentKey: string | null = null;
   let createDateKey: string | null = null;
+
+  const epsg = await parquetEpsg(parquetMetadata);
+  const proj = Projection.get(epsg);
 
   for (const rg of parquetMetadata.row_groups) {
     for (const col of rg.columns) {
@@ -83,9 +99,15 @@ export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Pa
     const yMax = tableStats[`${extentKey}.ymax`]?.max;
 
     const extent = [xMin, yMin, xMax, yMax];
-    console.log({ extent });
+
+    // Reproject the spatial extent to WGS84
     const invalidKeys = extent.find((f) => typeof f !== 'number' || isNaN(f));
-    if (invalidKeys == null) extents.spatial = { bbox: [extent as number[]] };
+    if (invalidKeys == null) {
+      const bounds = Bounds.fromBbox(extent as [number, number, number, number]);
+      const bbox = proj.boundsToWgs84BoundingBox(bounds);
+      console.log({ bbox });
+      extents.spatial = { bbox: [bbox as number[]] };
+    }
   }
 
   return {
