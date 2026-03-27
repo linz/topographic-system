@@ -9,7 +9,6 @@ import { fsa } from '@chunkd/fs';
 import { logger, stringToUrlFolder } from '@linzjs/topographic-system-shared';
 import { $ } from 'zx';
 
-
 let cliLocation = '/app/index.cjs';
 async function findCli(): Promise<string> {
   if (await fsa.exists(fsa.toUrl('/app/index.cjs'))) return '/app/index.cjs';
@@ -80,7 +79,7 @@ describe('action.flow integration', () => {
   const validationUrl = new URL('validation-output/', tempDir);
 
   before(async () => {
-    cliLocation = await findCli()
+    cliLocation = await findCli();
     await mkdir(fileURLToPath(tempDir), { recursive: true });
     logger.debug({ tempDir: tempDir.href }, 'Created temporary directory for test');
 
@@ -151,7 +150,7 @@ describe('action.flow integration', () => {
         fileURLToPath(exportUrl),
       );
 
-      const parquetFiles = await fsa.toArray(fsa.list(outputUrl, {recursive: true}));
+      const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
       assert.ok(
         parquetFiles.some((f) => f.href.endsWith('.parquet')),
         `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
