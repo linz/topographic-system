@@ -66,6 +66,8 @@ jobs:
         with:
           node-version-file: .node-version
 
+      - run: npm ci
+
       - run: |
           node e2e/index.ts \
             --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
