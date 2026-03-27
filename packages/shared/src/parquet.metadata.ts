@@ -1,11 +1,11 @@
-import { Bounds, Epsg, Projection, ProjectionLoader } from '@basemaps/geo';
+import type { Epsg} from '@basemaps/geo';
+import { Bounds, Projection, ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import type { AsyncBuffer, ColumnChunk, FileMetaData } from 'hyparquet';
 import { parquetMetadataAsync } from 'hyparquet';
 import type { MinMaxType } from 'hyparquet/src/types.js';
-import type { Extents, SpatialExtent, TemporalExtent } from 'stac-ts';
+import type { Extents } from 'stac-ts';
 
-import { logger } from './log.ts';
 
 export interface ColumnStats {
   name: string;

@@ -68,6 +68,10 @@ function bboxToMultiPolygon(bbox: number[] | [number, number, number, number]): 
   return [[[sw, nw, [180, ne[1]], [180, se[1]], sw]], [[ne, se, [-180, sw[1]], [-180, nw[1]], ne]]];
 }
 
+function unionPolygon(polys: GeoJSONMultiPolygon['coordinates'][]): GeoJSONMultiPolygon['coordinates'] {
+  return union(polys[0] as MultiPolygon,...polys.slice(1) as MultiPolygon[]) as  GeoJSONMultiPolygon['coordinates']
+}
+
 function toFeature(x: number[][][][]): GeoJSONPolygon | GeoJSONMultiPolygon {
   if (x.length === 1) return { type: 'Polygon', coordinates: x[0] as number[][][] };
   return { type: 'MultiPolygon', coordinates: x };
@@ -78,19 +82,19 @@ function extendItemFromCollection(base: StacItem, extension: StacCollection) {
   if (base.geometry) bounds.push(normalizePolygonToMultiPolygon(base));
   for (const bbox of extension.extent.spatial.bbox) bounds.push(bboxToMultiPolygon(bbox));
 
-  const target = union(...(bounds as unknown as MultiPolygon[]));
+  const target = unionPolygon(bounds);
 
   base.geometry = toFeature(target);
-  base.bbox = Wgs84.multiPolygonToBbox(target);
+  base.bbox = Wgs84.multiPolygonToBbox(target as MultiPolygon);
 }
 
 function extendCollectionFromItem(base: StacCollection, extension: StacItem) {
   const bounds = [];
   if (extension.geometry) bounds.push(normalizePolygonToMultiPolygon(extension));
   for (const bbox of base.extent.spatial.bbox) bounds.push(bboxToMultiPolygon(bbox));
-  const target = union(...(bounds as unknown as MultiPolygon[]));
+  const target = unionPolygon(bounds);
 
-  base.extent.spatial.bbox = target.map(m => Wgs84.multiPolygonToBbox([m]) as SpatialExtent) as SpatialExtents 
+  base.extent.spatial.bbox = target.map(m => Wgs84.multiPolygonToBbox([m] as MultiPolygon) as SpatialExtent) as SpatialExtents 
 }
 
 // oxlint-disable no-unused-vars
