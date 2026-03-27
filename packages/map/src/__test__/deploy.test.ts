@@ -121,7 +121,6 @@ describe('action.deploy', () => {
       'memory://source/water-chat/latest/collection.json',
     ]);
 
-    console.log(latest.collection.extent.spatial.bbox);
     assert.deepEqual(latest.collection.extent.spatial.bbox, [
       [-177.3, -44.7, -175.5, -43.3],
       [166, -47.5, 179, -34],
