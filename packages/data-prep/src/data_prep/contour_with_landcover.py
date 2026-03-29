@@ -64,6 +64,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
     contour_gdf = gpd.read_parquet(contour_path)
     _landcover_gdf = gpd.read_parquet(landcover_path)
+    _landcover_gdf = _landcover_gdf[_landcover_gdf["feature_type"] == "ice"]
 
     n_workers = cpu_count()
     n_chunks = 100
