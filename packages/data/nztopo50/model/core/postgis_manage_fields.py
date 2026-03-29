@@ -978,10 +978,8 @@ if __name__ == "__main__":
         tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(25)")
         # tableModifer.add_column(f"{schema_name}.river_line", "hierarchy", "VARCHAR(25)")
         # tableModifer.add_column(f"{schema_name}.river", "hierarchy", "VARCHAR(25)")
-        # tableModifer.add_column(f"{schema_name}.river", "railway_line", "VARCHAR(25)")
         tableModifer.add_column(f"{schema_name}.water_line", "hierarchy", "VARCHAR(25)")
         tableModifer.add_column(f"{schema_name}.water", "hierarchy", "VARCHAR(25)")
-        tableModifer.add_column(f"{schema_name}.water", "railway_line", "VARCHAR(25)")
 
         tableModifer.rename_columns(schema_name, "contour", "nat_form", "formation")
         tableModifer.rename_columns(schema_name, "contour", "designated", "designation")
