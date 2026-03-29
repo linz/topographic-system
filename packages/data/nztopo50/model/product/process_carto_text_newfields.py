@@ -1,5 +1,5 @@
 import pandas as pd
-import geopandas as gpd
+import geopandas as gpd # type: ignore
 import numpy as np
 import os
 import logging
@@ -677,7 +677,6 @@ class CartoTextProcessor:
                     if not matching_font.empty:
                         # Get LAMPS value and STYLE
                         lamps_value = matching_font.iloc[0].get('LAMPS', None)
-                        font_value = matching_font.iloc[0].get('FONT', None)
                         style_value = matching_font.iloc[0].get('STYLE', None)
                         self.logger.info(f"      Found LAMPS: {lamps_value}, STYLE: {style_value}")
                     else:
