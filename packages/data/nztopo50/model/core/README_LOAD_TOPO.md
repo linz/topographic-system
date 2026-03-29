@@ -261,7 +261,7 @@ APPLY the Branch protection rules on the master branch. Requires correct level o
 
 As for instructions above - check branch and schema. Data comes from the same schema as topographic-data just into its own repo.
 
-*Use Approach 1 or Approach 2*
+*Use Approach 1 or Approach 2 or can clone and do 'kart data rm contour' then push (will retain history!*
 
 **Example - use topographic-contour-data**
 
@@ -270,6 +270,9 @@ kart init -b master topographic-contour-data
 cd  topographic-contour-data
 
 kart remote add origin git@github.com:linz/topographic-contour-data
+
+Check all ok
+> kart remote -v
 
 Single layer so can run manually or
 
