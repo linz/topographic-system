@@ -51,19 +51,15 @@ def _discover_examples() -> list:
     params = []
     with as_file(FIXTURES_DIR) as fixtures_path:
         for scenario_dir in [
-            *fixtures_path.glob("examples/*/*/*/"),
-            *fixtures_path.glob("counterexamples/*/*/*/"),
+            *fixtures_path.glob("examples/*/*/*/*/"),
+            *fixtures_path.glob("counterexamples/*/*/*/*/"),
         ]:
-            scenario_id = scenario_dir.parts[-4:]
-            role, table, rule_name, scenario = scenario_id
+            scenario_id = scenario_dir.parts[-5:]
             geojsons = sorted(scenario_dir.glob("*.geojson"))
             if geojsons:
                 params.append(
                     pytest.param(
-                        role,
-                        table,
-                        rule_name,
-                        scenario,
+                        scenario_dir,
                         id="-".join(scenario_id),
                     )
                 )
@@ -83,21 +79,19 @@ def full_config() -> dict:
     raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
 
 
-@pytest.mark.parametrize("role, table, rule_name, scenario", _discover_examples())
-def test_validation_e2e(
-    role, table, rule_name, scenario, full_config, tmp_path, subtests
-):
+@pytest.mark.parametrize("scenario_dir", _discover_examples())
+def test_validation_e2e(scenario_dir, full_config, tmp_path, subtests):
+    role, table, rule_name, scenario, test_case = scenario_dir.parts[-5:]
     minimal_config = _build_config(full_config, rule_name, table, scenario)
-    config_file = tmp_path / "config.json"
+    config_file = tmp_path / "minimal_config.json"
     config_file.write_text(json.dumps(minimal_config, indent=2))
 
-    with as_file(FIXTURES_DIR) as fixtures_path:
-        scenario_dir = fixtures_path / role / table / rule_name / scenario
-        geojson_files = sorted(scenario_dir.glob("*.geojson"))
-        db_paths = _write_fixtures(geojson_files, tmp_path / "data")
+    geojson_files = sorted(scenario_dir.glob("*.geojson"))
+    db_paths = _write_fixtures(geojson_files, tmp_path / "data")
 
     for file_format, db_path in db_paths.items():
-        with subtests.test(msg=f"{file_format}: {role}/{table}/{rule_name}/{scenario}"):
+        message = f"{scenario}:{test_case} ({file_format}): {role}/{table}/{rule_name}/{scenario}"
+        with subtests.test(msg=message):
             out_dir = tmp_path / f"out_{file_format}"
 
             result = subprocess.run(
@@ -128,11 +122,11 @@ def test_validation_e2e(
 
             if role == "examples":
                 assert summary.get(rule_name) is False, (
-                    f"expected no errors for {file_format} {table}/{rule_name}/{scenario}, "
+                    f"expected no errors for {message}, "
                     f"but summary[{rule_name}] = {summary.get(rule_name)}"
                 )
             else:
                 assert summary.get(rule_name) is True, (
-                    f"expected errors for {file_format} {table}/{rule_name}/{scenario}, "
+                    f"expected errors for {message}, "
                     f"but summary[{rule_name}] = {summary.get(rule_name)}"
                 )
