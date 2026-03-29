@@ -1,0 +1,35 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [174.75, -41.25],
+      [174.77, -41.25]
+    ]
+  },
+  "properties": {
+    "auto_int_pk": 1,
+    "topo_id": "00000000-0000-0000-0000-000000000000",
+    "t50_fid": 1000000,
+    "feature_type": "road",
+    "hierarchy": null,
+    "level": 0,
+    "status": null,
+    "name": null,
+    "highway_number": null,
+    "lane_count": 2,
+    "surface": "sealed",
+    "way_count": null,
+    "road_access": null,
+    "name_id": null,
+    "rna_sufi": 0,
+    "collection_id": null,
+    "source": "reference-test-fixtures",
+    "source_date": "2025-03-24",
+    "capture_method": "manual",
+    "change_type": "new",
+    "update_date": "2025-03-24",
+    "create_date": "2025-03-24",
+    "version": 1
+  }
+}

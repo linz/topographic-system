@@ -1,0 +1,23 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [174.76, -41.24],
+      [174.76, -41.26]
+    ]
+  },
+  "properties": {
+    "auto_int_pk": 1,
+    "topo_id": "00000000-0000-0000-0000-000000000000",
+    "t50_fid": 1000000,
+    "feature_type": "not_a_shelter_belt",
+    "source": "valid-test-fixtures",
+    "source_date": "2025-03-24",
+    "capture_method": "manual",
+    "change_type": "new",
+    "update_date": "2025-03-24",
+    "create_date": "2025-03-24",
+    "version": 1
+  }
+}
