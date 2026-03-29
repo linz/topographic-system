@@ -1,8 +1,11 @@
 import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
-import type { StacCatalog } from 'stac-ts';
+import type { LimitFunction } from 'p-limit';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
 import { StacIs } from './geo.ts';
+import type { StacFileChecksum } from './hash.writer.ts';
+import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
 
@@ -10,7 +13,111 @@ interface StacReadWrite {
   retries: number;
 }
 
+interface StacItemWithHash extends StacFileChecksum {
+  url: URL;
+  item: StacItem;
+}
+
+function isFileStatsSame(x: StacFileChecksum, y: StacFileChecksum): boolean {
+  if (x['file:checksum'] !== y['file:checksum']) return false;
+  if (x['file:size'] !== y['file:size']) return false;
+  return true;
+}
+
+function qAll<T, R>(
+  items: T[] | IteratorObject<T>,
+  q: LimitFunction,
+  cb: (t: T) => Promise<R>,
+): Promise<{ input: T; result: R }[]> {
+  const todo = [];
+  for (const t of items) {
+    todo.push(
+      q(() => cb(t)).then((result) => {
+        return { input: t, result };
+      }),
+    );
+  }
+  return Promise.all(todo);
+}
+
 export const StacUpdater = {
+  /**
+   * Update all collection links to the items with the file:checksum and file:size properties
+   *
+   * @param itemUrls Items to update
+   * @param q
+   * @returns List of collections that have been updated
+   */
+  async items(itemUrls: URL[], q: LimitFunction, commit: boolean): Promise<URL[]> {
+    const collections = new Map<string, { url: URL; items: Map<string, StacItemWithHash> }>();
+
+    // Load and hash all items
+    await qAll(itemUrls, q, async (item) => {
+      const itemRaw = await fsa.read(item);
+      const itemStac = JSON.parse(itemRaw.toString()) as StacItem;
+      if (itemStac == null) throw new Error(`Item not found at ${item.href}`);
+      if (StacIs.item(itemStac) === false) throw new Error(`Invalid item at ${item.href}`);
+
+      const collection = itemStac.links.find((l) => l.rel === 'collection');
+      if (collection == null) throw new Error(`Item ${item.href} does not have a collection link`);
+      const collectionUrl = new URL(collection.href, item);
+
+      const mapping = collections.get(collectionUrl.href) ?? { url: collectionUrl, items: new Map() };
+      const relativeItemUrl = getRelativePath(item, collectionUrl);
+      if (mapping.items.has(relativeItemUrl)) {
+        throw new Error(`Duplicate item ${relativeItemUrl} in collection ${collectionUrl.href}`);
+      }
+
+      mapping.items.set(relativeItemUrl, { url: item, item: itemStac, ...HashWriter.stat(itemRaw) });
+      collections.set(collectionUrl.href, mapping);
+    });
+
+    const updatedCollections: URL[] = [];
+
+    await qAll(collections.values(), q, async (toUpdate) => {
+      return StacUpdater.readWriteJson<StacCollection>(toUpdate.url, (collection) => {
+        if (collection == null) throw new Error(`Collection not found at ${toUpdate.url.href}`);
+
+        let hasChanges = false;
+        for (const link of collection.links) {
+          if (link.rel !== 'item') continue;
+          const itemMapping = toUpdate.items.get(link.href);
+          if (itemMapping == null) continue;
+
+          toUpdate.items.delete(link.href);
+
+          if (isFileStatsSame(itemMapping, link)) continue;
+          link['file:checksum'] = itemMapping['file:checksum'];
+          link['file:size'] = itemMapping['file:size'];
+          hasChanges = true;
+        }
+
+        // TODO: should these be append to the items
+        if (toUpdate.items.size > 0) {
+          throw new Error(`Unprocessed items in collection ${toUpdate.url.href}`);
+        }
+
+        if (commit === false) return null;
+
+        if (hasChanges) {
+          updatedCollections.push(toUpdate.url);
+          return collection;
+        }
+        return null;
+      });
+    });
+
+    return updatedCollections;
+  },
+
+  /**
+   * Given a list of collections, ensure they are linked in the parent catalogs up to the root, and attempt to write them
+   *
+   * @param root
+   * @param collections
+   * @param commit
+   * @returns
+   */
   async collections(root: URL, collections: URL[], commit: boolean): Promise<URL[]> {
     const targetCatalogs = new Map<string, { url: URL; children: Set<string> }>();
 

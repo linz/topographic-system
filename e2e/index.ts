@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { $ } from 'zx';
+import { $, ProcessOutput } from 'zx';
 
 const kartContainer = process.argv.find((f) => f.startsWith('--container-kart='))?.split('=')[1] ?? 'ts-kart';
 const mapContainer = process.argv.find((f) => f.startsWith('--container-map='))?.split('=')[1] ?? 'ts-map';
@@ -22,14 +22,21 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
   console.log(`run: ${containerName}: `);
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
 
-  const ret = await $`docker run \
-    --rm  \
+  try {
+    const ret = await $`docker run \
+    --rm \
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
-    ${containerName} ${args.flat()}`;
-  if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
-  if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
-  return ret;
+    ${containerName} ${args.flat()}`.catch((e) => e);
+    if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
+    if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
+    return ret;
+  } catch (e) {
+    if (e instanceof ProcessOutput) {
+      console.log(e.stdout);
+    }
+    throw e;
+  }
 }
 
 const tsKart = runContainer.bind(null, kartContainer);
@@ -162,5 +169,15 @@ describe('topographic-system.e2e', async () => {
         // TODO load catalog and validate
       },
     );
+
+    await it('should validate stac', async () => {
+      await tsArgo(
+        'stac-validate',
+        '--recursive',
+        '--checksum-assets',
+        '--checksum-links',
+        '/target/bucket/catalog.json',
+      );
+    });
   });
 });
