@@ -21,7 +21,7 @@ def process_chunk(chunk_idx):
     landcover_subset = _landcover_gdf.cx[bounds[0] : bounds[2], bounds[1] : bounds[3]]
 
     if landcover_subset.empty:
-        overlay_gdf = contour_chunk.copy()
+        overlay_gdf = contour_chunk.copy().rename_geometry("geometry")
         overlay_gdf["landcover_feature_type"] = "other"
         overlay_gdf["landcover_topo_id"] = pd.NA
         return overlay_gdf
