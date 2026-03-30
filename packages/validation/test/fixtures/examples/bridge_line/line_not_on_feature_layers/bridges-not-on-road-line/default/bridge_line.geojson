@@ -1,0 +1,27 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [174.75, -41.25],
+      [174.77, -41.25]
+    ]
+  },
+  "properties": {
+    "topo_id": "00000000-0000-0000-0000-000000000000",
+    "t50_fid": 1000000,
+    "feature_type": "bridge",
+    "bridge_use": "vehicle",
+    "bridge_use2": null,
+    "construction_type": null,
+    "status": null,
+    "name": null,
+    "source": "reference-test-fixtures",
+    "source_date": "2025-03-24",
+    "capture_method": "manual",
+    "change_type": "new",
+    "update_date": "2025-03-24",
+    "create_date": "2025-03-24",
+    "version": 1
+  }
+}
