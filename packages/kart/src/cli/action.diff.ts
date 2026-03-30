@@ -93,10 +93,9 @@ async function getFeatureCount(ctx: GitContext): Promise<number> {
 async function createHtmlDiff(ctx: GitContext): Promise<URL> {
   try {
     const htmlDiffLocation = new URL('kart_diff.html', ctx.output);
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output "${fileURLToPath(htmlDiffLocation)}"`;
-    const content = await readFileWithRetry(htmlDiffLocation);
-    const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
-    await fsa.write(htmlDiffLocation, fixedContent);
+    // output to `-` (stdout) disables opening a browser when running locally. It also allows for piping through `sed`, eliminating a file read/write operation.
+    const sedCmd = ['sed', 's|\\x2f|/|g; s|\\x3c|<|g; s|\\x3e|>|g'];
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output - | ${sedCmd} > "${fileURLToPath(htmlDiffLocation)}"`;
     return htmlDiffLocation;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:HTML diff failed');
