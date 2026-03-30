@@ -10,3 +10,4 @@ topographic_system_qgis.egg-info/
 topographic_system_validation.egg-info/
 topographic_system_data_prep.egg-info/
 .idea/
+target/
