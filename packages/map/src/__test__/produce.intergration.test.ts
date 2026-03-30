@@ -91,7 +91,7 @@ describe('deploy -> produce-cover -> produce', () => {
       all: false,
       format: 'pdf',
       dataTags: undefined,
-      strategy: 'latest',
+      strategy: { type: 'latest' },
       tempLocation: new URL('memory://temp-produce-cover/'),
     });
 
