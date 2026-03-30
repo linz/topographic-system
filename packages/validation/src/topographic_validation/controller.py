@@ -198,7 +198,7 @@ class ValidateDatasetController:
             validator = self.validator.create_validator(
                 summary_report=self.summary_report,
                 export_validation_data=self.settings.export_validation_data,
-                table=layer["line_table"],
+                table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
                 where_condition=self.build_where_statement(layer),
@@ -206,7 +206,7 @@ class ValidateDatasetController:
             )
 
             print(
-                f"Running line not on feature layer check between {layer['line_table']} and {layer['intersection_table']}"
+                f"Running line not on feature layer check between {layer['table']} and {layer['intersection_table']}"
             )
 
             validator.set_exports(
@@ -225,7 +225,7 @@ class ValidateDatasetController:
             validator = self.validator.create_validator(
                 summary_report=self.summary_report,
                 export_validation_data=self.settings.export_validation_data,
-                table=layer["line_table"],
+                table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
                 where_condition=self.build_where_statement(layer),
@@ -233,7 +233,7 @@ class ValidateDatasetController:
             )
 
             print(
-                f"Running line not touches feature layer check between {layer['line_table']} and {layer['intersection_table']}"
+                f"Running line not touches feature layer check between {layer['table']} and {layer['intersection_table']}"
             )
 
             validator.set_exports(

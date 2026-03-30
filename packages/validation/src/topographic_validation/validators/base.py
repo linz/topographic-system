@@ -588,7 +588,7 @@ class AbstractTopologyValidator(ABC):
             )
             val_type = "not_intersect"
 
-        if not self.gdf.empty:
+        if not gdf.empty:
             self.update_summary_report(rule_name)
         self.save_gdf(
             gdf, validation_type=val_type, extended_name=self.table2.replace(".", "_")

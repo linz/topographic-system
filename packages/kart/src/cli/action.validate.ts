@@ -122,8 +122,7 @@ async function getAvailableLayers(dbLocation: URL): Promise<Set<string>> {
 }
 
 interface Rule {
-  table?: string;
-  line_table?: string;
+  table: string;
   intersection_table?: string;
   layername?: string;
   column?: string;
@@ -149,7 +148,7 @@ export async function createFilteredConfig(
 
   for (const [key, rules] of Object.entries(config)) {
     filteredConfig[key] = rules.filter((rule) => {
-      const tables = [rule.table, rule.intersection_table, rule.line_table].filter((t): t is string => t != null);
+      const tables = [rule.table, rule.intersection_table].filter((t): t is string => t != null);
       if (strict) {
         return tables.every((t) => availableLayers.has(t));
       } else {
