@@ -21,7 +21,9 @@ def process_chunk(chunk_idx):
     landcover_subset = _landcover_gdf.cx[bounds[0] : bounds[2], bounds[1] : bounds[3]]
 
     if landcover_subset.empty:
-        overlay_gdf = contour_chunk.copy().rename_geometry("geometry")
+        overlay_gdf = contour_chunk.copy()
+        if overlay_gdf.geometry.name != "geometry":
+            overlay_gdf = overlay_gdf.rename_geometry("geometry")
         overlay_gdf["landcover_feature_type"] = "other"
         overlay_gdf["landcover_topo_id"] = pd.NA
         return overlay_gdf
@@ -63,8 +65,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
     contour_gdf = gpd.read_parquet(contour_path)
-    _landcover_gdf = gpd.read_parquet(landcover_path)
-    _landcover_gdf = _landcover_gdf[_landcover_gdf["feature_type"] == "ice"]
+    _landcover_gdf = gpd.read_parquet(landcover_path, filters=[("feature_type", "==", "ice")])
 
     n_workers = cpu_count()
     n_chunks = 100
