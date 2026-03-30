@@ -8,7 +8,6 @@
     ]
   },
   "properties": {
-    "auto_int_pk": 1,
     "topo_id": "00000000-0000-0000-0000-000000000000",
     "t50_fid": 1000000,
     "feature_type": "railway",
@@ -21,7 +20,6 @@
     "route": null,
     "route2": null,
     "route3": null,
-    "collection_id": null,
     "source": "reference-test-fixtures",
     "source_date": "2025-03-24",
     "capture_method": "manual",
