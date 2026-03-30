@@ -12,6 +12,7 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, string } from 'cmd-ts';
+import { $ } from 'zx';
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 const boolFlag = (long: string, description: string) =>
@@ -231,26 +232,9 @@ export const ValidateCommand = command({
     // const rootCatalog = new URL('catalog.json', args.output);
 
     logger.info({ command: cmdArgs.join(' ') }, 'ValidateCommand:ArgumentsPrepared');
-    //       // TODO where should data validation actually live?
-    // const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
-    // if (args['output-dir']) {
-    //   const filesToProcess = await recursiveFileSearch(args['output-dir']);
-    //   // await Promise.all(
-    //     // filesToProcess.map(async (file: URL) => {
-    //       // seems unlikely
+    const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
 
-    //       // const target = determineAssetLocation({
-    //       //   category: 'data-validation',
-    //       //   dataset: 'validation-results',
-    //       //   file: file,
-    //       //   root: rootCatalog,
-    //       // });
-    //       // logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
-    //       // await fsa.write(target, fsa.readStream(file));
-    //       // await upsertAssetToItem(rootCatalog, target);
-    //     }),
-    //   );
-    // }
-    // logger.info({ validationOut: validationOut.stdout }, 'ValidateCommand:Completed');
+    // FIXME: validation files should be stored somewhere more permanent (eg s3)
+    logger.info({ validationOut: validationOut.stdout }, 'ValidateCommand:Completed');
   },
 });
