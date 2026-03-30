@@ -22,6 +22,7 @@ class CartoTextProcessor:
         self.output_directory = output_directory
         self.logger = self._setup_logging()
         self.unmatched_ids = []
+        self.multiple_value_rows = []
         
         # Define field specifications for new fields
         self.field_specs = [
@@ -539,6 +540,7 @@ class CartoTextProcessor:
                     queries_processed.append({
                         'symbol_text': symbol_text,
                         'conditions': conditions,
+                        'text_placement_query': query_parts[3] if len(query_parts) > 3 else 'N/A',
                         'query_string': query_string,
                         'matched_features': len(filtered_gdf),
                         'feature_indices': filtered_gdf.index.tolist(),
@@ -612,9 +614,7 @@ class CartoTextProcessor:
                     self.unmatched_ids.append('Text Bend: ' + field_values['layer_id'] + ' - ' + value_setting_info)
                     continue
 
-
                 # we need style, colour text, size, text height
-                
                 #{'text_font': 'ATTriumMou-Cond', 'text_colour': 9, 'text_height': 0.0013, 'text_place': 34}
                 # HEIGHT
                 text_height = query_data['conditions']['text_height']
@@ -624,35 +624,48 @@ class CartoTextProcessor:
                     value_setting_info = 'text_bend_value = {0}, text_height = {1}'.format(text_bend_value, text_height)
                     self.unmatched_ids.append('Text Height: ' + field_values['layer_id'] + ' - ' + value_setting_info)
                     continue
-                
-                
+                               
                 text_colour_number = query_data['conditions']['text_colour']
-                
                 #### TODO - THIS IS HARD CODED FIX UP - loookup? or values
                 # COLOUR
                 if text_colour_number == 9:
                     matching_new_values = matching_new_values[matching_new_values['Colour'] == 'black']
-                else:
+                elif text_colour_number == 5:
+                    matching_new_values = matching_new_values[matching_new_values['Colour'] == 'red']
+                elif text_colour_number == 6:
                     matching_new_values = matching_new_values[matching_new_values['Colour'] == 'steelblue']
+                else:
+                    # 1 record has code in datafile - 1680
+                    matching_new_values = matching_new_values[matching_new_values['Colour'] == 'black']
 
                 ### TODO - THIS IS HARD CODED FIX UP - create a lookup or main lookup populated
                 # PLACEMENT
-                placement_value = field_values.get('placement', '')   
-                matching_new_values = matching_new_values[matching_new_values['Placement'] == placement_value]
+                #placement_value = field_values.get('placement', '')   
+                #matching_new_values = matching_new_values[matching_new_values['Placement'] == placement_value]
                 
+                placement_value = query_data['text_placement_query']
+                ##if 'ATT-cond-black-height-14-tp-2' in field_values['layer_id']:
+                ##    print(f"TEST Placement query part: {placement_value}")
+                if placement_value.startswith('(') and placement_value.endswith(')'):
+                    # Handle multiple placement values (e.g., "(text_placement == 1 or text_placement == 4)")
+                    placement_values = [part.split('==')[1].strip() for part in placement_value[1:-1].split(' or ')]
+                    placement_values = [int(v) for v in placement_values]  
+                    matching_new_values = matching_new_values[matching_new_values['Text Place'].isin(placement_values)]
+                else:
+                    placement_value = placement_value.split('==')[1].strip() if '==' in placement_value else placement_value
+                    placement_value = int(placement_value) 
+                    matching_new_values = matching_new_values[matching_new_values['Text Place'] == placement_value]
+ 
+
                 if matching_new_values.empty:
                     self.logger.warning(f"      No matching new_values for Placement = {placement_value}")
-                    value_setting_info = 'text_height = {0}, text_colour = {1}, placement = {2}'.format(text_height, text_colour_number, placement_value)
+                    value_setting_info = 'font_symbol = {0}, text_bend = {1}, text_height = {2}, text_colour = {3}, placement = {4}'.format(query_data['conditions'].get('text_font', None), text_bend_value, text_height, text_colour_number, placement_value)
                     self.unmatched_ids.append('Placement: ' + field_values['layer_id'] + ' - ' + value_setting_info)
                     continue
 
-                    
-                self.logger.info(f"      Found {len(matching_new_values)} matching new_values rows")
-                value_setting_info = 'text_height = {0}, text_colour = {1}, placement = {2}'.format(text_height, text_colour_number, placement_value)
+                value_setting_info = 'font_symbol = {0}, text_bend = {1}, text_height = {2}, colour = {3}, text placement = {4}'.format(query_data['conditions'].get('text_font', None), text_bend_value, text_height, text_colour_number, placement_value)
                 
-                # For this implementation, we'll use the first matching row
-                # You might need more complex logic to determine which row to use
-                new_values_row = matching_new_values.iloc[0]
+
                 
                 # Get FONT name from the current query's formatted_rows
                 # We need to find the corresponding row in full_layers that matches this query
@@ -661,34 +674,59 @@ class CartoTextProcessor:
                 if full_layers is not None:
                     # Try to match the query back to the full_layers row
                     matching_full_layers = full_layers[full_layers['SYMBOL'] == query_data['symbol_text']]
-                    if not matching_full_layers.empty and 'FONT' in matching_full_layers.columns:
-                        font_name = matching_full_layers.iloc[0]['FONT'].strip()
-                        style_name = matching_full_layers.iloc[0]['STYLE'].strip()
-                        if style_name == 'Condensed':
-                            style_name = 'Cond'
-                        font_style_name = f"{font_name}-{style_name}"
+                    if not matching_full_layers.empty:
+                        #font_name = matching_full_layers.iloc[0]['FONT'].strip()
+                        font_style_name = query_data['conditions'].get('text_font', None)
+                        #style_name = matching_full_layers.iloc[0]['STYLE'].strip()
+                        #if style_name == 'Condensed':
+                        #    style_name = 'Cond'
+                        #font_style_name = f"{font_name}-{style_name}"
                         
-                self.logger.info(f"      FONT from formatted_rows: {font_name}")
+                self.logger.info(f"      FONT from formatted_rows: {font_style_name}")
                 
                 # Lookup font in font_mapping_processed
                 style_value = None
-                if font_style_name and not pd.isna(font_name) and font_name != 'nan':
+                if font_style_name:
                     matching_font = font_mapping[font_mapping['LAMPS'] == font_style_name]
                     if not matching_font.empty:
-                        # Get LAMPS value and STYLE
-                        lamps_value = matching_font.iloc[0].get('LAMPS', None)
+                        # Get LAMPS font value and STYLE
+                        lamps_font_value = matching_font.iloc[0].get('LAMPS', None)
                         style_value = matching_font.iloc[0].get('STYLE', None)
-                        self.logger.info(f"      Found LAMPS: {lamps_value}, STYLE: {style_value}")
+                        self.logger.info(f"      Found LAMPS: {lamps_font_value}, STYLE: {style_value}")
                     else:
                         self.logger.warning(f"      No matching font in font_mapping for: {font_name}")
                 else:
                     self.logger.info("      FONT is nan/null, setting values to null")
+
+                # STYLE query
+                matching_new_values = matching_new_values[matching_new_values['Style'] == style_value]
+                if matching_new_values.empty:
+                    self.logger.warning(f"      No matching new_values for Style = {style_value}")
+                    value_setting_info = 'font_symbol = {0}, text_bend = {1}, text_height = {2}, colour = {3}, text placement = {4}, style = {5}'.format(query_data['conditions'].get('text_font', None), text_bend_value, text_height, text_colour_number, placement_value, style_value)
+                    self.unmatched_ids.append('Style: ' + field_values['layer_id'] + ' - ' + value_setting_info)
+                    continue
+
+                # For this implementation, we'll use the first matching row
+                # You might need more complex logic to determine which row to use
+                self.logger.info(f"      Found {len(matching_new_values)} matching new_values rows")
+                if len(matching_new_values) > 1:
+                    self.logger.warning(f"      Multiple matching new_values rows found, using the first one. Details: {matching_new_values}")
+                    self.multiple_value_rows.append({
+                        'layer_id': field_values['layer_id'],
+                        'font_symbol': query_data['conditions'].get('text_font', None),
+                        'text_bend': text_bend_value,
+                        'text_height': text_height,
+                        'text_colour': text_colour_number,
+                        'placement': placement_value,
+                        'matching_rows': matching_new_values.to_dict(orient='records')
+                    })
+                new_values_row = matching_new_values.iloc[0]
                     
                 # Update the new fields for this group
                 group_indices = group.index
                 
                 # Update fields using validate_and_assign_field
-                if font_name and not pd.isna(font_name) and font_name != 'nan' and style_value:
+                if style_value:
                     # Update with actual values
                     gdf.loc[group_indices, 'font'] = new_font_name
                     gdf.loc[group_indices, 'style'] = style_value
@@ -920,6 +958,11 @@ class CartoTextProcessor:
             self.logger.warning("The following layer_id and value combinations did not have matching font/style information and were set to null:")
             for unmatched in self.unmatched_ids:
                 self.logger.warning(f"  - {unmatched}")
+        if self.multiple_value_rows:
+            self.logger.warning("The following layer_id and value combinations had multiple matching rows in new_values, which may require further review:")
+            for multiple in self.multiple_value_rows:
+                self.logger.warning(f"  - Layer ID: {multiple['layer_id']}, text_bend: {multiple['text_bend']}, text_height: {multiple['text_height']}, text_colour: {multiple['text_colour']}, placement: {multiple['placement']}")
+                self.logger.warning(f"    Matching rows: {multiple['matching_rows']}")
         
         self.logger.info("=" * 80)
         self.logger.info("CARTO TEXT PROCESSING WORKFLOW COMPLETED")
@@ -929,7 +972,7 @@ class CartoTextProcessor:
 
 if __name__ == "__main__":
     # Configuration parameters - as requested, these remain here
-    mapping_spreadsheet = r"C:\Data\Topo50\Topo50_carto_text_2020_09\ratio-text-gap-to-twsd-2026-03-19.xlsx"
+    mapping_spreadsheet = r"C:\Data\Topo50\Topo50_carto_text_2020_09\ratio-text-gap-to-twsd-2026-03-30.xlsx"
     full_layers_sheet = 'Full layers'
     new_values_sheet = 'New values'
     font_mapping_sheet = 'Font mapping'
