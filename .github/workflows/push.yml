@@ -70,5 +70,6 @@ jobs:
 
       - run: |
           node e2e/index.ts \
+            --verbose \
             --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
             --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
