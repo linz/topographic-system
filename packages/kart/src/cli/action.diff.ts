@@ -93,7 +93,7 @@ async function getFeatureCount(ctx: GitContext): Promise<number> {
 async function createHtmlDiff(ctx: GitContext): Promise<URL> {
   try {
     const htmlDiffLocation = new URL('kart_diff.html', ctx.output);
-    // output to `-` (stdout) disables opening a browser when running locally. It also allows for piping through `sed`, eliminating a file read/write operation.
+    // output to `-` (stdout) disables opening a browser when running locally.
     const sedCmd = ['sed', 's|\\x2f|/|g; s|\\x3c|<|g; s|\\x3e|>|g'];
     await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output - | ${sedCmd} > "${fileURLToPath(htmlDiffLocation)}"`;
     return htmlDiffLocation;
