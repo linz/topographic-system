@@ -6,6 +6,6 @@ import { $ } from 'zx';
  */
 export async function contourWithLandcover(contour: URL, landcover: URL, output: URL): Promise<void> {
   const res =
-    await $`uv run --directory /packages/data-prep src/data_prep/contour_with_landcover.py ${contour.pathname} ${landcover.pathname} ${output.pathname}`;
+    await $`uv run --directory /packages/data-prep src/data_prep/contour_with_landcover.py --contour ${contour.pathname} --landcover ${landcover.pathname} --output ${output.pathname}`;
   logger.debug('contour_with_landcover.py ' + res.stdout);
 }
