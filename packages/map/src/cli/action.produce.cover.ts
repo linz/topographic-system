@@ -11,7 +11,8 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { parseStrategy, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { StorageStrategyOption } from '@linzjs/topographic-system-stac/src/parser.ts';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
 
@@ -159,7 +160,7 @@ const ProduceArgs = {
   }),
   strategy: option({
     long: 'strategy',
-    type: string,
+    type: StorageStrategyOption,
     description: 'Storage strategies to use, for example --strategy=latest',
   }),
   tempLocation,
@@ -173,7 +174,6 @@ export const ProduceCoverCommand = command({
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project.href }, 'ProduceCover: Start');
-    const strategy = parseStrategy(args.strategy);
 
     const q = qFromArgs(args);
 
@@ -229,7 +229,7 @@ export const ProduceCoverCommand = command({
     const sw = new StacCollectionWriter('product', projectName);
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
-    sw.strategy(strategy);
+    sw.strategy(args.strategy);
 
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
 

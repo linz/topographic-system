@@ -51,6 +51,10 @@ if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
 }
 
 describe('topographic-system.e2e', async () => {
+  await it('should pull all containers', async () => {
+    await Promise.all([tsKart('version'), tsMap('version')]);
+  });
+
   await it('should ensure the output folder exists', async () => {
     await $`mkdir -p ${fileURLToPath(targetFolder)}`;
   });
