@@ -72,6 +72,12 @@ export const ProduceCommand = command({
       throw new Error('At least one path to a stac item or item configuration must be provided');
     }
 
+    // TODO:
+    // The downloader should be a lot smarter about handling concurrent downloads from 
+    // multiple projects, having to do this before the produce step is wrong and
+    // should be fixed in the future.
+    for (const p of args.path) await downloadProject(p, args.tempLocation);
+
     await Promise.all(args.path.map((p) => q(() => produce(p, args))));
     await StacUpdater.items(args.path, q, true);
 
