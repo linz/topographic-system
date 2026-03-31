@@ -97,7 +97,9 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
 
     parser = argparse.ArgumentParser(description="Overlay contour with landcover")
     parser.add_argument("--contour", required=True, help="Path to contour parquet")
