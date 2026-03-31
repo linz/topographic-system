@@ -1,0 +1,20 @@
+{
+  "name": "nz_topo50_contour_with_landcover",
+  "fields": {
+    "fid": { "type": "int64" },
+    "topo_id": { "type": "string" },
+    "t50_fid": { "type": "int64" },
+    "feature_type": { "type": "string" },
+    "elevation": { "type": "int64" },
+    "definition": { "type": "string" },
+    "designation": { "type": "string" },
+    "formation": { "type": "string" },
+    "capture_method": { "type": "string" },
+    "change_type": { "type": "string" },
+    "update_date": { "type": "date" },
+    "create_date": { "type": "date" },
+    "version": { "type": "int64" },
+    "geometry": { "type": "geometry" },
+    "landcover_topo_id": { "type": "string" }
+  }
+}
