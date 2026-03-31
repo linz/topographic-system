@@ -5,14 +5,26 @@ import os
 import logging
 from datetime import datetime
 
-
-
 class CartoTextProcessor:
     """
     Class to manage carto text processing operations with comprehensive logging.
     """
     
-    def __init__(self, output_directory):
+    def __init__(self, output_directory, product_database, carto_text_layer):
+        """
+        Initialize the CartoTextProcessor with logging setup.
+        
+        Parameters:
+        - output_directory: Directory for output files and logs
+        - product_database: Path to the product database
+        - carto_text_layer: Path to the carto text layer
+        """
+        self.output_directory = output_directory
+        self.product_database = product_database
+        self.carto_text_layer = carto_text_layer
+        self.logger = self._setup_logging()
+        self.unmatched_ids = []
+        self.multiple_value_rows = []
         """
         Initialize the CartoTextProcessor with logging setup.
         
@@ -638,14 +650,8 @@ class CartoTextProcessor:
                     # 1 record has code in datafile - 1680
                     matching_new_values = matching_new_values[matching_new_values['Colour'] == 'black']
 
-                ### TODO - THIS IS HARD CODED FIX UP - create a lookup or main lookup populated
-                # PLACEMENT
-                #placement_value = field_values.get('placement', '')   
-                #matching_new_values = matching_new_values[matching_new_values['Placement'] == placement_value]
-                
                 placement_value = query_data['text_placement_query']
-                ##if 'ATT-cond-black-height-14-tp-2' in field_values['layer_id']:
-                ##    print(f"TEST Placement query part: {placement_value}")
+
                 if placement_value.startswith('(') and placement_value.endswith(')'):
                     # Handle multiple placement values (e.g., "(text_placement == 1 or text_placement == 4)")
                     placement_values = [part.split('==')[1].strip() for part in placement_value[1:-1].split(' or ')]
@@ -892,16 +898,17 @@ class CartoTextProcessor:
         """
         Export the processed geodataframe to specified format.
         """
+        
         if export_format == 'GPKG':
-            output_file = os.path.join(self.output_directory, "carto_text_processed.gpkg")
+            output_file = os.path.join(self.output_directory, self.product_database)
             try:
-                gdf.to_file(output_file, driver='GPKG', layer='carto_text')
+                gdf.to_file(output_file, driver='GPKG', layer=self.carto_text_layer, layer_options={"geometry_name": "geometry"})
                 self.logger.info(f"Exported processed carto_text layer to {output_file}")
             except Exception as e:
                 self.logger.warning(f"Could not export to GeoPackage: {e}")
             
         else:
-            output_file = os.path.join(self.output_directory, "carto_text_processed.parquet")
+            output_file = os.path.join(self.output_directory, f"{self.carto_text_layer}.parquet")
             try:
                 gdf.to_parquet(output_file)
                 self.logger.info(f"Exported processed carto_text layer to {output_file}")
@@ -946,7 +953,8 @@ class CartoTextProcessor:
             carto_text_folder, product_database, carto_text_layer,
             full_layers_csv, new_values_csv, font_mapping_csv, new_font_name
         )
-         
+
+        # export the final result if processing was successful 
         if carto_text_output_gdf is not None:
             self.logger.info("Exporting processed data...")
             self.export_data(carto_text_output_gdf, export_format=export_format)
@@ -958,6 +966,7 @@ class CartoTextProcessor:
             self.logger.warning("The following layer_id and value combinations did not have matching font/style information and were set to null:")
             for unmatched in self.unmatched_ids:
                 self.logger.warning(f"  - {unmatched}")
+        
         if self.multiple_value_rows:
             self.logger.warning("The following layer_id and value combinations had multiple matching rows in new_values, which may require further review:")
             for multiple in self.multiple_value_rows:
@@ -976,7 +985,8 @@ if __name__ == "__main__":
     full_layers_sheet = 'Full layers'
     new_values_sheet = 'New values'
     font_mapping_sheet = 'Font mapping'
-    output_directory = r"C:\temp\carto"
+    #output_directory = r"C:\temp\carto"
+    output_directory = r"C:\Data\topoedit\topographic-product-data"
 
     carto_text_folder = r"C:\Data\topoedit\topographic-product-data"
     product_database = "topographic-product-data.gpkg"
@@ -985,7 +995,7 @@ if __name__ == "__main__":
     new_font_name = "NimbusSans"
 
     # Initialize processor and run workflow
-    processor = CartoTextProcessor(output_directory)
+    processor = CartoTextProcessor(output_directory, product_database, carto_text_layer)
     
     result = processor.run(
         mapping_spreadsheet=mapping_spreadsheet,
