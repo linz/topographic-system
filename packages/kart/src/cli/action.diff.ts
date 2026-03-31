@@ -1,3 +1,4 @@
+import { mkdirSync } from 'fs';
 import type { UUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -8,7 +9,6 @@ import { fsa } from '@chunkd/fs';
 import { logger, stringToUrlFolder, Url, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
 import { command, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
-import {mkdirSync} from "fs";
 
 type GeoJson = { type: string; features: unknown[] };
 type DiffOutput = {
