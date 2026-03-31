@@ -48,10 +48,13 @@ interface GitContext {
 
 async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
-    const textDiff = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text`;
-    await fsa.write(new URL('kart_diff.txt', ctx.output), textDiff.stdout);
-    logger.info({ textDiffLines: textDiff.stdout.split('\n').length }, `Diff:TextDiffSaved`);
-    return textDiff.stdout;
+    const textDiffLocation = new URL('kart_diff.txt', ctx.output);
+    const processOutput = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
+    logger.debug({stdout: processOutput.stdout, stderr: processOutput.stderr}, 'Diff:KartTextDiffConsoleOutput');
+    const fileContent = await readFileWithRetry(textDiffLocation);
+    const textDiff = fileContent.toString('utf-8');
+    logger.info({ textDiffLines: textDiff.split('\n').length }, 'Diff:TextDiffSaved');
+    return textDiff;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:TextDiffFailed');
     throw error;
