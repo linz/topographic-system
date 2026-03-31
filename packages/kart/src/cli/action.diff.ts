@@ -93,7 +93,7 @@ async function getFeatureCount(ctx: GitContext): Promise<number> {
 async function createHtmlDiff(ctx: GitContext): Promise<URL> {
   try {
     const htmlDiffLocation = new URL('kart_diff.html', ctx.output);
-    // Output to `-` (stdout) disables opening a browser when running locally. 
+    // Output to `-` (stdout) disables opening a browser when running locally.
     // Piping stdout directly to file (`>`) avoids `kart` adding pagination.
     await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output - > "${fileURLToPath(htmlDiffLocation)}"`;
     const content = await readFileWithRetry(htmlDiffLocation);
