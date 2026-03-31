@@ -51,6 +51,7 @@ async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
     mkdirSync(ctx.output, { recursive: true });
     const textDiffLocation = new URL('kart_diff.txt', ctx.output);
+    logger.debug({ ...ctx, file: fileURLToPath(textDiffLocation), url: textDiffLocation.href }, 'Diff:GettingTextDiff');
     const processOutput =
       await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
     logger.debug({ stdout: processOutput.stdout, stderr: processOutput.stderr }, 'Diff:KartTextDiffConsoleOutput');
