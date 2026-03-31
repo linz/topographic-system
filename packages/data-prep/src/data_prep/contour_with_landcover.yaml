@@ -16,15 +16,16 @@ components:
 
         topo_id:
           type: string
+          description: The unique identifier for the topographic feature.
 
         t50_fid:
           type: integer
           format: int64
-          description: Topo50 feature identifier.
+          description: The unique identifier for the feature in the source database.
 
         feature_type:
           type: string
-          description: Source feature type, always "contour".
+          description: The specific type of feature being represented (e.g., 'bridge_line', 'building').
 
         elevation:
           type: integer
@@ -42,23 +43,26 @@ components:
 
         capture_method:
           type: string
+          description: The method used to capture the data (e.g., 'manual','automated').
 
         change_type:
           type: string
+          description: The type of change that occurred to the feature (e.g., 'new', 'updated').
 
         update_date:
           type: string
           format: date
-          description: Last update date.
+          description: The date when the feature was last updated in the database.
 
         create_date:
           type: string
           format: date
-          description: Creation date.
+          description: The date when the feature was created in the database.
 
         version:
           type: integer
           format: int64
+          description: The version of the feature.
 
         landcover_feature_type:
           type: string
@@ -67,4 +71,4 @@ components:
         geometry:
           type: string
           format: wkb
-          description: Contour line segment geometry (WKB-encoded MultiLineString), split at landcover boundaries.
+          description: The geometry of the feature.
