@@ -25,11 +25,11 @@ uv run src/data_prep/contour_with_landcover.py \
   --output output.parquet
 ```
 
-| Argument | Description |
-|---|---|
-| `--contour` | Path to input contour GeoParquet |
+| Argument      | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| `--contour`   | Path to input contour GeoParquet                                         |
 | `--landcover` | Path to input landcover GeoParquet (filtered to `feature_type == "ice"`) |
-| `--output` | Path to write the output GeoParquet |
+| `--output`    | Path to write the output GeoParquet                                      |
 
 Processing is parallelised across available CPU cores. Input contours are split into chunks and overlaid against the landcover polygons independently.
 
