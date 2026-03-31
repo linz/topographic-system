@@ -52,14 +52,10 @@ async function getTextDiff(ctx: GitContext): Promise<string> {
     mkdirSync(ctx.output, { recursive: true });
     const textDiffLocation = new URL('kart_diff.txt', ctx.output);
     logger.debug({ ...ctx, file: fileURLToPath(textDiffLocation), url: textDiffLocation.href }, 'Diff:GettingTextDiff');
-    const command = `kart ${gitContext(ctx.repo).flat().join(' ')} diff ${ctx.diffRange.flat().join(' ')} -o text --output "${fileURLToPath(textDiffLocation)}"`;
+    const command = `kart ${gitContext(ctx.repo).flat().join(' ')} diff ${ctx.diffRange.flat().join(' ')} -o text --output ${fileURLToPath(textDiffLocation)}`;
     logger.info({ command }, 'Diff:FullKartCommand');
     const processOutput =
       await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
-    logger.debug(
-      { keys: Object.getOwnPropertyNames(Object.getPrototypeOf(processOutput)) },
-      'Diff:TextDiffProcessOutputKeys',
-    );
     logger.debug(
       {
         stdout: processOutput.stdout,
