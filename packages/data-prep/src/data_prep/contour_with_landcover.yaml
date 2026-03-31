@@ -1,0 +1,70 @@
+openapi: 3.0.3
+info:
+  title: NZ Topo50 Contour with Landcover Schema
+  description: >
+    Topo50 contour lines intersected with ice landcover polygons.
+  version: 1.0.0
+
+components:
+  schemas:
+    NzTopo50ContourWithLandcover:
+      type: object
+      properties:
+        fid:
+          type: integer
+          format: int64
+
+        topo_id:
+          type: string
+
+        t50_fid:
+          type: integer
+          format: int64
+          description: Topo50 feature identifier.
+
+        feature_type:
+          type: string
+          description: Source feature type, always "contour".
+
+        elevation:
+          type: integer
+          format: int64
+          description: Elevation in metres.
+
+        definition:
+          type: string
+
+        designation:
+          type: string
+
+        formation:
+          type: string
+
+        capture_method:
+          type: string
+
+        change_type:
+          type: string
+
+        update_date:
+          type: string
+          format: date
+          description: Last update date.
+
+        create_date:
+          type: string
+          format: date
+          description: Creation date.
+
+        version:
+          type: integer
+          format: int64
+
+        landcover_feature_type:
+          type: string
+          description: Feature type of the intersecting landcover polygon, e.g. "ice".
+
+        geometry:
+          type: string
+          format: wkb
+          description: Contour line segment geometry (WKB-encoded MultiLineString), split at landcover boundaries.

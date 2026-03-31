@@ -20,7 +20,7 @@ def test_contour_with_landcover(tmp_path: Path):
 
     landcover_gdf = gpd.GeoDataFrame(
         {
-            "feature_type": ["forest"],
+            "feature_type": ["ice"],
             "topo_id": [10],
             "geometry": [poly2],
         },
@@ -41,4 +41,5 @@ def test_contour_with_landcover(tmp_path: Path):
     assert "feature_type" in result.columns
     assert "topo_id" in result.columns
     assert "landcover_feature_type" in result.columns
-    assert "landcover_topo_id" in result.columns
+    ice_rows = result[result["landcover_feature_type"] == "ice"]
+    assert not ice_rows.empty

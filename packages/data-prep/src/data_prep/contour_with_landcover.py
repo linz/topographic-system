@@ -1,11 +1,23 @@
+"""Intersect Topo50 contour lines with ice landcover polygons.
+
+Contour geometries are split at ice polygon boundaries. Each resulting
+segment is tagged with the landcover feature type(ice) it falls within.
+Processing is parallelised across available CPU cores.
+
+Output schema: contour_with_landcover.yaml
+"""
+
+import argparse
+import logging
+from multiprocessing import Pool, cpu_count
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
-import argparse
 
-from pathlib import Path
-from multiprocessing import cpu_count, Pool
 from data_prep.parquet_utils import write_parquet
-from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 # Module-level globals so forked workers inherit via copy-on-write
 # instead of pickling gigabytes of geodata per worker
@@ -21,34 +33,28 @@ def process_chunk(chunk_idx):
     landcover_subset = _landcover_gdf.cx[bounds[0] : bounds[2], bounds[1] : bounds[3]]
 
     if landcover_subset.empty:
-        overlay_gdf = contour_chunk.copy()
-        if overlay_gdf.geometry.name != "geometry":
-            overlay_gdf = overlay_gdf.rename_geometry("geometry")
-        overlay_gdf["landcover_feature_type"] = "other"
-        overlay_gdf["landcover_topo_id"] = pd.NA
-        return overlay_gdf
+        return None
 
-    print("start overlay:", datetime.now())
+    # Keep only feature_type + geometry from landcover to avoid column conflicts
+    landcover_subset = landcover_subset[
+        ["feature_type", landcover_subset.geometry.name]
+    ]
+
+    logger.info("start overlay chunk %d", chunk_idx)
     overlay_gdf = gpd.overlay(
         contour_chunk,
         landcover_subset,
-        how="union",
+        how="intersection",
         keep_geom_type=True,
     )
-    print("end overlay:", datetime.now())
+    logger.info("end overlay chunk %d", chunk_idx)
 
     overlay_gdf = overlay_gdf.rename(
         columns={
             "feature_type_1": "feature_type",
-            "topo_id_1": "topo_id",
             "feature_type_2": "landcover_feature_type",
-            "topo_id_2": "landcover_topo_id",
         }
     )
-
-    overlay_gdf["landcover_feature_type"] = overlay_gdf[
-        "landcover_feature_type"
-    ].fillna("other")
 
     return overlay_gdf
 
@@ -91,6 +97,8 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
     parser = argparse.ArgumentParser(description="Overlay contour with landcover")
     parser.add_argument("--contour", required=True, help="Path to contour parquet")
     parser.add_argument("--landcover", required=True, help="Path to landcover parquet")

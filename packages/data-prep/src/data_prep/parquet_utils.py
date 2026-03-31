@@ -1,4 +1,7 @@
+"""Utilities for writing GeoParquet files with standard settings."""
+
 from pathlib import Path
+
 import geopandas as gpd
 
 
