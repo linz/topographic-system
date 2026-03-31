@@ -8,6 +8,7 @@ import { fsa } from '@chunkd/fs';
 import { logger, stringToUrlFolder, Url, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
 import { command, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
+import {mkdirSync} from "fs";
 
 type GeoJson = { type: string; features: unknown[] };
 type DiffOutput = {
@@ -48,6 +49,7 @@ interface GitContext {
 
 async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
+    mkdirSync(ctx.output, { recursive: true });
     const textDiffLocation = new URL('kart_diff.txt', ctx.output);
     const processOutput =
       await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
