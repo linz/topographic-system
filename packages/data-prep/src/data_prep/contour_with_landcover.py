@@ -8,12 +8,14 @@ Output schema: contour_with_landcover.yaml
 """
 
 import argparse
+import json
 import logging
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+import pyarrow.parquet as pq
 
 from data_prep.parquet_utils import write_parquet
 
@@ -34,12 +36,6 @@ def process_chunk(chunk_idx):
 
     if landcover_subset.empty:
         return None
-
-    # Keep only needed columns from landcover to avoid column conflicts
-    geom_col = landcover_subset.geometry.name
-    landcover_subset = landcover_subset[
-        ["topo_id", "feature_type", "update_date", "version", geom_col]
-    ]
 
     logger.info("start overlay chunk %d", chunk_idx)
     overlay_gdf = gpd.overlay(
@@ -83,8 +79,16 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
     contour_gdf = gpd.read_parquet(contour_path)
+
+    # TODO remove once we use geometry column everywhere
+    # work out what the geometry column is called(geom or geometry?) by looking at metadata
+    geo_meta = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])
+    geom_col = geo_meta["primary_column"]
+
     _landcover_gdf = gpd.read_parquet(
-        landcover_path, filters=[("feature_type", "==", "ice")]
+        landcover_path,
+        filters=[("feature_type", "==", "ice")],
+        columns=["topo_id", "feature_type", "update_date", "version", geom_col],
     )
 
     n_workers = cpu_count()
