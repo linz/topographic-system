@@ -1,20 +1,8 @@
-import { relative } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import type cmdts from 'cmd-ts';
 import type { Type } from 'cmd-ts';
-
-/**
- * Convert a path to a relative path
- *
- * @param path the path to convert
- * @param base the path to be relative to default to current path
- */
-export function toRelative(path: URL, base: URL = fsa.toUrl('')): string {
-  if (path.protocol !== 'file:' || base.protocol !== 'file:') throw new Error('Must be file: URL');
-  return './' + relative(fileURLToPath(base), fileURLToPath(path));
-}
 
 /**
  * Parse an input parameter as a URL.

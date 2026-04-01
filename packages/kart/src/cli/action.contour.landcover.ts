@@ -9,12 +9,11 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
-  upsertAssetToCollection,
-  determineAssetLocation,
-  isMergeToMaster,
+  stringToUrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
+import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
+import pLimit from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
@@ -52,13 +51,16 @@ export const ContourWithLandcoverCommand = command({
   async handler(args) {
     registerFileSystem();
     logger.info({ args }, 'Prepare contour with landcover: Started');
+    const rootCatalog = new URL('catalog.json', args.output);
 
+    // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);
     const contourParquetAsset = contourCollection.assets?.['parquet'];
     if (contourParquetAsset == null) {
       throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
     }
 
+    // TODO use canonical
     const landcoverCollection = await fsa.readJson<StacCollection>(args.landcover);
     const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
     if (landcoverParquetAsset == null) {
@@ -87,46 +89,19 @@ export const ContourWithLandcoverCommand = command({
 
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
-    const assetFile = determineAssetLocation({
-      category: 'data',
-      dataset: topo50ContourName,
-      file: tempOutputParquet,
-      root: args.output,
+    const sw = new StacCollectionWriter('data', topo50ContourName);
+
+    sw.asset('parquet', tempOutputParquet, {
+      href: `./${topo50ContourName}.parquet`,
+      type: 'application/vnd.apache.parquet',
+      roles: ['data'],
     });
 
-    logger.info({ assetFile }, 'UploadingParquet');
-    await fsa.write(assetFile, fsa.readStream(tempOutputParquet), {
-      contentType: 'application/vnd.apache.parquet',
-    });
+    sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
+    sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
 
-    const derivedFromContour = {
-      rel: 'derived_from',
-      href: contourParquetAsset.href,
-    };
-    const derivedFromLandcover = {
-      rel: 'derived_from',
-      href: landcoverParquetAsset.href,
-    };
-    const rootCatalog = new URL('catalog.json', args.output);
-    const stacCollectionFile = await upsertAssetToCollection(rootCatalog, assetFile, [
-      derivedFromContour,
-      derivedFromLandcover,
-    ]);
-    logger.info({ assetFile, stacCollectionFile: stacCollectionFile.href }, 'AssetToCollectionUpserted');
+    const collections = await sw.write(rootCatalog, pLimit(4), true);
 
-    if (isMergeToMaster()) {
-      const latestAssetFile = determineAssetLocation({
-        category: 'data',
-        dataset: topo50ContourName,
-        file: tempOutputParquet,
-        root: args.output,
-        tag: 'latest',
-      });
-      logger.debug({ latestAssetFile }, 'UpdatingLatestCollection');
-      await upsertAssetToCollection(rootCatalog, latestAssetFile, [derivedFromContour, derivedFromLandcover]);
-      logger.info('Prepare contour with landcover: Finished');
-    }
-
-    logger.info('ContourLandcover: Done');
+    await StacUpdater.collections(rootCatalog, collections, true);
   },
 });

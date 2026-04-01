@@ -2,7 +2,9 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
-import { CliId } from '@linzjs/topographic-system-shared';
+import { StacUpdater } from '@linzjs/topographic-system-stac';
+import { StacBasic } from '@linzjs/topographic-system-stac/src/stac.basic.ts';
+import type { StacCollection } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
@@ -16,6 +18,8 @@ describe('deploy -> produce-cover -> produce', () => {
     fsa.register('memory://', mem);
   });
 
+  const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
+
   it('should ensure base container matches the Dockerfile', async () => {
     const dockerFile = new URL('../../Dockerfile', import.meta.url);
     const from = String(await fsa.read(dockerFile))
@@ -25,7 +29,6 @@ describe('deploy -> produce-cover -> produce', () => {
   });
 
   const baseDeployArgs = {
-    githash: undefined,
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -34,37 +37,42 @@ describe('deploy -> produce-cover -> produce', () => {
 
   it('should deploy a qgs file', async (t) => {
     await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
-    await fsa.write(fsa.toUrl('memory://source/water/latest/water.parquet'), 'Hello World');
+    const waterUrl = fsa.toUrl('memory://source/data/water/latest/');
+    await fsa.write(new URL('water.parquet', waterUrl), 'Hello World');
 
-    await fsa.write(
-      fsa.toUrl('memory://source/catalog.json'),
-      JSON.stringify({ links: [{ rel: 'child', href: './water/latest/collection.json' }] }),
-    );
-    await fsa.write(
-      fsa.toUrl('memory://source/water/latest/collection.json'),
-      JSON.stringify({
-        assets: { parquet: { href: './water.parquet' } },
-      }),
-    );
+    await StacUpdater.readWriteJson<StacCollection>(new URL('collection.json', waterUrl), () => {
+      const col = StacBasic.collection();
+      col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
+      col.assets = { parquet: { href: './water.parquet' } };
+      return col;
+    });
+    await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl], true);
 
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 
     // Deploy the QGIS project into memory
     await DeployCommand.handler({
       ...baseDeployArgs,
-      project: new URL('memory://source/topo50maps/'),
+      project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: new URL('memory://target-deploy/'),
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
       commit: true,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href).sort(),
       [
-        'memory://target-deploy/qgis/latest/topo50maps/topo50.qgs',
-        'memory://target-deploy/qgis/latest/topo50maps/topo50.json',
-        'memory://target-deploy/qgis/latest/topo50maps/collection.json',
-        'memory://target-deploy/qgis/latest/catalog.json',
-      ],
+        'memory://target-deploy/qgis/topo50/latest/topo50.json',
+        'memory://target-deploy/qgis/topo50/latest/collection.json',
+        'memory://target-deploy/qgis/topo50/latest/topo50.qgs',
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'memory://target-deploy/qgis/topo50/catalog.json',
+        'memory://target-deploy/qgis/catalog.json',
+        'memory://target-deploy/catalog.json',
+      ].sort(),
     );
 
     t.mock.method(pyRunner, 'qgisExportCover', () => {
@@ -73,48 +81,54 @@ describe('deploy -> produce-cover -> produce', () => {
 
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
-      project: new URL('memory://target-deploy/qgis/latest/topo50maps/topo50.json'),
+      project: new URL('memory://target-deploy/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
       mapSheetLayer: 'nz_topo50_map_sheet',
       source: baseDeployArgs.source,
       dpi: 300,
-      output: new URL('memory://target-produce/working/'),
+      output: new URL('memory://target-produce/'),
       fromFile: undefined,
       all: false,
       format: 'pdf',
       dataTags: undefined,
+      strategy: { type: 'latest' },
       tempLocation: new URL('memory://temp-produce-cover/'),
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/working/${CliId}/BQ32.json`,
-        `memory://target-produce/working/${CliId}/collection.json`,
-        'memory://target-produce/working/catalog.json',
-      ],
+        `memory://target-produce/product/topo50/latest/BQ32.json`,
+        `memory://target-produce/product/topo50/latest/collection.json`,
+        `memory://target-produce/product/topo50/catalog.json`,
+        'memory://target-produce/product/catalog.json',
+        'memory://target-produce/catalog.json',
+      ].sort(),
     );
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL) => {
-      const outputFile = new URL('BQ32.pdf', output);
+      const outputFile = new URL('product/latest/BQ32.pdf', output);
       await fsa.write(outputFile, 'BQ32.pdf');
       return outputFile;
     });
     await ProduceCommand.handler({
-      path: [new URL(`memory://target-produce/working/${CliId}/BQ32.json`)],
+      path: [new URL(`memory://target-produce/product/topo50/latest/BQ32.json`)],
       tempLocation: new URL('memory://temp-produce/'),
       fromFile: undefined,
       force: false,
+      concurrency: 1,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/working/${CliId}/BQ32.json`,
-        `memory://target-produce/working/${CliId}/collection.json`,
-        'memory://target-produce/working/catalog.json',
-        `memory://target-produce/working/${CliId}/BQ32.pdf`, // :tada: a export happened
-      ],
+        `memory://target-produce/product/topo50/latest/BQ32.json`,
+        `memory://target-produce/product/topo50/latest/collection.json`,
+        `memory://target-produce/product/topo50/catalog.json`,
+        'memory://target-produce/product/catalog.json',
+        'memory://target-produce/catalog.json',
+        `memory://target-produce/product/topo50/latest/BQ32.pdf`, // :tada: a export happened
+      ].sort(),
     );
   });
 });

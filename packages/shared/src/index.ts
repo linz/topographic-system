@@ -1,6 +1,12 @@
 export { isArgo } from './argo.ts';
 export { CliDate, CliId, CliInfo } from './cli.info.ts';
-export { downloadFile, downloadFiles, downloadFromCollection, downloadProject } from './download.ts';
+export {
+  downloadFile,
+  downloadFiles,
+  downloadFromCollection,
+  downloadProject,
+  getDataFromCatalog,
+} from './download.ts';
 export { Environment, EnvLabel, parseEnv } from './env.ts';
 export { registerFileSystem } from './fs.register.ts';
 export { recursiveFileSearch } from './fs.util.ts';
@@ -8,23 +14,8 @@ export { GithubApi } from './github.api.ts';
 export { isMergeToMaster, isPullRequest, gitContext, canCommentOnPr } from './github.ts';
 export { logger } from './log.ts';
 export { ConcurrentQueue } from './queue.ts';
-export {
-  createFileStats,
-  createStacCatalog,
-  createStacCollection,
-  createStacItem,
-  createStacItemFromFileName,
-  createStacLink,
-  stacToJson,
-} from './stac.factory.ts';
-export { determineAssetLocation } from './stac.links.ts';
-export {
-  getDataFromCatalog,
-  upsertAssetToCollection,
-  upsertAssetToItem,
-  upsertItemToCollection,
-} from './stac.upsert.ts';
-export { stringToUrlFolder, toRelative, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
+export { stringToUrlFolder, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
 export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
 export { monitor } from './otel/instrument.ts';
 export { traceAndRun } from './otel/instrument.cli.ts';
+export { parquetToStac } from './parquet.metadata.ts';

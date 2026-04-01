@@ -7,7 +7,8 @@
   "scripts": {
     "test:container": "node --test \"src/**/*.test.container.ts\"",
     "test": "node --test \"src/**/*.test.ts\"",
-    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs"
+    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs",
+    "build:container": "npm run bundle && docker buildx build ../../ --file ./Dockerfile -t ts-map"
   },
   "dependencies": {
     "@basemaps/geo": "^8.9.0",

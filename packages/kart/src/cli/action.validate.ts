@@ -4,12 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import {
-  determineAssetLocation,
   logger,
   recursiveFileSearch,
   registerFileSystem,
   stringToUrlFolder,
-  upsertAssetToItem,
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
@@ -230,26 +228,12 @@ export const ValidateCommand = command({
     logger.info({ args }, 'ValidateCommand:Start');
     const cmdArgs = await buildValidationArgs(args);
 
-    const rootCatalog = new URL('catalog.json', args.output);
+    // const rootCatalog = new URL('catalog.json', args.output);
 
     logger.info({ command: cmdArgs.join(' ') }, 'ValidateCommand:ArgumentsPrepared');
     const validationOut = await $`uv --directory /packages/validation/ run topographic_validation ${cmdArgs}`;
-    if (args['output-dir']) {
-      const filesToProcess = await recursiveFileSearch(args['output-dir']);
-      await Promise.all(
-        filesToProcess.map(async (file: URL) => {
-          const target = determineAssetLocation({
-            category: 'data-validation',
-            dataset: 'validation-results',
-            file: file,
-            root: rootCatalog,
-          });
-          logger.info({ file: file.pathname, target: target.href }, 'ValidateCommand:UploadingResultFile');
-          await fsa.write(target, fsa.readStream(file));
-          await upsertAssetToItem(rootCatalog, target);
-        }),
-      );
-    }
+
+    // FIXME: validation files should be stored somewhere more permanent (eg s3)
     logger.info({ validationOut: validationOut.stdout }, 'ValidateCommand:Completed');
   },
 });

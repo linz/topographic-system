@@ -1,19 +1,34 @@
+import type { Epsg } from '@basemaps/geo';
+import { Bounds, Projection, ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
-import type { AsyncBuffer, ColumnChunk, FileMetaData, Statistics } from 'hyparquet';
+import type { AsyncBuffer, ColumnChunk, FileMetaData } from 'hyparquet';
 import { parquetMetadataAsync } from 'hyparquet';
-import type { SpatialExtent, TemporalExtent } from 'stac-ts';
+import type { MinMaxType } from 'hyparquet/src/types.js';
+import type { Extents } from 'stac-ts';
 
-import { logger } from './log.ts';
-
-export interface ColumnStats extends Statistics {
+export interface ColumnStats {
   name: string;
   type: string;
-  codec: string;
+
+  min: string | number | boolean;
+  max: string | number | boolean;
+
+  null_count: number;
 }
 
 export interface RowGroupColumnStats {
-  'table:row_count': bigint;
+  'table:row_count': number;
   'table:columns': Partial<ColumnStats>[];
+}
+
+export interface ParquetStacMetadata {
+  table: RowGroupColumnStats;
+  extent: Extents;
+}
+
+export async function parquetToStac(assetFile: URL): Promise<ParquetStacMetadata> {
+  const meta = await readParquetFileMetadata(assetFile);
+  return await mapParquetMetadataToStacStats(meta);
 }
 
 export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaData> {
@@ -35,73 +50,95 @@ export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaD
   return parquetMetadataAsync(asyncBuffer);
 }
 
-export function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): RowGroupColumnStats {
-  const numColumns = parquetMetadata.row_groups[0]?.columns.length ?? 0;
+interface BasicProjJson {
+  /** CRS is optional and defaults to 4326 */
+  crs?: { id: { code: number } };
+  bbox: number[];
+}
+
+async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
+  const geom = parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo');
+  if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
+  const geomMeta = JSON.parse(geom.value ?? '{}') as { columns: Record<string, BasicProjJson>; primary_column: string };
+  const geometry = geomMeta.columns[geomMeta.primary_column];
+  if (geometry == null) throw new Error('Unable to find geometry column metadata in parquet file');
+  // geoparquet 1.1.0 will default to 4326
+  const code = geometry.crs?.id?.code ?? 4326;
+  const epsg = await ProjectionLoader.load(code); // validate the epsg code
+  const bbox = geometry.bbox;
+  return { bbox, epsg };
+}
+
+export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Promise<ParquetStacMetadata> {
+  const tableStats: Record<string, Partial<ColumnStats>> = {};
+
+  let createDateKey: string | null = null;
+
+  const { bbox, epsg } = await parquetGeometryStats(parquetMetadata);
+  const proj = Projection.get(epsg);
+
+  for (const rg of parquetMetadata.row_groups) {
+    for (const col of rg.columns) {
+      if (col.meta_data == null) continue;
+      const name = col.meta_data.path_in_schema.join('.');
+      const current = (tableStats[name] ??= { name, type: col.meta_data.type.toLowerCase() });
+      aggregateStats(current, col);
+      if (createDateKey !== 'create_date' && name.endsWith('_date')) createDateKey = name;
+    }
+  }
+
+  const extents: Partial<Extents> = {};
+
+  // TODO is this actually the date field
+  if (createDateKey != null) {
+    const { min, max } = tableStats[createDateKey] as { min: string; max: string };
+    extents.temporal = { interval: min === max ? ([[min, null]] as const) : ([[min, max]] as const) };
+  }
+
+  const bounds = Bounds.fromBbox(bbox);
+  const wsg84Bbox = proj.boundsToWgs84BoundingBox(bounds);
+  extents.spatial = { bbox: [wsg84Bbox] };
 
   return {
-    'table:row_count': parquetMetadata.num_rows,
-    'table:columns': Array.from({ length: numColumns }, (_, i) => {
-      const columns = parquetMetadata.row_groups.map((rg) => rg.columns[i]).filter((col) => col != null);
-      return aggregateColumnStatsAcrossRowGroups(columns);
-    }),
+    table: {
+      'table:row_count': Number(parquetMetadata.num_rows),
+      'table:columns': Object.values(tableStats),
+    },
+    extent: extents as Extents,
   };
 }
 
-function aggregateColumnStatsAcrossRowGroups(columns: ColumnChunk[]): ColumnStats {
-  const summaryStats = {} as ColumnStats;
-
-  for (const column of columns) {
-    if (column?.meta_data == null) continue;
-    summaryStats.name = column.meta_data.path_in_schema.join('.');
-    summaryStats.type = column.meta_data.type.toLowerCase();
-    summaryStats.codec = column.meta_data.codec;
-    if (column?.meta_data?.statistics == null) continue;
-    const columnStats = column.meta_data.statistics;
-
-    if (columnStats.min != null && (summaryStats.min == null || columnStats.min < summaryStats.min)) {
-      summaryStats.min = columnStats.min;
-    }
-    if (columnStats.max != null && (summaryStats.max == null || columnStats.max > summaryStats.max)) {
-      summaryStats.max = columnStats.max;
-    }
-    if (columnStats.null_count != null) {
-      summaryStats.null_count = (summaryStats.null_count ?? 0n) + columnStats.null_count;
-    }
-    if (
-      columnStats.distinct_count != null &&
-      (summaryStats.distinct_count == null || columnStats.distinct_count > summaryStats.distinct_count)
-    ) {
-      summaryStats.distinct_count = columnStats.distinct_count;
-    }
-  }
-  return summaryStats;
+/**
+ * JSON cannot store all of the datatypes of parquet
+ *
+ * convert the types to JSON friendly types
+ */
+function jsonType(m: MinMaxType | undefined): string | number | boolean | null {
+  if (m == null) return null;
+  if (typeof m === 'number') return m;
+  if (typeof m === 'string') return m;
+  if (typeof m === 'bigint') return Number(m);
+  if (typeof m === 'boolean') return m;
+  if (m instanceof Date) return m.toISOString();
+  throw new Error('unknown type:' + m);
 }
 
-export function extractSpatialExtent(columnStats: ColumnStats[]): SpatialExtent {
-  const xmin = columnStats.find((col) => col.name === 'bbox.xmin')?.min;
-  const xmax = columnStats.find((col) => col.name === 'bbox.xmax')?.max;
-  const ymin = columnStats.find((col) => col.name === 'bbox.ymin')?.min;
-  const ymax = columnStats.find((col) => col.name === 'bbox.ymax')?.max;
-
-  if (typeof xmin !== 'number' || typeof xmax !== 'number' || typeof ymin !== 'number' || typeof ymax !== 'number') {
-    logger.error({ columnStats, xmin, xmax, ymin, ymax }, 'SpatialExtent:InvalidColumnStats');
-    throw new Error('SpatialExtent:InvalidColumnStats');
-  }
-
-  return [xmin, ymin, xmax, ymax];
+function setMin(out: Partial<ColumnStats>, m: MinMaxType | undefined) {
+  const val = jsonType(m);
+  if (val == null) return;
+  if (out.min == null || out.min < val) out.min = val;
 }
 
-export function extractTemporalExtent(columnStats: ColumnStats[]): TemporalExtent {
-  const minDates: string[] = [];
-  const maxDates: string[] = [];
-  for (const column of columnStats) {
-    if (column.name?.toLowerCase().endsWith('_date')) {
-      if (column.min instanceof Date) minDates.push(column.min.toISOString());
-      if (column.max instanceof Date) maxDates.push(column.max.toISOString());
-    }
-  }
-  logger.debug({ minDates, maxDates }, 'TemporalExtent:CollectedDates');
-  const minDate = minDates.length > 0 ? minDates.reduce((a, b) => (a < b ? a : b)) : 'null';
-  const maxDate = maxDates.length > 0 ? maxDates.reduce((a, b) => (a > b ? a : b)) : 'null';
-  return maxDate === minDate ? [minDate, 'null'] : [minDate, maxDate];
+function setMax(out: Partial<ColumnStats>, m: MinMaxType | undefined) {
+  const val = jsonType(m);
+  if (val == null) return;
+  if (out.max == null || out.max < val) out.max = val;
+}
+
+function aggregateStats(out: Partial<ColumnStats>, chunk: ColumnChunk): void {
+  const stats = chunk.meta_data?.statistics;
+  if (stats == null) return;
+  out.null_count = (out.null_count ?? 0) + Number(stats.null_count ?? 0);
+  setMin(out, stats.min);
+  setMax(out, stats.max);
 }
