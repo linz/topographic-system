@@ -60,28 +60,28 @@ describe('readWithRetry', () => {
     const content = await readFileWithRetry(testNoFile, 5, 100);
     assert.equal(content.toString(), 'appeared');
   });
+
   it('should read a file that exists', async () => {
     const content = await readFileWithRetry(testFile, 3, 100);
     assert.equal(Buffer.isBuffer(content), true);
     assert.equal(content.toString(), 'hello world');
   });
+
   it('should include the file path in the error message', async () => {
     await assert.rejects(
       () => readFileWithRetry(testNoFile, 3, 100),
       (err: Error) => {
-        assert.match(err.message, /nofile\.txt/);
-        assert.match(err.message, /3 retries/);
+        assert.equal(err.message, 'Failed to read file memory:///tmp/test/diff-test/nofile.txt after 3 retries');
         return true;
       },
     );
   });
 
   it('should respect the number of retries', async () => {
-    // With 1 retry and no file, should fail fast
     const start = Date.now();
     await assert.rejects(() => readFileWithRetry(testNoFile, 1, 50));
     const elapsed = Date.now() - start;
-    // 1 retry = one delay of 50ms (50 * 2^0), should be quick
+    // 1 retry = one delay of 50ms should be quick
     assert(elapsed < 200, `Expected fast failure, took ${elapsed}ms`);
   });
 });
