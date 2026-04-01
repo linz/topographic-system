@@ -1,5 +1,5 @@
-import { mkdirSync } from 'fs';
 import type { UUID } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { basename } from 'node:path';
