@@ -163,11 +163,14 @@ async function getGitDiff(ctx: GitContext): Promise<string> {
   }
 }
 
-async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
+export async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
   for (let i = 0; i < retries; i++) {
-    const stat = await fsa.head(filePath);
-    if (stat != null) return fsa.read(filePath);
-    await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+    try {
+      return await fsa.read(filePath);
+    } catch {
+      if (i === retries - 1) throw new Error(`Failed to read file ${filePath.href} after ${retries} retries`);
+      await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+    }
   }
   throw new Error(`Failed to read file ${filePath.href} after ${retries} retries`);
 }
