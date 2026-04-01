@@ -51,19 +51,7 @@ async function getTextDiff(ctx: GitContext): Promise<string> {
   try {
     mkdirSync(ctx.output, { recursive: true });
     const textDiffLocation = new URL('kart_diff.txt', ctx.output);
-    logger.debug({ ...ctx, file: fileURLToPath(textDiffLocation), url: textDiffLocation.href }, 'Diff:GettingTextDiff');
-    const command = `kart ${gitContext(ctx.repo).flat().join(' ')} diff ${ctx.diffRange.flat().join(' ')} -o text --output ${fileURLToPath(textDiffLocation)}`;
-    logger.info({ command }, 'Diff:FullKartCommand');
-    const processOutput =
-      await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
-    logger.debug(
-      {
-        stdout: processOutput.stdout,
-        stderr: processOutput.stderr,
-        exitCode: processOutput.exitCode,
-      },
-      'Diff:KartTextDiffProcess',
-    );
+    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
     const fileContent = await readFileWithRetry(textDiffLocation);
     const textDiff = fileContent.toString('utf-8');
     logger.info({ textDiffLines: textDiff.split('\n').length }, 'Diff:TextDiffSaved');
@@ -178,7 +166,7 @@ async function getGitDiff(ctx: GitContext): Promise<string> {
 async function readFileWithRetry(filePath: URL, retries = 5, delay = 10): Promise<Buffer> {
   for (let i = 0; i < retries; i++) {
     const stat = await fsa.head(filePath);
-    if (stat?.size) return fsa.read(filePath);
+    if (stat != null) return fsa.read(filePath);
     await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
   }
   throw new Error(`Failed to read file ${filePath.href} after ${retries} retries`);
