@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.2.0...topographic-system-data-prep-v0.3.0) (2026-04-01)
+
+
+### Features
+
+* data-prep script improvements BM-1571 ([#98](https://github.com/linz/topographic-system/issues/98)) ([33bad88](https://github.com/linz/topographic-system/commit/33bad88bd456aea36936e87557ae7b3c591742c5))
+
 ## [0.2.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.1.0...topographic-system-data-prep-v0.2.0) (2026-03-10)
 
 
