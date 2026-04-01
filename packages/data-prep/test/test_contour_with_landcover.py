@@ -1,12 +1,15 @@
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
+import pytest
 from shapely.geometry import Polygon
 
 from data_prep.contour_with_landcover import run
 
 
-def test_contour_with_landcover(tmp_path: Path):
+@pytest.fixture()
+def result(tmp_path: Path):
     poly1 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
     poly2 = Polygon([(1, 1), (3, 1), (3, 3), (1, 3)])
 
@@ -14,6 +17,8 @@ def test_contour_with_landcover(tmp_path: Path):
         {
             "feature_type": ["contour"],
             "topo_id": [1],
+            "update_date": [date(2024, 1, 1)],
+            "version": [3],
             "geometry": [poly1],
         },
     )
@@ -22,6 +27,8 @@ def test_contour_with_landcover(tmp_path: Path):
         {
             "feature_type": ["ice"],
             "topo_id": [10],
+            "update_date": [date(2025, 6, 15)],
+            "version": [1],
             "geometry": [poly2],
         },
     )
@@ -35,11 +42,35 @@ def test_contour_with_landcover(tmp_path: Path):
 
     run(contour_path, landcover_path, output_path)
 
-    result = gpd.read_parquet(output_path)
+    return gpd.read_parquet(output_path)
 
-    assert not result.empty
+
+def test_output_has_expected_columns(result):
     assert "feature_type" in result.columns
     assert "topo_id" in result.columns
+    assert "landcover_id" in result.columns
     assert "landcover_feature_type" in result.columns
-    ice_rows = result[result["landcover_feature_type"] == "ice"]
-    assert not ice_rows.empty
+    assert "update_date" in result.columns
+    assert "version" in result.columns
+
+
+def test_landcover_feature_type_is_ice(result):
+    assert not result.empty
+    assert (result["landcover_feature_type"] == "ice").all()
+
+
+def test_landcover_id(result):
+    assert result.iloc[0]["landcover_id"] == 10
+
+
+def test_update_date_takes_max(result):
+    assert result.iloc[0]["update_date"] == date(2025, 6, 15)
+
+
+def test_version_takes_max(result):
+    assert result.iloc[0]["version"] == 3
+
+
+def test_geometry_is_intersection(result):
+    expected = Polygon([(1, 1), (2, 1), (2, 2), (1, 2)])
+    assert result.iloc[0].geometry.equals(expected)

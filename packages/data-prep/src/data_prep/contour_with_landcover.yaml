@@ -52,7 +52,7 @@ components:
         update_date:
           type: string
           format: date
-          description: The date when the feature was last updated in the database.
+          description: The date when the feature was last updated in the database, max from contour and landcover.
 
         create_date:
           type: string
@@ -62,7 +62,11 @@ components:
         version:
           type: integer
           format: int64
-          description: The version of the feature.
+          description: The version of the feature, max from contour and landcover.
+
+        landcover_id:
+          type: string
+          description: The unique identifier for the intersecting landcover feature.
 
         landcover_feature_type:
           type: string

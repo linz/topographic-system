@@ -35,9 +35,10 @@ def process_chunk(chunk_idx):
     if landcover_subset.empty:
         return None
 
-    # Keep only feature_type + geometry from landcover to avoid column conflicts
+    # Keep only needed columns from landcover to avoid column conflicts
+    geom_col = landcover_subset.geometry.name
     landcover_subset = landcover_subset[
-        ["feature_type", landcover_subset.geometry.name]
+        ["topo_id", "feature_type", "update_date", "version", geom_col]
     ]
 
     logger.info("start overlay chunk %d", chunk_idx)
@@ -49,8 +50,19 @@ def process_chunk(chunk_idx):
     )
     logger.info("end overlay chunk %d", chunk_idx)
 
+    # use max for update_date and version
+    overlay_gdf["update_date"] = overlay_gdf[["update_date_1", "update_date_2"]].max(
+        axis=1
+    )
+    overlay_gdf["version"] = overlay_gdf[["version_1", "version_2"]].max(axis=1)
+    overlay_gdf = overlay_gdf.drop(
+        columns=["update_date_1", "update_date_2", "version_1", "version_2"]
+    )
+
     overlay_gdf = overlay_gdf.rename(
         columns={
+            "topo_id_1": "topo_id",
+            "topo_id_2": "landcover_id",
             "feature_type_1": "feature_type",
             "feature_type_2": "landcover_feature_type",
         }
