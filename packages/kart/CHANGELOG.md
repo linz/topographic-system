@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.8.0...topographic-system-kart-v0.9.0) (2026-04-01)
+
+
+### Features
+
+* add initial test data for `feature_not_on_layers` and `feature_in_layers` BM-1592 ([#102](https://github.com/linz/topographic-system/issues/102)) ([73f2219](https://github.com/linz/topographic-system/commit/73f2219686daf263a91258f379b76b6d557f2d21))
+* data-prep script improvements BM-1571 ([#98](https://github.com/linz/topographic-system/issues/98)) ([33bad88](https://github.com/linz/topographic-system/commit/33bad88bd456aea36936e87557ae7b3c591742c5))
+
+
+### Bug Fixes
+
+* avoid kart opening a browser window BM-1598 ([#104](https://github.com/linz/topographic-system/issues/104)) ([bc8f044](https://github.com/linz/topographic-system/commit/bc8f044fea82d41c57ab9595e9b00799b4bca252))
+* kart text diff output to stdout fails BM-1603 ([#106](https://github.com/linz/topographic-system/issues/106)) ([b16314f](https://github.com/linz/topographic-system/commit/b16314f1fd26215d1a32e260558f454620748066))
+
 ## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.7.0...topographic-system-kart-v0.8.0) (2026-03-26)
 
 
