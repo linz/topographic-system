@@ -3,8 +3,8 @@
   "geometry": {
     "type": "LineString",
     "coordinates": [
-      [174.75, -41.25],
-      [174.77, -41.25]
+      [174.75, -41.24],
+      [174.77, -41.23]
     ]
   },
   "properties": {
@@ -16,7 +16,7 @@
     "construction_type": null,
     "status": null,
     "name": null,
-    "source": "valid-test-fixtures",
+    "source": "invalid-test-fixtures",
     "source_date": "2025-03-24",
     "capture_method": "manual",
     "change_type": "new",
