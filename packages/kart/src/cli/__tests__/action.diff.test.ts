@@ -18,60 +18,48 @@ describe('readWithRetry', () => {
   const testNoFile = new URL('nofile.txt', testBasePath);
 
   beforeEach(async () => {
-    for (const f of [testFile, testEmptyFile, testNoFile]) {
-      try {
-        await fsa.delete(f);
-      } catch {
-        // ignore if not found
-      }
-    }
+    mem.files.clear();
     await fsa.write(testFile, 'hello world');
     await fsa.write(testEmptyFile, '');
   });
 
   afterEach(async () => {
-    for (const f of [testFile, testEmptyFile, testNoFile]) {
-      try {
-        await fsa.delete(f);
-      } catch {
-        // ignore if not found
-      }
-    }
+    mem.files.clear();
   });
 
   it('should read a file that exists', async () => {
-    const content = await readFileWithRetry(testFile, 3, 100);
+    const content = await readFileWithRetry(testFile, 2, 2);
     assert.equal(content.toString(), 'hello world');
   });
 
   it('should read an empty file', async () => {
-    const content = await readFileWithRetry(testEmptyFile, 3, 100);
+    const content = await readFileWithRetry(testEmptyFile, 2, 2);
     assert.equal(content.toString(), '');
   });
 
   it('should fail when file does not exist', async () => {
-    await assert.rejects(() => readFileWithRetry(testNoFile, 3, 100));
+    await assert.rejects(() => readFileWithRetry(testNoFile, 2, 2));
   });
 
   it('should read a file that appears while retrying', async () => {
     // Write the file after a short delay, while readFileWithRetry is retrying
-    setTimeout(() => fsa.write(testNoFile, 'appeared'), 150);
+    setTimeout(() => fsa.write(testNoFile, 'appeared'), 5);
 
-    const content = await readFileWithRetry(testNoFile, 5, 100);
+    const content = await readFileWithRetry(testNoFile, 5, 2);
     assert.equal(content.toString(), 'appeared');
   });
 
   it('should read a file that exists', async () => {
-    const content = await readFileWithRetry(testFile, 3, 100);
+    const content = await readFileWithRetry(testFile);
     assert.equal(Buffer.isBuffer(content), true);
     assert.equal(content.toString(), 'hello world');
   });
 
   it('should include the file path in the error message', async () => {
     await assert.rejects(
-      () => readFileWithRetry(testNoFile, 3, 100),
+      () => readFileWithRetry(testNoFile, 2, 2),
       (err: Error) => {
-        assert.equal(err.message, 'Failed to read file memory:///tmp/test/diff-test/nofile.txt after 3 retries');
+        assert.equal(err.message, 'Failed to read file memory:///tmp/test/diff-test/nofile.txt after 2 retries');
         return true;
       },
     );
@@ -79,9 +67,9 @@ describe('readWithRetry', () => {
 
   it('should respect the number of retries', async () => {
     const start = Date.now();
-    await assert.rejects(() => readFileWithRetry(testNoFile, 1, 50));
+    await assert.rejects(() => readFileWithRetry(testNoFile, 1, 1));
     const elapsed = Date.now() - start;
-    // 1 retry = one delay of 50ms should be quick
-    assert(elapsed < 200, `Expected fast failure, took ${elapsed}ms`);
+    // 1 retry = one delay of 1ms should be quick
+    assert(elapsed < 3, `Expected fast failure, took ${elapsed}ms`);
   });
 });
