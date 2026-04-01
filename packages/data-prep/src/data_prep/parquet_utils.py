@@ -5,9 +5,8 @@ from pathlib import Path
 import geopandas as gpd
 
 
-def write_parquet(gdf: gpd.GeoDataFrame, output: Path):
+def write_parquet(gdf: gpd.GeoDataFrame, output: Path, row_group_size=50000):
     compression_level = 19
-    row_group_size = 10000
 
     gdf.to_parquet(
         output,
