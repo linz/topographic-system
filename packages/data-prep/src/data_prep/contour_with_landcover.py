@@ -46,14 +46,7 @@ def process_chunk(chunk_idx):
     )
     logger.info("end overlay chunk %d", chunk_idx)
 
-    # use max for update_date and version
-    overlay_gdf["update_date"] = overlay_gdf[["update_date_1", "update_date_2"]].max(
-        axis=1
-    )
-    overlay_gdf["version"] = overlay_gdf[["version_1", "version_2"]].max(axis=1)
-    overlay_gdf = overlay_gdf.drop(
-        columns=["update_date_1", "update_date_2", "version_1", "version_2"]
-    )
+    overlay_gdf = overlay_gdf.drop(columns=["update_date_1", "version_1"])
 
     overlay_gdf = overlay_gdf.rename(
         columns={
@@ -61,6 +54,8 @@ def process_chunk(chunk_idx):
             "topo_id_2": "landcover_id",
             "feature_type_1": "feature_type",
             "feature_type_2": "landcover_feature_type",
+            "update_date_2": "update_date",
+            "version_2": "version",
         }
     )
 
