@@ -63,12 +63,12 @@ def test_landcover_id(result):
     assert result.iloc[0]["landcover_id"] == 10
 
 
-def test_update_date_takes_max(result):
+def test_update_date_takes_landcover(result):
     assert result.iloc[0]["update_date"] == date(2025, 6, 15)
 
 
-def test_version_takes_max(result):
-    assert result.iloc[0]["version"] == 3
+def test_version_takes_landcover(result):
+    assert result.iloc[0]["version"] == 1
 
 
 def test_geometry_is_intersection(result):
