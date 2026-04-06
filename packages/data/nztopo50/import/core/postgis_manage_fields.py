@@ -262,7 +262,7 @@ class ModifyTable:
         if full_field_set:
             fieldList = [
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
-                ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
+                # ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
                 ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
                 ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
@@ -714,24 +714,6 @@ class ModifyTable:
             ordered_list.insert(0, "topo_id")
         return ordered_list
 
-    def get_non_compare_columns(self):
-        """
-        Returns a list of columns that should not be compared when checking for differences between tables.
-        """
-        non_compare_columns = [
-            #"topo_id",
-            "t50_fid",
-            "feature_type",
-            "theme",
-            "source",
-            "source_date",
-            "capture_method",
-            "change_type",
-            "update_date",
-            "create_date",
-            "version",
-        ]
-        return non_compare_columns
 
     def get_ordered_columns(self, schema, table, primary_key_type="int"):
         """
@@ -752,95 +734,6 @@ class ModifyTable:
 
         # Filter and order the existing columns according to the predefined order
         return [col for col in ordered_columns if col in existing_columns]
-
-    def get_compare_columns(self, schema, table):
-        """
-        Returns a list of columns that should be compared when checking for differences between tables.
-        """
-        self.connect()
-        non_compare_columns = self.get_non_compare_columns()
-        with self.conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT column_name FROM information_schema.columns
-                WHERE table_schema = %s AND table_name = %s
-                ORDER BY ordinal_position
-            """,
-                (schema, table),
-            )
-            existing_columns = [row[0] for row in cur.fetchall()]
-
-        # Filter and order the existing columns according to the predefined order
-        compare_columns = [
-            col
-            for col in self.all_ordered_columns()
-            if col in existing_columns and col not in non_compare_columns
-        ]
-        return compare_columns
-
-    def compare_table_data(self, schema, table, previous_schema, release_date=None):
-        self.connect()
-        compare_columns = self.get_compare_columns(schema, table)
-        if not compare_columns:
-            print(f"No comparable columns found for {schema}.{table}")
-            return None
-
-        # INSERTS
-        query = f"""
-            SELECT b.topo_id::text, '{table}' as table_name, b.feature_type, 'added' AS change_type
-            FROM {schema}.{table} AS b
-            LEFT JOIN {previous_schema}.{table} AS a ON a.topo_id = b.topo_id
-            WHERE a.topo_id IS NULL; 
-        """
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-            rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-            insert_df = pd.DataFrame(rows, columns=columns)
-
-        # DELETES
-        query = f"""
-            SELECT a.topo_id::text, '{table}' as table_name, a.feature_type, 'removed' AS change_type
-            FROM {previous_schema}.{table} AS a
-            LEFT JOIN {schema}.{table} AS b ON a.topo_id = b.topo_id
-            WHERE b.topo_id IS NULL; 
-        """
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-            rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-            delete_df = pd.DataFrame(rows, columns=columns)
-
-        # UPDATES
-        # Build the IS DISTINCT FROM conditions dynamically for all compare_columns
-        distinct_conditions = " OR ".join(
-            [f"a.{col} IS DISTINCT FROM b.{col}" for col in compare_columns]
-        )
-        query = f"""
-            SELECT a.topo_id::text, '{table}' as table_name, a.feature_type, 'updated' AS change_type
-            FROM {previous_schema}.{table} AS a
-            JOIN {schema}.{table} AS b ON a.topo_id = b.topo_id
-            WHERE {distinct_conditions};
-        """
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-            rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-            update_df = pd.DataFrame(rows, columns=columns)
-
-        # Split release_date (format yyyy-mm-dd) into year, month, day columns
-        if release_date:
-            year, month, day = release_date.split("-")
-            insert_df["year"] = year
-            insert_df["month"] = month
-            insert_df["day"] = day
-            delete_df["year"] = year
-            delete_df["month"] = month
-            delete_df["day"] = day
-            update_df["year"] = year
-            update_df["month"] = month
-            update_df["day"] = day
-        return insert_df, delete_df, update_df
 
 
 if __name__ == "__main__":
