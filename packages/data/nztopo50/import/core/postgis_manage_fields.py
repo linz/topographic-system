@@ -1021,7 +1021,7 @@ if __name__ == "__main__":
     # option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
-    schema_name = "model"
+    # schema_name = "model"
     release_date = "2025-09-25"
 
     # schema_name = "release62"
