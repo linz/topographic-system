@@ -586,6 +586,19 @@ class ModifyTable:
                     geom_field = "ST_Transform(geometry, 4167) AS geometry"
 
                     geom_type = self.get_geometry_type(schema, table)
+                    # if creating an empty model geom_type will be None - infer from table name suffix
+                    if geom_type is None:
+                        # Fallback inference for empty tables by common naming conventions.
+                        if table.endswith(("_line", "_crossing")):
+                            geom_type = "LINESTRING"
+                        elif table.endswith(
+                            ("_point", "_text", "_name", "_station", "_locations")
+                        ):
+                            geom_type = "POINT"
+                        elif table.endswith(("_sheet", "_area")):
+                            geom_type = "POLYGON"
+                        else:
+                            geom_type = "POLYGON"
 
                     if not self.table_exists(schema, f"{table}_4167"):
                         create_query = f"""
@@ -1008,7 +1021,7 @@ if __name__ == "__main__":
     # option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
-    # schema_name = "model"
+    schema_name = "model"
     release_date = "2025-09-25"
 
     # schema_name = "release62"
