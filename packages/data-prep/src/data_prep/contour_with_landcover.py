@@ -46,19 +46,6 @@ def process_chunk(chunk_idx):
     )
     logger.info("end overlay chunk %d", chunk_idx)
 
-    overlay_gdf = overlay_gdf.drop(columns=["update_date_1", "version_1"])
-
-    overlay_gdf = overlay_gdf.rename(
-        columns={
-            "topo_id_1": "topo_id",
-            "topo_id_2": "landcover_id",
-            "feature_type_1": "feature_type",
-            "feature_type_2": "landcover_feature_type",
-            "update_date_2": "update_date",
-            "version_2": "version",
-        }
-    )
-
     return overlay_gdf
 
 
@@ -73,17 +60,31 @@ def split_gdf(gdf, n_chunks):
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    contour_gdf = gpd.read_parquet(contour_path)
-
     # TODO remove once we use geometry column everywhere
     # work out what the geometry column is called(geom or geometry?) by looking at metadata
-    geo_meta = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])
-    geom_col = geo_meta["primary_column"]
+    contour_geom_col = json.loads(pq.read_schema(contour_path).metadata[b"geo"])[
+        "primary_column"
+    ]
+    contour_gdf = gpd.read_parquet(
+        contour_path,
+        columns=["topo_id", "feature_type", contour_geom_col],
+    )
 
+    landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])[
+        "primary_column"
+    ]
     _landcover_gdf = gpd.read_parquet(
         landcover_path,
         filters=[("feature_type", "==", "ice")],
-        columns=["topo_id", "feature_type", "update_date", "version", geom_col],
+        columns=[
+            "topo_id",
+            "feature_type",
+            "update_date",
+            "version",
+            landcover_geom_col,
+        ],
+    ).rename(
+        columns={"topo_id": "landcover_id", "feature_type": "landcover_feature_type"}
     )
 
     n_workers = cpu_count()
