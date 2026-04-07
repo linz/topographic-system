@@ -35,7 +35,9 @@ type DiffOutput = {
     };
   };
 };
-const MAX_GEOJSON_LENGTH = 25_000;
+export const MaxGeoJsonLength = 25_000;
+export const MaxDiffLines = 30;
+export const MaxDiffLineLength = 120;
 
 interface GitContext {
   /** Repository context path to operate on eg "repo" */
@@ -103,9 +105,10 @@ async function createHtmlDiff(ctx: GitContext): Promise<URL> {
     const content = await readFileWithRetry(htmlDiffLocation);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
     await fsa.write(htmlDiffLocation, fixedContent);
+    logger.info({ htmlDiffLines: fixedContent.split('\n').length }, 'Diff:HtmlDiffSaved');
     return htmlDiffLocation;
   } catch (error) {
-    logger.error({ error, ...ctx }, 'Diff:HTML diff failed');
+    logger.error({ error, ...ctx }, 'Diff:HtmlDiffFailed');
     throw error;
   }
 }
@@ -142,9 +145,10 @@ async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string
         featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
       }
     }
+    logger.info({ geojsonDiffLocation }, 'Diff:GeoJsonDiffLoaded');
     return featureChangesPerDataset;
   } catch (error) {
-    logger.error({ error, ...ctx }, 'Diff:GeoJSON diff failed');
+    logger.error({ error, ...ctx }, 'Diff:GeoJsonDiffFailed');
     throw error;
   }
 }
@@ -157,7 +161,8 @@ async function getGitDiff(ctx: GitContext): Promise<string> {
     const gitDiffOutput = await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange}`;
     await $`mv ${tempIndexPath} ${indexPath}`;
 
-    await fsa.write(new URL('git_diff.txt', ctx.output), gitDiffOutput.stdout);
+    await fsa.write(new URL('git_diff.txt', ctx.output), gitDiffOutput.stdout.trim());
+    logger.info({ gitDiffLines: gitDiffOutput.stdout.trim().split('\n').length }, 'Diff:GitDiffSaved');
     return gitDiffOutput.stdout;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:GitDiffFailed');
@@ -241,6 +246,7 @@ export const DiffCommand = command({
       const gitDiff = await getGitDiff(ctx);
 
       const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
+      logger.info('Diff:SummaryBuilt');
       await fsa.write(args.summaryFile, summaryMd);
       logger.info('Diff:CommandCompleted');
     } catch (error) {
@@ -250,7 +256,24 @@ export const DiffCommand = command({
   },
 });
 
-function buildMarkdownSummary(
+export function truncateDiffLines(
+  diff: string,
+  maxLines: number,
+  maxLineLength: number,
+): { text: string; truncated: boolean; totalLines: number } {
+  const lines = diff.split('\n');
+  const totalLines = lines.length;
+  const truncatedLineCount = totalLines > maxLines;
+
+  const text = lines
+    .slice(0, maxLines)
+    .map((line) => (line.length > maxLineLength ? line.slice(0, maxLineLength) + '…' : line))
+    .join('\n');
+
+  return { text, truncated: truncatedLineCount, totalLines };
+}
+
+export function buildMarkdownSummary(
   featureCount: number,
   textDiff: string,
   gitDiff: string,
@@ -264,28 +287,29 @@ function buildMarkdownSummary(
     .flat();
 
   const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
-  const gitDiffLines = gitDiff.split('\n').length;
+  const gitDiffInfo = truncateDiffLines(gitDiff, MaxDiffLines, MaxDiffLineLength);
+  const textDiffInfo = truncateDiffLines(textDiff, MaxDiffLines, MaxDiffLineLength);
 
   let summary = `# Changes Summary\n\n`;
   summary += `**Total Features Changed**: ${featureCount}\n`;
   summary += `**Datasets Affected**: ${Object.keys(featureChangesPerDataset).length}\n`;
-  summary += `**Git Diff Lines**: ${gitDiffLines}\n\n`;
+  summary += `**Git Diff Lines**: ${gitDiffInfo.totalLines}\n\n`;
 
   // Only include GeoJSON if we have features, it's not too large, and under character limit
+  const geojsonLength = allChangesGeoJson.length;
   if (allFeatures.length > 0) {
     summary += `## Feature Changes Preview\n`;
-    const geojsonLength = allChangesGeoJson.length;
-    if (geojsonLength <= MAX_GEOJSON_LENGTH) {
+    if (geojsonLength <= MaxGeoJsonLength) {
       summary += '```geojson\n';
       summary += `${allChangesGeoJson}\n`;
       summary += '```\n\n';
     } else {
-      summary += `*GeoJSON too large to display (${geojsonLength} characters > ${MAX_GEOJSON_LENGTH} limit). `;
+      summary += `*GeoJSON too large to display (${geojsonLength} characters > ${MaxGeoJsonLength} limit). `;
       summary += `Check workflow artifacts for full GeoJSON data.*\n\n`;
     }
   }
 
-  if (Object.keys(featureChangesPerDataset).length > 0) {
+  if (Object.keys(featureChangesPerDataset).length > 0 && geojsonLength <= MaxGeoJsonLength) {
     summary += `### Changes by Dataset\n\n`;
     for (const [dataset, geojsonStr] of Object.entries(featureChangesPerDataset)) {
       const geojson = JSON.parse(geojsonStr) as GeoJson;
@@ -305,15 +329,21 @@ function buildMarkdownSummary(
   summary += `<details>\n`;
   summary += `<summary>Kart Diff (${featureCount} features)</summary>\n\n`;
   summary += '```diff\n';
-  summary += `${textDiff}\n`;
+  summary += `${textDiffInfo.text}\n`;
+  if (textDiffInfo.truncated) {
+    summary += `\n... truncated (showing ${MaxDiffLines} of ${textDiffInfo.totalLines} lines)\n`;
+  }
   summary += '```\n';
   summary += `</details>\n\n`;
 
   summary += `## Git Diff\n\n`;
   summary += `<details>\n`;
-  summary += `<summary>Git Diff (${gitDiffLines} lines)</summary>\n\n`;
+  summary += `<summary>Git Diff (${gitDiffInfo.totalLines} lines)</summary>\n\n`;
   summary += '```diff\n';
-  summary += `${gitDiff}\n`;
+  summary += `${gitDiffInfo.text}\n`;
+  if (gitDiffInfo.truncated) {
+    summary += `\n... truncated (showing ${MaxDiffLines} of ${gitDiffInfo.totalLines} lines)\n`;
+  }
   summary += '```\n';
   summary += `</details>\n\n`;
 

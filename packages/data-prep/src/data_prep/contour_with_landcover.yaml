@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: NZ Topo50 Contour with Landcover Schema
+  description: >
+    Topo50 contour lines intersected with ice landcover polygons.
+  version: 1.0.0
+
+components:
+  schemas:
+    NzTopo50ContourWithLandcover:
+      type: object
+      properties:
+        fid:
+          type: integer
+          format: int64
+
+        topo_id:
+          type: string
+          description: The unique identifier for the topographic feature.
+
+        t50_fid:
+          type: integer
+          format: int64
+          description: The unique identifier for the feature in the source database.
+
+        feature_type:
+          type: string
+          description: The specific type of feature being represented (e.g., 'bridge_line', 'building').
+
+        elevation:
+          type: integer
+          format: int64
+          description: Elevation in metres.
+
+        definition:
+          type: string
+
+        designation:
+          type: string
+
+        formation:
+          type: string
+
+        capture_method:
+          type: string
+          description: The method used to capture the data (e.g., 'manual','automated').
+
+        change_type:
+          type: string
+          description: The type of change that occurred to the feature (e.g., 'new', 'updated').
+
+        update_date:
+          type: string
+          format: date
+          description: The date when the feature was last updated in the database, max from contour and landcover.
+
+        create_date:
+          type: string
+          format: date
+          description: The date when the feature was created in the database.
+
+        version:
+          type: integer
+          format: int64
+          description: The version of the feature, max from contour and landcover.
+
+        landcover_id:
+          type: string
+          description: The unique identifier for the intersecting landcover feature.
+
+        landcover_feature_type:
+          type: string
+          description: Feature type of the intersecting landcover polygon, e.g. "ice".
+
+        geometry:
+          type: string
+          format: wkb
+          description: The geometry of the feature.
