@@ -647,7 +647,7 @@ class ModifyTable:
 
                     index_fields = ["use", "type", "name"]
                     for field_name in index_fields:
-                        columns = tableModifer.column_list(schema, table, field_name)
+                        columns = self.column_list(schema, table, field_name)
                         if columns:
                             for field in columns:
                                 if field == "change_type":
@@ -681,8 +681,8 @@ class ModifyTable:
 
         for table in table_list:
             schema = self.table_schema(table)[0]
-            if not tableModifer.column_exists(schema, table, "name"):
-                tableModifer.add_column(f'"{schema}"."{table}"', "name", "VARCHAR(50)")
+            if not self.column_exists(schema, table, "name"):
+                self.add_column(f'"{schema}"."{table}"', "name", "VARCHAR(50)")
 
     def add_collectionid_columns(self):
         """Add a ``collection_id`` UUID column to tables that support grouping.
@@ -705,8 +705,8 @@ class ModifyTable:
 
         for table in table_list:
             schema = self.table_schema(table)[0]
-            if not tableModifer.column_exists(schema, table, "collection_id"):
-                tableModifer.add_column(
+            if not self.column_exists(schema, table, "collection_id"):
+                self.add_column(
                     f'"{schema}"."{table}"', "collection_id", "uuid"
                 )
             # if not tableModifer.column_exists(schema, table, "collection_name"):
@@ -1013,8 +1013,305 @@ class ModifyTable:
         return [col for col in ordered_columns if col in existing_columns]
 
 
+class TableModificationWorkflow:
+    """Orchestrates release-specific table modification steps."""
+
+    def __init__(
+        self,
+        db_params,
+        schema_name,
+        option="all",
+        add_full_metadata_fields=True,
+        primary_key_type="uuid",
+        release_date=None,
+    ):
+        self.table_modifer = ModifyTable(db_params)
+        self.schema_name = schema_name
+        self.option = option
+        self.add_full_metadata_fields = add_full_metadata_fields
+        self.primary_key_type = primary_key_type
+        self.release_date = release_date
+
+    def should_run(self, step_name):
+        """Return True when a step should run for the current option."""
+        return self.option in ("all", step_name)
+
+    def step_metadata(self):
+        self.table_modifer.add_metadata_columns(
+            mode="add",
+            schema_name=self.schema_name,
+            full_field_set=self.add_full_metadata_fields,
+        )
+
+    def step_columns(self):
+        update_dict = {
+            (self.schema_name, "structure_point"): [
+                ("structure_use", "shaft_use"),
+                ("structure_type", "tank_type"),
+                ("material", "materials"),
+            ],
+            (self.schema_name, "structure_line"): [("status", "dam_status")],
+            (self.schema_name, "structure"): [
+                ("species", "species_cultivated"),
+                ("lid_type", "reservoir_lid_type"),
+                ("structure_type", "tank_type"),
+            ],
+            (self.schema_name, "road_line"): [("highway_number", "highway_numb")],
+            (self.schema_name, "water"): [
+                ("water_use", "pond_use"),
+                ("height", "elevation"),
+            ],
+        }
+
+        for (schema, table), columns in update_dict.items():
+            for base_col, drop_col in columns:
+                self.table_modifer.set_base_column_and_drop_column(
+                    schema, table, base_col, drop_col
+                )
+        self.table_modifer.drop_column(self.schema_name, "tree_locations", "name")
+
+        # specific updates
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "tunnel_line",
+            "tunnel_use2",
+            "'livestock'",
+            "tunnel_use2 ='ivestock'",
+        )
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "tunnel_line",
+            "tunnel_use",
+            "'vehicle'",
+            "tunnel_use2 ='vehicle'",
+        )
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "tunnel_line",
+            "tunnel_use2",
+            "'livestock'",
+            "tunnel_use2 ='vehicle'",
+        )
+
+        self.table_modifer.update_column_with_default(
+            self.schema_name, "trig_point", "trig_type", "'beacon'"
+        )
+
+        self.table_modifer.update_column_with_default(
+            self.schema_name, "road_line", "way_count", "'one way'", "way_count ='1'"
+        )
+        if self.table_modifer.column_exists(self.schema_name, "road_line", "road_access"):
+            self.table_modifer.update_column_with_default(
+                self.schema_name, "road_line", "road_access", "'mp'", "road_access ='m'"
+            )
+
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "physical_infrastructure_line",
+            "support_type",
+            "'pole'",
+            "feature_type ='telephone'",
+        )
+
+    def step_name(self):
+        self.table_modifer.add_name_columns()
+        # self.table_modifer.add_collectionid_columns()
+
+    def step_null_updates(self):
+        self.table_modifer.populate_defined_null_values(self.schema_name)
+
+    def step_additions(self):
+        self.table_modifer.add_column(
+            f"{self.schema_name}.trig_point", "code", "VARCHAR(20)"
+        )
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "trig_point", "code", "name"
+        )
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "trig_point", "name", "null"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.vegetation", "sub_type", "VARCHAR(50)"
+        )
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "vegetation", "sub_type", "species"
+        )
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "vegetation", "species", "null"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.landcover", "sub_type", "VARCHAR(50)"
+        )
+
+        # self.table_modifer.add_column(f"{self.schema_name}.road_line", "level", "INTEGER")
+        # self.table_modifer.update_column_by_value(
+        #     self.schema_name, "road_line", "level", 0
+        # )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.descriptive_text", "nzgb_id", "BIGINT"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.railway_line", "nzgb_id", "BIGINT"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.railway_line", "route2", "VARCHAR(30)"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
+        )
+        # self.table_modifer.add_column(f"{self.schema_name}.river_line", "hierarchy", "VARCHAR(25)")
+        # self.table_modifer.add_column(f"{self.schema_name}.river", "hierarchy", "VARCHAR(25)")
+        self.table_modifer.add_column(
+            f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
+        )
+
+        self.table_modifer.rename_columns(
+            self.schema_name, "contour", "nat_form", "formation"
+        )
+        self.table_modifer.rename_columns(
+            self.schema_name, "contour", "designated", "designation"
+        )
+
+        self.table_modifer.rename_columns(
+            self.schema_name, "landuse", "track_type", "landuse_type"
+        )
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "landuse", "landuse_type", "visibility"
+        )
+        self.table_modifer.drop_column(self.schema_name, "landuse", "visibility")
+        self.table_modifer.rename_columns(
+            self.schema_name, "landuse_line", "track_type", "landuse_type"
+        )
+        self.table_modifer.rename_columns(
+            self.schema_name, "place_point", "visibility", "place_type"
+        )
+
+        # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
+        # self.table_modifer.add_column(f"{self.schema_name}.island", "location", "INTEGER")
+
+    def step_defaults(self):
+        self.table_modifer.set_default_values(self.schema_name)
+
+    def step_rename(self):
+        rename_dict = {
+            f"{self.schema_name}.structure_line": [
+                ("materials", "material"),
+                ("mtlconveyd", "material_conveyed"),
+            ],
+            f"{self.schema_name}.structure_point": [("store_item", "stored_item")],
+            f"{self.schema_name}.structure": [("store_item", "stored_item")],
+        }
+
+        for table_full, columns in rename_dict.items():
+            schema, table = table_full.split(".")
+            for old_column_name, new_column_name in columns:
+                self.table_modifer.rename_columns(
+                    schema, table, old_column_name, new_column_name
+                )
+
+    def step_carto_text_geom_update(self):
+        self.table_modifer.carto_text_geom_update(self.schema_name, "nz_topo50_map_sheet")
+
+    def step_recreate_table_srid(self):
+        self.table_modifer.recreate_table_srid(
+            self.schema_name, self.primary_key_type
+        )
+        self.table_modifer.add_metadata_columns(
+            "alter", self.schema_name, self.add_full_metadata_fields
+        )
+
+    def step_primary_key(self):
+        schema_tables = self.table_modifer.list_schema_tables(self.schema_name)
+        for schema, tables in schema_tables.items():
+            if self.primary_key_type == "int":
+                for table in tables:
+                    # all tables processed from any esri fields
+                    self.table_modifer.drop_column(schema, table, "ESRI_OID")
+                    self.table_modifer.update_primary_key(schema, table, "id")
+            else:
+                for table in tables:
+                    # all tables processed from any esri fields
+                    self.table_modifer.drop_column(schema, table, "ESRI_OID")
+                    self.table_modifer.update_primary_key_guid(schema, table, "topo_id")
+
+    # turn the concept of collections off for now as no direct requirement
+    # def step_collections(self):
+    #     self.table_modifer.create_collections_table(self.schema_name)
+
+    def step_process_carto_tables(self):
+        tables_to_copy = ["nz_topo50_map_sheet"]
+        for table_name in tables_to_copy:
+            # Check if table exists in source schema
+            if self.table_modifer.table_exists(self.schema_name, table_name):
+                # Check if table exists in carto schema and delete it
+                if self.table_modifer.table_exists("carto", table_name):
+                    with self.table_modifer.conn.cursor() as cur:
+                        drop_query = f'DROP TABLE "carto"."{table_name}" CASCADE;'
+                        cur.execute(drop_query)
+                        self.table_modifer.conn.commit()
+                        print(f"Dropped existing table 'carto.{table_name}'")
+
+                # Copy table from source schema to carto schema
+                with self.table_modifer.conn.cursor() as cur:
+                    copy_query = f'CREATE TABLE "carto"."{table_name}" AS SELECT * FROM "{self.schema_name}"."{table_name}";'
+                    cur.execute(copy_query)
+                    self.table_modifer.conn.commit()
+                    # Add index on topo_id field if it exists
+                    if self.table_modifer.column_exists("carto", table_name, "topo_id"):
+                        index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
+                        cur.execute(index_sql)
+                        self.table_modifer.conn.commit()
+                        print(f"Created index on topo_id for 'carto.{table_name}'")
+                    print(
+                        f"Copied table '{self.schema_name}.{table_name}' to 'carto.{table_name}'"
+                    )
+            else:
+                print(
+                    f"Table '{self.schema_name}.{table_name}' does not exist in source schema"
+                )
+
+    def run(self):
+        """Run selected workflow steps in the original execution order."""
+        steps = [
+            ("metadata", self.step_metadata),
+            ("columns", self.step_columns),
+            ("name", self.step_name),
+            ("null_updates", self.step_null_updates),
+            ("additions", self.step_additions),
+            ("defaults", self.step_defaults),
+            ("rename", self.step_rename),
+            ("carto_text_geom_update", self.step_carto_text_geom_update),
+            ("recreate_table_srid", self.step_recreate_table_srid),
+            ("primary_key", self.step_primary_key),
+            ("process_carto_tables", self.step_process_carto_tables),
+        ]
+
+        for step_name, step_func in steps:
+            if self.should_run(step_name):
+                step_func()
+
+
 if __name__ == "__main__":
-    tableModifer = ModifyTable(DB_PARAMS)
     option = "all"
     # option = "compare"
     # schema_name = "toposource"
@@ -1030,220 +1327,12 @@ if __name__ == "__main__":
     # primary_key_type = 'int'
     primary_key_type = "uuid"
 
-    if option == "all" or option == "metadata":
-        tableModifer.add_metadata_columns(
-            mode="add", schema_name=schema_name, full_field_set=add_full_metadata_fields
-        )
-
-    if option == "all" or option == "columns":
-        update_dict = {
-            (schema_name, "structure_point"): [
-                ("structure_use", "shaft_use"),
-                ("structure_type", "tank_type"),
-                ("material", "materials"),
-            ],
-            (schema_name, "structure_line"): [("status", "dam_status")],
-            (schema_name, "structure"): [
-                ("species", "species_cultivated"),
-                ("lid_type", "reservoir_lid_type"),
-                ("structure_type", "tank_type"),
-            ],
-            (schema_name, "road_line"): [("highway_number", "highway_numb")],
-            (schema_name, "water"): [
-                ("water_use", "pond_use"),
-                ("height", "elevation"),
-            ],
-        }
-
-        for (schema, table), columns in update_dict.items():
-            for base_col, drop_col in columns:
-                tableModifer.set_base_column_and_drop_column(
-                    schema, table, base_col, drop_col
-                )
-        tableModifer.drop_column(schema, "tree_locations", "name")
-
-        # specific updates
-        tableModifer.update_column_with_default(
-            schema_name,
-            "tunnel_line",
-            "tunnel_use2",
-            "'livestock'",
-            "tunnel_use2 ='ivestock'",
-        )
-        tableModifer.update_column_with_default(
-            schema_name,
-            "tunnel_line",
-            "tunnel_use",
-            "'vehicle'",
-            "tunnel_use2 ='vehicle'",
-        )
-        tableModifer.update_column_with_default(
-            schema_name,
-            "tunnel_line",
-            "tunnel_use2",
-            "'livestock'",
-            "tunnel_use2 ='vehicle'",
-        )
-
-        tableModifer.update_column_with_default(
-            schema_name, "trig_point", "trig_type", "'beacon'"
-        )
-
-        tableModifer.update_column_with_default(
-            schema_name, "road_line", "way_count", "'one way'", "way_count ='1'"
-        )
-        if tableModifer.column_exists(schema_name, "road_line", "road_access"):
-            tableModifer.update_column_with_default(
-                schema_name, "road_line", "road_access", "'mp'", "road_access ='m'"
-            )
-
-        tableModifer.update_column_with_default(
-            schema_name,
-            "physical_infrastructure_line",
-            "support_type",
-            "'pole'",
-            "feature_type ='telephone'",
-        )
-
-    if option == "all" or option == "name":
-        tableModifer.add_name_columns()
-        # tableModifer.add_collectionid_columns()
-
-    if option == "all" or option == "null_updates":
-        tableModifer.populate_defined_null_values(schema_name)
-
-    if option == "all" or option == "additions":
-        tableModifer.add_column(f"{schema_name}.trig_point", "code", "VARCHAR(20)")
-        tableModifer.update_value_by_column(schema_name, "trig_point", "code", "name")
-        tableModifer.update_value_by_column(schema_name, "trig_point", "name", "null")
-
-        tableModifer.add_column(f"{schema_name}.vegetation", "sub_type", "VARCHAR(50)")
-        tableModifer.update_value_by_column(
-            schema_name, "vegetation", "sub_type", "species"
-        )
-        tableModifer.update_value_by_column(
-            schema_name, "vegetation", "species", "null"
-        )
-
-        tableModifer.add_column(f"{schema_name}.landcover", "sub_type", "VARCHAR(50)")
-
-        # tableModifer.add_column(f"{schema_name}.road_line", "level", "INTEGER")
-        # tableModifer.update_column_by_value(
-        #     schema_name, "road_line", "level", 0
-        # )
-        tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(50)")
-
-        tableModifer.add_column(f"{schema_name}.descriptive_text", "nzgb_id", "BIGINT")
-        tableModifer.add_column(f"{schema_name}.railway_line", "nzgb_id", "BIGINT")
-        tableModifer.add_column(f"{schema_name}.railway_line", "route", "VARCHAR(30)")
-        tableModifer.add_column(f"{schema_name}.railway_line", "route2", "VARCHAR(30)")
-        tableModifer.add_column(f"{schema_name}.railway_line", "route3", "VARCHAR(30)")
-
-        tableModifer.add_column(
-            f"{schema_name}.coastline", "coastline_type", "VARCHAR(50)"
-        )
-
-        tableModifer.add_column(f"{schema_name}.road_line", "hierarchy", "VARCHAR(25)")
-        # tableModifer.add_column(f"{schema_name}.river_line", "hierarchy", "VARCHAR(25)")
-        # tableModifer.add_column(f"{schema_name}.river", "hierarchy", "VARCHAR(25)")
-        tableModifer.add_column(f"{schema_name}.water_line", "hierarchy", "VARCHAR(25)")
-        tableModifer.add_column(f"{schema_name}.water", "hierarchy", "VARCHAR(25)")
-
-        tableModifer.rename_columns(schema_name, "contour", "nat_form", "formation")
-        tableModifer.rename_columns(schema_name, "contour", "designated", "designation")
-
-        tableModifer.rename_columns(
-            schema_name, "landuse", "track_type", "landuse_type"
-        )
-        tableModifer.update_value_by_column(
-            schema_name, "landuse", "landuse_type", "visibility"
-        )
-        tableModifer.drop_column(schema_name, "landuse", "visibility")
-        tableModifer.rename_columns(
-            schema_name, "landuse_line", "track_type", "landuse_type"
-        )
-        tableModifer.rename_columns(
-            schema_name, "place_point", "visibility", "place_type"
-        )
-
-        # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
-        # tableModifer.add_column(f"{schema_name}.island", "location", "INTEGER")
-
-    if option == "all" or option == "defaults":
-        tableModifer.set_default_values(schema_name)
-
-    if option == "all" or option == "rename":
-        rename_dict = {
-            f"{schema_name}.structure_line": [
-                ("materials", "material"),
-                ("mtlconveyd", "material_conveyed"),
-            ],
-            f"{schema_name}.structure_point": [("store_item", "stored_item")],
-            f"{schema_name}.structure": [("store_item", "stored_item")],
-        }
-
-        for table_full, columns in rename_dict.items():
-            schema, table = table_full.split(".")
-            for old_column_name, new_column_name in columns:
-                tableModifer.rename_columns(
-                    schema, table, old_column_name, new_column_name
-                )
-
-    if option == "all" or option == "carto_text_geom_update":
-        schema = schema_name
-        table = "nz_topo50_map_sheet"
-        tableModifer.carto_text_geom_update(schema, table)
-
-    if option == "all" or option == "recreate_table_srid":
-        tableModifer.recreate_table_srid(schema_name, primary_key_type)
-        tableModifer.add_metadata_columns(
-            "alter", schema_name, add_full_metadata_fields
-        )
-
-    if option == "all" or option == "primary_key":
-        schema_tables = tableModifer.list_schema_tables(schema_name)
-        for schema, tables in schema_tables.items():
-            # all tables processed from any esri fields
-            tableModifer.drop_column(schema, table, "ESRI_OID")
-            if primary_key_type == "int":
-                for table in tables:
-                    tableModifer.update_primary_key(schema, table, "id")
-            else:
-                for table in tables:
-                    tableModifer.update_primary_key_guid(schema, table, "topo_id")
-
-    # turn the concept of collections off for now as no direct requirement
-    # if option == "all" or option == "collections":
-    #    tableModifer.create_collections_table(schema_name)
-
-    if option == "all" or option == "process_carto_tables":
-        tables_to_copy = ["nz_topo50_map_sheet"]
-        for table_name in tables_to_copy:
-            # Check if table exists in source schema
-            if tableModifer.table_exists(schema_name, table_name):
-                # Check if table exists in carto schema and delete it
-                if tableModifer.table_exists("carto", table_name):
-                    with tableModifer.conn.cursor() as cur:
-                        drop_query = f'DROP TABLE "carto"."{table_name}" CASCADE;'
-                        cur.execute(drop_query)
-                        tableModifer.conn.commit()
-                        print(f"Dropped existing table 'carto.{table_name}'")
-
-                # Copy table from source schema to carto schema
-                with tableModifer.conn.cursor() as cur:
-                    copy_query = f'CREATE TABLE "carto"."{table_name}" AS SELECT * FROM "{schema_name}"."{table_name}";'
-                    cur.execute(copy_query)
-                    tableModifer.conn.commit()
-                    # Add index on topo_id field if it exists
-                    if tableModifer.column_exists("carto", table_name, "topo_id"):
-                        index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
-                        cur.execute(index_sql)
-                        tableModifer.conn.commit()
-                        print(f"Created index on topo_id for 'carto.{table_name}'")
-                    print(
-                        f"Copied table '{schema_name}.{table_name}' to 'carto.{table_name}'"
-                    )
-            else:
-                print(
-                    f"Table '{schema_name}.{table_name}' does not exist in source schema"
-                )
+    workflow = TableModificationWorkflow(
+        DB_PARAMS,
+        schema_name=schema_name,
+        option=option,
+        add_full_metadata_fields=add_full_metadata_fields,
+        primary_key_type=primary_key_type,
+        release_date=release_date,
+    )
+    workflow.run()
