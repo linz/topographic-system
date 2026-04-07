@@ -12,7 +12,7 @@ import psycopg
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "topo",
-    "user": "postgres", 
+    "user": "postgres",
     "password": "landinformation",
     "host": "localhost",
     "port": 5432,
@@ -21,7 +21,7 @@ DB_PARAMS = {
 
 class TopoIdUpdater:
     """Class for updating topo_id values from previous releases."""
-    
+
     def __init__(self, db_params):
         """Initialize the updater and open a database connection.
 
@@ -129,25 +129,25 @@ class TopoIdUpdater:
             `t50_fid` and `topo_id` columns.
         """
         self.connect()
-        
+
         # Check if both tables exist
         if not self.table_exists(schema, table):
             print(f"Table '{schema}.{table}' does not exist")
             return False
-            
+
         if not self.table_exists(previous_schema, table):
             print(f"Table '{previous_schema}.{table}' does not exist")
             return False
-        
+
         with self.conn.cursor() as cur:
             # Check if t50_fid column exists in both tables
-            if (self.column_exists(schema, table, "t50_fid") and 
-                self.column_exists(previous_schema, table, "t50_fid")):
-                
+            if self.column_exists(schema, table, "t50_fid") and self.column_exists(
+                previous_schema, table, "t50_fid"
+            ):
                 # Check if topo_id column exists in both tables
-                if (self.column_exists(schema, table, "topo_id") and 
-                    self.column_exists(previous_schema, table, "topo_id")):
-                    
+                if self.column_exists(schema, table, "topo_id") and self.column_exists(
+                    previous_schema, table, "topo_id"
+                ):
                     update_query = f"""
                         UPDATE {schema}.{table} AS new
                         SET topo_id = old.topo_id
@@ -155,7 +155,7 @@ class TopoIdUpdater:
                         WHERE new.t50_fid = old.t50_fid
                         AND new.topo_id IS DISTINCT FROM old.topo_id;
                     """
-                    
+
                     try:
                         # First, get count of records that will be updated
                         count_query = f"""
@@ -166,26 +166,36 @@ class TopoIdUpdater:
                         """
                         cur.execute(count_query)
                         update_count = cur.fetchone()[0]
-                        
+
                         if update_count > 0:
                             # Execute the update
                             cur.execute(update_query)
                             self.conn.commit()
-                            print(f"Updated {update_count} topo_id values in '{schema}.{table}' from '{previous_schema}.{table}'")
+                            print(
+                                f"Updated {update_count} topo_id values in '{schema}.{table}' from '{previous_schema}.{table}'"
+                            )
                         else:
-                            print(f"No topo_id updates needed for '{schema}.{table}' (all values already match)")
-                        
+                            print(
+                                f"No topo_id updates needed for '{schema}.{table}' (all values already match)"
+                            )
+
                         return True
-                        
+
                     except Exception as e:
-                        print(f"Error updating topo_id in '{schema}.{table}' from '{previous_schema}.{table}': {e}")
+                        print(
+                            f"Error updating topo_id in '{schema}.{table}' from '{previous_schema}.{table}': {e}"
+                        )
                         self.conn.rollback()
                         return False
                 else:
-                    print(f"'topo_id' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'")
+                    print(
+                        f"'topo_id' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
+                    )
                     return False
             else:
-                print(f"'t50_fid' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'")
+                print(
+                    f"'t50_fid' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
+                )
                 return False
 
     def get_update_statistics(self, schema, previous_schema):
@@ -201,17 +211,18 @@ class TopoIdUpdater:
         """
         self.connect()
         schema_tables = self.list_schema_tables(schema)
-        
+
         stats = []
         for schema_name, tables in schema_tables.items():
             for table in tables:
                 if self.table_exists(previous_schema, table):
                     # Check columns exist
-                    if (self.column_exists(schema_name, table, "t50_fid") and 
-                        self.column_exists(previous_schema, table, "t50_fid") and
-                        self.column_exists(schema_name, table, "topo_id") and 
-                        self.column_exists(previous_schema, table, "topo_id")):
-                        
+                    if (
+                        self.column_exists(schema_name, table, "t50_fid")
+                        and self.column_exists(previous_schema, table, "t50_fid")
+                        and self.column_exists(schema_name, table, "topo_id")
+                        and self.column_exists(previous_schema, table, "topo_id")
+                    ):
                         # Get matching records count
                         with self.conn.cursor() as cur:
                             query = f"""
@@ -224,14 +235,16 @@ class TopoIdUpdater:
                             """
                             cur.execute(query)
                             result = cur.fetchone()
-                            
-                            stats.append({
-                                'table': table,
-                                'total_current': result[0],
-                                'matching_records': result[1],
-                                'needs_update': result[2]
-                            })
-        
+
+                            stats.append(
+                                {
+                                    "table": table,
+                                    "total_current": result[0],
+                                    "matching_records": result[1],
+                                    "needs_update": result[2],
+                                }
+                            )
+
         return stats
 
 
@@ -247,20 +260,20 @@ def update_all_tables(current_schema, previous_schema, skip_tables=None):
         tuple[int, int]: `(successful_updates, failed_updates)` counts.
     """
     updater = TopoIdUpdater(DB_PARAMS)
-    
+
     # Get list of tables to process
     schema_tables = updater.list_schema_tables(current_schema)
-    
+
     # Track results
     successful_updates = 0
     failed_updates = 0
     failed_table_names = []
-    
+
     # Update topo_id from previous release
     if skip_tables is None:
         skip_tables = []
     print(f"Starting topo_id updates from {previous_schema} to {current_schema}...")
-    
+
     for schema, tables in schema_tables.items():
         for table in tables:
             if table in skip_tables:
@@ -270,7 +283,7 @@ def update_all_tables(current_schema, previous_schema, skip_tables=None):
             success = updater.update_topoid_from_previous_release(
                 schema, table, previous_schema
             )
-            
+
             if success:
                 successful_updates += 1
             else:
@@ -287,10 +300,10 @@ def update_all_tables(current_schema, previous_schema, skip_tables=None):
         print("Failed tables:")
         for table_name in failed_table_names:
             print(f" - {table_name}")
-    
+
     # Close connection
     updater.close()
-    
+
     return successful_updates, failed_updates
 
 
@@ -300,32 +313,31 @@ def main():
     Configures schema names and skipped tables, executes bulk updates, and
     prints a summary of successes and failures.
     """
-    
+
     # Configuration
     current_schema = "release64"
     previous_schema = "release62"
-    
+
     # these tables either come from same source or only loaded into one schema (or both).
-    skip_tables = ['contours']
-    
+    skip_tables = ["contours"]
+
     # Create updater instance
     updater = TopoIdUpdater(DB_PARAMS)
-    
+
     print("=== TOPO ID UPDATE UTILITY ===")
     print(f"Current schema: {current_schema}")
     print(f"Previous schema: {previous_schema}")
     print(f"Skip tables: {skip_tables}")
     print()
-    
 
     # Perform the actual updates using extracted logic
     successful, failed = update_all_tables(current_schema, previous_schema, skip_tables)
-    
+
     if successful > 0:
         print(f"\n✓ Successfully updated topo_id values in {successful} tables")
     if failed > 0:
         print(f"\n✗ Failed to update {failed} tables")
-    
+
     updater.close()
 
 

@@ -348,7 +348,9 @@ class Topo50DataLoader:
 
             # Currently contours are processed from LDS data - see contours/import_contours.py - so skipping processing of contours from shapefiles for now
             if layer_name.lower() == "contour":
-                print(f"Skipping layer: {layer_name} - use import_contours.py to process contour data from LDS ")
+                print(
+                    f"Skipping layer: {layer_name} - use import_contours.py to process contour data from LDS "
+                )
                 continue
 
             # theme = layer_info[1]
@@ -381,9 +383,9 @@ class Topo50DataLoader:
             print(gdf.shape[0], "rows in layer", layer_name)
             self.count_log_file.write(f"{layer_name}, {gdf.shape[0]}\n")
 
-            if layer_name == 'contour':
-                gdf_part1 = gdf.iloc[:len(gdf)//2]
-                gdf_part2 = gdf.iloc[len(gdf)//2:]
+            if layer_name == "contour":
+                gdf_part1 = gdf.iloc[: len(gdf) // 2]
+                gdf_part2 = gdf.iloc[len(gdf) // 2 :]
                 self.save_dataset(target, schema_name, gdf_part1, layer_name, dataset)
                 self.save_dataset(target, schema_name, gdf_part2, layer_name, dataset)
                 self.save_dataset(target, schema_name, gdf, layer_name, dataset)
@@ -415,8 +417,8 @@ class Topo50DataLoader:
         else:
             try:
                 self.write_dataset(
-                        "postgis", gdf, self.output, layer_name, dataset, True, schema_name
-                    )
+                    "postgis", gdf, self.output, layer_name, dataset, True, schema_name
+                )
             except Exception as e:
                 print(f"Error writing layer '{layer_name}' to PostGIS: {e}")
                 self.count_log_file.close()
@@ -440,7 +442,6 @@ class Topo50DataLoader:
 
 
 if __name__ == "__main__":
-
     layer_info_file = r"C:\Data\Model\layers_info.xlsx"
 
     # release = "release62"
@@ -448,9 +449,8 @@ if __name__ == "__main__":
 
     data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
 
-
     # postgis schema name
-    database = release  
+    database = release
     count_log = r"C:\Data\Model\count_log.txt"
 
     loader = Topo50DataLoader(

@@ -1,5 +1,4 @@
 import psycopg
-import pandas as pd
 
 # Database connection parameters
 DB_PARAMS = {
@@ -194,7 +193,7 @@ class ModifyTable:
             cur.execute(query)
             result = cur.fetchone()
             return result[0] if result else None
-        
+
     def get_geometry_type(self, schema, table, geometry_field_name="geometry"):
         """Return the geometry type string for a column (e.g. ``POLYGON``).
 
@@ -215,7 +214,7 @@ class ModifyTable:
             cur.execute(query)
             result = cur.fetchone()
             return result[0] if result else None
-        
+
     def carto_text_geom_update(self, schema, table):
         """Snap all geometry coordinates to a 1-metre grid using ST_SnapToGrid.
 
@@ -493,7 +492,8 @@ class ModifyTable:
         update_dict = {
             f"{schema_name}.runway": [("surface", "'grass'", "")],
             f"{schema_name}.vegetation": [
-                ("species", "'coniferous'", "AND feature_type = 'exotic'")],
+                ("species", "'coniferous'", "AND feature_type = 'exotic'")
+            ],
             f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
             # Add more entries as needed - should be pre-existing
         }
@@ -611,14 +611,14 @@ class ModifyTable:
                         with self.conn.cursor() as cur:
                             cur.execute(create_query)
                             self.conn.commit()
-                            print(f"Created table '{schema}.{table}_4167' with SRID 4167")
+                            print(
+                                f"Created table '{schema}.{table}_4167' with SRID 4167"
+                            )
 
                     # Drop the original table and rename the new table
                     with self.conn.cursor() as cur:
                         drop_query = f'DROP TABLE "{schema}"."{table}" CASCADE;'
-                        rename_query = (
-                            f'ALTER TABLE "{schema}"."{table}_4167" RENAME TO "{table}";'
-                        )
+                        rename_query = f'ALTER TABLE "{schema}"."{table}_4167" RENAME TO "{table}";'
                         cur.execute(drop_query)
                         cur.execute(rename_query)
                         self.conn.commit()
@@ -626,15 +626,13 @@ class ModifyTable:
                             f"Dropped original table '{schema}.{table}' and renamed '{schema}.{table}_4167' to '{schema}.{table}'"
                         )
 
-                    # update the SRID information 
+                    # update the SRID information
                     with self.conn.cursor() as cur:
                         query = f'ALTER TABLE "{schema}"."{table}" ALTER COLUMN geometry TYPE geometry({geom_type}, 4167) USING ST_SetSRID(geometry, 4167);'
 
                         cur.execute(query)
                         self.conn.commit()
-                        print(
-                            f"Set SRID for table '{schema}.{table}' to 4167"
-                        )
+                        print(f"Set SRID for table '{schema}.{table}' to 4167")
 
                     # Add indexes
                     index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_geom ON {schema}.{table} USING GIST (geometry);"
@@ -659,9 +657,10 @@ class ModifyTable:
                                     try:
                                         cur.execute(sql)
                                     except Exception as e:
-                                        print(f"Error creating index for '{table}': {e}")
+                                        print(
+                                            f"Error creating index for '{table}': {e}"
+                                        )
                                         continue
-
 
     def add_name_columns(self):
         """Add a ``name`` column to tables that represent named features.
@@ -868,7 +867,7 @@ class ModifyTable:
                 if isinstance(value, str) and not value.startswith("'"):
                     value = f"'{value}'"
                 update_query = f"UPDATE {schema}.{table} SET {column_name} = {value};"
-            
+
                 cur.execute(update_query)
                 self.conn.commit()
                 print(
@@ -993,7 +992,6 @@ class ModifyTable:
             ordered_list.insert(0, "topo_id")
         return ordered_list
 
-
     def get_ordered_columns(self, schema, table, primary_key_type="int"):
         """
         Returns a list of columns in the specified schema and table, ordered according to the predefined order.
@@ -1036,7 +1034,6 @@ if __name__ == "__main__":
         tableModifer.add_metadata_columns(
             mode="add", schema_name=schema_name, full_field_set=add_full_metadata_fields
         )
-
 
     if option == "all" or option == "columns":
         update_dict = {
@@ -1111,7 +1108,6 @@ if __name__ == "__main__":
     if option == "all" or option == "name":
         tableModifer.add_name_columns()
         # tableModifer.add_collectionid_columns()
-
 
     if option == "all" or option == "null_updates":
         tableModifer.populate_defined_null_values(schema_name)

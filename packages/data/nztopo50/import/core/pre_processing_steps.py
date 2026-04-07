@@ -25,14 +25,14 @@ print("Finished processing islands.")
 
 # POSSIBLE TEMP - update road t50_fid so not 0 - current run as SQL in postgres
 # WITH numbered_rows AS (
-#     SELECT ctid, 
+#     SELECT ctid,
 #            ROW_NUMBER() OVER () + (SELECT COALESCE(MAX(t50_fid), 0) FROM release62.road_line WHERE t50_fid > 0) AS new_fid
-#     FROM release62.road_line 
+#     FROM release62.road_line
 #     WHERE t50_fid = 0
 # )
-# UPDATE release62.road_line 
+# UPDATE release62.road_line
 # SET t50_fid = numbered_rows.new_fid
-# FROM numbered_rows 
+# FROM numbered_rows
 # WHERE release62.road_line.ctid = numbered_rows.ctid;
-# 
+#
 # commit;

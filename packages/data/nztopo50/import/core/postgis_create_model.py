@@ -43,7 +43,7 @@ if __name__ == "__main__":
         # schema_name = "model"
 
         primary_key_type = "none"
-        # primary_key_type = 'int' 
+        # primary_key_type = 'int'
         # primary_key_type = "uuid"
 
         layered_dict = excel_to_layered_dict(model_fields_file)

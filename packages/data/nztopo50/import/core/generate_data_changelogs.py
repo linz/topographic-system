@@ -10,13 +10,13 @@ changes as parquet files for analysis.
 import os
 import psycopg
 import pandas as pd
-import pyarrow as pa # type: ignore
-import pyarrow.parquet as pq # type: ignore
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
 
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "topo",
-    "user": "postgres", 
+    "user": "postgres",
     "password": "landinformation",
     "host": "localhost",
     "port": 5432,
@@ -25,7 +25,7 @@ DB_PARAMS = {
 
 class TableComparator:
     """Class for comparing table data between database releases."""
-    
+
     def __init__(self, db_params):
         self.db_params = db_params
         self.conn = None
@@ -74,27 +74,103 @@ class TableComparator:
             cur.execute(query)
             return cur.fetchone() is not None
 
-
     def all_ordered_columns(self, primary_key_type="int"):
         """Get all possible columns in predefined order."""
         ordered_list = [
-            "id", "t50_fid", "topo_id", "feature_type", "bridge_use", "bridge_use2",
-            "building_use", "elevation_use", "relief_use", "infrastructure_use",
-            "landcover_use", "landuse_use", "railway_use", "runway_use", "shaft_use",
-            "structure_use", "tunnel_use", "tunnel_use2", "track_use", "construction_type",
-            "water_use", "lid_type", "support_type", "tank_type", "track_type",
-            "landcover_type", "landuse_type", "tunnel_type", "vehicle_type", "structure_type",
-            "trig_type", "sub_type", "coastline_type", "place_type", "hierarchy", "level",
-            "species", "species_cultivated", "status", "name", "group_name", "nzgb_id",
-            "code", "info_display", "location", "highway_number", "sheet_code", "sheet_name",
-            "elevation", "composition", "desc_code", "description", "display", "definition",
-            "designated", "designation", "formation", "edition", "height", "orientation",
-            "lane_count", "material", "materials", "material_conveyed", "perennial",
-            "restrictions", "revised", "size", "stored_item", "substance", "surface",
-            "temperature", "temperature_indicator", "visibility", "way_count", "road_access",
-            "width", "name_id", "wreck_of", "shape_area", "rna_sufi", "route", "route2",
-            "route3", "collection_id", "collection_name", "theme", "source", "source_date",
-            "capture_method", "change_type", "update_date", "create_date", "version",
+            "id",
+            "t50_fid",
+            "topo_id",
+            "feature_type",
+            "bridge_use",
+            "bridge_use2",
+            "building_use",
+            "elevation_use",
+            "relief_use",
+            "infrastructure_use",
+            "landcover_use",
+            "landuse_use",
+            "railway_use",
+            "runway_use",
+            "shaft_use",
+            "structure_use",
+            "tunnel_use",
+            "tunnel_use2",
+            "track_use",
+            "construction_type",
+            "water_use",
+            "lid_type",
+            "support_type",
+            "tank_type",
+            "track_type",
+            "landcover_type",
+            "landuse_type",
+            "tunnel_type",
+            "vehicle_type",
+            "structure_type",
+            "trig_type",
+            "sub_type",
+            "coastline_type",
+            "place_type",
+            "hierarchy",
+            "level",
+            "species",
+            "species_cultivated",
+            "status",
+            "name",
+            "group_name",
+            "nzgb_id",
+            "code",
+            "info_display",
+            "location",
+            "highway_number",
+            "sheet_code",
+            "sheet_name",
+            "elevation",
+            "composition",
+            "desc_code",
+            "description",
+            "display",
+            "definition",
+            "designated",
+            "designation",
+            "formation",
+            "edition",
+            "height",
+            "orientation",
+            "lane_count",
+            "material",
+            "materials",
+            "material_conveyed",
+            "perennial",
+            "restrictions",
+            "revised",
+            "size",
+            "stored_item",
+            "substance",
+            "surface",
+            "temperature",
+            "temperature_indicator",
+            "visibility",
+            "way_count",
+            "road_access",
+            "width",
+            "name_id",
+            "wreck_of",
+            "shape_area",
+            "rna_sufi",
+            "route",
+            "route2",
+            "route3",
+            "collection_id",
+            "collection_name",
+            "theme",
+            "source",
+            "source_date",
+            "capture_method",
+            "change_type",
+            "update_date",
+            "create_date",
+            "version",
         ]
 
         if primary_key_type == "uuid":
@@ -106,8 +182,15 @@ class TableComparator:
     def get_non_compare_columns(self):
         """Get columns that should not be compared when checking for differences."""
         non_compare_columns = [
-            "feature_type", "theme", "source", "source_date",
-            "capture_method", "change_type", "update_date", "create_date", "version"
+            "feature_type",
+            "theme",
+            "source",
+            "source_date",
+            "capture_method",
+            "change_type",
+            "update_date",
+            "create_date",
+            "version",
         ]
         return non_compare_columns
 
@@ -197,46 +280,48 @@ class TableComparator:
 
 def main():
     """Main comparison logic for generating changelogs."""
-    
+
     # Configuration
     comparator = TableComparator(DB_PARAMS)
     schema_name = "release64"
     previous_schema = "release62"
     release_date = "2025-09-25"
-    
+
     # Output settings
     use_hive_partitioning = False
     change_logs_path = r"c:\data\topo-data-vector\changelogs"
-    
+
     # Create output directory
     if not os.path.exists(change_logs_path):
         os.makedirs(change_logs_path)
-    
+
     # Get list of tables to compare
     schema_tables = comparator.list_schema_tables(schema_name)
-    
+
     # Compare tables and generate changelogs
     df_order = ["added", "removed", "updated"]
     i = 0
     all_dfs = None
-    
+
     for schema, tables in schema_tables.items():
         for table in tables:
             if table == "collections":
                 continue
-            
+
             print(f"Comparing table: {schema}.{table}")
             dfs = comparator.compare_table_data(
                 schema, table, previous_schema, release_date
             )
             i += 1
-            
+
             if dfs is None:
-                print(f"No comparable columns for {schema}.{table}, skipping comparison.")
+                print(
+                    f"No comparable columns for {schema}.{table}, skipping comparison."
+                )
                 continue
-            
+
             insert_df, delete_df, update_df = dfs
-            
+
             # Concatenate results from all tables
             if i == 1:
                 all_dfs = [insert_df, delete_df, update_df]
@@ -244,12 +329,12 @@ def main():
                 all_dfs[0] = pd.concat([all_dfs[0], insert_df], ignore_index=True)
                 all_dfs[1] = pd.concat([all_dfs[1], delete_df], ignore_index=True)
                 all_dfs[2] = pd.concat([all_dfs[2], update_df], ignore_index=True)
-    
+
     # Export results to parquet files
     if all_dfs:
         for i, df in enumerate(all_dfs):
             change_type = df_order[i]
-            
+
             if df.empty:
                 print(f"No {change_type} changes detected")
             else:
@@ -268,14 +353,16 @@ def main():
                     partition_path = os.path.join(change_logs_path, schema_name)
                     os.makedirs(partition_path, exist_ok=True)
                     partition_path = partition_path.replace("\\", "/")
-                    
+
                     pq.write_to_dataset(
                         pa.Table.from_pandas(df),
                         root_path=partition_path,
                         partition_cols=["year", "month", "day", "change_type"],
                     )
-                    print(f"Exported {change_type} changes with partitioning to {partition_path}")
-    
+                    print(
+                        f"Exported {change_type} changes with partitioning to {partition_path}"
+                    )
+
     # Close database connection
     comparator.close()
     print("Comparison complete!")
