@@ -39,7 +39,7 @@ jobs:
     with:
       environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
       map_version: 'git-${{ github.sha }}'
-      project: s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json
+      project: s3://linz-topography-nonprod/qgis/latest/nztopo50/nztopo50.json
     secrets: inherit
 
   test-kart-workflow:
