@@ -90,7 +90,7 @@ def test_validation_e2e(scenario_dir, full_config, tmp_path, subtests):
     db_paths = _write_fixtures(geojson_files, tmp_path / "data")
 
     for file_format, db_path in db_paths.items():
-        message = f"{scenario}:{test_case} ({file_format}): {role}/{table}/{rule_name}/{scenario}"
+        message = f"{scenario}:{role[0].upper()}:{test_case} ({file_format}): {role}/{table}/{rule_name}/{scenario}"
         with subtests.test(msg=message):
             out_dir = tmp_path / f"out_{file_format}"
 

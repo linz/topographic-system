@@ -244,7 +244,7 @@ class ValidateDatasetController:
             validator.run_layer_intersections(
                 rule_name="line_not_touches_feature_layers",
                 intersect=False,
-                buffer_lines=True,
+                buffer_lines=False,
                 predicate="touches",
             )
             self.summary_report = validator.summary_report
