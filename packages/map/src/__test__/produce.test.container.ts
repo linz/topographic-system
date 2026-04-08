@@ -99,7 +99,7 @@ describe('QGIS Process', () => {
     await it('produce-cover', async () => {
       const produceCover = await cli(
         'produce-cover',
-        ['--project', fileURLToPath(new URL('target-push/qgis/beehive/latest/beehive.json', tempLocation))],
+        ['--project', fileURLToPath(new URL('target-push/qgis/project/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
