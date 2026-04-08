@@ -140,6 +140,7 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
   if (stac == null) throw new Error(`Invalid STAC Item at path: ${projectUrl.href}`);
 
   const sources: Promise<URL[] | URL>[] = [];
+  sources.push(q(() => downloadAssets(projectUrl, targetUrl)));
 
   const links = stac.links;
   for (const link of links) {
