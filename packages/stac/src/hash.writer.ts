@@ -43,10 +43,18 @@ export const HashWriter = {
   async stream(target: URL, source: URL, obj: WriteOptions): Promise<StacFileChecksum> {
     const ht = new HashTransform('sha256');
     const readStream = fsa.readStream(source).pipe(ht);
+    // FIXME: This is a hack to get the size of the stream into the write options. This should not be needed.
+    //        Without `readStream.size = stat.size;`, writing large objects to S3 fails with a 500 error.
+    //        E.g. "Expected 1 part(s) but uploaded 3 part(s)."
+    const stat = await fsa.head(source);
+    if (stat == null || stat.size == null) {
+      throw new Error(`Unable to stat source ${source.href} for streaming write`);
+    }
+    readStream.size = stat.size;
     await fsa.write(target, readStream, obj);
     return {
       'file:checksum': ht.multihash,
-      'file:size': ht.size,
+      'file:size': stat.size, // FIXME: set back to ht.size when the above hack is removed
     };
   },
 };
