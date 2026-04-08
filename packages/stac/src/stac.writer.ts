@@ -174,6 +174,7 @@ export class StacCollectionWriter {
     // TODO should we be assigning geometires here?
     for (const item of this.items.values()) StacGeometry.extend(this.collection, item);
     const targetCollection = structuredClone(this.collection);
+    targetCollection.id = `${this.category}-${this.label}`;
     await Promise.all(
       [...this.items].map(([itemName, item]) => {
         return q(async () => {
