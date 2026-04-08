@@ -64,7 +64,8 @@ export class StacCollectionWriter {
     Object.defineProperty(asset, StacSource, { enumerable: false, value: source });
   }
 
-  async write(prefix: URL, q: LimitFunction, commit: boolean = false): Promise<URL[]> {
+  // TODO: Once all the cli updated to use stac push, We will replace this with StacLoader.push for strageies write, and StacCollectionWriter.write for local write.
+  async writeWithStrategy(prefix: URL, q: LimitFunction, commit: boolean = false): Promise<URL[]> {
     const items = [...this.items.values()];
 
     const ctx = { prefix, category: this.category, label: this.label };
@@ -150,5 +151,60 @@ export class StacCollectionWriter {
     }
 
     return collectionUrls;
+  }
+
+  async write(target: URL, q: LimitFunction): Promise<URL> {
+    const items = [...this.items.values()];
+    const todo: Promise<unknown>[] = [];
+    const assets = [
+      ...Object.values(this.collection.assets ?? {}),
+      ...items.map((m) => Object.values(m.assets ?? {})).flat(),
+    ];
+
+    const baseUrl = new URL(`${this.label}/`, target);
+    for (const asset of assets) {
+      const target = new URL(asset.href, baseUrl);
+      const source = getSource(asset);
+      if (source == null) continue; // TODO should this throw
+      todo.push(q(() => HashWriter.writeStac(asset, target, source)));
+    }
+
+    await Promise.all(todo);
+
+    // TODO should we be assigning geometires here?
+    for (const item of this.items.values()) StacGeometry.extend(this.collection, item);
+    const targetCollection = structuredClone(this.collection);
+    await Promise.all(
+      [...this.items].map(([itemName, item]) => {
+        return q(async () => {
+          const itemUrl = new URL(`./${itemName}.json`, baseUrl);
+          const targetItem = structuredClone(item);
+          targetItem.links.unshift({ rel: 'self', href: `./${itemName}.json`, type: 'application/json' });
+          targetItem.links.unshift({ rel: 'collection', href: `./collection.json`, type: 'application/json' });
+          targetItem.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
+
+          targetItem.id = itemName;
+          targetItem.collection = targetCollection.id;
+
+          for (const itemLink of targetItem.links) {
+            itemLink.href = getRelativePath(new URL(itemLink.href, itemUrl), itemUrl);
+          }
+
+          const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
+          if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
+
+          await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
+        });
+      }),
+    );
+
+    const collectionUrl = new URL('collection.json', baseUrl);
+    targetCollection.links.unshift({ rel: 'self', href: './collection.json', type: 'application/json' });
+    targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
+    targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
+
+    await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
+
+    return collectionUrl;
   }
 }

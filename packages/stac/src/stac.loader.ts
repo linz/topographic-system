@@ -1,0 +1,161 @@
+import { fsa } from '@chunkd/fs';
+import type { LimitFunction } from 'p-limit';
+import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
+
+import { HashWriter } from './hash.writer.ts';
+import { getRelativePath } from './stac.paths.ts';
+import type { StorageContext, StacStorageCategory, StorageStrategy } from './stac.storage.ts';
+import { StacStorage } from './stac.storage.ts';
+import { StacUpdater } from './stac.update.ts';
+
+export class StacLoader {
+  catalogs = new Map<URL, StacCatalog>();
+  collections = new Map<URL, StacCollection>();
+  items = new Map<URL, StacItem>();
+  assets = new Map<URL, URL>();
+
+  category: StacStorageCategory;
+  strategies: StorageStrategy[] = [];
+  target: URL;
+  targetCategory: URL;
+
+  constructor(target: URL, category: StacStorageCategory) {
+    this.target = target;
+    this.targetCategory = new URL(`${category}/`, target);
+    this.category = category;
+  }
+
+  strategy(s: StorageStrategy) {
+    this.strategies.push(s);
+  }
+
+  async loadCatalog(catalogUrl: URL) {
+    const catalog = await fsa.readJson<StacCatalog>(catalogUrl);
+    if (catalog == null) throw new Error(`Catalog not found or Invalid  at ${catalogUrl.href}`);
+    this.catalogs.set(catalogUrl, catalog);
+    for (const link of catalog.links) {
+      if (link.rel !== 'child') continue;
+      if (link.href.endsWith('collection.json')) {
+        const collectionUrl = new URL(link.href, catalogUrl);
+        await this.loadCollection(collectionUrl);
+      }
+      if (link.href.endsWith('catalog.json')) {
+        const itemUrl = new URL(link.href, catalogUrl);
+        await this.loadCatalog(itemUrl);
+      }
+    }
+  }
+
+  async loadCollection(collectionUrl: URL) {
+    const collection = await fsa.readJson<StacCollection>(collectionUrl);
+    if (collection == null) throw new Error(`Collection not found or Invalid at ${collectionUrl.href}`);
+    this.collections.set(collectionUrl, collection);
+    for (const link of collection.links) {
+      if (link.rel !== 'item') continue;
+      const itemUrl = new URL(link.href, collectionUrl);
+      await this.loadItem(itemUrl);
+    }
+    for (const asset of Object.values(collection.assets ?? {})) {
+      if (asset.href == null) continue;
+      const assetUrl = new URL(asset.href, collectionUrl);
+      this.assets.set(assetUrl, assetUrl);
+    }
+  }
+
+  async loadItem(itemUrl: URL) {
+    const item = await fsa.readJson<StacItem>(itemUrl);
+    if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
+    this.items.set(itemUrl, item);
+    for (const asset of Object.values(item.assets ?? {})) {
+      if (asset.href == null) continue;
+      const assetUrl = new URL(asset.href, itemUrl);
+      this.assets.set(assetUrl, assetUrl);
+    }
+  }
+
+  prepareStorageContext(prefix: URL, source: URL): { ctx: StorageContext; filename: string } {
+    const splits = source.pathname.split('/').filter(Boolean);
+    const label = splits[splits.length - 2];
+    const filename = splits[splits.length - 1];
+    if (label == null || filename == null || !filename.endsWith('.json')) {
+      throw new Error(`Invalid source URL ${source.href}`);
+    }
+    const ctx: StorageContext = { prefix, category: this.category, label };
+    return { ctx, filename };
+  }
+
+  async pushAsset(asset: StacAsset, url: URL, target: URL): Promise<URL> {
+    const assetUrl = new URL(asset.href, url);
+    const targetAssetUrl = new URL(asset.href, target);
+    const contentType = asset.type;
+    if (contentType == null) throw new Error(`Asset ${assetUrl.href} does not have a content type`);
+    await HashWriter.write(targetAssetUrl, assetUrl, { contentType });
+    return targetAssetUrl;
+  }
+
+  async push(target: URL, q: LimitFunction, commit: boolean = false): Promise<{ items: URL[]; collections: URL[] }> {
+    const rootCatalogUrl = new URL('catalog.json', this.target);
+    const strats = {
+      latest: this.strategies.find((f) => f.type === 'latest'),
+      canonical: this.strategies.find((f) => f.type !== 'latest'),
+    };
+    const items: URL[] = [];
+    const collections: URL[] = [];
+    const todo: Promise<unknown>[] = [];
+    for (const s of this.strategies) {
+      // Push stac Items into target storage
+      for (const [url, item] of this.items) {
+        const { ctx, filename } = this.prepareStorageContext(target, url);
+        const targetUrl = StacStorage.url(s, ctx);
+        const targetItemUrl = new URL(filename, targetUrl);
+        const targetItem = structuredClone(item);
+        const itemName = filename.replace('.json', '');
+        targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
+        if (commit) todo.push(q(() => fsa.write(targetItemUrl, JSON.stringify(targetItem, null, 2))));
+        items.push(targetItemUrl);
+        // Push assets
+        for (const asset of Object.values(item.assets ?? {})) {
+          if (asset.href == null) continue;
+          if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+        }
+
+        // Push Stac Collection into target storage
+        for (const [url, collection] of this.collections) {
+          const { ctx, filename } = this.prepareStorageContext(target, url);
+          const targetUrl = StacStorage.url(s, ctx);
+          const targetCollectionUrl = new URL(filename, targetUrl);
+          const targetCollection = structuredClone(collection);
+          targetCollection.id = StacStorage.id(s, ctx);
+
+          // Prepare the canonical and latest links between collections
+          if (s.type === 'latest') {
+            if (strats.canonical != null) {
+              const canonicalUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
+              targetCollection.links.push({
+                rel: 'canonical',
+                href: getRelativePath(canonicalUrl, targetCollectionUrl),
+              });
+            }
+          } else if (strats.latest != null) {
+            const latestUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
+            targetCollection.links.push({
+              rel: 'latest-version',
+              href: getRelativePath(latestUrl, targetCollectionUrl),
+            });
+          }
+          if (commit) todo.push(q(() => fsa.write(targetCollectionUrl, JSON.stringify(targetCollection, null, 2))));
+          collections.push(targetCollectionUrl);
+          // Push assets
+          for (const asset of Object.values(collection.assets ?? {})) {
+            if (asset.href == null) continue;
+            if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+          }
+        }
+        await Promise.all(todo);
+        // Upsert Stac Catalog
+        await StacUpdater.collections(rootCatalogUrl, collections, commit);
+      }
+    }
+    return { items, collections };
+  }
+}

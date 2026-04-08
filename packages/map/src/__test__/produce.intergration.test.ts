@@ -9,6 +9,7 @@ import type { StacCollection } from 'stac-ts';
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
 import { ProduceCommand } from '../cli/action.produce.ts';
+import { StacPushCommand } from '../cli/action.stac.push.ts';
 import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
 
 describe('deploy -> produce-cover -> produce', () => {
@@ -28,13 +29,6 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.equal(from, `FROM ${BaseCommandOptions.container}`);
   });
 
-  const baseDeployArgs = {
-    commit: false,
-    deployTag: 'latest',
-    dataTag: 'latest',
-    source: new URL('memory://source/catalog.json'),
-  };
-
   it('should deploy a qgs file', async (t) => {
     await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
     const waterUrl = fsa.toUrl('memory://source/data/water/latest/');
@@ -52,26 +46,42 @@ describe('deploy -> produce-cover -> produce', () => {
 
     // Deploy the QGIS project into memory
     await DeployCommand.handler({
-      ...baseDeployArgs,
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: new URL('memory://target-deploy/'),
-      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
-      commit: true,
+      source: new URL('memory://source/catalog.json'),
     });
 
     assert.deepEqual(
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href).sort(),
       [
-        'memory://target-deploy/qgis/topo50/latest/topo50.json',
-        'memory://target-deploy/qgis/topo50/latest/collection.json',
-        'memory://target-deploy/qgis/topo50/latest/topo50.qgs',
-        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
-        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target-deploy/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target-deploy/qgis/topo50/catalog.json',
-        'memory://target-deploy/qgis/catalog.json',
+        'memory://target-deploy/topo50/topo50.json',
+        'memory://target-deploy/topo50/collection.json',
+        'memory://target-deploy/topo50/topo50.qgs',
         'memory://target-deploy/catalog.json',
+      ].sort(),
+    );
+
+    await StacPushCommand.handler({
+      source: new URL('memory://target-deploy/catalog.json'),
+      target: new URL('memory://target-push/'),
+      category: 'qgis',
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
+      commit: true,
+    });
+
+    assert.deepEqual(
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-push/'))))].map((f) => f.href).sort(),
+      [
+        'memory://target-push/qgis/topo50/latest/topo50.json',
+        'memory://target-push/qgis/topo50/latest/collection.json',
+        'memory://target-push/qgis/topo50/latest/topo50.qgs',
+        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'memory://target-push/qgis/topo50/catalog.json',
+        'memory://target-push/qgis/catalog.json',
+        'memory://target-push/catalog.json',
       ].sort(),
     );
 
@@ -81,10 +91,10 @@ describe('deploy -> produce-cover -> produce', () => {
 
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
-      project: new URL('memory://target-deploy/qgis/topo50/latest/topo50.json'),
+      project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
       mapSheetLayer: 'nz_topo50_map_sheet',
-      source: baseDeployArgs.source,
+      source: new URL('memory://source/catalog.json'),
       dpi: 300,
       output: new URL('memory://target-produce/'),
       fromFile: undefined,

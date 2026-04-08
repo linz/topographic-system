@@ -8,6 +8,7 @@ import type { StacCollection, StacItem } from 'stac-ts';
 import type { GeoJSONMultiPolygon } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
+import { StacPushCommand } from '../cli/action.stac.push.ts';
 import { pyRunner } from '../python.runner.ts';
 
 describe('action.deploy', () => {
@@ -16,14 +17,6 @@ describe('action.deploy', () => {
   before(() => {
     fsa.register('memory://', mem);
   });
-
-  const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
-  const baseArgs = {
-    commit: false,
-    deployTag: 'latest',
-    dataTag: 'latest',
-    source: new URL('memory://source/catalog.json'),
-  };
 
   it('should deploy a qgs file', async (t) => {
     await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
@@ -49,32 +42,24 @@ describe('action.deploy', () => {
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water', 'water-chat']);
 
     await DeployCommand.handler({
-      ...baseArgs,
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
-      target: new URL('memory://target/'),
-      commit: true,
-      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
+      target: new URL('memory://target/deploy/'),
+      source: new URL('memory://source/catalog.json'),
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/deploy/'))))].map((f) => f.href).sort(),
       [
-        'memory://target/qgis/topo50/latest/topo50.json',
-        'memory://target/qgis/topo50/latest/collection.json',
-        'memory://target/qgis/topo50/latest/topo50.qgs',
-        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
-        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target/qgis/topo50/catalog.json',
-        'memory://target/qgis/catalog.json',
-        'memory://target/catalog.json',
+        'memory://target/deploy/topo50/topo50.json',
+        'memory://target/deploy/topo50/collection.json',
+        'memory://target/deploy/topo50/topo50.qgs',
+        'memory://target/deploy/catalog.json',
       ].sort(),
     );
 
     const latest = {
-      item: await fsa.readJson<StacItem>(new URL('memory://target/qgis/topo50/latest/topo50.json')),
-      collection: await fsa.readJson<StacCollection>(new URL('memory://target/qgis/topo50/latest/collection.json')),
+      item: await fsa.readJson<StacItem>(new URL('memory://target/deploy/topo50/topo50.json')),
+      collection: await fsa.readJson<StacCollection>(new URL('memory://target/deploy/topo50/collection.json')),
     };
 
     const geom = latest.item.geometry as GeoJSONMultiPolygon;
@@ -108,5 +93,54 @@ describe('action.deploy', () => {
       [-177.3, -44.7, -175.5, -43.3],
       [166, -47.5, 179, -34],
     ]);
+
+    const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
+
+    await StacPushCommand.handler({
+      source: new URL('memory://target/deploy/catalog.json'),
+      target: new URL('memory://target/push/'),
+      category: 'qgis',
+      strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
+      commit: true,
+    });
+
+    assert.deepEqual(
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/push/'))))].map((f) => f.href).sort(),
+      [
+        'memory://target/push/qgis/topo50/latest/topo50.json',
+        'memory://target/push/qgis/topo50/latest/collection.json',
+        'memory://target/push/qgis/topo50/latest/topo50.qgs',
+        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'memory://target/push/qgis/topo50/catalog.json',
+        'memory://target/push/qgis/catalog.json',
+        'memory://target/push/catalog.json',
+      ].sort(),
+    );
+
+    const latestCollection = await fsa.readJson<StacCollection>(
+      new URL('memory://target/push/qgis/topo50/latest/collection.json'),
+    );
+    const commitCollection = await fsa.readJson<StacCollection>(
+      new URL(`memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`),
+    );
+
+    assert.deepEqual(
+      latestCollection.links.find((f) => f.rel === 'canonical'),
+      {
+        rel: 'canonical',
+        href: `../commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+      },
+    );
+
+    assert.deepEqual(
+      commitCollection.links.find((f) => f.rel === 'latest-version'),
+      {
+        rel: 'latest-version',
+        href: `../../latest/collection.json`,
+      },
+    );
   });
 });

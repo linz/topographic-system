@@ -266,7 +266,7 @@ export const ProduceCoverCommand = command({
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);
     logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
-    const collections = await sw.write(itemTarget, q, true);
+    const collections = await sw.writeWithStrategy(itemTarget, q, true);
 
     if (collections.length !== 1) {
       throw new Error(`ProduceCover: Wrong number of collections for project ${args.project.href}`);

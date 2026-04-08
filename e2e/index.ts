@@ -106,14 +106,27 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('map', async () => {
-    const qgisTarget = new URL('bucket/qgis/catalog.json', targetFolder);
-    await it('should deploy the testing qgis project', await skipIfExists(qgisTarget), async () => {
+    const qgisDeploy = new URL('source/qgis/', targetFolder);
+    await it('should deploy the testing qgis project', await skipIfExists(qgisDeploy), async () => {
       await tsMap(
         'deploy',
         '/assets/topo-test.qgs',
         ['--strategy', 'latest'],
         ['--strategy', `commit=${commitId}`],
         ['--target', '/target/bucket/'],
+        '--commit',
+      );
+    });
+
+    const qgisTarget = new URL('bucket/qgis/catalog.json', targetFolder);
+    await it('should push the stac files and assets', await skipIfExists(qgisTarget), async () => {
+      await tsMap(
+        'stac-push',
+        ['--source', '/source/qgis/catalog.json'],
+        ['--target', '/target/bucket/'],
+        ['--category', 'qgis'],
+        ['--strategy', 'latest'],
+        ['--strategy', `commit=${commitId}`],
         '--commit',
       );
     });

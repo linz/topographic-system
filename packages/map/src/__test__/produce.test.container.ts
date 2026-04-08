@@ -38,7 +38,7 @@ describe('QGIS Process', () => {
   });
 
   const baseDeployArgs = {
-    githash: undefined,
+    githash: '4aba34b5accb0002867af66f6a92a35e0a4be7cab',
     commit: false,
     deployTag: 'latest',
     dataTag: 'latest',
@@ -77,9 +77,21 @@ describe('QGIS Process', () => {
         'deploy',
         ['--source', fileURLToPath(baseDeployArgs.source)],
         ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
-        ['--strategy', 'latest'],
         fileURLToPath(new URL('source/project/beehive.qgs', tempLocation)),
-        '--commit',
+      );
+      console.log(deploy);
+    });
+
+    await it('stac-push', async () => {
+      // Push stac files and assets to target location with storage strategy
+      const deploy = await cli(
+        'stac-push',
+        ['--source', fileURLToPath(new URL('target-deploy/catalog.json', tempLocation))],
+        ['--target', fileURLToPath(new URL('target-push/', tempLocation))],
+        ['--category', 'qgis'],
+        ['--strategy', 'latest'],
+        ['--strategy', `commit=${baseDeployArgs.githash}`],
+        ['--commit'],
       );
       console.log(deploy);
     });
@@ -87,7 +99,7 @@ describe('QGIS Process', () => {
     await it('produce-cover', async () => {
       const produceCover = await cli(
         'produce-cover',
-        ['--project', fileURLToPath(new URL('target-deploy/qgis/beehive/latest/beehive.json', tempLocation))],
+        ['--project', fileURLToPath(new URL('target-push/qgis/beehive/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
