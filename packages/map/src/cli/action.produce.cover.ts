@@ -3,7 +3,6 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import {
   downloadFile,
-  downloadFromCollection,
   getDataFromCatalog,
   isArgo,
   logger,
@@ -21,6 +20,7 @@ import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
 import { tempLocation } from './shared.args.ts';
+import { downloadAssets } from '@linzjs/topographic-system-shared/src/download.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -208,9 +208,7 @@ export const ProduceCoverCommand = command({
     // Download mapsheet layer to parse geometry and metadata for the export
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
-      if (source.href.includes(args.mapSheetLayer)) {
-        await downloadFromCollection(source, args.tempLocation);
-      }
+      if (source.href.includes(args.mapSheetLayer)) await downloadAssets(source, args.tempLocation)
     }
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
 

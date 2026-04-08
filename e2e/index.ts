@@ -125,7 +125,7 @@ describe('topographic-system.e2e', async () => {
         ['--output', '/target/bucket/'],
         ['--map-sheet-layer', 'testmapsheet'],
         ['--strategy', 'latest'],
-        ['--format', 'geotiff'],
+        ['--format', 'png'],
         ['--dpi', '120'],
         'BQ26',
         'BQ27',
@@ -137,8 +137,8 @@ describe('topographic-system.e2e', async () => {
         '/target/bucket/product/topo-test/latest/BQ27.json',
       );
 
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.tiff', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.png', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.png', targetFolder)));
       // TODO validate STAC catalog and validate
     });
   });

@@ -3,7 +3,6 @@ export { CliDate, CliId, CliInfo } from './cli.info.ts';
 export {
   downloadFile,
   downloadFiles,
-  downloadFromCollection,
   downloadProject,
   getDataFromCatalog,
 } from './download.ts';
