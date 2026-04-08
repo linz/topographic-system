@@ -87,7 +87,7 @@ describe('QGIS Process', () => {
       const deploy = await cli(
         'stac-push',
         ['--source', fileURLToPath(new URL('target-deploy/catalog.json', tempLocation))],
-        ['--target', fileURLToPath(new URL('target-push/', tempLocation))],
+        ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
         ['--category', 'qgis'],
         ['--strategy', 'latest'],
         ['--strategy', `commit=${baseDeployArgs.githash}`],
@@ -99,7 +99,7 @@ describe('QGIS Process', () => {
     await it('produce-cover', async () => {
       const produceCover = await cli(
         'produce-cover',
-        ['--project', fileURLToPath(new URL('target-push/qgis/project/latest/beehive.json', tempLocation))],
+        ['--project', fileURLToPath(new URL('target-deploy/qgis/beehive/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],

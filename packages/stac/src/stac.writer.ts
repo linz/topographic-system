@@ -187,6 +187,7 @@ export class StacCollectionWriter {
           targetItem.collection = targetCollection.id;
 
           for (const itemLink of targetItem.links) {
+            if (itemLink.rel === 'dataset') continue; // dataset links for qgis stac item should be absolute urls so we should not relativise them
             itemLink.href = getRelativePath(new URL(itemLink.href, itemUrl), itemUrl);
           }
 

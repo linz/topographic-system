@@ -1,5 +1,10 @@
 import { logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
-import { StacLoader, StacStorageCategoryTypes, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
+import {
+  StacLoader,
+  StacStorageCategoryTypes,
+  StacUpdater,
+  StorageStrategyMulti,
+} from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, oneOf, option } from 'cmd-ts';
 
 import { qFromArgs } from '../limit.ts';
@@ -40,14 +45,25 @@ export const StacPushCommand = command({
   async handler(args) {
     registerFileSystem();
     if (args.strategies.length === 0) throw new Error('--strategy is missing');
+    const rootCatalogUrl = new URL('catalog.json', args.target);
     const q = qFromArgs(args);
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Started');
     const stacLoader = new StacLoader(args.target, args.category);
     for (const st of args.strategies) stacLoader.strategy(st);
+
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Load');
     await stacLoader.loadCatalog(args.source);
+
+    // Push Stac Item, Collection and Assets
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Push');
-    await stacLoader.push(args.target, q, args.commit);
-    logger.info('StacPush: Done');
+    const { items, collections } = await stacLoader.push(args.target, q, args.commit);
+    for (const item of items) logger.info({ href: item.href }, 'StacPush: Item pushed');
+    for (const collection of collections) logger.info({ href: collection.href }, 'StacPush: Collection pushed');
+
+    // Upsert Stac Catalog
+    const catalogs = await StacUpdater.collections(rootCatalogUrl, collections, args.commit);
+    for (const catalog of catalogs) logger.info({ href: catalog.href }, 'StacPush: Catalog upserted');
+
+    logger.info({ items: items.length, collections: collections.length, catalogs: catalogs.length }, 'StacPush: Done');
   },
 });

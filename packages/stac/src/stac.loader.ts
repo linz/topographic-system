@@ -6,7 +6,6 @@ import { HashWriter } from './hash.writer.ts';
 import { getRelativePath } from './stac.paths.ts';
 import type { StorageContext, StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
-import { StacUpdater } from './stac.update.ts';
 
 export class StacLoader {
   catalogs = new Map<URL, StacCatalog>();
@@ -94,7 +93,6 @@ export class StacLoader {
   }
 
   async push(target: URL, q: LimitFunction, commit: boolean = false): Promise<{ items: URL[]; collections: URL[] }> {
-    const rootCatalogUrl = new URL('catalog.json', this.target);
     const strats = {
       latest: this.strategies.find((f) => f.type === 'latest'),
       canonical: this.strategies.find((f) => f.type !== 'latest'),
@@ -152,8 +150,6 @@ export class StacLoader {
           }
         }
         await Promise.all(todo);
-        // Upsert Stac Catalog
-        await StacUpdater.collections(rootCatalogUrl, collections, commit);
       }
     }
     return { items, collections };
