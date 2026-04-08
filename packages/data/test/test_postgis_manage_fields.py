@@ -2,11 +2,14 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch, call
+import importlib.util
 
-import pytest
+import pytest  # type: ignore
 
-# Mock psycopg in sys.modules before importing the script
-sys.path.insert(0, str(Path(__file__).parents[1] / "nztopo50" / "import" / "core"))
+# Setup path for importing postgis_manage_fields module
+_module_path = Path(__file__).parents[1] / "nztopo50" / "import" / "core" / "postgis_manage_fields.py"
+_core_path = Path(__file__).parents[1] / "nztopo50" / "import" / "core"
+sys.path.insert(0, str(_core_path))
 
 
 @pytest.fixture
@@ -31,7 +34,8 @@ def mock_psycopg(mock_connection):
         connect=MagicMock(return_value=mock_conn)
     )
     with patch.dict(sys.modules, {"psycopg": mock_psycopg_module}):
-        from postgis_manage_fields import ModifyTable
+        # Import happens dynamically inside patch context to avoid psycopg import errors
+        from postgis_manage_fields import ModifyTable  # type: ignore[import]
         yield ModifyTable, mock_conn, mock_cursor
 
 
@@ -325,7 +329,7 @@ def test_all_ordered_columns_uuid_moves_topo_id_first(mock_psycopg):
 
 def test_table_modification_workflow_initialization(mock_psycopg):
     """Test TableModificationWorkflow initializes with config."""
-    from postgis_manage_fields import TableModificationWorkflow
+    from postgis_manage_fields import TableModificationWorkflow  # type: ignore[import]
     
     workflow = TableModificationWorkflow(
         db_params={"dbname": "test"},
@@ -343,7 +347,7 @@ def test_table_modification_workflow_initialization(mock_psycopg):
 
 def test_table_modification_workflow_should_run_all(mock_psycopg):
     """Test should_run returns True for all steps when option='all'."""
-    from postgis_manage_fields import TableModificationWorkflow
+    from postgis_manage_fields import TableModificationWorkflow  # type: ignore[import]
     
     workflow = TableModificationWorkflow(
         db_params={},
@@ -358,7 +362,7 @@ def test_table_modification_workflow_should_run_all(mock_psycopg):
 
 def test_table_modification_workflow_should_run_specific_step(mock_psycopg):
     """Test should_run matches specific steps."""
-    from postgis_manage_fields import TableModificationWorkflow
+    from postgis_manage_fields import TableModificationWorkflow  # type: ignore[import]
     
     workflow = TableModificationWorkflow(
         db_params={},

@@ -1,9 +1,9 @@
 from datetime import date
 from pathlib import Path
 
-import geopandas as gpd
-import pytest
-from shapely.geometry import Polygon
+import geopandas as gpd  # type: ignore
+import pytest  # type: ignore
+from shapely.geometry import Polygon  # type: ignore
 
 from data_prep.contour_with_landcover import run
 

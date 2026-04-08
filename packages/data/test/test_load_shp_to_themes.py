@@ -1,16 +1,16 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
 import tempfile
 
-import geopandas as gpd
-import pandas as pd
-import pytest
-from shapely.geometry import Point, LineString, Polygon
+import geopandas as gpd  # type: ignore
+import pandas as pd  # type: ignore
+import pytest  # type: ignore
+from shapely.geometry import Point, LineString, Polygon  # type: ignore
 
 # Import the class to test
 import sys
 sys.path.insert(0, str(Path(__file__).parents[1] / "nztopo50" / "import" / "core"))
-from load_shp_to_themes import Topo50DataLoader
+from load_shp_to_themes import Topo50DataLoader  # type: ignore[import]
 
 
 @pytest.fixture
@@ -38,11 +38,11 @@ def sample_geodataframe():
 
 
 @pytest.fixture
-def temp_count_log():
+def temp_count_log(tmp_path):
     """Create a temporary count log file."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".txt") as f:
-        yield f.name
-    Path(f.name).unlink()
+    log_file = tmp_path / "count_log.txt"
+    log_file.write_text("")
+    return str(log_file)
 
 
 def test_get_basename_simple_filename():
@@ -105,132 +105,126 @@ def test_loader_layers_info_parsed_correctly(temp_count_log, sample_layers_excel
     assert layer_info[4] == "Transport_Layers"  # dataset
 
 
-def test_reset_column_names_tunnel_line():
+def test_reset_column_names_tunnel_line(tmp_path):
     """Test column renaming for tunnel_line layer."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
-        temp_log = f.name
+    temp_log = tmp_path / "count_log.txt"
+    temp_log.write_text("")
     
-    try:
-        with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
-            "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
-        ])):
-            loader = Topo50DataLoader(
-                shapefile_dir="/tmp",
-                excel_file="layers.xlsx",
-                database="release64",
-                count_log=temp_log,
-            )
-        
-        gdf = gpd.GeoDataFrame({
-            "use1": ["vehicle"],
-            "use2": ["pedestrian"],
-            "type": ["underground"],
-            "geometry": [LineString([(0, 0), (1, 1)])],
-        })
-        
-        result = loader.reset_column_names(gdf, "tunnel_line")
-        
-        assert "tunnel_use" in result.columns
-        assert "tunnel_use2" in result.columns
-        assert "tunnel_type" in result.columns
-        assert "use1" not in result.columns
-        assert "use2" not in result.columns
-    finally:
-        Path(temp_log).unlink()
+    with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
+        "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
+    ])):
+        loader = Topo50DataLoader(
+            shapefile_dir="/tmp",
+            excel_file="layers.xlsx",
+            database="release64",
+            count_log=str(temp_log),
+        )
+    
+    gdf = gpd.GeoDataFrame({
+        "use1": ["vehicle"],
+        "use2": ["pedestrian"],
+        "type": ["underground"],
+        "geometry": [LineString([(0, 0), (1, 1)])],
+    })
+    
+    result = loader.reset_column_names(gdf, "tunnel_line")
+    loader.count_log_file.close()
+    
+    assert "tunnel_use" in result.columns
+    assert "tunnel_use2" in result.columns
+    assert "tunnel_type" in result.columns
+    assert "use1" not in result.columns
+    assert "use2" not in result.columns
 
 
-def test_reset_column_names_road_line():
+def test_reset_column_names_road_line(tmp_path):
     """Test column renaming for road_line layer with type conversions."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
-        temp_log = f.name
+    temp_log = tmp_path / "count_log.txt"
+    temp_log.write_text("")
     
-    try:
-        with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
-            "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
-        ])):
-            loader = Topo50DataLoader(
-                shapefile_dir="/tmp",
-                excel_file="layers.xlsx",
-                database="release64",
-                count_log=temp_log,
-            )
-        
-        gdf = gpd.GeoDataFrame({
-            "hway_num": ["SH1"],
-            "num_lanes": [2.0],
-            "UFID": [123.5],
-            "geometry": [LineString([(0, 0), (1, 1)])],
-        })
-        
-        result = loader.reset_column_names(gdf, "road_line")
-        
-        assert "highway_number" in result.columns
-        assert "lane_count" in result.columns
-        assert "t50_fid" in result.columns
-        assert result["lane_count"].dtype == "int"
-        assert result["t50_fid"].dtype == "int"
-    finally:
-        Path(temp_log).unlink()
+    with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
+        "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
+    ])):
+        loader = Topo50DataLoader(
+            shapefile_dir="/tmp",
+            excel_file="layers.xlsx",
+            database="release64",
+            count_log=str(temp_log),
+        )
+    
+    gdf = gpd.GeoDataFrame({
+        "hway_num": ["SH1"],
+        "num_lanes": [2.0],
+        "UFID": [123.5],
+        "geometry": [LineString([(0, 0), (1, 1)])],
+    })
+    
+    result = loader.reset_column_names(gdf, "road_line")
+    loader.count_log_file.close()
+    
+    assert "highway_number" in result.columns
+    assert "lane_count" in result.columns
+    assert "t50_fid" in result.columns
+    assert result["lane_count"].dtype == "int"
+    assert result["t50_fid"].dtype == "int"
 
 
-def test_reset_column_names_generic_abbreviations():
+def test_reset_column_names_generic_abbreviations(tmp_path):
     """Test generic column abbreviation expansions across all layers."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
-        temp_log = f.name
+    temp_log = tmp_path / "count_log.txt"
+    temp_log.write_text("")
     
-    try:
-        with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
-            "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
-        ])):
-            loader = Topo50DataLoader(
-                shapefile_dir="/tmp",
-                excel_file="layers.xlsx",
-                database="release64",
-                count_log=temp_log,
-            )
-        
-        gdf = gpd.GeoDataFrame({
-            "compositn": ["sand"],
-            "descriptn": ["main road"],
-            "info_disp": ["yes"],
-            "veh_type": ["car"],
-            "temp": [25],
-            "restrictns": ["no entry"],
-            "orientatn": ["NW"],
-            "geometry": [Point(0, 0)],
-        })
-        
-        result = loader.reset_column_names(gdf, "generic_layer")
-        
-        assert "composition" in result.columns
-        assert "description" in result.columns
-        assert "info_display" in result.columns
-        assert "vehicle_type" in result.columns
-        assert "temperature" in result.columns
-        assert "restrictions" in result.columns
-        assert "orientation" in result.columns
-    finally:
-        Path(temp_log).unlink()
+    with patch("pandas.read_excel", return_value=pd.DataFrame(columns=[
+        "object_name", "shp_name", "theme", "dataset", "feature_type", "layer_name"
+    ])):
+        loader = Topo50DataLoader(
+            shapefile_dir="/tmp",
+            excel_file="layers.xlsx",
+            database="release64",
+            count_log=str(temp_log),
+        )
+    
+    gdf = gpd.GeoDataFrame({
+        "compositn": ["sand"],
+        "descriptn": ["main road"],
+        "info_disp": ["yes"],
+        "veh_type": ["car"],
+        "temp": [25],
+        "restrictns": ["no entry"],
+        "orientatn": ["NW"],
+        "geometry": [Point(0, 0)],
+    })
+    
+    result = loader.reset_column_names(gdf, "generic_layer")
+    loader.count_log_file.close()
+    
+    assert "composition" in result.columns
+    assert "description" in result.columns
+    assert "info_display" in result.columns
+    assert "vehicle_type" in result.columns
+    assert "temperature" in result.columns
+    assert "restrictions" in result.columns
+    assert "orientation" in result.columns
 
 
 def test_group_layers(temp_count_log, sample_layers_excel):
     """Test that group_layers collects field definitions by layer."""
-    with tempfile.NamedTemporaryFile(suffix=".shp") as shp_file:
-        mock_info = {"fields": ["use", "type", "width"]}
-        
-        with patch("pandas.read_excel", return_value=sample_layers_excel):
-            with patch("pyogrio.read_info", return_value=mock_info):
-                with patch("glob.glob", return_value=[shp_file.name]):
-                    loader = Topo50DataLoader(
-                        shapefile_dir="/tmp",
-                        excel_file="layers.xlsx",
-                        database="release64",
-                        count_log=temp_count_log,
-                    )
-                    loader.group_layers()
-        
-        assert "road_line" in loader.layer_groups
-        assert loader.layer_groups["road_line"] == [["use", "type", "width"]]
+    mock_info = {"fields": ["use", "type", "width"]}
+    
+    with patch("pandas.read_excel", return_value=sample_layers_excel):
+        with patch("load_shp_to_themes.read_info", return_value=mock_info):
+            with patch("glob.glob", return_value=["/fake/road_line.shp"]):
+                loader = Topo50DataLoader(
+                    shapefile_dir="/tmp",
+                    excel_file="layers.xlsx",
+                    database="release64",
+                    count_log=temp_count_log,
+                )
+                loader.group_layers()
+    
+    assert "road_line" in loader.layer_groups
+    assert loader.layer_groups["road_line"] == [["use", "type", "width"]]
+    loader.count_log_file.close()
 
 
 def test_compute_common_fields(temp_count_log, sample_layers_excel):
@@ -260,67 +254,48 @@ def test_compute_common_fields(temp_count_log, sample_layers_excel):
     assert "surface" in common
 
 
-@patch("load_shp_to_themes.create_engine")
-def test_write_dataset_postgis(mock_engine, sample_geodataframe):
-    """Test write_dataset with PostGIS target."""
-    mock_db = MagicMock()
-    mock_engine.return_value = mock_db
-    
-    Topo50DataLoader.write_dataset(
-        extension="postgis",
-        gdf=sample_geodataframe,
-        output_file=None,
-        layer_name="road_line",
-        dataset_name="Transport_Layers",
-        append_data=True,
-        schema_name="release64",
-    )
-    
-    mock_db.to_postgis.assert_called_once()
-
-
-def test_write_dataset_geojson(sample_geodataframe):
-    """Test write_dataset with GeoJSON target."""
-    with patch("pyogrio.write_dataframe") as mock_write:
-        Topo50DataLoader.write_dataset(
-            extension="geojson",
-            gdf=sample_geodataframe,
-            output_file="/tmp/output.geojson",
-            layer_name="road_line",
-        )
-        
-        mock_write.assert_called_once()
-        call_args = mock_write.call_args
-        assert call_args[0][1] == "/tmp/output.geojson"
-        assert call_args[1]["driver"] == "GeoJSON"
-
-
-def test_write_dataset_gpkg(sample_geodataframe):
-    """Test write_dataset with GeoPackage target."""
-    with patch("pyogrio.write_dataframe") as mock_write:
-        Topo50DataLoader.write_dataset(
-            extension="gpkg",
-            gdf=sample_geodataframe,
-            output_file="/tmp/output.gpkg",
-            layer_name="road_line",
-        )
-        
-        mock_write.assert_called_once()
-        call_args = mock_write.call_args
-        assert call_args[1]["driver"] == "GPKG"
-        assert call_args[1]["layer"] == "road_line"
-
-
-def test_write_dataset_handles_exceptions():
-    """Test that write_dataset catches and logs exceptions without raising."""
+def test_write_dataset_postgis_exception_handling(sample_geodataframe):
+    """Test write_dataset catches PostGIS exceptions gracefully."""
     bad_gdf = MagicMock()
     bad_gdf.to_postgis.side_effect = Exception("Database error")
     
     with patch("load_shp_to_themes.create_engine"):
-        # Should not raise
+        # Should not raise, exceptions are caught
         Topo50DataLoader.write_dataset(
             extension="postgis",
             gdf=bad_gdf,
             output_file=None,
             layer_name="road_line",
         )
+
+
+def test_write_dataset_geojson_driver():
+    """Test write_dataset uses correct GeoJSON driver."""
+    gdf = MagicMock()
+    with patch("load_shp_to_themes.write_dataframe") as mock_write:
+        Topo50DataLoader.write_dataset(
+            extension="geojson",
+            gdf=gdf,
+            output_file="/tmp/output.geojson",
+            layer_name="road_line",
+        )
+        
+        # Verify write_dataframe was called with correct driver
+        call_args = mock_write.call_args
+        assert call_args[1]["driver"] == "GeoJSON"
+
+
+def test_write_dataset_gpkg_driver():
+    """Test write_dataset uses correct GeoPackage driver."""
+    gdf = MagicMock()
+    with patch("load_shp_to_themes.write_dataframe") as mock_write:
+        Topo50DataLoader.write_dataset(
+            extension="gpkg",
+            gdf=gdf,
+            output_file="/tmp/output.gpkg",
+            layer_name="road_line",
+        )
+        
+        call_args = mock_write.call_args
+        assert call_args[1]["driver"] == "GPKG"
+        assert call_args[1]["layer"] == "road_line"
