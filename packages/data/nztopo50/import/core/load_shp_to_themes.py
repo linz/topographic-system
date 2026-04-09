@@ -279,6 +279,12 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"UFID": "t50_fid"})
             gdf["t50_fid"] = gdf["t50_fid"].fillna(0)
             gdf["t50_fid"] = gdf["t50_fid"].astype(int)
+        if layer_name.lower() == "nz_topo50_map_sheet":
+            gdf = gdf.rename(columns={"t50id": "t50_fid"})
+            gdf["t50_fid"] = gdf["t50_fid"].fillna(0)
+            gdf["t50_fid"] = gdf["t50_fid"].astype(int)
+            gdf = gdf.rename(columns={"ex_class": "example_class"})
+            gdf = gdf.rename(columns={"ex_name": "example_name"})
 
         if layer_name.lower() == "island":
             gdf["location"] = gdf["location"].fillna(0)
@@ -341,7 +347,7 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for testing
-            # if layer_info[3].lower() != 'vegetation':
+            # if layer_info[3].lower() != 'nz_topo50_map_sheet':
             #     print(f"Skipping layer: {layer_info[3]}")
             #     continue
             layer_name = layer_info[3]
