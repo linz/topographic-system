@@ -1,4 +1,3 @@
-from attr import fields
 import psycopg
 
 # Database connection parameters
