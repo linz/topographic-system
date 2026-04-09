@@ -10,7 +10,20 @@ class CartoTextProcessor:
     Class to manage carto text processing operations with comprehensive logging.
     """
     
-    def __init__(self, output_directory, product_database, carto_text_layer):
+    def __init__(self, output_directory, product_database, carto_text_layer, logs_csv_folder):
+        """
+        Initialize the CartoTextProcessor with logging setup.
+        
+        Parameters:
+        - output_directory: Directory for output files and logs
+        - product_database: Path to the product database
+        - carto_text_layer: Path to the carto text layer
+        - logs_csv_folder: Folder to save CSV logs
+        """
+        self.output_directory = output_directory
+        self.product_database = product_database
+        self.carto_text_layer = carto_text_layer
+        self.logs_csv_folder = logs_csv_folder
         """
         Initialize the CartoTextProcessor with logging setup.
         
@@ -50,14 +63,14 @@ class CartoTextProcessor:
             ('chardistance', 'float64', None)
         ]
         
-        self.logger.info(f"CartoTextProcessor initialized with output directory: {output_directory}")
+        self.logger.info(f"CartoTextProcessor initialized with logs CSV folder: {logs_csv_folder}")
     
     def _setup_logging(self):
         """
         Set up logging to both file and console.
         """
-        # Create output directory if it doesn't exist
-        os.makedirs(self.output_directory, exist_ok=True)
+        # Create logs CSV folder if it doesn't exist
+        os.makedirs(self.logs_csv_folder, exist_ok=True)
         
         # Create logger
         logger = logging.getLogger('CartoTextProcessor')
@@ -73,7 +86,7 @@ class CartoTextProcessor:
         )
         
         # File handler
-        log_file = os.path.join(self.output_directory, f"carto_text_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+        log_file = os.path.join(self.logs_csv_folder, f"carto_text_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
@@ -262,7 +275,7 @@ class CartoTextProcessor:
                 self.logger.warning("'Text Bend' column not found in the sheet")
             
             # Export processed data
-            output_file = os.path.join(self.output_directory, "new_values_processed.csv")
+            output_file = os.path.join(self.logs_csv_folder, "new_values_processed.csv")
             df.to_csv(output_file, index=False)
             self.logger.info(f"Exported processed 'New values' data to {output_file}")
             
@@ -318,7 +331,7 @@ class CartoTextProcessor:
             self.logger.info(f"Set {empty_font_count} empty 'FONT' values to 'empty'")
             
             # Export processed data
-            output_file = os.path.join(self.output_directory, "font_mapping_processed.csv")
+            output_file = os.path.join(self.logs_csv_folder, "font_mapping_processed.csv")
             df.to_csv(output_file, index=False)
             self.logger.info(f"Exported processed 'Font mapping' data to {output_file}")
             
@@ -341,7 +354,7 @@ class CartoTextProcessor:
             self.logger.info(f"Successfully processed {len(formatted_rows)} formatted rows from {full_layers_sheet} sheet")
             
             # Export processed sections to CSV
-            output_file = os.path.join(self.output_directory, "formatted_rows.csv")
+            output_file = os.path.join(self.logs_csv_folder, "formatted_rows.csv")
             formatted_rows.to_csv(output_file, index=False)
             self.logger.info(f"Exported formatted_rows to {output_file}")
             
@@ -980,22 +993,25 @@ class CartoTextProcessor:
         return carto_text_output_gdf
 
 if __name__ == "__main__":
-    # Configuration parameters - as requested, these remain here
+    # Configuration parameters 
+    # See carto_text_fields_readme.md for details on the pre & post set up instructions
     mapping_spreadsheet = r"C:\Data\Topo50\Topo50_carto_text_2020_09\ratio-text-gap-to-twsd-2026-03-30.xlsx"
     full_layers_sheet = 'Full layers'
     new_values_sheet = 'New values'
     font_mapping_sheet = 'Font mapping'
     #output_directory = r"C:\temp\carto"
     output_directory = r"C:\Data\topoedit\topographic-product-data"
+    logs_csv_folder = r"C:\temp\carto"
 
-    carto_text_folder = r"C:\Data\topoedit\topographic-product-data"
+    carto_text_folder = r"C:\Data\toposource\topographic-product-data"
     product_database = "topographic-product-data.gpkg"
     carto_text_layer = "nz_topo50_carto_text"
 
-    new_font_name = "NimbusSans"
+    new_font_name = "Nimbus Sans"
 
     # Initialize processor and run workflow
-    processor = CartoTextProcessor(output_directory, product_database, carto_text_layer)
+    processor = CartoTextProcessor(output_directory, product_database, 
+                                   carto_text_layer, logs_csv_folder)
     
     result = processor.run(
         mapping_spreadsheet=mapping_spreadsheet,
