@@ -109,6 +109,7 @@ export class StacLoader {
         const targetItem = structuredClone(item);
         const itemName = filename.replace('.json', '');
         targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
+        targetItem.collection = StacStorage.id(s, ctx);
         if (commit) todo.push(q(() => fsa.write(targetItemUrl, JSON.stringify(targetItem, null, 2))));
         items.push(targetItemUrl);
         // Push assets
