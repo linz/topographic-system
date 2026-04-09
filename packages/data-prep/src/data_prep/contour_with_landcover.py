@@ -60,14 +60,8 @@ def split_gdf(gdf, n_chunks):
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    # TODO remove once we use geometry column everywhere
-    # work out what the geometry column is called(geom or geometry?) by looking at metadata
-    contour_geom_col = json.loads(pq.read_schema(contour_path).metadata[b"geo"])[
-        "primary_column"
-    ]
-    contour_gdf = gpd.read_parquet(
-        contour_path,
-        columns=["topo_id", "feature_type", contour_geom_col],
+    contour_gdf = gpd.read_parquet(contour_path).drop(
+        columns=["update_date", "version"]
     )
 
     landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])[
