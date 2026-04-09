@@ -91,7 +91,8 @@ def test_main_generates_drop_and_create_sql(monkeypatch):
     executed_sql = _run_script_and_capture_sql(monkeypatch, _fake_dataframe())
 
     assert any(
-        sql == "DROP TABLE IF EXISTS release64.road_line CASCADE;" for sql in executed_sql
+        sql == "DROP TABLE IF EXISTS release64.road_line CASCADE;"
+        for sql in executed_sql
     )
 
     create_sql = next(

@@ -706,9 +706,7 @@ class ModifyTable:
         for table in table_list:
             schema = self.table_schema(table)[0]
             if not self.column_exists(schema, table, "collection_id"):
-                self.add_column(
-                    f'"{schema}"."{table}"', "collection_id", "uuid"
-                )
+                self.add_column(f'"{schema}"."{table}"', "collection_id", "uuid")
             # if not tableModifer.column_exists(schema, table, "collection_name"):
             #    tableModifer.add_column(f'"{schema}"."{table}"', "collection_name", "VARCHAR(100)")
 
@@ -1103,7 +1101,9 @@ class TableModificationWorkflow:
         self.table_modifer.update_column_with_default(
             self.schema_name, "road_line", "way_count", "'one way'", "way_count ='1'"
         )
-        if self.table_modifer.column_exists(self.schema_name, "road_line", "road_access"):
+        if self.table_modifer.column_exists(
+            self.schema_name, "road_line", "road_access"
+        ):
             self.table_modifer.update_column_with_default(
                 self.schema_name, "road_line", "road_access", "'mp'", "road_access ='m'"
             )
@@ -1233,12 +1233,12 @@ class TableModificationWorkflow:
                 )
 
     def step_carto_text_geom_update(self):
-        self.table_modifer.carto_text_geom_update(self.schema_name, "nz_topo50_map_sheet")
+        self.table_modifer.carto_text_geom_update(
+            self.schema_name, "nz_topo50_map_sheet"
+        )
 
     def step_recreate_table_srid(self):
-        self.table_modifer.recreate_table_srid(
-            self.schema_name, self.primary_key_type
-        )
+        self.table_modifer.recreate_table_srid(self.schema_name, self.primary_key_type)
         self.table_modifer.add_metadata_columns(
             "alter", self.schema_name, self.add_full_metadata_fields
         )
