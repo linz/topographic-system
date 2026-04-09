@@ -46,7 +46,7 @@ export const HashWriter = {
     await fsa.write(target, readStream, obj);
     return {
       'file:checksum': ht.multihash,
-      'file:size': ht.size,
+      'file:size': ht.bytesRead,
     };
   },
 };
