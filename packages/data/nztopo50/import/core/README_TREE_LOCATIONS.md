@@ -1,5 +1,3 @@
-
-
 Tree Locations are a big dataset. This layer frequently fails to load - times out connection to github.
 
 This has mainly been processed using Windows and from the office location. ZScaler turn off if possibe.
@@ -10,7 +8,7 @@ The workaround process involves a semi manual set of steps - inserting the data 
 
 Note: Experience shows do this layer first will be a bit faster but can be down at the end of the main run.
 
-*You should follow the steps in the main topographic data load up to the import data stage...*
+_You should follow the steps in the main topographic data load up to the import data stage..._
 
 The process involves:
 
@@ -19,22 +17,21 @@ The process involves:
 3. Run the first version of the script **insert_trees_workaround.py** - this will insert a chunck of data into the GPKG from the POSTGRES database.
 4. Manually in the local Kart repo location - Do a Kart Commit and then Kart Push to push data into the repo
 5. Edit the script - update the variable STEP = 2 (repeat + 1...) - and re-run
-5. Repeat until all steps completed.
-
+6. Repeat until all steps completed.
 
 Using **pgAdmin App** to access the POSTGRES database - currently the SQL commands are run manually.
 
 ## Define SQL query to select all from tree_locations
-*min = 3593709*
 
-*max = 4908228* - the last insert just uses > so ok if number grows (not by to much)
+_min = 3593709_
 
-*Step 1 & 2 In database make a copy of all tree_locations and delete some records*
+_max = 4908228_ - the last insert just uses > so ok if number grows (not by to much)
+
+_Step 1 & 2 In database make a copy of all tree_locations and delete some records_
 
 ## 1 Create a temporary backup of the data table (update release64 text if using different version)
 
-create table release64.tree_locations_master as select * from release64.tree_locations;
-
+create table release64.tree_locations_master as select \* from release64.tree_locations;
 
 ## 2 Delete all the feature over the initial start values
 
@@ -48,11 +45,11 @@ commit;
 
 If you are starting from scratch...
 
-> kart clone git@github.com:linz/topographic-data 
+> kart clone git@github.com:linz/topographic-data
 
 > cd topographic-data
 
-> kart import postgresql://postgres:landinformation@localhost/topo/release64  --primary-key topo_id tree_locations
+> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tree_locations
 
 **ONLY if doing first use force to clear repo - see main process**
 
@@ -64,10 +61,9 @@ drop table release64.tree_locations;
 
 alter table release64.tree_locations_master rename to tree_locations;
 
-
 # 5 Start with the first SQL and work you way down doing commit / push after each run
 
-run script - *check STEP set to 1*
+run script - _check STEP set to 1_
 
 manually run commit and push commands between each sql
 
@@ -77,19 +73,17 @@ manually run commit and push commands between each sql
 
 repeat for next steps - update value + 1 until all done
 
-NOTE: commit can take a long long long time**
+NOTE: commit can take a long long long time\*\*
 
-**### **DO A KART COMMIT BETWEEN EACH OF THESE**
+**### **DO A KART COMMIT BETWEEN EACH OF THESE\*\*
 
 This one will be done by default as initial load skip - so is not run in the manual process
-sql = "SELECT * FROM release64.tree_locations where t50_fid <= 3722219"
+sql = "SELECT \* FROM release64.tree_locations where t50_fid <= 3722219"
 
 SQL Examples - see script for details
 
-sql = "SELECT * FROM release64.tree_locations where t50_fid > 3722219 and t50_fid < 3902324"
+sql = "SELECT \* FROM release64.tree_locations where t50_fid > 3722219 and t50_fid < 3902324"
 
-sql = "SELECT * FROM release64.tree_locations where t50_fid >= 3902324 and t50_fid < 4056631"
+sql = "SELECT \* FROM release64.tree_locations where t50_fid >= 3902324 and t50_fid < 4056631"
 
-sql = "SELECT * FROM release64.tree_locations where t50_fid >= 4965246"
-
-
+sql = "SELECT \* FROM release64.tree_locations where t50_fid >= 4965246"

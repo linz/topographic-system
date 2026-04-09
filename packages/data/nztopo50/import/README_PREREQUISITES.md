@@ -17,12 +17,15 @@ pip install -r requirements.txt
 ```
 
 ### Required Software:
+
 - **PostgreSQL/PostGIS** - Spatial database for hosting topographic data
 - **Python 3.8+** - Core scripting environment
 - **GDAL/OGR** - Geospatial data abstraction library
 
 ### Python Dependencies:
+
 See `requirements.txt` for complete list of required packages including:
+
 - Database: psycopg, sqlalchemy
 - Geospatial: geopandas, pyogrio, shapely, pyproj
 - Data processing: pandas, numpy, pyarrow
@@ -48,7 +51,6 @@ uuid - UUID objects according to RFC 4122
 
 typing.Any - Type hints
 
-
 **Database & Data Processing**
 
 psycopg - PostgreSQL database adapter
@@ -62,7 +64,6 @@ sqlalchemy.text - SQL expression elements
 duckdb - In-memory analytical database
 
 Geospatial Libra
-
 
 **Geospatial Libraries**
 
@@ -81,7 +82,6 @@ shapely.force_2d - Geometric operations (Shapely 2.x)
 fiona - Vector data I/O
 
 osgeo.ogr - GDAL/OGR spatial data library
-
 
 **Data Format Libraries**
 

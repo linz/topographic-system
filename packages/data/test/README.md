@@ -197,23 +197,26 @@ These tests validate ModifyTable DDL/DML operations and TableModificationWorkflo
 
 ## Test Summary
 
-| Module | Tests | Status |
-|--------|-------|--------|
-| postgis_create_model.py | 3 | ✓ passed |
-| load_shp_to_themes.py | 14 | ✓ passed |
-| postgis_manage_fields.py | 25 | ✓ passed |
-| **Total** | **42** | **✓ passed** |
+| Module                   | Tests  | Status       |
+| ------------------------ | ------ | ------------ |
+| postgis_create_model.py  | 3      | ✓ passed     |
+| load_shp_to_themes.py    | 14     | ✓ passed     |
+| postgis_manage_fields.py | 25     | ✓ passed     |
+| **Total**                | **42** | **✓ passed** |
 
 ## Files
 
 **postgis_create_model.py:**
+
 - Script: `packages/data/nztopo50/import/core/postgis_create_model.py`
 - Tests: `packages/data/test/test_postgis_create_model.py`
 
 **load_shp_to_themes.py:**
+
 - Script: `packages/data/nztopo50/import/core/load_shp_to_themes.py`
 - Tests: `packages/data/test/test_load_shp_to_themes.py`
 
 **postgis_manage_fields.py:**
+
 - Script: `packages/data/nztopo50/import/core/postgis_manage_fields.py`
 - Tests: `packages/data/test/test_postgis_manage_fields.py`
