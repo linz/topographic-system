@@ -410,7 +410,7 @@ class ModifyTable:
                 ``'alter'`` to update the DDL default only.
             schema_name: Target schema.
             full_field_set: When True, includes ``capture_method``,
-                ``update_date``, ``topo_id``, ``create_date``, and
+                ``change_type``, ``update_date``, ``topo_id``, ``create_date``, and
                 ``version``.
             include_source_fields: When True, also adds ``source``,
                 ``source_id``, and ``source_date`` columns.
@@ -421,7 +421,7 @@ class ModifyTable:
         if full_field_set:
             fieldList = [
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
-                # ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
+                ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
                 ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
                 ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
@@ -673,7 +673,7 @@ class ModifyTable:
             "physical_infrastructure_point",
             "physical_infrastructure_line",
             "structure",
-            "vegetation",
+            # "vegetation",
             "landcover",
             "landcover_line",
             "ferry_crossing",
@@ -1316,7 +1316,7 @@ if __name__ == "__main__":
     # option = "compare"
     # schema_name = "toposource"
     schema_name = "release64"
-    # schema_name = "model"
+    schema_name = "model"
     release_date = "2025-09-25"
 
     # schema_name = "release62"
