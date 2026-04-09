@@ -1,3 +1,4 @@
+from attr import fields
 import psycopg
 
 # Database connection parameters
@@ -948,7 +949,6 @@ class ModifyTable:
             "designated",
             "designation",
             "formation",
-            "edition",
             "height",
             "orientation",
             "lane_count",
@@ -1276,9 +1276,22 @@ class TableModificationWorkflow:
 
                 # Copy table from source schema to carto schema
                 with self.table_modifer.conn.cursor() as cur:
-                    copy_query = f'CREATE TABLE "carto"."{table_name}" AS SELECT * FROM "{self.schema_name}"."{table_name}";'
+
+                    fields = self.table_modifer.get_ordered_columns(f"{self.schema_name}", table_name, primary_key_type)
+                    
+                    copy_query = f"""
+                        CREATE TABLE "carto"."{table_name}" AS
+                        SELECT {", ".join([f'"{field}"' for field in fields])},"geometry" 
+                        FROM "{self.schema_name}"."{table_name}";
+                    """
+
                     cur.execute(copy_query)
                     self.table_modifer.conn.commit()
+
+                    if self.schema_name != "model":
+                        drop_query = f'DROP TABLE "{self.schema_name}"."{table_name}" CASCADE;'
+                        cur.execute(drop_query)
+                    
                     # Add index on topo_id field if it exists
                     if self.table_modifer.column_exists("carto", table_name, "topo_id"):
                         index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
@@ -1316,10 +1329,10 @@ class TableModificationWorkflow:
 
 if __name__ == "__main__":
     option = "all"
-    # option = "compare"
-    # schema_name = "toposource"
+    # option = "process_carto_tables"
+
     schema_name = "release64"
-    schema_name = "model"
+    #  schema_name = "model"
     release_date = "2025-09-25"
 
     # schema_name = "release62"

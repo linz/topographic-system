@@ -1,4 +1,4 @@
-dataset,layer,name,mapped_name,type,length
+﻿dataset,layer,name,mapped_name,type,length
 Annotation_Layers,descriptive_text,feature_type,feature_type,String,50
 Annotation_Layers,descriptive_text,info_disp,info_display,String,255
 Annotation_Layers,descriptive_text,SHAPE,SHAPE,Point,0
@@ -150,13 +150,14 @@ Land_Layers,vegetation,t50_fid,t50_fid,BigInteger,8
 Land_Layers,vegetation_line,feature_type,feature_type,String,50
 Land_Layers,vegetation_line,SHAPE,SHAPE,Polyline,0
 Land_Layers,vegetation_line,t50_fid,t50_fid,BigInteger,8
-MapSheets_Layers,nz_topo50_map_sheet,edition,edition,String,30
+MapSheets_Layers,nz_topo50_map_sheet,ex_name,example_name,String,150
+MapSheets_Layers,nz_topo50_map_sheet,ex_class,example_class,String,30
 MapSheets_Layers,nz_topo50_map_sheet,feature_type,feature_type,String,50
-MapSheets_Layers,nz_topo50_map_sheet,revised,revised,String,60
+MapSheets_Layers,nz_topo50_map_sheet,edition,edition,String,30
 MapSheets_Layers,nz_topo50_map_sheet,SHAPE,SHAPE,Polygon,0
 MapSheets_Layers,nz_topo50_map_sheet,sheet_code,sheet_code,String,21
 MapSheets_Layers,nz_topo50_map_sheet,sheet_name,sheet_name,String,50
-MapSheets_Layers,nz_topo50_map_sheet,t50_fid,t50_fid,BigInteger,8
+MapSheets_Layers,nz_topo50_map_sheet,t50id,t50_fid,BigInteger,8
 Relief_Layers,relief_line,embkmt_use,relief_use,String,50
 Relief_Layers,relief_line,feature_type,feature_type,String,50
 Relief_Layers,relief_line,macronated,macronated,String,1
@@ -282,6 +283,7 @@ Water_Layers,marine,SHAPE,SHAPE,Polygon,0
 Water_Layers,marine,t50_fid,t50_fid,BigInteger,8
 Water_Layers,water,elevation,elevation,Integer,4
 Water_Layers,water,feature_type,feature_type,String,50
+Water_Layers,water,gazfeatid,nzgb_feat_id,BigInteger,8
 Water_Layers,water,grp_ascii,group_ascii,String,60
 Water_Layers,water,grp_macron,group_macron,String,1
 Water_Layers,water,grp_name,group_name,String,60
@@ -296,6 +298,7 @@ Water_Layers,water,t50_fid,t50_fid,BigInteger,8
 Water_Layers,water,temperatur,temperature,String,3
 Water_Layers,water,lake_use,water_use,String,50
 Water_Layers,water_line,feature_type,feature_type,String,50
+Water_Layers,water_line,gazfeatid,gazfeatid,BigInteger,8
 Water_Layers,water_line,height,height,Double,8
 Water_Layers,water_line,macronated,macronated,String,1
 Water_Layers,water_line,name,name,String,75
