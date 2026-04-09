@@ -86,10 +86,38 @@ export class StacLoader {
   async pushAsset(asset: StacAsset, url: URL, target: URL): Promise<URL> {
     const assetUrl = new URL(asset.href, url);
     const targetAssetUrl = new URL(asset.href, target);
-    const contentType = asset.type;
-    if (contentType == null) throw new Error(`Asset ${assetUrl.href} does not have a content type`);
-    await HashWriter.write(targetAssetUrl, assetUrl, { contentType });
+    await HashWriter.writeStac(asset, targetAssetUrl, assetUrl);
     return targetAssetUrl;
+  }
+
+  async pushItems(
+    url: URL,
+    target: URL,
+    collection: StacCollection,
+    s: StorageStrategy,
+    commit: boolean,
+  ): Promise<URL[]> {
+    const items: URL[] = [];
+    for (const [itemUrl, item] of this.items) {
+      const { ctx, filename } = this.prepareStorageContext(target, itemUrl);
+      const itemName = filename.replace('.json', '');
+      const targetLink = collection.links.find((f) => f.href === `./${itemName}.json`);
+      const targetUrl = StacStorage.url(s, ctx);
+      const targetItemUrl = new URL(filename, targetUrl);
+      const targetItem = structuredClone(item);
+      targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
+      targetItem.collection = collection.id;
+      if (commit) {
+        // TODO: We can't add limit q for this as this require to write back the checksum to link.
+        await HashWriter.writeStac(targetLink, targetItemUrl, JSON.stringify(targetItem, null, 2));
+      }
+      // Push assets
+      for (const asset of Object.values(item.assets ?? {})) {
+        if (asset.href == null) continue;
+        if (commit) await this.pushAsset(asset, url, targetUrl);
+      }
+    }
+    return items;
   }
 
   async push(target: URL, q: LimitFunction, commit: boolean = false): Promise<{ items: URL[]; collections: URL[] }> {
@@ -101,57 +129,49 @@ export class StacLoader {
     const collections: URL[] = [];
     const todo: Promise<unknown>[] = [];
     for (const s of this.strategies) {
-      // Push stac Items into target storage
-      for (const [url, item] of this.items) {
+      for (const [url, collection] of this.collections) {
         const { ctx, filename } = this.prepareStorageContext(target, url);
         const targetUrl = StacStorage.url(s, ctx);
-        const targetItemUrl = new URL(filename, targetUrl);
-        const targetItem = structuredClone(item);
-        const itemName = filename.replace('.json', '');
-        targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
-        targetItem.collection = StacStorage.id(s, ctx);
-        if (commit) todo.push(q(() => fsa.write(targetItemUrl, JSON.stringify(targetItem, null, 2))));
-        items.push(targetItemUrl);
-        // Push assets
-        for (const asset of Object.values(item.assets ?? {})) {
+        const targetCollectionUrl = new URL(filename, targetUrl);
+        const targetCollection = structuredClone(collection);
+        targetCollection.id = StacStorage.id(s, ctx);
+
+        // Push stac items and item assets
+        items.concat(await this.pushItems(url, target, targetCollection, s, commit));
+
+        // Prepare the canonical and latest links between collections
+        if (s.type === 'latest') {
+          if (strats.canonical != null) {
+            const canonicalUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
+            targetCollection.links.push({
+              rel: 'canonical',
+              href: getRelativePath(canonicalUrl, targetCollectionUrl),
+            });
+          }
+        } else if (strats.latest != null) {
+          const latestUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
+          targetCollection.links.push({
+            rel: 'latest-version',
+            href: getRelativePath(latestUrl, targetCollectionUrl),
+          });
+        }
+        if (commit)
+          todo.push(
+            q(() =>
+              HashWriter.write(targetCollectionUrl, JSON.stringify(targetCollection, null, 2), {
+                contentType: 'application/json',
+              }),
+            ),
+          );
+        collections.push(targetCollectionUrl);
+
+        // Push collection assets
+        for (const asset of Object.values(collection.assets ?? {})) {
           if (asset.href == null) continue;
           if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
         }
-
-        // Push Stac Collection into target storage
-        for (const [url, collection] of this.collections) {
-          const { ctx, filename } = this.prepareStorageContext(target, url);
-          const targetUrl = StacStorage.url(s, ctx);
-          const targetCollectionUrl = new URL(filename, targetUrl);
-          const targetCollection = structuredClone(collection);
-          targetCollection.id = StacStorage.id(s, ctx);
-
-          // Prepare the canonical and latest links between collections
-          if (s.type === 'latest') {
-            if (strats.canonical != null) {
-              const canonicalUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
-              targetCollection.links.push({
-                rel: 'canonical',
-                href: getRelativePath(canonicalUrl, targetCollectionUrl),
-              });
-            }
-          } else if (strats.latest != null) {
-            const latestUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
-            targetCollection.links.push({
-              rel: 'latest-version',
-              href: getRelativePath(latestUrl, targetCollectionUrl),
-            });
-          }
-          if (commit) todo.push(q(() => fsa.write(targetCollectionUrl, JSON.stringify(targetCollection, null, 2))));
-          collections.push(targetCollectionUrl);
-          // Push assets
-          for (const asset of Object.values(collection.assets ?? {})) {
-            if (asset.href == null) continue;
-            if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
-          }
-        }
-        await Promise.all(todo);
       }
+      await Promise.all(todo);
     }
     return { items, collections };
   }
