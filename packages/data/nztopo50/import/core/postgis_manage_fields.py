@@ -1279,6 +1279,15 @@ class TableModificationWorkflow:
                         f"{self.schema_name}", table_name, primary_key_type
                     )
 
+
+
+                    remove_metadata_fields = ['capture_method'
+                    'change_type'
+                    'update_date'
+                    'create_date'
+                    'version']
+                    fields = [field for field in fields if field not in remove_metadata_fields]
+
                     copy_query = f"""
                         CREATE TABLE "carto"."{table_name}" AS
                         SELECT {", ".join([f'"{field}"' for field in fields])},"geometry" 
