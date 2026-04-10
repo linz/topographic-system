@@ -1,8 +1,7 @@
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch, call
-import importlib.util
+from unittest.mock import MagicMock, patch
 
 import pytest  # type: ignore
 

@@ -1,11 +1,10 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import tempfile
 
 import geopandas as gpd  # type: ignore
 import pandas as pd  # type: ignore
 import pytest  # type: ignore
-from shapely.geometry import Point, LineString, Polygon  # type: ignore
+from shapely.geometry import Point, LineString  # type: ignore
 
 # Import the class to test
 import sys
