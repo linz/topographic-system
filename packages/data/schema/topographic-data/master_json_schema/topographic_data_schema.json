@@ -2986,12 +2986,7 @@
                                                                "edition",
                                                                "example_class",
                                                                "example_name",
-                                                               "geometry",
-                                                               "capture_method",
-                                                               "change_type",
-                                                               "update_date",
-                                                               "create_date",
-                                                               "version"
+                                                               "geometry"
                                                            ],
                                               "properties":  {
                                                                  "topo_id":  {
@@ -3031,30 +3026,7 @@
                                                                  "geometry":  {
                                                                                   "type":  "polygon",
                                                                                   "description":  "The geometry of the feature."
-                                                                              },
-                                                                 "capture_method":  {
-                                                                                        "type":  "string",
-                                                                                        "description":  "The method used to capture the data (e.g., \u0027manual\u0027,\u0027automated\u0027).",
-                                                                                        "maxLength":  25
-                                                                                    },
-                                                                 "change_type":  {
-                                                                                     "type":  "string",
-                                                                                     "description":  "The type of change that occurred to the feature (e.g., \u0027new\u0027, \u0027updated\u0027).",
-                                                                                     "maxLength":  25
-                                                                                 },
-                                                                 "update_date":  {
-                                                                                     "type":  "string",
-                                                                                     "description":  "The date when the feature was last updated in the database."
-                                                                                 },
-                                                                 "create_date":  {
-                                                                                     "type":  "string",
-                                                                                     "description":  "The date when the feature was created in the database."
-                                                                                 },
-                                                                 "version":  {
-                                                                                 "type":  "integer",
-                                                                                 "description":  "The version of the feature.",
-                                                                                 "precision":  32
-                                                                             }
+                                                                              }
                                                              }
                                           },
                   "trig_point":  {

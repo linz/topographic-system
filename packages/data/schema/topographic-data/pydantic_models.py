@@ -89,22 +89,92 @@ def _build_model(schema: dict[str, Any], schema_file: Path) -> type[BaseTopoMode
     return model
 
 
-def load_models(schema_dir: Path = SCHEMA_DIR) -> dict[str, type[BaseTopoModel]]:
-    """Load all JSON schemas in a folder and generate Pydantic models."""
+def _schema_ref_to_def_name(ref: str) -> str | None:
+    prefix = "#/$defs/"
+    if not ref.startswith(prefix):
+        return None
+    return ref[len(prefix) :]
 
-    models_by_title: dict[str, type[BaseTopoModel]] = {}
 
-    for schema_file in sorted(schema_dir.glob("*_schema.json")):
+def _extract_feature_schemas(
+    schema: dict[str, Any], schema_file: Path
+) -> list[tuple[str, dict[str, Any]]]:
+    """Extract (schema_key, object-schema) pairs from legacy or combined schema JSON."""
+
+    if schema.get("type") == "object" and "properties" in schema:
+        return [(schema_file.stem.replace("_schema", ""), schema)]
+
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        return []
+
+    feature_names: list[str] = []
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        for item in any_of:
+            if not isinstance(item, dict):
+                continue
+            ref = item.get("$ref")
+            if not isinstance(ref, str):
+                continue
+            def_name = _schema_ref_to_def_name(ref)
+            if def_name and def_name in defs:
+                feature_names.append(def_name)
+
+    if not feature_names:
+        feature_names = sorted(name for name, value in defs.items() if isinstance(value, dict))
+
+    extracted: list[tuple[str, dict[str, Any]]] = []
+    for def_name in feature_names:
+        candidate = defs.get(def_name)
+        if not isinstance(candidate, dict):
+            continue
+        if candidate.get("type") != "object" or "properties" not in candidate:
+            continue
+        extracted.append((def_name, candidate))
+
+    return extracted
+
+
+def _iter_schema_entries(schema_dir: Path) -> list[tuple[str, dict[str, Any], Path]]:
+    schema_files = sorted(schema_dir.glob("*_schema.json"))
+    if not schema_files:
+        schema_files = sorted(schema_dir.glob("*.json"))
+
+    entries: list[tuple[str, dict[str, Any], Path]] = []
+    for schema_file in schema_files:
         with schema_file.open("r", encoding="utf-8") as f:
             schema = json.load(f)
 
+        for schema_key, schema_fragment in _extract_feature_schemas(schema, schema_file):
+            entries.append((schema_key, schema_fragment, schema_file))
+
+    return entries
+
+
+def load_models(schema_dir: Path = SCHEMA_DIR) -> dict[str, type[BaseTopoModel]]:
+    """Load JSON schemas and generate Pydantic models.
+
+    Supports both legacy one-schema-per-file format and combined schema files
+    that define feature schemas under ``$defs``.
+    """
+
+    models_by_title: dict[str, type[BaseTopoModel]] = {}
+
+    for schema_key, schema, schema_file in _iter_schema_entries(schema_dir):
         model = _build_model(schema, schema_file)
-        title = str(schema.get("title") or schema_file.stem.replace("_schema", ""))
+        title = str(schema.get("title") or schema_key)
+
+        if title in models_by_title:
+            raise ValueError(f"Duplicate model title '{title}' in {schema_file.name}")
 
         models_by_title[title] = model
 
         # Export each generated class at module level.
         globals()[model.__name__] = model
+
+    if not models_by_title:
+        raise RuntimeError(f"No usable schemas found under {schema_dir}")
 
     return models_by_title
 
