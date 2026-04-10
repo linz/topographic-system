@@ -98,18 +98,20 @@ export class StacLoader {
     commit: boolean,
   ): Promise<URL[]> {
     const items: URL[] = [];
-    for (const [itemUrl, item] of this.items) {
+    for (const link of collection.links) {
+      if (link.rel !== 'item') continue;
+      const itemUrl = new URL(link.href, url);
+      const item = await fsa.readJson<StacItem>(itemUrl);
+      if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
       const { ctx, filename } = this.prepareStorageContext(target, itemUrl);
       const itemName = filename.replace('.json', '');
-      const targetLink = collection.links.find((f) => f.href === `./${itemName}.json`);
       const targetUrl = StacStorage.url(s, ctx);
       const targetItemUrl = new URL(filename, targetUrl);
-      const targetItem = structuredClone(item);
-      targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
-      targetItem.collection = collection.id;
+      item.id = StacStorage.id(s, { ...ctx, item: itemName });
+      item.collection = collection.id;
       if (commit) {
         // TODO: We can't add limit q for this as this require to write back the checksum to link.
-        await HashWriter.writeStac(targetLink, targetItemUrl, JSON.stringify(targetItem, null, 2));
+        await HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2));
       }
       // Push assets
       for (const asset of Object.values(item.assets ?? {})) {
