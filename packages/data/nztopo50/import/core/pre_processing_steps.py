@@ -12,8 +12,7 @@ island_gdf = gpd.read_file(islands)
 island_gdf["location"] = 0
 
 sea_gdf = gpd.read_file(sea_poly)
-crs = island_gdf.crs
-sea_gdf = sea_gdf.to_crs(crs)
+sea_gdf = sea_gdf.to_crs(epsg=island_gdf.crs.to_epsg())
 
 island_Joined_gdf = gpd.sjoin(island_gdf, sea_gdf, how="inner", predicate="intersects")
 island_Joined_gdf["location"] = 1
