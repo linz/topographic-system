@@ -807,10 +807,6 @@ class ModifyTable:
                 print(
                     f"Dropped column '{drop_column_name}' from table '{schema}.{table}'"
                 )
-            else:
-                print(
-                    f"Column '{drop_column_name}' does not exist in table '{schema}.{table}'"
-                )
 
     def update_value_by_column(self, schema, table, column_name, from_column_name):
         """Set a column's value from another column or to NULL.
