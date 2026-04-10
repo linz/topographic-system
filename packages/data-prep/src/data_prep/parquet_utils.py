@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 
 
 def write_parquet(gdf: gpd.GeoDataFrame, output: Path, row_group_size=50000):

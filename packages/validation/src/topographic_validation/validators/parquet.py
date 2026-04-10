@@ -1,5 +1,5 @@
 import os
-import geopandas as gpd # type: ignore
+import geopandas as gpd  # type: ignore
 from topographic_validation.validators.base import AbstractTopologyValidator
 
 

@@ -1275,9 +1275,10 @@ class TableModificationWorkflow:
 
                 # Copy table from source schema to carto schema
                 with self.table_modifer.conn.cursor() as cur:
+                    fields = self.table_modifer.get_ordered_columns(
+                        f"{self.schema_name}", table_name, primary_key_type
+                    )
 
-                    fields = self.table_modifer.get_ordered_columns(f"{self.schema_name}", table_name, primary_key_type)
-                    
                     copy_query = f"""
                         CREATE TABLE "carto"."{table_name}" AS
                         SELECT {", ".join([f'"{field}"' for field in fields])},"geometry" 
@@ -1288,9 +1289,11 @@ class TableModificationWorkflow:
                     self.table_modifer.conn.commit()
 
                     if self.schema_name != "model":
-                        drop_query = f'DROP TABLE "{self.schema_name}"."{table_name}" CASCADE;'
+                        drop_query = (
+                            f'DROP TABLE "{self.schema_name}"."{table_name}" CASCADE;'
+                        )
                         cur.execute(drop_query)
-                    
+
                     # Add index on topo_id field if it exists
                     if self.table_modifer.column_exists("carto", table_name, "topo_id"):
                         index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
