@@ -10,12 +10,17 @@ from pydantic import BaseModel
 
 
 def _load_pydantic_models_module(models_file: Path):
+    # Read file with UTF-8 BOM handling
+    content = models_file.read_text(encoding="utf-8-sig")
+    
     spec = importlib.util.spec_from_file_location("pydantic_models", models_file)
     if spec is None or spec.loader is None:
-        raise RuntimeError(f"Unable to load module from {models_file}")
+      raise RuntimeError(f"Unable to load module from {models_file}")
 
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    
+    # Execute module with content that has BOM removed
+    exec(compile(content, str(models_file), 'exec'), module.__dict__)
     return module
 
 
@@ -118,7 +123,7 @@ def build_html(models_file: Path, output_file: Path) -> None:
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
-  <title>Topographic Pydantic Models</title>
+  <title>Topographic Data Models</title>
   <style>
     :root {{
       --bg: #f6f7f9;
@@ -217,8 +222,8 @@ def build_html(models_file: Path, output_file: Path) -> None:
 <body>
   <div class=\"wrap\">
     <header>
-      <h1>Topographic Pydantic Models</h1>
-      <p class=\"meta\">Source module: {html.escape(str(models_file))} | Total models: {len(model_items)}</p>
+      <h1>Topographic Data Models</h1>
+      <p class=\"meta\">Total models: {len(model_items)}</p>
     </header>
     <nav>
       <h2>Models</h2>
@@ -235,7 +240,7 @@ def build_html(models_file: Path, output_file: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate an HTML reference document from generated Pydantic models."
+        description="Generate an HTML reference document from generated topographic data models."
     )
     parser.add_argument(
         "--models-file",
@@ -246,7 +251,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path(__file__).resolve().parent / "pydantic_models.html",
+        default=Path(__file__).resolve().parent / "examples" / "topographic_data_models.html",
         help="Output HTML file path",
     )
 

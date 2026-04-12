@@ -143,7 +143,8 @@ def _iter_schema_entries(schema_dir: Path) -> list[tuple[str, dict[str, Any], Pa
 
     entries: list[tuple[str, dict[str, Any], Path]] = []
     for schema_file in schema_files:
-        with schema_file.open("r", encoding="utf-8") as f:
+        # Accept BOM-prefixed JSON files as well as plain UTF-8.
+        with schema_file.open("r", encoding="utf-8-sig") as f:
             schema = json.load(f)
 
         for schema_key, schema_fragment in _extract_feature_schemas(schema, schema_file):
