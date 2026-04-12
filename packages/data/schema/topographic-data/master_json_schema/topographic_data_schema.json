@@ -98,11 +98,6 @@
                                                                                    "description":  "The specific type of feature being represented (e.g., \u0027bridge_line\u0027, \u0027building\u0027).",
                                                                                    "maxLength":  50
                                                                                },
-                                                              "nzgb_id":  {
-                                                                              "type":  "integer",
-                                                                              "description":  "",
-                                                                              "precision":  64
-                                                                          },
                                                               "info_display":  {
                                                                                    "type":  "string",
                                                                                    "description":  "",
@@ -433,11 +428,6 @@
                                                                        "description":  "The name of the feature.",
                                                                        "maxLength":  75
                                                                    },
-                                                          "nzgb_id":  {
-                                                                          "type":  "integer",
-                                                                          "description":  "",
-                                                                          "precision":  64
-                                                                      },
                                                           "route":  {
                                                                         "type":  "string",
                                                                         "description":  "",
