@@ -1151,12 +1151,14 @@ class TableModificationWorkflow:
             f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
         )
 
-        self.table_modifer.add_column(
-            f"{self.schema_name}.descriptive_text", "nzgb_id", "BIGINT"
-        )
-        self.table_modifer.add_column(
-            f"{self.schema_name}.railway_line", "nzgb_id", "BIGINT"
-        )
+        # Note: NZGB ids called with name_id or feat_id so need an approach
+
+        # self.table_modifer.add_column(
+        #    f"{self.schema_name}.descriptive_text", "nzgb_id", "BIGINT"
+        # )
+        # self.table_modifer.add_column(
+        #     f"{self.schema_name}.railway_line", "nzgb_id", "BIGINT"
+        # )
         self.table_modifer.add_column(
             f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
         )
@@ -1174,8 +1176,7 @@ class TableModificationWorkflow:
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
         )
-        # self.table_modifer.add_column(f"{self.schema_name}.river_line", "hierarchy", "VARCHAR(25)")
-        # self.table_modifer.add_column(f"{self.schema_name}.river", "hierarchy", "VARCHAR(25)")
+
         self.table_modifer.add_column(
             f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
         )
