@@ -56,7 +56,7 @@
       "table": "ferry_crossing",
       "intersection_table": "structure_line",
       "layername": "ferry-not-touches-structure-line",
-      "message": "Ferry line features must not touch structure line features"
+      "message": "Ferry line features must touch a structure line (start/end on boat ramp or wharf)"
     }
   ],
   "feature_not_contains_layers": [

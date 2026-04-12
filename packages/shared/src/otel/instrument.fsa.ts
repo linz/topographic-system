@@ -25,7 +25,7 @@ export function instrumentFsa() {
         span.setAttribute('file.size', buf.byteLength);
       } else if (buf instanceof HashTransform) {
         buf.on('end', () => {
-          span.setAttribute('file.size', buf.size);
+          span.setAttribute('file.size', buf.bytesRead);
           span.setAttribute('file.hash', buf.multihash);
         });
       }
