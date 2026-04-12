@@ -7,43 +7,55 @@ export const LintQgisProjectArgs = {
   qgis: option({
     type: Url,
     long: 'qgis',
-    description: 'Path Qgis project',
+    description: 'Path to QGIS project file',
   }),
 };
 
 export const LintQgisProjectCommand = command({
   name: 'lint-qgis',
-  description: 'Lint Qgis Project',
+  description: 'Lint QGIS Project',
   args: LintQgisProjectArgs,
   async handler(args) {
     registerFileSystem();
 
-    logger.info({ args }, 'Lint Qgis Project: Started');
+    logger.info({ args }, 'LintQgis:Start');
 
     const qgisFile = await fsa.read(args.qgis);
     const parser = new XMLParser();
     const qgisXml = parser.parse(qgisFile);
-    lintDatasources(qgisXml);
+    const errors = lintDatasources(qgisXml);
+
+    if (errors.length > 0) {
+      for (const error of errors) logger.error({ error }, 'LintQgis:Error');
+      throw new Error(`QGIS project lint failed with ${errors.length} error(s):\n${errors.join('\n')}`);
+    }
+
+    logger.info('LintQgis:Completed');
   },
 });
 
-function lintDatasources(node: any, visited = new Set<any>()) {
-  if (visited.has(node)) {
-    return;
+export function lintDatasources(node: unknown, visited = new Set<unknown>()): string[] {
+  if (node == null || typeof node !== 'object' || visited.has(node)) {
+    return [];
   }
   visited.add(node);
+
+  const errors: string[] = [];
 
   for (const [key, value] of Object.entries(node)) {
     if (key === 'datasource') {
       if (typeof value !== 'string') {
-        throw new Error('datasource value not a string');
+        errors.push('datasource value is not a string');
+        continue;
       }
 
       if (value.endsWith('.parquet') && !value.startsWith('./')) {
-        throw new Error(`datasource path must be ./something.parquet, ${value}`);
+        errors.push(`datasource parquet path must be relative (start with ./): ${value}`);
       }
     }
 
-    lintDatasources(value, visited);
+    errors.push(...lintDatasources(value, visited));
   }
+
+  return errors;
 }
