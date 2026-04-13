@@ -227,7 +227,6 @@ export const ProduceCoverCommand = command({
     const sw = new StacCollectionWriter('product', projectName);
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
-    sw.strategy(args.strategy);
 
     logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
 
@@ -264,15 +263,14 @@ export const ProduceCoverCommand = command({
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);
     logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
-    const collections = await sw.writeWithStrategy(itemTarget, q, true);
+    const collectionUrl = await sw.write(itemTarget, q);
 
-    if (collections.length !== 1) {
-      throw new Error(`ProduceCover: Wrong number of collections for project ${args.project.href}`);
+    if (collectionUrl == null) {
+      throw new Error(`ProduceCover: Failed to write collection for project ${args.project.href}`);
     }
-    const collectionUrl = collections[0]!;
 
     logger.info({ project: args.project.href }, 'ProduceCover: UpsertStacCatalog');
-    await StacUpdater.collections(rootCatalog, [...collections.values()], true);
+    await StacUpdater.collections(rootCatalog, [collectionUrl], true);
 
     logger.info({ project: args.project.href, target: args.output.href }, 'ProduceCover: Finished');
 

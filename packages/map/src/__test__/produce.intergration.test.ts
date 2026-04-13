@@ -108,11 +108,28 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.deepEqual(
       [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/product/topo50/latest/BQ32.json`,
-        `memory://target-produce/product/topo50/latest/collection.json`,
-        `memory://target-produce/product/topo50/catalog.json`,
-        'memory://target-produce/product/catalog.json',
+        `memory://target-produce/topo50/BQ32.json`,
+        `memory://target-produce/topo50/collection.json`,
         'memory://target-produce/catalog.json',
+      ].sort(),
+    );
+
+    await StacPushCommand.handler({
+      source: new URL('memory://target-produce/catalog.json'),
+      target: new URL('memory://target-produce-push/'),
+      category: 'product',
+      strategies: [{ type: 'latest' }],
+      commit: true,
+    });
+
+    assert.deepEqual(
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce-push/'))))].map((f) => f.href).sort(),
+      [
+        `memory://target-produce-push/product/topo50/latest/BQ32.json`,
+        `memory://target-produce-push/product/topo50/latest/collection.json`,
+        'memory://target-produce-push/product/topo50/catalog.json',
+        'memory://target-produce-push/product/catalog.json',
+        'memory://target-produce-push/catalog.json',
       ].sort(),
     );
 
@@ -122,7 +139,7 @@ describe('deploy -> produce-cover -> produce', () => {
       return outputFile;
     });
     await ProduceCommand.handler({
-      path: [new URL(`memory://target-produce/product/topo50/latest/BQ32.json`)],
+      path: [new URL(`memory://target-produce-push/product/topo50/latest/BQ32.json`)],
       tempLocation: new URL('memory://temp-produce/'),
       fromFile: undefined,
       force: false,
@@ -130,14 +147,14 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce-push/'))))].map((f) => f.href).sort(),
       [
-        `memory://target-produce/product/topo50/latest/BQ32.json`,
-        `memory://target-produce/product/topo50/latest/collection.json`,
-        `memory://target-produce/product/topo50/catalog.json`,
-        'memory://target-produce/product/catalog.json',
-        'memory://target-produce/catalog.json',
-        `memory://target-produce/product/topo50/latest/BQ32.pdf`, // :tada: a export happened
+        `memory://target-produce-push/product/topo50/latest/BQ32.json`,
+        `memory://target-produce-push/product/topo50/latest/collection.json`,
+        `memory://target-produce-push/product/topo50/catalog.json`,
+        'memory://target-produce-push/product/catalog.json',
+        'memory://target-produce-push/catalog.json',
+        `memory://target-produce-push/product/topo50/latest/BQ32.pdf`, // :tada: a export happened
       ].sort(),
     );
   });

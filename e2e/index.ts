@@ -133,13 +133,22 @@ describe('topographic-system.e2e', async () => {
       await tsMap(
         'produce-cover',
         ['--project', '/target/bucket/qgis/topo-test/latest/topo-test.json'], // TODO allow collection.json
-        ['--output', '/target/bucket/'],
+        ['--output', '/target/produce/'],
         ['--map-sheet-layer', 'testmapsheet'],
         ['--strategy', 'latest'],
         ['--format', 'png'],
         ['--dpi', '120'],
         'BQ26',
         'BQ27',
+      );
+
+      await tsMap(
+        'stac-push',
+        ['--source', '/target/produce/catalog.json'],
+        ['--target', '/target/bucket/'],
+        ['--category', 'product'],
+        ['--strategy', 'latest'],
+        '--commit',
       );
 
       await tsMap(
