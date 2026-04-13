@@ -3,9 +3,11 @@ import geopandas as gpd  # type: ignore
 # offshore (1) or inland island (0) - intersect using sea_coastline poly shapefile
 # create from coastline and outer box
 
-islands = r"C:\Data\Topo50\Release64_NZ50_Shape\island_poly.shp"
-islands_out = r"C:\Data\Topo50\Release64_NZ50_Shape\island_poly.shp"
-sea_poly = r"C:\Data\Topo50\sea_polygon\sea_coastline.shp"
+schema_name = "release64"
+
+islands = rf"C:\Data\Topo50\{schema_name}_NZ50_Shape\island_poly.shp"
+islands_out = rf"C:\Data\Topo50\{schema_name}_NZ50_Shape\island_poly.shp"
+sea_poly = rf"C:\Data\Topo50\{schema_name}_NZ50_Shape\sea_coastline.shp"
 
 island_gdf = gpd.read_file(islands)
 

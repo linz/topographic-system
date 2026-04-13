@@ -673,7 +673,6 @@ class ModifyTable:
             "physical_infrastructure_point",
             "physical_infrastructure_line",
             "structure",
-            # "vegetation",
             "landcover",
             "landcover_line",
             "ferry_crossing",
