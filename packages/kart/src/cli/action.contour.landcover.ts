@@ -100,7 +100,7 @@ export const ContourWithLandcoverCommand = command({
     sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
     sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
 
-    const collections = await sw.write(rootCatalog, pLimit(4), true);
+    const collections = await sw.writeWithStrategy(rootCatalog, pLimit(4), true);
 
     await StacUpdater.collections(rootCatalog, collections, true);
   },
