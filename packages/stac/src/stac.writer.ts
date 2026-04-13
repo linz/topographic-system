@@ -165,13 +165,13 @@ export class StacCollectionWriter {
     for (const asset of assets) {
       const target = new URL(asset.href, baseUrl);
       const source = getSource(asset);
-      if (source == null) continue; // TODO should this throw
+      if (source == null) continue; // TODO should this throw?
       todo.push(q(() => HashWriter.writeStac(asset, target, source)));
     }
 
     await Promise.all(todo);
 
-    // TODO should we be assigning geometires here?
+    // TODO should we be assigning geometries here?
     for (const item of this.items.values()) StacGeometry.extend(this.collection, item);
     const targetCollection = structuredClone(this.collection);
     targetCollection.id = `${this.category}-${this.label}`;
