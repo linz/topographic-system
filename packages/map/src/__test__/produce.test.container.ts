@@ -113,7 +113,7 @@ describe('QGIS Process', () => {
     });
 
     await it('produce', async () => {
-      const targetJson = new URL('target-produce/working/product/beehive/latest/BQ31.json', tempLocation);
+      const targetJson = new URL('target-produce/working/beehive/BQ31.json', tempLocation);
 
       await cli('produce', fileURLToPath(targetJson), [
         '--temp-location',
@@ -123,6 +123,20 @@ describe('QGIS Process', () => {
       const output = await fsa.readJson<StacItem>(targetJson);
 
       assert.ok(Object.keys(output.assets).length > 0);
+    });
+
+    await it('stac-push', async () => {
+      // Push stac files and assets to target location with storage strategy
+      const deploy = await cli(
+        'stac-push',
+        ['--source', fileURLToPath(new URL('target-produce/working/catalog.json', tempLocation))],
+        ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
+        ['--category', 'product'],
+        ['--strategy', 'latest'],
+        ['--strategy', `commit=${baseDeployArgs.githash}`],
+        ['--commit'],
+      );
+      console.log(deploy);
     });
   });
 });

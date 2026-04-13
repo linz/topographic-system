@@ -135,12 +135,16 @@ describe('topographic-system.e2e', async () => {
         ['--project', '/target/bucket/qgis/topo-test/latest/topo-test.json'], // TODO allow collection.json
         ['--output', '/target/produce/'],
         ['--map-sheet-layer', 'testmapsheet'],
-        ['--strategy', 'latest'],
         ['--format', 'png'],
         ['--dpi', '120'],
         'BQ26',
         'BQ27',
       );
+
+      await tsMap('produce', '/target/produce/topo-test/BQ26.json', '/target/produce/topo-test/BQ27.json');
+
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/BQ26.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/BQ27.tiff', targetFolder)));
 
       await tsMap(
         'stac-push',
@@ -150,15 +154,8 @@ describe('topographic-system.e2e', async () => {
         ['--strategy', 'latest'],
         '--commit',
       );
-
-      await tsMap(
-        'produce',
-        '/target/bucket/product/topo-test/latest/BQ26.json',
-        '/target/bucket/product/topo-test/latest/BQ27.json',
-      );
-
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.png', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.png', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/product/topo-test/latest/BQ26.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/product/topo-test/latest/BQ27.tiff', targetFolder)));
       // TODO validate STAC catalog and validate
     });
   });
