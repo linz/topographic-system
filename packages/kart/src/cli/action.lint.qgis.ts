@@ -49,8 +49,15 @@ export function lintDatasources(node: unknown, visited = new Set<unknown>()): st
         continue;
       }
 
-      if (value.endsWith('.parquet') && !value.startsWith('./')) {
-        errors.push(`datasource parquet path must be relative (start with ./): ${value}`);
+      // ignore empty datasource
+      if (value === '') {
+        continue;
+      }
+
+      // remove datasource metadata if there, eg ./testline.parquet|layername=testline
+      const path = value.split('|')[0] ?? value;
+      if (!(path.startsWith('./') || path.startsWith('../'))) {
+        errors.push(`datasource path must be relative (start with ./ or ../): ${value}`);
       }
     }
 
