@@ -2,22 +2,21 @@
 
 Data comes from various sources
 
-
 ## Topographic Data
+
 Core topographic data loaded into topographic-data
 
 This mainly comes from shapefiles that have gone through the LDS load preparation steps (sets the correct t50_fid and joins data across map sheets).
 
 All feature types are created from this data with the following exceptions:
 
-**road_cl.shp** - this is exported directly from LAMPS. 
+**road_cl.shp** - this is exported directly from LAMPS.
 
 Macrons need to be checked.
 
 This replaces the LDS shp version.
 
 The road_cl.cpg file should be deleted
-
 
 **TODO: river_cl.shp** - we want the name field which is dropped from LDS load.
 
@@ -26,13 +25,11 @@ sea_polygon \ sea_coastline.shp is create using ArcGIS Pro manually. Creating a 
 
 Instructions: TBC
 
- 
- ## Topographic Contours
- 
- **topographic-contour-data** - the contour data LDS shp file should be 2 files. If only one this usually only covers one island.
+## Topographic Contours
 
- The current process use the contours downloaded from LDS instance as a GPKG database - lds-nz-contours-topo-150k-GPKG
+**topographic-contour-data** - the contour data LDS shp file should be 2 files. If only one this usually only covers one island.
 
+The current process use the contours downloaded from LDS instance as a GPKG database - lds-nz-contours-topo-150k-GPKG
 
 ## Product (carto) Data
 
@@ -40,8 +37,6 @@ Instructions: TBC
 
 Once loaded into POSTGIS step addition processing is run to add QGIS fields and update new values. Becomes nz_topo50_carto_text
 
-
 **dms_grid_3.gpkg** - created by North Road - used as grid on the topo50 map. Becomes nz_topo50_grid.
 
 **grid.gpkg** - created by North Road - used as grid on the topo50 map. Becomes nz_topo50_dms_grid.
-

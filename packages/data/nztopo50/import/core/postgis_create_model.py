@@ -30,21 +30,20 @@ def excel_to_layered_dict(excel_path):
 
 
 if __name__ == "__main__":
-    # commands_options = ["drop_tables", "create_tables"]
+    commands_options = ["drop_tables", "create_tables"]
     # commands_options = ["drop_tables"]
-    commands_options = ["create_tables"]
+    # commands_options = ["create_tables"]
     # commands_options = ["create_indexes"]
     for command_option in commands_options:
         print(f"Executing command: {command_option}")
 
         model_fields_file = r"C:\Data\Model\datasets_fields.xlsx"
-        # schema_name = "toposource"
         # schema_name = "release62"
         schema_name = "release64"
-        schema_name = "model"
+        # schema_name = "model"
 
         primary_key_type = "none"
-        # primary_key_type = 'int' #uuid
+        # primary_key_type = 'int'
         # primary_key_type = "uuid"
 
         layered_dict = excel_to_layered_dict(model_fields_file)

@@ -4,14 +4,39 @@ import pandas as pd  # type: ignore
 import geopandas as gpd  # type: ignore
 
 from pyogrio import read_info, write_dataframe  # type: ignore
-import pyproj
 from sqlalchemy import create_engine  # type: ignore
 
 
 class Topo50DataLoader:
+    """Load Topo50 shapefiles, normalize fields, and persist to target storage.
+
+    The loader reads layer metadata from an Excel mapping file, groups source
+    shapefiles by output layer, computes a harmonized set of columns per layer,
+    applies project-specific column renaming rules, and writes each dataset to
+    either PostGIS or a file geodatabase target.
+
+    Args:
+        shapefile_dir: Directory containing input .shp files.
+        excel_file: Path to the layer mapping spreadsheet.
+        database: Output target identifier. For PostGIS runs this is used as
+            the schema name by the current workflow.
+        count_log: File path for writing per-layer row counts.
+        dataset_field: Mapping field name for dataset grouping metadata.
+    """
+
     def __init__(
         self, shapefile_dir, excel_file, database, count_log, dataset_field="dataset"
     ):
+        """Initialize loader configuration and output logging.
+
+        Args:
+            shapefile_dir: Directory containing input `.shp` files.
+            excel_file: Path to the layer mapping spreadsheet.
+            database: Output target identifier. In the current workflow this
+                is also used as the PostGIS schema name.
+            count_log: Output file path for recording per-layer row counts.
+            dataset_field: Metadata field name used for dataset grouping.
+        """
         self.shapefile_dir = shapefile_dir
         self.dataset_field = dataset_field
         self.excel_file = excel_file
@@ -24,6 +49,12 @@ class Topo50DataLoader:
         self.count_log_file.write("layer_name, row_count\n")
 
     def _load_layers_info(self):
+        """Read layer metadata from Sheet1 of the mapping spreadsheet.
+
+        Returns:
+            dict: Mapping of `shp_name` to
+                `[object_name, theme, feature_type, layer_name, dataset]`.
+        """
         source = pd.read_excel(self.excel_file, sheet_name="Sheet1")
         layers_info = {}
         for row in source.itertuples():
@@ -39,6 +70,16 @@ class Topo50DataLoader:
 
     @staticmethod
     def get_basename(file):
+        """Return full shapefile stem and normalized base token.
+
+        Args:
+            file: Full file path to a shapefile.
+
+        Returns:
+            tuple[str, str]:
+                - `shp_name`: Filename stem without extension.
+                - `basename`: Normalized source token used for logging.
+        """
         basename = os.path.basename(file)
         shp_name = basename.split(".")[0]
         if "_" in basename:
@@ -60,6 +101,22 @@ class Topo50DataLoader:
         append_data=True,
         schema_name="toposource",
     ):
+        """Write a GeoDataFrame to the requested output format.
+
+        Args:
+            extension: Output format key (`geojson`, `shapefile`, `gpkg`,
+                `postgis`, or `gdb`).
+            gdf: GeoDataFrame to persist.
+            output_file: Destination path for file outputs.
+            layer_name: Destination layer/table name.
+            dataset_name: Dataset (feature dataset) name used for GDB output.
+            append_data: If True, append to existing data where supported.
+            schema_name: Target schema name for PostGIS output.
+
+        Notes:
+            Exceptions are caught and logged to stdout to keep the wider import
+            loop progressing unless the caller chooses to raise.
+        """
         try:
             layer_name = layer_name.lower()
             if extension == "geojson":
@@ -97,6 +154,11 @@ class Topo50DataLoader:
             print(f"Error writing layer '{layer_name}' to '{output_file}': {e}")
 
     def group_layers(self):
+        """Collect field definitions for each logical output layer.
+
+        Reads shapefile metadata and builds `self.layer_groups` as
+        `{layer_name: [field_list, ...]}` for later column harmonization.
+        """
         for file in glob.glob(self.search_path):
             shp_name, basename = self.get_basename(file)
             info = read_info(file)
@@ -112,6 +174,11 @@ class Topo50DataLoader:
                 self.layer_groups[layer_name].append(fields)
 
     def compute_common_fields(self):
+        """Compute a unified column set per layer.
+
+        Creates `self.common_fields` where each layer maps to the union of
+        fields observed across all contributing shapefiles.
+        """
         for key in self.layer_groups:
             field_sets = self.layer_groups[key]
             first = True
@@ -124,10 +191,17 @@ class Topo50DataLoader:
             self.common_fields[key] = common_columns
 
     def reset_column_names(self, gdf, layer_name):
-        # predefine column name changes
-        # if "t50_fid" in gdf.columns:
-        #    gdf = gdf.drop(columns=["t50_fid"])
+        """Apply layer-specific and generic column renaming rules.
 
+        Args:
+            gdf: Input GeoDataFrame to normalize.
+            layer_name: Logical output layer name used for conditional rules.
+
+        Returns:
+            GeoDataFrame: Updated data with normalized attribute names and
+            selected type cleanups.
+        """
+        # predefine column name changes
         if layer_name.lower() == "tunnel_line":
             if "use1" in gdf.columns:
                 gdf = gdf.rename(columns={"use1": "tunnel_use"})
@@ -205,6 +279,12 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"UFID": "t50_fid"})
             gdf["t50_fid"] = gdf["t50_fid"].fillna(0)
             gdf["t50_fid"] = gdf["t50_fid"].astype(int)
+        if layer_name.lower() == "nz_topo50_map_sheet":
+            gdf = gdf.rename(columns={"t50id": "t50_fid"})
+            gdf["t50_fid"] = gdf["t50_fid"].fillna(0)
+            gdf["t50_fid"] = gdf["t50_fid"].astype(int)
+            gdf = gdf.rename(columns={"ex_class": "example_class"})
+            gdf = gdf.rename(columns={"ex_name": "example_name"})
 
         if layer_name.lower() == "island":
             gdf["location"] = gdf["location"].fillna(0)
@@ -241,6 +321,17 @@ class Topo50DataLoader:
         return gdf
 
     def process_and_save_layers(self, target="postgis", schema_name="toposource"):
+        """Read, normalize, and persist each mapped shapefile layer.
+
+        Args:
+            target: Output backend (`postgis` or `gdb`).
+            schema_name: PostGIS schema name when using `postgis`.
+
+        Notes:
+            Each source file is reprojected to EPSG:2193, aligned to the
+            layer-level common column set, normalized by renaming rules, then
+            written through `save_dataset`.
+        """
         processed_layer = []
         for file in glob.glob(self.search_path):
             gdf = gpd.read_file(file)
@@ -256,14 +347,16 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for testing
-            # if layer_info[3].lower() != 'vegetation':
+            # if layer_info[3].lower() != 'nz_topo50_map_sheet':
             #     print(f"Skipping layer: {layer_info[3]}")
             #     continue
             layer_name = layer_info[3]
 
             # Currently contours are processed from LDS data - see contours/import_contours.py - so skipping processing of contours from shapefiles for now
             if layer_name.lower() == "contour":
-                print(f"Skipping layer: {layer_name} - use import_contours.py to process contour data from LDS ")
+                print(
+                    f"Skipping layer: {layer_name} - use import_contours.py to process contour data from LDS "
+                )
                 continue
 
             # theme = layer_info[1]
@@ -296,9 +389,9 @@ class Topo50DataLoader:
             print(gdf.shape[0], "rows in layer", layer_name)
             self.count_log_file.write(f"{layer_name}, {gdf.shape[0]}\n")
 
-            if layer_name == 'contour':
-                gdf_part1 = gdf.iloc[:len(gdf)//2]
-                gdf_part2 = gdf.iloc[len(gdf)//2:]
+            if layer_name == "contour":
+                gdf_part1 = gdf.iloc[: len(gdf) // 2]
+                gdf_part2 = gdf.iloc[len(gdf) // 2 :]
                 self.save_dataset(target, schema_name, gdf_part1, layer_name, dataset)
                 self.save_dataset(target, schema_name, gdf_part2, layer_name, dataset)
                 self.save_dataset(target, schema_name, gdf, layer_name, dataset)
@@ -306,6 +399,19 @@ class Topo50DataLoader:
                 self.save_dataset(target, schema_name, gdf, layer_name, dataset)
 
     def save_dataset(self, target, schema_name, gdf, layer_name, dataset):
+        """Persist one normalized layer to either GDB or PostGIS.
+
+        Args:
+            target: Destination backend (`gdb` or `postgis`).
+            schema_name: Schema name for PostGIS writes.
+            gdf: Normalized GeoDataFrame to write.
+            layer_name: Destination layer/table name.
+            dataset: Feature dataset grouping metadata (used by GDB).
+
+        Raises:
+            Exception: Re-raises underlying write errors after closing the
+                count log file.
+        """
         if target == "gdb":
             try:
                 self.write_dataset("gdb", gdf, self.output, layer_name, dataset, True)
@@ -317,8 +423,8 @@ class Topo50DataLoader:
         else:
             try:
                 self.write_dataset(
-                        "postgis", gdf, self.output, layer_name, dataset, True, schema_name
-                    )
+                    "postgis", gdf, self.output, layer_name, dataset, True, schema_name
+                )
             except Exception as e:
                 print(f"Error writing layer '{layer_name}' to PostGIS: {e}")
                 self.count_log_file.close()
@@ -326,6 +432,11 @@ class Topo50DataLoader:
             print(f"Layer {layer_name} saved to PostGIS schema: {schema_name}")
 
     def run(self):
+        """Execute the full end-to-end loading pipeline.
+
+        The pipeline groups source layers, computes common fields, then reads,
+        normalizes, and persists datasets to the configured output target.
+        """
         print("Starting...")
         # target = "gdb"
         target = "postgis"
@@ -337,27 +448,15 @@ class Topo50DataLoader:
 
 
 if __name__ == "__main__":
-    local_app_data = os.getenv("LOCALAPPDATA")
-    if local_app_data is None:
-        raise ValueError("LOCALAPPDATA environment variable not found")
-    folder = os.path.join(
-        local_app_data,
-        "miniconda3",
-        "pkgs",
-        "proj-9.6.2-h4f671f6_0",
-        "Library",
-        "share",
-        "proj",
-    )
-    pyproj.datadir.set_data_dir(folder)
     layer_info_file = r"C:\Data\Model\layers_info.xlsx"
 
     # release = "release62"
     release = "release64"
+
     data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
 
     # postgis schema name
-    database = release  # r"C:\Data\Model\geodatabase\topo50data_themes.gdb"
+    database = release
     count_log = r"C:\Data\Model\count_log.txt"
 
     loader = Topo50DataLoader(

@@ -2,12 +2,11 @@
 
 General prerequisites information in README_PREREGQUISITES.md
 
-*Pre-Step: Ensure schema has been created (manual step) in PostGIS database called carto*
+_Pre-Step: Ensure schema has been created (manual step) in PostGIS database called carto_
 
 Each of the product datasets has its own process to load...
 
 CODE is in the **product** folder
-
 
 # Process - Load Layers
 
@@ -15,19 +14,17 @@ CODE is in the **product** folder
 
 The original file is exported from LAMPS as a shapefile.
 
+**WARNING shp file fail to load some uft8 issue - convert to geojson first using UI (Pro/QGIS)**
+
+source file becomes - "linz_carto_tex_FeaturesToJSO.geojson"
+
+> Export to GEOJSON if needed - manual process
+
 The import_carto_text script converts and field names and loads it into the carto schema.
-
-**WARNING** - loading from shp caused a failure so file was export to geojson.
-shp file fail to load some uft8 issue - convert to geojson first using UI (Pro/QGIS)
-
->Export to GEOJSON if needed - manual process
 
 Run: import_carto_text.py
 
-*ADD QGIS Fields*
-
-March 2026 - pre-processing code for this layer is under development. The process will add fields need for QGIS mapping and update values based in carto_text based on lookups that are currently being created. Process to be defined....
-
+_ADD QGIS Fields_ - See Cartographic Text Post Processing and Re-Loading section below
 
 **nz_topo50_map_sheet** - added via main topographic process and copied into carto schema (SRID=NZTM2000 EPSG:2193)
 
@@ -51,7 +48,7 @@ kart init -b master topographic-product-data
 
 if work flow is going to load to branch and then PR into master create a branch (reflect release version)
 
->Make sure it is a new branch
+> Make sure it is a new branch
 
 kart init -b release64 topographic-data
 
@@ -71,7 +68,6 @@ Run BAT import or run commands manually - just does the import steps
 
 kart push origin master [--force] --force use if going to master and need to clear repo. Skip if going to branch.
 
-
 # Cartographic Text Post Processing and Re-Loading
 
 Currently the initial cartographic text layer nz_topo_carto_text has an additional step applied.
@@ -90,21 +86,21 @@ CLI - go to working folder - for example
 
 Clone last copy the the product repo and go into the folder. Note if starting from clean start point ie after running the import_carto_text step - Then the clone is not required.
 
-> kart clone git@github.com:linz/topographic-product-data 
+> kart clone git@github.com:linz/topographic-product-data
 
-> cd topographic-product-data 
+> cd topographic-product-data
 
 Step up python setting and spreadsheet
 
 **Copy** the current GPKG - this will become the source.
 
-Python file to check and run is *process_carto_text_newfields.py*
+Python file to check and run is _process_carto_text_newfields.py_
 
 In the master GPKG - delete the nz_topo_carto_text layer
 
 > kart data rm nz_topo_carto_text
 
-Once the python file and supporting data is pointing at the correct files etc then... 
+Once the python file and supporting data is pointing at the correct files etc then...
 
 > Run the python file. A log is also created.
 
@@ -112,15 +108,10 @@ This will created an updated file in the master GPKG.
 
 Check the log and output for example in QGIS - fields were updated.
 
-Push the changes back to the master branch - typically this requires a force 
+Push the changes back to the master branch - typically this requires a force
 
 > kart push origin master --force
 
 Once load it is worth cleaning up and re-cloning the branch to verify everything loaded ok.
-
-
-
-
-
 
 kart add-dataset nz_topo50_carto_text -m "add carto text update"

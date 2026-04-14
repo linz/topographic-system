@@ -23,11 +23,24 @@ DB_PARAMS = {
 }
 
 
-class TableComparator:
+class SQLTableDiffComparer:
     """Class for comparing table data between database releases."""
     
-    def __init__(self, db_params):
+    def __init__(
+        self,
+        db_params: dict,
+        schema_name: str,
+        previous_schema: str,
+        release_date: str,
+        use_hive_partitioning: bool,
+        change_logs_path: str,
+    ):
         self.db_params = db_params
+        self.schema_name = schema_name
+        self.previous_schema = previous_schema
+        self.release_date = release_date
+        self.use_hive_partitioning = use_hive_partitioning
+        self.change_logs_path = change_logs_path
         self.conn = None
         self.connect()
 
@@ -94,7 +107,7 @@ class TableComparator:
             "temperature", "temperature_indicator", "visibility", "way_count", "road_access",
             "width", "name_id", "wreck_of", "shape_area", "rna_sufi", "route", "route2",
             "route3", "collection_id", "collection_name", "theme", "source", "source_date",
-            "capture_method", "change_type", "update_date", "create_date", "version",
+            "capture_method", "change_type", "update_date", "create_date", "version", "geometry"
         ]
 
         if primary_key_type == "uuid":
@@ -106,8 +119,12 @@ class TableComparator:
     def get_non_compare_columns(self):
         """Get columns that should not be compared when checking for differences."""
         non_compare_columns = [
-            "feature_type", "theme", "source", "source_date",
-            "capture_method", "change_type", "update_date", "create_date", "version"
+            "topo_id",
+            "capture_method",
+            "change_type",
+            "update_date",
+            "create_date",
+            "version",
         ]
         return non_compare_columns
 
@@ -137,10 +154,6 @@ class TableComparator:
     def compare_table_data(self, schema, table, previous_schema, release_date=None):
         """Compare table data between current and previous schema."""
         self.connect()
-        compare_columns = self.get_compare_columns(schema, table)
-        if not compare_columns:
-            print(f"No comparable columns found for {schema}.{table}")
-            return None
 
         # INSERTS - records in new schema but not in previous
         query = f"""
@@ -169,20 +182,25 @@ class TableComparator:
             delete_df = pd.DataFrame(rows, columns=columns)
 
         # UPDATES - records that exist in both but have different values
-        distinct_conditions = " OR ".join(
-            [f"a.{col} IS DISTINCT FROM b.{col}" for col in compare_columns]
-        )
-        query = f"""
-            SELECT a.topo_id::text, '{table}' as table_name, a.feature_type, 'updated' AS change_type
-            FROM {previous_schema}.{table} AS a
-            JOIN {schema}.{table} AS b ON a.topo_id = b.topo_id
-            WHERE {distinct_conditions};
-        """
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-            rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-            update_df = pd.DataFrame(rows, columns=columns)
+        compare_columns = self.get_compare_columns(schema, table)
+        if not compare_columns:
+            print(f"No comparable columns found for {schema}.{table}")
+            update_df = pd.DataFrame(columns=["topo_id", "table_name", "feature_type", "change_type"])
+        else:
+            distinct_conditions = " OR ".join(
+                [f"a.{col} IS DISTINCT FROM b.{col}" for col in compare_columns]
+            )
+            query = f"""
+                SELECT a.topo_id::text, '{table}' as table_name, a.feature_type, 'updated' AS change_type
+                FROM {previous_schema}.{table} AS a
+                JOIN {schema}.{table} AS b ON a.topo_id = b.topo_id
+                WHERE {distinct_conditions};
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(query)
+                rows = cur.fetchall()
+                columns = [desc[0] for desc in cur.description]
+                update_df = pd.DataFrame(rows, columns=columns)
 
         # Add release date columns if provided
         if release_date:
@@ -197,46 +215,46 @@ class TableComparator:
 
 def main():
     """Main comparison logic for generating changelogs."""
-    
-    # Configuration
-    comparator = TableComparator(DB_PARAMS)
-    schema_name = "release64"
-    previous_schema = "release62"
-    release_date = "2025-09-25"
-    
-    # Output settings
-    use_hive_partitioning = False
-    change_logs_path = r"c:\data\topo-data-vector\changelogs"
-    
+
+    comparator = SQLTableDiffComparer(
+        db_params=DB_PARAMS,
+        schema_name="release64",
+        previous_schema="release62",
+        release_date="2025-09-25",
+        # Output settings
+        use_hive_partitioning=False,
+        change_logs_path=r"c:/temp/data-changes",
+    )
+
     # Create output directory
-    if not os.path.exists(change_logs_path):
-        os.makedirs(change_logs_path)
-    
+    if not os.path.exists(comparator.change_logs_path):
+        os.makedirs(comparator.change_logs_path)
+
     # Get list of tables to compare
-    schema_tables = comparator.list_schema_tables(schema_name)
-    
+    schema_tables = comparator.list_schema_tables(comparator.schema_name)
+
     # Compare tables and generate changelogs
     df_order = ["added", "removed", "updated"]
     i = 0
     all_dfs = None
-    
+
     for schema, tables in schema_tables.items():
         for table in tables:
             if table == "collections":
                 continue
-            
+
             print(f"Comparing table: {schema}.{table}")
             dfs = comparator.compare_table_data(
-                schema, table, previous_schema, release_date
+                schema, table, comparator.previous_schema, comparator.release_date
             )
             i += 1
-            
+
             if dfs is None:
                 print(f"No comparable columns for {schema}.{table}, skipping comparison.")
                 continue
-            
+
             insert_df, delete_df, update_df = dfs
-            
+
             # Concatenate results from all tables
             if i == 1:
                 all_dfs = [insert_df, delete_df, update_df]
@@ -244,38 +262,38 @@ def main():
                 all_dfs[0] = pd.concat([all_dfs[0], insert_df], ignore_index=True)
                 all_dfs[1] = pd.concat([all_dfs[1], delete_df], ignore_index=True)
                 all_dfs[2] = pd.concat([all_dfs[2], update_df], ignore_index=True)
-    
+
     # Export results to parquet files
     if all_dfs:
         for i, df in enumerate(all_dfs):
             change_type = df_order[i]
-            
+
             if df.empty:
                 print(f"No {change_type} changes detected")
             else:
-                if not use_hive_partitioning:
+                if not comparator.use_hive_partitioning:
                     # Standard parquet output
                     output_file = os.path.join(
-                        change_logs_path,
-                        schema_name,
-                        f"{schema_name}_{change_type}_changelog.parquet",
+                        comparator.change_logs_path,
+                        comparator.schema_name,
+                        f"{comparator.schema_name}_{change_type}_changelog.parquet",
                     )
                     os.makedirs(os.path.dirname(output_file), exist_ok=True)
                     df.to_parquet(output_file, index=False)
                     print(f"Exported {change_type} changes to {output_file}")
                 else:
                     # Hive partitioned output
-                    partition_path = os.path.join(change_logs_path, schema_name)
+                    partition_path = os.path.join(comparator.change_logs_path, comparator.schema_name)
                     os.makedirs(partition_path, exist_ok=True)
                     partition_path = partition_path.replace("\\", "/")
-                    
+
                     pq.write_to_dataset(
                         pa.Table.from_pandas(df),
                         root_path=partition_path,
                         partition_cols=["year", "month", "day", "change_type"],
                     )
                     print(f"Exported {change_type} changes with partitioning to {partition_path}")
-    
+
     # Close database connection
     comparator.close()
     print("Comparison complete!")

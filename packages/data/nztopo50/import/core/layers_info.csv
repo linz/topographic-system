@@ -1,4 +1,4 @@
-object_name,shp_name,theme,dataset,feature_type,layer_name,type,lds_Name
+﻿object_name,shp_name,theme,dataset,feature_type,layer_name,type,lds_Name
 Names,descriptive_text,Annonation,Annonation_Layers,descriptive_text,Descriptive_Text,point,50261-nz-descriptive-texts-topo-150k
 Names,geographic_name,Annonation,Annonation_Layers,geographic_name,Geographic_Name,point,50280-nz-geographic-names-topo-150k
 Structure,building_poly,Buildings,Buildings_Layers,building,Building,poly,50246-nz-building-polygons-topo-150k
@@ -80,7 +80,7 @@ Vegetative Landcover,vineyard_poly,Landuse,Land_Layers,vineyard,Vegetation,poly,
 Hydrography,canal_poly,Landuse,Water_Layers,canal,Water,poly,50251-nz-canal-polygons-topo-150k
 Hydrography,canal_cl,Landuse,Water_Layers,canal,Water_line,line,50250-nz-canal-centrelines-topo-150k
 Hydrography,drain_cl,Landuse,Water_Layers,drain,Water_line,line,50262-nz-drain-centrelines-topo-150k
-NZ-Topo-Map-Sheet,NZ-Topo-Map-Sheet,MapSheets,MapSheets_Layers,nz_topo50_map_sheet,NZ_Topo50_Map_Sheet,poly,50295-nz-linz-map-sheets-topo-150k
+NZ-Topo-Map-Sheet,linz_map_sheet,MapSheets,MapSheets_Layers,nz_topo50_map_sheet,NZ_Topo50_Map_Sheet,poly,linz_map_sheet
 Relief,contour,Relief,Relief_Layers,contour,Contour,line,50768-nz-contours-topo-150k
 Relief,cliff_edge,Relief,Relief_Layers,cliff_edge,Relief_line,line,50257-nz-cliff-edges-topo-150k
 Relief,cutting_edge,Relief,Relief_Layers,cutting_edge,Relief_line,line,50259-nz-cutting-edges-topo-150k

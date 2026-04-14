@@ -5,6 +5,7 @@ This README documents the comprehensive workflow for processing cartographic tex
 ## Overview
 
 The `CartoTextProcessor` class processes cartographic text data through a multi-stage workflow that:
+
 1. Reads mapping data from Excel spreadsheets
 2. Processes geographic data from GeoPackage files
 3. Applies complex mapping rules to update styling attributes
@@ -13,8 +14,9 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
 ## Workflow Steps
 
 ### 1. Initialization and Setup
+
 - **Purpose**: Initialize the processor with output directory and logging configuration
-- **Actions**: 
+- **Actions**:
   - Creates output directory if it doesn't exist
   - Sets up dual logging (file + console) with timestamps
   - Defines field specifications for new styling fields
@@ -22,6 +24,7 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
 ### 2. Excel Spreadsheet Processing
 
 #### 2.1 Full Layers Sheet Processing (`process_fulllayers_tab`)
+
 - **Purpose**: Extract ATT (attribute) sections and consolidate SYMBOL information
 - **Actions**:
   - Reads Excel file and locates 'Full layers' sheet
@@ -32,11 +35,13 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Exports processed data to `formatted_rows.csv`
 
 **Exit Conditions:**
+
 - **File not found**: Process stops if Excel file doesn't exist
 - **Sheet not found**: Process stops if specified sheet doesn't exist
 - **No ATT sections**: Process continues but with warnings
 
 #### 2.2 New Values Sheet Processing (`process_new_values_tab`)
+
 - **Purpose**: Process styling values and handle empty 'Text Bend' fields
 - **Actions**:
   - Reads 'New values' sheet
@@ -44,10 +49,12 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Exports processed data to `new_values_processed.csv`
 
 **Exit Conditions:**
+
 - **Missing Text Bend column**: Process continues with warning
 - **File errors**: Process stops with error logging
 
 #### 2.3 Font Mapping Sheet Processing (`process_font_mapping_tab`)
+
 - **Purpose**: Process font mapping rules and handle empty values
 - **Actions**:
   - Reads 'Font mapping' sheet
@@ -56,12 +63,14 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Exports processed data to `font_mapping_processed.csv`
 
 **Exit Conditions:**
+
 - **Missing required columns**: Process stops if LAMPS or FONT columns missing
 - **File errors**: Process stops with error logging
 
 ### 3. GeoPackage Layer Processing
 
 #### 3.1 Layer Loading and Field Addition (`process_carto_text_layer`)
+
 - **Purpose**: Load geographic data and add new styling fields
 - **Actions**:
   - Reads carto_text layer from GeoPackage
@@ -78,6 +87,7 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
     - `chardistance` (float64)
 
 **Exit Conditions:**
+
 - **GeoPackage not found**: Process stops with error
 - **Layer not found**: Process stops with error
 - **Memory issues**: Process may fail with large datasets
@@ -85,6 +95,7 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
 ### 4. Symbol Text Processing and Query Generation
 
 #### 4.1 Symbol Parsing (`parse_symbol_text`)
+
 - **Purpose**: Parse SYMBOL text into field=value conditions
 - **Example Input**: `"text_font = ATTriumMou-Cond and text_colour = 9 and text_height = 0.0013 and text_place in (34)"`
 - **Actions**:
@@ -93,10 +104,12 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Converts values to appropriate data types (int, float, string)
 
 **Exit Conditions:**
+
 - **Empty SYMBOL text**: Individual symbols are skipped
 - **Malformed SYMBOL**: Parsing errors are logged, processing continues
 
 #### 4.2 Query Generation (`process_symbol_text_to_queries`)
+
 - **Purpose**: Convert parsed symbols into pandas queries for feature selection
 - **Actions**:
   - Converts `text_place` to `text_placement`
@@ -106,6 +119,7 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Records match counts and feature indices
 
 **Exit Conditions when Selection is Empty:**
+
 - **No valid conditions**: Query skipped if no parseable conditions found
 - **Query execution fails**: Logged as error, processing continues with next query
 - **Zero matches**: Query processes but affects no features
@@ -113,9 +127,10 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
 ### 5. Complex Field Updates
 
 #### 5.1 Feature Matching and Grouping (`update_layer_fields_from_queries`)
+
 - **Purpose**: Apply styling updates based on complex multi-criteria matching
 - **Process Flow**:
-  
+
   **Step 1: Base Query Matching**
   - Apply initial query conditions to find candidate features
   - **EXIT POINT**: If no features match base query → Log "Base Query - No matched features" error
@@ -148,7 +163,7 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - Extract `text_font` from symbol conditions
   - Look up font in `font_mapping` table
   - Extract style information
-  
+
   **Step 8: Style Matching**
   - Filter `new_values` for matching style
   - **EXIT POINT**: If no match → Log "Style: [layer_id] - [full criteria]" error
@@ -158,9 +173,11 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   - **Failure Path**: Set all fields to null/empty values and log "Setting Zeros" error
 
 #### 5.2 Error Tracking
+
 The process maintains comprehensive error tracking in two categories:
 
 **Unmatched IDs (`self.unmatched_ids`)**:
+
 - Base Query failures: No features match initial conditions
 - Text Bend failures: No `new_values` rows for specific `text_bend`
 - Text Height failures: No matching height values
@@ -169,12 +186,14 @@ The process maintains comprehensive error tracking in two categories:
 - Setting Zeros: Cases where null values are assigned
 
 **Multiple Value Rows (`self.multiple_value_rows`)**:
+
 - Cases where multiple `new_values` rows match the same criteria
 - Requires manual review for data quality
 
 ### 6. Data Export
 
 #### 6.1 Field Constraint Enforcement
+
 - **Purpose**: Ensure data integrity before export
 - **Actions**:
   - Truncate string fields to maximum lengths
@@ -183,12 +202,14 @@ The process maintains comprehensive error tracking in two categories:
   - Handle null value assignments
 
 #### 6.2 Export Options
+
 - **GeoPackage**: Default format, preserves spatial data and field constraints
 - **Parquet**: Alternative format for analytical workflows
 
 ## Process Stop Conditions
 
 ### Critical Failures (Process Termination)
+
 1. **Input File Missing**: Excel spreadsheet not found
 2. **GeoPackage Missing**: Carto text data file not accessible
 3. **Layer Missing**: Specified layer not found in GeoPackage
@@ -196,6 +217,7 @@ The process maintains comprehensive error tracking in two categories:
 5. **Memory Errors**: Insufficient memory for large datasets
 
 ### Non-Critical Failures (Process Continues with Warnings)
+
 1. **Empty Symbol Text**: Individual symbols skipped
 2. **Query Execution Errors**: Failed queries logged, other queries continue
 3. **No Feature Matches**: Queries with zero matches are logged
@@ -239,6 +261,7 @@ The process maintains comprehensive error tracking in two categories:
 ## Configuration
 
 ### Required Input Files
+
 - **Excel Spreadsheet**: Contains mapping rules in multiple sheets
   - Full layers: ATT sections with SYMBOL definitions
   - New values: Styling values and parameters
@@ -246,11 +269,13 @@ The process maintains comprehensive error tracking in two categories:
 - **GeoPackage**: Contains carto_text layer with spatial features
 
 ### Output Files
+
 - **Logs**: Timestamped processing logs with detailed information
 - **CSV Files**: Processed data from Excel sheets
 - **GeoPackage/Parquet**: Final enriched carto text data
 
 ### Key Parameters
+
 - `mapping_spreadsheet`: Path to Excel file with mapping rules
 - `carto_text_folder`: Directory containing GeoPackage
 - `product_database`: GeoPackage filename
@@ -261,7 +286,9 @@ The process maintains comprehensive error tracking in two categories:
 ## Error Analysis and Debugging
 
 ### Log File Analysis
+
 Each run generates a timestamped log file containing:
+
 - Processing steps and timing
 - Data quality statistics
 - Error details with specific criteria
@@ -292,16 +319,19 @@ Each run generates a timestamped log file containing:
 ## Best Practices
 
 ### Data Preparation
+
 - Ensure `new_values` table has comprehensive coverage of expected parameter combinations
 - Validate font names are consistent across all input sources
 - Test with small datasets before full production runs
 
 ### Monitoring
+
 - Always review log files for error patterns
 - Monitor unmatched ID counts as data quality indicators
 - Validate output data through spot checks
 
 ### Troubleshooting
+
 - Use detailed logging to identify specific matching failures
 - Test individual SYMBOL strings manually for complex debugging
 - Verify data types match expected formats in all input sources
