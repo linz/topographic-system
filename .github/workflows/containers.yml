@@ -24,7 +24,7 @@ jobs:
             const isMaster = "${{ github.ref }}" === "refs/heads/master";
             const isPullRequest = "${{ github.event_name }}" === "pull_request";
 
-            const environment = isMaster ? "prod" : "nonprod";
+            const environment = isMaster ? "prod" : "";
 
             const newTags = ["git-${{ github.sha }}"];
             if (isPullRequest) newTags.push("pr-${{ github.event.number }}");
