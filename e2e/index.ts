@@ -143,8 +143,8 @@ describe('topographic-system.e2e', async () => {
 
       await tsMap('produce', '/target/produce/topo-test/BQ26.json', '/target/produce/topo-test/BQ27.json');
 
-      assert.ok(await fsa.exists(new URL('produce/topo-test/BQ26.tiff', targetFolder)));
-      assert.ok(await fsa.exists(new URL('produce/topo-test/BQ27.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('produce/topo-test/BQ26.png', targetFolder)));
+      assert.ok(await fsa.exists(new URL('produce/topo-test/BQ27.png', targetFolder)));
 
       await tsMap(
         'stac-push',
@@ -155,8 +155,8 @@ describe('topographic-system.e2e', async () => {
         '--commit',
       );
 
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.tiff', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.png', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.png', targetFolder)));
       // TODO validate STAC catalog and validate
     });
   });
