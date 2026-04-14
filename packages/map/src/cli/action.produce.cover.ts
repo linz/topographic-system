@@ -12,7 +12,6 @@ import {
 } from '@linzjs/topographic-system-shared';
 import { downloadAssets } from '@linzjs/topographic-system-shared/src/download.ts';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
-import { StorageStrategyOption } from '@linzjs/topographic-system-stac/src/parser.ts';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
 
@@ -157,11 +156,6 @@ const ProduceArgs = {
     type: UrlFolder,
     long: 'output',
     description: 'Path or s3 bucket of the output directory to write generated map sheets.',
-  }),
-  strategy: option({
-    long: 'strategy',
-    type: StorageStrategyOption,
-    description: 'Storage strategies to use, for example --strategy=latest',
   }),
   tempLocation,
 };

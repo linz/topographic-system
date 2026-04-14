@@ -104,7 +104,6 @@ describe('QGIS Process', () => {
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
-        ['--strategy', 'latest'],
         ['--format', 'png'],
         ['--dpi', '200'],
         'BQ31',
