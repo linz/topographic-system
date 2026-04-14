@@ -106,14 +106,25 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('map', async () => {
+    const qgisDeploy = new URL('source/qgis/', targetFolder);
+    await it('should deploy the testing qgis project', await skipIfExists(qgisDeploy), async () => {
+      await tsMap('deploy', '/assets/topo-test.qgs', [
+        '--target',
+        '/target/temp/qgis/',
+        '--source',
+        '/target/bucket/data/catalog.json',
+      ]);
+    });
+
     const qgisTarget = new URL('bucket/qgis/catalog.json', targetFolder);
-    await it('should deploy the testing qgis project', await skipIfExists(qgisTarget), async () => {
+    await it('should push the stac files and assets', await skipIfExists(qgisTarget), async () => {
       await tsMap(
-        'deploy',
-        '/assets/topo-test.qgs',
+        'stac-push',
+        ['--source', '/target/temp/qgis/catalog.json'],
+        ['--target', '/target/bucket/'],
+        ['--category', 'qgis'],
         ['--strategy', 'latest'],
         ['--strategy', `commit=${commitId}`],
-        ['--target', '/target/bucket/'],
         '--commit',
       );
     });
@@ -125,7 +136,7 @@ describe('topographic-system.e2e', async () => {
         ['--output', '/target/bucket/'],
         ['--map-sheet-layer', 'testmapsheet'],
         ['--strategy', 'latest'],
-        ['--format', 'geotiff'],
+        ['--format', 'png'],
         ['--dpi', '120'],
         'BQ26',
         'BQ27',
@@ -137,8 +148,8 @@ describe('topographic-system.e2e', async () => {
         '/target/bucket/product/topo-test/latest/BQ27.json',
       );
 
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.tiff', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.tiff', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ26.png', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/product/topo-test/latest/BQ27.png', targetFolder)));
       // TODO validate STAC catalog and validate
     });
   });

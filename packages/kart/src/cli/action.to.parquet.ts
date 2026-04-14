@@ -155,7 +155,7 @@ export const ParquetCommand = command({
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
       for (const s of args.strategies) sw.strategy(s);
-      todo.push(sw.write(args.output, Q.Q, true));
+      todo.push(sw.writeWithStrategy(args.output, Q.Q, true));
     }
 
     const collections = await Promise.all(todo);
