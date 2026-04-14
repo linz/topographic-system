@@ -37,7 +37,7 @@ jobs:
             const outputs = ${{ toJson(steps.release.outputs) }};
 
             const containers = ["map", "kart"];
-            
+
             for (const [key,value] of Object.entries(outputs)) {
               if (!key.endsWith('--release_created') || !value) continue;
               const pkgName = key.replace('packages/', '').replace('--release_created', '');
@@ -60,6 +60,4 @@ jobs:
     uses: ./.github/workflows/containers.yml
     with:
       manifest: ${{ needs.release-please.outputs.manifest }}
-      push: true
-      environment: prod
     secrets: inherit

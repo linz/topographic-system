@@ -2,13 +2,48 @@
   "plugins": ["node-workspace"],
   "packages": {
     "packages/data": {},
-    "packages/kart": {},
+    "packages/kart": {
+      "extra-files": [
+        {
+          "path": ".github/workflows/data-review.yml",
+          "type": "generic"
+        }
+      ]
+    },
     "packages/map": {},
     "packages/shared": {},
-    ".": {
-      "include-component-in-tag": false
+    "packages/validation": {
+      "release-type": "python",
+      "package-name": "topographic-system-validation",
+      "extra-files": [
+        {
+          "path": "packages/validation/pyproject.toml",
+          "type": "toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='topographic-system-validation')].version"
+        }
+      ]
+    },
+    "packages/data-prep": {
+      "release-type": "python",
+      "package-name": "topographic-system-data-prep",
+      "extra-files": [
+        {
+          "path": "packages/data-prep/pyproject.toml",
+          "type": "toml",
+          "jsonpath": "$.project.version"
+        },
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='topographic-system-data-prep')].version"
+        }
+      ]
     }
   },
-  "group-pull-request-title-pattern": "release: v${version}",
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }

@@ -1,23 +1,75 @@
-name: Build
+name: push
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: linz/action-typescript@v3
+      - uses: actions/checkout@v6
         with:
-          node-version: 24.10.0
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run check
+      - run: npm run test
 
       - name: Python CI
         uses: ./.github/actions/python-ci
 
-  build-containers:
+  build-container:
     uses: ./.github/workflows/containers.yml
     with:
-      manifest: '{"map": ["latest"], "kart": ["latest"]}'
-      push: ${{ github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, 'release:') }}
-      environment: nonprod
+      manifest: '{ "map": [], "kart": [] }'
     secrets: inherit
+
+  visual-diff:
+    needs: build-container
+    uses: ./.github/workflows/visual-diff.yml
+    with:
+      environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
+      map_version: 'git-${{ github.sha }}'
+      project: s3://linz-topography-nonprod/qgis/nztopo50/latest/nztopo50.json
+    secrets: inherit
+
+  test-kart-workflow:
+    needs: build-container
+    uses: ./.github/workflows/data-review.yml
+    secrets: inherit
+    with:
+      clone_url: https://github.com/linz/topographic-test-data.git
+      head_ref: master
+      environment: nonprod
+      changed_datasets_only: false
+      output: file:///tmp/topographic-data/
+      kart_version: 'git-${{ github.sha }}'
+
+  test-end-2-end:
+    needs: build-container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+
+      - run: npm ci
+
+      - run: |
+          node e2e/index.ts \
+            --verbose \
+            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
+            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}

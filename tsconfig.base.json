@@ -1,0 +1,40 @@
+{
+  // "extends": "@linzjs/style/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "paths": {
+      "@linzjs/topographic-system-shared": ["./packages/shared/src/index.ts"],
+      "@linzjs/topographic-system-kart": ["./packages/kart/src/index.ts"],
+      "@linzjs/topographic-system-map": ["./packages/map/src/index.ts"]
+    },
+    "allowSyntheticDefaultImports": true,
+
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "forceConsistentCasingInFileNames": true,
+    "pretty": true,
+    "newLine": "lf",
+    "jsx": "react",
+    "stripInternal": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noEmitOnError": true,
+    "useDefineForClassFields": true,
+    "skipLibCheck": true,
+    // Additional options outside sindresorhus's base config
+    "sourceMap": true
+  },
+  "exclude": ["dist/", "node_modules/"]
+}

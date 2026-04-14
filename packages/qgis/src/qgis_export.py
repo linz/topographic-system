@@ -13,9 +13,12 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
-export_format = sys.argv[3]
-dpi = int(sys.argv[4])
-sheet_codes = sys.argv[5:]
+project_layout = sys.argv[3]
+topo_map_sheet = sys.argv[4]
+export_format = sys.argv[5]
+dpi = int(sys.argv[6])
+sheet_code = sys.argv[7]
+excluded_layer_names = set(json.loads(sys.argv[8]))
 
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
@@ -26,8 +29,11 @@ success = project.read(project_path)
 if not success:
     raise ValueError(f"Failed to read project file: {project_path}")
 
-layout = project.layoutManager().layoutByName("Topo50")
+layout = project.layoutManager().layoutByName(project_layout)
 exporter = QgsLayoutExporter(layout)
+
+if layout is None:
+    raise RuntimeError(f"No layout found with name '{project_layout}'.")
 
 map_item = None
 for item in layout.items():
@@ -36,16 +42,20 @@ for item in layout.items():
         break
 
 if map_item is None:
-    raise ValueError("No QgsLayoutItemMap found in layout 'Topo50'.")
+    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
-metadata = []
+for layer in list(project.mapLayers().values()):
+    if layer.name() in excluded_layer_names:
+        project.removeMapLayer(layer.id())
+
 map_crs = map_item.crs()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName("nz_topo_map_sheet")[0]
+topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
+
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])
     # skip if this sheet_code is not in the list passed from CLI
-    if feature_code not in sheet_codes:
+    if feature_code != sheet_code:
         continue
     geom = feature.geometry()
     geom.transform(
@@ -53,7 +63,6 @@ for feature in topo_sheet_layer.getFeatures():
     )
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
-
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
@@ -73,24 +82,8 @@ for feature in topo_sheet_layer.getFeatures():
         raise ValueError(f"Unsupported format: {export_format}")
 
     if export_result == QgsLayoutExporter.Success:
-        metadata.append(
-            {
-                "sheetCode": feature_code,
-                "geometry": geom.asJson(),
-                "epsg": map_crs.postgisSrid(),
-                "bbox": [
-                    bbox.xMinimum(),
-                    bbox.yMinimum(),
-                    bbox.xMaximum(),
-                    bbox.yMaximum(),
-                ],
-            }
-        )
+        print(output_file)
     else:
         print(f"Error exporting map: {exporter.errorMessage()}")
-
-json.dump(metadata, sys.stdout, ensure_ascii=False)
-sys.stdout.write("\n")
-sys.stdout.flush()
 
 qgs.exitQgis()

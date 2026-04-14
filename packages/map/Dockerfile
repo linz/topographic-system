@@ -1,20 +1,8 @@
-FROM archlinux:base-20251019.0.436919
-
-RUN pacman-key --init && \
-    pacman-key --populate archlinux && \
-    pacman -Sy --noconfirm archlinux-keyring && \
-    pacman -Syu --noconfirm arrow qgis nodejs npm
+FROM ghcr.io/linz/qgis-flatpak:linz-qgis_1ddcee-a6a40d_build-34
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY packages/shared ./packages/shared
-COPY packages/map ./packages/map
-# Copy the qgis python code into map cli
-COPY packages/qgis ./packages/map/qgis
+COPY packages/map/dist/ /app/
+COPY packages/qgis /app/qgis
 
-RUN npm install
-
-WORKDIR /app/packages/map
-
-ENTRYPOINT [ "node", "src/index.ts" ]
+ENTRYPOINT [ "node", "/app/index.cjs" ]

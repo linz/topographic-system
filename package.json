@@ -1,24 +1,37 @@
 {
-  "name": "@topographic-system/core",
-  "version": "0.4.0",
+  "name": "@linzjs/topographic-system-core",
+  "private": true,
+  "version": "0.6.0",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "build": "tsc -b",
-    "lint": "eslint . --quiet --fix --report-unused-disable-directives --ignore-path .gitignore",
+    "build:container": "lerna run build:container",
+    "lint": "oxlint . --type-aware --fix && oxfmt . --write",
+    "check": "oxlint . --type-aware && oxfmt . --check",
+    "test": "lerna run test",
+    "test:integration": "lerna run test:integration",
+    "bundle": "lerna run bundle --stream",
     "lint:py": "uv run ruff check",
     "format:py": "uv run ruff format --check",
     "typecheck:py": "uv run mypy .",
     "test:py": "uv run pytest"
   },
+  "type": "module",
+  "engines": {
+    "node": "^24.5.0"
+  },
   "devDependencies": {
-    "@linzjs/style": "^5.4.0",
     "@types/node": "24.10.0",
     "esbuild": "^0.27.2",
-    "lerna": "^9.0.3"
+    "lerna": "^9.0.3",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "oxlint-tsgolint": "^0.15.0",
     "zod": "^4.2.1"
   }
 }

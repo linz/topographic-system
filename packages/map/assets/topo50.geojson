@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2193" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "sheet_code": "BQ31", "name": "Wellington" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [1733400, 5417400],
+            [1757400, 5417400],
+            [1757400, 5453400],
+            [1733400, 5453400],
+            [1733400, 5417400]
+          ]
+        ]
+      }
+    }
+  ]
+}

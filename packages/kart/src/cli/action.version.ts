@@ -1,18 +1,14 @@
-import { logger } from '@topographic-system/shared/src/log.ts';
+import { logger } from '@linzjs/topographic-system-shared';
 import { command } from 'cmd-ts';
 import { $ } from 'zx';
 
-export const versionCommand = command({
+export const VersionCommand = command({
   name: 'version',
   description: 'Get kart version',
   args: {},
   async handler() {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
     const kvOut = await $`kart --version`;
     const kartVersion = kvOut.stdout.split('\n')[0]?.split(',')?.[0] ?? 'unknown';
-    logger.info({ kartVersion }, 'Using kart executable');
+    logger.info({ kartVersion }, 'kartVersion');
   },
 });

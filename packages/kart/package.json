@@ -1,17 +1,18 @@
 {
-  "name": "@topographic-system/kart",
-  "version": "0.2.0",
+  "name": "@linzjs/topographic-system-kart",
+  "version": "0.9.0",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
-    "build": "tsc -b",
-    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.js"
+    "test": "node --test \"src/**/*.test.ts\"",
+    "test:container": "node --test \"src/**/*.test.container.ts\"",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --sourcemap --target=node24 --outfile=dist/index.cjs",
+    "build:container": "npm run bundle && docker buildx build ../../ --file ./Dockerfile -t ts-kart"
   },
   "dependencies": {
-    "@chunkd/fs": "^11.3.0",
-    "@linzjs/docker-command": "^8.0.0",
-    "@topographic-system/shared": "file:../shared",
-    "cmd-ts": "^0.13.0",
+    "@linzjs/topographic-system-shared": "^0.8.0",
+    "cmd-ts": "^0.14.3",
     "zx": "^8.8.5"
   }
 }

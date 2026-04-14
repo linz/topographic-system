@@ -1,11 +1,24 @@
 [project]
 name = "topographic-system"
 version = "0.1.0"
-description = "A collection of tools for LINZ Topographic Data"
+description = "A collection of tools for LINZ Topographic Data Management"
+authors = [
+    { name = "Andrew McMenamin", email = "AMcMenamin@linz.govt.nz" },
+    { name = "Tobias Schmidt", email = "tschmidt@linz.govt.nz" },
+    { name = "Wentao Kuang", email = "wkuang@linz.govt.nz" },
+    { name = "Chris Burlinchon", email = "cburlinchon@linz.govt.nz" },
+    { name = "Tāwera Manaena", email = "tmanaena@linz.govt.nz" },
+]
+
 requires-python = ">=3.12"
 dependencies = [
     "topographic-system-qgis",
+<<<<<<< HEAD
     "topographic-system-data",
+=======
+    "topographic-system-validation",
+    "topographic-system-data-prep",
+>>>>>>> master
 ]
 
 [dependency-groups]
@@ -14,6 +27,7 @@ dev = [
     "pytest",
     "ruff",
     "pandas-stubs",
+<<<<<<< HEAD
     "types-geopandas",
 ]
 
@@ -23,7 +37,25 @@ topographic-system-data = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/qgis", "packages/data"]
+=======
+    "types-pytz",
+    "types-setuptools",
+    "types-geopandas",  # Includes types-shapely as dependency
+    ]
+
+[tool.uv.sources]
+topographic-system-qgis = { workspace = true }
+topographic-system-validation = { workspace = true }
+topographic-system-data-prep = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/qgis", "packages/validation", "packages/data-prep"]
+>>>>>>> master
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pyarrow.*"]
 ignore_missing_imports = true

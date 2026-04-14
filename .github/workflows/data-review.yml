@@ -1,0 +1,84 @@
+name: Data PR Review
+on:
+  workflow_call:
+    inputs:
+      clone_url:
+        description: 'URL of the repository to clone. Defaults to the calling repository.'
+        type: string
+        default: ''
+      head_ref:
+        description: 'Branch ref to checkout. Defaults to the calling pull request branch.'
+        type: string
+        default: ''
+      environment:
+        description: 'GitHub environment to run the workflow in.'
+        type: string
+        required: true
+      changed_datasets_only:
+        description: 'Whether to only process changed datasets.'
+        type: boolean
+        default: true
+      output:
+        description: 'Location of root catalog.'
+        type: string
+        required: true
+      kart_version:
+        description: 'Version of kart to use.'
+        type: string
+        default: 'latest' # TOOO: should be x-release-please-version
+
+jobs:
+  kart:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/linz/topographic-system/kart:${{ inputs.kart_version }}
+    permissions:
+      id-token: write
+      contents: read
+      issues: write
+      pull-requests: write
+    env:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      ENVIRONMENT: ${{ inputs.environment }}
+
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=github.${{ inputs.environment }}'
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Setup Otel
+        uses: linz/action-otel@master
+
+      - name: Versions
+        run: |
+          node --version
+          ogr2ogr --version
+          git --version
+          kart --version
+          node /app/index.cjs version
+
+      - name: Configure AWS Credentials
+        if: ${{ env.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: Kart Flow
+        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          OUTPUT: ${{ inputs.output }}
+          CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
+
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: diff
+          path: |
+            pr_summary.md
+            diff/

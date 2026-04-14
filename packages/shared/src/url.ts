@@ -1,18 +1,8 @@
-import { fsa } from '@chunkd/fs';
-import cmdts from 'cmd-ts';
-import { relative } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { pathToFileURL } from 'node:url';
 
-/**
- * Convert a path to a relative path
- *
- * @param path the path to convert
- * @param base the path to be relative to default to current path
- */
-export function toRelative(path: URL, base: URL = fsa.toUrl(process.cwd())): string {
-  if (path.protocol !== 'file:' || base.protocol !== 'file:') throw new Error('Must be file: URL');
-  return './' + relative(fileURLToPath(base), fileURLToPath(path));
-}
+import { fsa } from '@chunkd/fs';
+import type cmdts from 'cmd-ts';
+import type { Type } from 'cmd-ts';
 
 /**
  * Parse an input parameter as a URL.
@@ -23,7 +13,7 @@ export const Url: cmdts.Type<string, URL> = {
   from(str) {
     try {
       return Promise.resolve(new URL(str));
-    } catch (e) {
+    } catch (_e) {
       return Promise.resolve(pathToFileURL(str));
     }
   },
@@ -45,3 +35,35 @@ export const UrlFolder: cmdts.Type<string, URL> = {
     return url;
   },
 };
+
+/**
+ * Parse a JSON file containing an array of URLs.
+ *
+ * JSON file must contain an outer array, inside of which is a series of objects
+ * with key "path", the value of which will be parsed as a URL. If the looks
+ * like a file path, it will instead be converted using `pathToFileURL`.
+ **/
+export const UrlArrayJsonFile: Type<string, URL[]> = {
+  async from(str) {
+    const raw: { path: string }[] = await fsa.readJson(await Url.from(str));
+    if (!Array.isArray(raw)) throw new Error('JSON does not contain an outer array');
+    const urls = raw.map((f) => {
+      if (!('path' in f)) throw new Error('Missing key "path"');
+      try {
+        return new URL(f.path);
+      } catch (e) {
+        return pathToFileURL(f.path);
+      }
+    });
+    return urls;
+  },
+};
+
+/**
+ *  Ensure a folder has a trailing slash
+ **/
+export function stringToUrlFolder(str: string): URL {
+  const url = fsa.toUrl(str);
+  if (url.pathname.endsWith('/')) return url;
+  return new URL(url.href + '/');
+}

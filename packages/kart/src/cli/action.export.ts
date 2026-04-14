@@ -1,42 +1,86 @@
-import { logger } from '@topographic-system/shared/src/log.ts';
-import { ConcurrentQueue } from '@topographic-system/shared/src/queue.ts';
-import { command, option, optional, restPositionals, string } from 'cmd-ts';
-import os from 'os';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { ConcurrentQueue, logger, stringToUrlFolder, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
+import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
-const Q = new ConcurrentQueue(os.cpus().length);
-export const exportCommand = command({
+const numParallelExportProcesses = 1;
+const Q = new ConcurrentQueue(numParallelExportProcesses);
+
+type KartDiffOutput = Record<string, number>;
+
+export function buildKartExportArgs(dataset: string, outputPath: string, ref: string, context?: URL): string[] {
+  const outputFile = path.join(outputPath, `${dataset}.gpkg`);
+  return [
+    gitContext(context),
+    'export',
+    ['-lco', 'GEOMETRY_NAME=geometry'],
+    dataset,
+    ['--ref', ref],
+    outputFile,
+  ].flat();
+}
+
+export const ExportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
   args: {
+    context: option({
+      type: UrlFolder,
+      long: 'context',
+      short: 'C',
+      description:
+        'Run as if git was started in <path> instead of the current working directory see git -C for more details',
+      defaultValue: () => stringToUrlFolder('repo'),
+    }),
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Optional output directory for export results (default: $TMPDIR/kart/export)',
+      defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'export')),
+    }),
     ref: option({
       type: optional(string),
       long: 'ref',
-      description: 'Commit SHA or branch to export (default: HEAD)',
-      defaultValue: () => 'HEAD',
+      description: 'Commit SHA or branch to export (default: FETCH_HEAD)',
+      defaultValue: () => 'FETCH_HEAD',
+    }),
+    changed: flag({
+      long: 'changed-datasets-only',
+      description: 'Export only datasets changed compared to master (default: false)',
+      defaultValue: () => false,
     }),
     datasets: restPositionals({
       type: string,
-      description: 'List of datasets to export (default: all datasets)',
+      description: 'List of datasets to export (default: all, or all changed datasets)',
     }),
   },
   async handler(args) {
-    delete $.env['GITHUB_ACTION_REPOSITORY'];
-    delete $.env['GITHUB_ACTION_REF'];
-    delete $.env['GITHUB_WORKFLOW_REF'];
-
-    logger.info({ ref: args.ref, datasets: args.datasets }, 'Export:Start');
+    const ref = args.ref ?? 'FETCH_HEAD';
+    logger.info({ ref, datasets: args.datasets }, 'Export:Start');
     const allDatasetsRequested = args.datasets.length === 0;
-    const kartData = await $`kart -C repo data ls`;
-    const datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
-    // Ensure the export directory exists before exporting
-    await $`mkdir -p ./export`;
+    let datasets = new Set<string>();
+    if (args.changed) {
+      logger.info('Export:OnlyChangedDatasets');
+      const kartData = await $`kart ${gitContext(args.context)} diff master..${ref} -o json --only-feature-count exact`;
+      const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
+      datasets = new Set(Object.keys(diffOutput));
+    } else {
+      logger.info('Export:AllDatasets');
+      const kartData = await $`kart ${gitContext(args.context)} data ls`;
+      datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
+    }
+    logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
+    const exportDir = fileURLToPath(args.output);
+    await $`mkdir -p ${exportDir}`; // kart will fail with unclear error if this doesn't exist
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
-    logger.info({ datasetsToProcess }, 'Export:DatasetsToProcess');
+    logger.info({ numParallelExportProcesses, datasetsToProcess }, 'Export:DatasetsToProcess');
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart -C repo export ${dataset} --ref ${args.ref} ./export/${dataset}.gpkg`),
+      Q.push(() => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`),
     );
     await Q.join().catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');

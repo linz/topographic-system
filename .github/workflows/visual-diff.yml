@@ -1,0 +1,91 @@
+name: visual-diff
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      map_version:
+        required: true
+        type: string
+      project:
+        required: true
+        type: string
+
+jobs:
+  produce-mapsheets:
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    container:
+      image: ghcr.io/linz/topographic-system/map:${{ inputs.map_version }}
+    permissions:
+      id-token: write
+      contents: read
+    name: Produce Png Mapsheets
+    env:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      ENVIRONMENT: ${{ inputs.environment }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=github.${{ inputs.environment }}'
+
+    steps:
+      - name: Setup Otel
+        uses: linz/action-otel@master
+
+      - uses: actions/checkout@v4
+
+      - name: Check versions
+        run: |
+          node --version
+          node /app/index.cjs version
+
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
+
+      - name: Produce mapsheets
+        run: |
+          node /app/index.cjs \
+          visual-diff \
+          --output $PWD/.artifacts/visual-snapshots \
+          --project ${{ inputs.project }}
+
+      - name: Save snapshots
+        uses: linz/action-visual-snapshot@v2.1
+        with:
+          save-only: true
+          snapshot-path: .artifacts/visual-snapshots
+
+  visual-diff:
+    environment: ${{ inputs.environment }}
+    if: github.ref != 'refs/heads/master'
+    permissions:
+      id-token: write
+      contents: write
+      checks: write
+    needs: produce-mapsheets
+    name: Compare Visual Diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
+
+      - name: Diff snapshots
+        id: visual-snapshots-diff
+        uses: linz/action-visual-snapshot@v2.1
+        env:
+          GITHUB_WORKFLOW: push
+        with:
+          storage-prefix: ${{ inputs.environment == 'prod' && 's3://linz-topography-screenshot' || 's3://linz-topography-screenshot-nonprod' }}
+          storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'
