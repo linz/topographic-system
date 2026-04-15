@@ -41,20 +41,16 @@ describe('action.deploy', () => {
 
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water', 'water-chat']);
 
+    const targetDeploy = new URL('memory://target/deploy/');
     await DeployCommand.handler({
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
-      target: new URL('memory://target/deploy/'),
+      target: targetDeploy,
       source: new URL('memory://source/catalog.json'),
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/deploy/'))))].map((f) => f.href).sort(),
-      [
-        'memory://target/deploy/topo50/topo50.json',
-        'memory://target/deploy/topo50/collection.json',
-        'memory://target/deploy/topo50/topo50.qgs',
-        'memory://target/deploy/catalog.json',
-      ].sort(),
+      [...(await fsa.toArray(fsa.list(targetDeploy)))].map((f) => f.href.replace(targetDeploy.href, '')).sort(),
+      ['topo50/topo50.json', 'topo50/collection.json', 'topo50/topo50.qgs', 'catalog.json'].sort(),
     );
 
     const latest = {
@@ -96,27 +92,28 @@ describe('action.deploy', () => {
 
     const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
 
+    const targetPush = new URL('memory://target/push/');
     await StacPushCommand.handler({
       source: new URL('memory://target/deploy/catalog.json'),
-      target: new URL('memory://target/push/'),
+      target: targetPush,
       category: 'qgis',
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
       commit: true,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target/push/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(targetPush)))].map((f) => f.href.replace(targetPush.href, '')).sort(),
       [
-        'memory://target/push/qgis/topo50/latest/topo50.json',
-        'memory://target/push/qgis/topo50/latest/collection.json',
-        'memory://target/push/qgis/topo50/latest/topo50.qgs',
-        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
-        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target/push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target/push/qgis/topo50/catalog.json',
-        'memory://target/push/qgis/catalog.json',
-        'memory://target/push/catalog.json',
+        'qgis/topo50/latest/topo50.json',
+        'qgis/topo50/latest/collection.json',
+        'qgis/topo50/latest/topo50.qgs',
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'qgis/topo50/catalog.json',
+        'qgis/catalog.json',
+        'catalog.json',
       ].sort(),
     );
 

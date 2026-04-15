@@ -45,43 +45,40 @@ describe('deploy -> produce-cover -> produce', () => {
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 
     // Deploy the QGIS project into memory
+    const targetDeploy = new URL('memory://target-deploy/');
     await DeployCommand.handler({
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
-      target: new URL('memory://target-deploy/'),
+      target: targetDeploy,
       source: new URL('memory://source/catalog.json'),
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-deploy/'))))].map((f) => f.href).sort(),
-      [
-        'memory://target-deploy/topo50/topo50.json',
-        'memory://target-deploy/topo50/collection.json',
-        'memory://target-deploy/topo50/topo50.qgs',
-        'memory://target-deploy/catalog.json',
-      ].sort(),
+      [...(await fsa.toArray(fsa.list(targetDeploy)))].map((f) => f.href.replace(targetDeploy.href, '')).sort(),
+      ['topo50/topo50.json', 'topo50/collection.json', 'topo50/topo50.qgs', 'catalog.json'].sort(),
     );
 
+    const targetPush = new URL('memory://target-push/');
     await StacPushCommand.handler({
       source: new URL('memory://target-deploy/catalog.json'),
-      target: new URL('memory://target-push/'),
+      target: targetPush,
       category: 'qgis',
       strategies: [{ type: 'latest' }, { type: 'commit', commit: gitHash }],
       commit: true,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-push/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(targetPush)))].map((f) => f.href.replace(targetPush.href, '')).sort(),
       [
-        'memory://target-push/qgis/topo50/latest/topo50.json',
-        'memory://target-push/qgis/topo50/latest/collection.json',
-        'memory://target-push/qgis/topo50/latest/topo50.qgs',
-        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
-        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
-        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-        `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
-        'memory://target-push/qgis/topo50/catalog.json',
-        'memory://target-push/qgis/catalog.json',
-        'memory://target-push/catalog.json',
+        'qgis/topo50/latest/topo50.json',
+        'qgis/topo50/latest/collection.json',
+        'qgis/topo50/latest/topo50.qgs',
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/catalog.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
+        `qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.qgs`,
+        'qgis/topo50/catalog.json',
+        'qgis/catalog.json',
+        'catalog.json',
       ].sort(),
     );
 
@@ -89,6 +86,7 @@ describe('deploy -> produce-cover -> produce', () => {
       return [{ sheetCode: 'BQ32', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
     });
 
+    const targetProduce = new URL('memory://target-produce/');
     await ProduceCoverCommand.handler({
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
@@ -96,7 +94,7 @@ describe('deploy -> produce-cover -> produce', () => {
       mapSheetLayer: 'nz_topo50_map_sheet',
       source: new URL('memory://source/catalog.json'),
       dpi: 300,
-      output: new URL('memory://target-produce/'),
+      output: targetProduce,
       fromFile: undefined,
       all: false,
       format: 'pdf',
@@ -105,12 +103,8 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
-      [
-        `memory://target-produce/topo50/BQ32.json`,
-        `memory://target-produce/topo50/collection.json`,
-        'memory://target-produce/catalog.json',
-      ].sort(),
+      [...(await fsa.toArray(fsa.list(targetProduce)))].map((f) => f.href.replace(targetProduce.href, '')).sort(),
+      [`topo50/BQ32.json`, `topo50/collection.json`, 'catalog.json'].sort(),
     );
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL) => {
@@ -118,6 +112,7 @@ describe('deploy -> produce-cover -> produce', () => {
       await fsa.write(outputFile, 'BQ32.pdf');
       return outputFile;
     });
+
     await ProduceCommand.handler({
       path: [new URL(`memory://target-produce/topo50/BQ32.json`)],
       tempLocation: new URL('memory://temp-produce/'),
@@ -127,32 +122,35 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(targetProduce)))].map((f) => f.href.replace(targetProduce.href, '')).sort(),
       [
-        `memory://target-produce/topo50/BQ32.json`,
-        `memory://target-produce/topo50/collection.json`,
-        'memory://target-produce/catalog.json',
-        `memory://target-produce/topo50/BQ32.pdf`, // :tada: a export happened
+        `topo50/BQ32.json`,
+        `topo50/collection.json`,
+        'catalog.json',
+        `topo50/BQ32.pdf`, // :tada: a export happened
       ].sort(),
     );
 
+    const targetProducePush = new URL('memory://target-produce-push/');
     await StacPushCommand.handler({
       source: new URL('memory://target-produce/catalog.json'),
-      target: new URL('memory://target-produce-push/'),
+      target: targetProducePush,
       category: 'product',
       strategies: [{ type: 'latest' }],
       commit: true,
     });
 
     assert.deepEqual(
-      [...(await fsa.toArray(fsa.list(fsa.toUrl('memory://target-produce-push/'))))].map((f) => f.href).sort(),
+      [...(await fsa.toArray(fsa.list(targetProducePush)))]
+        .map((f) => f.href.replace(targetProducePush.href, ''))
+        .sort(),
       [
-        `memory://target-produce-push/product/topo50/latest/BQ32.json`,
-        `memory://target-produce-push/product/topo50/latest/BQ32.pdf`,
-        `memory://target-produce-push/product/topo50/latest/collection.json`,
-        'memory://target-produce-push/product/topo50/catalog.json',
-        'memory://target-produce-push/product/catalog.json',
-        'memory://target-produce-push/catalog.json',
+        `product/topo50/latest/BQ32.json`,
+        `product/topo50/latest/BQ32.pdf`,
+        `product/topo50/latest/collection.json`,
+        'product/topo50/catalog.json',
+        'product/catalog.json',
+        'catalog.json',
       ].sort(),
     );
   });
