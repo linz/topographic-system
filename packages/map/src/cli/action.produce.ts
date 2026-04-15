@@ -118,7 +118,7 @@ async function produce(path: URL, args: { force: boolean; tempLocation: URL }) {
   const asset = await HashWriter.write(destPath, file, { contentType: getContentType(exportOptions.format) });
   logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
 
-  // TODO this changes the hash of the item.json so the collection should be updated
+  // StacUpdater in stac-push command will update all the collection links checksum.
   await StacUpdater.readWriteJson<StacItem>(path, (stac) => {
     if (stac == null) throw new Error(`Failed to read: ${path.href}`);
     stac.assets ??= {};

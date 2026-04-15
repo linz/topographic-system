@@ -73,47 +73,74 @@ describe('QGIS Process', () => {
 
     await it('deploy', async () => {
       // Deploy the QGIS project into local files
-      const deploy = await cli(
+      await cli(
         'deploy',
         ['--source', fileURLToPath(baseDeployArgs.source)],
         ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
         fileURLToPath(new URL('source/project/beehive.qgs', tempLocation)),
       );
-      console.log(deploy);
+
+      const deployPath = new URL('target-deploy/', tempLocation);
+      assert.deepEqual(
+        [...(await fsa.toArray(fsa.list(deployPath)))].map((f) => f.href.replace(deployPath.href, '')).sort(),
+        [`beehive/beehive.json`, `beehive/collection.json`, `beehive/beehive.qgs`, `catalog.json`].sort(),
+      );
     });
 
     await it('stac-push', async () => {
       // Push stac files and assets to target location with storage strategy
-      const deploy = await cli(
+      await cli(
         'stac-push',
         ['--source', fileURLToPath(new URL('target-deploy/catalog.json', tempLocation))],
-        ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
+        ['--target', fileURLToPath(new URL('target-deploy-push/', tempLocation))],
         ['--category', 'qgis'],
         ['--strategy', 'latest'],
         ['--strategy', `commit=${baseDeployArgs.githash}`],
         ['--commit'],
       );
-      console.log(deploy);
+
+      const deployPushPath = new URL('target-deploy-push/', tempLocation);
+      assert.deepEqual(
+        [...(await fsa.toArray(fsa.list(deployPushPath)))].map((f) => f.href.replace(deployPushPath.href, '')).sort(),
+        [
+          `qgis/beehive/latest/beehive.json`,
+          `qgis/beehive/latest/collection.json`,
+          `qgis/beehive/latest/beehive.qgs`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.qgs`,
+          `qgis/beehive/catalog.json`,
+          `qgis/catalog.json`,
+          `catalog.json`,
+        ].sort(),
+      );
     });
 
     await it('produce-cover', async () => {
-      const produceCover = await cli(
+      await cli(
         'produce-cover',
-        ['--project', fileURLToPath(new URL('target-deploy/qgis/beehive/latest/beehive.json', tempLocation))],
+        ['--project', fileURLToPath(new URL('target-deploy-push/qgis/beehive/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
         ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
-        ['--strategy', 'latest'],
         ['--format', 'png'],
         ['--dpi', '200'],
         'BQ31',
       );
-      console.log(produceCover);
+
+      const produceCoverPath = new URL('target-produce/working/', tempLocation);
+      assert.deepEqual(
+        [...(await fsa.toArray(fsa.list(produceCoverPath)))]
+          .map((f) => f.href.replace(produceCoverPath.href, ''))
+          .sort(),
+        [`beehive/BQ31.json`, `beehive/collection.json`, `catalog.json`].sort(),
+      );
     });
 
     await it('produce', async () => {
-      const targetJson = new URL('target-produce/working/product/beehive/latest/BQ31.json', tempLocation);
+      const targetJson = new URL('target-produce/working/beehive/BQ31.json', tempLocation);
 
       await cli('produce', fileURLToPath(targetJson), [
         '--temp-location',
@@ -123,6 +150,43 @@ describe('QGIS Process', () => {
       const output = await fsa.readJson<StacItem>(targetJson);
 
       assert.ok(Object.keys(output.assets).length > 0);
+      const produceCoverPath = new URL('target-produce/working/', tempLocation);
+      assert.deepEqual(
+        [...(await fsa.toArray(fsa.list(produceCoverPath)))]
+          .map((f) => f.href.replace(produceCoverPath.href, ''))
+          .sort(),
+        [`beehive/BQ31.json`, `beehive/BQ31.png`, `beehive/collection.json`, `catalog.json`].sort(),
+      );
+    });
+
+    await it('stac-push', async () => {
+      // Push stac files and assets to target location with storage strategy
+      await cli(
+        'stac-push',
+        ['--source', fileURLToPath(new URL('target-produce/working/catalog.json', tempLocation))],
+        ['--target', fileURLToPath(new URL('target-produce-push/', tempLocation))],
+        ['--category', 'product'],
+        ['--strategy', 'latest'],
+        ['--strategy', `commit=${baseDeployArgs.githash}`],
+        ['--commit'],
+      );
+
+      const producePushPath = new URL('target-produce-push/', tempLocation);
+      assert.deepEqual(
+        [...(await fsa.toArray(fsa.list(producePushPath)))].map((f) => f.href.replace(producePushPath.href, '')).sort(),
+        [
+          `product/beehive/latest/BQ31.json`,
+          `product/beehive/latest/BQ31.png`,
+          `product/beehive/latest/collection.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.png`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
+          `product/beehive/catalog.json`,
+          `product/catalog.json`,
+          `catalog.json`,
+        ].sort(),
+      );
     });
   });
 });
