@@ -82,13 +82,8 @@ describe('QGIS Process', () => {
 
       const deployPath = new URL('target-deploy/', tempLocation);
       assert.deepEqual(
-        [...(await fsa.toArray(fsa.list(deployPath)))].map((f) => f.href).sort(),
-        [
-          `${deployPath.href}beehive/beehive.json`,
-          `${deployPath.href}beehive/collection.json`,
-          `${deployPath.href}beehive/beehive.qgs`,
-          `${deployPath.href}catalog.json`,
-        ].sort(),
+        [...(await fsa.toArray(fsa.list(deployPath)))].map((f) => f.href.replace(deployPath.href, '')).sort(),
+        [`beehive/beehive.json`, `beehive/collection.json`, `beehive/beehive.qgs`, `catalog.json`].sort(),
       );
     });
 
@@ -106,18 +101,18 @@ describe('QGIS Process', () => {
 
       const deployPushPath = new URL('target-deploy-push/', tempLocation);
       assert.deepEqual(
-        [...(await fsa.toArray(fsa.list(deployPushPath)))].map((f) => f.href).sort(),
+        [...(await fsa.toArray(fsa.list(deployPushPath)))].map((f) => f.href.replace(deployPushPath.href, '')).sort(),
         [
-          `${deployPushPath.href}qgis/beehive/latest/beehive.json`,
-          `${deployPushPath.href}qgis/beehive/latest/collection.json`,
-          `${deployPushPath.href}qgis/beehive/latest/beehive.qgs`,
-          `${deployPushPath.href}qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
-          `${deployPushPath.href}qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.json`,
-          `${deployPushPath.href}qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
-          `${deployPushPath.href}qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.qgs`,
-          `${deployPushPath.href}qgis/beehive/catalog.json`,
-          `${deployPushPath.href}qgis/catalog.json`,
-          `${deployPushPath.href}catalog.json`,
+          `qgis/beehive/latest/beehive.json`,
+          `qgis/beehive/latest/collection.json`,
+          `qgis/beehive/latest/beehive.qgs`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.qgs`,
+          `qgis/beehive/catalog.json`,
+          `qgis/catalog.json`,
+          `catalog.json`,
         ].sort(),
       );
     });
@@ -137,12 +132,10 @@ describe('QGIS Process', () => {
 
       const produceCoverPath = new URL('target-produce/working/', tempLocation);
       assert.deepEqual(
-        [...(await fsa.toArray(fsa.list(produceCoverPath)))].map((f) => f.href).sort(),
-        [
-          `${produceCoverPath.href}beehive/BQ31.json`,
-          `${produceCoverPath.href}beehive/collection.json`,
-          `${produceCoverPath.href}catalog.json`,
-        ].sort(),
+        [...(await fsa.toArray(fsa.list(produceCoverPath)))]
+          .map((f) => f.href.replace(produceCoverPath.href, ''))
+          .sort(),
+        [`beehive/BQ31.json`, `beehive/collection.json`, `catalog.json`].sort(),
       );
     });
 
@@ -159,13 +152,10 @@ describe('QGIS Process', () => {
       assert.ok(Object.keys(output.assets).length > 0);
       const produceCoverPath = new URL('target-produce/working/', tempLocation);
       assert.deepEqual(
-        [...(await fsa.toArray(fsa.list(produceCoverPath)))].map((f) => f.href).sort(),
-        [
-          `${produceCoverPath.href}beehive/BQ31.json`,
-          `${produceCoverPath.href}beehive/BQ31.png`,
-          `${produceCoverPath.href}beehive/collection.json`,
-          `${produceCoverPath.href}catalog.json`,
-        ].sort(),
+        [...(await fsa.toArray(fsa.list(produceCoverPath)))]
+          .map((f) => f.href.replace(produceCoverPath.href, ''))
+          .sort(),
+        [`beehive/BQ31.json`, `beehive/BQ31.png`, `beehive/collection.json`, `catalog.json`].sort(),
       );
     });
 
@@ -183,18 +173,18 @@ describe('QGIS Process', () => {
 
       const producePushPath = new URL('target-produce-push/', tempLocation);
       assert.deepEqual(
-        [...(await fsa.toArray(fsa.list(producePushPath)))].map((f) => f.href).sort(),
+        [...(await fsa.toArray(fsa.list(producePushPath)))].map((f) => f.href.replace(producePushPath.href, '')).sort(),
         [
-          `${producePushPath.href}product/beehive/latest/BQ31.json`,
-          `${producePushPath.href}product/beehive/latest/BQ31.png`,
-          `${producePushPath.href}product/beehive/latest/collection.json`,
-          `${producePushPath.href}product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
-          `${producePushPath.href}product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.json`,
-          `${producePushPath.href}product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.png`,
-          `${producePushPath.href}product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
-          `${producePushPath.href}product/beehive/catalog.json`,
-          `${producePushPath.href}product/catalog.json`,
-          `${producePushPath.href}catalog.json`,
+          `product/beehive/latest/BQ31.json`,
+          `product/beehive/latest/BQ31.png`,
+          `product/beehive/latest/collection.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.json`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/BQ31.png`,
+          `product/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
+          `product/beehive/catalog.json`,
+          `product/catalog.json`,
+          `catalog.json`,
         ].sort(),
       );
     });
