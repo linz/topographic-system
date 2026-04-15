@@ -3,12 +3,12 @@ import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 import { StacUpdater } from '@linzjs/topographic-system-stac';
+import { StacPushCommand } from '@linzjs/topographic-system-stac/src/cli/action.stac.push.ts';
 import { StacBasic } from '@linzjs/topographic-system-stac/src/stac.basic.ts';
 import type { StacCollection, StacItem } from 'stac-ts';
 import type { GeoJSONMultiPolygon } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
-import { StacPushCommand } from '../cli/action.stac.push.ts';
 import { pyRunner } from '../python.runner.ts';
 
 describe('action.deploy', () => {

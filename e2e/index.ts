@@ -87,22 +87,32 @@ describe('topographic-system.e2e', async () => {
       },
     );
 
-    await it(
-      'should convert topographic-test-data to parquet',
-      await skipIfExists(new URL('bucket/data/catalog.json', targetFolder)),
-      async () => {
-        await tsKart(
-          `to-parquet`,
-          '/target/source/topographic-test-data-export',
-          ['--temp-location', '/target/temp/kart.to-parquet'],
-          ['--output', '/target/bucket/'],
-          ['--strategy', 'latest'],
-          ['--strategy', `commit=${commitId}`],
-        );
-        assert.ok(await fsa.exists(new URL('bucket/data/catalog.json', targetFolder)));
-        // TODO load catalog and validate
-      },
-    );
+    const parquetTarget = new URL('parquet/data/catalog.json', targetFolder);
+    await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTarget), async () => {
+      await tsKart(
+        `to-parquet`,
+        '/target/source/topographic-test-data-export',
+        ['--temp-location', '/target/temp/kart.to-parquet'],
+        ['--output', '/target/parquet/'],
+        ['--strategy', 'latest'],
+        ['--strategy', `commit=${commitId}`],
+      );
+      assert.ok(await fsa.exists(parquetTarget));
+      // TODO load catalog and validate
+    });
+
+    const date = new Date().toISOString();
+    await it('should push the parquet stac files and assets', await skipIfExists(parquetTarget), async () => {
+      await tsMap(
+        'stac-push',
+        ['--source', parquetTarget.href],
+        ['--target', '/target/bucket/'],
+        ['--category', 'data'],
+        ['--strategy', 'latest'],
+        ['--strategy', `date=${date}`],
+        '--commit',
+      );
+    });
   });
 
   await describe('map', async () => {
