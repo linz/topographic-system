@@ -12,6 +12,12 @@ on:
       project:
         required: true
         type: string
+      head_sha:
+        required: false
+        type: string
+      workflow:
+        required: false
+        type: string
 
 jobs:
   produce-mapsheets:
@@ -85,7 +91,8 @@ jobs:
         id: visual-snapshots-diff
         uses: linz/action-visual-snapshot@v2.1
         env:
-          GITHUB_WORKFLOW: push
+          HEAD_SHA: ${{ inputs.head_sha }}
+          WORKFLOW_NAME: ${{ inputs.workflow_name }}
         with:
           storage-prefix: ${{ inputs.environment == 'prod' && 's3://linz-topography-screenshot' || 's3://linz-topography-screenshot-nonprod' }}
           storage-url: 'https://d2glsbt6gvd4ll.cloudfront.net'
