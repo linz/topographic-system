@@ -29,7 +29,8 @@ on:
       strategy:
         description: 'Stac storage strategy.'
         type: string
-        required: true
+        required: false
+        default: 'commit=${{ github.sha }}'
       commit:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
