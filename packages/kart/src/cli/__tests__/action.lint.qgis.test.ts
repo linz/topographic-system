@@ -52,6 +52,20 @@ describe('action.lint.qgis', () => {
       assert.strictEqual(errors.length, 3);
     });
 
+    it('should error for url datasource path', () => {
+      const xml = {
+        qgis: {
+          layers: [
+            { datasource: 'https://example.com/buildings.parquet?after=2025-12-01', provider: 'ogr' },
+            { datasource: 'https://example.com/buildings.gpkg?after=2025-12-01', provider: 'ogr' },
+            { datasource: 'https://example.com/buildings.geojson?after=2025-12-01', provider: 'ogr' },
+          ],
+        },
+      };
+      const errors = lintDatasources(xml);
+      assert.strictEqual(errors.length, 3);
+    });
+
     it('should error for absolute datasource with piped metadata', () => {
       const xml = {
         qgis: {
