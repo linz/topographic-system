@@ -89,11 +89,10 @@ describe('topographic-system.e2e', async () => {
 
     const parquetTarget = new URL('parquet/data/catalog.json', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTarget), async () => {
-      await tsKart(
-        `to-parquet`,
-        '/target/source/topographic-test-data-export',
-        ['--temp-location', '/target/temp/kart.to-parquet'],
-      );
+      await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
+        '--temp-location',
+        '/target/temp/kart.to-parquet',
+      ]);
       assert.ok(await fsa.exists(parquetTarget));
       // TODO load catalog and validate
     });
