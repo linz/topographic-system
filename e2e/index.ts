@@ -85,12 +85,14 @@ describe('topographic-system.e2e', async () => {
       },
     );
 
-    const parquetTempOutput = new URL('temp/kart.to-parquet/catalog.json', targetFolder);
+    const parquetTempOutput = new URL('temp/kart.to-parquet/output/catalog.json', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTempOutput), async () => {
-      await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
-        '--temp-location',
-        '/target/temp/kart.to-parquet',
-      ]);
+      await tsKart(
+        `to-parquet`,
+        '/target/source/topographic-test-data-export',
+        ['--output', '/target/temp/kart.to-parquet/output'],
+        ['--temp-location', '/target/temp/kart.to-parquet/temp'],
+      );
       assert.ok(await fsa.exists(parquetTempOutput));
       // TODO load catalog and validate
     });
@@ -99,7 +101,7 @@ describe('topographic-system.e2e', async () => {
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTempOutput), async () => {
       await tsMap(
         'stac-push',
-        ['--source', '/target/temp/kart.to-parquet/catalog.json'],
+        ['--source', '/target/temp/kart.to-parquet/output/catalog.json'],
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
@@ -185,12 +187,14 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('kart.update', async () => {
-    const parquetTempOutput = new URL('temp/kart.update/catalog.json', targetFolder);
+    const parquetTempOutput = new URL('temp/kart.update/output/catalog.json', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTempOutput), async () => {
-      await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
-        '--temp-location',
-        '/target/temp/kart.update',
-      ]);
+      await tsKart(
+        `to-parquet`,
+        '/target/source/topographic-test-data-export',
+        ['--output', '/target/temp/kart.update/output'],
+        ['--temp-location', '/target/temp/kart.update/temp'],
+      );
       assert.ok(await fsa.exists(parquetTempOutput));
       // TODO load catalog and validate
     });
@@ -202,7 +206,7 @@ describe('topographic-system.e2e', async () => {
       async () => {
         await tsMap(
           'stac-push',
-          ['--source', '/target/temp/kart.to-parquet/catalog.json'],
+          ['--source', '/target/temp/kart.update/output/catalog.json'],
           ['--target', '/target/bucket/'],
           ['--category', 'data'],
           ['--strategy', 'latest'],
