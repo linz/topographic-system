@@ -85,7 +85,7 @@ describe('topographic-system.e2e', async () => {
       },
     );
 
-    const parquetTempOutput = new URL('target/temp/kart.to-parquet/catalog.json', targetFolder);
+    const parquetTempOutput = new URL('temp/kart.to-parquet/catalog.json', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTempOutput), async () => {
       await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
         '--temp-location',
@@ -99,16 +99,16 @@ describe('topographic-system.e2e', async () => {
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTempOutput), async () => {
       await tsMap(
         'stac-push',
-        ['--source', parquetTempOutput.href],
+        ['--source', 'temp/kart.to-parquet/catalog.json'],
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
         ['--strategy', `commit=${commitId}`],
         '--commit',
       );
-      assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
-      assert.ok(await fsa.exists(new URL(`/target/bucket/data/testline/commit_prefix=9/catalog.json`, targetFolder)));
-      assert.ok(await fsa.exists(new URL(`/target/bucket/data/latest/testline.parquet`, targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/data/testline/commit_prefix=9/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/data/latest/testline.parquet', targetFolder)));
     });
   });
 
@@ -135,9 +135,9 @@ describe('topographic-system.e2e', async () => {
         ['--strategy', `commit=${commitId}`],
         '--commit',
       );
-      assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
-      assert.ok(await fsa.exists(new URL(`/target/bucket/qgis/commit_prefix=9/catalog.json`, targetFolder)));
-      assert.ok(await fsa.exists(new URL(`/target/bucket/qgis/latest/topo-test.json`, targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/qgis/commit_prefix=9/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/qgis/latest/topo-test.json', targetFolder)));
     });
 
     await it('should produce map sheets', async () => {
@@ -185,7 +185,7 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('kart.update', async () => {
-    const parquetTempOutput = new URL('target/temp/kart.update/parquet/', targetFolder);
+    const parquetTempOutput = new URL('temp/kart.update/parquet/', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTempOutput), async () => {
       await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
         '--temp-location',
@@ -198,19 +198,19 @@ describe('topographic-system.e2e', async () => {
     const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`;
     await it(
       'should push the parquet stac files and assets',
-      await skipIfExists(new URL('/target/bucket/catalog.json', targetFolder)),
+      await skipIfExists(new URL('bucket/catalog.json', targetFolder)),
       async () => {
         await tsMap(
           'stac-push',
-          ['--source', parquetTempOutput.href],
+          ['--source', '/target/temp/kart.to-parquet/catalog.json'],
           ['--target', '/target/bucket/'],
           ['--category', 'data'],
           ['--strategy', 'latest'],
           ['--strategy', `commit=${newCommitId}`],
           '--commit',
         );
-        assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
-        assert.ok(await fsa.exists(new URL(`/target/bucket/data/testline/commit_prefix=0/catalog.json`, targetFolder)));
+        assert.ok(await fsa.exists(new URL('bucket/catalog.json', targetFolder)));
+        assert.ok(await fsa.exists(new URL('bucket/data/testline/commit_prefix=0/catalog.json', targetFolder)));
       },
     );
 
