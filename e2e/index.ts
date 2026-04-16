@@ -43,8 +43,6 @@ const tsKart = runContainer.bind(null, kartContainer);
 const tsMap = runContainer.bind(null, mapContainer);
 const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
-const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
-
 if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
   console.log(`Removing ${targetFolder}`);
   await $`rm -fr ${fileURLToPath(targetFolder)}`;
@@ -97,7 +95,7 @@ describe('topographic-system.e2e', async () => {
       // TODO load catalog and validate
     });
 
-    const date = new Date().toISOString();
+    const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTarget), async () => {
       await tsMap(
         'stac-push',
@@ -105,9 +103,12 @@ describe('topographic-system.e2e', async () => {
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
-        ['--strategy', `date=${date}`],
+        ['--strategy', `date=${commitId}`],
         '--commit',
       );
+      assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL(`/target/bucket/data/testline/commit_prefix=9/catalog.json`, targetFolder)));
+      assert.ok(await fsa.exists(new URL(`/target/bucket/data/latest/testline.parquet`, targetFolder)));
     });
   });
 
@@ -122,6 +123,7 @@ describe('topographic-system.e2e', async () => {
       ]);
     });
 
+    const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
     const qgisTarget = new URL('bucket/qgis/catalog.json', targetFolder);
     await it('should push the stac files and assets', await skipIfExists(qgisTarget), async () => {
       await tsMap(
@@ -133,6 +135,9 @@ describe('topographic-system.e2e', async () => {
         ['--strategy', `commit=${commitId}`],
         '--commit',
       );
+      assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL(`/target/bucket/qgis/commit_prefix=9/catalog.json`, targetFolder)));
+      assert.ok(await fsa.exists(new URL(`/target/bucket/qgis/latest/topo-test.json`, targetFolder)));
     });
 
     await it('should produce map sheets', async () => {
@@ -180,21 +185,35 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('kart.update', async () => {
-    const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`;
     await it(
       'should convert topographic-test-data to parquet',
-      await skipIfExists(new URL('bucket/data/catalog.json', targetFolder)),
+      await skipIfExists(new URL('/target/temp/kart.to-parquet/catalog.json', targetFolder)),
       async () => {
-        await tsKart(
-          `to-parquet`,
-          '/target/source/topographic-test-data-export',
-          ['--temp-location', '/target/temp/kart.to-parquet'],
-          ['--output', '/target/bucket/'],
+        await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
+          '--temp-location',
+          '/target/temp/kart.to-parquet',
+        ]);
+        assert.ok(await fsa.exists(new URL('/target/temp/kart.to-parquet/catalog.json', targetFolder)));
+        // TODO load catalog and validate
+      },
+    );
+
+    const newCommitId = `0f2cbb026964df12cfe4e56ffa94af2f4d9ed90e`;
+    await it(
+      'should push the parquet stac files and assets',
+      await skipIfExists(new URL('/target/bucket/catalog.json', targetFolder)),
+      async () => {
+        await tsMap(
+          'stac-push',
+          ['--source', `/target/temp/kart.to-parquet/catalog.json`],
+          ['--target', '/target/bucket/'],
+          ['--category', 'data'],
           ['--strategy', 'latest'],
           ['--strategy', `commit=${newCommitId}`],
+          '--commit',
         );
-        assert.ok(await fsa.exists(new URL('bucket/data/catalog.json', targetFolder)));
-        // TODO load catalog and validate
+        assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
+        assert.ok(await fsa.exists(new URL(`/target/bucket/data/testline/commit_prefix=0/catalog.json`, targetFolder)));
       },
     );
 
