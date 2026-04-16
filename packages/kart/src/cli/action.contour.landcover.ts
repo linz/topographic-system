@@ -82,8 +82,8 @@ export const ContourWithLandcoverCommand = command({
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href), args.tempLocation);
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href), args.tempLocation);
+    const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
+    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
 
     const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, args.tempLocation);
 
