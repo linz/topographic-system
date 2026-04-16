@@ -93,7 +93,6 @@ describe('topographic-system.e2e', async () => {
         `to-parquet`,
         '/target/source/topographic-test-data-export',
         ['--temp-location', '/target/temp/kart.to-parquet'],
-        ['--output', '/target/parquet/'],
         ['--strategy', 'latest'],
         ['--strategy', `commit=${commitId}`],
       );
@@ -105,7 +104,7 @@ describe('topographic-system.e2e', async () => {
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTarget), async () => {
       await tsMap(
         'stac-push',
-        ['--source', parquetTarget.href],
+        ['--source', `/target/temp/kart.to-parquet/catalog.json`],
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
