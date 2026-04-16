@@ -69,7 +69,7 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
 }
 
 describe('action.flow integration', () => {
-  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-flow-integration'));
+  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-prepare-integration'));
   const repoUrl = new URL('repo/', tempDir);
   const diffUrl = new URL('diff/', tempDir);
   const summaryUrl = new URL('pr_summary.md', tempDir);
@@ -97,7 +97,7 @@ describe('action.flow integration', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should run kart-flow', async () => {
+  it('should run kart-prepare', async () => {
     it('should get a version string when running step 1 - version', async () => {
       const output = await cli(['version']);
       assert.ok(/\d+\.\d+\.\d+/.test(output), `Expected version string in output, got: ${output}`);
@@ -155,7 +155,24 @@ describe('action.flow integration', () => {
       assert.ok(catalog, 'catalog.json should exist in output');
     });
 
-    it('should push the stac files into target output in step 7 - stac-push', async () => {
+    // FIXME currently broken
+    it('should validate parquet files in step 7 - validate', { skip: true }, async () => {
+      const dbPath = new URL('files.parquet', parquetUrl);
+      const configFile = pathToFileURL('/packages/validation/config/default_config.json');
+
+      await cli(
+        'validate',
+        ['--output', fileURLToPath(outputUrl)],
+        ['--db-path', fileURLToPath(dbPath)],
+        ['--config-file', fileURLToPath(configFile)],
+        ['--output-dir', fileURLToPath(validationUrl)],
+      );
+
+      const validationFiles = await fsa.toArray(fsa.list(validationUrl));
+      assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
+    });
+
+    it('should push the stac files into target output after kart-prepare', async () => {
       await cli(
         'stac-push',
         ['--source', new URL('catalog.json', parquetUrl).href],
@@ -174,23 +191,6 @@ describe('action.flow integration', () => {
       const catalogUrl = new URL('catalog.json', outputUrl);
       const catalog = await fsa.readJson(catalogUrl);
       assert.ok(catalog, 'catalog.json should exist in output');
-    });
-
-    // FIXME currently broken
-    it('should validate parquet files in step 8 - validate', { skip: true }, async () => {
-      const dbPath = new URL('files.parquet', parquetUrl);
-      const configFile = pathToFileURL('/packages/validation/config/default_config.json');
-
-      await cli(
-        'validate',
-        ['--output', fileURLToPath(outputUrl)],
-        ['--db-path', fileURLToPath(dbPath)],
-        ['--config-file', fileURLToPath(configFile)],
-        ['--output-dir', fileURLToPath(validationUrl)],
-      );
-
-      const validationFiles = await fsa.toArray(fsa.list(validationUrl));
-      assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
     });
   });
 });

@@ -53,6 +53,11 @@ export const ParquetCommand = command({
       defaultValue: () => 4096,
       defaultValueIsSerializable: true,
     }),
+    output: option({
+      type: UrlFolder,
+      long: 'output',
+      description: 'Destination for parquet files and STAC',
+    }),
     tempLocation: option({
       type: UrlFolder,
       long: 'temp-location',
@@ -67,7 +72,7 @@ export const ParquetCommand = command({
   async handler(args) {
     registerFileSystem();
 
-    const rootCatalog = new URL('catalog.json', args.tempLocation);
+    const rootCatalog = new URL('catalog.json', args.output);
 
     logger.info(
       {
@@ -143,7 +148,7 @@ export const ParquetCommand = command({
       sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      todo.push(sw.write(args.tempLocation, Q.Q));
+      todo.push(sw.write(args.output, Q.Q));
     }
 
     const collections = await Promise.all(todo);

@@ -3,8 +3,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { logger, UrlFolder, stringToUrlFolder, Url, canCommentOnPr } from '@linzjs/topographic-system-shared';
-import { StacPushCommand, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
-import { boolean, command, flag, multioption, number, option, optional, positional, string } from 'cmd-ts';
+import { boolean, command, flag, number, option, optional, positional, string } from 'cmd-ts';
 
 import { CloneCommand } from './action.clone.ts';
 import { DiffCommand } from './action.diff.ts';
@@ -33,7 +32,7 @@ function ghGroupLog(name?: string) {
 }
 
 export const FlowCommand = command({
-  name: 'kart-flow',
+  name: 'kart-prepare',
   description:
     'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate',
   args: {
@@ -131,20 +130,6 @@ export const FlowCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(baseOutputLocation, 'parquet')),
     }),
 
-    // Stac push args
-    strategies: multioption({
-      long: 'strategy',
-      type: StorageStrategyMulti,
-      description: 'Storage strategies to use, for example --strategy=latest',
-      defaultValueIsSerializable: true,
-    }),
-    commit: flag({
-      long: 'commit',
-      description: 'Actually start the stac push',
-      defaultValue: () => false,
-      defaultValueIsSerializable: true,
-    }),
-
     // Validate args
     configFile: option({
       type: Url,
@@ -165,13 +150,13 @@ export const FlowCommand = command({
 
     const parquetLocationForValidation = new URL('files.parquet', args.parquetTempLocation);
 
-    ghGroupLog('Flow:Step [1/8] version');
+    ghGroupLog('Flow:Step [1/7] version');
     await VersionCommand.handler({});
 
-    ghGroupLog('Flow:Step [2/8] clone');
+    ghGroupLog('Flow:Step [2/7] clone');
     await CloneCommand.handler({ repository: args.repository, ref: args.ref, output: args.cloneOutput });
 
-    ghGroupLog('Flow:Step [3/8] diff');
+    ghGroupLog('Flow:Step [3/7] diff');
     await DiffCommand.handler({
       context: args.cloneOutput,
       output: args.diffOutput,
@@ -180,13 +165,13 @@ export const FlowCommand = command({
     });
 
     if (canCommentOnPr()) {
-      ghGroupLog('Flow:Step [4/8 pr-comment');
+      ghGroupLog('Flow:Step [4/7] pr-comment');
       await CommentCommand.handler({ pr: undefined, repo: undefined, bodyFile: args.summaryFile });
     } else {
-      ghGroupLog('Flow:Step [4/8] pr-comment (skipped - no PR detected)');
+      ghGroupLog('Flow:Step [4/7] pr-comment (skipped - no PR detected)');
     }
 
-    ghGroupLog('Flow:Step [5/8] export');
+    ghGroupLog('Flow:Step [5/7] export');
     await ExportCommand.handler({
       context: args.cloneOutput,
       output: args.exportOutput,
@@ -195,26 +180,18 @@ export const FlowCommand = command({
       datasets: [],
     });
 
-    ghGroupLog('Flow:Step [6/8] to-parquet');
+    ghGroupLog('Flow:Step [6/7] to-parquet');
     await ParquetCommand.handler({
       compression: args.compression,
       compressionLevel: args.compressionLevel,
       sortByBbox: args.sortByBbox,
       rowGroupSize: args.rowGroupSize,
+      output: args.output,
       tempLocation: args.parquetTempLocation,
       sourceFiles: [args.exportOutput],
     });
 
-    ghGroupLog('Flow:Step [7/8] stac-push');
-    await StacPushCommand.handler({
-      source: new URL('catalog.json', args.parquetTempLocation),
-      target: args.output,
-      category: 'data',
-      strategies: args.strategies,
-      commit: args.commit,
-    });
-
-    ghGroupLog('Flow:Step [8/8] validate');
+    ghGroupLog('Flow:Step [7/7] validate');
     await ValidateCommand.handler({
       output: args.output,
       mode: 'generic',

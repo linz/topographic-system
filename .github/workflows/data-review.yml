@@ -75,14 +75,16 @@ jobs:
           mask-aws-account-id: true
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Kart Flow
-        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only="$CHANGED_DATASETS_ONLY" --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+      - name: Kart Prepare
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
           HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
-          OUTPUT: ${{ inputs.output }}
           CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
+
+      - name: Stac Push
+        run: node /app/index.cjs stac-push --source tmp/kart/prepare/catalog.json --output ${{ inputs.output }} --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
       - name: Upload diff artifacts
         uses: actions/upload-artifact@v7
