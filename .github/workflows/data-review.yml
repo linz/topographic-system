@@ -26,6 +26,10 @@ on:
         description: 'Version of kart to use.'
         type: string
         default: 'latest' # TOOO: should be x-release-please-version
+      strategy:
+        description: 'Stac storage strategy.'
+        type: string
+        required: true
       commit:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
@@ -71,7 +75,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Kart Flow
-        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only="$CHANGED_DATASETS_ONLY" --strategy latest --strategy date --commit=${{inputs.commit}}
+        run: node /app/index.cjs kart-flow "$CLONE_URL" --ref "$HEAD_REF" --output "$OUTPUT" --changed-datasets-only="$CHANGED_DATASETS_ONLY" --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}

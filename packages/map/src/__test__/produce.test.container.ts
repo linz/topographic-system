@@ -94,8 +94,7 @@ describe('QGIS Process', () => {
         ['--source', fileURLToPath(new URL('target-deploy/catalog.json', tempLocation))],
         ['--target', fileURLToPath(new URL('target-deploy-push/', tempLocation))],
         ['--category', 'qgis'],
-        ['--strategy', 'latest'],
-        ['--strategy', `commit=${baseDeployArgs.githash}`],
+        ['--strategy', `latest,commit=${baseDeployArgs.githash}`],
         ['--commit'],
       );
 
