@@ -196,21 +196,18 @@ export const FlowCommand = command({
     });
 
     ghGroupLog('Flow:Step [6/8] to-parquet');
-    const parquetOutputs = new URL('output/', args.parquetTempLocation); // Actural local outputs with stac files and data.
-    const parquetData = new URL('parquet/', args.parquetTempLocation);
     await ParquetCommand.handler({
       compression: args.compression,
       compressionLevel: args.compressionLevel,
       sortByBbox: args.sortByBbox,
       rowGroupSize: args.rowGroupSize,
-      output: parquetOutputs,
-      tempLocation: parquetData,
+      tempLocation: args.parquetTempLocation,
       sourceFiles: [args.exportOutput],
     });
 
     ghGroupLog('Flow:Step [7/8] stac-push');
     await StacPushCommand.handler({
-      source: new URL('data/catalog.json', parquetOutputs),
+      source: new URL('catalog.json', args.parquetTempLocation),
       target: args.output,
       category: 'data',
       strategies: args.strategies,
