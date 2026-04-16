@@ -142,13 +142,7 @@ describe('action.flow integration', () => {
     });
 
     it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
-      await cli(
-        'to-parquet',
-        ['--output', fileURLToPath(outputUrl)],
-        ['--temp-location', fileURLToPath(parquetUrl)],
-        ['--strategy', 'latest'],
-        fileURLToPath(exportUrl),
-      );
+      await cli('to-parquet', ['--temp-location', fileURLToPath(parquetUrl)], fileURLToPath(exportUrl));
 
       const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
       assert.ok(
@@ -161,8 +155,29 @@ describe('action.flow integration', () => {
       assert.ok(catalog, 'catalog.json should exist in output');
     });
 
+    it('should push the stac files into target output in step 7 - stac-push', async () => {
+      await cli(
+        'stac-push',
+        ['--source', new URL('catalog.json', outputUrl).href],
+        ['--target', outputUrl.href],
+        ['--category', 'data'],
+        ['--strategy', 'latest'],
+        ['--commit'],
+      );
+
+      const stacFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
+      assert.ok(
+        stacFiles.some((f) => f.href.endsWith('.json')),
+        `Expected stac files in ${outputUrl.href}, got: ${stacFiles.map((f) => f.href).join(', ')}`,
+      );
+
+      const catalogUrl = new URL('catalog.json', outputUrl);
+      const catalog = await fsa.readJson(catalogUrl);
+      assert.ok(catalog, 'catalog.json should exist in output');
+    });
+
     // FIXME currently broken
-    it('should validate parquet files in step 7 - validate', { skip: true }, async () => {
+    it('should validate parquet files in step 8 - validate', { skip: true }, async () => {
       const dbPath = new URL('files.parquet', parquetUrl);
       const configFile = pathToFileURL('/packages/validation/config/default_config.json');
 
