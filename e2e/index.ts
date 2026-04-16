@@ -93,8 +93,6 @@ describe('topographic-system.e2e', async () => {
         `to-parquet`,
         '/target/source/topographic-test-data-export',
         ['--temp-location', '/target/temp/kart.to-parquet'],
-        ['--strategy', 'latest'],
-        ['--strategy', `commit=${commitId}`],
       );
       assert.ok(await fsa.exists(parquetTarget));
       // TODO load catalog and validate
