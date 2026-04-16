@@ -75,7 +75,8 @@ describe('action.flow integration', () => {
   const summaryUrl = new URL('pr_summary.md', tempDir);
   const exportUrl = new URL('export/', tempDir);
   const parquetUrl = new URL('parquet/', tempDir);
-  const outputUrl = new URL('s3-output/', tempDir);
+  const outputUrl = new URL('output/', tempDir);
+  const targetUrl = new URL('s3-target/', tempDir);
   const validationUrl = new URL('validation-output/', tempDir);
 
   before(async () => {
@@ -142,15 +143,21 @@ describe('action.flow integration', () => {
     });
 
     it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
-      await cli('to-parquet', ['--temp-location', fileURLToPath(parquetUrl)], fileURLToPath(exportUrl));
-
-      const parquetFiles = await fsa.toArray(fsa.list(parquetUrl, { recursive: true }));
-      assert.ok(
-        parquetFiles.some((f) => f.href.endsWith('.parquet')),
-        `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
+      await cli(
+        'to-parquet',
+        ['--output', fileURLToPath(outputUrl)],
+        ['--temp-location', fileURLToPath(parquetUrl)],
+        ['--strategy', 'latest'],
+        fileURLToPath(exportUrl),
       );
 
-      const catalogUrl = new URL('catalog.json', parquetUrl);
+      const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
+      assert.ok(
+        parquetFiles.some((f) => f.href.endsWith('.parquet')),
+        `Expected .parquet in ${outputUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
+      );
+
+      const catalogUrl = new URL('catalog.json', outputUrl);
       const catalog = await fsa.readJson(catalogUrl);
       assert.ok(catalog, 'catalog.json should exist in output');
     });
@@ -175,8 +182,8 @@ describe('action.flow integration', () => {
     it('should push the stac files into target output after kart-prepare', async () => {
       await cli(
         'stac-push',
-        ['--source', new URL('catalog.json', parquetUrl).href],
-        ['--target', outputUrl.href],
+        ['--source', new URL('catalog.json', outputUrl).href],
+        ['--target', targetUrl.href],
         ['--category', 'data'],
         ['--strategy', 'latest'],
         ['--commit'],
