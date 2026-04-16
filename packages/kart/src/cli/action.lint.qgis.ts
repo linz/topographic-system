@@ -56,6 +56,12 @@ export function lintDatasources(node: unknown, visited = new Set<unknown>()): st
 
       // remove datasource metadata if there, eg ./testline.parquet|layername=testline
       const path = value.split('|')[0] ?? value;
+
+      // skip non-file datasources (WMS/WMTS/WFS connection strings use key=value parameters)
+      if (path.includes('=')) {
+        continue;
+      }
+
       if (!(path.startsWith('./') || path.startsWith('../'))) {
         errors.push(`datasource path must be relative (start with ./ or ../): ${value}`);
       }

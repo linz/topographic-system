@@ -66,6 +66,21 @@ describe('action.lint.qgis', () => {
       assert.strictEqual(errors.length, 3);
     });
 
+    it('should pass for WMS/WMTS connection string datasources', () => {
+      const xml = {
+        qgis: {
+          layers: [
+            {
+              datasource:
+                'contextualWMSLegend=0&crs=EPSG:2193&dpiMode=7&featureCount=10&format=image/webp&layers=topo-raster-gridded&styles=default&tileMatrixSet=NZTM2000Quad&tilePixelRatio=2&url=https://basemaps.linz.govt.nz/v1/tiles/topo-raster-gridded/NZTM2000Quad/WMTSCapabilities.xml?api%3Dc01kkyythn3e0sae5j6c8ahbed3',
+            },
+          ],
+        },
+      };
+      const errors = lintDatasources(xml);
+      assert.deepStrictEqual(errors, []);
+    });
+
     it('should handle deeply nested datasources', () => {
       const xml = {
         a: { b: { c: { d: { datasource: '/deep.parquet' } } } },
