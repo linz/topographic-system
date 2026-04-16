@@ -147,7 +147,6 @@ describe('action.flow integration', () => {
         'to-parquet',
         ['--output', fileURLToPath(outputUrl)],
         ['--temp-location', fileURLToPath(parquetUrl)],
-        ['--strategy', 'latest'],
         fileURLToPath(exportUrl),
       );
 
