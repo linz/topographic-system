@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, afterEach, before, describe, it, mock } from 'node:test';
 import { pathToFileURL } from 'node:url';
@@ -56,7 +57,6 @@ describe('action.flow', () => {
     process.env['GITHUB_TOKEN'] = 'fake-token';
     delete process.env['GITHUB_PR_NUMBER'];
     delete process.env['GITHUB_EVENT_PATH'];
-    const date = new Date();
     defaultFlowArgs = {
       // Flow-level args
       repository: 'linz/topographic-test-data',
@@ -83,7 +83,7 @@ describe('action.flow', () => {
       parquetTempLocation: stringToUrlFolder(path.join(testDir, 'parquet')),
 
       // Stac push
-      strategies: [{ type: 'latest' }, { type: 'date', date }],
+      strategies: [{ type: 'latest' }, { type: 'date', date: new Date() }],
       commit: true,
 
       // Validate
@@ -258,8 +258,7 @@ describe('action.flow', () => {
 
       const parquetArgs = parquet.mock.calls[0]?.arguments[0];
       assert.ok(parquetArgs, 'to-parquet handler should have received arguments');
-      // assert.ok(parquetArgs.output, 'parquet args should have an output');
-      // assert.strictEqual(parquetArgs.output.href, output.href);
+      assert.ok(parquetArgs.tempLocation, 'parquet args should have a tempLocation');
     });
 
     it('should push the parquet files to target with stac strategies', async () => {

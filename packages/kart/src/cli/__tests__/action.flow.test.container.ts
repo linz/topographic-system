@@ -144,13 +144,13 @@ describe('action.flow integration', () => {
     it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
       await cli('to-parquet', ['--temp-location', fileURLToPath(parquetUrl)], fileURLToPath(exportUrl));
 
-      const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
+      const parquetFiles = await fsa.toArray(fsa.list(parquetUrl, { recursive: true }));
       assert.ok(
         parquetFiles.some((f) => f.href.endsWith('.parquet')),
         `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
       );
 
-      const catalogUrl = new URL('catalog.json', outputUrl);
+      const catalogUrl = new URL('catalog.json', parquetUrl);
       const catalog = await fsa.readJson(catalogUrl);
       assert.ok(catalog, 'catalog.json should exist in output');
     });
@@ -158,7 +158,7 @@ describe('action.flow integration', () => {
     it('should push the stac files into target output in step 7 - stac-push', async () => {
       await cli(
         'stac-push',
-        ['--source', new URL('catalog.json', outputUrl).href],
+        ['--source', new URL('catalog.json', parquetUrl).href],
         ['--target', outputUrl.href],
         ['--category', 'data'],
         ['--strategy', 'latest'],
