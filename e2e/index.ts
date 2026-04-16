@@ -99,7 +99,7 @@ describe('topographic-system.e2e', async () => {
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTempOutput), async () => {
       await tsMap(
         'stac-push',
-        ['--source', 'temp/kart.to-parquet/catalog.json'],
+        ['--source', '/target/temp/kart.to-parquet/catalog.json'],
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
@@ -108,19 +108,19 @@ describe('topographic-system.e2e', async () => {
       );
       assert.ok(await fsa.exists(new URL('bucket/catalog.json', targetFolder)));
       assert.ok(await fsa.exists(new URL('bucket/data/testline/commit_prefix=9/catalog.json', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/data/latest/testline.parquet', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/data/testline/latest/testline.parquet', targetFolder)));
     });
   });
 
   await describe('map', async () => {
     const qgisDeploy = new URL('source/qgis/', targetFolder);
     await it('should deploy the testing qgis project', await skipIfExists(qgisDeploy), async () => {
-      await tsMap('deploy', '/assets/topo-test.qgs', [
-        '--target',
-        '/target/temp/qgis/',
-        '--source',
-        '/target/bucket/data/catalog.json',
-      ]);
+      await tsMap(
+        'deploy',
+        '/assets/topo-test.qgs',
+        ['--target', '/target/temp/qgis/'],
+        ['--source', '/target/bucket/data/catalog.json'],
+      );
     });
 
     const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
@@ -136,8 +136,8 @@ describe('topographic-system.e2e', async () => {
         '--commit',
       );
       assert.ok(await fsa.exists(new URL('bucket/catalog.json', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/qgis/commit_prefix=9/catalog.json', targetFolder)));
-      assert.ok(await fsa.exists(new URL('bucket/qgis/latest/topo-test.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/qgis/topo-test/commit_prefix=9/catalog.json', targetFolder)));
+      assert.ok(await fsa.exists(new URL('bucket/qgis/topo-test/latest/topo-test.json', targetFolder)));
     });
 
     await it('should produce map sheets', async () => {
@@ -185,11 +185,11 @@ describe('topographic-system.e2e', async () => {
   });
 
   await describe('kart.update', async () => {
-    const parquetTempOutput = new URL('temp/kart.update/parquet/', targetFolder);
+    const parquetTempOutput = new URL('temp/kart.update/catalog.json', targetFolder);
     await it('should convert topographic-test-data to parquet', await skipIfExists(parquetTempOutput), async () => {
       await tsKart(`to-parquet`, '/target/source/topographic-test-data-export', [
         '--temp-location',
-        '/target/temp/kart.to-parquet',
+        '/target/temp/kart.update',
       ]);
       assert.ok(await fsa.exists(parquetTempOutput));
       // TODO load catalog and validate
