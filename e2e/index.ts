@@ -103,7 +103,7 @@ describe('topographic-system.e2e', async () => {
         ['--target', '/target/bucket/'],
         ['--category', 'data'],
         ['--strategy', 'latest'],
-        ['--strategy', `date=${commitId}`],
+        ['--strategy', `commit=${commitId}`],
         '--commit',
       );
       assert.ok(await fsa.exists(new URL('/target/bucket/catalog.json', targetFolder)));
