@@ -13,6 +13,7 @@
   "dependencies": {
     "@linzjs/topographic-system-shared": "^0.8.0",
     "cmd-ts": "^0.14.3",
-    "zx": "^8.8.5"
+    "zx": "^8.8.5",
+    "fast-xml-parser": "^5.5.11"
   }
 }
