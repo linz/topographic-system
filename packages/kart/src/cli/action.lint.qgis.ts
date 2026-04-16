@@ -42,31 +42,19 @@ export function lintDatasources(node: unknown, visited = new Set<unknown>()): st
 
   const errors: string[] = [];
 
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'datasource') {
-      if (typeof value !== 'string') {
-        errors.push('datasource value is not a string');
-        continue;
-      }
+  if ('datasource' in node && 'provider' in node) {
+    const datasource = node['datasource'] as string;
+    const provider = node['provider'];
 
-      // ignore empty datasource
-      if (value === '') {
-        continue;
-      }
-
-      // remove datasource metadata if there, eg ./testline.parquet|layername=testline
-      const path = value.split('|')[0] ?? value;
-
-      // skip non-file datasources (WMS/WMTS/WFS connection strings use key=value parameters)
-      if (path.includes('=')) {
-        continue;
-      }
-
-      if (!(path.startsWith('./') || path.startsWith('../'))) {
-        errors.push(`datasource path must be relative (start with ./ or ../): ${value}`);
+    // ignore empty datasource and non local files
+    if (datasource !== '' && provider === 'ogr') {
+      if (!(datasource.startsWith('./') || datasource.startsWith('../'))) {
+        errors.push(`datasource path must be relative (start with ./ or ../): ${datasource}`);
       }
     }
+  }
 
+  for (const value of Object.values(node)) {
     errors.push(...lintDatasources(value, visited));
   }
 

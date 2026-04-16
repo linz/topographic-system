@@ -12,10 +12,10 @@ describe('action.lint.qgis', () => {
       const xml = {
         qgis: {
           layers: [
-            { datasource: './buildings.parquet' },
-            { datasource: './buildings.gpkg' },
-            { datasource: './buildings.geojson' },
-            { datasource: '../buildings.parquet' },
+            { datasource: './buildings.parquet', provider: 'ogr' },
+            { datasource: './buildings.gpkg', provider: 'ogr' },
+            { datasource: './buildings.geojson', provider: 'ogr' },
+            { datasource: '../buildings.parquet', provider: 'ogr' },
           ],
         },
       };
@@ -27,10 +27,10 @@ describe('action.lint.qgis', () => {
       const xml = {
         qgis: {
           layers: [
-            { datasource: './test.parquet|layername=testline' },
-            { datasource: './test.gpkg|layername=testline' },
-            { datasource: './test.geojson|layername=testline' },
-            { datasource: '../test.parquet|layername=testline' },
+            { datasource: './test.parquet|layername=testline', provider: 'ogr' },
+            { datasource: './test.gpkg|layername=testline', provider: 'ogr' },
+            { datasource: './test.geojson|layername=testline', provider: 'ogr' },
+            { datasource: '../test.parquet|layername=testline', provider: 'ogr' },
           ],
         },
       };
@@ -42,9 +42,9 @@ describe('action.lint.qgis', () => {
       const xml = {
         qgis: {
           layers: [
-            { datasource: '/data/buildings.parquet' },
-            { datasource: '/data/buildings.gpkg' },
-            { datasource: '/data/buildings.geojson' },
+            { datasource: '/data/buildings.parquet', provider: 'ogr' },
+            { datasource: '/data/buildings.gpkg', provider: 'ogr' },
+            { datasource: '/data/buildings.geojson', provider: 'ogr' },
           ],
         },
       };
@@ -56,9 +56,9 @@ describe('action.lint.qgis', () => {
       const xml = {
         qgis: {
           layers: [
-            { datasource: '/data/test.parquet|layername=testline' },
-            { datasource: '/data/test.gpkg|layername=testline' },
-            { datasource: '/data/test.geojson|layername=testline' },
+            { datasource: '/data/test.parquet|layername=testline', provider: 'ogr' },
+            { datasource: '/data/test.gpkg|layername=testline', provider: 'ogr' },
+            { datasource: '/data/test.geojson|layername=testline', provider: 'ogr' },
           ],
         },
       };
@@ -66,13 +66,14 @@ describe('action.lint.qgis', () => {
       assert.strictEqual(errors.length, 3);
     });
 
-    it('should pass for WMS/WMTS connection string datasources', () => {
+    it('should skip WMS datasources', () => {
       const xml = {
         qgis: {
           layers: [
             {
               datasource:
                 'contextualWMSLegend=0&crs=EPSG:2193&dpiMode=7&featureCount=10&format=image/webp&layers=topo-raster-gridded&styles=default&tileMatrixSet=NZTM2000Quad&tilePixelRatio=2&url=https://basemaps.linz.govt.nz/v1/tiles/topo-raster-gridded/NZTM2000Quad/WMTSCapabilities.xml?api%3Dc01kkyythn3e0sae5j6c8ahbed3',
+              provider: 'wms',
             },
           ],
         },
@@ -83,7 +84,7 @@ describe('action.lint.qgis', () => {
 
     it('should handle deeply nested datasources', () => {
       const xml = {
-        a: { b: { c: { d: { datasource: '/deep.parquet' } } } },
+        a: { b: { c: { d: { datasource: '/deep.parquet', provider: 'ogr' } } } },
       };
       const errors = lintDatasources(xml);
       assert.strictEqual(errors.length, 1);
