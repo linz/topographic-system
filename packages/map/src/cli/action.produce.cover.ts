@@ -10,7 +10,7 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { downloadAssets } from '@linzjs/topographic-system-shared/src/download.ts';
+import { downloadAssets } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
