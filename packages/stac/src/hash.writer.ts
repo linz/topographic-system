@@ -3,8 +3,8 @@ import { createHash } from 'crypto';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import type { StacAsset, StacLink } from 'stac-ts';
 import { logger } from '@linzjs/topographic-system-shared';
+import type { StacAsset, StacLink } from 'stac-ts';
 
 export interface StacFileChecksum {
   'file:checksum': string;
@@ -24,9 +24,9 @@ export const HashWriter = {
   },
 
   stat(buffer: string | Buffer): StacFileChecksum {
-    const hash = createHash('sha256').update(buffer).digest('hex');
+    const hash = `1220` + createHash('sha256').update(buffer).digest('hex');
     return {
-      'file:checksum': `1220` + hash,
+      'file:checksum': hash,
       'file:size': buffer.length,
     };
   },
@@ -34,26 +34,26 @@ export const HashWriter = {
   async file(target: URL, buffer: string | Buffer, obj: WriteOptions): Promise<StacFileChecksum> {
     const startTime = performance.now();
 
-    const hash = createHash('sha256').update(buffer).digest('hex');
+    const hash = `1220` + createHash('sha256').update(buffer).digest('hex');
     await fsa.write(target, buffer, obj);
 
     const duration = performance.now() - startTime;
-    logger.info({ target: target.href, size: buffer.length, hash:  duration }, 'HashWriter:Write');
+    logger.info({ target: target.href, size: buffer.length, hash, duration }, 'HashWriter:Write');
     return {
-      'file:checksum': `1220` + hash,
+      'file:checksum': hash,
       'file:size': buffer.length,
     };
   },
 
   async stream(target: URL, source: URL, obj: WriteOptions): Promise<StacFileChecksum> {
     const startTime = performance.now();
-    
+
     const ht = new HashTransform('sha256');
     const readStream = fsa.readStream(source).pipe(ht);
     await fsa.write(target, readStream, obj);
 
     const duration = performance.now() - startTime;
-    logger.info({ target: target.href, size: ht.bytesRead, hash:  duration }, 'HashWriter:Write:Stream');
+    logger.info({ target: target.href, size: ht.bytesRead, hash: ht.multihash, duration }, 'HashWriter:Write:Stream');
     return {
       'file:checksum': ht.multihash,
       'file:size': ht.bytesRead,
