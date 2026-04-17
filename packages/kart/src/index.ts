@@ -1,4 +1,5 @@
 import { traceAndRun } from '@linzjs/topographic-system-shared';
+import { StacPushCommand } from '@linzjs/topographic-system-stac';
 import { subcommands } from 'cmd-ts';
 
 import packageJson from '../package.json' with { type: 'json' };
@@ -14,7 +15,7 @@ import { ValidateCommand } from './cli/action.validate.ts';
 import { VersionCommand } from './cli/action.version.ts';
 
 const cmds = {
-  'kart-flow': FlowCommand,
+  'kart-prepare': FlowCommand,
   clone: CloneCommand,
   diff: DiffCommand,
   export: ExportCommand,
@@ -23,6 +24,7 @@ const cmds = {
   validate: ValidateCommand,
   version: VersionCommand,
   'contour-with-landcover': ContourWithLandcoverCommand,
+  'stac-push': StacPushCommand,
   'lint-qgis': LintQgisProjectCommand,
 };
 

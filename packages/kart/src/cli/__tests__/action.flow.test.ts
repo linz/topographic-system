@@ -46,7 +46,7 @@ describe('action.flow', () => {
   const defaultEnv = { ...process.env };
 
   before(async () => {
-    testDir = 'kart-flow-test/';
+    testDir = 'kart-prepare-test/';
     // Make canCommentOnPr() return true for all flow tests
     process.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_TOKEN'] = 'fake-token';

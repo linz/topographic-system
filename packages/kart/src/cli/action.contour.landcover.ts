@@ -82,8 +82,8 @@ export const ContourWithLandcoverCommand = command({
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href), args.tempLocation);
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href), args.tempLocation);
+    const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
+    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
 
     const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, args.tempLocation);
 
@@ -100,8 +100,8 @@ export const ContourWithLandcoverCommand = command({
     sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
     sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
 
-    const collections = await sw.writeWithStrategy(rootCatalog, pLimit(4), true);
+    const collections = await sw.write(rootCatalog, pLimit(4));
 
-    await StacUpdater.collections(rootCatalog, collections, true);
+    await StacUpdater.collections(rootCatalog, [collections], true);
   },
 });
