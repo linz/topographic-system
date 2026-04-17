@@ -3,7 +3,7 @@ import type { StacItem } from 'stac-ts';
 import { type ExportFormat } from './cli/action.produce.cover.ts';
 
 export interface ExportOptions {
-  /** layout name used for export, must be exist in the qgis project */
+  /** layout name used for export, must exist in the QGIS project */
   layout: string;
   /** map sheet layer name used for export */
   mapSheetLayer: string;
