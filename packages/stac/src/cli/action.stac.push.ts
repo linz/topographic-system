@@ -54,8 +54,7 @@ export const StacPushCommand = command({
 
     // Push Stac Item, Collection and Assets
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Push');
-    const { items, collections } = await stacLoader.push(args.target, q, args.commit, logger);
-
+    const { items, collections } = await stacLoader.push(args.target, q, args.commit);
 
     // Upsert Stac Catalog
     const catalogs = await StacUpdater.collections(rootCatalogUrl, collections, args.commit);
