@@ -4,6 +4,7 @@ import numpy as np
 import os
 import logging
 from datetime import datetime
+from shapely.geometry import MultiLineString
 
 
 class CartoTextProcessor:
@@ -1015,6 +1016,26 @@ class CartoTextProcessor:
 
             # Read the carto_text layer using geopandas
             gdf = gpd.read_file(gpkg_path, layer=carto_text_layer)
+            
+            # Log initial geometry types
+            geom_types = gdf.geom_type.value_counts()
+            self.logger.info(f"Initial geometry types: {geom_types.to_dict()}")
+            
+            # Convert LineString to MultiLineString if present
+            linestring_mask = gdf.geom_type == 'LineString'
+            if linestring_mask.any():
+                linestring_count = linestring_mask.sum()
+                self.logger.info(f"Converting {linestring_count} LineString geometries to MultiLineString")
+                gdf.loc[linestring_mask, 'geometry'] = gdf.loc[linestring_mask, 'geometry'].apply(
+                    lambda geom: MultiLineString([geom]) if geom.geom_type == 'LineString' else geom
+                )
+                
+                # Log updated geometry types
+                updated_geom_types = gdf.geom_type.value_counts()
+                self.logger.info(f"Updated geometry types: {updated_geom_types.to_dict()}")
+            else:
+                self.logger.info("No LineString geometries found to convert")
+            
             self.logger.info(f"Read {len(gdf)} features from {carto_text_layer} layer")
             self.logger.info(f"Available columns: {list(gdf.columns)}")
 
@@ -1184,6 +1205,7 @@ class CartoTextProcessor:
         carto_text_layer,
         new_font_name,
         export_format="GPKG",
+        create_csv_files=True
     ):
         """
         Main orchestration method to run the complete processing workflow.
@@ -1268,7 +1290,7 @@ class CartoTextProcessor:
 if __name__ == "__main__":
     # Configuration parameters
     # See carto_text_fields_readme.md for details on the pre & post set up instructions
-    mapping_spreadsheet = r"C:\Data\Topo50\Topo50_carto_text_2020_09\ratio-text-gap-to-twsd-2026-03-30.xlsx"
+    mapping_spreadsheet = r"C:\Data\Topo50\Topo50_carto_text_2020_09\ratio-text-gap-to-twsd-latest.xlsx"
     full_layers_sheet = "Full layers"
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
@@ -1279,6 +1301,7 @@ if __name__ == "__main__":
     carto_text_folder = r"C:\Data\toposource\topographic-product-data"
     product_database = "topographic-product-data.gpkg"
     carto_text_layer = "nz_topo50_carto_text"
+    create_csv_files = True
 
     new_font_name = "Nimbus Sans"
 
@@ -1297,4 +1320,5 @@ if __name__ == "__main__":
         carto_text_layer=carto_text_layer,
         new_font_name=new_font_name,
         export_format="GPKG",
+        create_csv_files=create_csv_files,
     )
