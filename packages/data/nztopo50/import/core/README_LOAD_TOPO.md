@@ -105,7 +105,7 @@ The t50_fid processed for LDS datasets is a life value (same feature same id). T
 
 To sync the TOPO_ID (as the new primary key) between 2 releases use the **sync_topo_ids.py** script. This does a join based on the t50_fid. If there are any 0's in the t50_fid this will throw an error (see roads pre-processing). The script can safely be re-run.
 
-## Loaded Data Checker 
+## Loaded Data Checker
 
 The script loaded_data_checcker.py can be run to check the data meets the change expectations.
 
