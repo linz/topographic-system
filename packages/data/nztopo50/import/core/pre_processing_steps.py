@@ -1,4 +1,4 @@
-import geopandas as gpd  # type: ignore
+import geopandas as gpd  
 
 # offshore (1) or inland island (0) - intersect using sea_coastline poly shapefile
 # create from coastline and outer box
