@@ -92,13 +92,15 @@ Clone last copy the the product repo and go into the folder. Note if starting fr
 
 Step up python setting and spreadsheet
 
-**Copy** the current GPKG - this will become the source.
-
-Python file to check and run is _process_carto_text_newfields.py_
+**Copy** the current GPKG - this will become the source. The default is to copy the folder into toposource folder c:\data\toposource.
 
 In the master GPKG - delete the nz_topo_carto_text layer
 
-> kart data rm nz_topo_carto_text
+> cd c:\data\topoedit\topographic-product-data
+
+> kart data rm nz_topo50_carto_text
+
+Python file to check and run is _process_carto_text_newfields.py_
 
 Once the python file and supporting data is pointing at the correct files etc then...
 
@@ -108,10 +110,20 @@ This will created an updated file in the master GPKG.
 
 Check the log and output for example in QGIS - fields were updated.
 
+**Register table with Kart**
+
+> kart add-dataset nz_topo50_carto_text -m "add carto text update"
+
+confirm loaded ok
+
+> kart data ls
+
+Can also check data in GIS - QGIS for example.
+
 Push the changes back to the master branch - typically this requires a force
 
 > kart push origin master --force
 
 Once load it is worth cleaning up and re-cloning the branch to verify everything loaded ok.
 
-kart add-dataset nz_topo50_carto_text -m "add carto text update"
+
