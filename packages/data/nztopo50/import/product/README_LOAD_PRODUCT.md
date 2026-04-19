@@ -125,5 +125,3 @@ Push the changes back to the master branch - typically this requires a force
 > kart push origin master --force
 
 Once load it is worth cleaning up and re-cloning the branch to verify everything loaded ok.
-
-
