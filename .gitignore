@@ -1,6 +1,12 @@
 node_modules/
 tmp/
 tsconfig.tsbuildinfo
+<<<<<<< HEAD
+.venv
+.ruff_cache
+dist/
+__pycache__
+=======
 .venv/
 .ruff_cache/
 __pycache__/
@@ -11,3 +17,4 @@ topographic_system_validation.egg-info/
 topographic_system_data_prep.egg-info/
 .idea/
 target/
+>>>>>>> master

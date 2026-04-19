@@ -1,0 +1,130 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "topo_id": "a3f1a2c0-9c5a-4b5b-a7d8-5ce5f9ff0e01",
+        "t50_fid": 1001,
+        "feature_type": "track",
+        "track_use": "walking",
+        "track_type": "trail",
+        "status": "open",
+        "name": "Ridge Track",
+        "capture_method": "manual",
+        "change_type": "updated",
+        "update_date": "2026-04-10",
+        "create_date": "2024-01-15",
+        "version": 3
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [174.7601, -41.2912],
+          [174.7615, -41.2928],
+          [174.7632, -41.2941]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "topo_id": "b7c0d4e2-1a6d-4f2a-98e1-4f4e51d1ab02",
+        "t50_fid": 1002,
+        "feature_type": "track",
+        "track_use": "multi_use",
+        "track_type": "unsealed_path",
+        "status": "open",
+        "name": "Valley Connector",
+        "capture_method": "automated",
+        "change_type": "new",
+        "update_date": "2026-03-22",
+        "create_date": "2026-03-22",
+        "version": 1
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [174.7443, -41.3001],
+          [174.7468, -41.3009],
+          [174.7491, -41.3024]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "topo_id": "c2a9fdb1-6e35-4f4e-9a26-c2e7a6e4ac03",
+        "t50_fid": 1003,
+        "feature_type": "track",
+        "track_use": "walking",
+        "track_type": "track",
+        "status": "closed",
+        "name": "Streamside Track",
+        "capture_method": "manual",
+        "change_type": "updated",
+        "update_date": "2026-02-14",
+        "create_date": "2021-09-07",
+        "version": 5
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [174.732, -41.287],
+          [174.7336, -41.2884],
+          [174.7351, -41.2899]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "topo_id": "d5ef9b66-34ce-4f70-8f8d-3f1f4f7d7d04",
+        "t50_fid": 1004,
+        "feature_type": "track",
+        "track_use": "horse",
+        "track_type": "trail",
+        "status": "open",
+        "name": "Saddle Route",
+        "capture_method": "manual",
+        "change_type": "updated",
+        "update_date": "2026-01-05",
+        "create_date": "2020-11-30",
+        "version": 4
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [174.7798, -41.3099],
+          [174.7816, -41.3113],
+          [174.7839, -41.313]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "topo_id": "e1b47a9e-5b2d-46f0-a00d-1b8c30f3de05",
+        "t50_fid": 1005,
+        "feature_type": "track",
+        "track_use": "walking",
+        "track_type": "unsealed_path",
+        "status": "open",
+        "name": "Coastal Path",
+        "capture_method": "automated",
+        "change_type": "new",
+        "update_date": "2026-04-01",
+        "create_date": "2026-04-01",
+        "version": 1
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [174.8012, -41.2764],
+          [174.8033, -41.2758],
+          [174.8056, -41.275]
+        ]
+      }
+    }
+  ]
+}
