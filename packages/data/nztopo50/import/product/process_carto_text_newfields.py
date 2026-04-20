@@ -13,21 +13,50 @@ class CartoTextProcessor:
     """
 
     def __init__(
-        self, output_directory, product_database, carto_text_layer, logs_csv_folder
+        self, 
+        mapping_spreadsheet,
+        full_layers_sheet,
+        new_values_sheet,
+        font_mapping_sheet,
+        carto_text_folder,
+        output_directory, 
+        product_database, 
+        carto_text_layer, 
+        logs_csv_folder,
+        new_font_name,
+        export_format="GPKG",
+        create_csv_files=True,
     ):
         """
-        Initialize the CartoTextProcessor with logging setup.
+        Initialize the CartoTextProcessor with all configuration parameters.
 
         Parameters:
+        - mapping_spreadsheet: Path to the Excel mapping spreadsheet
+        - full_layers_sheet: Name of the full layers sheet
+        - new_values_sheet: Name of the new values sheet
+        - font_mapping_sheet: Name of the font mapping sheet
+        - carto_text_folder: Folder containing the carto text data
         - output_directory: Directory for output files and logs
-        - product_database: Path to the product database
-        - carto_text_layer: Path to the carto text layer
+        - product_database: Name of the product database file
+        - carto_text_layer: Name of the carto text layer
         - logs_csv_folder: Folder to save CSV logs
+        - new_font_name: Name of the new font to use
+        - export_format: Export format (default: "GPKG")
+        - create_csv_files: Whether to create CSV files (default: True)
         """
+        # Store all configuration parameters as instance variables
+        self.mapping_spreadsheet = mapping_spreadsheet
+        self.full_layers_sheet = full_layers_sheet
+        self.new_values_sheet = new_values_sheet
+        self.font_mapping_sheet = font_mapping_sheet
+        self.carto_text_folder = carto_text_folder
         self.output_directory = output_directory
         self.product_database = product_database
         self.carto_text_layer = carto_text_layer
         self.logs_csv_folder = logs_csv_folder
+        self.new_font_name = new_font_name
+        self.export_format = export_format
+        self.create_csv_files = create_csv_files
 
         self.logger = self._setup_logging()
         self.unmatched_ids = []
@@ -426,48 +455,14 @@ class CartoTextProcessor:
             + (f", max length {max_length}" if max_length else "")
         )
 
-    def _enforce_field_constraints(self, gdf):
-        """
-        Validate and enforce field constraints before export.
-        Truncates strings that exceed maximum length and ensures proper data types.
-
-        Parameters:
-        - gdf: GeoDataFrame with _field_specs attribute containing field constraints
-        """
-
-        def enforce_string_length(series, max_length):
-            """Truncate strings to maximum length and ensure proper string type"""
-            if max_length is not None:
-                result = series.astype(str).str.slice(0, max_length)
-            else:
-                result = series.astype(str)
-            # Replace any NaN/NA values with empty strings
-            return result.fillna("")
-
-        self.logger.info("Enforcing field constraints before export...")
-        for field_name, (field_type, max_length) in gdf._field_specs.items():
-            if field_type == "string" and max_length is not None:
-                # Truncate strings that exceed maximum length
-                original_length = (
-                    gdf[field_name].str.len().max()
-                    if not gdf[field_name].isna().all()
-                    else 0
-                )
-                gdf[field_name] = enforce_string_length(gdf[field_name], max_length)
-                if original_length > max_length:
-                    self.logger.warning(
-                        f"Truncated {field_name} values from max {original_length} to {max_length} characters"
-                    )
-            elif field_type == "float64":
-                # Ensure float64 type
-                gdf[field_name] = gdf[field_name].astype(np.float64)
-
-            # Final safety check: replace any remaining <NA> strings with empty strings
-            if field_type == "string":
-                if hasattr(gdf[field_name], "str"):
-                    gdf[field_name] = gdf[field_name].astype(str).replace("<NA>", "")
-                gdf[field_name] = gdf[field_name].fillna("")
-
+    def parse_number(self, value: str):
+        s = value.strip()
+        try:
+            n = float(s)
+            return int(n) if n.is_integer() else n
+        except ValueError:
+            return None  
+    
     def parse_symbol_text(self, symbol_text):
         """
         Parse SYMBOL text and extract field=value conditions.
@@ -492,12 +487,9 @@ class CartoTextProcessor:
                 field = field.strip()
                 value = value_part.rstrip(")").strip()
 
-                # Convert to appropriate type
                 if value.replace(".", "").replace("-", "").isdigit():
-                    if "." in value:
-                        conditions[field] = float(value)
-                    else:
-                        conditions[field] = int(value)
+                    parsed_value = self.parse_number(value)
+                    conditions[field] = parsed_value
                 else:
                     conditions[field] = value.strip("'\"")
 
@@ -507,12 +499,9 @@ class CartoTextProcessor:
                 field = field.strip()
                 value = value.strip()
 
-                # Convert to appropriate type
                 if value.replace(".", "").replace("-", "").isdigit():
-                    if "." in value:
-                        conditions[field] = float(value)
-                    else:
-                        conditions[field] = int(value)
+                    parsed_value = self.parse_number(value)
+                    conditions[field] = parsed_value
                 else:
                     conditions[field] = value.strip("'\"")
 
@@ -890,7 +879,6 @@ class CartoTextProcessor:
                 # Update the new fields for this group
                 group_indices = group.index
 
-                # Update fields using validate_and_assign_field
                 if style_value:
                     # Update with actual values
                     gdf.loc[group_indices, "font"] = new_font_name
@@ -1128,9 +1116,6 @@ class CartoTextProcessor:
                         f"     -> {query['query_string']} (matched {query['matched_features']} features)"
                     )
 
-            # Validate and enforce field constraints before export
-            ##self._enforce_field_constraints(gdf)
-
             # Create schema definition for file export (useful for GeoPackage/Shapefile)
             schema_properties = {}
             for field_name, (field_type, max_length) in gdf._field_specs.items():
@@ -1181,35 +1166,24 @@ class CartoTextProcessor:
             except Exception as e:
                 self.logger.warning(f"Could not export to Parquet: {e}")
 
-    def run(
-        self,
-        mapping_spreadsheet,
-        full_layers_sheet,
-        new_values_sheet,
-        font_mapping_sheet,
-        carto_text_folder,
-        product_database,
-        carto_text_layer,
-        new_font_name,
-        export_format="GPKG",
-        create_csv_files=True,
-    ):
+    def run(self):
         """
         Main orchestration method to run the complete processing workflow.
+        Uses the configuration parameters provided during initialization.
         """
         self.logger.info("=" * 80)
         self.logger.info("STARTING CARTO TEXT PROCESSING WORKFLOW")
         self.logger.info("=" * 80)
 
         # Validate inputs
-        if not os.path.exists(mapping_spreadsheet):
-            self.logger.error(f"File {mapping_spreadsheet} does not exist")
+        if not os.path.exists(self.mapping_spreadsheet):
+            self.logger.error(f"File {self.mapping_spreadsheet} does not exist")
             return None
 
         # Process 'Full layers' sheet
         self.logger.info("Processing Full layers sheet...")
         full_layers_csv = self.process_fulllayers_tab(
-            mapping_spreadsheet, full_layers_sheet
+            self.mapping_spreadsheet, self.full_layers_sheet
         )
         if full_layers_csv:
             self.logger.info(f"Full layers processing completed: {full_layers_csv}")
@@ -1217,7 +1191,7 @@ class CartoTextProcessor:
         # Process 'New values' sheet
         self.logger.info("Processing New values sheet...")
         new_values_csv = self.process_new_values_tab(
-            mapping_spreadsheet, new_values_sheet
+            self.mapping_spreadsheet, self.new_values_sheet
         )
         if new_values_csv:
             self.logger.info(f"New values processing completed: {new_values_csv}")
@@ -1225,7 +1199,7 @@ class CartoTextProcessor:
         # Process 'Font mapping' sheet
         self.logger.info("Processing Font mapping sheet...")
         font_mapping_csv = self.process_font_mapping_tab(
-            mapping_spreadsheet, font_mapping_sheet
+            self.mapping_spreadsheet, self.font_mapping_sheet
         )
         if font_mapping_csv:
             self.logger.info(f"Font mapping processing completed: {font_mapping_csv}")
@@ -1233,19 +1207,19 @@ class CartoTextProcessor:
         # Process carto_text layer with the CSV files
         self.logger.info("Processing carto_text layer...")
         carto_text_output_gdf = self.process_carto_text_layer(
-            carto_text_folder,
-            product_database,
-            carto_text_layer,
+            self.carto_text_folder,
+            self.product_database,
+            self.carto_text_layer,
             full_layers_csv,
             new_values_csv,
             font_mapping_csv,
-            new_font_name,
+            self.new_font_name,
         )
 
         # export the final result if processing was successful
         if carto_text_output_gdf is not None:
             self.logger.info("Exporting processed data...")
-            self.export_data(carto_text_output_gdf, export_format=export_format)
+            self.export_data(carto_text_output_gdf, export_format=self.export_format)
             self.logger.info("Carto text layer processing completed successfully")
         else:
             self.logger.error("Carto text layer processing failed")
@@ -1283,8 +1257,8 @@ if __name__ == "__main__":
     full_layers_sheet = "Full layers"
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
-    # output_directory = r"C:\temp\carto"
-    output_directory = r"C:\Data\topoedit\topographic-product-data"
+    output_directory = r"C:\temp\carto"
+    #output_directory = r"C:\Data\topoedit\topographic-product-data"
     logs_csv_folder = r"C:\temp\carto"
 
     carto_text_folder = r"C:\Data\toposource\topographic-product-data"
@@ -1294,20 +1268,21 @@ if __name__ == "__main__":
 
     new_font_name = "Nimbus Sans"
 
-    # Initialize processor and run workflow
+    # Initialize processor with all configuration parameters
     processor = CartoTextProcessor(
-        output_directory, product_database, carto_text_layer, logs_csv_folder
-    )
-
-    result = processor.run(
         mapping_spreadsheet=mapping_spreadsheet,
         full_layers_sheet=full_layers_sheet,
         new_values_sheet=new_values_sheet,
         font_mapping_sheet=font_mapping_sheet,
         carto_text_folder=carto_text_folder,
+        output_directory=output_directory,
         product_database=product_database,
         carto_text_layer=carto_text_layer,
+        logs_csv_folder=logs_csv_folder,
         new_font_name=new_font_name,
         export_format="GPKG",
         create_csv_files=create_csv_files,
     )
+
+    # Run the workflow using the initialized configuration
+    result = processor.run()
