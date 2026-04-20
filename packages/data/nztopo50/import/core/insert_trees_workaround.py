@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-import geopandas as gpd 
+import geopandas as gpd
 
 
 # THERE ARE A SET OF MANUAL SQL STEPS TO DO BEFORE RUNNING THIS SCRIPT - SEE README_TREES_LOCATIONS.md and follow instructions
