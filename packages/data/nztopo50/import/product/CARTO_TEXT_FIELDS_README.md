@@ -150,7 +150,9 @@ The `CartoTextProcessor` class processes cartographic text data through a multi-
   **Step 5: Colour Matching**
   - Apply hardcoded colour mapping:
     - `text_colour = 9` → `black`
-    - Other values → `steelblue`
+    - `text_colour = 5` → `red`
+    - `text_colour = 6` → `steelblue`
+    - Other values → `black`
   - Filter `new_values` for matching colour
   - **EXIT POINT**: If no match → Process continues (may be handled at next level)
 

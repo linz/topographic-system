@@ -28,27 +28,7 @@ class CartoTextProcessor:
         self.product_database = product_database
         self.carto_text_layer = carto_text_layer
         self.logs_csv_folder = logs_csv_folder
-        """
-        Initialize the CartoTextProcessor with logging setup.
-        
-        Parameters:
-        - output_directory: Directory for output files and logs
-        - product_database: Path to the product database
-        - carto_text_layer: Path to the carto text layer
-        """
-        self.output_directory = output_directory
-        self.product_database = product_database
-        self.carto_text_layer = carto_text_layer
-        self.logger = self._setup_logging()
-        self.unmatched_ids = []
-        self.multiple_value_rows = []
-        """
-        Initialize the CartoTextProcessor with logging setup.
-        
-        Parameters:
-        - output_directory: Directory for output files and logs
-        """
-        self.output_directory = output_directory
+
         self.logger = self._setup_logging()
         self.unmatched_ids = []
         self.multiple_value_rows = []
@@ -747,7 +727,6 @@ class CartoTextProcessor:
                     continue
 
                 text_colour_number = query_data["conditions"]["text_colour"]
-                #### TODO - THIS IS HARD CODED FIX UP - loookup? or values
                 # COLOUR
                 if text_colour_number == 9:
                     matching_new_values = matching_new_values[
