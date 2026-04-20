@@ -109,7 +109,7 @@ scope.setVariable("year", 2026)
 scope.setVariable("centre_lat", center_lat)
 scope.setVariable("centre_lon", center_lon)
 scope.setVariable("height", 0)
-scope.setVariable("model_path", "./qgis/assets/models")
+scope.setVariable("model_path", "/usr/qgis/assets/models")
 context = QgsExpressionContext()
 context.appendScope(scope)
 
