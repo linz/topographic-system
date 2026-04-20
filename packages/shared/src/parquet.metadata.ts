@@ -87,7 +87,10 @@ export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaDat
     }
   }
 
-  const extents: Partial<Extents> = {};
+  const extents: Partial<Extents> = {
+    /** If there is no temporal extent in the dataset, use a open range from the date it was exported */
+    temporal: { interval: [[new Date().toISOString(), null]] },
+  };
 
   // TODO is this actually the date field
   if (createDateKey != null) {
