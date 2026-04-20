@@ -1,0 +1,4 @@
+kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_carto_text 
+kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_map_sheet 
+kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_grid 
+kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_dms_grid 
