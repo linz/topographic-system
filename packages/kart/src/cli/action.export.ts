@@ -9,6 +9,7 @@ import {
   gitContext,
   concurrency,
   qFromArgs,
+  qMap,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
@@ -85,14 +86,11 @@ export const ExportCommand = command({
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
     logger.info({ concurrency: args.concurrency, datasetsToProcess }, 'Export:DatasetsToProcess');
-    const todo: Promise<unknown>[] = [];
-    datasetsToProcess.map((dataset) =>
-      todo.push(q(() => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`)),
+
+    await Promise.all(
+      qMap(q, datasetsToProcess, (dataset) => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`),
     );
-    await Promise.all(todo).catch((err: unknown) => {
-      logger.fatal({ err }, 'Export:Error');
-      throw err;
-    });
+
     logger.info('Export:Completed');
   },
 });

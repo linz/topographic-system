@@ -12,4 +12,4 @@ export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
 export { monitor } from './otel/instrument.ts';
 export { traceAndRun } from './otel/instrument.cli.ts';
 export { parquetToStac } from './parquet.metadata.ts';
-export { concurrency, qFromArgs } from './limit.ts';
+export { concurrency, qFromArgs, qMap } from './limit.ts';

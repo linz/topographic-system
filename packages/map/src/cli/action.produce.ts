@@ -6,6 +6,7 @@ import {
   downloadProject,
   logger,
   qFromArgs,
+  qMap,
   registerFileSystem,
   Url,
   UrlArrayJsonFile,
@@ -77,8 +78,7 @@ export const ProduceCommand = command({
     // multiple projects, having to do this before the produce step is wrong and
     // should be fixed in the future.
     for (const p of args.path) await downloadProject(p, args.tempLocation);
-
-    await Promise.all(args.path.map((p) => q(() => produce(p, args))));
+    await Promise.all(qMap(q, args.path, (p) => produce(p, args)));
     await StacUpdater.items(args.path, q, true);
 
     logger.info('Produce: Done');

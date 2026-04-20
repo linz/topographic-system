@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
+import { qMap } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import pLimit from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
@@ -90,10 +91,9 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
  */
 export async function downloadFiles(path: URL, target: URL, q = pLimit(DefaultConcurrency)): Promise<URL[]> {
   logger.info({ source: path.href, downloaded: target.href }, 'DownloadSourceFile: Start');
-  const pendingDownloads: Promise<URL>[] = [];
-  for await (const file of fsa.list(path)) pendingDownloads.push(q(() => downloadFile(file, target)));
-  const results = await Promise.all(pendingDownloads);
-  logger.info({ destination: target.href, number: pendingDownloads.length }, 'DownloadSourceFile: End');
+  const files = await fsa.toArray(fsa.list(path));
+  const results = await Promise.all(qMap(q, files, (file) => downloadFile(file, target)));
+  logger.info({ destination: target.href, number: files.length }, 'DownloadSourceFile: End');
   return results;
 }
 
@@ -139,15 +139,11 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
   const stac = await fsa.readJson<StacItem>(projectUrl);
   if (stac == null) throw new Error(`Invalid STAC Item at path: ${projectUrl.href}`);
 
-  const sources: Promise<URL[] | URL>[] = [];
-  sources.push(q(() => downloadAssets(projectUrl, targetUrl)));
-
-  const links = stac.links;
-  for (const link of links) {
-    if (DownloadRels.has(link.rel)) {
-      sources.push(q(() => downloadAssets(new URL(link.href, projectUrl), targetUrl)));
-    }
-  }
+  const sources: Promise<URL[] | URL>[] = [q(() => downloadAssets(projectUrl, targetUrl))];
+  const downloadLinks = stac.links.filter((link) => DownloadRels.has(link.rel));
+  sources.push(
+    ...qMap(q, downloadLinks, (link) => downloadAssets(new URL(link.href, projectUrl), targetUrl))
+  );
 
   const results = (await Promise.all(sources)).flat();
   const projectPath = results.find((url) => url.pathname.endsWith('.qgs'));
