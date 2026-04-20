@@ -69,13 +69,14 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
 }
 
 describe('action.flow integration', () => {
-  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-flow-integration'));
+  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-prepare-integration'));
   const repoUrl = new URL('repo/', tempDir);
   const diffUrl = new URL('diff/', tempDir);
   const summaryUrl = new URL('pr_summary.md', tempDir);
   const exportUrl = new URL('export/', tempDir);
   const parquetUrl = new URL('parquet/', tempDir);
-  const outputUrl = new URL('s3-output/', tempDir);
+  const outputUrl = new URL('output/', tempDir);
+  const targetUrl = new URL('s3-target/', tempDir);
   const validationUrl = new URL('validation-output/', tempDir);
 
   before(async () => {
@@ -97,7 +98,7 @@ describe('action.flow integration', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should run kart-flow', async () => {
+  it('should run kart-prepare', async () => {
     it('should get a version string when running step 1 - version', async () => {
       const output = await cli(['version']);
       assert.ok(/\d+\.\d+\.\d+/.test(output), `Expected version string in output, got: ${output}`);
@@ -146,14 +147,13 @@ describe('action.flow integration', () => {
         'to-parquet',
         ['--output', fileURLToPath(outputUrl)],
         ['--temp-location', fileURLToPath(parquetUrl)],
-        ['--strategy', 'latest'],
         fileURLToPath(exportUrl),
       );
 
       const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
       assert.ok(
         parquetFiles.some((f) => f.href.endsWith('.parquet')),
-        `Expected .parquet in ${parquetUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
+        `Expected .parquet in ${outputUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
       );
 
       const catalogUrl = new URL('catalog.json', outputUrl);
@@ -176,6 +176,27 @@ describe('action.flow integration', () => {
 
       const validationFiles = await fsa.toArray(fsa.list(validationUrl));
       assert.ok(validationFiles.length > 0, `Expected validation output in ${validationUrl.href}`);
+    });
+
+    it('should push the stac files into target output after kart-prepare', async () => {
+      await cli(
+        'stac-push',
+        ['--source', new URL('catalog.json', outputUrl).href],
+        ['--target', targetUrl.href],
+        ['--category', 'data'],
+        ['--strategy', 'latest'],
+        ['--commit'],
+      );
+
+      const stacFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
+      assert.ok(
+        stacFiles.some((f) => f.href.endsWith('.json')),
+        `Expected stac files in ${outputUrl.href}, got: ${stacFiles.map((f) => f.href).join(', ')}`,
+      );
+
+      const catalogUrl = new URL('catalog.json', outputUrl);
+      const catalog = await fsa.readJson(catalogUrl);
+      assert.ok(catalog, 'catalog.json should exist in output');
     });
   });
 });

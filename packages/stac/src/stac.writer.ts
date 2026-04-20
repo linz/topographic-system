@@ -6,8 +6,7 @@ import { StacGeometry } from './geo.ts';
 import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
-import type { StacStorageCategory, StorageStrategy } from './stac.storage.ts';
-import { StacStorage } from './stac.storage.ts';
+import type { StacStorageCategory } from './stac.storage.ts';
 const StacSource = Symbol('stac.source');
 
 function getSource(x: unknown): URL | Buffer | string | null {
@@ -18,7 +17,6 @@ function getSource(x: unknown): URL | Buffer | string | null {
 
 export class StacCollectionWriter {
   collection: StacCollection;
-  strategies: StorageStrategy[] = [];
 
   items = new Map<string, StacItem>();
 
@@ -29,10 +27,6 @@ export class StacCollectionWriter {
     this.category = category;
     this.label = label;
     this.collection = StacBasic.collection();
-  }
-
-  strategy(s: StorageStrategy) {
-    this.strategies.push(s);
   }
 
   item(itemName: string): StacItem {
@@ -62,95 +56,6 @@ export class StacCollectionWriter {
     if (this.collection.assets[assetName]) throw new Error(`Overriding asset on collection.${assetName}`);
     this.collection.assets[assetName] = asset;
     Object.defineProperty(asset, StacSource, { enumerable: false, value: source });
-  }
-
-  // TODO: Once all the cli updated to use stac push, We will replace this with StacLoader.push for strageies write, and StacCollectionWriter.write for local write.
-  async writeWithStrategy(prefix: URL, q: LimitFunction, commit: boolean = false): Promise<URL[]> {
-    const items = [...this.items.values()];
-
-    const ctx = { prefix, category: this.category, label: this.label };
-
-    const collectionUrls: URL[] = [];
-
-    const strats = {
-      latest: this.strategies.find((f) => f.type === 'latest'),
-      canonical: this.strategies.find((f) => f.type !== 'latest'),
-    };
-
-    const todo: Promise<unknown>[] = [];
-    const assets = [
-      ...Object.values(this.collection.assets ?? {}),
-      ...items.map((m) => Object.values(m.assets ?? {})).flat(),
-    ];
-    for (const s of this.strategies) {
-      const baseUrl = StacStorage.url(s, ctx);
-
-      for (const asset of assets) {
-        const target = new URL(asset.href, baseUrl);
-        const source = getSource(asset);
-        if (source == null) continue; // TODO should this throw
-        if (commit) todo.push(q(() => HashWriter.writeStac(asset, target, source)));
-      }
-    }
-
-    await Promise.all(todo);
-
-    // TODO should we be assigning geometires here?
-    for (const item of this.items.values()) StacGeometry.extend(this.collection, item);
-
-    for (const s of this.strategies) {
-      const baseUrl = StacStorage.url(s, ctx);
-      const targetCollection = structuredClone(this.collection);
-      targetCollection.id = StacStorage.id(s, ctx);
-
-      await Promise.all(
-        [...this.items].map(([itemName, item]) => {
-          return q(async () => {
-            const itemUrl = new URL(`./${itemName}.json`, baseUrl);
-            const targetItem = structuredClone(item);
-            targetItem.links.unshift({ rel: 'self', href: `./${itemName}.json`, type: 'application/json' });
-            targetItem.links.unshift({ rel: 'collection', href: `./collection.json`, type: 'application/json' });
-            targetItem.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
-
-            targetItem.id = StacStorage.id(s, { ...ctx, item: itemName });
-            targetItem.collection = targetCollection.id;
-
-            for (const itemLink of targetItem.links) {
-              itemLink.href = getRelativePath(new URL(itemLink.href, itemUrl), itemUrl);
-            }
-
-            const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
-            if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
-
-            if (commit) await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
-          });
-        }),
-      );
-
-      const collectionUrl = new URL('collection.json', baseUrl);
-      targetCollection.links.unshift({ rel: 'self', href: './collection.json', type: 'application/json' });
-      targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
-      targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
-
-      // Ensure "latest" links to "canonical"
-      // and everything else links to "latest"
-      if (s.type === 'latest') {
-        if (strats.canonical != null) {
-          const targetUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
-          targetCollection.links.push({ rel: 'canonical', href: getRelativePath(targetUrl, collectionUrl) });
-        }
-      } else if (strats.latest != null) {
-        const targetUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
-        targetCollection.links.push({ rel: 'latest-version', href: getRelativePath(targetUrl, collectionUrl) });
-      }
-
-      if (commit) {
-        await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
-      }
-      collectionUrls.push(collectionUrl);
-    }
-
-    return collectionUrls;
   }
 
   async write(target: URL, q: LimitFunction): Promise<URL> {

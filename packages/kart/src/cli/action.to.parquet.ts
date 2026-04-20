@@ -15,8 +15,8 @@ import {
 import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
-import { StacCollectionWriter, StacUpdater, StorageStrategyMulti } from '@linzjs/topographic-system-stac';
-import { boolean, command, flag, multioption, number, option, optional, restPositionals, string } from 'cmd-ts';
+import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
 const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
@@ -68,11 +68,6 @@ export const ParquetCommand = command({
       type: Url,
       description: 'List of folders or files to convert (default: all .gpkg files in ./export)',
     }),
-    strategies: multioption({
-      long: 'strategy',
-      type: StorageStrategyMulti,
-      description: 'Storage strategies to use, for example --strategy=latest',
-    }),
   },
   async handler(args) {
     registerFileSystem();
@@ -85,7 +80,6 @@ export const ParquetCommand = command({
         compression: args.compression,
         compressionLevel: args.compressionLevel,
         sortByBbox: args.sortByBbox,
-        strategies: args.strategies,
       },
       'ToParquet:Start',
     );
@@ -142,7 +136,7 @@ export const ParquetCommand = command({
     }
     await Q.join();
 
-    const todo: Promise<URL[]>[] = [];
+    const todo: Promise<URL>[] = [];
     for (const ds of datasets) {
       const sw = new StacCollectionWriter('data', ds.dataset);
       sw.asset('parquet', ds.source, {
@@ -154,8 +148,7 @@ export const ParquetCommand = command({
       sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      for (const s of args.strategies) sw.strategy(s);
-      todo.push(sw.writeWithStrategy(args.output, Q.Q, true));
+      todo.push(sw.write(args.output, Q.Q));
     }
 
     const collections = await Promise.all(todo);
