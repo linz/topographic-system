@@ -1,6 +1,7 @@
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem,
     QgsExpression,
     QgsExpressionContext,
     QgsExpressionContextScope,
@@ -86,24 +87,32 @@ bbox = geom.boundingBox()
 map_item.setExtent(bbox)
 
 # calculate map_sheet center (lat, lon)
-center = bbox.center()
+geom_wgs84 = feature.geometry()
+geom_wgs84.transform(
+    QgsCoordinateTransform(topo_sheet_layer.crs(), QgsCoordinateReferenceSystem.fromEpsgId(4326), QgsProject.instance())
+)
+bbox_wgs84 = geom_wgs84.boundingBox()
+
+center = bbox_wgs84.center()
 center_lat = center.y()
 center_lon = center.x()
+
+# print("center_lat:", center_lat)
+# print("center_lon:", center_lon)
 
 # calculate variables
 scope = QgsExpressionContextScope()
 scope.setVariable("model_name", "igrf13")
-scope.setVariable("date", datetime.today())
+scope.setVariable("year", 2026)
 scope.setVariable("centre_lat", center_lat)
 scope.setVariable("centre_lon", center_lon)
 scope.setVariable("height", 0)
-scope.setVariable("model_path", "/app/qgis/assets/models/")
-
+scope.setVariable("model_path", "./qgis/assets/models")
 context = QgsExpressionContext()
 context.appendScope(scope)
 
 expr = QgsExpression(
-    "magnetic_declination(@model_name, @date, @centre_lat, @centre_lon, @height, @model_path)"
+    "magnetic_declination(@model_name, make_datetime(@year, 1, 1, 12, 0, 0), @centre_lat, @centre_lon, @height, @model_path)"
 )
 if expr.hasParserError():
     raise RuntimeError(expr.parserErrorString())
@@ -113,6 +122,8 @@ if expr.hasEvalError():
     raise RuntimeError(expr.evalErrorString())
 if not isinstance(declination, float):
     raise TypeError("The calculated magnetic declination value is not a float number.")
+
+# print("declination:", declination)
 
 # round variables
 project_centre_latitude = round(center_lat, 4)
@@ -136,14 +147,12 @@ project.setCustomVariables(
     }
 )
 
-print(
-    sheet_code,
-    project_centre_latitude,
-    project_centre_longitude,
-    project_declination,
-    project_gm_angle,
-    project_mills,
-)
+# print("sheet_code:", sheet_code)
+# print("project_centre_latitude:", project_centre_latitude)
+# print("project_centre_longitude:", project_centre_longitude)
+# print("project_declination:", project_declination)
+# print("project_gm_angle:", project_gm_angle)
+# print("project_mills:", project_mills)
 
 # export map
 export_result = None
