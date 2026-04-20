@@ -23,10 +23,10 @@ export function qFromArgs(args: {} | { concurrency?: number }): LimitFunction {
  * Maps over an array todos with a concurrency limit using a LimitFunction (from p-limit).
  */
 export function qMap<T, R>(q: LimitFunction, arr: T[], fn: (item: T) => Promise<R>): Promise<R>[] {
-  return arr.map((item) =>
-    q(() => fn(item)).catch((err: unknown) => {
+  return arr.map((item) => {
+    return q(() => fn(item)).catch((err: unknown) => {
       logger.fatal({ err }, 'Error');
       throw err;
-    }),
-  );
+    });
+  });
 }

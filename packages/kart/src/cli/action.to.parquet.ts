@@ -12,6 +12,7 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
+  qMap,
 } from '@linzjs/topographic-system-shared';
 import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
@@ -99,45 +100,41 @@ export const ParquetCommand = command({
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
 
     const datasets: { dataset: string; source: URL; metadata: ParquetStacMetadata }[] = [];
-    const todo: Promise<unknown>[] = [];
-    for (const gpkgFile of gpkgFilesToProcess) {
-      todo.push(
-        q(async () => {
-          const dataset = path.basename(gpkgFile.pathname, extension);
-          const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
-          logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
-          const command = [
-            'ogr2ogr',
-            ['-f', 'Parquet'],
-            fileURLToPath(parquetFile),
-            fileURLToPath(gpkgFile),
-            ['-lco', `COMPRESSION=${args.compression}`],
-            ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
-            ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
-            ['-lco', 'WRITE_COVERING_BBOX=YES'],
-            ['-lco', 'COVERING_BBOX_NAME=bbox'],
-            ['-a_srs', 'epsg:4326'],
-          ];
-          if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
-          await $`${command.flat()}`;
+    await Promise.all(
+      qMap(q, gpkgFilesToProcess, async (gpkgFile) => {
+        const dataset = path.basename(gpkgFile.pathname, extension);
+        const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
+        logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
+        const command = [
+          'ogr2ogr',
+          ['-f', 'Parquet'],
+          fileURLToPath(parquetFile),
+          fileURLToPath(gpkgFile),
+          ['-lco', `COMPRESSION=${args.compression}`],
+          ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
+          ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
+          ['-lco', 'WRITE_COVERING_BBOX=YES'],
+          ['-lco', 'COVERING_BBOX_NAME=bbox'],
+          ['-a_srs', 'epsg:4326'],
+        ];
+        if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
+        await $`${command.flat()}`;
 
-          const stat = await fsa.head(parquetFile);
+        const stat = await fsa.head(parquetFile);
 
-          const parquetStats = await parquetToStac(parquetFile);
-          logger.info(
-            {
-              dataset,
-              size: stat?.size,
-              fields: parquetStats.table['table:columns'].map((c) => c.name),
-              rowCount: parquetStats.table['table:row_count'],
-            },
-            'ToParquet:Written',
-          );
-          datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
-        }),
-      );
-    }
-    await Promise.all(todo);
+        const parquetStats = await parquetToStac(parquetFile);
+        logger.info(
+          {
+            dataset,
+            size: stat?.size,
+            fields: parquetStats.table['table:columns'].map((c) => c.name),
+            rowCount: parquetStats.table['table:row_count'],
+          },
+          'ToParquet:Written',
+        );
+        datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
+      }),
+    );
 
     const collections: URL[] = [];
     for (const ds of datasets) {
