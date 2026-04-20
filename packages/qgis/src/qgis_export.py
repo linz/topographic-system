@@ -15,7 +15,6 @@ import os
 import sys
 
 from datetime import datetime
-from typing import Iterable
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -104,11 +103,14 @@ context = QgsExpressionContext()
 context.appendScope(scope)
 
 expr = QgsExpression('magnetic_declination(@model_name, @date, @centre_lat, @centre_lon, @height, @model_path)')
-if expr.hasParserError(): raise RuntimeError(expr.parserErrorString())
+if expr.hasParserError():
+    raise RuntimeError(expr.parserErrorString())
 
 declination = expr.evaluate(context)
-if expr.hasEvalError(): raise RuntimeError(expr.evalErrorString())
-if not isinstance(declination, float): raise TypeError('The calculated magnetic declination value is not a float number.')
+if expr.hasEvalError():
+    raise RuntimeError(expr.evalErrorString())
+if not isinstance(declination, float):
+    raise TypeError('The calculated magnetic declination value is not a float number.')
 
 # round variables
 project_centre_latitude = round(center_lat, 4)
