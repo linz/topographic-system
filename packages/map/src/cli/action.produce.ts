@@ -2,7 +2,6 @@ import { mkdir } from 'node:fs/promises';
 
 import { fsa } from '@chunkd/fs';
 import {
-  concurrency,
   downloadProject,
   logger,
   qFromArgs,
@@ -10,6 +9,7 @@ import {
   registerFileSystem,
   Url,
   UrlArrayJsonFile,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
@@ -46,7 +46,7 @@ export function getContentType(format: ExportFormat): string {
 }
 
 export const ProduceArgs = {
-  concurrency,
+  worker,
   path: restPositionals({ type: Url, displayName: 'path', description: 'Paths to stac items files' }),
   fromFile: option({
     type: optional(UrlArrayJsonFile),

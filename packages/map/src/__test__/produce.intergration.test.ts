@@ -120,7 +120,7 @@ describe('deploy -> produce-cover -> produce', () => {
       tempLocation: new URL('memory://temp-produce/'),
       fromFile: undefined,
       force: false,
-      concurrency: 1,
+      worker: 1,
     });
 
     assert.deepEqual(

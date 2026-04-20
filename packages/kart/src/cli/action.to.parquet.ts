@@ -5,14 +5,14 @@ import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import {
-  concurrency,
   logger,
   qFromArgs,
+  qMap,
   recursiveFileSearch,
   registerFileSystem,
   Url,
   UrlFolder,
-  qMap,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
 import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
@@ -25,7 +25,7 @@ export const ParquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
   args: {
-    concurrency,
+    worker,
     compression: option({
       type: optional(string),
       long: 'compression',
@@ -77,7 +77,7 @@ export const ParquetCommand = command({
 
     logger.info(
       {
-        concurrency: args.concurrency,
+        worker: args.worker,
         compression: args.compression,
         compressionLevel: args.compressionLevel,
         sortByBbox: args.sortByBbox,

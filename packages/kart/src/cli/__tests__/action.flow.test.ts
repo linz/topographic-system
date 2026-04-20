@@ -54,6 +54,7 @@ describe('action.flow', () => {
     delete process.env['GITHUB_EVENT_PATH'];
     defaultFlowArgs = {
       // Flow-level args
+      worker: 2,
       concurrency: 10,
       repository: 'linz/topographic-test-data',
       ref: 'master',

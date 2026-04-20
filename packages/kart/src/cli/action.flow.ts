@@ -9,6 +9,7 @@ import {
   Url,
   canCommentOnPr,
   concurrency,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, positional, string } from 'cmd-ts';
 
@@ -44,6 +45,7 @@ export const FlowCommand = command({
     'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate',
   args: {
     concurrency,
+    worker,
     repository: positional({
       displayName: 'repository',
       description: 'Repository to clone',
@@ -191,7 +193,7 @@ export const FlowCommand = command({
 
     ghGroupLog('Flow:Step [6/7] to-parquet');
     await ParquetCommand.handler({
-      concurrency: args.concurrency,
+      worker: args.worker,
       compression: args.compression,
       compressionLevel: args.compressionLevel,
       sortByBbox: args.sortByBbox,

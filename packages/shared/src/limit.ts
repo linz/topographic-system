@@ -1,21 +1,33 @@
+import os from 'node:os';
+
 import { number, option, optional } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import pLimit from 'p-limit';
 
 import { logger } from './log.ts';
 
-export const qLimitDefault = 10;
+export const qLimitDefault = 20;
+export const workderLimitDefault = Math.max(1, Math.floor(os.cpus().length / 2));
 
 export const concurrency = option({
   long: 'concurrency',
-  description: 'Concurrency limit for parallel processing (default: 10)',
+  description: 'Concurrency limit for parallel processing (default: 20)',
   type: optional(number),
   defaultValue: () => qLimitDefault,
   defaultValueIsSerializable: true,
 });
 
-export function qFromArgs(args: {} | { concurrency?: number }): LimitFunction {
+export const worker = option({
+  long: 'worker',
+  description: 'Cpu workers limit for parallel processing (default: cpu cores / 2)',
+  type: optional(number),
+  defaultValue: () => workderLimitDefault,
+  defaultValueIsSerializable: true,
+});
+
+export function qFromArgs(args: {} | { concurrency?: number; workder?: number }): LimitFunction {
   if ('concurrency' in args && typeof args.concurrency === 'number') return pLimit(args.concurrency);
+  if ('workder' in args && typeof args.workder === 'number') return pLimit(args.workder);
   return pLimit(qLimitDefault);
 }
 
