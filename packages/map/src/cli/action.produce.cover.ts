@@ -2,10 +2,12 @@ import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
 import {
+  concurrency,
   downloadFile,
   getDataFromCatalog,
   isArgo,
   logger,
+  qFromArgs,
   registerFileSystem,
   Url,
   UrlFolder,
@@ -15,7 +17,6 @@ import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-st
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
 
-import { qFromArgs } from '../limit.ts';
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
 import { fromFile } from './action.produce.ts';
@@ -96,6 +97,7 @@ export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl
 }
 
 const ProduceArgs = {
+  concurrency,
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),
   fromFile: option({
     type: optional(Url),

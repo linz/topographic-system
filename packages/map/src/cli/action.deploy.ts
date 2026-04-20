@@ -1,14 +1,13 @@
 import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
-import { getDataFromCatalog, logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import { concurrency, getDataFromCatalog, logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
-import { qFromArgs } from '../limit.ts';
 import { pyRunner } from '../python.runner.ts';
 
 async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
@@ -98,6 +97,7 @@ async function deployProject(
 }
 
 export const DeployArgs = {
+  concurrency,
   project: restPositionals({
     type: Url,
     description: 'QGIS Project to deploy.',

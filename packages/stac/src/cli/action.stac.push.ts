@@ -1,6 +1,6 @@
-import { logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import { concurrency, logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import {
-  StacLoader,
+  StacPusher,
   StacStorageCategoryTypes,
   StacUpdater,
   StorageStrategyMulti,
@@ -8,6 +8,7 @@ import {
 import { command, flag, multioption, oneOf, option } from 'cmd-ts';
 
 export const StacPushArgs = {
+  concurrency,
   source: option({
     type: Url,
     long: 'source',
@@ -46,15 +47,14 @@ export const StacPushCommand = command({
     const rootCatalogUrl = new URL('catalog.json', args.target);
     const q = qFromArgs(args);
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Started');
-    const stacLoader = new StacLoader(args.target, args.category);
-    for (const st of args.strategies) stacLoader.strategy(st);
+    const stacPusher = new StacPusher(args.target, args.category);
 
-    logger.info({ source: args.source, destination: args.target }, 'StacPush: Load');
-    await stacLoader.loadCatalog(args.source);
+    // Set Strategies for StacPusher
+    for (const st of args.strategies) stacPusher.strategy(st);
 
     // Push Stac Item, Collection and Assets
     logger.info({ source: args.source, destination: args.target }, 'StacPush: Push');
-    const { items, collections } = await stacLoader.push(args.target, q, args.commit);
+    const { items, collections } = await stacPusher.push(args.source, q, args.commit);
     for (const item of items) logger.info({ href: item.href }, 'StacPush: Item pushed');
     for (const collection of collections) logger.info({ href: collection.href }, 'StacPush: Collection pushed');
 
