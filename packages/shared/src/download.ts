@@ -141,9 +141,7 @@ export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimi
 
   const sources: Promise<URL[] | URL>[] = [q(() => downloadAssets(projectUrl, targetUrl))];
   const downloadLinks = stac.links.filter((link) => DownloadRels.has(link.rel));
-  sources.push(
-    ...qMap(q, downloadLinks, (link) => downloadAssets(new URL(link.href, projectUrl), targetUrl))
-  );
+  sources.push(...qMap(q, downloadLinks, (link) => downloadAssets(new URL(link.href, projectUrl), targetUrl)));
 
   const results = (await Promise.all(sources)).flat();
   const projectPath = results.find((url) => url.pathname.endsWith('.qgs'));
