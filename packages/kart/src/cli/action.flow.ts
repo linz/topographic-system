@@ -32,7 +32,7 @@ function ghGroupLog(name?: string) {
 }
 
 export const FlowCommand = command({
-  name: 'kart-flow',
+  name: 'kart-prepare',
   description:
     'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate',
   args: {
@@ -189,7 +189,6 @@ export const FlowCommand = command({
       output: args.output,
       tempLocation: args.parquetTempLocation,
       sourceFiles: [args.exportOutput],
-      strategies: [{ type: 'latest' }],
     });
 
     ghGroupLog('Flow:Step [7/7] validate');

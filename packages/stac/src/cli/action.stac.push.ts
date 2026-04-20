@@ -1,4 +1,4 @@
-import { logger, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import { logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
 import {
   StacLoader,
   StacStorageCategoryTypes,
@@ -6,8 +6,6 @@ import {
   StorageStrategyMulti,
 } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, oneOf, option } from 'cmd-ts';
-
-import { qFromArgs } from '../limit.ts';
 
 export const StacPushArgs = {
   source: option({

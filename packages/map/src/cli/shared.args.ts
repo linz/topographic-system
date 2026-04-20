@@ -1,8 +1,7 @@
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { UrlFolder, CliId } from '@linzjs/topographic-system-shared';
-import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
+import { UrlFolder, CliId, stringToUrlFolder } from '@linzjs/topographic-system-shared';
 import { option } from 'cmd-ts';
 
 export const tempLocation = option({

@@ -15,3 +15,4 @@ export { multipolygonToWgs84, polygonToWgs84, round } from './geo.ts';
 export { StacGeometry } from './geo.ts';
 export { StacBasic } from './stac.basic.ts';
 export { StacLoader } from './stac.loader.ts';
+export { StacPushCommand } from './cli/action.stac.push.ts';
