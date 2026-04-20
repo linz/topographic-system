@@ -183,7 +183,7 @@ export const FlowCommand = command({
 
     ghGroupLog('Flow:Step [5/7] export');
     await ExportCommand.handler({
-      concurrency: args.concurrency,
+      worker: args.worker,
       context: args.cloneOutput,
       output: args.exportOutput,
       ref: args.exportRef,

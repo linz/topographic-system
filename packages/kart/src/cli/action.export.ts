@@ -7,9 +7,9 @@ import {
   stringToUrlFolder,
   UrlFolder,
   gitContext,
-  concurrency,
   qFromArgs,
-  qMap,
+  qMapAll,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
@@ -32,7 +32,7 @@ export const ExportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
   args: {
-    concurrency,
+    worker,
     context: option({
       type: UrlFolder,
       long: 'context',
@@ -85,10 +85,12 @@ export const ExportCommand = command({
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
-    logger.info({ concurrency: args.concurrency, datasetsToProcess }, 'Export:DatasetsToProcess');
+    logger.info({ worker: args.worker, datasetsToProcess }, 'Export:DatasetsToProcess');
 
-    await Promise.all(
-      qMap(q, datasetsToProcess, (dataset) => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`),
+    await qMapAll(
+      q,
+      datasetsToProcess,
+      (dataset) => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`,
     );
 
     logger.info('Export:Completed');

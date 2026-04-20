@@ -42,3 +42,10 @@ export function qMap<T, R>(q: LimitFunction, arr: T[], fn: (item: T) => Promise<
     });
   });
 }
+
+/**
+ * qMap and await all results.
+ */
+export async function qMapAll<T, R>(q: LimitFunction, arr: T[], fn: (item: T) => Promise<R>): Promise<R[]> {
+  return Promise.all(qMap(q, arr, fn));
+}

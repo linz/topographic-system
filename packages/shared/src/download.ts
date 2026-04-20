@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { qMap } from '@linzjs/topographic-system-shared';
+import { qMap, qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import pLimit from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
@@ -92,7 +92,7 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
 export async function downloadFiles(path: URL, target: URL, q = pLimit(DefaultConcurrency)): Promise<URL[]> {
   logger.info({ source: path.href, downloaded: target.href }, 'DownloadSourceFile: Start');
   const files = await fsa.toArray(fsa.list(path));
-  const results = await Promise.all(qMap(q, files, (file) => downloadFile(file, target)));
+  const results = await qMapAll(q, files, (file) => downloadFile(file, target));
   logger.info({ destination: target.href, number: files.length }, 'DownloadSourceFile: End');
   return results;
 }
