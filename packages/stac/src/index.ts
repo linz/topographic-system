@@ -14,5 +14,5 @@ export { HashWriter } from './hash.writer.ts';
 export { multipolygonToWgs84, polygonToWgs84, round } from './geo.ts';
 export { StacGeometry } from './geo.ts';
 export { StacBasic } from './stac.basic.ts';
-export { StacPusher } from './stac.loader.ts';
+export { StacPusher } from './stac.pusher.ts';
 export { StacPushCommand } from './cli/action.stac.push.ts';

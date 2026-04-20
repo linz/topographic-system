@@ -10,15 +10,17 @@ import {
   Url,
   UrlFolder,
   stringToUrlFolder,
+  qFromArgs,
+  concurrency,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
-import pLimit from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 
 import { contourWithLandcover } from '../python.runner.ts';
 
 export const ContourWithLandcoverArgs = {
+  concurrency,
   contour: option({
     type: Url,
     long: 'contour',
@@ -52,6 +54,7 @@ export const ContourWithLandcoverCommand = command({
     registerFileSystem();
     logger.info({ args }, 'Prepare contour with landcover: Started');
     const rootCatalog = new URL('catalog.json', args.output);
+    const q = qFromArgs(args);
 
     // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);
@@ -100,7 +103,7 @@ export const ContourWithLandcoverCommand = command({
     sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
     sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
 
-    const collections = await sw.write(rootCatalog, pLimit(4));
+    const collections = await sw.write(rootCatalog, q);
 
     await StacUpdater.collections(rootCatalog, [collections], true);
   },

@@ -17,6 +17,7 @@ describe('deploy -> produce-cover -> produce', () => {
     fsa.register('memory://', mem);
   });
 
+  const concurrency = 10;
   const gitHash = '4aba34b5accb0002867af66f6a92a35e0a4be7cab';
 
   it('should ensure base container matches the Dockerfile', async () => {
@@ -45,6 +46,7 @@ describe('deploy -> produce-cover -> produce', () => {
     // Deploy the QGIS project into memory
     const targetDeploy = new URL('memory://target-deploy/');
     await DeployCommand.handler({
+      concurrency,
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: targetDeploy,
       source: new URL('memory://source/catalog.json'),
@@ -57,6 +59,7 @@ describe('deploy -> produce-cover -> produce', () => {
 
     const targetPush = new URL('memory://target-push/');
     await StacPushCommand.handler({
+      concurrency,
       source: new URL('memory://target-deploy/catalog.json'),
       target: targetPush,
       category: 'qgis',
@@ -86,6 +89,7 @@ describe('deploy -> produce-cover -> produce', () => {
 
     const targetProduce = new URL('memory://target-produce/');
     await ProduceCoverCommand.handler({
+      concurrency,
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
@@ -131,6 +135,7 @@ describe('deploy -> produce-cover -> produce', () => {
 
     const targetProducePush = new URL('memory://target-produce-push/');
     await StacPushCommand.handler({
+      concurrency,
       source: new URL('memory://target-produce/catalog.json'),
       target: targetProducePush,
       category: 'product',

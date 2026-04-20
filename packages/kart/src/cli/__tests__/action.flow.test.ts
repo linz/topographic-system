@@ -54,6 +54,7 @@ describe('action.flow', () => {
     delete process.env['GITHUB_EVENT_PATH'];
     defaultFlowArgs = {
       // Flow-level args
+      concurrency: 10,
       repository: 'linz/topographic-test-data',
       ref: 'master',
       output: stringToUrlFolder(path.join(testDir, 'output')),

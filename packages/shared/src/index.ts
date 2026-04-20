@@ -7,7 +7,6 @@ export { recursiveFileSearch } from './fs.util.ts';
 export { GithubApi } from './github.api.ts';
 export { isMergeToMaster, isPullRequest, gitContext, canCommentOnPr } from './github.ts';
 export { logger } from './log.ts';
-export { ConcurrentQueue } from './queue.ts';
 export { stringToUrlFolder, Url, UrlArrayJsonFile, UrlFolder } from './url.ts';
 export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
 export { monitor } from './otel/instrument.ts';

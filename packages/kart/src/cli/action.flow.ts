@@ -2,7 +2,14 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { logger, UrlFolder, stringToUrlFolder, Url, canCommentOnPr } from '@linzjs/topographic-system-shared';
+import {
+  logger,
+  UrlFolder,
+  stringToUrlFolder,
+  Url,
+  canCommentOnPr,
+  concurrency,
+} from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, optional, positional, string } from 'cmd-ts';
 
 import { CloneCommand } from './action.clone.ts';
@@ -36,6 +43,7 @@ export const FlowCommand = command({
   description:
     'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate',
   args: {
+    concurrency,
     repository: positional({
       displayName: 'repository',
       description: 'Repository to clone',
@@ -173,6 +181,7 @@ export const FlowCommand = command({
 
     ghGroupLog('Flow:Step [5/7] export');
     await ExportCommand.handler({
+      concurrency: args.concurrency,
       context: args.cloneOutput,
       output: args.exportOutput,
       ref: args.exportRef,
@@ -182,6 +191,7 @@ export const FlowCommand = command({
 
     ghGroupLog('Flow:Step [6/7] to-parquet');
     await ParquetCommand.handler({
+      concurrency: args.concurrency,
       compression: args.compression,
       compressionLevel: args.compressionLevel,
       sortByBbox: args.sortByBbox,

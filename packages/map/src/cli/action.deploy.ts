@@ -1,7 +1,15 @@
 import { basename } from 'path';
 
 import { fsa } from '@chunkd/fs';
-import { concurrency, getDataFromCatalog, logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import {
+  concurrency,
+  getDataFromCatalog,
+  logger,
+  qFromArgs,
+  registerFileSystem,
+  Url,
+  UrlFolder,
+} from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';

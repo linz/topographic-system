@@ -2,12 +2,16 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ConcurrentQueue, logger, stringToUrlFolder, UrlFolder, gitContext } from '@linzjs/topographic-system-shared';
+import {
+  logger,
+  stringToUrlFolder,
+  UrlFolder,
+  gitContext,
+  concurrency,
+  qFromArgs,
+} from '@linzjs/topographic-system-shared';
 import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
-
-const numParallelExportProcesses = 1;
-const Q = new ConcurrentQueue(numParallelExportProcesses);
 
 type KartDiffOutput = Record<string, number>;
 
@@ -27,6 +31,7 @@ export const ExportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
   args: {
+    concurrency,
     context: option({
       type: UrlFolder,
       long: 'context',
@@ -60,6 +65,7 @@ export const ExportCommand = command({
   async handler(args) {
     const ref = args.ref ?? 'FETCH_HEAD';
     logger.info({ ref, datasets: args.datasets }, 'Export:Start');
+    const q = qFromArgs(args);
     const allDatasetsRequested = args.datasets.length === 0;
     let datasets = new Set<string>();
     if (args.changed) {
@@ -78,11 +84,12 @@ export const ExportCommand = command({
     const datasetsToProcess = allDatasetsRequested
       ? [...datasets]
       : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
-    logger.info({ numParallelExportProcesses, datasetsToProcess }, 'Export:DatasetsToProcess');
+    logger.info({ concurrency: args.concurrency, datasetsToProcess }, 'Export:DatasetsToProcess');
+    const todo: Promise<unknown>[] = [];
     datasetsToProcess.map((dataset) =>
-      Q.push(() => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`),
+      todo.push(q(() => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`)),
     );
-    await Q.join().catch((err: unknown) => {
+    await Promise.all(todo).catch((err: unknown) => {
       logger.fatal({ err }, 'Export:Error');
       throw err;
     });

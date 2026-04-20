@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import {
-  ConcurrentQueue,
+  concurrency,
   logger,
+  qFromArgs,
   recursiveFileSearch,
   registerFileSystem,
   Url,
@@ -19,13 +20,11 @@ import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-st
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
-const Concurrency = 1; // os.cpus().length - Fixme: race conditions when writing STAC files; setting this to 1 for now to ensure correctness, but ideally should be able to run in parallel
-const Q = new ConcurrentQueue(Concurrency);
-
 export const ParquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
   args: {
+    concurrency,
     compression: option({
       type: optional(string),
       long: 'compression',
@@ -73,10 +72,11 @@ export const ParquetCommand = command({
     registerFileSystem();
 
     const rootCatalog = new URL('catalog.json', args.output);
+    const q = qFromArgs(args);
 
     logger.info(
       {
-        concurrency: Concurrency,
+        concurrency: args.concurrency,
         compression: args.compression,
         compressionLevel: args.compressionLevel,
         sortByBbox: args.sortByBbox,
@@ -99,44 +99,47 @@ export const ParquetCommand = command({
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
 
     const datasets: { dataset: string; source: URL; metadata: ParquetStacMetadata }[] = [];
+    const todo: Promise<unknown>[] = [];
     for (const gpkgFile of gpkgFilesToProcess) {
-      Q.push(async () => {
-        const dataset = path.basename(gpkgFile.pathname, extension);
-        const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
-        logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
-        const command = [
-          'ogr2ogr',
-          ['-f', 'Parquet'],
-          fileURLToPath(parquetFile),
-          fileURLToPath(gpkgFile),
-          ['-lco', `COMPRESSION=${args.compression}`],
-          ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
-          ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
-          ['-lco', 'WRITE_COVERING_BBOX=YES'],
-          ['-lco', 'COVERING_BBOX_NAME=bbox'],
-          ['-a_srs', 'epsg:4326'],
-        ];
-        if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
-        await $`${command.flat()}`;
+      todo.push(
+        q(async () => {
+          const dataset = path.basename(gpkgFile.pathname, extension);
+          const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
+          logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
+          const command = [
+            'ogr2ogr',
+            ['-f', 'Parquet'],
+            fileURLToPath(parquetFile),
+            fileURLToPath(gpkgFile),
+            ['-lco', `COMPRESSION=${args.compression}`],
+            ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
+            ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
+            ['-lco', 'WRITE_COVERING_BBOX=YES'],
+            ['-lco', 'COVERING_BBOX_NAME=bbox'],
+            ['-a_srs', 'epsg:4326'],
+          ];
+          if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
+          await $`${command.flat()}`;
 
-        const stat = await fsa.head(parquetFile);
+          const stat = await fsa.head(parquetFile);
 
-        const parquetStats = await parquetToStac(parquetFile);
-        logger.info(
-          {
-            dataset,
-            size: stat?.size,
-            fields: parquetStats.table['table:columns'].map((c) => c.name),
-            rowCount: parquetStats.table['table:row_count'],
-          },
-          'ToParquet:Written',
-        );
-        datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
-      });
+          const parquetStats = await parquetToStac(parquetFile);
+          logger.info(
+            {
+              dataset,
+              size: stat?.size,
+              fields: parquetStats.table['table:columns'].map((c) => c.name),
+              rowCount: parquetStats.table['table:row_count'],
+            },
+            'ToParquet:Written',
+          );
+          datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
+        }),
+      );
     }
-    await Q.join();
+    await Promise.all(todo);
 
-    const todo: Promise<URL>[] = [];
+    const collections: URL[] = [];
     for (const ds of datasets) {
       const sw = new StacCollectionWriter('data', ds.dataset);
       sw.asset('parquet', ds.source, {
@@ -148,10 +151,9 @@ export const ParquetCommand = command({
       sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      todo.push(sw.write(args.output, Q.Q));
+      collections.push(await sw.write(args.output, q));
     }
 
-    const collections = await Promise.all(todo);
     await StacUpdater.collections(rootCatalog, collections.flat(), true);
 
     logger.info('ToParquet:Completed');

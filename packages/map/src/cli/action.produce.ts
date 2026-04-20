@@ -1,10 +1,17 @@
 import { mkdir } from 'node:fs/promises';
 
 import { fsa } from '@chunkd/fs';
-import { downloadProject, logger, registerFileSystem, Url, UrlArrayJsonFile } from '@linzjs/topographic-system-shared';
+import {
+  concurrency,
+  downloadProject,
+  logger,
+  qFromArgs,
+  registerFileSystem,
+  Url,
+  UrlArrayJsonFile,
+} from '@linzjs/topographic-system-shared';
 import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
-import { command, flag, number, option, optional, restPositionals } from 'cmd-ts';
-import pLimit from 'p-limit';
+import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
@@ -38,6 +45,7 @@ export function getContentType(format: ExportFormat): string {
 }
 
 export const ProduceArgs = {
+  concurrency,
   path: restPositionals({ type: Url, displayName: 'path', description: 'Paths to stac items files' }),
   fromFile: option({
     type: optional(UrlArrayJsonFile),
@@ -48,14 +56,6 @@ export const ProduceArgs = {
   }),
   tempLocation,
   force: flag({ long: 'force', description: 'Overwrite existing exported files' }),
-
-  concurrency: option({
-    long: 'concurrency',
-    description: 'Number of concurrent exports to run',
-    type: number,
-    defaultValue: () => 4,
-    defaultValueIsSerializable: true,
-  }),
 };
 
 export const ProduceCommand = command({
@@ -65,7 +65,7 @@ export const ProduceCommand = command({
   async handler(args) {
     registerFileSystem();
 
-    const q = pLimit(args.concurrency);
+    const q = qFromArgs(args);
 
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
     if (paths.length === 0) {
