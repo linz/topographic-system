@@ -15,8 +15,6 @@ import json
 import os
 import sys
 
-from datetime import datetime
-
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
 project_path = sys.argv[1]
@@ -89,7 +87,11 @@ map_item.setExtent(bbox)
 # calculate map_sheet center (lat, lon)
 geom_wgs84 = feature.geometry()
 geom_wgs84.transform(
-    QgsCoordinateTransform(topo_sheet_layer.crs(), QgsCoordinateReferenceSystem.fromEpsgId(4326), QgsProject.instance())
+    QgsCoordinateTransform(
+        topo_sheet_layer.crs(),
+        QgsCoordinateReferenceSystem.fromEpsgId(4326),
+        QgsProject.instance(),
+    )
 )
 bbox_wgs84 = geom_wgs84.boundingBox()
 
