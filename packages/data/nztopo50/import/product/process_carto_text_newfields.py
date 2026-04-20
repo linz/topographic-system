@@ -13,15 +13,15 @@ class CartoTextProcessor:
     """
 
     def __init__(
-        self, 
+        self,
         mapping_spreadsheet,
         full_layers_sheet,
         new_values_sheet,
         font_mapping_sheet,
         carto_text_folder,
-        output_directory, 
-        product_database, 
-        carto_text_layer, 
+        output_directory,
+        product_database,
+        carto_text_layer,
         logs_csv_folder,
         new_font_name,
         export_format="GPKG",
@@ -461,8 +461,8 @@ class CartoTextProcessor:
             n = float(s)
             return int(n) if n.is_integer() else n
         except ValueError:
-            return None  
-    
+            return None
+
     def parse_symbol_text(self, symbol_text):
         """
         Parse SYMBOL text and extract field=value conditions.
@@ -1258,7 +1258,7 @@ if __name__ == "__main__":
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
     output_directory = r"C:\temp\carto"
-    #output_directory = r"C:\Data\topoedit\topographic-product-data"
+    # output_directory = r"C:\Data\topoedit\topographic-product-data"
     logs_csv_folder = r"C:\temp\carto"
 
     carto_text_folder = r"C:\Data\toposource\topographic-product-data"
