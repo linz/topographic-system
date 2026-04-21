@@ -12,6 +12,7 @@
     },
     "packages/map": {},
     "packages/shared": {},
+    "packages/stac": {},
     "packages/validation": {
       "release-type": "python",
       "package-name": "topographic-system-validation",
