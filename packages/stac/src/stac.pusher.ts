@@ -63,7 +63,7 @@ export class StacPusher {
 
   async loadItem(itemUrl: URL) {
     const item = await fsa.readJson<StacItem>(itemUrl);
-    if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
+    if (item == null) throw new Error(`Item not found or Invalid at ${itemUrl.href}`);
     this.items.set(itemUrl, item);
     for (const asset of Object.values(item.assets ?? {})) {
       if (asset.href == null) continue;
@@ -104,7 +104,7 @@ export class StacPusher {
       if (link.rel !== 'item') continue;
       const itemUrl = new URL(link.href, url);
       const item = await fsa.readJson<StacItem>(itemUrl);
-      if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
+      if (item == null) throw new Error(`Item not found or Invalid at ${itemUrl.href}`);
       const { ctx, filename } = this.prepareStorageContext(target, itemUrl);
       const itemName = filename.replace('.json', '');
       const targetUrl = StacStorage.url(s, ctx);
@@ -113,11 +113,12 @@ export class StacPusher {
       item.collection = collection.id;
       if (commit) {
         todo.push(q(() => HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2))));
-      }
-      // Push assets
-      for (const asset of Object.values(item.assets ?? {})) {
-        if (asset.href == null) continue;
-        if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+
+        // Push assets
+        for (const asset of Object.values(item.assets ?? {})) {
+          if (asset.href == null) continue;
+          todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+        }
       }
     }
     await Promise.all(todo);
@@ -144,7 +145,7 @@ export class StacPusher {
         targetCollection.id = StacStorage.id(s, ctx);
 
         // Push stac items and item assets
-        items.concat(await this.pushItems(url, this.target, targetCollection, s, q, commit));
+        items.push(...(await this.pushItems(url, this.target, targetCollection, s, q, commit)));
 
         // Prepare the canonical and latest links between collections
         if (s.type === 'latest') {
@@ -162,7 +163,7 @@ export class StacPusher {
             href: getRelativePath(latestUrl, targetCollectionUrl),
           });
         }
-        if (commit)
+        if (commit) {
           todo.push(
             q(() =>
               HashWriter.write(targetCollectionUrl, JSON.stringify(targetCollection, null, 2), {
@@ -170,12 +171,13 @@ export class StacPusher {
               }),
             ),
           );
-        collections.push(targetCollectionUrl);
+          collections.push(targetCollectionUrl);
 
-        // Push collection assets
-        for (const asset of Object.values(collection.assets ?? {})) {
-          if (asset.href == null) continue;
-          if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+          // Push collection assets
+          for (const asset of Object.values(collection.assets ?? {})) {
+            if (asset.href == null) continue;
+            todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+          }
         }
       }
       await Promise.all(todo);
