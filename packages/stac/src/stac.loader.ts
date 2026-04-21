@@ -4,7 +4,7 @@ import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
 import { HashWriter } from './hash.writer.ts';
 import { getRelativePath } from './stac.paths.ts';
-import type { StorageContext, StacStorageCategory, StorageStrategy } from './stac.storage.ts';
+import type { StacStorageCategory, StorageContext, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
 
 export class StacLoader {
