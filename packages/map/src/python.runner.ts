@@ -14,7 +14,7 @@ import type { ExportOptions } from './stac.ts';
 
 export const BaseCommandOptions = {
   useDocker: false,
-  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_1ddcee-a6a40d_build-34',
+  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_f04b83-922072_build-38',
 };
 
 interface SheetMetadataStdOut {

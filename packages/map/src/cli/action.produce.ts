@@ -94,7 +94,7 @@ async function produce(path: URL, args: { force: boolean; tempLocation: URL }) {
   // Run python qgis export script
   const stac = await fsa.readJson<StacItem>(path);
   const exportOptions = stac.properties['linz_topographic_system:options'] as ExportOptions;
-  const mapSheets = stac.properties['linz:mapsheet'] as string;
+  const sheetCode = stac.properties['linz:mapsheet'] as string;
 
   const destPath = new URL(path.href.replace('.json', `.${getExtentFormat(exportOptions.format)}`));
   if (args.force !== true && (await fsa.exists(destPath))) {
@@ -106,7 +106,7 @@ async function produce(path: URL, args: { force: boolean; tempLocation: URL }) {
   const projectPath = await downloadProject(path, args.tempLocation);
 
   // Start to export file
-  const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
+  const file = await pyRunner.qgisExport(projectPath, tempOutput, sheetCode, exportOptions);
 
   if (exportOptions.format === ExportFormats.GeoTiff || exportOptions.format === ExportFormats.Tiff) {
     // TODO optimize tiff to COG / lossless webp

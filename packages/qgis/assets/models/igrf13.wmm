@@ -1,0 +1,25 @@
+WMMF-1
+# A World Magnetic Model (Format 1) file.  For documentation on the
+# format of this file see
+# http://geographiclib.sf.net/html/magnetic.html#magneticformat
+Name            igrf13
+Description     International Geomagnetic Reference Field 13th Generation
+URL             https://ngdc.noaa.gov/IAGA/vmod/igrf.html
+Publisher       International Association of Geomagnetism and Aeronomy
+ReleaseDate     2019-12-19
+DataCutOff      2019-10-01
+ConversionDate  2020-07-05
+DataVersion     1
+Radius          6371200
+NumModels       25
+Epoch           1900
+DeltaEpoch      5
+MinTime         1900
+MaxTime         2025
+MinHeight       -1000
+MaxHeight       600000
+
+# The coefficients are stored in a file obtained by appending ".cof" to
+# the name of this file.  The coefficients were obtained from IGRF13.COF
+# in the geomag70 distribution.
+ID              IGRF13-A
