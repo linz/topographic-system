@@ -7,7 +7,7 @@ import pLimit from 'p-limit';
 import { logger } from './log.ts';
 
 export const qLimitDefault = 20;
-export const workderLimitDefault = Math.max(1, Math.floor(os.cpus().length / 2));
+export const workerLimitDefault = Math.max(1, Math.floor(os.cpus().length / 2));
 
 export const concurrency = option({
   long: 'concurrency',
@@ -21,13 +21,13 @@ export const worker = option({
   long: 'worker',
   description: 'Cpu workers limit for parallel processing (default: cpu cores / 2)',
   type: optional(number),
-  defaultValue: () => workderLimitDefault,
+  defaultValue: () => workerLimitDefault,
   defaultValueIsSerializable: true,
 });
 
-export function qFromArgs(args: {} | { concurrency?: number; workder?: number }): LimitFunction {
+export function qFromArgs(args: {} | { concurrency?: number; worker?: number }): LimitFunction {
   if ('concurrency' in args && typeof args.concurrency === 'number') return pLimit(args.concurrency);
-  if ('workder' in args && typeof args.workder === 'number') return pLimit(args.workder);
+  if ('worker' in args && typeof args.worker === 'number') return pLimit(args.worker);
   return pLimit(qLimitDefault);
 }
 

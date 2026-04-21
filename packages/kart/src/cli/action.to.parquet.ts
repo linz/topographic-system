@@ -134,8 +134,7 @@ export const ParquetCommand = command({
       datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
     });
 
-    const collections: URL[] = [];
-    for (const ds of datasets) {
+    const collections = await qMapAll(q, datasets, async (ds) => {
       const sw = new StacCollectionWriter('data', ds.dataset);
       sw.asset('parquet', ds.source, {
         href: `./${ds.dataset}.parquet`,
@@ -146,8 +145,8 @@ export const ParquetCommand = command({
       sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      collections.push(await sw.write(args.output, q));
-    }
+      return await sw.write(args.output, q);
+    });
 
     await StacUpdater.collections(rootCatalog, collections.flat(), true);
 
