@@ -135,8 +135,8 @@ export class StacPusher {
     };
     const items: URL[] = [];
     const collections: URL[] = [];
-    const todo: Promise<unknown>[] = [];
     for (const s of this.strategies) {
+      const todo: Promise<unknown>[] = [];
       for (const [url, collection] of this.collections) {
         const { ctx, filename } = this.prepareStorageContext(this.target, url);
         const targetUrl = StacStorage.url(s, ctx);
