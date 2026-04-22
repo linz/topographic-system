@@ -118,6 +118,7 @@ export class StacPusher {
       const targetItemUrl = new URL(filename, targetUrl);
       item.id = StacStorage.id(s, { ...ctx, item: itemName });
       item.collection = collection.id;
+      items.push(targetItemUrl);
       if (commit) {
         todo.push(q(() => HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2))));
 
