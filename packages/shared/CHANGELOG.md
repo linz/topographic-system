@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.8.0...topographic-system-shared-v0.9.0) (2026-04-22)
+
+
+### Features
+
+* **kart:** Update kart flow to use stac push. BM-1625 ([#120](https://github.com/linz/topographic-system/issues/120)) ([ba04f4f](https://github.com/linz/topographic-system/commit/ba04f4f7224cc014b222b73b754cd2c2d1413b1d))
+* **map:** Resolve STAC inconsistencies across the codebase. BM-1578 ([#87](https://github.com/linz/topographic-system/issues/87)) ([9e09afc](https://github.com/linz/topographic-system/commit/9e09afc26ff5754bd17ef6688e897029e767d142))
+* **shared:** Add concurrency parameter for all the clis that have limit queue. BM-1599 ([#126](https://github.com/linz/topographic-system/issues/126)) ([0f7d32c](https://github.com/linz/topographic-system/commit/0f7d32c79445ee0870c7b131e4581733ce675736))
+
+
+### Bug Fixes
+
+* add a temporal extent for datasets with no extent ([#124](https://github.com/linz/topographic-system/issues/124)) ([3fe7adc](https://github.com/linz/topographic-system/commit/3fe7adc0e8f41ee6a244576e22e9c63e4d7b751b))
+* import directly from package entry point BM-1638 ([#123](https://github.com/linz/topographic-system/issues/123)) ([fdff98d](https://github.com/linz/topographic-system/commit/fdff98dd06d478bdfd464a4a8dddedcfea91a543))
+* nztopo50 is the name of the product ([#112](https://github.com/linz/topographic-system/issues/112)) ([45e1135](https://github.com/linz/topographic-system/commit/45e113501bd994a29be7e9d91d0bc6becdc64234))
+* update `chunkd` to support multipart write to s3 from stream BM-1621 ([#115](https://github.com/linz/topographic-system/issues/115)) ([b89c9f7](https://github.com/linz/topographic-system/commit/b89c9f71dedaaa224387b4f9078978fda87c269e))
+
 ## [0.8.0](https://github.com/linz/topographic-system/compare/topographic-system-shared-v0.7.0...topographic-system-shared-v0.8.0) (2026-03-22)
 
 

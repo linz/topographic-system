@@ -1,6 +1,6 @@
 [project]
 name = "topographic-system-validation"
-version = "0.3.0"
+version = "0.4.0"
 description = "Data Validation scripts for LINZ Topographic Data"
 requires-python = ">=3.12"
 authors = [

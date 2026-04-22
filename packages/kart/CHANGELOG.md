@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.10.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.9.0...topographic-system-kart-v0.10.0) (2026-04-22)
+
+
+### Features
+
+* **kart:** Update kart flow to use stac push. BM-1625 ([#120](https://github.com/linz/topographic-system/issues/120)) ([ba04f4f](https://github.com/linz/topographic-system/commit/ba04f4f7224cc014b222b73b754cd2c2d1413b1d))
+* lint qgis project file BM-1516 ([#117](https://github.com/linz/topographic-system/issues/117)) ([fcebbc8](https://github.com/linz/topographic-system/commit/fcebbc89098e07ebf734363fdf7dababd1b17e4a))
+* **map:** Resolve STAC inconsistencies across the codebase. BM-1578 ([#87](https://github.com/linz/topographic-system/issues/87)) ([9e09afc](https://github.com/linz/topographic-system/commit/9e09afc26ff5754bd17ef6688e897029e767d142))
+* **map:** Stac push command to copy stac files and assets with storage stategy. BM-1619 ([#114](https://github.com/linz/topographic-system/issues/114)) ([9d1dc2f](https://github.com/linz/topographic-system/commit/9d1dc2f6ec198a6c821dd6243fd66abb6f105c92))
+* **shared:** Add concurrency parameter for all the clis that have limit queue. BM-1599 ([#126](https://github.com/linz/topographic-system/issues/126)) ([0f7d32c](https://github.com/linz/topographic-system/commit/0f7d32c79445ee0870c7b131e4581733ce675736))
+
+
+### Bug Fixes
+
+* lint qgis wms connections BM-1516 ([#121](https://github.com/linz/topographic-system/issues/121)) ([c6653e9](https://github.com/linz/topographic-system/commit/c6653e9f50db5ec3de9624d3b0ee756bc8505c46))
+* truncate long diffs BM-1603 ([#109](https://github.com/linz/topographic-system/issues/109)) ([9d754ae](https://github.com/linz/topographic-system/commit/9d754ae0b812fc439218e7a970e7b82479b34634))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.8.0 to ^0.9.0
+    * @linzjs/topographic-system-stac bumped from ^0.7.0 to ^1.0.0
+
 ## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.8.0...topographic-system-kart-v0.9.0) (2026-04-01)
 
 

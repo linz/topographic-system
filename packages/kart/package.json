@@ -1,6 +1,6 @@
 {
   "name": "@linzjs/topographic-system-kart",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,8 +11,8 @@
     "build:container": "npm run bundle && docker buildx build ../../ --file ./Dockerfile -t ts-kart"
   },
   "dependencies": {
-    "@linzjs/topographic-system-shared": "^0.8.0",
-    "@linzjs/topographic-system-stac": "^0.7.0",
+    "@linzjs/topographic-system-shared": "^0.9.0",
+    "@linzjs/topographic-system-stac": "^1.0.0",
     "cmd-ts": "^0.14.3",
     "zx": "^8.8.5",
     "fast-xml-parser": "^5.5.11"
