@@ -24,8 +24,15 @@ export class StacPusher {
     this.category = category;
   }
 
+  private static strategyPriority(s: StorageStrategy): number {
+    if (s.type === 'date') return 0;
+    if (s.type === 'commit') return 1;
+    return 2; // latest
+  }
+
   strategy(s: StorageStrategy) {
     this.strategies.push(s);
+    this.strategies.sort((a, b) => StacPusher.strategyPriority(a) - StacPusher.strategyPriority(b));
   }
 
   async loadCatalog(catalogUrl: URL) {
