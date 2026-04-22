@@ -1,6 +1,6 @@
 {
   "name": "@linzjs/topographic-system-map",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -14,8 +14,8 @@
     "@basemaps/geo": "^8.9.0",
     "@cogeotiff/core": "^9.1.2",
     "@linzjs/docker-command": "^8.0.0",
-    "@linzjs/topographic-system-shared": "^0.8.0",
-    "@linzjs/topographic-system-stac": "^0.7.0",
+    "@linzjs/topographic-system-shared": "^0.9.0",
+    "@linzjs/topographic-system-stac": "^1.0.0",
     "@opentelemetry/sdk-node": "^0.213.0",
     "cmd-ts": "^0.14.3",
     "stac-ts": "^1.0.4",
