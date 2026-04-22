@@ -134,9 +134,8 @@ export const ParquetCommand = command({
       datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
     });
 
-    // Use a dedicated queue for STAC writes to avoid nested scheduling on the same limiter.
-    const stacWriteQ = qFromArgs(args);
-    const collections = await qMapAll(q, datasets, async (ds) => {
+    const todo: Promise<URL>[] = [];
+    for (const ds of datasets) {
       const sw = new StacCollectionWriter('data', ds.dataset);
       sw.asset('parquet', ds.source, {
         href: `./${ds.dataset}.parquet`,
@@ -147,8 +146,9 @@ export const ParquetCommand = command({
       sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
       sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
       sw.collection.extent = ds.metadata.extent;
-      return await sw.write(args.output, stacWriteQ);
-    });
+      todo.push(sw.write(args.output, q));
+    }
+    const collections = await Promise.all(todo);
 
     await StacUpdater.collections(rootCatalog, collections.flat(), true);
 
