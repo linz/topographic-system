@@ -1,5 +1,6 @@
 import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
+import { qMapAll } from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
@@ -24,22 +25,6 @@ function isFileStatsSame(x: StacFileChecksum, y: StacFileChecksum): boolean {
   return true;
 }
 
-function qAll<T, R>(
-  items: T[] | IteratorObject<T>,
-  q: LimitFunction,
-  cb: (t: T) => Promise<R>,
-): Promise<{ input: T; result: R }[]> {
-  const todo = [];
-  for (const t of items) {
-    todo.push(
-      q(() => cb(t)).then((result) => {
-        return { input: t, result };
-      }),
-    );
-  }
-  return Promise.all(todo);
-}
-
 export const StacUpdater = {
   /**
    * Update all collection links to the items with the file:checksum and file:size properties
@@ -52,7 +37,7 @@ export const StacUpdater = {
     const collections = new Map<string, { url: URL; items: Map<string, StacItemWithHash> }>();
 
     // Load and hash all items
-    await qAll(itemUrls, q, async (item) => {
+    await qMapAll(q, itemUrls, async (item) => {
       const itemRaw = await fsa.read(item);
       const itemStac = JSON.parse(itemRaw.toString()) as StacItem;
       if (itemStac == null) throw new Error(`Item not found at ${item.href}`);
@@ -73,8 +58,7 @@ export const StacUpdater = {
     });
 
     const updatedCollections: URL[] = [];
-
-    await qAll(collections.values(), q, async (toUpdate) => {
+    await qMapAll(q, Array.from(collections.values()), async (toUpdate) => {
       return StacUpdater.readWriteJson<StacCollection>(toUpdate.url, (collection) => {
         if (collection == null) throw new Error(`Collection not found at ${toUpdate.url.href}`);
 

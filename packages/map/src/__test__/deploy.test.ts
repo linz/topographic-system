@@ -11,6 +11,7 @@ import { pyRunner } from '../python.runner.ts';
 
 describe('action.deploy', () => {
   const mem = new FsMemory();
+  const concurrency = 10;
 
   before(() => {
     fsa.register('memory://', mem);
@@ -41,6 +42,7 @@ describe('action.deploy', () => {
 
     const targetDeploy = new URL('memory://target/deploy/');
     await DeployCommand.handler({
+      concurrency,
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: targetDeploy,
       source: new URL('memory://source/catalog.json'),
@@ -92,6 +94,7 @@ describe('action.deploy', () => {
 
     const targetPush = new URL('memory://target/push/');
     await StacPushCommand.handler({
+      concurrency,
       source: new URL('memory://target/deploy/catalog.json'),
       target: targetPush,
       category: 'qgis',

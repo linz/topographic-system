@@ -7,7 +7,7 @@ import { getRelativePath } from './stac.paths.ts';
 import type { StorageContext, StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
 
-export class StacLoader {
+export class StacPusher {
   catalogs = new Map<URL, StacCatalog>();
   collections = new Map<URL, StacCollection>();
   items = new Map<URL, StacItem>();
@@ -24,8 +24,15 @@ export class StacLoader {
     this.category = category;
   }
 
+  private static strategyPriority(s: StorageStrategy): number {
+    if (s.type === 'date') return 0;
+    if (s.type === 'commit') return 1;
+    return 2; // latest
+  }
+
   strategy(s: StorageStrategy) {
     this.strategies.push(s);
+    this.strategies.sort((a, b) => StacPusher.strategyPriority(a) - StacPusher.strategyPriority(b));
   }
 
   async loadCatalog(catalogUrl: URL) {
@@ -63,7 +70,7 @@ export class StacLoader {
 
   async loadItem(itemUrl: URL) {
     const item = await fsa.readJson<StacItem>(itemUrl);
-    if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
+    if (item == null) throw new Error(`Item not found or Invalid at ${itemUrl.href}`);
     this.items.set(itemUrl, item);
     for (const asset of Object.values(item.assets ?? {})) {
       if (asset.href == null) continue;
@@ -95,51 +102,58 @@ export class StacLoader {
     target: URL,
     collection: StacCollection,
     s: StorageStrategy,
+    q: LimitFunction,
     commit: boolean,
   ): Promise<URL[]> {
+    const todo: Promise<unknown>[] = [];
     const items: URL[] = [];
     for (const link of collection.links) {
       if (link.rel !== 'item') continue;
       const itemUrl = new URL(link.href, url);
       const item = await fsa.readJson<StacItem>(itemUrl);
-      if (item == null) throw new Error(`Item not found or Invalid  at ${itemUrl.href}`);
+      if (item == null) throw new Error(`Item not found or Invalid at ${itemUrl.href}`);
       const { ctx, filename } = this.prepareStorageContext(target, itemUrl);
       const itemName = filename.replace('.json', '');
       const targetUrl = StacStorage.url(s, ctx);
       const targetItemUrl = new URL(filename, targetUrl);
       item.id = StacStorage.id(s, { ...ctx, item: itemName });
       item.collection = collection.id;
+      items.push(targetItemUrl);
       if (commit) {
-        // TODO: We can't add limit q for this as this require to write back the checksum to link.
-        await HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2));
-      }
-      // Push assets
-      for (const asset of Object.values(item.assets ?? {})) {
-        if (asset.href == null) continue;
-        if (commit) await this.pushAsset(asset, url, targetUrl);
+        todo.push(q(() => HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2))));
+
+        // Push assets
+        for (const asset of Object.values(item.assets ?? {})) {
+          if (asset.href == null) continue;
+          todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+        }
       }
     }
+    await Promise.all(todo);
     return items;
   }
 
-  async push(target: URL, q: LimitFunction, commit: boolean = false): Promise<{ items: URL[]; collections: URL[] }> {
+  async push(source: URL, q: LimitFunction, commit: boolean = false): Promise<{ items: URL[]; collections: URL[] }> {
+    // Load all stac files for push
+    await this.loadCatalog(source);
+
     const strats = {
       latest: this.strategies.find((f) => f.type === 'latest'),
       canonical: this.strategies.find((f) => f.type !== 'latest'),
     };
     const items: URL[] = [];
     const collections: URL[] = [];
-    const todo: Promise<unknown>[] = [];
     for (const s of this.strategies) {
+      const todo: Promise<unknown>[] = [];
       for (const [url, collection] of this.collections) {
-        const { ctx, filename } = this.prepareStorageContext(target, url);
+        const { ctx, filename } = this.prepareStorageContext(this.target, url);
         const targetUrl = StacStorage.url(s, ctx);
         const targetCollectionUrl = new URL(filename, targetUrl);
         const targetCollection = structuredClone(collection);
         targetCollection.id = StacStorage.id(s, ctx);
 
         // Push stac items and item assets
-        items.concat(await this.pushItems(url, target, targetCollection, s, commit));
+        items.push(...(await this.pushItems(url, this.target, targetCollection, s, q, commit)));
 
         // Prepare the canonical and latest links between collections
         if (s.type === 'latest') {
@@ -157,7 +171,8 @@ export class StacLoader {
             href: getRelativePath(latestUrl, targetCollectionUrl),
           });
         }
-        if (commit)
+        collections.push(targetCollectionUrl);
+        if (commit) {
           todo.push(
             q(() =>
               HashWriter.write(targetCollectionUrl, JSON.stringify(targetCollection, null, 2), {
@@ -165,12 +180,11 @@ export class StacLoader {
               }),
             ),
           );
-        collections.push(targetCollectionUrl);
-
-        // Push collection assets
-        for (const asset of Object.values(collection.assets ?? {})) {
-          if (asset.href == null) continue;
-          if (commit) todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+          // Push collection assets
+          for (const asset of Object.values(collection.assets ?? {})) {
+            if (asset.href == null) continue;
+            todo.push(q(() => this.pushAsset(asset, url, targetUrl)));
+          }
         }
       }
       await Promise.all(todo);
