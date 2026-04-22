@@ -5,7 +5,7 @@ import {
   StacUpdater,
   StorageStrategyMulti,
 } from '@linzjs/topographic-system-stac';
-import { command, dryRun, flag, multioption, oneOf, option } from 'cmd-ts';
+import { command, flag, multioption, oneOf, option } from 'cmd-ts';
 
 export const StacPushArgs = {
   concurrency,
