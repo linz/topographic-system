@@ -5,7 +5,7 @@ import {
   StacUpdater,
   StorageStrategyMulti,
 } from '@linzjs/topographic-system-stac';
-import { command, flag, multioption, oneOf, option } from 'cmd-ts';
+import { command, dryRun, flag, multioption, oneOf, option } from 'cmd-ts';
 
 export const StacPushArgs = {
   concurrency,
@@ -62,6 +62,14 @@ export const StacPushCommand = command({
     const catalogs = await StacUpdater.collections(rootCatalogUrl, collections, args.commit);
     for (const catalog of catalogs) logger.info({ href: catalog.href }, 'StacPush: Catalog upserted');
 
-    logger.info({ items: items.length, collections: collections.length, catalogs: catalogs.length }, 'StacPush: Done');
+    logger.info(
+      {
+        items: items.length,
+        collections: collections.length,
+        catalogs: catalogs.length,
+        dryRun: args.commit ? false : true,
+      },
+      'StacPush: Done',
+    );
   },
 });

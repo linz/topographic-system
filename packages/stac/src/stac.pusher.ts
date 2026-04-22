@@ -171,6 +171,7 @@ export class StacPusher {
             href: getRelativePath(latestUrl, targetCollectionUrl),
           });
         }
+        collections.push(targetCollectionUrl);
         if (commit) {
           todo.push(
             q(() =>
@@ -179,8 +180,6 @@ export class StacPusher {
               }),
             ),
           );
-          collections.push(targetCollectionUrl);
-
           // Push collection assets
           for (const asset of Object.values(collection.assets ?? {})) {
             if (asset.href == null) continue;
