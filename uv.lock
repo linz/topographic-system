@@ -1018,7 +1018,7 @@ dev = [
 
 [[package]]
 name = "topographic-system-data-prep"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "packages/data-prep" }
 dependencies = [
     { name = "geopandas" },
@@ -1070,7 +1070,7 @@ dev = [
 
 [[package]]
 name = "topographic-system-validation"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "packages/validation" }
 dependencies = [
     { name = "apache-sedona" },

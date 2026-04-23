@@ -1,0 +1,7 @@
+geopandas
+numpy
+pandas
+pyogrio
+shapely
+sqlalchemy
+psycopg[binary]
