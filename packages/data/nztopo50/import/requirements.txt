@@ -4,3 +4,4 @@ pandas
 pyogrio
 shapely
 sqlalchemy
+psycopg
