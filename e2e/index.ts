@@ -104,7 +104,7 @@ describe('topographic-system.e2e', async () => {
       await tsKart(
         `validate-schema`,
         ['--schema', '/assets/testline.json'],
-        ['/target/temp/kart.to-parquet/testline.parquet'],
+        ['/target/temp/kart.to-parquet/output/testline/testline.parquet'],
       );
     });
 
