@@ -30,7 +30,7 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     ${containerName} ${args.flat()}`.catch((e) => e);
     if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
     if (ret.exitCode !== 0) {
-      console.log(ret.stdout)
+      console.log(ret.stdout);
       throw new Error(`Failed: ${containerName}`);
     }
     return ret;
@@ -101,12 +101,12 @@ describe('topographic-system.e2e', async () => {
     });
 
     await it('should validate the parquet schemas', async () => {
-        await tsKart(
+      await tsKart(
         `validate-schema`,
         ['--schema', '/assets/testline.json'],
-        ['/target/temp/kart.to-parquet/testline.parquet']
+        ['/target/temp/kart.to-parquet/testline.parquet'],
       );
-    })
+    });
 
     const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
     await it('should push the parquet stac files and assets', await skipIfExists(parquetTempOutput), async () => {
