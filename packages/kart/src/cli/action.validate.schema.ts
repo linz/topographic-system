@@ -85,7 +85,8 @@ export const ValidateSchemaCommand = command({
         }
       }
 
-      logger.info(
+      let logOption = invalid > 0 ? ('error' as const) : ('info' as const);
+      logger[logOption](
         {
           file: path.href,
           schema: args.schema.href,
@@ -95,6 +96,8 @@ export const ValidateSchemaCommand = command({
         },
         'Validate:Done',
       );
+
+      if (invalid > 0) throw new Error('Validation failed for ' + path.href);
     });
   },
 });
