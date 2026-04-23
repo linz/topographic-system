@@ -1,3 +1,4 @@
+import os
 from typing import Any
 import psycopg
 import pandas as pd
@@ -12,8 +13,8 @@ db_params: dict[str, Any] = {
 }
 
 
-def excel_to_layered_dict(excel_path):
-    df = pd.read_excel(excel_path)
+def csv_to_layered_dict(csv_path):
+    df = pd.read_csv(csv_path)
     layered_dict = {}
 
     for _, row in df.iterrows():
@@ -37,16 +38,18 @@ if __name__ == "__main__":
     for command_option in commands_options:
         print(f"Executing command: {command_option}")
 
-        model_fields_file = r"C:\Data\Model\datasets_fields.xlsx"
+        model_fields_file = os.path.join(
+            os.path.dirname(__file__), "datasets_fields.csv"
+        )
         # schema_name = "release62"
         schema_name = "release64"
-        # schema_name = "model"
+        schema_name = "model"
 
         primary_key_type = "none"
         # primary_key_type = 'int'
         # primary_key_type = "uuid"
 
-        layered_dict = excel_to_layered_dict(model_fields_file)
+        layered_dict = csv_to_layered_dict(model_fields_file)
 
         for layers in layered_dict.items():
             for layer, fields in layers[1].items():

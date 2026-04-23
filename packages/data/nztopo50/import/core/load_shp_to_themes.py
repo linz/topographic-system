@@ -10,14 +10,14 @@ from sqlalchemy import create_engine  # type: ignore
 class Topo50DataLoader:
     """Load Topo50 shapefiles, normalize fields, and persist to target storage.
 
-    The loader reads layer metadata from an Excel mapping file, groups source
+    The loader reads layer metadata from a mapping file, groups source
     shapefiles by output layer, computes a harmonized set of columns per layer,
     applies project-specific column renaming rules, and writes each dataset to
     either PostGIS or a file geodatabase target.
 
     Args:
         shapefile_dir: Directory containing input .shp files.
-        excel_file: Path to the layer mapping spreadsheet.
+        excel_file: Path to the layer mapping file.
         database: Output target identifier. For PostGIS runs this is used as
             the schema name by the current workflow.
         count_log: File path for writing per-layer row counts.
@@ -31,7 +31,7 @@ class Topo50DataLoader:
 
         Args:
             shapefile_dir: Directory containing input `.shp` files.
-            excel_file: Path to the layer mapping spreadsheet.
+            excel_file: Path to the layer mapping file.
             database: Output target identifier. In the current workflow this
                 is also used as the PostGIS schema name.
             count_log: Output file path for recording per-layer row counts.
@@ -49,13 +49,13 @@ class Topo50DataLoader:
         self.count_log_file.write("layer_name, row_count\n")
 
     def _load_layers_info(self):
-        """Read layer metadata from Sheet1 of the mapping spreadsheet.
+        """Read layer metadata from the mapping CSV file.
 
         Returns:
             dict: Mapping of `shp_name` to
                 `[object_name, theme, feature_type, layer_name, dataset]`.
         """
-        source = pd.read_excel(self.excel_file, sheet_name="Sheet1")
+        source = pd.read_csv(self.excel_file)
         layers_info = {}
         for row in source.itertuples():
             object_name = row.object_name
@@ -448,7 +448,7 @@ class Topo50DataLoader:
 
 
 if __name__ == "__main__":
-    layer_info_file = r"C:\Data\Model\layers_info.xlsx"
+    layer_info_file = os.path.join(os.path.dirname(__file__), "layers_info.csv")
 
     # release = "release62"
     release = "release64"
