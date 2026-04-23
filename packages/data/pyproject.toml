@@ -56,3 +56,8 @@ ignore_errors = true
 module = "nztopo50.import.core.postgis_manage_fields"
 ignore_errors = true
 
+[tool.uv.workspace]
+members = [
+    "nztopo50/import",
+]
+
