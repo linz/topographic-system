@@ -11,7 +11,8 @@ import yaml from 'js-yaml';
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
   if (schemaPath.href.endsWith('.json')) return JSON.parse(String(content));
-  if (schemaPath.href.endsWith('.yaml') || schemaPath.href.endsWith('.yml')) return yaml.load(String(content)) as SchemaObject; 
+  if (schemaPath.href.endsWith('.yaml') || schemaPath.href.endsWith('.yml'))
+    return yaml.load(String(content)) as SchemaObject;
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
 
@@ -47,24 +48,23 @@ export const ValidateSchemaCommand = command({
       const metadata = await parquetMetadataAsync(asyncBuffer);
 
       const startTime = performance.now();
+      const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
 
       logger.info({ file: path.href, schema: args.schema.href }, 'Validate: Started');
-      let groupStart = 0;
+      let rowStart = 0;
       let valid = 0;
       let invalid = 0;
       for (const group of metadata.row_groups) {
-        const groupEnd = groupStart + Number(group.num_rows);
+        const rowEnd = rowStart + Number(group.num_rows);
         const groupData = await parquetReadObjects({
           file: asyncBuffer,
           metadata,
-          compressors: {
-            ZSTD: (input) => zstdDecompressSync(input),
-          },
-          rowStart: groupStart,
-          rowEnd: groupEnd,
+          compressors: { ZSTD },
+          rowStart,
+          rowEnd,
         });
 
-        const errorSummary =  new Map<string, number>()
+        const errorSummary = new Map<string, number>();
 
         for (const record of groupData) {
           const ret = validate(record);
@@ -78,22 +78,12 @@ export const ValidateSchemaCommand = command({
             }
           }
         }
-        groupStart = groupEnd;
+        rowStart = rowEnd;
 
-        if (errorSummary.size > 0) {
-          for (const er of errorSummary) {
-            logger.error(
-              {
-                file: path.href,
-                error: er[0],
-                count: er[1],
-              },
-              'Validate:ErrorSummary',
-            );
-          }
+        for (const [error, count] of errorSummary) {
+          logger.error({ file: path.href, error, count }, 'Validate:ErrorSummary');
         }
       }
-
 
       logger.info(
         {
