@@ -18,6 +18,7 @@ async function skipIfExists(url: URL) {
   return {};
 }
 
+const isVerbose = process.argv.includes('--verbose');
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   console.log(`run: ${containerName}: `);
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
@@ -28,7 +29,7 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
     ${containerName} ${args.flat()}`.catch((e) => e);
-    if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
+    if (isVerbose || ret.exitCode !== 0) console.log(`\t${ret.stdout}`);
     if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
     return ret;
   } catch (e) {
@@ -95,6 +96,14 @@ describe('topographic-system.e2e', async () => {
       );
       assert.ok(await fsa.exists(parquetTempOutput));
       // TODO load catalog and validate
+    });
+
+    await it('should validate the parquet schemas', async () => {
+      await tsKart(
+        `validate-schema`,
+        ['--schema', '/assets/testline.json'],
+        ['/target/temp/kart.to-parquet/output/testline/testline.parquet'],
+      );
     });
 
     const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
