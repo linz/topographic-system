@@ -21,11 +21,11 @@ export const ValidateSchemaCommand = command({
   description: 'Validate that a parquet file matches a JSON schema',
   args: {
     concurrency,
-    schema: option({ type: Url, long: 'schema', description: 'Path to YAML schema file emitted by typespec' }),
+    schema: option({ type: Url, long: 'schema', description: 'Path to YAML schema file emitted' }),
     paths: restPositionals({
       type: Url,
       displayName: 'paths',
-      description: 'Paths to parquet file and YAML schema file',
+      description: 'Paths to parquet file(s) to validate against the schema',
     }),
   },
   async handler(args) {
