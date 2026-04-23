@@ -1,10 +1,18 @@
 import { mkdir } from 'node:fs/promises';
 
 import { fsa } from '@chunkd/fs';
-import { downloadProject, logger, registerFileSystem, Url, UrlArrayJsonFile } from '@linzjs/topographic-system-shared';
+import {
+  downloadProject,
+  logger,
+  qFromArgs,
+  qMapAll,
+  registerFileSystem,
+  Url,
+  UrlArrayJsonFile,
+  worker,
+} from '@linzjs/topographic-system-shared';
 import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
-import { command, flag, number, option, optional, restPositionals } from 'cmd-ts';
-import pLimit from 'p-limit';
+import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
@@ -38,6 +46,7 @@ export function getContentType(format: ExportFormat): string {
 }
 
 export const ProduceArgs = {
+  worker,
   path: restPositionals({ type: Url, displayName: 'path', description: 'Paths to stac items files' }),
   fromFile: option({
     type: optional(UrlArrayJsonFile),
@@ -48,14 +57,6 @@ export const ProduceArgs = {
   }),
   tempLocation,
   force: flag({ long: 'force', description: 'Overwrite existing exported files' }),
-
-  concurrency: option({
-    long: 'concurrency',
-    description: 'Number of concurrent exports to run',
-    type: number,
-    defaultValue: () => 4,
-    defaultValueIsSerializable: true,
-  }),
 };
 
 export const ProduceCommand = command({
@@ -65,7 +66,7 @@ export const ProduceCommand = command({
   async handler(args) {
     registerFileSystem();
 
-    const q = pLimit(args.concurrency);
+    const q = qFromArgs(args);
 
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
     if (paths.length === 0) {
@@ -77,8 +78,7 @@ export const ProduceCommand = command({
     // multiple projects, having to do this before the produce step is wrong and
     // should be fixed in the future.
     for (const p of args.path) await downloadProject(p, args.tempLocation);
-
-    await Promise.all(args.path.map((p) => q(() => produce(p, args))));
+    await qMapAll(q, args.path, (p) => produce(p, args));
     await StacUpdater.items(args.path, q, true);
 
     logger.info('Produce: Done');

@@ -1,9 +1,15 @@
 import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
-import { downloadProject, logger, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
-import { command, number, option, optional } from 'cmd-ts';
-import pLimit from 'p-limit';
+import {
+  concurrency,
+  downloadProject,
+  logger,
+  qFromArgs,
+  registerFileSystem,
+  Url,
+} from '@linzjs/topographic-system-shared';
+import { command, option, optional } from 'cmd-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
@@ -30,6 +36,7 @@ const defaultTests: TestProject[] = [
 ];
 
 export const VisualDiffArgs = {
+  concurrency,
   testFile: option({
     type: optional(Url),
     long: 'test-file',
@@ -45,13 +52,6 @@ export const VisualDiffArgs = {
     long: 'output',
     description: 'output local folder to save the exported mapsheets for visual diffing.',
   }),
-  concurrency: option({
-    type: number,
-    long: 'concurrency',
-    description: 'Number of concurrent exports to run (default: 20)',
-    defaultValue: () => 20,
-    defaultValueIsSerializable: true,
-  }),
   tempLocation,
 };
 
@@ -61,7 +61,7 @@ export const VisualDiffCommand = command({
   args: VisualDiffArgs,
   async handler(args) {
     registerFileSystem();
-    const q = pLimit(args.concurrency);
+    const q = qFromArgs(args);
     // Prepare the test senarios, either from the default tests or from the provided test file
     let testProjects = defaultTests;
     if (args.testFile) {
