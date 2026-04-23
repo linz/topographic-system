@@ -18,6 +18,7 @@ async function skipIfExists(url: URL) {
   return {};
 }
 
+const isVerbose = process.argv.includes('--verbose');
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   console.log(`run: ${containerName}: `);
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
@@ -28,11 +29,8 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
     ${containerName} ${args.flat()}`.catch((e) => e);
-    if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
-    if (ret.exitCode !== 0) {
-      console.log(ret.stdout);
-      throw new Error(`Failed: ${containerName}`);
-    }
+    if (isVerbose || ret.exitCode !== 0) console.log(`\t${ret.stdout}`);
+    if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
     return ret;
   } catch (e) {
     if (e instanceof ProcessOutput) {
