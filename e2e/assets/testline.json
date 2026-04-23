@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "topo_id": {
-      "type": "number"
+      "type": "string"
     }
   },
   "required": ["topo_id"]
