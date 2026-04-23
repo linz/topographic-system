@@ -1272,7 +1272,7 @@ class TableModificationWorkflow:
                 # Copy table from source schema to carto schema
                 with self.table_modifer.conn.cursor() as cur:
                     fields = self.table_modifer.get_ordered_columns(
-                        f"{self.schema_name}", table_name, primary_key_type
+                        f"{self.schema_name}", table_name, self.primary_key_type
                     )
 
                     remove_metadata_fields = [
@@ -1332,6 +1332,36 @@ class TableModificationWorkflow:
                 step_func()
 
 
+def run_postgis_manage_fields(
+    schema_name="release64",
+    option="all",
+    add_full_metadata_fields=True,
+    primary_key_type="uuid",
+    release_date="2025-09-25",
+    db_params=None,
+):
+    """Run post-load schema and field management workflow.
+
+    Args:
+        schema_name: Target schema to modify.
+        option: Workflow step name or ``all``.
+        add_full_metadata_fields: Toggle metadata field set.
+        primary_key_type: Primary key strategy (``int`` or ``uuid``).
+        release_date: Reserved release marker.
+        db_params: Optional DB params override.
+    """
+    active_db_params = DB_PARAMS if db_params is None else db_params
+    workflow = TableModificationWorkflow(
+        active_db_params,
+        schema_name=schema_name,
+        option=option,
+        add_full_metadata_fields=add_full_metadata_fields,
+        primary_key_type=primary_key_type,
+        release_date=release_date,
+    )
+    workflow.run()
+
+
 if __name__ == "__main__":
     option = "all"
     # option = "process_carto_tables"
@@ -1348,12 +1378,10 @@ if __name__ == "__main__":
     # primary_key_type = 'int'
     primary_key_type = "uuid"
 
-    workflow = TableModificationWorkflow(
-        DB_PARAMS,
+    run_postgis_manage_fields(
         schema_name=schema_name,
         option=option,
         add_full_metadata_fields=add_full_metadata_fields,
         primary_key_type=primary_key_type,
         release_date=release_date,
     )
-    workflow.run()

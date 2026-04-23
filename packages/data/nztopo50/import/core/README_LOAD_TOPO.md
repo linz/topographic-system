@@ -4,15 +4,15 @@ The topo50 model can be created dynamically using these scripts and control spre
 
 These scripts use the postgis database version although the load script is currently generic.
 
-The layer info spreadheet **model\layer_info.xlsx** defines the LAMPS objects into themes and datasets and new layer names. A CSV version is in the core folder.
+The layer info mapping file is **core/layers_info.csv** and defines the LAMPS objects into themes and datasets and new layer names.
 
-The field mapping spreadsheet **model\dataset_fields.xlsx** lists all the fields and mappings by layer.
+The field mapping file is **core/datasets_fields.csv** and lists all the fields and mappings by layer.
 Setting up data model and loading data into Postgres. A CSV version is in the core folder.
 
 **This process is currently manually run.
 The default location for the configuration files is c:\data\model**
 
-To help identify change the 2 configuration files - dataset_fields.xlsx and layers_info.xlsx are copied into this folder. They have been saved as CSV files in the repo.
+To help identify changes, the two configuration files are stored directly in this folder as CSV: datasets_fields.csv and layers_info.csv.
 
 The code has a default database "topo" and password. If different ones used these will need to be changed.
 
@@ -46,6 +46,8 @@ If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mai
 
 _Pre-Step: Ensure schema has been created (manual step) in PostGIS database after version target for example release64_
 
+### Note: the run_topoimport_pipline.py file can be used as a controller to run these files in sync or run each file itself updating _main_ to local settings.
+
 _Step 1: Create schemas in PostGIS_
 
     Note: Typically done manually. Example code: postgis_create_schemas.py
@@ -54,7 +56,7 @@ _Step 2: Create Model in PostGIS_ - Note: option to DROP tables available. comma
 
     Run script manually - postgis_create_model.py
     set the command_option = 'create_model'
-    check model_fields_file is pointing to the dataset_fields.xlsx file
+    check model_fields_file is pointing to core/datasets_fields.csv
     check the data load schema name - schema_name = "release62"
     by default - primary_key_type = 'uuid'
 
@@ -62,7 +64,7 @@ _Step 3: Load Shapefiles into PostGIS_
 
     Run script manually - load_shp_to_themes.py
     pyproj (project database) - had issue locating this after qgis installed. This can be commented out if not an issue.
-    check layer_info_file is pointing to the layers_info.xlsx file
+    check layer_info_file is pointing to core/layers_info.csv
     set the release value - release=release62 - This should be the same as the schema in create model step and folder name containing data to load or hard code
     set data_folder location - Expects LDS source shapefiles exported from LAMPS. Needs to confirm/adapt if other approach used.
 

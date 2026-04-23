@@ -30,26 +30,34 @@ def csv_to_layered_dict(csv_path):
     return layered_dict
 
 
-if __name__ == "__main__":
-    commands_options = ["drop_tables", "create_tables"]
-    # commands_options = ["drop_tables"]
-    # commands_options = ["create_tables"]
-    # commands_options = ["create_indexes"]
+def run_model_creation(
+    schema_name="release64",
+    commands_options=None,
+    model_fields_file=None,
+    primary_key_type="none",
+    db_params_override=None,
+):
+    """Create/drop model tables and optional indexes from field mapping CSV.
+
+    Args:
+        schema_name: Target PostGIS schema.
+        commands_options: Ordered commands to run. Defaults to drop/create.
+        model_fields_file: Path to datasets field mapping CSV.
+        primary_key_type: One of ``none``, ``int``, or ``uuid``.
+        db_params_override: Optional db params dict overriding module defaults.
+    """
+    if commands_options is None:
+        commands_options = ["drop_tables", "create_tables"]
+
+    if model_fields_file is None:
+        model_fields_file = os.path.join(os.path.dirname(__file__), "datasets_fields.csv")
+
+    active_db_params = db_params if db_params_override is None else db_params_override
+
+    layered_dict = csv_to_layered_dict(model_fields_file)
+
     for command_option in commands_options:
         print(f"Executing command: {command_option}")
-
-        model_fields_file = os.path.join(
-            os.path.dirname(__file__), "datasets_fields.csv"
-        )
-        # schema_name = "release62"
-        schema_name = "release64"
-        # schema_name = "model"
-
-        primary_key_type = "none"
-        # primary_key_type = 'int'
-        # primary_key_type = "uuid"
-
-        layered_dict = csv_to_layered_dict(model_fields_file)
 
         for layers in layered_dict.items():
             for layer, fields in layers[1].items():
@@ -58,9 +66,6 @@ if __name__ == "__main__":
                     geom = "LINESTRING"
 
                 table = layer.lower()
-                # TEMP - only create one named table
-                # if table != "contour":
-                #      continue
                 if primary_key_type == "int":
                     columns = ["id SERIAL PRIMARY KEY"]
                 elif primary_key_type == "uuid":
@@ -111,7 +116,7 @@ if __name__ == "__main__":
                         + "\n);"
                     )
 
-                    with psycopg.connect(**db_params) as conn:
+                    with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(create_sql)
@@ -127,7 +132,7 @@ if __name__ == "__main__":
                     print(f"Dropping table '{table}' in schema '{schema_name}'...")
                     create_sql = f"DROP TABLE IF EXISTS {schema_name}.{table} CASCADE;"
 
-                    with psycopg.connect(**db_params) as conn:
+                    with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(create_sql)
@@ -141,7 +146,7 @@ if __name__ == "__main__":
 
                 if command_option == "create_indexes":
                     index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_geom ON {schema_name}.{table} USING GIST (geometry);"
-                    with psycopg.connect(**db_params) as conn:
+                    with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(index_sql)
@@ -152,7 +157,7 @@ if __name__ == "__main__":
                     print(f"Index for '{table}' created successfully.")
 
                     index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema_name}.{table}(feature_type);"
-                    with psycopg.connect(**db_params) as conn:
+                    with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(index_sql)
@@ -163,7 +168,7 @@ if __name__ == "__main__":
                     print(f"Index for '{table}' created successfully.")
 
                     index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema_name}.{table}(t50_fid);"
-                    with psycopg.connect(**db_params) as conn:
+                    with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:
                                 cur.execute(index_sql)
@@ -172,3 +177,24 @@ if __name__ == "__main__":
                                 print(f"Error creating index for '{table}': {e}")
                                 continue
                     print(f"Index for '{table}' created successfully.")
+
+
+if __name__ == "__main__":
+    # schema_name = "release62"
+    schema_name = "release64"
+    # schema_name = "model"
+
+    # commands_options = ["drop_tables"]
+    # commands_options = ["create_tables"]
+    # commands_options = ["create_indexes"]
+    commands_options = ["drop_tables", "create_tables"]
+
+    primary_key_type = "none"
+    # primary_key_type = "int"
+    # primary_key_type = "uuid"
+
+    run_model_creation(
+        schema_name=schema_name,
+        commands_options=commands_options,
+        primary_key_type=primary_key_type,
+    )

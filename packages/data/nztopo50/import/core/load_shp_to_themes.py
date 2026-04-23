@@ -447,17 +447,33 @@ class Topo50DataLoader:
         print("Completed...")
 
 
-if __name__ == "__main__":
-    layer_info_file = os.path.join(os.path.dirname(__file__), "layers_info.csv")
+def run_load_shp_to_themes(
+    release="release64",
+    data_folder=None,
+    layer_info_file=None,
+    count_log=None,
+    database=None,
+):
+    """Run the shapefile-to-PostGIS loading stage.
 
-    # release = "release62"
-    release = "release64"
+    Args:
+        release: Release tag used for defaults.
+        data_folder: Input shapefile directory.
+        layer_info_file: Layer mapping CSV path.
+        count_log: Output row-count log file.
+        database: Output schema/target name.
+    """
+    if layer_info_file is None:
+        layer_info_file = os.path.join(os.path.dirname(__file__), "layers_info.csv")
 
-    data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
+    if data_folder is None:
+        data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
 
-    # postgis schema name
-    database = release
-    count_log = r"C:\Data\Model\count_log.txt"
+    if count_log is None:
+        count_log = r"C:\Data\Model\count_log.txt"
+
+    if database is None:
+        database = release
 
     loader = Topo50DataLoader(
         shapefile_dir=data_folder,
@@ -466,3 +482,9 @@ if __name__ == "__main__":
         count_log=count_log,
     )
     loader.run()
+
+
+if __name__ == "__main__":
+    # release = "release62"
+    release = "release64"
+    run_load_shp_to_themes(release=release)
