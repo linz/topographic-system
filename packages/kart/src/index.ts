@@ -13,6 +13,7 @@ import { CommentCommand } from './cli/action.pr.comment.ts';
 import { ParquetCommand } from './cli/action.to.parquet.ts';
 import { ValidateCommand } from './cli/action.validate.ts';
 import { VersionCommand } from './cli/action.version.ts';
+import { ValidateSchemaCommand } from './cli/action.validate.schema.ts';
 
 const cmds = {
   'kart-prepare': FlowCommand,
@@ -25,6 +26,7 @@ const cmds = {
   version: VersionCommand,
   'contour-with-landcover': ContourWithLandcoverCommand,
   'stac-push': StacPushCommand,
+  'validate-schema': ValidateSchemaCommand,
   'lint-qgis': LintQgisProjectCommand,
 };
 
