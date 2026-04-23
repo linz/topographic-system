@@ -43,7 +43,7 @@ if __name__ == "__main__":
         )
         # schema_name = "release62"
         schema_name = "release64"
-        schema_name = "model"
+        # schema_name = "model"
 
         primary_key_type = "none"
         # primary_key_type = 'int'
