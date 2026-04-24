@@ -18,7 +18,7 @@ async function skipIfExists(url: URL) {
   return {};
 }
 
-async function runContainer(containerName: string, ...args: (number[] | string)[]) {
+async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   console.log(`run: ${containerName}: `);
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
 
