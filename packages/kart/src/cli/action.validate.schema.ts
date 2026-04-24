@@ -11,7 +11,8 @@ import yaml from 'js-yaml';
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
   if (schemaPath.href.endsWith('.json')) return JSON.parse(String(content));
-  if (schemaPath.href.endsWith('.yaml') || schemaPath.href.endsWith('.yml')) return yaml.load(String(content)) as SchemaObject; 
+  if (schemaPath.href.endsWith('.yaml') || schemaPath.href.endsWith('.yml'))
+    return yaml.load(String(content)) as SchemaObject;
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
 
@@ -64,7 +65,7 @@ export const ValidateSchemaCommand = command({
           rowEnd: groupEnd,
         });
 
-        const errorSummary =  new Map<string, number>()
+        const errorSummary = new Map<string, number>();
 
         for (const record of groupData) {
           const ret = validate(record);
@@ -93,7 +94,6 @@ export const ValidateSchemaCommand = command({
           }
         }
       }
-
 
       logger.info(
         {

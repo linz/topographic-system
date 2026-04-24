@@ -11,9 +11,9 @@ import { FlowCommand } from './cli/action.flow.ts';
 import { LintQgisProjectCommand } from './cli/action.lint.qgis.ts';
 import { CommentCommand } from './cli/action.pr.comment.ts';
 import { ParquetCommand } from './cli/action.to.parquet.ts';
+import { ValidateSchemaCommand } from './cli/action.validate.schema.ts';
 import { ValidateCommand } from './cli/action.validate.ts';
 import { VersionCommand } from './cli/action.version.ts';
-import { ValidateSchemaCommand } from './cli/action.validate.schema.ts';
 
 const cmds = {
   'kart-prepare': FlowCommand,
