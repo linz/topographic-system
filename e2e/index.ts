@@ -18,7 +18,7 @@ async function skipIfExists(url: URL) {
   return {};
 }
 
-async function runContainer(containerName: string, ...args: (string[] | string)[]) {
+async function runContainer(containerName: string, ...args: (number[] | string)[]) {
   console.log(`run: ${containerName}: `);
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
 
@@ -31,7 +31,7 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
     if (ret.exitCode !== 0) {
       console.log(ret.stdout)
-      throw new Error(`Failed: ${containerName}`);
+    throw new Error(`Failed: ${containerName}`);
     }
     return ret;
   } catch (e) {
@@ -47,7 +47,7 @@ const tsMap = runContainer.bind(null, mapContainer);
 const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
 if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
-  console.log(`Removing ${targetFolder}`);
+  console.log(`Removing ${targetFolder.href}`);
   await $`rm -fr ${fileURLToPath(targetFolder)}`;
 }
 
