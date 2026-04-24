@@ -29,7 +29,10 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     -v ${sourceAssets}:/assets \
     ${containerName} ${args.flat()}`.catch((e) => e);
     if (process.argv.includes('--verbose')) console.log(`\t${ret.stdout}`);
-    if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
+    if (ret.exitCode !== 0) {
+      console.log(ret.stdout);
+      throw new Error(`Failed: ${containerName}`);
+    }
     return ret;
   } catch (e) {
     if (e instanceof ProcessOutput) {
@@ -44,7 +47,7 @@ const tsMap = runContainer.bind(null, mapContainer);
 const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
 if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
-  console.log(`Removing ${targetFolder}`);
+  console.log(`Removing ${targetFolder.href}`);
   await $`rm -fr ${fileURLToPath(targetFolder)}`;
 }
 
@@ -95,6 +98,14 @@ describe('topographic-system.e2e', async () => {
       );
       assert.ok(await fsa.exists(parquetTempOutput));
       // TODO load catalog and validate
+    });
+
+    await it('should validate the parquet schemas', async () => {
+      await tsKart(
+        `validate-schema`,
+        ['--schema', '/assets/testline.json'],
+        ['/target/temp/kart.to-parquet/testline.parquet'],
+      );
     });
 
     const commitId = `916356eaf4463a563ac77b4f06448ade556f306a`;
