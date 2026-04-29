@@ -77,9 +77,9 @@ export const ProduceCommand = command({
     // The downloader should be a lot smarter about handling concurrent downloads from
     // multiple projects, having to do this before the produce step is wrong and
     // should be fixed in the future.
-    for (const p of args.path) await downloadProject(p, args.tempLocation);
-    await qMapAll(q, args.path, (p) => produce(p, args));
-    await StacUpdater.items(args.path, q, true);
+    for (const p of paths) await downloadProject(p, args.tempLocation);
+    await qMapAll(q, paths, (p) => produce(p, args));
+    await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');
   },
