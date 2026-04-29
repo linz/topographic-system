@@ -15,7 +15,9 @@ import { sha256base58 } from './fs.util.ts';
 
 export const DefaultConcurrency = 20;
 
-async function ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<void> {
+async function ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<URL> {
+  // Symlinks are only supported on the local filesystem
+  if (targetFile.protocol !== 'file:' || linkedPath.protocol !== 'file:') return targetFile;
   const targetFsPath = fileURLToPath(targetFile);
   const linkedFsPath = fileURLToPath(linkedPath);
   const nextLinkTarget = relative(dirname(linkedFsPath), targetFsPath);
@@ -25,7 +27,7 @@ async function ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<void>
     if (existing.isSymbolicLink()) {
       const currentLinkTarget = await readlink(linkedFsPath);
       const currentResolved = resolve(dirname(linkedFsPath), currentLinkTarget);
-      if (currentResolved === targetFsPath) return;
+      if (currentResolved === targetFsPath) return linkedPath;
     }
     await unlink(linkedFsPath);
   } catch (error: unknown) {
@@ -33,6 +35,7 @@ async function ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<void>
   }
 
   await symlink(nextLinkTarget, linkedFsPath);
+  return linkedPath;
 }
 
 /**
@@ -47,15 +50,14 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
   const startTime = performance.now();
   logger.debug({ project: file.href, downloaded: target.href, startTime }, 'DownloadFile:Start');
   try {
-    const newFileName = sha256base58(Buffer.from(file.href)) + extname(file.href);
-    const downloadFile = new URL(`source/${newFileName}`, target);
+    const hashedFilename = sha256base58(Buffer.from(file.href)) + extname(file.href);
+    const downloadFile = new URL(hashedFilename, target);
     const linkedPath = new URL(basename(file.pathname), target);
     const [targetHead, sourceHead] = await Promise.all([fsa.head(downloadFile), fsa.head(file)]);
     if (sourceHead == null) throw new Error(`Failed to download file: ${downloadFile.href}`);
     if (targetHead != null && sourceHead != null && targetHead.size === sourceHead.size) {
-      await ensureLinkedPath(downloadFile, linkedPath);
       logger.info({ destination: downloadFile.href }, 'DownloadFile:Exists, skipping');
-      return downloadFile;
+      return await ensureLinkedPath(downloadFile, linkedPath);
     }
 
     logger.trace(
@@ -81,10 +83,14 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
     }
 
     const digest = fileHash.multihash;
-
-    const duration = performance.now() - startTime;
     logger.info(
-      { destination: downloadFile.href, linkedPath, fileHash: digest, size: head.size, duration },
+      {
+        destination: downloadFile.href,
+        linkedPath: linkedPath.href,
+        fileHash: digest,
+        size: head.size,
+        duration: performance.now() - startTime,
+      },
       'DownloadFile:Done',
     );
     if (downloadFile.pathname.endsWith('.tar')) {
@@ -96,7 +102,7 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
       logger.info(
         {
           destination: downloadFile.href,
-          linkedPath,
+          linkedPath: linkedPath.href,
           fileHash: digest,
           size: head.size,
           duration: performance.now() - startExtractTime,
@@ -104,8 +110,7 @@ export async function downloadFile(file: URL, target: URL): Promise<URL> {
         'DownloadFile:Extract:Done',
       );
     }
-    await ensureLinkedPath(downloadFile, linkedPath);
-    return downloadFile;
+    return await ensureLinkedPath(downloadFile, linkedPath);
   } catch (error) {
     logger.error({ project: file.href }, 'DownloadFile: Error');
     throw error;
