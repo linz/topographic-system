@@ -1,9 +1,9 @@
 from pathlib import Path
 import time
 
-from lds_import.config import get_datasets, get_dataset_name, SOURCE_DIR
+from ..config import get_datasets, get_dataset_name, SOURCE_DIR
 from dagster import asset, AssetExecutionContext
-from lds_import.command import run_command
+from ..command import run_command
 
 def should_pull(target_dir: Path): 
     """

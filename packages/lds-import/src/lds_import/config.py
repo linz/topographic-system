@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, model_validator
 import yaml
 from datetime import datetime, timedelta
@@ -79,7 +79,7 @@ def get_datasets() -> List[str]:
 class Release(BaseModel):
     id: int
     date: datetime
-    until: datetime = None
+    until: Optional[datetime] = None
 
 def get_releases() -> List[Release]:
     if not CONFIG_DIR_RELEASE.exists():
