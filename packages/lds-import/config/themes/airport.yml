@@ -1,12 +1,12 @@
 name: airport
 datasets:
-- source: 50237-nz-airport-polygons-topo-150k
-  mapping:
-    t50_fid: $
-    feature_type: airport
-    name: $
-- source: 50063-nz-chatham-island-airport-polygons-topo-150k
-  mapping:
-    t50_fid: $
-    feature_type: airport
-    name: $
+  - source: 50237-nz-airport-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      feature_type: airport
+      name: $
+  - source: 50063-nz-chatham-island-airport-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      feature_type: airport
+      name: $
