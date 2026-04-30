@@ -5,194 +5,149 @@ import { fileURLToPath } from 'node:url';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { qMap, qMapAll } from '@linzjs/topographic-system-shared';
+import { qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
-import pLimit from 'p-limit';
-import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import { type LimitFunction } from 'p-limit';
+import type { StacCatalog } from 'stac-ts';
 import tar from 'tar';
 
 import { sha256base58 } from './fs.util.ts';
 
-export const DefaultConcurrency = 20;
+/** STAC Link "rel" that should be downloaded */
+export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
 
-async function ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<URL> {
-  // Symlinks are only supported on the local filesystem
-  if (targetFile.protocol !== 'file:' || linkedPath.protocol !== 'file:') return targetFile;
-  const targetFsPath = fileURLToPath(targetFile);
-  const linkedFsPath = fileURLToPath(linkedPath);
-  const nextLinkTarget = relative(dirname(linkedFsPath), targetFsPath);
-
-  try {
-    const existing = await lstat(linkedFsPath);
-    if (existing.isSymbolicLink()) {
-      const currentLinkTarget = await readlink(linkedFsPath);
-      const currentResolved = resolve(dirname(linkedFsPath), currentLinkTarget);
-      if (currentResolved === targetFsPath) return linkedPath;
-    }
-    await unlink(linkedFsPath);
-  } catch (error: unknown) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-  }
-
-  await symlink(nextLinkTarget, linkedFsPath);
-  return linkedPath;
+export interface SourceFile {
+  /** Source location */
+  url: URL;
+  /** Location to the downloaded file */
+  asset?: URL;
+  /** Linked Location to the downloaded file */
+  linked?: URL;
+  /** Number of bytes in the file */
+  size?: number;
+  /** multihash of the file if it exists */
+  hash?: string;
 }
 
-/**
- * Download given source parquet file by given URL
- *
- * @param file - a URL pointing to a parquet file used as source data in QGIS project
- * @param target - Target to download the file to
- *
- * @returns Downloaded local file URL
- */
-export async function downloadFile(file: URL, target: URL): Promise<URL> {
-  const startTime = performance.now();
-  logger.debug({ project: file.href, downloaded: target.href, startTime }, 'DownloadFile:Start');
-  try {
-    const hashedFilename = sha256base58(Buffer.from(file.href)) + extname(file.href);
-    const downloadFile = new URL(hashedFilename, target);
-    const linkedPath = new URL(basename(file.pathname), target);
-    const [targetHead, sourceHead] = await Promise.all([fsa.head(downloadFile), fsa.head(file)]);
-    if (sourceHead == null) throw new Error(`Failed to download file: ${downloadFile.href}`);
-    if (targetHead != null && sourceHead != null && targetHead.size === sourceHead.size) {
-      logger.info({ destination: downloadFile.href }, 'DownloadFile:Exists, skipping');
-      return await ensureLinkedPath(downloadFile, linkedPath);
+export class Downloader {
+  q: LimitFunction;
+  /** Set of assets source location to download */
+  assets: Map<string, SourceFile>;
+  /** Local target location */
+  target: URL;
+
+  constructor(target: URL, q: LimitFunction) {
+    this.q = q;
+    this.assets = new Map<string, SourceFile>();
+    this.target = target;
+  }
+
+  /** Add an asset URL to the download list */
+  addAsset(url: URL): void {
+    if (!this.assets.has(url.href)) {
+      logger.debug({ url: url.href }, 'Downloader: Add asset');
+      this.assets.set(url.href, { url });
+    } else {
+      logger.debug({ url: url.href }, 'Downloader: Asset already added');
+    }
+  }
+
+  /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
+  async getAsset(url: URL): Promise<URL> {
+    const asset = this.assets.get(url.href);
+    if (asset == null) throw new Error(`Asset not added for url: ${url.href}`);
+    if (asset.linked != null) return asset.linked;
+    return await this.downloadAsset(asset);
+  }
+
+  /** Get all assets, downloading them if they haven't been already */
+  async getAllAssets(): Promise<URL[]> {
+    return await qMapAll(this.q, Array.from(this.assets.values()), (asset) => this.getAsset(asset.url));
+  }
+
+  /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
+  async ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<URL> {
+    // Symlinks are only supported on the local filesystem
+    if (targetFile.protocol !== 'file:' || linkedPath.protocol !== 'file:') return targetFile;
+    const targetFsPath = fileURLToPath(targetFile);
+    const linkedFsPath = fileURLToPath(linkedPath);
+    const nextLinkTarget = relative(dirname(linkedFsPath), targetFsPath);
+
+    try {
+      const existing = await lstat(linkedFsPath);
+      if (existing.isSymbolicLink()) {
+        const currentLinkTarget = await readlink(linkedFsPath);
+        const currentResolved = resolve(dirname(linkedFsPath), currentLinkTarget);
+        if (currentResolved === targetFsPath) return linkedPath;
+      }
+      await unlink(linkedFsPath);
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
 
-    logger.trace(
-      {
-        file: file.href,
-        size: sourceHead.size,
-        contentType: sourceHead.contentType,
-        lastModified: sourceHead.lastModified,
-      },
-      'DownloadFile:Stats',
-    );
+    await symlink(nextLinkTarget, linkedFsPath);
+    return linkedPath;
+  }
 
-    const fileHash = new HashTransform('sha256');
-    const stream = fsa.readStream(file).pipe(fileHash);
-    const meta: WriteOptions = {};
-    if (file.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
-    await fsa.write(downloadFile, stream, meta);
+  /** Download given asset extract it if tar file */
+  async downloadAsset(asset: SourceFile): Promise<URL> {
+    const startTime = performance.now();
+    logger.debug({ project: asset.url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    try {
+      const hashedFilename = sha256base58(Buffer.from(asset.url.href)) + extname(asset.url.href);
+      const downloadFile = new URL(hashedFilename, this.target);
+      const linkedPath = new URL(basename(asset.url.pathname), this.target);
+      const stats = await fsa.head(asset.url);
+      if (stats == null) throw new Error(`Unable to access file at url: ${asset.url.href}`);
 
-    const head = await fsa.head(downloadFile);
-    // validate file was downloaded correctly
-    if (head == null || head.size !== sourceHead?.size) {
-      throw new Error(`Failed to download file: ${downloadFile.href}`);
-    }
+      const fileHash = new HashTransform('sha256');
+      const stream = fsa.readStream(asset.url).pipe(fileHash);
+      const meta: WriteOptions = {};
+      if (asset.url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
+      await fsa.write(downloadFile, stream, meta);
 
-    const digest = fileHash.multihash;
-    logger.info(
-      {
-        destination: downloadFile.href,
-        linkedPath: linkedPath.href,
-        fileHash: digest,
-        size: head.size,
-        duration: performance.now() - startTime,
-      },
-      'DownloadFile:Done',
-    );
-    if (downloadFile.pathname.endsWith('.tar')) {
-      const startExtractTime = performance.now();
-      await tar.extract({
-        file: fileURLToPath(downloadFile),
-        cwd: fileURLToPath(target),
-      });
+      const head = await fsa.head(downloadFile);
+      // validate file was downloaded correctly
+      if (head == null || head.size !== stats?.size) {
+        throw new Error(`Failed to download file: ${downloadFile.href}`);
+      }
+
+      // Update asset with downloaded file info
+      const digest = fileHash.multihash;
+      asset.size = head.size;
+      asset.hash = digest;
+      asset.asset = downloadFile;
+      asset.linked = linkedPath;
+
       logger.info(
         {
-          destination: downloadFile.href,
-          linkedPath: linkedPath.href,
-          fileHash: digest,
-          size: head.size,
-          duration: performance.now() - startExtractTime,
+          ...asset,
+          duration: performance.now() - startTime,
         },
-        'DownloadFile:Extract:Done',
+        'DownloadFile:Done',
       );
+
+      // Extract tar files if needed
+      if (downloadFile.pathname.endsWith('.tar')) {
+        const startExtractTime = performance.now();
+        await tar.extract({
+          file: fileURLToPath(downloadFile),
+          cwd: fileURLToPath(this.target),
+        });
+        logger.info(
+          {
+            ...asset,
+            duration: performance.now() - startExtractTime,
+          },
+          'DownloadFile:Extract:Done',
+        );
+      }
+      return await this.ensureLinkedPath(downloadFile, linkedPath);
+    } catch (error) {
+      logger.error({ project: asset.url.href }, 'DownloadFile: Error');
+      throw error;
     }
-    return await ensureLinkedPath(downloadFile, linkedPath);
-  } catch (error) {
-    logger.error({ project: file.href }, 'DownloadFile: Error');
-    throw error;
   }
-}
-
-/**
- * Download given source parquet file by given Folder URL, it will download all the files in the folder to a tmp location and return the list of downloaded file URLs.
- *
- * @param source - a URL pointing to a folder containing parquet files used as source data in QGIS project
- * @param target - Where to download files to
- *
- * @returns Downloaded local file URLs in an array
- */
-export async function downloadFiles(path: URL, target: URL, q = pLimit(DefaultConcurrency)): Promise<URL[]> {
-  logger.info({ source: path.href, downloaded: target.href }, 'DownloadSourceFile: Start');
-  const files = await fsa.toArray(fsa.list(path));
-  const results = await qMapAll(q, files, (file) => downloadFile(file, target));
-  logger.info({ destination: target.href, number: files.length }, 'DownloadSourceFile: End');
-  return results;
-}
-
-/**
- * Parses a Valid STAC Collection for a parquet data from s3, and download the parquet file to a tmp location for processing.
- *
- * @param stacUrl - a URL pointing to a STAC Collection or STAC Item file with assets
- *
- * @returns Downloaded local file URL
- */
-export async function downloadAssets(
-  stacUrl: URL,
-  target: URL,
-  filter: (asset: StacAsset) => boolean = () => true,
-): Promise<URL[]> {
-  const sourcedCollection = await fsa.readJson<StacCollection | StacItem>(stacUrl);
-  return Promise.all(
-    Object.values(sourcedCollection.assets ?? {})
-      .filter(filter)
-      .map((m) => {
-        return downloadFile(new URL(m.href, stacUrl), target);
-      }),
-  );
-}
-
-/** STAC Link "rel" that should be downloaded */
-const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
-
-/**
- * Parses a STAC Item for a QGIS project, determines the assets and
- * datasets used in QGIS project, and downloads them to a tmp location.
- *
- * @param source - a URL pointing to a STAC Item file for a QGIS project
- * @param target - where to download too
- *
- * @returns an object containing two key-value pairs:
- * - `projectPath` - a URL pointing to the QGIS project file
- * - `sources` - an array of URLs pointing to the datasets used in the QGIS project
- */
-export async function downloadProject(projectUrl: URL, targetUrl: URL, q = pLimit(DefaultConcurrency)): Promise<URL> {
-  const startTime = performance.now();
-  logger.info({ source: projectUrl.href, downloaded: targetUrl.href }, 'Download:Start');
-  const stac = await fsa.readJson<StacItem>(projectUrl);
-  if (stac == null) throw new Error(`Invalid STAC Item at path: ${projectUrl.href}`);
-
-  const sources: Promise<URL[] | URL>[] = [q(() => downloadAssets(projectUrl, targetUrl))];
-  const downloadLinks = stac.links.filter((link) => DownloadRels.has(link.rel));
-  sources.push(...qMap(q, downloadLinks, (link) => downloadAssets(new URL(link.href, projectUrl), targetUrl)));
-
-  const results = (await Promise.all(sources)).flat();
-  const projectPath = results.find((url) => url.pathname.endsWith('.qgs'));
-  if (projectPath == null) throw new Error(`Unable to find project file in STAC Item: ${projectUrl.href}`);
-
-  logger.info(
-    {
-      destination: targetUrl.href,
-      files: results.length,
-      project: projectPath.href,
-      duration: performance.now() - startTime,
-    },
-    'Download:Done',
-  );
-  return projectPath;
 }
 
 const CatalogCache = new Map<string, Promise<StacCatalog>>();

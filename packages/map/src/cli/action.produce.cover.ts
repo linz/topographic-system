@@ -3,7 +3,7 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
-  downloadFile,
+  Downloader,
   getDataFromCatalog,
   isArgo,
   logger,
@@ -12,7 +12,6 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { downloadAssets } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { StacCollection, StacItem } from 'stac-ts';
@@ -181,10 +180,13 @@ export const ProduceCoverCommand = command({
 
     // Download project file from the project stac file
     logger.info({ project: args.project.href }, 'DownloadProject: Start');
+    const downloader = new Downloader(args.tempLocation, q);
     let projectPath;
     for (const [key, asset] of Object.entries(stac.assets)) {
-      const downloadedPath = await downloadFile(new URL(asset.href, args.project), args.tempLocation);
-      if (key === 'project') projectPath = downloadedPath;
+      const url = new URL(asset.href, args.project);
+      downloader.addAsset(url);
+      await downloader.getAsset(url);
+      if (key === 'project') projectPath = url;
     }
     if (projectPath == null) {
       throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
@@ -204,7 +206,10 @@ export const ProduceCoverCommand = command({
     // Download mapsheet layer to parse geometry and metadata for the export
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
-      if (source.href.includes(args.mapSheetLayer)) await downloadAssets(source, args.tempLocation);
+      if (source.href.includes(args.mapSheetLayer)) {
+        downloader.addAsset(source);
+        await downloader.getAsset(source);
+      }
     }
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
 

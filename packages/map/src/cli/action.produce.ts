@@ -2,7 +2,8 @@ import { mkdir } from 'node:fs/promises';
 
 import { fsa } from '@chunkd/fs';
 import {
-  downloadProject,
+  Downloader,
+  DownloadRels,
   logger,
   qFromArgs,
   qMapAll,
@@ -73,19 +74,33 @@ export const ProduceCommand = command({
       throw new Error('At least one path to a stac item or item configuration must be provided');
     }
 
-    // TODO:
-    // The downloader should be a lot smarter about handling concurrent downloads from
-    // multiple projects, having to do this before the produce step is wrong and
-    // should be fixed in the future.
-    for (const p of paths) await downloadProject(p, args.tempLocation);
-    await qMapAll(q, paths, (p) => produce(p, args));
+    const downloader = new Downloader(args.tempLocation, q);
+
+    // Find all the assets to download from a stac item.
+    for (const p of paths) {
+      const stac = await fsa.readJson<StacItem>(p);
+      if (stac == null) throw new Error(`Invalid STAC Item at path: ${p.href}`);
+
+      // Add links from download rels for downloading
+      stac.links
+        .filter((link) => DownloadRels.has(link.rel))
+        .forEach((link) => downloader.addAsset(new URL(link.href, p)));
+
+      // Add assets for downloading
+      Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, p)));
+    }
+
+    // Download all the assets, including the project file and source data for the project.
+    await downloader.getAllAssets();
+
+    await qMapAll(q, paths, (p) => produce(p, downloader, args));
     await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');
   },
 });
 
-async function produce(path: URL, args: { force: boolean; tempLocation: URL }) {
+async function produce(path: URL, downloader: Downloader, args: { force: boolean; tempLocation: URL }) {
   logger.info({ path: path.href }, 'Produce: Started');
   // Prepare tmp path for the outputs
   const tempOutput = new URL('output/', args.tempLocation);
@@ -103,7 +118,9 @@ async function produce(path: URL, args: { force: boolean; tempLocation: URL }) {
   }
 
   // Download project file, assets, and source data from the project stac file
-  const projectPath = await downloadProject(path, args.tempLocation);
+  const projectSource = stac.links.find((l) => l.rel === 'project');
+  if (projectSource == null) throw new Error(`STAC Item ${path.href} does not have a project link`);
+  const projectPath = await downloader.getAsset(new URL(projectSource.href, path));
 
   // Start to export file
   const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);

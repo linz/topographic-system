@@ -4,7 +4,6 @@ import path from 'node:path';
 import { fsa } from '@chunkd/fs';
 import {
   CliId,
-  downloadFile,
   logger,
   registerFileSystem,
   Url,
@@ -13,6 +12,7 @@ import {
   qFromArgs,
   concurrency,
   parquetToStac,
+  Downloader,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
@@ -86,8 +86,12 @@ export const IceContourCommand = command({
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
+    const downloader = new Downloader(args.tempLocation, q);
+    downloader.addAsset(new URL(contourParquetAsset.href, args.contour));
+    downloader.addAsset(new URL(landcoverParquetAsset.href, args.landcover));
+
+    const contourParquet = await downloader.getAsset(new URL(contourParquetAsset.href, args.contour));
+    const landcoverParquet = await downloader.getAsset(new URL(landcoverParquetAsset.href, args.landcover));
 
     const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 

@@ -3,13 +3,15 @@ import { mkdirSync } from 'fs';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
-  downloadProject,
+  Downloader,
+  DownloadRels,
   logger,
   qFromArgs,
   registerFileSystem,
   Url,
 } from '@linzjs/topographic-system-shared';
 import { command, option, optional } from 'cmd-ts';
+import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
@@ -76,7 +78,20 @@ export const VisualDiffCommand = command({
         logger.info({ project: args.project.href }, `Visual Diff: Start`);
 
         // Download project file, assets, and source data from the project stac file
-        const projectPath = await downloadProject(args.project, args.tempLocation);
+        const downloader = new Downloader(args.tempLocation, q);
+        const stac = await fsa.readJson<StacItem>(args.project);
+        if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
+
+        // Add links from download rels for downloading
+        stac.links
+          .filter((link) => DownloadRels.has(link.rel))
+          .forEach((link) => downloader.addAsset(new URL(link.href, args.project)));
+
+        // Add assets for downloading
+        Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, args.project)));
+
+        // Download all the assets, including the project file and source data for the project.
+        await downloader.getAllAssets();
 
         // Prepare test export options
         const exportOptions: ExportOptions = {
@@ -86,6 +101,13 @@ export const VisualDiffCommand = command({
           format: 'png',
           excludeLayers: test.excludeLayers,
         };
+
+        // Get the downloaded project file path
+        const projectPath = Array.from(downloader.assets.values()).find((asset) =>
+          asset.url.href.endsWith(`${test.name}.qgs`),
+        )?.linked;
+
+        if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>
