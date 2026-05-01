@@ -185,8 +185,8 @@ export const ProduceCoverCommand = command({
     for (const [key, asset] of Object.entries(stac.assets)) {
       const url = new URL(asset.href, args.project);
       downloader.addAsset(url);
-      await downloader.getAsset(url);
-      if (key === 'project') projectPath = url;
+      const linkedUrl = await downloader.getAsset(url);
+      if (key === 'project') projectPath = linkedUrl;
     }
     if (projectPath == null) {
       throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
@@ -207,10 +207,10 @@ export const ProduceCoverCommand = command({
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
       if (source.href.includes(args.mapSheetLayer)) {
-        downloader.addAsset(source);
-        await downloader.getAsset(source);
+        downloader.addStac(source, await fsa.readJson<StacCollection>(source));
       }
     }
+    await downloader.getAllAssets();
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
 
     // Run python list all the mapsheet covering metadata

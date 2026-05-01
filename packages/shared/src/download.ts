@@ -8,7 +8,7 @@ import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
-import type { StacCatalog } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 
 import { sha256base58 } from './fs.util.ts';
@@ -43,13 +43,27 @@ export class Downloader {
   }
 
   /** Add an asset URL to the download list */
-  addAsset(url: URL): void {
+  addAsset(url: URL): URL {
     if (!this.assets.has(url.href)) {
       logger.debug({ url: url.href }, 'Downloader: Add asset');
       this.assets.set(url.href, { url });
     } else {
       logger.debug({ url: url.href }, 'Downloader: Asset already added');
     }
+    return url;
+  }
+
+  /** Add an Stac file that contains asset URLs to the download list */
+  addStac(url: URL, stac: StacItem | StacCollection): URL[] {
+    const urls: URL[] = [];
+    logger.debug({ url, stac: stac.id }, 'Downloader: Add Stac file');
+    const assets = stac.assets ?? {};
+    Object.values(assets).forEach((asset) => {
+      const assetUrl = new URL(asset.href, url);
+      this.addAsset(assetUrl);
+      urls.push(assetUrl);
+    });
+    return urls;
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */

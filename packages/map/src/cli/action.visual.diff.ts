@@ -85,7 +85,10 @@ export const VisualDiffCommand = command({
         // Add links from download rels for downloading
         stac.links
           .filter((link) => DownloadRels.has(link.rel))
-          .forEach((link) => downloader.addAsset(new URL(link.href, args.project)));
+          .forEach(async (link) => {
+            const url = new URL(link.href, args.project);
+            downloader.addStac(url, await fsa.readJson(url));
+          });
 
         // Add assets for downloading
         Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, args.project)));

@@ -84,7 +84,7 @@ export const ProduceCommand = command({
       // Add links from download rels for downloading
       stac.links
         .filter((link) => DownloadRels.has(link.rel))
-        .forEach((link) => downloader.addAsset(new URL(link.href, p)));
+        .forEach(async (link) => downloader.addStac(new URL(link.href, p), await fsa.readJson(new URL(link.href, p))));
 
       // Add assets for downloading
       Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, p)));
