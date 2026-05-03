@@ -8,7 +8,7 @@ import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
-import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 
 import { sha256base58 } from './fs.util.ts';
@@ -54,16 +54,15 @@ export class Downloader {
   }
 
   /** Add an Stac file that contains asset URLs to the download list */
-  addStac(url: URL, stac: StacItem | StacCollection): URL[] {
-    const urls: URL[] = [];
-    logger.debug({ url, stac: stac.id }, 'Downloader: Add Stac file');
-    const assets = stac.assets ?? {};
-    Object.values(assets).forEach((asset) => {
-      const assetUrl = new URL(asset.href, url);
-      this.addAsset(assetUrl);
-      urls.push(assetUrl);
-    });
-    return urls;
+  async addStac(stacUrl: URL, filter: (asset: StacAsset) => boolean = () => true): Promise<URL[]> {
+    const sourcedCollection = await fsa.readJson<StacCollection | StacItem>(stacUrl);
+    return Promise.all(
+      Object.values(sourcedCollection.assets ?? {})
+        .filter(filter)
+        .map((m) => {
+          return this.addAsset(new URL(m.href, stacUrl));
+        }),
+    );
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */

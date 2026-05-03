@@ -206,9 +206,7 @@ export const ProduceCoverCommand = command({
     // Download mapsheet layer to parse geometry and metadata for the export
     logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
     for (const source of sources) {
-      if (source.href.includes(args.mapSheetLayer)) {
-        downloader.addStac(source, await fsa.readJson<StacCollection>(source));
-      }
+      if (source.href.includes(args.mapSheetLayer)) await downloader.addStac(source);
     }
     await downloader.getAllAssets();
     logger.info({ project: args.project.href }, 'DownloadMapSheet: End');

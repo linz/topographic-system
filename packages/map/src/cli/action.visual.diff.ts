@@ -83,12 +83,11 @@ export const VisualDiffCommand = command({
         if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
         // Add links from download rels for downloading
-        stac.links
-          .filter((link) => DownloadRels.has(link.rel))
-          .forEach(async (link) => {
-            const url = new URL(link.href, args.project);
-            downloader.addStac(url, await fsa.readJson(url));
-          });
+        await Promise.all(
+          stac.links
+            .filter((link) => DownloadRels.has(link.rel))
+            .map((link) => downloader.addStac(new URL(link.href, args.project))),
+        );
 
         // Add assets for downloading
         Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, args.project)));

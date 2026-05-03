@@ -82,9 +82,11 @@ export const ProduceCommand = command({
       if (stac == null) throw new Error(`Invalid STAC Item at path: ${p.href}`);
 
       // Add links from download rels for downloading
-      stac.links
-        .filter((link) => DownloadRels.has(link.rel))
-        .forEach(async (link) => downloader.addStac(new URL(link.href, p), await fsa.readJson(new URL(link.href, p))));
+      await Promise.all(
+        stac.links
+          .filter((link) => DownloadRels.has(link.rel))
+          .map((link) => downloader.addStac(new URL(link.href, p))),
+      );
 
       // Add assets for downloading
       Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, p)));
@@ -93,14 +95,17 @@ export const ProduceCommand = command({
     // Download all the assets, including the project file and source data for the project.
     await downloader.getAllAssets();
 
-    await qMapAll(q, paths, (p) => produce(p, downloader, args));
+    const projectPath = downloader.assets.values().find((asset) => asset.url.href.endsWith('.qgs'))?.linked;
+    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
+
+    await qMapAll(q, paths, (p) => produce(p, projectPath, args));
     await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');
   },
 });
 
-async function produce(path: URL, downloader: Downloader, args: { force: boolean; tempLocation: URL }) {
+async function produce(path: URL, projectPath: URL, args: { force: boolean; tempLocation: URL }) {
   logger.info({ path: path.href }, 'Produce: Started');
   // Prepare tmp path for the outputs
   const tempOutput = new URL('output/', args.tempLocation);
@@ -116,11 +121,6 @@ async function produce(path: URL, downloader: Downloader, args: { force: boolean
     logger.info({ destPath: destPath.href }, 'Produce:Exists, skipping');
     return;
   }
-
-  // Download project file, assets, and source data from the project stac file
-  const projectSource = stac.links.find((l) => l.rel === 'project');
-  if (projectSource == null) throw new Error(`STAC Item ${path.href} does not have a project link`);
-  const projectPath = await downloader.getAsset(new URL(projectSource.href, path));
 
   // Start to export file
   const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
