@@ -54,7 +54,6 @@ update_dict = {
     (schema_name, "road_line"): [("highway_number", "highway_numb")],
     (schema_name, "water"): [
         ("water_use", "pond_use"),
-        ("height", "elevation"),
     ],
 }
 ```

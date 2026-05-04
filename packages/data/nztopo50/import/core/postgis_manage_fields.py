@@ -1054,7 +1054,6 @@ class TableModificationWorkflow:
             (self.schema_name, "road_line"): [("highway_number", "highway_numb")],
             (self.schema_name, "water"): [
                 ("water_use", "pond_use"),
-                ("height", "elevation"),
             ],
         }
 
