@@ -81,7 +81,7 @@ export const ProduceCommand = command({
       if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
       return { stac, path };
     });
-    stacs.forEach((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
+    await Promise.all(stacs.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path)));
     stacs.forEach((s) => downloader.addStacAssets(s.stac, s.path));
 
     // Download all the assets, including the project file and source data for the project.

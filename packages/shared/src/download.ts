@@ -54,12 +54,14 @@ export class Downloader {
   }
 
   /** Add matching links from a STAC item/collection to the download list */
-  addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): void {
-    stac.links
-      .filter((link) => rels.has(link.rel))
-      .forEach((link) => {
-        this.addAsset(isRelative(link.href) ? new URL(link.href, baseUrl) : new URL(link.href));
-      });
+  async addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): Promise<void> {
+    const links = stac.links.filter((link) => rels.has(link.rel));
+    await qMapAll(this.q, links, async (link) => {
+      const stacUrl = isRelative(link.href) ? new URL(link.href, baseUrl) : new URL(link.href);
+      const linkedStac = await fsa.readJson<StacItem | StacCollection>(stacUrl);
+      if (linkedStac == null) throw new Error(`Invalid STAC Item at path: ${stacUrl.href}`);
+      this.addStacAssets(linkedStac, stacUrl);
+    });
   }
 
   /** Add all assets from a STAC item/collection to the download list */

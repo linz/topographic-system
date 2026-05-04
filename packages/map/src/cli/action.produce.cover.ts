@@ -183,7 +183,7 @@ export const ProduceCoverCommand = command({
     // Download project file from the project stac file
     logger.info({ project: args.project.href }, 'Download: Start');
     const downloader = new Downloader(args.tempLocation, q);
-    downloader.addStacLinks(stac, DownloadRels, args.project);
+    await downloader.addStacLinks(stac, DownloadRels, args.project);
     downloader.addStacAssets(stac, args.project);
     await downloader.getAllAssets();
     logger.info({ project: args.project.href }, 'Download: End');
