@@ -1257,8 +1257,8 @@ if __name__ == "__main__":
     full_layers_sheet = "Full layers"
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
-    output_directory = r"C:\temp\carto"
-    # output_directory = r"C:\Data\topoedit\topographic-product-data"
+    # output_directory = r"C:\temp\carto"
+    output_directory = r"C:\Data\topoedit\topographic-product-data"
     logs_csv_folder = r"C:\temp\carto"
 
     carto_text_folder = r"C:\Data\toposource\topographic-product-data"

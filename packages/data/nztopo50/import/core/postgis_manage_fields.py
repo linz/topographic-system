@@ -1089,7 +1089,7 @@ class TableModificationWorkflow:
         )
 
         self.table_modifer.update_column_with_default(
-            self.schema_name, "trig_point", "trig_type", "'beacon'"
+            self.schema_name, "trig_point", "trig_type", "'beaconed'"
         )
 
         self.table_modifer.update_column_with_default(
