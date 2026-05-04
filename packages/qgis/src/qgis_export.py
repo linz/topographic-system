@@ -2,8 +2,6 @@ from qgis.core import (
     QgsApplication,
     QgsProject,
     QgsLayoutExporter,
-    QgsCoordinateTransform,
-    QgsLayoutItemMap,
 )
 import sys
 import os
@@ -30,60 +28,44 @@ if not success:
     raise ValueError(f"Failed to read project file: {project_path}")
 
 layout = project.layoutManager().layoutByName(project_layout)
-exporter = QgsLayoutExporter(layout)
 
 if layout is None:
     raise RuntimeError(f"No layout found with name '{project_layout}'.")
 
-map_item = None
-for item in layout.items():
-    if isinstance(item, QgsLayoutItemMap):
-        map_item = item
-        break
-
-if map_item is None:
-    raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
+exporter = QgsLayoutExporter(layout)
 
 for layer in list(project.mapLayers().values()):
     if layer.name() in excluded_layer_names:
         project.removeMapLayer(layer.id())
 
-map_crs = map_item.crs()
+atlas = layout.atlas()
+atlas.setFilterFeatures(True)
+atlas.setFilterExpression(f"\"sheet_code\" = '{sheet_code}'")
+atlas.beginRender()
+atlas.first()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
+export_result = None
+if export_format == "pdf":
+    output_file = os.path.join(file_output_path, f"{sheet_code}.pdf")
+    pdf_settings = QgsLayoutExporter.PdfExportSettings()
+    pdf_settings.dpi = dpi
+    pdf_settings.rasterizeWholeImage = False
+    export_result = exporter.exportToPdf(output_file, pdf_settings)
+elif export_format in ["tiff", "geotiff", "png"]:
+    ext = "tiff" if export_format in ["tiff", "geotiff"] else "png"
+    output_file = os.path.join(file_output_path, f"{sheet_code}.{ext}")
+    img_settings = QgsLayoutExporter.ImageExportSettings()
+    img_settings.dpi = dpi
+    if export_format == "geotiff":
+        img_settings.exportMetadata = True  # Only for geotif
+    export_result = exporter.exportToImage(output_file, img_settings)
+else:
+    raise ValueError(f"Unsupported format: {export_format}")
 
-for feature in topo_sheet_layer.getFeatures():
-    feature_code = str(feature["sheet_code"])
-    # skip if this sheet_code is not in the list passed from CLI
-    if feature_code != sheet_code:
-        continue
-    geom = feature.geometry()
-    geom.transform(
-        QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance())
-    )
-    bbox = geom.boundingBox()
-    map_item.setExtent(bbox)
-    export_result = None
-    if export_format == "pdf":
-        output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
-        pdf_settings = QgsLayoutExporter.PdfExportSettings()
-        pdf_settings.dpi = dpi
-        pdf_settings.rasterizeWholeImage = False
-        export_result = exporter.exportToPdf(output_file, pdf_settings)
-    elif export_format in ["tiff", "geotiff", "png"]:
-        ext = "tiff" if export_format in ["tiff", "geotiff"] else "png"
-        output_file = os.path.join(file_output_path, f"{feature_code}.{ext}")
-        img_settings = QgsLayoutExporter.ImageExportSettings()
-        img_settings.dpi = dpi
-        if export_format == "geotiff":
-            img_settings.exportMetadata = True  # Only for geotif
-        export_result = exporter.exportToImage(output_file, img_settings)
-    else:
-        raise ValueError(f"Unsupported format: {export_format}")
+if export_result == QgsLayoutExporter.Success:
+    print(output_file)
+else:
+    print(f"Error exporting map: {exporter.errorMessage()}")
 
-    if export_result == QgsLayoutExporter.Success:
-        print(output_file)
-    else:
-        print(f"Error exporting map: {exporter.errorMessage()}")
-
+atlas.endRender()
 qgs.exitQgis()
