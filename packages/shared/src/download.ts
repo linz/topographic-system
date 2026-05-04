@@ -8,13 +8,22 @@ import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
-import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 import tar from 'tar';
 
 import { sha256base58 } from './fs.util.ts';
 
 /** STAC Link "rel" that should be downloaded */
 export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
+
+function isRelative(href: string): boolean {
+  try {
+    new URL(href);
+    return false;
+  } catch {
+    return true;
+  }
+}
 
 export interface SourceFile {
   /** Source location */
@@ -53,16 +62,18 @@ export class Downloader {
     return url;
   }
 
-  /** Add an Stac file that contains asset URLs to the download list */
-  async addStac(stacUrl: URL, filter: (asset: StacAsset) => boolean = () => true): Promise<URL[]> {
-    const sourcedCollection = await fsa.readJson<StacCollection | StacItem>(stacUrl);
-    return Promise.all(
-      Object.values(sourcedCollection.assets ?? {})
-        .filter(filter)
-        .map((m) => {
-          return this.addAsset(new URL(m.href, stacUrl));
-        }),
-    );
+  /** Add matching links from a STAC item/collection to the download list */
+  addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): void {
+    stac.links
+      .filter((link) => rels.has(link.rel))
+      .forEach((link) => {
+        this.addAsset(isRelative(link.href) ? new URL(link.href, baseUrl) : new URL(link.href));
+      });
+  }
+
+  /** Add all assets from a STAC item/collection to the download list */
+  addStacAssets(stac: StacItem | StacCollection, baseUrl: URL): void {
+    Object.values(stac.assets ?? {}).forEach((asset) => this.addAsset(new URL(asset.href, baseUrl)));
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */

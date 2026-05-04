@@ -76,21 +76,13 @@ export const ProduceCommand = command({
 
     const downloader = new Downloader(args.tempLocation, q);
 
-    // Find all the assets to download from a stac item.
-    for (const p of paths) {
-      const stac = await fsa.readJson<StacItem>(p);
-      if (stac == null) throw new Error(`Invalid STAC Item at path: ${p.href}`);
-
-      // Add links from download rels for downloading
-      await Promise.all(
-        stac.links
-          .filter((link) => DownloadRels.has(link.rel))
-          .map((link) => downloader.addStac(new URL(link.href, p))),
-      );
-
-      // Add assets for downloading
-      Object.values(stac.assets ?? {}).forEach((asset) => downloader.addAsset(new URL(asset.href, p)));
-    }
+    const stacs = await qMapAll(q, paths, async (path) => {
+      const stac = await fsa.readJson<StacItem>(path);
+      if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
+      return { stac, path };
+    });
+    stacs.forEach((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
+    stacs.forEach((s) => downloader.addStacAssets(s.stac, s.path));
 
     // Download all the assets, including the project file and source data for the project.
     await downloader.getAllAssets();
