@@ -56,9 +56,11 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
+    const downloader = new Downloader(args.tempLocation, q);
 
     // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);
+
     const contourParquetAsset = contourCollection.assets?.['parquet'];
     if (contourParquetAsset == null) {
       throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
@@ -86,10 +88,8 @@ export const IceContourCommand = command({
       }
     }
 
-    const downloader = new Downloader(args.tempLocation, q);
-    downloader.addAsset(new URL(contourParquetAsset.href, args.contour));
-    downloader.addAsset(new URL(landcoverParquetAsset.href, args.landcover));
-
+    downloader.addStacAssets(contourCollection, args.contour);
+    downloader.addStacAssets(landcoverCollection, args.landcover);
     const contourParquet = await downloader.getAsset(new URL(contourParquetAsset.href, args.contour));
     const landcoverParquet = await downloader.getAsset(new URL(landcoverParquetAsset.href, args.landcover));
 

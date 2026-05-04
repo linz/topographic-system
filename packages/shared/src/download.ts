@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { qMapAll } from '@linzjs/topographic-system-shared';
+import { isRelative, qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
@@ -15,15 +15,6 @@ import { sha256base58 } from './fs.util.ts';
 
 /** STAC Link "rel" that should be downloaded */
 export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
-
-function isRelative(href: string): boolean {
-  try {
-    new URL(href);
-    return false;
-  } catch {
-    return true;
-  }
-}
 
 export interface SourceFile {
   /** Source location */

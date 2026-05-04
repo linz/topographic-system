@@ -4,8 +4,10 @@ import { fsa } from '@chunkd/fs';
 import {
   concurrency,
   Downloader,
+  DownloadRels,
   getDataFromCatalog,
   isArgo,
+  isRelative,
   logger,
   qFromArgs,
   registerFileSystem,
@@ -179,40 +181,17 @@ export const ProduceCoverCommand = command({
     if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
     // Download project file from the project stac file
-    logger.info({ project: args.project.href }, 'DownloadProject: Start');
+    logger.info({ project: args.project.href }, 'Download: Start');
     const downloader = new Downloader(args.tempLocation, q);
-    let projectPath;
-    for (const [key, asset] of Object.entries(stac.assets)) {
-      const url = new URL(asset.href, args.project);
-      downloader.addAsset(url);
-      const linkedUrl = await downloader.getAsset(url);
-      if (key === 'project') projectPath = linkedUrl;
-    }
-    if (projectPath == null) {
-      throw new Error(`Project asset not found in STAC Item: ${args.project.href}`);
-    }
-    logger.info({ project: args.project.href }, 'DownloadProject: End');
-
-    logger.info({ project: args.project.href }, 'ProduceCover: PrepareSources');
-    const sources: URL[] = stac.links
-      .filter((link) => link.rel === 'dataset')
-      .map((link) => new URL(link.href, args.project));
+    downloader.addStacLinks(stac, DownloadRels, args.project);
+    downloader.addStacAssets(stac, args.project);
+    await downloader.getAllAssets();
+    logger.info({ project: args.project.href }, 'Download: End');
 
     // Override data with dataTag if provided
     if (args.source && args.dataTags) {
       throw new Error('--data-tags not supported');
     }
-
-    // Download mapsheet layer to parse geometry and metadata for the export
-    logger.info({ project: args.project.href, mapSheetLayer: args.mapSheetLayer }, 'DownloadMapSheet: Start');
-    for (const source of sources) {
-      if (source.href.includes(args.mapSheetLayer)) {
-        const stac = await fsa.readJson<StacItem>(source);
-        downloader.addStacAssets(stac, source);
-      }
-    }
-    await downloader.getAllAssets();
-    logger.info({ project: args.project.href }, 'DownloadMapSheet: End');
 
     // Run python list all the mapsheet covering metadata
     const exportOptions: ExportOptions = {
@@ -221,6 +200,11 @@ export const ProduceCoverCommand = command({
       dpi: args.dpi,
       format: args.format,
     };
+
+    // Find downloaded project file
+    const projectPath = downloader.assets.values().find((asset) => asset.url.href.endsWith('.qgs'))?.linked;
+    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
+
     logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
     const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
@@ -251,6 +235,10 @@ export const ProduceCoverCommand = command({
       });
 
       // Add source data links
+      const sources: URL[] = stac.links
+        .filter((link) => link.rel === 'dataset')
+        .map((link) => (isRelative(link.href) ? new URL(link.href, args.project) : new URL(link.href)));
+
       for (const file of sources) {
         item.links.push({
           rel: 'source',
