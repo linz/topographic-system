@@ -50,7 +50,9 @@ def run_model_creation(
         commands_options = ["drop_tables", "create_tables"]
 
     if model_fields_file is None:
-        model_fields_file = os.path.join(os.path.dirname(__file__), "datasets_fields.csv")
+        model_fields_file = os.path.join(
+            os.path.dirname(__file__), "datasets_fields.csv"
+        )
 
     active_db_params = db_params if db_params_override is None else db_params_override
 

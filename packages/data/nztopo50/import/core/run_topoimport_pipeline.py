@@ -48,7 +48,9 @@ def parse_args():
     )
 
     # Optional path overrides
-    parser.add_argument("--data-folder", default=None, help="Shapefile source directory")
+    parser.add_argument(
+        "--data-folder", default=None, help="Shapefile source directory"
+    )
     parser.add_argument("--count-log", default=None, help="Count log output file")
     parser.add_argument(
         "--layer-info-file",
@@ -115,7 +117,9 @@ def run_pipeline(args):
     count_log = args.count_log or defaults["count_log"]
 
     core_dir = os.path.dirname(__file__)
-    model_fields_file = args.model_fields_file or os.path.join(core_dir, "datasets_fields.csv")
+    model_fields_file = args.model_fields_file or os.path.join(
+        core_dir, "datasets_fields.csv"
+    )
     layer_info_file = args.layer_info_file or os.path.join(core_dir, "layers_info.csv")
 
     db_params = {
@@ -132,11 +136,15 @@ def run_pipeline(args):
         if command.strip()
     ]
 
-    stages = [args.stage] if args.stage != "all" else [
-        "create_model",
-        "load_shp",
-        "manage_fields",
-    ]
+    stages = (
+        [args.stage]
+        if args.stage != "all"
+        else [
+            "create_model",
+            "load_shp",
+            "manage_fields",
+        ]
+    )
 
     for stage in stages:
         print(f"\n=== Running stage: {stage} ===")

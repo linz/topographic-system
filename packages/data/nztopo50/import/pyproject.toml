@@ -11,12 +11,24 @@ dependencies = [
     "geopandas>=1.1.3",
     "numpy>=2.4.4",
     "pandas>=3.0.2",
-    "openpyxml",
+    "openpyxl",
     "psycopg>=3.3.3",
     "pyogrio>=0.12.1",
     "shapely>=2.1.2",
     "sqlalchemy>=2.0.49",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "ruff",
+    "pandas-stubs",
+    "types-pytz",
+    "types-setuptools",
+    "types-geopandas",  # Includes types-shapely as dependency
+]
+
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true

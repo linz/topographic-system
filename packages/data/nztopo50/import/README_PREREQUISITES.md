@@ -10,7 +10,7 @@ It requires local sources of data. The default location is under c:\data\topo50.
 
 See the README_SOURCES.md file for further information.
 
-The code is based on Python using the dependencies listed in `pyproject.toml`. 
+The code is based on Python using the dependencies listed in `pyproject.toml`.
 
 ### Required Software:
 
@@ -21,6 +21,3 @@ The code is based on Python using the dependencies listed in `pyproject.toml`.
 ### Python Dependencies:
 
 See `pyproject.toml` for complete list of required packages.
-
-
-

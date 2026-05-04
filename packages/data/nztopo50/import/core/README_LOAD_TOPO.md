@@ -46,7 +46,7 @@ If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mai
 
 _Pre-Step: Ensure schema has been created (manual step) in PostGIS database after version target for example release64_
 
-### Note: the run_topoimport_pipline.py file can be used as a controller to run these files in sync or run each file itself updating _main_ to local settings.
+### Note: the run*topoimport_pipline.py file can be used as a controller to run these files in sync or run each file itself updating \_main* to local settings.
 
 _Step 1: Create schemas in PostGIS_
 

@@ -998,9 +998,11 @@ class CartoTextProcessor:
                 gdf.loc[linestring_mask, "geometry"] = gdf.loc[
                     linestring_mask, "geometry"
                 ].apply(
-                    lambda geom: MultiLineString([geom])
-                    if geom.geom_type == "LineString"
-                    else geom
+                    lambda geom: (
+                        MultiLineString([geom])
+                        if geom.geom_type == "LineString"
+                        else geom
+                    )
                 )
 
                 # Log updated geometry types
