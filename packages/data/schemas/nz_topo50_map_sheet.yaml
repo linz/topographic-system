@@ -1,0 +1,46 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: nz_topo50_map_sheet.yaml
+type: object
+properties:
+  topo_id:
+    type: string
+    format: uuid
+    description: UUID without braces. Unique identifier for the feature.
+  fid: {}
+  t50_fid: {}
+  feature_type:
+    anyOf:
+      - type: string
+        const: nz_topo50_map_sheet
+      - type: 'null'
+  sheet_code:
+    anyOf:
+      - type: string
+      - type: 'null'
+  sheet_name:
+    anyOf:
+      - type: string
+      - type: 'null'
+  edition:
+    anyOf:
+      - type: string
+      - type: 'null'
+  example_class:
+    anyOf:
+      - $ref: common.yaml#/$defs/ExampleClassEnum
+      - type: 'null'
+  example_name:
+    anyOf:
+      - type: string
+      - type: 'null'
+  geometry:
+    description: WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.
+    not:
+      type: 'null'
+  bbox:
+    $ref: common.yaml#/$defs/BBox
+required:
+  - topo_id
+  - fid
+  - geometry
+additionalProperties: false

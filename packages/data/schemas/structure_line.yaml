@@ -1,0 +1,113 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: structure_line.yaml
+type: object
+properties:
+  topo_id:
+    type: string
+    format: uuid
+    description: UUID without braces. Unique identifier for the feature.
+  fid: {}
+  capture_method:
+    $ref: common.yaml#/$defs/CaptureMethod
+    default: manual
+    description: How the feature was captured.
+  change_type:
+    $ref: common.yaml#/$defs/ChangeType
+    default: new
+    description: What kind of change this row represents.
+  update_date:
+    type: string
+    format: date
+    description: 'Must be on or after create_date. Default at write time: today.'
+    formatMinimum:
+      $data: 1/create_date
+  create_date:
+    type: string
+    format: date
+    description: 'Default at write time: today.'
+  version:
+    type: integer
+    minimum: 1
+    maximum: 2147483647
+    default: 1
+    description: Lifecycle counter; increments on each update.
+  t50_fid: {}
+  feature_type:
+    anyOf:
+      - type: string
+        const: boatramp
+      - type: string
+        const: boom
+      - type: string
+        const: breakwater
+      - type: string
+        const: cableway_industrial
+      - type: string
+        const: cableway_people
+      - type: string
+        const: dam
+      - type: string
+        const: flume
+      - type: string
+        const: ladder
+      - type: string
+        const: marine_farm
+      - type: string
+        const: ski_lift
+      - type: string
+        const: ski_tow
+      - type: string
+        const: slipway
+      - type: string
+        const: spillway_edge
+      - type: string
+        const: weir
+      - type: string
+        const: wharf
+      - type: string
+        const: wharf_edge
+      - type: 'null'
+  structure_use:
+    anyOf:
+      - $ref: common.yaml#/$defs/StructureUseEnum
+      - type: 'null'
+  species:
+    anyOf:
+      - $ref: common.yaml#/$defs/SpeciesEnum
+      - type: 'null'
+  status:
+    anyOf:
+      - $ref: common.yaml#/$defs/StatusEnum
+      - type: 'null'
+  name:
+    anyOf:
+      - type: string
+      - type: 'null'
+  material:
+    anyOf:
+      - $ref: common.yaml#/$defs/MaterialEnum
+      - type: 'null'
+  material_conveyed:
+    anyOf:
+      - $ref: common.yaml#/$defs/MaterialConveyedEnum
+      - type: 'null'
+  restrictions:
+    anyOf:
+      - $ref: common.yaml#/$defs/RestrictionsEnum
+      - type: 'null'
+  geometry:
+    description: WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.
+    not:
+      type: 'null'
+  bbox:
+    $ref: common.yaml#/$defs/BBox
+required:
+  - topo_id
+  - fid
+  - capture_method
+  - change_type
+  - update_date
+  - create_date
+  - version
+  - geometry
+additionalProperties: false

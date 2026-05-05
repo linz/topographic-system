@@ -1,0 +1,24 @@
+import "@typespec/json-schema";
+import "../common.tsp";
+
+using TypeSpec.JsonSchema;
+
+@jsonSchema("water.yaml")
+@extension("additionalProperties", false)
+model Water {
+  ...Topo.TopoIdentity;
+  ...Topo.AuditFields;
+  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  feature_type?: "canal" | "lagoon" | "lake" | "pond" | "river" | "swamp" | null;
+  water_use?: Topo.WaterUseEnum | null;
+  hierarchy?: string | null;
+  name?: string | null;
+  group_name?: string | null;
+  height?: float64 | null;
+  perennial?: Topo.PerennialEnum | null;
+  temperature?: Topo.TemperatureEnum | null;
+  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
+  @extension("not", #{ type: "null" })
+  geometry: unknown;
+  bbox?: Topo.BBox;
+}

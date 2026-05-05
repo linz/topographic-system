@@ -1,0 +1,28 @@
+import "@typespec/json-schema";
+import "../common.tsp";
+
+using TypeSpec.JsonSchema;
+
+@jsonSchema("structure_point.yaml")
+@extension("additionalProperties", false)
+model StructurePoint {
+  ...Topo.TopoIdentity;
+  ...Topo.AuditFields;
+  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  feature_type?: "beacon" | "bivouac" | "buoy" | "chimney" | "dredge" | "flare" | "floodgate" | "gate" | "ladder" | "mast" | "redoubt" | "shaft" | "siphon" | "stockyard" | "tank" | "tower" | "well" | "windmill" | "wreck" | null;
+  structure_use?: Topo.StructureUseEnum | null;
+  structure_type?: Topo.StructureTypeEnum | null;
+  status?: Topo.StatusEnum | null;
+  name?: string | null;
+  location?: Topo.LocationEnum | null;
+  height?: float64 | null;
+  orientation?: float64 | null;
+  material?: Topo.MaterialEnum | null;
+  restrictions?: Topo.RestrictionsEnum | null;
+  stored_item?: Topo.StoredItemEnum | null;
+  wreck_of?: Topo.WreckOfEnum | null;
+  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
+  @extension("not", #{ type: "null" })
+  geometry: unknown;
+  bbox?: Topo.BBox;
+}

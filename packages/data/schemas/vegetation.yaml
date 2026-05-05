@@ -1,0 +1,77 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: vegetation.yaml
+type: object
+properties:
+  topo_id:
+    type: string
+    format: uuid
+    description: UUID without braces. Unique identifier for the feature.
+  fid: {}
+  capture_method:
+    $ref: common.yaml#/$defs/CaptureMethod
+    default: manual
+    description: How the feature was captured.
+  change_type:
+    $ref: common.yaml#/$defs/ChangeType
+    default: new
+    description: What kind of change this row represents.
+  update_date:
+    type: string
+    format: date
+    description: 'Must be on or after create_date. Default at write time: today.'
+    formatMinimum:
+      $data: 1/create_date
+  create_date:
+    type: string
+    format: date
+    description: 'Default at write time: today.'
+  version:
+    type: integer
+    minimum: 1
+    maximum: 2147483647
+    default: 1
+    description: Lifecycle counter; increments on each update.
+  t50_fid: {}
+  feature_type:
+    anyOf:
+      - type: string
+        const: exotic
+      - type: string
+        const: native
+      - type: string
+        const: orchard
+      - type: string
+        const: scattered_scrub
+      - type: string
+        const: scrub
+      - type: string
+        const: vineyard
+      - type: 'null'
+  sub_type:
+    anyOf:
+      - $ref: common.yaml#/$defs/SubTypeEnum
+      - type: 'null'
+  species:
+    anyOf:
+      - $ref: common.yaml#/$defs/SpeciesEnum
+      - type: 'null'
+  name:
+    anyOf:
+      - type: string
+      - type: 'null'
+  geometry:
+    description: WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.
+    not:
+      type: 'null'
+  bbox:
+    $ref: common.yaml#/$defs/BBox
+required:
+  - topo_id
+  - fid
+  - capture_method
+  - change_type
+  - update_date
+  - create_date
+  - version
+  - geometry
+additionalProperties: false
