@@ -496,6 +496,6 @@ def run_load_shp_to_themes(
 
 if __name__ == "__main__":
     # release = "release62"
-    # release = "release64"
-    release = "release66"
+    release = "release64"
+    # release = "release66"
     run_load_shp_to_themes(release=release)

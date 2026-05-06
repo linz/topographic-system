@@ -1404,11 +1404,11 @@ if __name__ == "__main__":
     option = "all"
     # option = "process_carto_tables"
 
-    # schema_name = "release64"
-    # release_date = "2025-09-25"
+    schema_name = "release64"
+    release_date = "2025-09-25"
 
-    schema_name = "release66"
-    release_date = "2026-04-20"
+    # schema_name = "release66"
+    # release_date = "2026-04-20"
 
     # schema_name = "release62"
     # release_date = "2024-11-15"
