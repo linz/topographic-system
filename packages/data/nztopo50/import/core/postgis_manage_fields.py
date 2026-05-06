@@ -871,6 +871,34 @@ class ModifyTable:
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
                 )
 
+    def road_lkp_updates(self, schema):
+        """Update road_line fields from the lookups.road_lkp table.
+
+        Args:
+            schema: Target release schema containing road_line.
+        """
+        self.connect()
+        if not self.table_exists(schema, "road_line"):
+            print(f"Table '{schema}.road_line' does not exist")
+            return
+
+        if not self.table_exists("lookups", "road_lkp"):
+            print("Table 'lookups.road_lkp' does not exist")
+            return
+
+        with self.conn.cursor() as cur:
+            update_query = f"""
+                UPDATE {schema}.road_line r
+                SET
+                    width_indicator = l.width_indicator,
+                    name_id = l.name_id
+                FROM lookups.road_lkp l
+                WHERE r.t50_fid = l.t50_fid;
+            """
+            cur.execute(update_query)
+            self.conn.commit()
+            print(f"Updated '{schema}.road_line' from 'lookups.road_lkp'")
+
     def all_ordered_columns(self, primary_key_type="int"):
         """Return the canonical column order for Topo50 tables.
 
@@ -924,7 +952,7 @@ class ModifyTable:
             "status",
             "name",
             "group_name",
-            "nzgb_id",
+            "nzgb_feat_id",
             "code",
             "info_display",
             "location",
@@ -962,6 +990,7 @@ class ModifyTable:
             "way_count",
             "road_access",
             "width",
+            "width_indicator",
             "name_id",
             "wreck_of",
             "shape_area",
@@ -1148,6 +1177,12 @@ class TableModificationWorkflow:
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
         )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.road_line", "name_id", "BIGINT"
+        )
 
         # Note: NZGB ids called with name_id or feat_id so need an approach
 
@@ -1205,6 +1240,9 @@ class TableModificationWorkflow:
 
         # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
         # self.table_modifer.add_column(f"{self.schema_name}.island", "location", "INTEGER")
+
+    def step_road_lkp_updates(self):
+        self.table_modifer.road_lkp_updates(self.schema_name)
 
     def step_defaults(self):
         self.table_modifer.set_default_values(self.schema_name)
@@ -1318,6 +1356,7 @@ class TableModificationWorkflow:
             ("name", self.step_name),
             ("null_updates", self.step_null_updates),
             ("additions", self.step_additions),
+            ("road_lkp_updates", self.step_road_lkp_updates),
             ("defaults", self.step_defaults),
             ("rename", self.step_rename),
             ("carto_text_geom_update", self.step_carto_text_geom_update),
@@ -1365,12 +1404,16 @@ if __name__ == "__main__":
     option = "all"
     # option = "process_carto_tables"
 
-    schema_name = "release64"
-    #  schema_name = "model"
-    release_date = "2025-09-25"
+    # schema_name = "release64"
+    # release_date = "2025-09-25"
+
+    schema_name = "release66"
+    release_date = "2026-04-20"
 
     # schema_name = "release62"
     # release_date = "2024-11-15"
+
+    #  schema_name = "model"
 
     add_full_metadata_fields = True
     # primary_key_type = "none"

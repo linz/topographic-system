@@ -129,7 +129,7 @@ class Topo50DataLoader:
                 write_dataframe(gdf, output_file, layer=layer_name, driver="GPKG")
             elif extension == "postgis":
                 engine = create_engine(
-                    "postgresql://postgres:landinformation@localhost:5432/topo"
+                    "postgresql+psycopg://postgres:landinformation@localhost:5432/topo"
                 )
                 schema = dataset_name.lower().replace("_layers", "")
                 schema = schema_name
@@ -151,7 +151,14 @@ class Topo50DataLoader:
                     TARGET_ARCGIS_VERSION="ARCGIS_PRO_3_2_OR_LATER",
                 )
         except Exception as e:
-            print(f"Error writing layer '{layer_name}' to '{output_file}': {e}")
+            print(f"ERROR writing layer '{layer_name}' to '{output_file}': {e}")
+
+            for idx, row in gdf.iterrows():
+                t50_fid = row.get('t50_fid', 'N/A')
+                geom = row.geometry
+                geom_type = geom.geom_type if geom is not None else 'None'
+                if 'Multi' in geom_type:
+                    print(f"Possible unexpected geometry at t50_fid {t50_fid}: {geom_type}")    
 
     def group_layers(self):
         """Collect field definitions for each logical output layer.
@@ -249,6 +256,8 @@ class Topo50DataLoader:
         if layer_name.lower() == "water":
             if "lake_use" in gdf.columns:
                 gdf = gdf.rename(columns={"lake_use": "water_use"})
+            if "gazfeatid" in gdf.columns:
+                gdf = gdf.rename(columns={"gazfeatid": "nzgb_feat_id"})
 
         if "compositn" in gdf.columns:
             gdf = gdf.rename(columns={"compositn": "composition"})
@@ -346,10 +355,11 @@ class Topo50DataLoader:
             if layer_info is None:
                 continue
 
-            ############# TEMP for testing
-            # if layer_info[3].lower() != 'nz_topo50_map_sheet':
-            #     print(f"Skipping layer: {layer_info[3]}")
-            #     continue
+            ############# TEMP for debugging
+            # if layer_info[3].lower() != 'marine':
+            #    print(f"Skipping layer: {layer_info[3]}")
+            #    continue
+            
             layer_name = layer_info[3]
 
             # Currently contours are processed from LDS data - see contours/import_contours.py - so skipping processing of contours from shapefiles for now
@@ -486,5 +496,6 @@ def run_load_shp_to_themes(
 
 if __name__ == "__main__":
     # release = "release62"
-    release = "release64"
+    # release = "release64"
+    release = "release66"
     run_load_shp_to_themes(release=release)

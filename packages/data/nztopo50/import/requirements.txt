@@ -1,5 +1,7 @@
 geopandas
+geoalchemy2
 numpy
+openpyxl
 pandas
 pyogrio
 shapely

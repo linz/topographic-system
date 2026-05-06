@@ -24,23 +24,7 @@ See products/README_LOAD_PRODUCT.md for instructions on loading and processing p
 
 ## The following PRE-PROCESS STEPS are required
 
-**POSTGRES/POSTGIS** - check load schema has been manually created (named after release) for example release65
-
-**POSTGRES/POSTGIS** - check carto schema has been manually created called carto - some core data is copied into carto (currently map_sheets)
-
-**See: processing_steps.py - for code and manual SQL to use for roads with 0 as t50_fid.**
-
-Replace lds export with LAMPS direct export
-
-**road_cl.shp** - this is a direct export from LAMPS as it contains additional fields
-
-If road_cl.cpg exists - delete or rename - read has issue if it exists.
-
-Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script has a SQL command to update the IDS once in Postgres.
-
-If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning topo_id between releases.
-
-**islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box
+**Check the steps defined in the README_PRE_PROCESSING.md file...**
 
 ## MAIN Automated Steps
 
@@ -280,7 +264,7 @@ See README_PRODUCTS.md for instructions on loading and processing product datase
 
 CSV versions of these files are stored in the core code folder
 
-**_LAYERS_INFO excel_**
+**_LAYERS_INFO CSV_**
 object_name - LAMBS object name
 
 shp_name - name of shape file no extension (building_pnt)
@@ -297,7 +281,7 @@ layer_name - new table name
 
 type - orginal geom type from LAMPS
 
-**DATASETS_FIELDS_IMPLEMENT excel**
+**DATASETS_FIELDS_IMPLEMENT CSV**
 
 dataset - dataset (edit) level group [match with layers_info]
 

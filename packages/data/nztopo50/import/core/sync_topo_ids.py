@@ -113,12 +113,12 @@ class TopoIdUpdater:
             return cur.fetchone() is not None
 
     def update_topoid_from_previous_release(self, schema, table, previous_schema):
-        """Update `topo_id` values by matching `t50_fid` with a previous release.
+        """Update `topo_id`, `create_date`, and `update_date` by matching `t50_fid` with a previous release.
 
         Args:
             schema: Current release schema containing target rows.
             table: Table name to update.
-            previous_schema: Prior release schema used as source of `topo_id`.
+            previous_schema: Prior release schema used as source of `topo_id`, `create_date`, and `update_date`.
 
         Returns:
             bool: True when processing completed for the table (including cases
@@ -126,7 +126,7 @@ class TopoIdUpdater:
 
         Notes:
             The update only applies when both tables exist and both contain
-            `t50_fid` and `topo_id` columns.
+            `t50_fid`, `topo_id`, `create_date`, and `update_date` columns.
         """
         self.connect()
 
@@ -144,13 +144,20 @@ class TopoIdUpdater:
             if self.column_exists(schema, table, "t50_fid") and self.column_exists(
                 previous_schema, table, "t50_fid"
             ):
-                # Check if topo_id column exists in both tables
-                if self.column_exists(schema, table, "topo_id") and self.column_exists(
-                    previous_schema, table, "topo_id"
-                ):
+                # Check if topo_id, create_date, and update_date columns exist in both tables
+                required_columns = ["topo_id", "create_date", "update_date"]
+                columns_exist = all(
+                    self.column_exists(schema, table, col)
+                    and self.column_exists(previous_schema, table, col)
+                    for col in required_columns
+                )
+                
+                if columns_exist:
                     update_query = f"""
                         UPDATE {schema}.{table} AS new
-                        SET topo_id = old.topo_id
+                        SET topo_id = old.topo_id,
+                            create_date = old.create_date,
+                            update_date = NOW()
                         FROM {previous_schema}.{table} AS old
                         WHERE new.t50_fid = old.t50_fid
                         AND new.topo_id IS DISTINCT FROM old.topo_id;
@@ -189,7 +196,7 @@ class TopoIdUpdater:
                         return False
                 else:
                     print(
-                        f"'topo_id' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
+                        f"'topo_id', 'create_date', or 'update_date' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
                     )
                     return False
             else:
@@ -222,6 +229,10 @@ class TopoIdUpdater:
                         and self.column_exists(previous_schema, table, "t50_fid")
                         and self.column_exists(schema_name, table, "topo_id")
                         and self.column_exists(previous_schema, table, "topo_id")
+                        and self.column_exists(schema_name, table, "create_date")
+                        and self.column_exists(previous_schema, table, "create_date")
+                        and self.column_exists(schema_name, table, "update_date")
+                        and self.column_exists(previous_schema, table, "update_date")
                     ):
                         # Get matching records count
                         with self.conn.cursor() as cur:
@@ -315,8 +326,8 @@ def main():
     """
 
     # Configuration
-    current_schema = "release64"
-    previous_schema = "release62"
+    current_schema = "release66"
+    previous_schema = "release64"
 
     # these tables either come from same source or only loaded into one schema (or both).
     skip_tables = ["contours"]

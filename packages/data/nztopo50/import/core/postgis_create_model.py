@@ -183,8 +183,9 @@ def run_model_creation(
 
 if __name__ == "__main__":
     # schema_name = "release62"
-    schema_name = "release64"
+    # schema_name = "release64"
     # schema_name = "model"
+    schema_name = "release66"
 
     # commands_options = ["drop_tables"]
     # commands_options = ["create_tables"]
