@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { isRelative, qMapAll } from '@linzjs/topographic-system-shared';
+import { qMapAll } from '@linzjs/topographic-system-shared';
 import { logger } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
@@ -57,7 +57,7 @@ export class Downloader {
   async addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): Promise<void> {
     const links = stac.links.filter((link) => rels.has(link.rel));
     await qMapAll(this.q, links, async (link) => {
-      const stacUrl = isRelative(link.href) ? new URL(link.href, baseUrl) : new URL(link.href);
+      const stacUrl = new URL(link.href, baseUrl);
       const linkedStac = await fsa.readJson<StacItem | StacCollection>(stacUrl);
       if (linkedStac == null) throw new Error(`Invalid STAC Item at path: ${stacUrl.href}`);
       this.addStacAssets(linkedStac, stacUrl);

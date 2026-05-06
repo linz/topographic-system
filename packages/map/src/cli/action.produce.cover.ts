@@ -7,7 +7,6 @@ import {
   DownloadRels,
   getDataFromCatalog,
   isArgo,
-  isRelative,
   logger,
   qFromArgs,
   registerFileSystem,
@@ -237,7 +236,7 @@ export const ProduceCoverCommand = command({
       // Add source data links
       const sources: URL[] = stac.links
         .filter((link) => link.rel === 'dataset')
-        .map((link) => (isRelative(link.href) ? new URL(link.href, args.project) : new URL(link.href)));
+        .map((link) => new URL(link.href, args.project));
 
       for (const file of sources) {
         item.links.push({

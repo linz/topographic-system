@@ -67,15 +67,3 @@ export function stringToUrlFolder(str: string): URL {
   if (url.pathname.endsWith('/')) return url;
   return new URL(url.href + '/');
 }
-
-/**
- * Check if a URL href is relative.
- **/
-export function isRelative(href: string): boolean {
-  try {
-    new URL(href);
-    return false;
-  } catch {
-    return true;
-  }
-}
