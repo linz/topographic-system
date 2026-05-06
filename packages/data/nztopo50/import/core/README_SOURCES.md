@@ -10,13 +10,7 @@ This mainly comes from shapefiles that have gone through the LDS load preparatio
 
 All feature types are created from this data with the following exceptions:
 
-**road_cl.shp** - this is exported directly from LAMPS.
-
-Macrons need to be checked.
-
-This replaces the LDS shp version.
-
-The road_cl.cpg file should be deleted
+**road extra data - road_cl.shp** - this is exported directly from LAMPS for the purpose of road_acess and width information. This is loaded into loopup schema and update in the LDS road source.
 
 **TODO: river_cl.shp** - we want the name field which is dropped from LDS load.
 
@@ -30,6 +24,8 @@ Instructions: TBC
 **topographic-contour-data** - the contour data LDS shp file should be 2 files. If only one this usually only covers one island.
 
 The current process use the contours downloaded from LDS instance as a GPKG database - lds-nz-contours-topo-150k-GPKG
+
+**linz_map_sheet** - this is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder.
 
 ## Product (carto) Data
 

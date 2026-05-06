@@ -154,11 +154,13 @@ class Topo50DataLoader:
             print(f"ERROR writing layer '{layer_name}' to '{output_file}': {e}")
 
             for idx, row in gdf.iterrows():
-                t50_fid = row.get('t50_fid', 'N/A')
+                t50_fid = row.get("t50_fid", "N/A")
                 geom = row.geometry
-                geom_type = geom.geom_type if geom is not None else 'None'
-                if 'Multi' in geom_type:
-                    print(f"Possible unexpected geometry at t50_fid {t50_fid}: {geom_type}")    
+                geom_type = geom.geom_type if geom is not None else "None"
+                if "Multi" in geom_type:
+                    print(
+                        f"Possible unexpected geometry at t50_fid {t50_fid}: {geom_type}"
+                    )
 
     def group_layers(self):
         """Collect field definitions for each logical output layer.
@@ -359,7 +361,7 @@ class Topo50DataLoader:
             # if layer_info[3].lower() != 'marine':
             #    print(f"Skipping layer: {layer_info[3]}")
             #    continue
-            
+
             layer_name = layer_info[3]
 
             # Currently contours are processed from LDS data - see contours/import_contours.py - so skipping processing of contours from shapefiles for now

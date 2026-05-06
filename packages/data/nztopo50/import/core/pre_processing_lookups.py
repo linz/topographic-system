@@ -61,7 +61,7 @@ def load_roads_shp(
         raise FileNotFoundError(f"Shapefile not found: {input_path}")
 
     # Only load the required fields (no geometry).
-    keep_fields = ["UFID", "name", "road_acces", "width", "name_id","lol_sufi"]
+    keep_fields = ["UFID", "name", "road_acces", "width", "name_id", "lol_sufi"]
     df = pyogrio.read_dataframe(input_path, columns=keep_fields, read_geometry=False)
 
     # Rename source fields to target names and lower-case all column names.
@@ -100,8 +100,7 @@ def load_roads_shp(
         create_t50_fid_index(conn, schema, table)
 
     print(
-        f"Loaded {len(df)} rows from '{input_path.name}' into "
-        f"{schema}.{table.lower()}"
+        f"Loaded {len(df)} rows from '{input_path.name}' into {schema}.{table.lower()}"
     )
 
 

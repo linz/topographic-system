@@ -151,7 +151,7 @@ class TopoIdUpdater:
                     and self.column_exists(previous_schema, table, col)
                     for col in required_columns
                 )
-                
+
                 if columns_exist:
                     update_query = f"""
                         UPDATE {schema}.{table} AS new

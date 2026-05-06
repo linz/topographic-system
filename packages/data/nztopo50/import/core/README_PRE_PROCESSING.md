@@ -1,4 +1,3 @@
-
 # The following PRE-PROCESS STEPS are required
 
 ## DATABASE
@@ -22,10 +21,13 @@ This is a work in progress as we determine how to correctly set the fids.
 
 NOT currently implemented but the expectation is this is extended to water names.
 
-
 Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script has a SQL command to update the IDS once in Postgres.
 
 If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning topo_id between releases. This is a work around.
+
+## linz_map_sheet
+
+This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder.
 
 ## ISLANDS POLYGONS
 
