@@ -1295,6 +1295,9 @@ class TableModificationWorkflow:
 
     def step_process_carto_tables(self):
         tables_to_copy = ["nz_topo50_map_sheet"]
+        if self.schema_name == "model":
+            return
+        
         for table_name in tables_to_copy:
             # Check if table exists in source schema
             if self.table_modifer.table_exists(self.schema_name, table_name):
