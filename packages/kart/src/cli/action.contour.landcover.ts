@@ -12,6 +12,7 @@ import {
   stringToUrlFolder,
   qFromArgs,
   concurrency,
+  parquetToStac,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
@@ -44,7 +45,7 @@ export const ContourWithLandcoverArgs = {
   }),
 };
 
-const topo50ContourName = 'nz_topo50_contour';
+const iceContour = 'ice_contour';
 
 export const ContourWithLandcoverCommand = command({
   name: 'contour with landcover',
@@ -70,7 +71,7 @@ export const ContourWithLandcoverCommand = command({
       throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
     }
 
-    const latestCollectionUrl = new URL(`${topo50ContourName}/latest/collection.json`, args.output);
+    const latestCollectionUrl = new URL(`${iceContour}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
       if (
@@ -88,20 +89,24 @@ export const ContourWithLandcoverCommand = command({
     const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
     const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
 
-    const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, args.tempLocation);
+    const tempOutputParquet = new URL(`${iceContour}.parquet`, args.tempLocation);
 
     await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
 
-    const sw = new StacCollectionWriter('data', topo50ContourName);
+    const parquetStats = await parquetToStac(tempOutputParquet);
+
+    const sw = new StacCollectionWriter('data', iceContour);
 
     sw.asset('parquet', tempOutputParquet, {
-      href: `./${topo50ContourName}.parquet`,
+      href: `./${iceContour}.parquet`,
       type: 'application/vnd.apache.parquet',
       roles: ['data'],
+      ...parquetStats.table,
     });
 
     sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
     sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
+    sw.collection.extent = parquetStats.extent;
 
     const collections = await sw.write(rootCatalog, q);
 
