@@ -326,8 +326,8 @@ def main():
     """
 
     # Configuration
-    current_schema = "release66"
-    previous_schema = "release64"
+    current_schema = "release64"
+    previous_schema = "release62"
 
     # these tables either come from same source or only loaded into one schema (or both).
     skip_tables = ["contours"]
