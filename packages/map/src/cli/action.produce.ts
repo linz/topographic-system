@@ -81,13 +81,12 @@ export const ProduceCommand = command({
       if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
       return { stac, path };
     });
-    await Promise.all(stacs.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path)));
-    stacs.forEach((s) => downloader.addStacAssets(s.stac, s.path));
+    stacs.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
 
     // Download all the assets, including the project file and source data for the project.
     await downloader.getAllAssets();
 
-    const projectPath = downloader.assets.values().find((asset) => asset.url.href.endsWith('.qgs'))?.linked;
+    const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
     await qMapAll(q, paths, (p) => produce(p, projectPath, args));

@@ -13,40 +13,49 @@ import tar from 'tar';
 
 import { sha256base58 } from './fs.util.ts';
 
+export interface SourceAsset {
+  /** downloaded URL */
+  url: URL;
+  /** Linked URL */
+  linked: URL;
+  /** Number of bytes in the file */
+  size: number;
+  /** multihash of the file if it exists */
+  hash: string;
+}
+
+export interface SourceStac {
+  /** Source stac file location */
+  url: URL;
+
+  /** stac assets to download */
+  assets: SourceAsset[];
+
+  /** Optional project download link if available */
+  project?: URL;
+}
+
 /** STAC Link "rel" that should be downloaded */
 export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
 
-export interface SourceFile {
-  /** Source location */
-  url: URL;
-  /** Location to the downloaded file */
-  asset?: URL;
-  /** Linked Location to the downloaded file */
-  linked?: URL;
-  /** Number of bytes in the file */
-  size?: number;
-  /** multihash of the file if it exists */
-  hash?: string;
-}
-
 export class Downloader {
   q: LimitFunction;
-  /** Set of assets source location to download */
-  assets: Map<string, SourceFile>;
+  /** Cache of stac links that have been resolved to avoid duplicate downloads */
+  stacs: Map<string, SourceStac> = new Map();
   /** Local target location */
   target: URL;
 
   constructor(target: URL, q: LimitFunction) {
     this.q = q;
-    this.assets = new Map<string, SourceFile>();
+    this.stacs = new Map<string, SourceStac>();
     this.target = target;
   }
 
   /** Add an asset URL to the download list */
-  addAsset(url: URL): URL {
-    if (!this.assets.has(url.href)) {
+  addStac(url: URL): URL {
+    if (!this.stacs.has(url.href)) {
       logger.debug({ url: url.href }, 'Downloader: Add asset');
-      this.assets.set(url.href, { url });
+      this.stacs.set(url.href, { url, assets: [] });
     } else {
       logger.debug({ url: url.href }, 'Downloader: Asset already added');
     }
@@ -54,32 +63,34 @@ export class Downloader {
   }
 
   /** Add matching links from a STAC item/collection to the download list */
-  async addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): Promise<void> {
+  addStacLinks(stac: StacItem | StacCollection, rels: Set<string>, baseUrl: URL): URL[] {
     const links = stac.links.filter((link) => rels.has(link.rel));
-    await qMapAll(this.q, links, async (link) => {
-      const stacUrl = new URL(link.href, baseUrl);
-      const linkedStac = await fsa.readJson<StacItem | StacCollection>(stacUrl);
-      if (linkedStac == null) throw new Error(`Invalid STAC Item at path: ${stacUrl.href}`);
-      this.addStacAssets(linkedStac, stacUrl);
-    });
-  }
-
-  /** Add all assets from a STAC item/collection to the download list */
-  addStacAssets(stac: StacItem | StacCollection, baseUrl: URL): void {
-    Object.values(stac.assets ?? {}).forEach((asset) => this.addAsset(new URL(asset.href, baseUrl)));
+    return links.map((link) => this.addStac(new URL(link.href, baseUrl)));
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(url: URL): Promise<URL> {
-    const asset = this.assets.get(url.href);
-    if (asset == null) throw new Error(`Asset not added for url: ${url.href}`);
-    if (asset.linked != null) return asset.linked;
-    return await this.downloadAsset(asset);
+  async getAsset(url: URL): Promise<SourceAsset[]> {
+    const sourceStac = this.stacs.get(url.href);
+    if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
+    if (sourceStac.assets.length > 0) return sourceStac.assets;
+
+    const stac = (await fsa.readJson(url)) as StacItem | StacCollection;
+    const sourceAssets = [];
+    for (const [key, asset] of Object.entries(stac.assets ?? {})) {
+      const sourceAsset = await this.downloadAsset(new URL(asset.href, url));
+      sourceAssets.push(sourceAsset);
+      if (key === 'project') {
+        sourceStac.project = sourceAsset.linked;
+      }
+    }
+    sourceStac.assets = sourceAssets;
+    return sourceAssets;
   }
 
   /** Get all assets, downloading them if they haven't been already */
-  async getAllAssets(): Promise<URL[]> {
-    return await qMapAll(this.q, Array.from(this.assets.values()), (asset) => this.getAsset(asset.url));
+  async getAllAssets(): Promise<SourceAsset[]> {
+    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) => this.getAsset(new URL(url)));
+    return allAssets.flat();
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
@@ -107,38 +118,41 @@ export class Downloader {
   }
 
   /** Download given asset extract it if tar file */
-  async downloadAsset(asset: SourceFile): Promise<URL> {
+  async downloadAsset(url: URL): Promise<SourceAsset> {
     const startTime = performance.now();
-    logger.debug({ project: asset.url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
     try {
-      const hashedFilename = sha256base58(Buffer.from(asset.url.href)) + extname(asset.url.href);
+      const hashedFilename = sha256base58(Buffer.from(url.href)) + extname(url.href);
       const downloadFile = new URL(hashedFilename, this.target);
-      const linkedPath = new URL(basename(asset.url.pathname), this.target);
-      const stats = await fsa.head(asset.url);
-      if (stats == null) throw new Error(`Unable to access file at url: ${asset.url.href}`);
+      const linkedPath = new URL(basename(url.pathname), this.target);
+      const stats = await fsa.head(url);
+      if (stats == null) throw new Error(`Unable to access file at url: ${url.href}`);
 
       const fileHash = new HashTransform('sha256');
-      const stream = fsa.readStream(asset.url).pipe(fileHash);
+      const stream = fsa.readStream(url).pipe(fileHash);
       const meta: WriteOptions = {};
-      if (asset.url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
+      if (url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
       await fsa.write(downloadFile, stream, meta);
 
       const head = await fsa.head(downloadFile);
       // validate file was downloaded correctly
-      if (head == null || head.size !== stats?.size) {
+      if (head == null || head.size == null || head.size !== stats?.size) {
         throw new Error(`Failed to download file: ${downloadFile.href}`);
       }
 
       // Update asset with downloaded file info
       const digest = fileHash.multihash;
-      asset.size = head.size;
-      asset.hash = digest;
-      asset.asset = downloadFile;
-      asset.linked = linkedPath;
+      const sourceAsset: SourceAsset = {
+        url,
+        linked: linkedPath,
+        size: head.size,
+        hash: digest,
+      };
 
       logger.info(
         {
-          ...asset,
+          destination: downloadFile.href,
+          ...sourceAsset,
           duration: performance.now() - startTime,
         },
         'DownloadFile:Done',
@@ -153,15 +167,17 @@ export class Downloader {
         });
         logger.info(
           {
-            ...asset,
+            destination: downloadFile.href,
+            ...sourceAsset,
             duration: performance.now() - startExtractTime,
           },
           'DownloadFile:Extract:Done',
         );
       }
-      return await this.ensureLinkedPath(downloadFile, linkedPath);
+      await this.ensureLinkedPath(downloadFile, linkedPath);
+      return sourceAsset;
     } catch (error) {
-      logger.error({ project: asset.url.href }, 'DownloadFile: Error');
+      logger.error({ project: url.href }, 'DownloadFile: Error');
       throw error;
     }
   }

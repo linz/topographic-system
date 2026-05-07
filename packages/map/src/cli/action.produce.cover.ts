@@ -182,8 +182,8 @@ export const ProduceCoverCommand = command({
     // Download project file from the project stac file
     logger.info({ project: args.project.href }, 'Download: Start');
     const downloader = new Downloader(args.tempLocation, q);
-    await downloader.addStacLinks(stac, DownloadRels, args.project);
-    downloader.addStacAssets(stac, args.project);
+    downloader.addStac(args.project);
+    downloader.addStacLinks(stac, DownloadRels, args.project);
     await downloader.getAllAssets();
     logger.info({ project: args.project.href }, 'Download: End');
 
@@ -201,7 +201,7 @@ export const ProduceCoverCommand = command({
     };
 
     // Find downloaded project file
-    const projectPath = downloader.assets.values().find((asset) => asset.url.href.endsWith('.qgs'))?.linked;
+    const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
     logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');

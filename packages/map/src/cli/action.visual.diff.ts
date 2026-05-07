@@ -83,8 +83,8 @@ export const VisualDiffCommand = command({
         if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
         // Add links from download rels for downloading
-        await downloader.addStacLinks(stac, DownloadRels, args.project);
-        downloader.addStacAssets(stac, args.project);
+        downloader.addStac(args.project);
+        downloader.addStacLinks(stac, DownloadRels, args.project);
 
         // Download all the assets, including the project file and source data for the project.
         await downloader.getAllAssets();
@@ -99,9 +99,9 @@ export const VisualDiffCommand = command({
         };
 
         // Get the downloaded project file path
-        const projectPath = Array.from(downloader.assets.values()).find((asset) =>
-          asset.url.href.endsWith(`${test.name}.qgs`),
-        )?.linked;
+        const projectPath = Array.from(downloader.stacs.values()).find(
+          (stac) => stac.project?.href.includes(`${test.name}.qgs`), // Additional checks might have multiple project for the screenshot test.
+        )?.project;
 
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
