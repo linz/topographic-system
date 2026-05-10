@@ -34,7 +34,12 @@ topographic-system-validation = { workspace = true }
 topographic-system-data-prep = { workspace = true }
 
 [tool.uv.workspace]
-members = ["packages/qgis", "packages/validation", "packages/data-prep"]
+members = [
+    "packages/qgis",
+    "packages/validation",
+    "packages/data-prep",
+    "packages/data/data_change",
+]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]

@@ -1,0 +1,12 @@
+[project]
+name = "data-change"
+version = "0.1.0"
+description = "Example code of how to query for changes between 2 times sets of the same data"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.0.0",
+    "pandas>=2.0.0",
+    "pyarrow>=15.0.0",
+    "psycopg[binary]>=3.0.0",
+]

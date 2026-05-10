@@ -3,7 +3,7 @@
 
 import argparse
 
-from packages.data.data_change.generate_datachange import GeoParquetTableDiffComparer
+from generate_datachange import GeoParquetTableDiffComparer
 
 
 def parse_cli_args() -> argparse.Namespace:
