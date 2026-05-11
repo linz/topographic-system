@@ -5,7 +5,7 @@ import geopandas as gpd
 import pytest
 from shapely.geometry import Polygon
 
-from data_prep.contour_with_landcover import run
+from data_prep.ice_contour import run
 
 
 @pytest.fixture()
