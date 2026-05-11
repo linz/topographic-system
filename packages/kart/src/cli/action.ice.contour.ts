@@ -4,7 +4,6 @@ import path from 'node:path';
 import { fsa } from '@chunkd/fs';
 import {
   CliId,
-  downloadFile,
   logger,
   registerFileSystem,
   Url,
@@ -13,6 +12,7 @@ import {
   qFromArgs,
   concurrency,
   parquetToStac,
+  Downloader,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
@@ -56,9 +56,11 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
+    const downloader = new Downloader(args.tempLocation, q);
 
     // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);
+
     const contourParquetAsset = contourCollection.assets?.['parquet'];
     if (contourParquetAsset == null) {
       throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
@@ -86,12 +88,19 @@ export const IceContourCommand = command({
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
+    downloader.addStac(args.landcover);
+    downloader.addStac(args.contour);
+    const contourAsset = await downloader.getAsset(new URL(contourParquetAsset.href, args.contour));
+    const landcoverAsset = await downloader.getAsset(new URL(landcoverParquetAsset.href, args.landcover));
+    const contourtPath = contourAsset[0]?.linked;
+    const landcoverPath = landcoverAsset[0]?.linked;
+    if (contourtPath == null || landcoverPath == null) {
+      throw new Error('Failed to download contour or landcover assets');
+    }
 
     const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 
-    await iceContour(contourParquet, landcoverParquet, tempOutputParquet);
+    await iceContour(contourtPath, landcoverPath, tempOutputParquet);
 
     const parquetStats = await parquetToStac(tempOutputParquet);
 
