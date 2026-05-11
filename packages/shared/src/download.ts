@@ -74,7 +74,7 @@ export class Downloader {
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
     if (sourceStac.assets.length > 0) return sourceStac.assets;
 
-    const stac = (await fsa.readJson(url)) as StacItem | StacCollection;
+    const stac = await fsa.readJson<StacItem | StacCollection>(url);
     const sourceAssets = [];
     for (const [key, asset] of Object.entries(stac.assets ?? {})) {
       const sourceAsset = await this.downloadAsset(new URL(asset.href, url));
