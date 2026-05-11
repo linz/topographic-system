@@ -18,9 +18,9 @@ import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-st
 import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
-import { contourWithLandcover } from '../python.runner.ts';
+import { iceContour } from '../python.runner.ts';
 
-export const ContourWithLandcoverArgs = {
+export const IceContourArgs = {
   concurrency,
   contour: option({
     type: Url,
@@ -45,15 +45,15 @@ export const ContourWithLandcoverArgs = {
   }),
 };
 
-const iceContour = 'ice_contour';
+const iceContourName = 'nztopo50_ice_contour';
 
-export const ContourWithLandcoverCommand = command({
-  name: 'contour with landcover',
-  description: 'Contour with landcover',
-  args: ContourWithLandcoverArgs,
+export const IceContourCommand = command({
+  name: 'ice contour',
+  description: 'Ice Contour',
+  args: IceContourArgs,
   async handler(args) {
     registerFileSystem();
-    logger.info({ args }, 'Prepare contour with landcover: Started');
+    logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
 
@@ -71,7 +71,7 @@ export const ContourWithLandcoverCommand = command({
       throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
     }
 
-    const latestCollectionUrl = new URL(`${iceContour}/latest/collection.json`, args.output);
+    const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
       if (
@@ -81,7 +81,7 @@ export const ContourWithLandcoverCommand = command({
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
         );
-        logger.info('ContourLandcover: Skip');
+        logger.info('IceContour: Skip');
         return;
       }
     }
@@ -89,16 +89,16 @@ export const ContourWithLandcoverCommand = command({
     const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
     const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
 
-    const tempOutputParquet = new URL(`${iceContour}.parquet`, args.tempLocation);
+    const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 
-    await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
+    await iceContour(contourParquet, landcoverParquet, tempOutputParquet);
 
     const parquetStats = await parquetToStac(tempOutputParquet);
 
-    const sw = new StacCollectionWriter('data', iceContour);
+    const sw = new StacCollectionWriter('data', iceContourName);
 
     sw.asset('parquet', tempOutputParquet, {
-      href: `./${iceContour}.parquet`,
+      href: `./${iceContourName}.parquet`,
       type: 'application/vnd.apache.parquet',
       roles: ['data'],
       ...parquetStats.table,

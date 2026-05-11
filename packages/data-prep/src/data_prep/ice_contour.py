@@ -4,7 +4,7 @@ Contour geometries are split at ice polygon boundaries. Each resulting
 segment is tagged with the landcover feature type(ice) it falls within.
 Processing is parallelised across available CPU cores.
 
-Output schema: contour_with_landcover.yaml
+Output schema: ice_contour.yaml
 """
 
 import argparse
@@ -107,7 +107,9 @@ if __name__ == "__main__":
         level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    parser = argparse.ArgumentParser(description="Overlay contour with landcover")
+    parser = argparse.ArgumentParser(
+        description="Overlay contour with landcover to produce ice contour"
+    )
     parser.add_argument("--contour", required=True, help="Path to contour parquet")
     parser.add_argument("--landcover", required=True, help="Path to landcover parquet")
     parser.add_argument("--output", required=True, help="Path to output parquet")
