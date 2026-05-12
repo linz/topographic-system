@@ -1,0 +1,17 @@
+{
+  "name": "@linzjs/topographic-system-schema",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "tspMain": "src/main.tsp",
+  "engines": {
+    "node": "^24.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@typespec/compiler": "^1.11.0"
+  },
+  "dependencies": {
+    "@typespec/json-schema": "^1.11.0"
+  }
+}
