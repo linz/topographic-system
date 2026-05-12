@@ -4,7 +4,6 @@ import "../common.tsp";
 using TypeSpec.JsonSchema;
 
 @jsonSchema("airport")
-@encodedName("application/json", "airport")
 @extension("additionalProperties", false)
 model airport {
   ...Topo.TopoIdentity;
