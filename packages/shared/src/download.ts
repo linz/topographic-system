@@ -44,11 +44,14 @@ export class Downloader {
   stacs: Map<string, SourceStac> = new Map();
   /** Local target location */
   target: URL;
+  /** Skip if linked path already exists */
+  skip: boolean;
 
-  constructor(target: URL, q: LimitFunction) {
+  constructor(target: URL, q: LimitFunction, skip = false) {
     this.q = q;
     this.stacs = new Map<string, SourceStac>();
     this.target = target;
+    this.skip = skip;
   }
 
   /** Add an asset URL to the download list */
@@ -125,6 +128,12 @@ export class Downloader {
       const hashedFilename = sha256base58(Buffer.from(url.href)) + extname(url.href);
       const downloadFile = new URL(hashedFilename, this.target);
       const linkedPath = new URL(basename(url.pathname), this.target);
+      if (this.skip) {
+        if ((await fsa.head(linkedPath)) != null) {
+          logger.info({ project: url.href }, 'DownloadFile: Skip download, linked file already exists');
+          return { url, linked: linkedPath, size: 0, hash: '' };
+        }
+      }
       const stats = await fsa.head(url);
       if (stats == null) throw new Error(`Unable to access file at url: ${url.href}`);
 
