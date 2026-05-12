@@ -23,6 +23,9 @@ jobs:
       - run: npm run build
       - run: npm run check
       - run: npm run test
+      - run: npm run bundle
+
+      - run: git diff --exit-code
 
       - name: Python CI
         uses: ./.github/actions/python-ci
