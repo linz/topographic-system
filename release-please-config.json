@@ -11,6 +11,7 @@
       ]
     },
     "packages/map": {},
+    "packages/schema": {},
     "packages/shared": {},
     "packages/stac": {},
     "packages/validation": {

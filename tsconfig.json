@@ -8,6 +8,9 @@
       "path": "./packages/shared"
     },
     {
+      "path": "./packages/schema"
+    },
+    {
       "path": "./packages/kart"
     },
     {
