@@ -88,10 +88,10 @@ export const IceContourCommand = command({
       }
     }
 
-    downloader.addStac(args.landcover);
     downloader.addStac(args.contour);
-    const contourAsset = await downloader.getAsset(new URL(contourParquetAsset.href, args.contour));
-    const landcoverAsset = await downloader.getAsset(new URL(landcoverParquetAsset.href, args.landcover));
+    downloader.addStac(args.landcover);
+    const contourAsset = await downloader.getAsset(args.contour);
+    const landcoverAsset = await downloader.getAsset(args.landcover);
     const contourtPath = contourAsset[0]?.linked;
     const landcoverPath = landcoverAsset[0]?.linked;
     if (contourtPath == null || landcoverPath == null) {
