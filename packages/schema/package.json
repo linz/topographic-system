@@ -7,6 +7,9 @@
   "engines": {
     "node": "^24.5.0"
   },
+  "scripts": {
+    "bundle": "tsp compile . && (cd ../../schema && oxfmt .)"
+  },
   "devDependencies": {
     "@types/node": "^24.10.0",
     "@typespec/compiler": "^1.11.0"
