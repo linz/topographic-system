@@ -68,7 +68,7 @@ jobs:
           node /app/index.cjs version
 
       - name: Kart Prepare
-        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output $PWD/tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
@@ -84,7 +84,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Stac Push
-        run: node /app/index.cjs stac-push --source tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+        run: node /app/index.cjs stac-push --source $PWD/tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
       - name: Upload diff artifacts
         uses: actions/upload-artifact@v7
