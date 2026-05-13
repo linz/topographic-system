@@ -25,10 +25,18 @@ Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script h
 
 If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning topo_id between releases. This is a work around.
 
-## linz_map_sheet
+## LINZ MAP SHEET
 
 This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder.
 
 ## ISLANDS POLYGONS
 
 **islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box
+
+## CONTOURS
+
+When contours are exported from LDS they are 3D (Z enabled). Kart has an issue export Z enabled (TO test suggested option from Kart Issues).
+
+Contours are processed to drop Z value before load. This will need to be re-added on the LDS prep stage. Expectations is this is not managed at the QGIS stage.
+
+Suggest approach - to test - kart export dataset_with_z /tmp/dataset_with_z.fgb --crs=EPSG:4326 --override-geometry-type=GEOMETRY
