@@ -4,13 +4,19 @@ on:
   workflow_call:
     inputs:
       environment:
+        description: 'GitHub environment to run the workflow in.'
         required: true
         type: string
       map_version:
+        description: 'Version of topographic-system map container to use.'
         required: true
         type: string
       project:
+        description: 'URL of the project stac item to run visual diff on.'
         required: true
+        type: string
+      data:
+        description: 'Optional local path to download the source data for the project, that override the default data from project.'
         type: string
 
 jobs:
@@ -54,7 +60,8 @@ jobs:
           node /app/index.cjs \
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
-          --project ${{ inputs.project }}
+          --project ${{ inputs.project }} \
+          ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.1
