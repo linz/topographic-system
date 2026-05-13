@@ -35,6 +35,18 @@ on:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
         default: true
+      visual_diff:
+        description: 'Whether to run visual diff.'
+        type: boolean
+        default: false
+      map_version:
+        description: 'Version of topographic-system map container to use.'
+        type: string
+        default: 'latest'
+      project:
+        description: 'URL of the project stac item to run visual diff on.'
+        type: string
+        default: 's3://linz-topography-nonprod/qgis/nztopo50/latest/nztopo50.json'
 
 jobs:
   kart:
@@ -93,3 +105,13 @@ jobs:
           path: |
             pr_summary.md
             diff/
+
+  visual-diff:
+    needs: kart
+    uses: ./.github/workflows/visual-diff.yml
+    with:
+      environment: ${{ inputs.environment }}
+      map_version: ${{ inputs.map_version }}
+      project: ${{ inputs.project }}
+      data: '$PWD/tmp/kart/prepare/'
+    secrets: inherit
