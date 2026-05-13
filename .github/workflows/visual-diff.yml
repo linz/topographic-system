@@ -55,6 +55,13 @@ jobs:
           mask-aws-account-id: true
           role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
 
+      - name: Download prepared data artifact
+        if: ${{ inputs.data != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: data-review
+          path: ${{ github.workspace }}
+
       - name: Produce mapsheets
         run: |
           node /app/index.cjs \

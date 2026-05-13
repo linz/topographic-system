@@ -35,18 +35,6 @@ on:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
         default: true
-      visual_diff:
-        description: 'Whether to run visual diff.'
-        type: boolean
-        default: false
-      map_version:
-        description: 'Version of topographic-system map container to use.'
-        type: string
-        default: 'latest'
-      project:
-        description: 'URL of the project stac item to run visual diff on.'
-        type: string
-        default: 's3://linz-topography-nonprod/qgis/nztopo50/latest/nztopo50.json'
 
 jobs:
   kart:
@@ -80,7 +68,7 @@ jobs:
           node /app/index.cjs version
 
       - name: Kart Prepare
-        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output $PWD/tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
@@ -96,22 +84,13 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Stac Push
-        run: node /app/index.cjs stac-push --source $PWD/tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+        run: node /app/index.cjs stac-push --source tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
-      - name: Upload diff artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: diff
+          name: data-review
           path: |
             pr_summary.md
             diff/
-
-  visual-diff:
-    needs: kart
-    uses: ./.github/workflows/visual-diff.yml
-    with:
-      environment: ${{ inputs.environment }}
-      map_version: ${{ inputs.map_version }}
-      project: ${{ inputs.project }}
-      data: '$PWD/tmp/kart/prepare/'
-    secrets: inherit
+            tmp/kart/prepare/
