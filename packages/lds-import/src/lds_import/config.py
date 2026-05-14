@@ -25,8 +25,7 @@ OUTPUT_DIR = DATA_DIR / "output"
 
 
 def get_dataset_name(source: str) -> str:
-    """Convert a Kart/Gtihb source name into a human friendly name
-    """
+    """Convert a Kart/Gtihb source name into a human friendly name"""
     if not source.startswith("kart@data.koordinates.com:linz/"):
         raise ValueError(f"Invalid source format: {source}")
 
