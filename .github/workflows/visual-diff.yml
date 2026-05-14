@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       data:
-        description: 'Optional local path to download the source data for the project, that override the default data from project.'
+        description: 'Optional path to download the source data for the project, that override the default data from project.'
         type: string
 
 jobs:
@@ -54,14 +54,6 @@ jobs:
           aws-region: ap-southeast-2
           mask-aws-account-id: true
           role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
-
-      - name: Download prepared data artifact
-        if: ${{ inputs.data != '' }}
-        env:
-          S3_CACHE_TARGET: ${{ inputs.environment == 'prod' && 's3://linz-topography-scratch' || 's3://linz-topography-scratch-nonprod' }}
-          COMMIT_KEY: ${{ github.sha }}-${{ github.run_id }}
-        run: |
-          aws s3 cp "$S3_CACHE_TARGET/github-cache/commit-$COMMIT_KEY/" "${{ inputs.data }}" --recursive
 
       - name: Produce mapsheets
         run: |

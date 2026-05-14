@@ -35,6 +35,10 @@ on:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
         default: true
+      data:
+        description: 'Optional path to upload the prepared parquet data.'
+        type: string
+        default: tmp/kart/prepare/
 
 jobs:
   kart:
@@ -68,7 +72,7 @@ jobs:
           node /app/index.cjs version
 
       - name: Kart Prepare
-        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output "${{ inputs.data }}" --changed-datasets-only="$CHANGED_DATASETS_ONLY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
@@ -84,7 +88,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Stac Push
-        run: node /app/index.cjs stac-push --source tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+        run: node /app/index.cjs stac-push --source "${{ inputs.data }}/catalog.json" --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
@@ -93,11 +97,3 @@ jobs:
           path: |
             pr_summary.md
             diff/
-            tmp/kart/prepare/
-
-      - name: Upload prepared data
-        env:
-          S3_CACHE_TARGET: ${{ inputs.environment == 'prod' && 's3://linz-topography-scratch' || 's3://linz-topography-scratch-nonprod' }}
-          COMMIT_KEY: ${{ github.sha }}-${{ github.run_id }}
-        run: |
-          aws s3 cp tmp/kart/prepare/ "$S3_CACHE_TARGET/github-cache/commit/$COMMIT_KEY/" --recursive
