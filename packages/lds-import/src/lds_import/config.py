@@ -104,7 +104,7 @@ def get_releases() -> List[Release]:
         for key, timestamp in entry.items():
             date = datetime.fromisoformat(str(timestamp))
             if releases:
-                day_before = date - timedelta(days=1)
+                day_before = date - timedelta(days=14)
                 releases[-1].until = day_before
             releases.append(Release(id=int(key), date=date))
     return releases
