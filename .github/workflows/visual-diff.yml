@@ -83,6 +83,7 @@ jobs:
       id-token: write
       contents: write
       checks: write
+      actions: read
     needs: produce-mapsheets
     name: Compare Visual Diff
     runs-on: ubuntu-latest
