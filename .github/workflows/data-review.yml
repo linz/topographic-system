@@ -88,7 +88,7 @@ jobs:
           CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
       - name: Stac Push
-        run: node /app/index.cjs stac-push --source "${{ inputs.data }}/catalog.json" --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+        run: node /app/index.cjs stac-push --source "${{ inputs.data }}catalog.json" --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
