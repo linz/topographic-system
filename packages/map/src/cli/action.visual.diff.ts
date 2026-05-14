@@ -2,7 +2,6 @@ import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
 import {
-  concurrency,
   Downloader,
   DownloadRels,
   logger,
@@ -10,6 +9,7 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
@@ -39,7 +39,7 @@ const defaultTests: TestProject[] = [
 ];
 
 export const VisualDiffArgs = {
-  concurrency,
+  worker,
   testFile: option({
     type: optional(Url),
     long: 'test-file',
