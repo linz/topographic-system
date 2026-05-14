@@ -83,8 +83,9 @@ export const VisualDiffCommand = command({
     // Download local data if provided, and add the data path to stac for exporting
     const downloader = new Downloader(args.tempLocation, q, true); // Skip downloading if data already exists in temp location
     if (args.data) {
-      const files = (await fsa.toArray(fsa.list(args.data))).filter((f) => f.href.endsWith('.json'));
+      const files = await fsa.toArray(fsa.list(args.data));
       for (const file of files) {
+        if (!file.href.endsWith('.json')) continue;
         if (file.href.endsWith('catalog.json')) continue;
         downloader.addStac(file);
       }
