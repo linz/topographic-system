@@ -25,10 +25,15 @@ OUTPUT_DIR = DATA_DIR / "output"
 
 
 def get_dataset_name(source: str) -> str:
-    parts = source.split("-")
+    """Convert a Kart/Gtihb source name into a human friendly name"""
+    if not source.startswith("kart@data.koordinates.com:linz/"):
+        raise ValueError(f"Invalid source format: {source}")
+
+    # "kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k"
+    # converts to "nz-chatham-island-airport-polygons"
+    parts = source.split("linz/")[1].split("-")
     if len(parts) > 4:
-        # Remove first two (ID and 'nz') and last two ('topo' and '150k')
-        trimmed = parts[2:-2]
+        trimmed = parts[:-2]
         return "_".join(trimmed)
     else:
         raise ValueError(f"Invalid layer ID format: {source}")
@@ -98,7 +103,7 @@ def get_releases() -> List[Release]:
         for key, timestamp in entry.items():
             date = datetime.fromisoformat(str(timestamp))
             if releases:
-                day_before = date - timedelta(days=1)
+                day_before = date - timedelta(days=14)
                 releases[-1].until = day_before
             releases.append(Release(id=int(key), date=date))
     return releases

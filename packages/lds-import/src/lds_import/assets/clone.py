@@ -27,6 +27,7 @@ def should_pull(target_dir: Path):
 
 def make_clone_asset(dataset_source: str):
     dataset_name = get_dataset_name(dataset_source)
+    print(f"{dataset_source} -> {dataset_name}")
 
     @asset(name=f"clone_{dataset_name}", group_name="kart")
     def _clone_asset(context: AssetExecutionContext):
@@ -41,13 +42,10 @@ def make_clone_asset(dataset_source: str):
                 cmd = ["kart", "pull"]
                 run_command(context, cmd, cwd=str(target_dir))
         else:
-            # Kart URLS do not contain the layer id
-            # kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
-            remote_name = dataset_source.split("-", 1)[1]
             cmd = [
                 "kart",
                 "clone",
-                f"kart@data.koordinates.com:linz/{remote_name}",
+                f"{dataset_source}",
                 str(target_dir),
                 "--no-checkout",
             ]
