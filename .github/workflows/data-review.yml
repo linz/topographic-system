@@ -94,3 +94,10 @@ jobs:
             pr_summary.md
             diff/
             tmp/kart/prepare/
+
+      - name: Upload prepared data
+        env:
+          S3_CACHE_TARGET: ${{ inputs.environment == 'prod' && 's3://linz-topography-scratch' || 's3://linz-topography-scratch-nonprod' }}
+          COMMIT_KEY: ${{ github.sha }}-${{ github.run_id }}
+        run: |
+          aws s3 cp tmp/kart/prepare/ "$S3_CACHE_TARGET/github-cache/commit/$COMMIT_KEY/" --recursive

@@ -57,10 +57,11 @@ jobs:
 
       - name: Download prepared data artifact
         if: ${{ inputs.data != '' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: data-review
-          path: ${{ github.workspace }}
+        env:
+          S3_CACHE_TARGET: ${{ inputs.environment == 'prod' && 's3://linz-topography-scratch' || 's3://linz-topography-scratch-nonprod' }}
+          COMMIT_KEY: ${{ github.sha }}-${{ github.run_id }}
+        run: |
+          aws s3 cp "$S3_CACHE_TARGET/github-cache/commit-$COMMIT_KEY/" "${{ inputs.data }}" --recursive
 
       - name: Produce mapsheets
         run: |
