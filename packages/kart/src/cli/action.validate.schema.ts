@@ -50,7 +50,7 @@ export const ValidateSchemaCommand = command({
       const startTime = performance.now();
       const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
 
-      logger.info({ file: path.href, schema: args.schema.href }, 'Validate: Started');
+      logger.info({ file: path.href, schema: args.schema.href }, 'ValidateSchema: Started');
       let rowStart = 0;
       let valid = 0;
       let invalid = 0;
@@ -81,7 +81,7 @@ export const ValidateSchemaCommand = command({
         rowStart = rowEnd;
 
         for (const [error, count] of errorSummary) {
-          logger.error({ file: path.href, error, count }, 'Validate:ErrorSummary');
+          logger.error({ file: path.href, error, count }, 'ValidateSchema:ErrorSummary');
         }
       }
 
@@ -94,10 +94,10 @@ export const ValidateSchemaCommand = command({
           invalid,
           duration: performance.now() - startTime,
         },
-        'Validate:Done',
+        'ValidateSchema:Done',
       );
 
-      if (invalid > 0) throw new Error('Validation failed for ' + path.href);
+      if (invalid > 0) throw new Error('Schema Validation failed for ' + path.href);
     });
   },
 });
