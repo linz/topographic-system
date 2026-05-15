@@ -9,6 +9,8 @@ RUN uv sync --directory /packages/data-prep
 
 COPY packages/kart/dist/ /app/
 
+COPY schema /schema
+
 WORKDIR /tmp/kart
 
 # Disabling kart helper to avoid a bug with handling empty environment variables when running in CI environments in kart v0.17.0

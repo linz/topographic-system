@@ -4,6 +4,9 @@ import { pathToFileURL } from 'node:url';
 
 import {
   logger,
+  qFromArgs,
+  qMapAll,
+  recursiveFileSearch,
   UrlFolder,
   stringToUrlFolder,
   Url,
@@ -18,6 +21,7 @@ import { DiffCommand } from './action.diff.ts';
 import { ExportCommand } from './action.export.ts';
 import { CommentCommand } from './action.pr.comment.ts';
 import { ParquetCommand } from './action.to.parquet.ts';
+import { ValidateSchemaCommand } from './action.validate.schema.ts';
 import { ValidateCommand } from './action.validate.ts';
 import { VersionCommand } from './action.version.ts';
 
@@ -39,10 +43,58 @@ function ghGroupLog(name?: string) {
   }
 }
 
+interface SchemaValidationFailure {
+  parquetFile: URL;
+  schemaFile?: URL;
+  error: string;
+}
+
+function schemaPathForParquet(parquetFile: URL, schemaDirectory: URL): URL {
+  const schemaName = `${path.basename(parquetFile.pathname, '.parquet')}.json`;
+  return new URL(schemaName, schemaDirectory);
+}
+
+async function runSchemaValidationStep(
+  args: { concurrency?: number; worker?: number; schemaDirectory: URL },
+  parquetLocationForValidation: URL,
+): Promise<void> {
+  const parquetFilesForValidation = await recursiveFileSearch(parquetLocationForValidation, '.parquet');
+  const schemaFilesForValidation = await recursiveFileSearch(args.schemaDirectory, '.json');
+  const availableSchemas = new Set(schemaFilesForValidation.map((url) => url.pathname));
+  const q = qFromArgs(args);
+  const schemaValidationFailures: SchemaValidationFailure[] = [];
+
+  await qMapAll(q, parquetFilesForValidation, async (parquetFile) => {
+    const schemaPath = schemaPathForParquet(parquetFile, args.schemaDirectory);
+    if (!availableSchemas.has(schemaPath.pathname)) {
+      const error = `Missing schema: ${schemaPath.href}`;
+      logger.error({ parquetFile: parquetFile.href, schema: schemaPath.href }, 'Flow:ValidateSchema:MissingSchema');
+      schemaValidationFailures.push({ parquetFile, schemaFile: schemaPath, error });
+      return;
+    }
+
+    try {
+      await ValidateSchemaCommand.handler({
+        concurrency: args.concurrency,
+        schema: schemaPath,
+        paths: [parquetFile],
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      logger.error({ parquetFile: parquetFile.href, schema: schemaPath.href, error }, 'Flow:ValidateSchema:Failed');
+      schemaValidationFailures.push({ parquetFile, schemaFile: schemaPath, error });
+    }
+  });
+
+  if (schemaValidationFailures.length > 0) {
+    throw new Error(`Schema validation failed for ${schemaValidationFailures.length} parquet file(s)`);
+  }
+}
+
 export const FlowCommand = command({
   name: 'kart-prepare',
   description:
-    'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate',
+    'Run all kart data-review steps in order: version → clone → diff → pr-comment → export → to-parquet → validate-schema → validate',
   args: {
     concurrency,
     worker,
@@ -141,6 +193,12 @@ export const FlowCommand = command({
     }),
 
     // Validate args
+    schemaDirectory: option({
+      type: UrlFolder,
+      long: 'schema-directory',
+      description: 'Path to JSON schemas directory (default: /schema from this file)',
+      defaultValue: () => new URL('/schema/', import.meta.url),
+    }),
     configFile: option({
       type: Url,
       long: 'config-file',
@@ -160,13 +218,13 @@ export const FlowCommand = command({
 
     const parquetLocationForValidation = new URL('files.parquet', args.parquetTempLocation);
 
-    ghGroupLog('Flow:Step [1/7] version');
+    ghGroupLog('Flow:Step [1/8] version');
     await VersionCommand.handler({});
 
-    ghGroupLog('Flow:Step [2/7] clone');
+    ghGroupLog('Flow:Step [2/8] clone');
     await CloneCommand.handler({ repository: args.repository, ref: args.ref, output: args.cloneOutput });
 
-    ghGroupLog('Flow:Step [3/7] diff');
+    ghGroupLog('Flow:Step [3/8] diff');
     await DiffCommand.handler({
       context: args.cloneOutput,
       output: args.diffOutput,
@@ -175,13 +233,13 @@ export const FlowCommand = command({
     });
 
     if (canCommentOnPr()) {
-      ghGroupLog('Flow:Step [4/7] pr-comment');
+      ghGroupLog('Flow:Step [4/8] pr-comment');
       await CommentCommand.handler({ pr: undefined, repo: undefined, bodyFile: args.summaryFile });
     } else {
-      ghGroupLog('Flow:Step [4/7] pr-comment (skipped - no PR detected)');
+      ghGroupLog('Flow:Step [4/8] pr-comment (skipped - no PR detected)');
     }
 
-    ghGroupLog('Flow:Step [5/7] export');
+    ghGroupLog('Flow:Step [5/8] export');
     await ExportCommand.handler({
       worker: args.worker,
       context: args.cloneOutput,
@@ -191,7 +249,7 @@ export const FlowCommand = command({
       datasets: [],
     });
 
-    ghGroupLog('Flow:Step [6/7] to-parquet');
+    ghGroupLog('Flow:Step [6/8] to-parquet');
     await ParquetCommand.handler({
       worker: args.worker,
       compression: args.compression,
@@ -203,7 +261,10 @@ export const FlowCommand = command({
       sourceFiles: [args.exportOutput],
     });
 
-    ghGroupLog('Flow:Step [7/7] validate');
+    ghGroupLog('Flow:Step [7/8] validate schema');
+    await runSchemaValidationStep(args, parquetLocationForValidation);
+
+    ghGroupLog('Flow:Step [8/8] validate topography');
     await ValidateCommand.handler({
       output: args.output,
       mode: 'generic',
