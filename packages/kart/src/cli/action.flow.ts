@@ -54,11 +54,13 @@ function schemaPathForParquet(parquetFile: URL, schemaDirectory: URL): URL {
   return new URL(schemaName, schemaDirectory);
 }
 
-async function runSchemaValidationStep(
-  args: { concurrency?: number; worker?: number; schemaDirectory: URL },
-  parquetLocationForValidation: URL,
-): Promise<void> {
-  const parquetFilesForValidation = await recursiveFileSearch(parquetLocationForValidation, '.parquet');
+async function runSchemaValidationStep(args: {
+  concurrency?: number;
+  worker?: number;
+  schemaDirectory: URL;
+  parquetTempLocation: URL;
+}): Promise<void> {
+  const parquetFilesForValidation = await recursiveFileSearch(args.parquetTempLocation, '.parquet');
   const schemaFilesForValidation = await recursiveFileSearch(args.schemaDirectory, '.json');
   const availableSchemas = new Set(schemaFilesForValidation.map((url) => url.pathname));
   const q = qFromArgs(args);
@@ -264,7 +266,7 @@ export const FlowCommand = command({
     });
 
     ghGroupLog('Flow:Step [7/8] validate schema');
-    await runSchemaValidationStep(args, parquetLocationForValidation);
+    await runSchemaValidationStep(args);
 
     ghGroupLog('Flow:Step [8/8] validate topography');
     await ValidateCommand.handler({
