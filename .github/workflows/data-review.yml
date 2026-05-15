@@ -35,6 +35,10 @@ on:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
         default: true
+      data:
+        description: 'Optional path to upload the prepared parquet data.'
+        type: string
+        default: tmp/kart/prepare/
 
 jobs:
   kart:
@@ -67,14 +71,6 @@ jobs:
           kart --version
           node /app/index.cjs version
 
-      - name: Kart Prepare
-        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output tmp/kart/prepare/ --changed-datasets-only="$CHANGED_DATASETS_ONLY"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
-          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
-          CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
-
       - name: Configure AWS Credentials
         if: ${{ env.AWS_ROLE_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4
@@ -83,13 +79,21 @@ jobs:
           mask-aws-account-id: true
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Stac Push
-        run: node /app/index.cjs stac-push --source tmp/kart/prepare/catalog.json --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+      - name: Kart Prepare
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output "${{ inputs.data }}" --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
+          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
-      - name: Upload diff artifacts
+      - name: Stac Push
+        run: node /app/index.cjs stac-push --source "${{ inputs.data }}catalog.json" --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: diff
+          name: data-review
           path: |
             pr_summary.md
             diff/

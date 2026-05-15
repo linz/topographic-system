@@ -42,13 +42,19 @@ export class Downloader {
   q: LimitFunction;
   /** Cache of stac links that have been resolved to avoid duplicate downloads */
   stacs: Map<string, SourceStac> = new Map();
+  /** Cache of downloaded assets by linked output path */
+  cache: Map<string, SourceAsset> = new Map();
   /** Local target location */
   target: URL;
+  /** Skip if linked path already exists */
+  skip: boolean;
 
-  constructor(target: URL, q: LimitFunction) {
+  constructor(target: URL, q: LimitFunction, skip = false) {
     this.q = q;
     this.stacs = new Map<string, SourceStac>();
+    this.cache = new Map<string, SourceAsset>();
     this.target = target;
+    this.skip = skip;
   }
 
   /** Add an asset URL to the download list */
@@ -125,6 +131,16 @@ export class Downloader {
       const hashedFilename = sha256base58(Buffer.from(url.href)) + extname(url.href);
       const downloadFile = new URL(hashedFilename, this.target);
       const linkedPath = new URL(basename(url.pathname), this.target);
+
+      const existing = this.cache.get(linkedPath.href);
+      if (this.skip && existing != null) {
+        logger.info(
+          { project: url.href, linked: linkedPath.href },
+          'DownloadFile: Skip download, linked asset already handled',
+        );
+        return { ...existing, url };
+      }
+
       const stats = await fsa.head(url);
       if (stats == null) throw new Error(`Unable to access file at url: ${url.href}`);
 
@@ -175,6 +191,7 @@ export class Downloader {
         );
       }
       await this.ensureLinkedPath(downloadFile, linkedPath);
+      this.cache.set(linkedPath.href, sourceAsset);
       return sourceAsset;
     } catch (error) {
       logger.error({ project: url.href }, 'DownloadFile: Error');
