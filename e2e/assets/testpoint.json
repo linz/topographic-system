@@ -1,22 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "testline",
+  "$id": "testpoint",
   "type": "object",
   "properties": {
     "topo_id": {
       "type": "string"
     },
     "fid": {},
-    "created_date": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
+    "created_date": {},
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null",
       "not": {
