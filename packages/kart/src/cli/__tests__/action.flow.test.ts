@@ -17,7 +17,9 @@ import { ValidateSchemaCommand } from '../action.validate.schema.ts';
 import { ValidateCommand } from '../action.validate.ts';
 import { VersionCommand } from '../action.version.ts';
 
-function mockAllHandlers(callOrder?: string[]) {
+function mockAllHandlers(callOrder?: string[], options?: { mockValidateSchema?: boolean }) {
+  const mockValidateSchema = options?.mockValidateSchema ?? true;
+
   return {
     version: mock.method(VersionCommand, 'handler', async () => {
       callOrder?.push('version');
@@ -37,6 +39,12 @@ function mockAllHandlers(callOrder?: string[]) {
     parquet: mock.method(ParquetCommand, 'handler', async () => {
       callOrder?.push('to-parquet');
     }),
+    validateSchema:
+      mockValidateSchema === true
+        ? mock.method(ValidateSchemaCommand, 'handler', async () => {
+            callOrder?.push('validate-schema');
+          })
+        : undefined,
     validate: mock.method(ValidateCommand, 'handler', async () => {
       callOrder?.push('validate');
     }),
@@ -49,12 +57,20 @@ describe('action.flow', () => {
   const defaultEnv = { ...process.env };
 
   before(async () => {
-    testDir = 'kart-prepare-test/';
+    testDir = path.join(tmpdir(), 'kart-prepare-test/');
     // Make canCommentOnPr() return true for all flow tests
     process.env['GITHUB_REF'] = 'refs/pull/123/merge';
     process.env['GITHUB_TOKEN'] = 'fake-token';
     delete process.env['GITHUB_PR_NUMBER'];
     delete process.env['GITHUB_EVENT_PATH'];
+
+    const defaultParquetDir = path.join(testDir, 'parquet', 'files.parquet');
+    const defaultSchemaDir = path.join(testDir, 'schema');
+    await mkdir(defaultParquetDir, { recursive: true });
+    await mkdir(defaultSchemaDir, { recursive: true });
+    await writeFile(path.join(defaultParquetDir, 'road_line.parquet'), '');
+    await writeFile(path.join(defaultSchemaDir, 'road_line.json'), '{}');
+
     defaultFlowArgs = {
       // Flow-level args
       worker: 2,
@@ -94,6 +110,7 @@ describe('action.flow', () => {
   });
 
   after(async () => {
+    await rm(testDir, { recursive: true, force: true });
     for (const key of Object.keys(process.env)) {
       if (!(key in defaultEnv)) delete process.env[key];
     }
@@ -107,9 +124,19 @@ describe('action.flow', () => {
 
     await FlowCommand.handler({ ...defaultFlowArgs, ref: 'my-branch', changedDatasetsOnly: true });
 
-    assert.deepStrictEqual(callOrder, ['version', 'clone', 'diff', 'pr-comment', 'export', 'to-parquet', 'validate']);
+    assert.deepStrictEqual(callOrder, [
+      'version',
+      'clone',
+      'diff',
+      'pr-comment',
+      'export',
+      'to-parquet',
+      'validate-schema',
+      'validate',
+    ]);
 
     for (const [name, m] of Object.entries(mocks)) {
+      if (m == null) continue;
       assert.strictEqual(m.mock.callCount(), 1, `${name} handler should be called exactly once`);
     }
   });
@@ -270,7 +297,7 @@ describe('action.flow', () => {
     });
 
     it('should validate each parquet file against its matching schema json', async () => {
-      const mocks = mockAllHandlers();
+      const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async () => {});
 
       await FlowCommand.handler({
@@ -297,7 +324,7 @@ describe('action.flow', () => {
     });
 
     it('should run all schema validations and fail if any validation fails', async () => {
-      const mocks = mockAllHandlers();
+      const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async (args: { schema: URL }) => {
         if (args.schema.pathname.endsWith('/road_line.json')) throw new Error('validation failed');
       });
@@ -317,7 +344,7 @@ describe('action.flow', () => {
     });
 
     it('should fail when schema is missing for a parquet file', async () => {
-      const mocks = mockAllHandlers();
+      const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async () => {});
 
       await assert.rejects(
@@ -327,7 +354,7 @@ describe('action.flow', () => {
             parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
             schemaDirectory: stringToUrlFolder(path.join(schemaTestDir, 'empty-schema')),
           }),
-        { message: /Schema validation failed/ },
+        { message: /No schema under/ },
       );
 
       assert.strictEqual(validateSchema.mock.callCount(), 0, 'no validations attempted when schemas missing');

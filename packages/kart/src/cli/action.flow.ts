@@ -62,6 +62,12 @@ async function runSchemaValidationStep(args: {
 }): Promise<void> {
   const parquetFilesForValidation = await recursiveFileSearch(args.parquetTempLocation, '.parquet');
   const schemaFilesForValidation = await recursiveFileSearch(args.schemaDirectory, '.json');
+  if (parquetFilesForValidation.length === 0) {
+    throw new Error(`No parquet file under ${args.parquetTempLocation.href}`);
+  }
+  if (schemaFilesForValidation.length === 0) {
+    throw new Error(`No schema under ${args.schemaDirectory.href}`);
+  }
   const availableSchemas = new Set(schemaFilesForValidation.map((url) => url.pathname));
   const q = qFromArgs(args);
   const schemaValidationFailures: SchemaValidationFailure[] = [];
