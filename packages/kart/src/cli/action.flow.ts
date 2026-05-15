@@ -192,13 +192,15 @@ export const FlowCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(baseOutputLocation, 'parquet')),
     }),
 
-    // Validate args
+    // Validate Schema args
     schemaDirectory: option({
       type: UrlFolder,
       long: 'schema-directory',
-      description: 'Path to JSON schemas directory (default: /schema from this file)',
-      defaultValue: () => new URL('/schema/', import.meta.url),
+      description: 'Path to JSON schemas directory (default: /schema)',
+      defaultValue: () => new URL('file:///schema/'),
     }),
+
+    // Validate args
     configFile: option({
       type: Url,
       long: 'config-file',
