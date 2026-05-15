@@ -283,7 +283,10 @@ describe('action.flow', () => {
 
       const schemaCalls = validateSchema.mock.calls
         .map((c) => c.arguments[0])
-        .map((a) => ({ schema: path.basename(a?.schema?.pathname ?? ''), parquet: path.basename(a?.paths?.[0]?.pathname ?? '') }))
+        .map((a) => ({
+          schema: path.basename(a?.schema?.pathname ?? ''),
+          parquet: path.basename(a?.paths?.[0]?.pathname ?? ''),
+        }))
         .sort((a, b) => a.parquet.localeCompare(b.parquet));
 
       assert.deepStrictEqual(schemaCalls, [
