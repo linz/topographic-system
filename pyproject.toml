@@ -47,3 +47,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["pyarrow.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["uuid6"]
+ignore_missing_imports = true
