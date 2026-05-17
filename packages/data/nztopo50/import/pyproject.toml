@@ -17,6 +17,7 @@ dependencies = [
     "pyogrio>=0.12.1",
     "shapely>=2.1.2",
     "sqlalchemy>=2.0.49",
+    "obstore",
 ]
 
 [dependency-groups]

@@ -1316,7 +1316,7 @@ class TableModificationWorkflow:
                     )
 
                     remove_metadata_fields = [
-                        "capture_methodchange_typeupdate_datecreate_dateversion"
+                        "capture_method", "change_type", "update_date", "create_date", "version"
                     ]
                     fields = [
                         field for field in fields if field not in remove_metadata_fields

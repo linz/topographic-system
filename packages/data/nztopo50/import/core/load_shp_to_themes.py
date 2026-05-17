@@ -5,6 +5,7 @@ import geopandas as gpd
 
 from pyogrio import read_info, write_dataframe  # type: ignore
 from sqlalchemy import create_engine  # type: ignore
+from obstore_manager import ObstoreManager
 
 
 class Topo50DataLoader:
@@ -16,8 +17,8 @@ class Topo50DataLoader:
     either PostGIS or a file geodatabase target.
 
     Args:
-        shapefile_dir: Directory containing input .shp files.
-        excel_file: Path to the layer mapping file.
+        obstore_manager: Instance of ObstoreManager for managing object storage.
+        layer_info_file: Path to the layer mapping file.
         database: Output target identifier. For PostGIS runs this is used as
             the schema name by the current workflow.
         count_log: File path for writing per-layer row counts.
@@ -25,28 +26,27 @@ class Topo50DataLoader:
     """
 
     def __init__(
-        self, shapefile_dir, excel_file, database, count_log, dataset_field="dataset"
+        self, obstore_manager, layer_info_file, database, count_log, dataset_field="dataset"
     ):
         """Initialize loader configuration and output logging.
 
         Args:
-            shapefile_dir: Directory containing input `.shp` files.
-            excel_file: Path to the layer mapping file.
+            obstore_manager: Instance of ObstoreManager for managing object storage.
+            layer_info_file: Path to the layer mapping file.
             database: Output target identifier. In the current workflow this
                 is also used as the PostGIS schema name.
             count_log: Output file path for recording per-layer row counts.
             dataset_field: Metadata field name used for dataset grouping.
         """
-        self.shapefile_dir = shapefile_dir
         self.dataset_field = dataset_field
-        self.excel_file = excel_file
-        self.search_path = os.path.join(shapefile_dir, "*.shp")
+        self.layer_info_file = layer_info_file
         self.output = database
         self.layers_info = self._load_layers_info()
         self.layer_groups = {}
         self.common_fields = {}
         self.count_log_file = open(count_log, "w")
         self.count_log_file.write("layer_name, row_count\n")
+        self.obstore_manager = obstore_manager
 
     def _load_layers_info(self):
         """Read layer metadata from the mapping CSV file.
@@ -55,7 +55,7 @@ class Topo50DataLoader:
             dict: Mapping of `shp_name` to
                 `[object_name, theme, feature_type, layer_name, dataset]`.
         """
-        source = pd.read_csv(self.excel_file)
+        source = pd.read_csv(self.layer_info_file)
         layers_info = {}
         for row in source.itertuples():
             object_name = row.object_name
@@ -168,7 +168,9 @@ class Topo50DataLoader:
         Reads shapefile metadata and builds `self.layer_groups` as
         `{layer_name: [field_list, ...]}` for later column harmonization.
         """
-        for file in glob.glob(self.search_path):
+        files, folders = self.obstore_manager.list_local_filesystem()    
+        shp_files = self.obstore_manager.filter_files_by_extension(files, ".shp", True)
+        for file in shp_files:
             shp_name, basename = self.get_basename(file)
             info = read_info(file)
             layer_info = self.layers_info.get(shp_name, None)
@@ -480,6 +482,7 @@ def run_load_shp_to_themes(
 
     if data_folder is None:
         data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
+        obstore_manager = ObstoreManager(data_folder)
 
     if count_log is None:
         count_log = r"C:\Data\Model\count_log.txt"
@@ -488,8 +491,8 @@ def run_load_shp_to_themes(
         database = release
 
     loader = Topo50DataLoader(
-        shapefile_dir=data_folder,
-        excel_file=layer_info_file,
+        obstore_manager=obstore_manager,
+        layer_info_file=layer_info_file,
         database=database,
         count_log=count_log,
     )
