@@ -2,14 +2,17 @@ import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
 import {
-  concurrency,
-  downloadProject,
+  Downloader,
+  DownloadRels,
   logger,
   qFromArgs,
   registerFileSystem,
   Url,
+  UrlFolder,
+  worker,
 } from '@linzjs/topographic-system-shared';
 import { command, option, optional } from 'cmd-ts';
+import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
@@ -36,7 +39,7 @@ const defaultTests: TestProject[] = [
 ];
 
 export const VisualDiffArgs = {
-  concurrency,
+  worker,
   testFile: option({
     type: optional(Url),
     long: 'test-file',
@@ -46,6 +49,12 @@ export const VisualDiffArgs = {
     type: Url,
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
+  }),
+  data: option({
+    type: optional(UrlFolder),
+    long: 'data',
+    description:
+      'Optional local path to download the source data for the project, that override the default data from project.',
   }),
   output: option({
     type: Url,
@@ -71,12 +80,33 @@ export const VisualDiffCommand = command({
     mkdirSync(args.output, { recursive: true });
     const tasks = [];
 
+    // Download local data if provided, and add the data path to stac for exporting
+    const downloader = new Downloader(args.tempLocation, q, true); // Skip downloading if data already exists in temp location
+    if (args.data) {
+      const files = await fsa.toArray(fsa.list(args.data));
+      for (const file of files) {
+        if (!file.href.endsWith('.json')) continue;
+        if (file.href.endsWith('catalog.json')) continue;
+        downloader.addStac(file);
+      }
+      await downloader.getAllAssets();
+    }
+
     for (const test of testProjects) {
       if (args.project.href.includes(`${test.name}`)) {
         logger.info({ project: args.project.href }, `Visual Diff: Start`);
 
         // Download project file, assets, and source data from the project stac file
-        const projectPath = await downloadProject(args.project, args.tempLocation);
+
+        const stac = await fsa.readJson<StacItem>(args.project);
+        if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
+
+        // Add links from download rels for downloading
+        downloader.addStac(args.project);
+        downloader.addStacLinks(stac, DownloadRels, args.project);
+
+        // Download all the assets, including the project file and source data for the project.
+        await downloader.getAllAssets();
 
         // Prepare test export options
         const exportOptions: ExportOptions = {
@@ -86,6 +116,12 @@ export const VisualDiffCommand = command({
           format: 'png',
           excludeLayers: test.excludeLayers,
         };
+
+        // Get the downloaded project file path
+        const projectPath = downloader.stacs
+          .values()
+          .find((stac) => stac.project != null && stac.project.href.includes(`${test.name}.qgs`))?.project;
+        if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>

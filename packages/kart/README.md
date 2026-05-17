@@ -161,12 +161,12 @@ docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-sou
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart validate --export-parquet --verbose --bbox 174.711,-41.349,175.04,-41.17  --output-dir /tmp/kart/validation/
 ```
 
-## Contour with Landcover cli
+## Ice Contour cli
 
-Enrich contour data with landcover information, also known as create ice-contours. Requires paths to contour and landcover parquet files and an output path. This is generally invoked through Argo Workflows.
+Enrich contour data with landcover information to create ice contour. Requires paths to contour and landcover parquet files and an output path. This is generally invoked through Argo Workflows.
 
 ```
-docker run -it --rm -v /tmp/docker:/tmp kart contour-with-landcover --contour ./contour.parquet --landcover ./landcover.parquet --output ./output.parquet
+docker run -it --rm -v /tmp/docker:/tmp kart ice-contour --contour ./contour.parquet --landcover ./landcover.parquet --output ./output.parquet
 ```
 
 ## Version cli

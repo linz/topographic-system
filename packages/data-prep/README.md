@@ -12,14 +12,14 @@ uv sync
 
 ## Scripts
 
-### Contour with landcover
+### Ice Contour
 
 Intersects Topo50 contour lines with ice landcover polygons. Contour geometries are split at landcover boundaries, with each segment tagged with the landcover feature type it falls within.
 
-The output schema is defined in [`contour_with_landcover.yaml`](src/data_prep/contour_with_landcover.yaml).
+The output schema is defined in [`ice_contour.yaml`](src/data_prep/ice_contour.yaml).
 
 ```sh
-uv run src/data_prep/contour_with_landcover.py \
+uv run src/data_prep/ice_contour.py \
   --contour contour.parquet \
   --landcover landcover.parquet \
   --output output.parquet

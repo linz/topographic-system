@@ -1,0 +1,12 @@
+name: airport
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      feature_type: airport
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      feature_type: airport
+      name: $

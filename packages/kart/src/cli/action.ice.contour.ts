@@ -4,7 +4,6 @@ import path from 'node:path';
 import { fsa } from '@chunkd/fs';
 import {
   CliId,
-  downloadFile,
   logger,
   registerFileSystem,
   Url,
@@ -12,14 +11,16 @@ import {
   stringToUrlFolder,
   qFromArgs,
   concurrency,
+  parquetToStac,
+  Downloader,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
-import { contourWithLandcover } from '../python.runner.ts';
+import { iceContour } from '../python.runner.ts';
 
-export const ContourWithLandcoverArgs = {
+export const IceContourArgs = {
   concurrency,
   contour: option({
     type: Url,
@@ -44,20 +45,22 @@ export const ContourWithLandcoverArgs = {
   }),
 };
 
-const topo50ContourName = 'nz_topo50_contour';
+const iceContourName = 'nztopo50_ice_contour';
 
-export const ContourWithLandcoverCommand = command({
-  name: 'contour with landcover',
-  description: 'Contour with landcover',
-  args: ContourWithLandcoverArgs,
+export const IceContourCommand = command({
+  name: 'ice contour',
+  description: 'Ice Contour',
+  args: IceContourArgs,
   async handler(args) {
     registerFileSystem();
-    logger.info({ args }, 'Prepare contour with landcover: Started');
+    logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
+    const downloader = new Downloader(args.tempLocation, q);
 
     // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);
+
     const contourParquetAsset = contourCollection.assets?.['parquet'];
     if (contourParquetAsset == null) {
       throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
@@ -70,7 +73,7 @@ export const ContourWithLandcoverCommand = command({
       throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
     }
 
-    const latestCollectionUrl = new URL(`${topo50ContourName}/latest/collection.json`, args.output);
+    const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
       if (
@@ -80,28 +83,39 @@ export const ContourWithLandcoverCommand = command({
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
         );
-        logger.info('ContourLandcover: Skip');
+        logger.info('IceContour: Skip');
         return;
       }
     }
 
-    const contourParquet = await downloadFile(new URL(contourParquetAsset.href, args.contour), args.tempLocation);
-    const landcoverParquet = await downloadFile(new URL(landcoverParquetAsset.href, args.landcover), args.tempLocation);
+    downloader.addStac(args.contour);
+    downloader.addStac(args.landcover);
+    const contourAsset = await downloader.getAsset(args.contour);
+    const landcoverAsset = await downloader.getAsset(args.landcover);
+    const contourtPath = contourAsset[0]?.linked;
+    const landcoverPath = landcoverAsset[0]?.linked;
+    if (contourtPath == null || landcoverPath == null) {
+      throw new Error('Failed to download contour or landcover assets');
+    }
 
-    const tempOutputParquet = new URL(`${topo50ContourName}.parquet`, args.tempLocation);
+    const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 
-    await contourWithLandcover(contourParquet, landcoverParquet, tempOutputParquet);
+    await iceContour(contourtPath, landcoverPath, tempOutputParquet);
 
-    const sw = new StacCollectionWriter('data', topo50ContourName);
+    const parquetStats = await parquetToStac(tempOutputParquet);
+
+    const sw = new StacCollectionWriter('data', iceContourName);
 
     sw.asset('parquet', tempOutputParquet, {
-      href: `./${topo50ContourName}.parquet`,
+      href: `./${iceContourName}.parquet`,
       type: 'application/vnd.apache.parquet',
       roles: ['data'],
+      ...parquetStats.table,
     });
 
     sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
     sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
+    sw.collection.extent = parquetStats.extent;
 
     const collections = await sw.write(rootCatalog, q);
 

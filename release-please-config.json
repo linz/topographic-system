@@ -1,7 +1,6 @@
 {
   "plugins": ["node-workspace"],
   "packages": {
-    "packages/data": {},
     "packages/kart": {
       "extra-files": [
         {
@@ -11,6 +10,7 @@
       ]
     },
     "packages/map": {},
+    "packages/schema": {},
     "packages/shared": {},
     "packages/stac": {},
     "packages/validation": {

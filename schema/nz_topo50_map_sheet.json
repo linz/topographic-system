@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nz_topo50_map_sheet",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID without braces. Unique identifier for the feature."
+    },
+    "fid": {},
+    "t50_fid": {},
+    "feature_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "nz_topo50_map_sheet"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sheet_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sheet_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "edition": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "example_class": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExampleClassEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "example_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["topo_id", "fid", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "ExampleClassEnum": {
+      "type": "string",
+      "enum": ["geographic_name", "trig_pnt"],
+      "description": "Auto-derived from observed values of `example_class`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}
