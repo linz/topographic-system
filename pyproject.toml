@@ -28,8 +28,8 @@ dev = [
     "types-setuptools",
     "types-geopandas",  # Includes types-shapely as dependency
     "types-pyyaml>=6.0.12.20260408",
-
-    ]
+    "uuid6>=2025.0.1",
+]
 
 [tool.uv.sources]
 topographic-system-qgis = { workspace = true }

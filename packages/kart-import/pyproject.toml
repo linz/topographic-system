@@ -27,8 +27,3 @@ code_location_target_module = "kart_import.definitions"
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py", "*_test.py"]
-
-[dependency-groups]
-dev = [
-    "uuid6>=2025.0.1",
-]
