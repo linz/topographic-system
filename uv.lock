@@ -17,7 +17,7 @@ resolution-markers = [
 members = [
     "topographic-system",
     "topographic-system-data-prep",
-    "topographic-system-lds-import",
+    "topographic-system-kart-import",
     "topographic-system-qgis",
     "topographic-system-validation",
 ]
@@ -2495,7 +2495,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "topographic-system-data-prep" },
-    { name = "topographic-system-lds-import" },
+    { name = "topographic-system-kart-import" },
     { name = "topographic-system-qgis" },
     { name = "topographic-system-validation" },
 ]
@@ -2515,7 +2515,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "topographic-system-data-prep", editable = "packages/data-prep" },
-    { name = "topographic-system-lds-import", editable = "packages/lds-import" },
+    { name = "topographic-system-kart-import", editable = "packages/kart-import" },
     { name = "topographic-system-qgis", editable = "packages/qgis" },
     { name = "topographic-system-validation", editable = "packages/validation" },
 ]
@@ -2560,9 +2560,9 @@ dev = [
 ]
 
 [[package]]
-name = "topographic-system-lds-import"
+name = "topographic-system-kart-import"
 version = "0.1.0"
-source = { editable = "packages/lds-import" }
+source = { editable = "packages/kart-import" }
 dependencies = [
     { name = "dagster" },
     { name = "dagster-dg-cli" },

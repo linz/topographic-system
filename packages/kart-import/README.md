@@ -9,7 +9,7 @@ Datasets are first cloned then transformed and loaded,
 using `dg` individual datasets can be cloned
 
 ```bash
-uv run dg launch --assets clone_airport_polygons
+uv run dg launch --assets clone_nz_airport_polygons
 ```
 
 or entire themes can be imported, which will clone both the NZ and Chatham Islands airports
