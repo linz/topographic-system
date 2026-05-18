@@ -5,10 +5,11 @@
   "properties": {
     "topo_id": {
       "type": "string",
-      "format": "uuid",
-      "description": "UUID without braces. Unique identifier for the feature."
+      "description": "UUID for the feature."
     },
-    "fid": {},
+    "fid": {
+      "description": "Unique identifier for the feature"
+    },
     "full_text": {
       "anyOf": [
         {
@@ -271,7 +272,7 @@
     },
     "ColourEnum": {
       "type": "string",
-      "enum": ["", "black", "steelblue"],
+      "enum": ["", "black", "steelblue", "red"],
       "description": "Auto-derived from observed values of `colour`."
     },
     "PlacementEnum": {
@@ -281,7 +282,7 @@
     },
     "TextanchorEnum": {
       "type": "string",
-      "enum": ["", "centre", "left", "left 0.62", "right"],
+      "enum": ["", "centre", "left", "left ", "left 0.62", "right"],
       "description": "Auto-derived from observed values of `textanchor`."
     },
     "CharplaceEnum": {
