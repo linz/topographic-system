@@ -10,10 +10,7 @@ def should_pull(target_dir: Path):
     """
     Limit pulls to once per day, so not to overload kart
     """
-    # Pull only once a day
-    fetch_head = target_dir / ".kart" / "FETCH_HEAD"
-    if not fetch_head.exists():
-        fetch_head = target_dir / ".git" / "FETCH_HEAD"
+    fetch_head = target_dir / ".git" / "FETCH_HEAD"
 
     if not fetch_head.exists():
         return True
@@ -32,7 +29,7 @@ def make_clone_asset(dataset_source: str):
     @asset(name=f"clone_{dataset_name}", group_name="kart")
     def _clone_asset(context: AssetExecutionContext):
         SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-        target_dir = SOURCE_DIR / dataset_source
+        target_dir = SOURCE_DIR / dataset_name
 
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
             context.log.info(f"{target_dir} already exists.")
@@ -43,11 +40,12 @@ def make_clone_asset(dataset_source: str):
                 run_command(context, cmd, cwd=str(target_dir))
         else:
             cmd = [
-                "kart",
+                "git",
                 "clone",
                 f"{dataset_source}",
                 str(target_dir),
                 "--no-checkout",
+                f"--bundle-uri={get_bundle_url(dataset_name)}",
             ]
             run_command(context, cmd)
 

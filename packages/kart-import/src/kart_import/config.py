@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 from pydantic import BaseModel, model_validator
 import yaml
+import os
 from datetime import datetime, timedelta
 
 # Paths mapped in docker-compose
@@ -23,6 +24,12 @@ LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
 
+def get_bundle_url(dataset_name: str) -> str:
+    base_url = os.getenv("GIT_BUNDLE_URI", "https://d1jzh93b1t1cv.cloudfront.net/source/")
+    return f"{base_url}{dataset_name}.bundle"
+
+def get_s3_bundle_uri() -> str:
+    return os.getenv("GIT_BUNDLE_S3_URI", "s3://linz-topography-nonprod/source/")
 
 def get_dataset_name(source: str) -> str:
     """Convert a Kart/Gtihb source name into a human friendly name"""
