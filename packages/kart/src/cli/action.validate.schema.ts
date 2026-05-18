@@ -30,7 +30,7 @@ export const ValidateSchemaCommand = command({
   },
   async handler(args) {
     const q = qFromArgs(args);
-    const ajv = new Ajv.default({ strict: false, allErrors: true });
+    const ajv = new Ajv.default({ strict: true, allErrors: true });
 
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);
