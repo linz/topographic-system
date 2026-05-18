@@ -50,7 +50,7 @@ export const ParquetCommand = command({
       type: optional(number),
       long: 'row-group-size',
       description: 'row group size for parquet files',
-      defaultValue: () => 32000,
+      defaultValue: () => 2 ** 15,
       defaultValueIsSerializable: true,
     }),
     output: option({
