@@ -29,6 +29,10 @@ The current process use the contours downloaded from LDS instance as a GPKG data
 
 ## Product (carto) Data
 
+This has been upload to kart repo (no code currently)
+
+kart clone git@github.com:linz/topographic-source-data
+
 **Topo50_carto_text_2020_09** is export directly from LAMPS
 
 Once loaded into POSTGIS step addition processing is run to add QGIS fields and update new values. Becomes nz_topo50_carto_text
@@ -36,3 +40,24 @@ Once loaded into POSTGIS step addition processing is run to add QGIS fields and 
 **dms_grid_3.gpkg** - created by North Road - used as grid on the topo50 map. Becomes nz_topo50_grid.
 
 **grid.gpkg** - created by North Road - used as grid on the topo50 map. Becomes nz_topo50_dms_grid.
+
+PURPOSE TO BE DEFINED
+
+**contour_number**
+
+**linz_bridge_cl** - ?
+
+**linz_sea_poly** - assume this is a sample as should be created dynamically
+
+**linz_road_cl** - name_id and width information
+
+**linz_highway_sh** - shield
+
+**mine_sym**
+
+**linz_carto_text**
+
+**linz_map_sheet** - is this needed? or same as LDS one
+
+**golf_sym**
+

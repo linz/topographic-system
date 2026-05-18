@@ -673,8 +673,6 @@ class ModifyTable:
             "physical_infrastructure_point",
             "physical_infrastructure_line",
             "structure",
-            "landcover",
-            "landcover_line",
             "ferry_crossing",
         ]
 
@@ -1316,7 +1314,7 @@ class TableModificationWorkflow:
                     )
 
                     remove_metadata_fields = [
-                        "capture_method", "change_type", "update_date", "create_date", "version"
+                        "capture_method", "change_type", "update_date", "create_date", "Fversion"
                     ]
                     fields = [
                         field for field in fields if field not in remove_metadata_fields
