@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
 
-from ..config import get_datasets, get_dataset_name, SOURCE_DIR
+from ..config import get_bundle_url, get_datasets, get_dataset_name, SOURCE_DIR, is_use_bundle
 from dagster import asset, AssetExecutionContext
 from ..command import run_command
 
@@ -45,8 +45,10 @@ def make_clone_asset(dataset_source: str):
                 f"{dataset_source}",
                 str(target_dir),
                 "--no-checkout",
-                f"--bundle-uri={get_bundle_url(dataset_name)}",
             ]
+
+            if is_use_bundle():
+                cmd.append(f"--bundle-uri={get_bundle_url(dataset_name)}")
             run_command(context, cmd)
 
         return str(target_dir)

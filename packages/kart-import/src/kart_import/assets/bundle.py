@@ -4,7 +4,6 @@ import time
 from ..config import get_datasets, get_dataset_name, SOURCE_DIR, get_bundle_url, get_s3_bundle_uri
 from dagster import asset, AssetExecutionContext
 from ..command import run_command
-import obstore as obs
 
 import urllib.request
 import urllib.error
@@ -94,18 +93,20 @@ def make_bundle_asset(dataset_source: str):
         head_sha = run_command(context, head_cmd).strip()
         sidecar_path.write_text(head_sha)
 
-        # Upload to S3 via obstore
+        # Upload to S3 via aws s3 cp
         s3_uri = get_s3_bundle_uri()
+        if not s3_uri.endswith("/"):
+            s3_uri += "/"
         context.log.info(f"Uploading bundle and head file to {s3_uri}...")
-        store = obs.store.from_url(s3_uri)
         
-        # Stream the bundle file so we don't load the whole file into memory
-        with obs.open_writer(store, f"{dataset_name}.bundle") as writer:
-            with open(bundle_path, "rb") as f:
-                while chunk := f.read(8 * 1024 * 1024):
-                    writer.write(chunk)
-                    
-        obs.put(store, f"{dataset_name}.bundle.head", sidecar_path.read_bytes())
+        # Copy the bundle file
+        aws_cp_bundle = ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"]
+        run_command(context, aws_cp_bundle)
+        
+        # Copy the head file
+        aws_cp_head = ["aws", "s3", "cp", str(sidecar_path), f"{s3_uri}{dataset_name}.bundle.head"]
+        run_command(context, aws_cp_head)
+        
         context.log.info(f"Successfully uploaded {dataset_name}.bundle and {dataset_name}.bundle.head")
 
         return str(bundle_path)

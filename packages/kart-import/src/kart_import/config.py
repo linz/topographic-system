@@ -24,6 +24,9 @@ LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
 
+def is_use_bundle() -> bool:
+    return os.getenv("GIT_BUNDLE", "true").lower() == "true"
+
 def get_bundle_url(dataset_name: str) -> str:
     base_url = os.getenv("GIT_BUNDLE_URI", "https://d1jzh93b1t1cv.cloudfront.net/source/")
     return f"{base_url}{dataset_name}.bundle"
