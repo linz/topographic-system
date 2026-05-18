@@ -9,6 +9,7 @@ RUN uv sync --directory /packages/data-prep
 
 COPY packages/kart/dist/ /app/
 
+# TODO: In future, this may want to live in https/s3/somewhere publicly accessible
 # Copy manually created test schema
 COPY e2e/assets/test*json /schema/
 # Copy tsp emitted json schema
