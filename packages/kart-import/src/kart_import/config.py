@@ -32,7 +32,10 @@ def get_bundle_url(dataset_name: str) -> str:
     return f"{base_url}{dataset_name}.bundle"
 
 def get_s3_bundle_uri() -> str:
-    return os.getenv("GIT_BUNDLE_S3_URI", "s3://linz-topography-nonprod/source/")
+    s3_uri = os.getenv("GIT_BUNDLE_S3_URI", "s3://linz-topography-nonprod/source/")
+    if not s3_uri.endswith("/"):
+        s3_uri += "/"
+    return s3_uri
 
 def get_dataset_name(source: str) -> str:
     """Convert a Kart/Gtihb source name into a human friendly name"""

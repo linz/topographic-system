@@ -2,7 +2,7 @@ from pathlib import Path
 import time
 
 from ..config import get_bundle_url, get_datasets, get_dataset_name, SOURCE_DIR, is_use_bundle
-from dagster import asset, AssetExecutionContext
+from dagster import asset, AssetExecutionContext, MaterializeResult, MetadataValue
 from ..command import run_command
 
 
@@ -51,9 +51,23 @@ def make_clone_asset(dataset_source: str):
                 cmd.append(f"--bundle-uri={get_bundle_url(dataset_name)}")
             run_command(context, cmd)
 
-        return str(target_dir)
+        return MaterializeResult(
+            metadata={
+                "location": MetadataValue.path(str(target_dir)),
+            }
+        )
 
     return _clone_asset
 
 
 clone_assets = [make_clone_asset(t) for t in get_datasets()]
+
+@asset(deps=clone_assets)
+def clone_all(context: AssetExecutionContext):
+    """Wait for all clone assets to be created and checked."""
+    context.log.info("All clones successfully processed.")
+    return MaterializeResult(
+        metadata={
+            "status": MetadataValue.text("ok")
+        }
+    )

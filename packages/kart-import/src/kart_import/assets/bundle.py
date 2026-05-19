@@ -2,7 +2,7 @@ from pathlib import Path
 import time
 
 from ..config import get_datasets, get_dataset_name, SOURCE_DIR, get_bundle_url, get_s3_bundle_uri
-from dagster import asset, AssetExecutionContext
+from dagster import asset, AssetExecutionContext, MaterializeResult, MetadataValue
 from ..command import run_command
 
 import urllib.request
@@ -31,13 +31,46 @@ def should_pull(target_dir: Path):
     return True
 
 def fetch_bundle_head(dataset_name: str) -> str:
-    remote_head_url = get_bundle_url(dataset_name) + ".head"
+    """
+    git bundles start with the ref list in plain text followed by the pack files
+
+    Extract the current HEAD sha if it exists from the first 128KB of the bundle
+    """
+    remote_bundle_url = get_bundle_url(dataset_name)
     try:
-        req = urllib.request.Request(remote_head_url)
+        req = urllib.request.Request(
+            remote_bundle_url,
+            headers={"Range": "bytes=0-131071"}
+        )
         with urllib.request.urlopen(req) as response:
-            return response.read().decode("utf-8").strip()
+            data = response.read(131072)
     except urllib.error.URLError:
         return None
+
+    lines = []
+    for line_bytes in data.split(b"\n"):
+        line_bytes = line_bytes.rstrip(b"\r")
+        if not line_bytes:
+            break
+        try:
+            line = line_bytes.decode("utf-8")
+            lines.append(line)
+        except UnicodeDecodeError:
+            break
+
+    refs = {}
+    for line in lines:
+        if line.startswith("#") or line.startswith("-") or line.startswith("@"):
+            continue
+        parts = line.split()
+        if len(parts) >= 2:
+            sha, ref = parts[0], parts[1]
+            refs[ref] = sha
+
+    if "HEAD" in refs:
+        return refs["HEAD"]
+
+    raise Exception(f"No HEAD found in bundle refs for {dataset_name}")
 
 
 def make_bundle_asset(dataset_source: str):
@@ -49,7 +82,6 @@ def make_bundle_asset(dataset_source: str):
         SOURCE_DIR.mkdir(parents=True, exist_ok=True)
         target_dir = SOURCE_DIR / dataset_name
         bundle_path = SOURCE_DIR / f"{dataset_name}.bundle"
-        sidecar_path = SOURCE_DIR / f"{dataset_name}.bundle.head"
 
         bundle_head = fetch_bundle_head(dataset_name)
 
@@ -61,7 +93,12 @@ def make_bundle_asset(dataset_source: str):
 
             if source_head_sha == bundle_head:
                 context.log.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
-                return None
+                return MaterializeResult(
+                    metadata={
+                        "skipped": MetadataValue.bool(True),
+                        "head_sha": MetadataValue.text(source_head_sha),
+                    }
+                )
 
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
             if should_pull(target_dir):
@@ -89,27 +126,22 @@ def make_bundle_asset(dataset_source: str):
         ]
         run_command(context, cmd)
 
-        head_cmd = ["git", "-C", str(target_dir), "rev-parse", "HEAD"]
-        head_sha = run_command(context, head_cmd).strip()
-        sidecar_path.write_text(head_sha)
-
         # Upload to S3 via aws s3 cp
         s3_uri = get_s3_bundle_uri()
         if not s3_uri.endswith("/"):
             s3_uri += "/"
-        context.log.info(f"Uploading bundle and head file to {s3_uri}...")
-        
-        # Copy the bundle file
+
+        context.log.info(f"Uploading bundle to {s3_uri}...")
         aws_cp_bundle = ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"]
         run_command(context, aws_cp_bundle)
         
-        # Copy the head file
-        aws_cp_head = ["aws", "s3", "cp", str(sidecar_path), f"{s3_uri}{dataset_name}.bundle.head"]
-        run_command(context, aws_cp_head)
-        
-        context.log.info(f"Successfully uploaded {dataset_name}.bundle and {dataset_name}.bundle.head")
+        context.log.info(f"Successfully uploaded {dataset_name}.bundle")
 
-        return str(bundle_path)
+        return MaterializeResult(
+            metadata={
+                "head_sha": MetadataValue.text(head_sha),
+            }
+        )
 
     return _bundle_asset
 
@@ -120,3 +152,8 @@ bundle_assets = [make_bundle_asset(t) for t in get_datasets()]
 def bundle_all(context: AssetExecutionContext):
     """Wait for all bundle assets to be created and checked."""
     context.log.info("All bundles successfully processed.")
+    return MaterializeResult(
+        metadata={
+            "status": MetadataValue.text("ok")
+        }
+    )
