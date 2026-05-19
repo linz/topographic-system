@@ -50,7 +50,7 @@ export const ParquetCommand = command({
       type: optional(number),
       long: 'row-group-size',
       description: 'row group size for parquet files',
-      defaultValue: () => 4096,
+      defaultValue: () => 2 ** 15,
       defaultValueIsSerializable: true,
     }),
     output: option({
@@ -114,7 +114,7 @@ export const ParquetCommand = command({
         ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
         ['-lco', 'WRITE_COVERING_BBOX=YES'],
         ['-lco', 'COVERING_BBOX_NAME=bbox'],
-        ['-a_srs', 'epsg:4326'],
+        ['-a_srs', 'epsg:4167'],
       ];
       if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
       await $`${command.flat()}`;

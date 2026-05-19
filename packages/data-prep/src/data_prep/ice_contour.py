@@ -98,7 +98,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     _contour_chunks = None
 
     overlay_gdf = gpd.GeoDataFrame(pd.concat(results, ignore_index=True))
-    overlay_gdf = overlay_gdf.set_crs(epsg=4326, allow_override=True)
+    overlay_gdf = overlay_gdf.set_crs(epsg=4167, allow_override=True)
 
     write_parquet(overlay_gdf, overlay_path)
 
