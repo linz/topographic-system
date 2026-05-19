@@ -1,7 +1,13 @@
 from pathlib import Path
 import time
 
-from ..config import get_datasets, get_dataset_name, SOURCE_DIR, get_bundle_url, get_s3_bundle_uri
+from ..config import (
+    get_datasets,
+    get_dataset_name,
+    SOURCE_DIR,
+    get_bundle_url,
+    get_s3_bundle_uri,
+)
 from dagster import asset, AssetExecutionContext, MaterializeResult, MetadataValue
 from ..command import run_command
 
@@ -12,6 +18,7 @@ import urllib.error
 Take datasets from the linz data service, bundle them into a git .bundle
 then store them into AWS S3 for fast access
 """
+
 
 def should_pull(target_dir: Path):
     """
@@ -30,6 +37,7 @@ def should_pull(target_dir: Path):
 
     return True
 
+
 def fetch_bundle_head(dataset_name: str) -> str:
     """
     git bundles start with the ref list in plain text followed by the pack files
@@ -39,8 +47,7 @@ def fetch_bundle_head(dataset_name: str) -> str:
     remote_bundle_url = get_bundle_url(dataset_name)
     try:
         req = urllib.request.Request(
-            remote_bundle_url,
-            headers={"Range": "bytes=0-131071"}
+            remote_bundle_url, headers={"Range": "bytes=0-131071"}
         )
         with urllib.request.urlopen(req) as response:
             data = response.read(131072)
@@ -92,7 +99,9 @@ def make_bundle_asset(dataset_source: str):
             source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
 
             if source_head_sha == bundle_head:
-                context.log.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
+                context.log.info(
+                    f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle."
+                )
                 return MaterializeResult(
                     metadata={
                         "skipped": MetadataValue.bool(True),
@@ -126,15 +135,23 @@ def make_bundle_asset(dataset_source: str):
         ]
         run_command(context, cmd)
 
-        head_sha = run_command(context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
+        head_sha = run_command(
+            context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)
+        ).strip()
 
         # Upload to S3 via aws s3 cp
         s3_uri = get_s3_bundle_uri()
 
         context.log.info(f"Uploading bundle to {s3_uri}...")
-        aws_cp_bundle = ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"]
+        aws_cp_bundle = [
+            "aws",
+            "s3",
+            "cp",
+            str(bundle_path),
+            f"{s3_uri}{dataset_name}.bundle",
+        ]
         run_command(context, aws_cp_bundle)
-        
+
         context.log.info(f"Successfully uploaded {dataset_name}.bundle")
 
         return MaterializeResult(
@@ -148,12 +165,9 @@ def make_bundle_asset(dataset_source: str):
 
 bundle_assets = [make_bundle_asset(t) for t in get_datasets()]
 
+
 @asset(deps=bundle_assets)
 def bundle_all(context: AssetExecutionContext):
     """Wait for all bundle assets to be created and checked."""
     context.log.info("All bundles successfully processed.")
-    return MaterializeResult(
-        metadata={
-            "status": MetadataValue.text("ok")
-        }
-    )
+    return MaterializeResult(metadata={"status": MetadataValue.text("ok")})
