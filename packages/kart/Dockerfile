@@ -9,6 +9,12 @@ RUN uv sync --directory /packages/data-prep
 
 COPY packages/kart/dist/ /app/
 
+# TODO: In future, this may want to live in https/s3/somewhere publicly accessible
+# Copy manually created test schema
+COPY e2e/assets/test*json /schema/
+# Copy tsp emitted json schema
+COPY schema /schema
+
 WORKDIR /tmp/kart
 
 # Disabling kart helper to avoid a bug with handling empty environment variables when running in CI environments in kart v0.17.0
