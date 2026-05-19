@@ -5,10 +5,11 @@
   "properties": {
     "topo_id": {
       "type": "string",
-      "format": "uuid",
-      "description": "UUID without braces. Unique identifier for the feature."
+      "description": "UUID for the feature."
     },
-    "fid": {},
+    "fid": {
+      "description": "Unique identifier for the feature"
+    },
     "direction": {
       "anyOf": [
         {

@@ -19,6 +19,7 @@ enum CaptureMethod {
 /** Lifecycle change type for a feature row. */
 enum ChangeType {
   New: "new",
+  Update: "update", // TODO: needs to be removed from source data and replaced with more specific update types (see below)
   ModifiedAttributes: "modified attributes",
   ModifiedGeometry: "modified geometry",
   ModifiedGeometryAndAttributes: "modified geometry and attributes",
@@ -52,6 +53,7 @@ enum ColourEnum {
   _: "",
   Black: "black",
   Steelblue: "steelblue",
+  Red: "red",
 }
 
 /** Auto-derived from observed values of `composition`. */
@@ -317,6 +319,7 @@ enum TextanchorEnum {
   _: "",
   Centre: "centre",
   Left: "left",
+  LeftWithSpace: "left ",  // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
   Left062: "left 0.62",
   Right: "right",
 }
@@ -411,10 +414,10 @@ model BBox {
 /** Identity columns shared by every file in the dataset. */
 @jsonSchema
 model TopoIdentity {
-  /** UUID without braces. Unique identifier for the feature. */
-  @format("uuid")
+  /** UUID for the feature. */
   topo_id: string;
-  fid: unknown /* int64; hyparquet returns BigInt */;
+  /** Unique identifier for the feature */
+  fid: unknown;
 }
 
 /** Capture / change-tracking columns shared by most features. */
@@ -424,11 +427,10 @@ model AuditFields {
   capture_method: CaptureMethod = CaptureMethod.Manual;
   /** What kind of change this row represents. */
   change_type: ChangeType = ChangeType.New;
-  /** Must be on or after create_date. Default at write time: today. */
-  @extension("formatMinimum", #{ `$data`: "1/create_date" })
-  update_date: plainDate;
+  /** Should be on or after create_date. */
+  update_date: {};
   /** Default at write time: today. */
-  create_date: plainDate;
+  create_date: {};
   /** Lifecycle counter; increments on each update. */
   @minValue(1)
   version: int32 = 1;

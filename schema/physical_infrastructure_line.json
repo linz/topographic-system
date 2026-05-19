@@ -5,10 +5,11 @@
   "properties": {
     "topo_id": {
       "type": "string",
-      "format": "uuid",
-      "description": "UUID without braces. Unique identifier for the feature."
+      "description": "UUID for the feature."
     },
-    "fid": {},
+    "fid": {
+      "description": "Unique identifier for the feature"
+    },
     "capture_method": {
       "$ref": "#/$defs/CaptureMethod",
       "default": "manual",
@@ -20,16 +21,13 @@
       "description": "What kind of change this row represents."
     },
     "update_date": {
-      "type": "string",
-      "format": "date",
-      "description": "Must be on or after create_date. Default at write time: today.",
-      "formatMinimum": {
-        "$data": "1/create_date"
-      }
+      "type": "object",
+      "properties": {},
+      "description": "Should be on or after create_date."
     },
     "create_date": {
-      "type": "string",
-      "format": "date",
+      "type": "object",
+      "properties": {},
       "description": "Default at write time: today."
     },
     "version": {
@@ -137,7 +135,7 @@
     },
     "ChangeType": {
       "type": "string",
-      "enum": ["new", "modified attributes", "modified geometry", "modified geometry and attributes"],
+      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
       "description": "Lifecycle change type for a feature row."
     },
     "InfrastructureUseEnum": {
