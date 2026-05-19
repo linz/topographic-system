@@ -41,8 +41,6 @@ jobs:
       - name: Setup Otel
         uses: linz/action-otel@master
 
-      - uses: actions/checkout@v4
-
       - name: Check versions
         run: |
           node --version
