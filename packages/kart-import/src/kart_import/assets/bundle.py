@@ -126,10 +126,10 @@ def make_bundle_asset(dataset_source: str):
         ]
         run_command(context, cmd)
 
+        head_sha = run_command(context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
+
         # Upload to S3 via aws s3 cp
         s3_uri = get_s3_bundle_uri()
-        if not s3_uri.endswith("/"):
-            s3_uri += "/"
 
         context.log.info(f"Uploading bundle to {s3_uri}...")
         aws_cp_bundle = ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"]
