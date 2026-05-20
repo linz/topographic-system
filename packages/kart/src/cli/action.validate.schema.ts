@@ -4,8 +4,9 @@ import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, Url } from '@linzjs/topographic-system-shared';
 import type { SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
-import { command, option, restPositionals } from 'cmd-ts';
+import { command, flag, option, restPositionals } from 'cmd-ts';
 import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet';
+import { DEFAULT_PARSERS } from 'hyparquet/src/convert.js';
 import yaml from 'js-yaml';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
@@ -15,6 +16,14 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
     return yaml.load(String(content)) as SchemaObject;
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
+
+// Prevent WKB's from being decoded as geometry objects,
+// as it takes a very long time for large geometries
+const ParserNoGeo: typeof DEFAULT_PARSERS = {
+  ...DEFAULT_PARSERS,
+  geometryFromBytes: (bytes) => bytes,
+  geographyFromBytes: (bytes) => bytes,
+};
 
 export const ValidateSchemaCommand = command({
   name: 'validate-schema',
@@ -27,6 +36,12 @@ export const ValidateSchemaCommand = command({
       displayName: 'paths',
       description: 'Paths to parquet file(s) to validate against the schema',
     }),
+    decodeGeometry: flag({
+      long: 'decode-geometry',
+      description: 'Whether to decode geometry columns',
+      defaultValue: () => false,
+      defaultValueIsSerializable: true,
+    }),
   },
   async handler(args) {
     const q = qFromArgs(args);
@@ -34,7 +49,6 @@ export const ValidateSchemaCommand = command({
 
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);
-
     await qMapAll(q, args.paths, async (path) => {
       const source = fsa.source(path);
       const head = await fsa.head(path);
@@ -46,7 +60,6 @@ export const ValidateSchemaCommand = command({
         },
       };
       const metadata = await parquetMetadataAsync(asyncBuffer);
-
       const startTime = performance.now();
       const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
 
@@ -62,6 +75,8 @@ export const ValidateSchemaCommand = command({
           compressors: { ZSTD },
           rowStart,
           rowEnd,
+          parsers: args.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo,
+          geoparquet: args.decodeGeometry,
         });
 
         const errorSummary = new Map<string, number>();

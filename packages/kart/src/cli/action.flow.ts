@@ -85,6 +85,7 @@ async function runSchemaValidationStep(args: {
       await ValidateSchemaCommand.handler({
         concurrency: args.concurrency,
         schema: schemaPath,
+        decodeGeometry: false,
         paths: [parquetFile],
       });
     } catch (err) {
