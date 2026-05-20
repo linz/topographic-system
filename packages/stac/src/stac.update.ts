@@ -4,6 +4,7 @@ import { qMapAll } from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
+import { CacheControl } from './cache.ts';
 import { StacIs } from './geo.ts';
 import type { StacFileChecksum } from './hash.writer.ts';
 import { HashWriter } from './hash.writer.ts';
@@ -23,12 +24,6 @@ function isFileStatsSame(x: StacFileChecksum, y: StacFileChecksum): boolean {
   if (x['file:checksum'] !== y['file:checksum']) return false;
   if (x['file:size'] !== y['file:size']) return false;
   return true;
-}
-
-export const CacheControl ={
-  StacJson: 'public, max-age=300, stale-while-revalidate=86400',
-  Asset: 'public, max-age=31536000, immutable',
-  AssetMutable: 'public, max-age=300, stale-while-revalidate=86400',
 }
 
 export const StacUpdater = {
