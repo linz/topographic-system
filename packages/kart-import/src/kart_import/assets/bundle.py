@@ -38,7 +38,7 @@ def should_pull(target_dir: Path):
     return True
 
 
-def fetch_bundle_head(dataset_name: str) -> str:
+def fetch_bundle_head(dataset_name: str) -> str | None:
     """
     git bundles start with the ref list in plain text followed by the pack files
 
