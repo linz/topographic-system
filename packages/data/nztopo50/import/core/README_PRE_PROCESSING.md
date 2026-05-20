@@ -27,7 +27,7 @@ If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mai
 
 ## LINZ MAP SHEET
 
-This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder.
+This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder. It is processed as part of the core and copied into the carto schema in the postgis_manage_fields script.
 
 ## ISLANDS POLYGONS
 
