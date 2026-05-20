@@ -9,6 +9,8 @@ from qgis.core import (
     QgsLayoutExporter,
     QgsLayoutItemMap,
     QgsProject,
+    QgsExpressionContextUtils,
+    QgsFeatureRequest,
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 
@@ -69,6 +71,23 @@ for feature in topo_sheet_layer.getFeatures():
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
+
+    example_point_id = feature["example_point_id"]
+    # TODO might not always be a trig point
+    example_point_layer = QgsProject.instance().mapLayersByName("trig_point")[0]
+    example_point_feature = example_point_layer.getFeatures(
+        QgsFeatureRequest().setFilterExpression(f'"t50_fid" = {example_point_id}')
+    )
+    example_point_geom = example_point_feature.geometry()
+    example_point_geom.transform(
+        QgsCoordinateTransform(
+            example_point_layer.crs(), map_crs, QgsProject.instance()
+        )
+    )
+    QgsExpressionContextUtils.setLayoutVariable(
+        layout, "layout_example_x", example_point_geom.asPoint().x()
+    )
+
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
