@@ -25,6 +25,12 @@ function isFileStatsSame(x: StacFileChecksum, y: StacFileChecksum): boolean {
   return true;
 }
 
+export const CacheControl ={
+  StacJson: 'public, max-age=300, stale-while-revalidate=86400',
+  Asset: 'public, max-age=31536000, immutable',
+  AssetMutable: 'public, max-age=300, stale-while-revalidate=86400',
+}
+
 export const StacUpdater = {
   /**
    * Update all collection links to the items with the file:checksum and file:size properties
@@ -192,7 +198,7 @@ export const StacUpdater = {
       const ret = cb(source == null ? null : JSON.parse(String(source)));
       if (ret == null) return;
 
-      const flags: WriteOptions = { contentType: 'application/json' };
+      const flags: WriteOptions = { contentType: 'application/json', cacheControl: CacheControl.StacJson };
       if (StacIs.item(ret)) flags.contentType = 'application/geo+json';
 
       if (source == null) flags.ifNoneMatch = '*';

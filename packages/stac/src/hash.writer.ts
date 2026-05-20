@@ -4,6 +4,14 @@ import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import type { StacAsset, StacLink } from 'stac-ts';
+import { CacheControl } from './stac.update.ts';
+
+function getAssetCacheControl(target: URL): string {
+  if (target.pathname.endsWith('.json')) return CacheControl.StacJson;
+  if (target.pathname.includes('/latest/')) return CacheControl.AssetMutable;
+  if (target.pathname.includes('/next/')) return CacheControl.AssetMutable;
+  return CacheControl.Asset;
+}
 
 export interface StacFileChecksum {
   'file:checksum': string;
@@ -16,8 +24,10 @@ export const HashWriter = {
     return HashWriter.file(target, source, obj);
   },
 
-  async writeStac(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer | URL) {
-    const stats = await HashWriter.write(target, buffer, { contentType: asset.type });
+  async writeStac(asset: StacAsset | StacLink, target: URL, buffer: string | Buffer | URL, flags?: WriteOptions): Promise<void> {
+    const writeFlags = { contentType: asset.type, ...flags };
+    if(writeFlags.cacheControl == null) writeFlags.cacheControl = getAssetCacheControl(target);
+    const stats = await HashWriter.write(target, buffer, writeFlags);
     asset['file:checksum'] = stats['file:checksum'];
     asset['file:size'] = stats['file:size'];
   },

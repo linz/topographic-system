@@ -7,6 +7,7 @@ import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
 import { getRelativePath } from './stac.paths.ts';
 import type { StacStorageCategory } from './stac.storage.ts';
+import { CacheControl } from './stac.update.ts';
 const StacSource = Symbol('stac.source');
 
 function getSource(x: unknown): URL | Buffer | string | null {
@@ -100,7 +101,7 @@ export class StacCollectionWriter {
           const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
           if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
-          await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
+          await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2), {cacheControl: CacheControl.StacJson });
         });
       }),
     );
