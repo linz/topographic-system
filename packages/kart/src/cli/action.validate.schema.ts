@@ -17,7 +17,7 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
 
-// Prevent WKB's from being decoded as geometry objects, 
+// Prevent WKB's from being decoded as geometry objects,
 // as it takes a very long time for large geometries
 const ParserNoGeo: typeof DEFAULT_PARSERS = {
   ...DEFAULT_PARSERS,
@@ -75,7 +75,7 @@ export const ValidateSchemaCommand = command({
           compressors: { ZSTD },
           rowStart,
           rowEnd,
-          parsers: args.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo, // Don't decode geometry if flag is not set, to avoid errors if parquet contains GeoParquet data but schema doesn't expect it
+          parsers: args.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo,
           geoparquet: args.decodeGeometry,
         });
 
