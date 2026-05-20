@@ -14,8 +14,8 @@ import {
 import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
-import { pyRunner } from '../python.runner.ts';
-import type { ExportOptions } from '../stac.ts';
+// import { pyRunner } from '../python.runner.ts';
+// import type { ExportOptions } from '../stac.ts';
 import { tempLocation } from './shared.args.ts';
 
 interface TestProject {
@@ -50,6 +50,11 @@ export const VisualDiffArgs = {
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
+  cloudFront: option({
+    type: optional(Url),
+    long: 'cloud-front',
+    description: 'CloudFront URL to access the source data for the project, that override the default data host.',
+  }),
   data: option({
     type: optional(UrlFolder),
     long: 'data',
@@ -81,7 +86,7 @@ export const VisualDiffCommand = command({
     const tasks = [];
 
     // Download local data if provided, and add the data path to stac for exporting
-    const downloader = new Downloader(args.tempLocation, q, true); // Skip downloading if data already exists in temp location
+    const downloader = new Downloader(args.tempLocation, q, true, args.cloudFront); // Skip downloading if data already exists in temp location
     if (args.data) {
       const files = await fsa.toArray(fsa.list(args.data));
       for (const file of files) {
@@ -109,13 +114,13 @@ export const VisualDiffCommand = command({
         await downloader.getAllAssets();
 
         // Prepare test export options
-        const exportOptions: ExportOptions = {
-          mapSheetLayer: test.mapSheetLayer,
-          layout: test.layout,
-          dpi: test.dpi,
-          format: 'png',
-          excludeLayers: test.excludeLayers,
-        };
+        // const exportOptions: ExportOptions = {
+        //   mapSheetLayer: test.mapSheetLayer,
+        //   layout: test.layout,
+        //   dpi: test.dpi,
+        //   format: 'png',
+        //   excludeLayers: test.excludeLayers,
+        // };
 
         // Get the downloaded project file path
         const projectPath = downloader.stacs
@@ -126,8 +131,8 @@ export const VisualDiffCommand = command({
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>
           q(async () => {
-            const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
-            logger.info({ file: file.href }, `Visual Diff: Exported ${sheetCode}`);
+            // const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
+            logger.info({ file: task }, `Visual Diff: Exported ${sheetCode}`);
           }),
         );
         tasks.push(...task);

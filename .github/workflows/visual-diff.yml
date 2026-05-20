@@ -59,6 +59,7 @@ jobs:
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
+          --cloud-front ${{ inputs.environment == 'nonprod' && 'https://d1jzh93b1t1cv.cloudfront.net/' || 'https://d2h9vml0if6bs.cloudfront.net/' }} \
           ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
 
       - name: Save snapshots

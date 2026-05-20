@@ -48,13 +48,25 @@ export class Downloader {
   target: URL;
   /** Skip if linked path already exists */
   skip: boolean;
+  /** Optional host URL to replace the original host in the stac links, useful for cloudfront URL for s3 objects */
+  host?: URL;
 
-  constructor(target: URL, q: LimitFunction, skip = false) {
+  constructor(target: URL, q: LimitFunction, skip = false, host?: URL) {
     this.q = q;
     this.stacs = new Map<string, SourceStac>();
     this.cache = new Map<string, SourceAsset>();
     this.target = target;
     this.skip = skip;
+    this.host = host;
+  }
+
+  /** Replace S3-hosted URLs with configured host URL (eg CloudFront). */
+  replaceHost(url: URL): URL {
+    if (this.host == null) return url;
+    if (url.protocol !== 's3:') return url;
+    const newUrl = new URL(url.pathname, this.host);
+    logger.debug({ url: url.href, host: this.host.href, newUrl: newUrl.href }, 'Downloader: Replace host in URL');
+    return newUrl;
   }
 
   /** Add an asset URL to the download list */
@@ -128,6 +140,7 @@ export class Downloader {
     const startTime = performance.now();
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
     try {
+      let downloadUrl = this.replaceHost(url);
       const hashedFilename = sha256base58(Buffer.from(url.href)) + extname(url.href);
       const downloadFile = new URL(hashedFilename, this.target);
       const linkedPath = new URL(basename(url.pathname), this.target);
@@ -141,11 +154,19 @@ export class Downloader {
         return { ...existing, url };
       }
 
-      const stats = await fsa.head(url);
+      let stats = await fsa.head(downloadUrl);
+      if (stats == null && downloadUrl.href !== url.href) {
+        logger.warn(
+          { downloadUrl: downloadUrl.href, fallbackUrl: url.href },
+          'DownloadFile: Download URL not found, falling back to original S3 URL',
+        );
+        downloadUrl = url;
+        stats = await fsa.head(downloadUrl);
+      }
       if (stats == null) throw new Error(`Unable to access file at url: ${url.href}`);
 
       const fileHash = new HashTransform('sha256');
-      const stream = fsa.readStream(url).pipe(fileHash);
+      const stream = fsa.readStream(downloadUrl).pipe(fileHash);
       const meta: WriteOptions = {};
       if (url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
       await fsa.write(downloadFile, stream, meta);
