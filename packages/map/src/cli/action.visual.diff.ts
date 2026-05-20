@@ -14,8 +14,8 @@ import {
 import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
-// import { pyRunner } from '../python.runner.ts';
-// import type { ExportOptions } from '../stac.ts';
+import { pyRunner } from '../python.runner.ts';
+import type { ExportOptions } from '../stac.ts';
 import { tempLocation } from './shared.args.ts';
 
 interface TestProject {
@@ -114,13 +114,13 @@ export const VisualDiffCommand = command({
         await downloader.getAllAssets();
 
         // Prepare test export options
-        // const exportOptions: ExportOptions = {
-        //   mapSheetLayer: test.mapSheetLayer,
-        //   layout: test.layout,
-        //   dpi: test.dpi,
-        //   format: 'png',
-        //   excludeLayers: test.excludeLayers,
-        // };
+        const exportOptions: ExportOptions = {
+          mapSheetLayer: test.mapSheetLayer,
+          layout: test.layout,
+          dpi: test.dpi,
+          format: 'png',
+          excludeLayers: test.excludeLayers,
+        };
 
         // Get the downloaded project file path
         const projectPath = downloader.stacs
@@ -131,8 +131,8 @@ export const VisualDiffCommand = command({
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>
           q(async () => {
-            // const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
-            logger.info({ file: task }, `Visual Diff: Exported ${sheetCode}`);
+            const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
+            logger.info({ file: file.href }, `Visual Diff: Exported ${sheetCode}`);
           }),
         );
         tasks.push(...task);
