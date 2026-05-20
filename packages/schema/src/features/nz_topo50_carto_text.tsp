@@ -13,6 +13,7 @@ model nz_topo50_carto_text {
   text_colour?: int32 | null;
   text_font?: Topo.TextFontEnum | null;
   text_height?: float64 | null;
+  text_orientation?: float64 | null;
   text_placement?: int32 | null;
   text_size_type?: int32 | null;
   text_stretch_length?: int32 | null;
