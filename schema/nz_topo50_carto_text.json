@@ -76,6 +76,16 @@
         }
       ]
     },
+    "text_orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "text_placement": {
       "anyOf": [
         {
