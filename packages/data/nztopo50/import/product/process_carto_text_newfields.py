@@ -405,9 +405,9 @@ class CartoTextProcessor:
             )
 
             # Export processed sections to CSV
-            output_file = os.path.join(self.logs_csv_folder, "formatted_rows.csv")
+            output_file = os.path.join(self.logs_csv_folder, "full_layers_processed.csv")
             formatted_rows.to_csv(output_file, index=False)
-            self.logger.info(f"Exported formatted_rows to {output_file}")
+            self.logger.info(f"Exported full layers to {output_file}")
 
             return output_file
 
@@ -1267,10 +1267,10 @@ if __name__ == "__main__":
     product_database = "topographic-product-data.gpkg"
     logs_csv_folder = r"C:\temp\carto"
 
-    #  source_carto_text_folder = r"C:\Data\toposource\topographic-product-data"
-    #  source_product_database = "topographic-product-data.gpkg" 
-    source_carto_text_folder = r"C:\Data\toposource\carto_text"
-    source_product_database = "carto_text.gpkg"
+    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data"
+    source_product_database = "topographic-product-data.gpkg" 
+    # source_carto_text_folder = r"C:\Data\toposource\carto_text"
+    # source_product_database = "carto_text.gpkg"
 
 
 

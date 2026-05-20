@@ -36,17 +36,17 @@ if 'gpkg' in source:
 else:
     gdf = gpd.read_file(input_file, engine="pyogrio")
 
-#  'full_text': string
+#  'full_text': string 100
 #  'text_bend': int
 #  'text_char_spacing_distance': float
 #  'text_colour': int
-#  'text_font': string
+#  'text_font': string 50
 #  'text_height': float (round 4 decimal places)
 #  'text_orientation': float (round 2 decimal places)
 #  'text_placement': int
 #  'text_size_type': int
 #  'text_stretch_length': float
-#  'text_string': string
+#  'text_string': string 100
 #  'text_word_spacing_distance': float
 
 # Rename shape fields as needed
