@@ -14,6 +14,7 @@ export interface StacFileChecksum {
 
 export const HashWriter = {
   async write(target: URL, source: URL | string | Buffer, obj: WriteOptions): Promise<StacFileChecksum> {
+    if (obj.cacheControl == null) obj.cacheControl = getAssetCacheControl(target);
     if (source instanceof URL) return HashWriter.stream(target, source, obj);
     return HashWriter.file(target, source, obj);
   },
@@ -24,9 +25,7 @@ export const HashWriter = {
     buffer: string | Buffer | URL,
     flags?: WriteOptions,
   ): Promise<void> {
-    const writeFlags = { contentType: asset.type, ...flags };
-    if (writeFlags.cacheControl == null) writeFlags.cacheControl = getAssetCacheControl(target);
-    const stats = await HashWriter.write(target, buffer, writeFlags);
+    const stats = await HashWriter.write(target, buffer, { contentType: asset.type, ...flags });
     asset['file:checksum'] = stats['file:checksum'];
     asset['file:size'] = stats['file:size'];
   },
