@@ -1,5 +1,6 @@
-import time
 import json
+import time
+
 from topographic_validation.factory import TopologyValidatorFactory
 from topographic_validation.tools import TopoValidatorSettings, TopoValidatorTools
 
@@ -37,9 +38,9 @@ class ValidateDatasetController:
 
     def build_where_statement(self, active_dict: dict) -> str | None:
         # CHANGE TO SETTINGS
-        where = active_dict.get("where", None)
-        date = active_dict.get("date", None)
-        weeks = active_dict.get("weeks", None)
+        where = active_dict.get("where")
+        date = active_dict.get("date")
+        weeks = active_dict.get("weeks")
         datetool = TopoValidatorTools()
 
         if date is not None:
@@ -82,9 +83,7 @@ class ValidateDatasetController:
         minutes = seconds / 60
         msg = f"All processes completed. Total time taken: {seconds:.2f} seconds ({minutes:.2f} minutes)"
         self.summary_report["validation_completed_message"] = msg
-        self.write_summary_report(
-            summary_report_file=f"{self.settings.output_dir}/validation_summary_report.json"
-        )
+        self.write_summary_report(summary_report_file=f"{self.settings.output_dir}/validation_summary_report.json")
         print(msg)
 
     def run_process_queries(self) -> None:
@@ -109,9 +108,7 @@ class ValidateDatasetController:
                 export_parquet_by_geometry_type=self.settings.export_parquet_by_geometry_type,
                 export_gpkg=self.settings.export_gpkg,
             )
-            validator.run_null_column_checks(
-                rule_name="null_columns", column_name=null_check["column"]
-            )
+            validator.run_null_column_checks(rule_name="null_columns", column_name=null_check["column"])
             self.summary_report = validator.summary_report
 
         for query_rule in self.settings.query_rules:
@@ -155,18 +152,14 @@ class ValidateDatasetController:
                 message=layer["message"],
             )
 
-            print(
-                f"Running feature on layer check between {layer['table']} and {layer['intersection_table']}"
-            )
+            print(f"Running feature on layer check between {layer['table']} and {layer['intersection_table']}")
 
             validator.set_exports(
                 export_parquet=self.settings.export_parquet,
                 export_parquet_by_geometry_type=self.settings.export_parquet_by_geometry_type,
                 export_gpkg=self.settings.export_gpkg,
             )
-            validator.run_layer_intersections(
-                rule_name="feature_in_layers", intersect=True
-            )
+            validator.run_layer_intersections(rule_name="feature_in_layers", intersect=True)
             self.summary_report = validator.summary_report
 
         for layer in self.settings.feature_not_on_layers:
@@ -180,18 +173,14 @@ class ValidateDatasetController:
                 message=layer["message"],
             )
 
-            print(
-                f"Running feature not on layer check between {layer['table']} and {layer['intersection_table']}"
-            )
+            print(f"Running feature not on layer check between {layer['table']} and {layer['intersection_table']}")
 
             validator.set_exports(
                 export_parquet=self.settings.export_parquet,
                 export_parquet_by_geometry_type=self.settings.export_parquet_by_geometry_type,
                 export_gpkg=self.settings.export_gpkg,
             )
-            validator.run_layer_intersections(
-                rule_name="feature_not_on_layers", intersect=False
-            )
+            validator.run_layer_intersections(rule_name="feature_not_on_layers", intersect=False)
             self.summary_report = validator.summary_report
 
         for layer in self.settings.line_not_on_feature_layers:
@@ -205,9 +194,7 @@ class ValidateDatasetController:
                 message=layer["message"],
             )
 
-            print(
-                f"Running line not on feature layer check between {layer['table']} and {layer['intersection_table']}"
-            )
+            print(f"Running line not on feature layer check between {layer['table']} and {layer['intersection_table']}")
 
             validator.set_exports(
                 export_parquet=self.settings.export_parquet,

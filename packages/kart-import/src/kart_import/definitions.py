@@ -1,5 +1,6 @@
 from dagster import Definitions, load_assets_from_modules
-from .assets import clone, bundle
+
+from .assets import bundle, clone
 
 all_assets_modules = []
 all_assets_modules.append(bundle)

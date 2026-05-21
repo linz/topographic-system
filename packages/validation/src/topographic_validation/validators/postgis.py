@@ -1,6 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 from sqlalchemy import create_engine, text
+
 from topographic_validation.validators.base import AbstractTopologyValidator
 
 
@@ -36,9 +37,7 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         )
 
         if not db_url.startswith("postgresql"):
-            raise ValueError(
-                "db_url must be a PostgreSQL connection string starting with 'postgresql'"
-            )
+            raise ValueError("db_url must be a PostgreSQL connection string starting with 'postgresql'")
 
         self.engine = create_engine(db_url)
         self.pkey = self.get_primary_key()
@@ -66,9 +65,7 @@ class PostgisTopologyValidator(AbstractTopologyValidator):
         """
         )
 
-        df_table = pd.read_sql(
-            sql, self.engine, params={"table": table, "schema": schema}
-        )
+        df_table = pd.read_sql(sql, self.engine, params={"table": table, "schema": schema})
         if len(df_table["column_name"]) > 0:
             pk = df_table["column_name"][0]
         else:

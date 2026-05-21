@@ -1,15 +1,16 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
+from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
+
+from ..command import run_command
 from ..config import (
-    get_bundle_url,
-    get_datasets,
-    get_dataset_name,
     SOURCE_DIR,
+    get_bundle_url,
+    get_dataset_name,
+    get_datasets,
     is_use_bundle,
 )
-from dagster import asset, AssetExecutionContext, MaterializeResult, MetadataValue
-from ..command import run_command
 
 
 def should_pull(target_dir: Path):
@@ -22,10 +23,7 @@ def should_pull(target_dir: Path):
         return True
 
     last_pull_time = fetch_head.stat().st_mtime
-    if time.time() - last_pull_time < 24 * 3600:
-        return False
-
-    return True
+    return not time.time() - last_pull_time < 24 * 3600
 
 
 def make_clone_asset(dataset_source: str):

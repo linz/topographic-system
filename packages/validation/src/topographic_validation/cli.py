@@ -6,11 +6,12 @@ on geospatial datasets (PostGIS, GeoPackage, or Parquet files).
 """
 
 import argparse
-import sys
 import os
+import sys
 from datetime import datetime
-from topographic_validation.tools import TopoValidatorSettings
+
 from topographic_validation.controller import ValidateDatasetController
+from topographic_validation.tools import TopoValidatorSettings
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -22,13 +23,13 @@ def parse_arguments() -> argparse.Namespace:
 Examples:
   # Run validation on PostGIS database
   python cli.py --mode postgis --db-path "postgresql://user:pass@localhost/db"
-  
+
   # Run validation on GeoPackage file
   python cli.py --mode generic --db-path "data.gpkg"
-  
+
   # Run validation on Parquet files with custom output
   python cli.py --mode generic --db-path "data.parquet" --output-dir "/tmp/validation"
-  
+
   # Run with bounding box and date filtering
   python cli.py --mode generic --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
         """,
@@ -48,13 +49,9 @@ Examples:
         help="file path (GPKG/Parquet), Database URL (PostgreSQL connection string) ",
     )
 
-    parser.add_argument(
-        "--config-file", help="Path to validation configuration JSON file"
-    )
+    parser.add_argument("--config-file", help="Path to validation configuration JSON file")
 
-    parser.add_argument(
-        "--output-dir", required=True, help="Output directory for validation results"
-    )
+    parser.add_argument("--output-dir", required=True, help="Output directory for validation results")
 
     parser.add_argument(
         "--area-crs",
@@ -132,14 +129,10 @@ Examples:
 
     parser.add_argument("--date", help='Date for filtering (YYYY-MM-DD or "today")')
 
-    parser.add_argument(
-        "--weeks", type=int, help="Number of weeks back for date filtering"
-    )
+    parser.add_argument("--weeks", type=int, help="Number of weeks back for date filtering")
 
     # Verbose output
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose output"
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
 
     return parser.parse_args()
 
@@ -151,18 +144,10 @@ def validate_arguments(args: argparse.Namespace) -> list[str]:
     # Validate database URL/file path
     if args.mode == "postgis":
         if not args.db_path.startswith("postgresql://"):
-            errors.append(
-                "PostGIS mode requires a PostgreSQL connection string starting with 'postgresql://'"
-            )
+            errors.append("PostGIS mode requires a PostgreSQL connection string starting with 'postgresql://'")
     else:
-        if not (
-            args.db_path.endswith(".gpkg")
-            or args.db_path.endswith(".parquet")
-            or "parquet" in args.db_path
-        ):
-            errors.append(
-                "Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)"
-            )
+        if not (args.db_path.endswith(".gpkg") or args.db_path.endswith(".parquet") or "parquet" in args.db_path):
+            errors.append("Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)")
         if not os.path.exists(args.db_path.replace("files.parquet", "")):
             errors.append(f"Database file/directory not found: {args.db_path}")
 
@@ -259,9 +244,7 @@ def main() -> None:
         print(f"Config file: {settings.validation_config_file}")
         print(f"Output directory: {settings.output_dir}")
         print(f"Export validation data: {settings.export_validation_data}")
-        print(
-            f"Export formats: GPKG={settings.export_gpkg}, Parquet={settings.export_parquet}"
-        )
+        print(f"Export formats: GPKG={settings.export_gpkg}, Parquet={settings.export_parquet}")
         print(f"Use date folder: {settings.use_date_folder}")
         if hasattr(settings, "bbox") and settings.bbox:
             print(f"Bounding box: {settings.bbox}")

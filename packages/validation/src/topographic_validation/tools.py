@@ -1,7 +1,7 @@
 import datetime
+import json
 import os
 import shutil
-import json
 
 
 class TopoValidatorTools:
@@ -75,19 +75,13 @@ class TopoValidatorSettings:
         self.bbox = bbox
 
     def load_validation_config(self) -> None:
-        with open(self.validation_config_file, "r") as f:
+        with open(self.validation_config_file) as f:
             loaded_data = json.load(f)
             self.feature_not_on_layers = loaded_data.get("feature_not_on_layers", [])
             self.feature_in_layers = loaded_data.get("feature_in_layers", [])
-            self.line_not_on_feature_layers = loaded_data.get(
-                "line_not_on_feature_layers", []
-            )
-            self.line_not_touches_feature_layers = loaded_data.get(
-                "line_not_touches_feature_layers", []
-            )
-            self.feature_not_contains_layers = loaded_data.get(
-                "feature_not_contains_layers", []
-            )
+            self.line_not_on_feature_layers = loaded_data.get("line_not_on_feature_layers", [])
+            self.line_not_touches_feature_layers = loaded_data.get("line_not_touches_feature_layers", [])
+            self.feature_not_contains_layers = loaded_data.get("feature_not_contains_layers", [])
             self.self_intersect_layers = loaded_data.get("self_intersect_layers", [])
             self.null_columns = loaded_data.get("null_columns", [])
             self.query_rules = loaded_data.get("query_rules", [])

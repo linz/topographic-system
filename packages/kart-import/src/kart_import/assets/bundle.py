@@ -1,18 +1,18 @@
-from pathlib import Path
 import time
+import urllib.error
+import urllib.request
+from pathlib import Path
 
+from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
+
+from ..command import run_command
 from ..config import (
-    get_datasets,
-    get_dataset_name,
     SOURCE_DIR,
     get_bundle_url,
+    get_dataset_name,
+    get_datasets,
     get_s3_bundle_uri,
 )
-from dagster import asset, AssetExecutionContext, MaterializeResult, MetadataValue
-from ..command import run_command
-
-import urllib.request
-import urllib.error
 
 """
 Take datasets from the linz data service, bundle them into a git .bundle
@@ -32,10 +32,7 @@ def should_pull(target_dir: Path):
         return True
 
     last_pull_time = fetch_head.stat().st_mtime
-    if time.time() - last_pull_time < 24 * 3600:
-        return False
-
-    return True
+    return not time.time() - last_pull_time < 24 * 3600
 
 
 def fetch_bundle_head(dataset_name: str) -> str | None:
@@ -46,9 +43,7 @@ def fetch_bundle_head(dataset_name: str) -> str | None:
     """
     remote_bundle_url = get_bundle_url(dataset_name)
     try:
-        req = urllib.request.Request(
-            remote_bundle_url, headers={"Range": "bytes=0-131071"}
-        )
+        req = urllib.request.Request(remote_bundle_url, headers={"Range": "bytes=0-131071"})
         with urllib.request.urlopen(req) as response:
             data = response.read(131072)
     except urllib.error.URLError:
@@ -99,9 +94,7 @@ def make_bundle_asset(dataset_source: str):
             source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
 
             if source_head_sha == bundle_head:
-                context.log.info(
-                    f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle."
-                )
+                context.log.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
                 return MaterializeResult(
                     metadata={
                         "skipped": MetadataValue.bool(True),
@@ -135,9 +128,7 @@ def make_bundle_asset(dataset_source: str):
         ]
         run_command(context, cmd)
 
-        head_sha = run_command(
-            context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)
-        ).strip()
+        head_sha = run_command(context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
 
         # Upload to S3 via aws s3 cp
         s3_uri = get_s3_bundle_uri()

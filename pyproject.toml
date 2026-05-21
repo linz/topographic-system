@@ -67,6 +67,8 @@ select = [
 ]
 ignore = [
     "E501",    # Suppress line-length violations in comments/strings if they slip through
+    "SIM108",  # Suppress simplified if statements
+    "UP030"
 ]
 
 [tool.ruff.lint.isort]

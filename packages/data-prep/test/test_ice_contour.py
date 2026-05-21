@@ -3,9 +3,8 @@ from pathlib import Path
 
 import geopandas as gpd
 import pytest
-from shapely.geometry import Polygon
-
 from data_prep.ice_contour import run
+from shapely.geometry import Polygon
 
 
 @pytest.fixture()
