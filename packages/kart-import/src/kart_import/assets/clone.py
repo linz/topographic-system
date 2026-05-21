@@ -30,7 +30,6 @@ def should_pull(target_dir: Path):
 
 def make_clone_asset(dataset_source: str):
     dataset_name = get_dataset_name(dataset_source)
-    print(f"{dataset_source} -> {dataset_name}")
 
     @asset(name=f"clone_{dataset_name}", group_name="kart")
     def _clone_asset(context: AssetExecutionContext):

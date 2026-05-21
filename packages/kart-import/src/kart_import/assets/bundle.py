@@ -82,7 +82,6 @@ def fetch_bundle_head(dataset_name: str) -> str | None:
 
 def make_bundle_asset(dataset_source: str):
     dataset_name = get_dataset_name(dataset_source)
-    print(f"{dataset_source} -> {dataset_name}")
 
     @asset(name=f"bundle_{dataset_name}", group_name="kart")
     def _bundle_asset(context: AssetExecutionContext):
