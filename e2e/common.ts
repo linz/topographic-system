@@ -17,7 +17,7 @@ export const isVerbose = process.argv.includes('--verbose');
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
 
-  console.log(args)
+  console.log(args);
   try {
     const ret = await $`docker run \
     --rm \
@@ -41,11 +41,17 @@ export const tsKart = runContainer.bind(null, kartContainer);
 export const tsMap = runContainer.bind(null, mapContainer);
 export const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
-export const tsKartImport = (...args: (string | string[])[]) => runContainer("--entrypoint=/bin/sh", "--workdir=/source/packages/kart-import/", kartContainer, '-c', args.flat().join(' '));
-
+export const tsKartImport = (...args: (string | string[])[]) =>
+  runContainer(
+    '--entrypoint=/bin/sh',
+    '--workdir=/source/packages/kart-import/',
+    kartContainer,
+    '-c',
+    args.flat().join(' '),
+  );
 
 export const skipIfExists = async (url: URL) => {
   const exists = await fsa.exists(url);
   if (exists) return { skip: true };
   return {};
-}
+};
