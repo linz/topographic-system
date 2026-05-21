@@ -1,6 +1,7 @@
 import assert from 'node:assert';
+import { mkdir } from 'node:fs/promises';
 import process from 'node:process';
-import { describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
@@ -8,12 +9,15 @@ import { $ } from 'zx';
 
 import { skipIfExists, targetFolder, tsArgo, tsKart, tsMap } from './common.ts';
 
-if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
-  console.log(`Removing ${targetFolder}`);
-  await $`rm -fr ${fileURLToPath(targetFolder)}`;
-}
-
 describe('topographic-system.e2e', async () => {
+  before(async () => {
+    if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
+      console.log(`Removing ${targetFolder}`);
+      await $`rm -fr ${fileURLToPath(targetFolder)}`;
+    }
+    await mkdir(fileURLToPath(targetFolder), { recursive: true });
+  });
+
   await it('should pull all containers', async () => {
     await Promise.all([tsKart('version'), tsMap('version')]);
   });

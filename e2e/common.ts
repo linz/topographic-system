@@ -16,8 +16,6 @@ const userGroup = os.userInfo();
 export const isVerbose = process.argv.includes('--verbose');
 async function runContainer(containerName: string, ...args: (string[] | string)[]) {
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
-
-  console.log(args);
   try {
     const ret = await $`docker run \
     --rm \
