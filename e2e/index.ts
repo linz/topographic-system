@@ -4,45 +4,8 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { $, ProcessOutput } from 'zx';
-
-const kartContainer = process.argv.find((f) => f.startsWith('--container-kart='))?.split('=')[1] ?? 'ts-kart';
-const mapContainer = process.argv.find((f) => f.startsWith('--container-map='))?.split('=')[1] ?? 'ts-map';
-
-const targetFolder = fsa.toUrl(`./target/`);
-const sourceAssets = fileURLToPath(new URL('./assets/', import.meta.url));
-
-async function skipIfExists(url: URL) {
-  const exists = await fsa.exists(url);
-  if (exists) return { skip: true };
-  return {};
-}
-
-const isVerbose = process.argv.includes('--verbose');
-async function runContainer(containerName: string, ...args: (string[] | string)[]) {
-  console.log(`run: ${containerName}: `);
-  for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
-
-  try {
-    const ret = await $`docker run \
-    --rm \
-    -v ${fileURLToPath(targetFolder)}:/target \
-    -v ${sourceAssets}:/assets \
-    ${containerName} ${args.flat()}`.catch((e) => e);
-    if (isVerbose || ret.exitCode !== 0) console.log(`\t${ret.stdout}`);
-    if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
-    return ret;
-  } catch (e) {
-    if (e instanceof ProcessOutput) {
-      console.log(e.stdout);
-    }
-    throw e;
-  }
-}
-
-const tsKart = runContainer.bind(null, kartContainer);
-const tsMap = runContainer.bind(null, mapContainer);
-const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
+import { $ } from 'zx';
+import { skipIfExists, targetFolder, tsArgo, tsKart, tsMap } from './common.ts';
 
 if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
   console.log(`Removing ${targetFolder}`);

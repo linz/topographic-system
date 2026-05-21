@@ -30,34 +30,47 @@ def make_clone_asset(dataset_source: str):
     dataset_name = get_dataset_name(dataset_source)
 
     @asset(name=f"clone_{dataset_name}", group_name="kart")
-    def _clone_asset(context: AssetExecutionContext):
+    def _clone_asset(ctx: AssetExecutionContext):
         SOURCE_DIR.mkdir(parents=True, exist_ok=True)
         target_dir = SOURCE_DIR / dataset_name
 
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
-            context.log.info(f"{target_dir} already exists.")
+            ctx.log.info(f"{target_dir} already exists.")
 
             if should_pull(target_dir):
-                context.log.info("Attempting 'kart pull'.")
-                cmd = ["kart", "pull"]
-                run_command(context, cmd, cwd=str(target_dir))
-        else:
+                ctx.log.info("Attempting 'git pull'.")
+                run_command(ctx, ["kart", "pull"], cwd=str(target_dir))
+
+            return MaterializeResult(
+                metadata={"location": MetadataValue.path(str(target_dir))}
+            )
+
+        # Clone directly from the source
+        if is_use_bundle():
+            bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
+            cmd = ["curl", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
+            run_command(ctx, cmd)
+
             cmd = [
+                "kart",
                 "git",
                 "clone",
-                f"{dataset_source}",
+                str(bundle_target),
                 str(target_dir),
                 "--no-checkout",
             ]
+            run_command(ctx, cmd)
 
-            if is_use_bundle():
-                cmd.append(f"--bundle-uri={get_bundle_url(dataset_name)}")
-            run_command(context, cmd)
+            bundle_target.unlink()
+            return MaterializeResult(
+                metadata={"location": MetadataValue.path(str(target_dir))}
+            )
+
+        cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
+        run_command(ctx, cmd)
 
         return MaterializeResult(
-            metadata={
-                "location": MetadataValue.path(str(target_dir)),
-            }
+            metadata={"location": MetadataValue.path(str(target_dir))}
         )
 
     return _clone_asset
