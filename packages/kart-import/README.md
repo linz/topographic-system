@@ -17,3 +17,19 @@ or entire themes can be imported, which will clone both the NZ and Chatham Islan
 ```shell
 uv run dg launch --assets theme_airport
 ```
+
+## LDS Backup
+
+git bundles are stored of all kart repositories in cloudfront to enable fast cloning
+
+```shell
+git clone --bundle-uri=https://d1jzh93b1t1cv.cloudfront.net/source/nz_airport_polygons.bundle kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+```
+
+These are created with the "\*bundle_all" assets.
+
+To turn bundle usage off
+
+```shell
+export GIT_BUNDLE=false; uv run dg launch --assets clone_nz_airport_polygons
+```
