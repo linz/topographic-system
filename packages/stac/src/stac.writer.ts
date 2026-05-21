@@ -113,7 +113,10 @@ export class StacCollectionWriter {
     targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
     targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
-    await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
+    await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), {
+      contentType: 'application/json',
+      cacheControl: CacheControl.StacJson,
+    });
 
     return collectionUrl;
   }
