@@ -41,9 +41,7 @@ def make_clone_asset(dataset_source: str):
                 ctx.log.info("Attempting 'git pull'.")
                 run_command(ctx, ["kart", "pull"], cwd=str(target_dir))
 
-            return MaterializeResult(
-                metadata={"location": MetadataValue.path(str(target_dir))}
-            )
+            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
         # Clone directly from the source
         if is_use_bundle():
@@ -62,16 +60,12 @@ def make_clone_asset(dataset_source: str):
             run_command(ctx, cmd)
 
             bundle_target.unlink()
-            return MaterializeResult(
-                metadata={"location": MetadataValue.path(str(target_dir))}
-            )
+            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
         cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
         run_command(ctx, cmd)
 
-        return MaterializeResult(
-            metadata={"location": MetadataValue.path(str(target_dir))}
-        )
+        return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
     return _clone_asset
 
