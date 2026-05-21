@@ -1,9 +1,9 @@
-from pathlib import Path
-from typing import List, Optional
-from pydantic import BaseModel, model_validator
-import yaml
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
+
+import yaml
+from pydantic import BaseModel, model_validator
 
 # Paths mapped in docker-compose
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
@@ -30,9 +30,7 @@ def is_use_bundle() -> bool:
 
 
 def get_bundle_url(dataset_name: str) -> str:
-    base_url = os.getenv(
-        "GIT_BUNDLE_URI", "https://d1jzh93b1t1cv.cloudfront.net/source/"
-    )
+    base_url = os.getenv("GIT_BUNDLE_URI", "https://d1jzh93b1t1cv.cloudfront.net/source/")
     return f"{base_url}{dataset_name}.bundle"
 
 
@@ -73,11 +71,11 @@ class ThemeDataset(BaseModel):
 
 class Theme(BaseModel):
     name: str
-    datasets: List[ThemeDataset]
+    datasets: list[ThemeDataset]
 
 
 class Themes(BaseModel):
-    themes: List[Theme]
+    themes: list[Theme]
 
     def append(self, theme: Theme):
         self.themes.append(theme)
@@ -89,35 +87,35 @@ ALL_DATASETS: set[str] = set()
 
 def load_config(file_name: str) -> Theme:
     file = CONFIG_DIR_THEMES / f"{file_name}.yml"
-    with open(file, "r") as f:
+    with open(file) as f:
         data = yaml.safe_load(f)
         if not isinstance(data, dict):
             raise Exception(f"Invalid theme config format in {file_name}.yml")
         return Theme(**data)
 
 
-def get_themes() -> List[Theme]:
+def get_themes() -> list[Theme]:
     return ALL_THEMES.themes
 
 
-def get_datasets() -> List[str]:
+def get_datasets() -> list[str]:
     return list(ALL_DATASETS)
 
 
 class Release(BaseModel):
     id: int
     date: datetime
-    until: Optional[datetime] = None
+    until: datetime | None = None
 
 
-def get_releases() -> List[Release]:
+def get_releases() -> list[Release]:
     if not CONFIG_DIR_RELEASE.exists():
         raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
 
-    with open(CONFIG_DIR_RELEASE, "r") as f:
+    with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
 
-    releases: List[Release] = []
+    releases: list[Release] = []
     for entry in raw.get("releases", []):
         for key, timestamp in entry.items():
             date = datetime.fromisoformat(str(timestamp))

@@ -51,3 +51,29 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["uuid6"]
 ignore_missing_imports = true
+
+[tool.ruff]
+line-length=120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # Style violations
+    "F",       # Common bugs/errors
+    "I",       # Clean import sorting
+    "UP",      # Modern syntax upgrades
+    "B",       # Design anti-patterns
+    "SIM",     # Simplifying code logic
+]
+ignore = [
+    "E501",    # Suppress line-length violations in comments/strings if they slip through
+    "SIM108",  # Suppress simplified if statements
+    "UP030"
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"

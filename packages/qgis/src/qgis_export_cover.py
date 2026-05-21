@@ -1,13 +1,14 @@
+import json
+import os
+import sys
+
 from qgis.core import (
     QgsApplication,
-    QgsProject,
-    QgsLayoutExporter,
     QgsCoordinateTransform,
+    QgsLayoutExporter,
     QgsLayoutItemMap,
+    QgsProject,
 )
-import sys
-import os
-import json
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -52,9 +53,7 @@ for feature in topo_sheet_layer.getFeatures():
     if not list_all_sheet_codes and feature_code not in sheet_codes:
         continue
     geom = feature.geometry()
-    geom.transform(
-        QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance())
-    )
+    geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
     bbox = geom.boundingBox()
     metadata.append(
         {

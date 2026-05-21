@@ -1,4 +1,5 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from kart_import.assets.bundle import fetch_bundle_head
 
 
@@ -24,9 +25,7 @@ def test_fetch_bundle_head_valid():
 
 def test_fetch_bundle_head_fallback():
     # Simulate a bundle header without explicit HEAD, which now raises an Exception.
-    mock_data = (
-        b"# v2 git bundle\n1234567890abcdef1234567890abcdef12345678 refs/heads/main\n\n"
-    )
+    mock_data = b"# v2 git bundle\n1234567890abcdef1234567890abcdef12345678 refs/heads/main\n\n"
 
     with patch("urllib.request.urlopen") as mock_urlopen:
         mock_response = MagicMock()

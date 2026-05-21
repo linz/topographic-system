@@ -1,5 +1,7 @@
 import os
+
 import geopandas as gpd
+
 from topographic_validation.validators.base import AbstractTopologyValidator
 
 
@@ -51,11 +53,7 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
         gdf = gpd.read_parquet(file, bbox=self.bbox)
         if self.where_condition:
             # Note: read_parquet does not support where directly
-            where = (
-                self.where_condition.replace("=", "==")
-                .replace("AND", "&")
-                .replace("OR", "|")
-            )
+            where = self.where_condition.replace("=", "==").replace("AND", "&").replace("OR", "|")
             gdf = gdf.query(where)
         self.gdf = gdf
 

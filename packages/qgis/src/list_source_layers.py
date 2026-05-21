@@ -1,7 +1,8 @@
-from qgis.core import QgsApplication, QgsProject, QgsMapLayer
-import sys
-import os
 import json
+import os
+import sys
+
+from qgis.core import QgsApplication, QgsMapLayer, QgsProject
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -18,11 +19,7 @@ if not project.read(project_path):
     raise RuntimeError(f"Failed to read project: {project_path}")
 
 # Collect vector layer names
-layer_names = [
-    layer.source()
-    for layer in project.mapLayers().values()
-    if layer.type() == QgsMapLayer.VectorLayer
-]
+layer_names = [layer.source() for layer in project.mapLayers().values() if layer.type() == QgsMapLayer.VectorLayer]
 
 # Output JSON array
 json.dump(layer_names, sys.stdout, ensure_ascii=False)

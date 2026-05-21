@@ -1,8 +1,8 @@
 import os
-from sqlalchemy import create_engine, text
-import geopandas as gpd
 import uuid
 
+import geopandas as gpd
+from sqlalchemy import create_engine, text
 
 # Database connection parameters
 db_params = "postgresql://postgres:landinformation@localhost:5432/topo"
@@ -47,13 +47,5 @@ dms_grid_gdf.to_postgis(
 )
 
 with engine.connect() as conn:
-    conn.execute(
-        text(
-            f"ALTER TABLE {schema}.nz_topo50_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"
-        )
-    )
-    conn.execute(
-        text(
-            f"ALTER TABLE {schema}.nz_topo50_dms_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"
-        )
-    )
+    conn.execute(text(f"ALTER TABLE {schema}.nz_topo50_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"))
+    conn.execute(text(f"ALTER TABLE {schema}.nz_topo50_dms_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"))

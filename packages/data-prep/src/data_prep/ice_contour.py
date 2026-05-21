@@ -60,13 +60,9 @@ def split_gdf(gdf, n_chunks):
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    contour_gdf = gpd.read_parquet(contour_path).drop(
-        columns=["update_date", "version"]
-    )
+    contour_gdf = gpd.read_parquet(contour_path).drop(columns=["update_date", "version"])
 
-    landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])[
-        "primary_column"
-    ]
+    landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])["primary_column"]
     _landcover_gdf = gpd.read_parquet(
         landcover_path,
         filters=[("feature_type", "==", "ice")],
@@ -77,9 +73,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
             "version",
             landcover_geom_col,
         ],
-    ).rename(
-        columns={"topo_id": "landcover_id", "feature_type": "landcover_feature_type"}
-    )
+    ).rename(columns={"topo_id": "landcover_id", "feature_type": "landcover_feature_type"})
 
     n_workers = cpu_count()
     n_chunks = 100
@@ -89,9 +83,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
     with Pool(n_workers, maxtasksperchild=1) as pool:
         results = [
-            r
-            for r in pool.imap_unordered(process_chunk, range(len(_contour_chunks)))
-            if r is not None and not r.empty
+            r for r in pool.imap_unordered(process_chunk, range(len(_contour_chunks))) if r is not None and not r.empty
         ]
 
     _landcover_gdf = None
@@ -104,13 +96,9 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-    parser = argparse.ArgumentParser(
-        description="Overlay contour with landcover to produce ice contour"
-    )
+    parser = argparse.ArgumentParser(description="Overlay contour with landcover to produce ice contour")
     parser.add_argument("--contour", required=True, help="Path to contour parquet")
     parser.add_argument("--landcover", required=True, help="Path to landcover parquet")
     parser.add_argument("--output", required=True, help="Path to output parquet")

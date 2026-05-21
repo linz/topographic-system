@@ -9,8 +9,8 @@ asserts that
 
 import json
 import subprocess
-from pathlib import Path
 from importlib.resources import as_file
+from pathlib import Path
 
 import geopandas as gpd
 import pytest
@@ -29,18 +29,14 @@ def _write_fixtures(geojson_files: list[Path], dest: Path) -> dict[str, str]:
         gdf.to_parquet(dest / f"{file.stem}.parquet")
     return {
         "gpkg": str(gpkg_path),
-        "parquet": str(
-            dest / "files.parquet"
-        ),  # files.parquet is expected by validation CLI
+        "parquet": str(dest / "files.parquet"),  # files.parquet is expected by validation CLI
     }
 
 
 def _build_config(full_config: dict, rule_name: str, table: str, scenario: str) -> dict:
     """Extract just the relevant rule entry into a minimal config."""
     matching = [
-        entry
-        for entry in full_config[rule_name]
-        if entry.get("layername") == scenario and entry.get("table") == table
+        entry for entry in full_config[rule_name] if entry.get("layername") == scenario and entry.get("table") == table
     ]
     if not matching:
         raise LookupError(f"No config entry for {rule_name}/{table}/{scenario}")
@@ -112,9 +108,7 @@ def test_validation_e2e(scenario_dir, full_config, tmp_path, subtests):
                 timeout=60,
             )
 
-            assert result.returncode == 0, (
-                f"CLI failed (exit {result.returncode}):\n{result.stderr}"
-            )
+            assert result.returncode == 0, f"CLI failed (exit {result.returncode}):\n{result.stderr}"
 
             summary_file = out_dir / "validation_summary_report.json"
             assert summary_file.exists(), f"No summary report in {out_dir}"
@@ -122,11 +116,9 @@ def test_validation_e2e(scenario_dir, full_config, tmp_path, subtests):
 
             if role == "examples":
                 assert summary.get(rule_name) is False, (
-                    f"expected no errors for {message}, "
-                    f"but summary[{rule_name}] = {summary.get(rule_name)}"
+                    f"expected no errors for {message}, but summary[{rule_name}] = {summary.get(rule_name)}"
                 )
             else:
                 assert summary.get(rule_name) is True, (
-                    f"expected errors for {message}, "
-                    f"but summary[{rule_name}] = {summary.get(rule_name)}"
+                    f"expected errors for {message}, but summary[{rule_name}] = {summary.get(rule_name)}"
                 )

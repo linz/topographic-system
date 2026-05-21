@@ -1,5 +1,5 @@
-import uuid
 import hashlib
+import uuid
 
 
 def reproducable_uuid7(timestamp_ms: int, fid: int) -> uuid.UUID:

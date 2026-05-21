@@ -1,8 +1,8 @@
 import os
-from sqlalchemy import create_engine, text
-import geopandas as gpd
 import uuid
 
+import geopandas as gpd
+from sqlalchemy import create_engine, text
 
 # Database connection parameters
 db_params = "postgresql://postgres:landinformation@localhost:5432/topo"
