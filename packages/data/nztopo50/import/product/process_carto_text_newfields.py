@@ -21,6 +21,7 @@ class CartoTextProcessor:
         carto_text_folder,
         output_directory,
         product_database,
+        source_product_database,
         carto_text_layer,
         logs_csv_folder,
         new_font_name,
@@ -37,7 +38,8 @@ class CartoTextProcessor:
         - font_mapping_sheet: Name of the font mapping sheet
         - carto_text_folder: Folder containing the carto text data
         - output_directory: Directory for output files and logs
-        - product_database: Name of the product database file
+        - product_database: Name of the output product database file
+        - source_product_database: Name of the source database file to read from
         - carto_text_layer: Name of the carto text layer
         - logs_csv_folder: Folder to save CSV logs
         - new_font_name: Name of the new font to use
@@ -52,6 +54,7 @@ class CartoTextProcessor:
         self.carto_text_folder = carto_text_folder
         self.output_directory = output_directory
         self.product_database = product_database
+        self.source_product_database = source_product_database
         self.carto_text_layer = carto_text_layer
         self.logs_csv_folder = logs_csv_folder
         self.new_font_name = new_font_name
@@ -402,9 +405,9 @@ class CartoTextProcessor:
             )
 
             # Export processed sections to CSV
-            output_file = os.path.join(self.logs_csv_folder, "formatted_rows.csv")
+            output_file = os.path.join(self.logs_csv_folder, "full_layers_processed.csv")
             formatted_rows.to_csv(output_file, index=False)
-            self.logger.info(f"Exported formatted_rows to {output_file}")
+            self.logger.info(f"Exported full layers to {output_file}")
 
             return output_file
 
@@ -998,9 +1001,11 @@ class CartoTextProcessor:
                 gdf.loc[linestring_mask, "geometry"] = gdf.loc[
                     linestring_mask, "geometry"
                 ].apply(
-                    lambda geom: MultiLineString([geom])
-                    if geom.geom_type == "LineString"
-                    else geom
+                    lambda geom: (
+                        MultiLineString([geom])
+                        if geom.geom_type == "LineString"
+                        else geom
+                    )
                 )
 
                 # Log updated geometry types
@@ -1208,7 +1213,7 @@ class CartoTextProcessor:
         self.logger.info("Processing carto_text layer...")
         carto_text_output_gdf = self.process_carto_text_layer(
             self.carto_text_folder,
-            self.product_database,
+            self.source_product_database,
             self.carto_text_layer,
             full_layers_csv,
             new_values_csv,
@@ -1257,12 +1262,18 @@ if __name__ == "__main__":
     full_layers_sheet = "Full layers"
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
-    output_directory = r"C:\temp\carto"
-    # output_directory = r"C:\Data\topoedit\topographic-product-data"
+    # output_directory = r"C:\temp\carto"
+    output_directory = r"C:\Data\topoedit\topographic-product-data"
+    product_database = "topographic-product-data.gpkg"
     logs_csv_folder = r"C:\temp\carto"
 
-    carto_text_folder = r"C:\Data\toposource\topographic-product-data"
-    product_database = "topographic-product-data.gpkg"
+    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data"
+    source_product_database = "topographic-product-data.gpkg" 
+    # source_carto_text_folder = r"C:\Data\toposource\carto_text"
+    # source_product_database = "carto_text.gpkg"
+
+
+
     carto_text_layer = "nz_topo50_carto_text"
     create_csv_files = True
 
@@ -1274,9 +1285,10 @@ if __name__ == "__main__":
         full_layers_sheet=full_layers_sheet,
         new_values_sheet=new_values_sheet,
         font_mapping_sheet=font_mapping_sheet,
-        carto_text_folder=carto_text_folder,
+        carto_text_folder=source_carto_text_folder,
         output_directory=output_directory,
         product_database=product_database,
+        source_product_database=source_product_database,
         carto_text_layer=carto_text_layer,
         logs_csv_folder=logs_csv_folder,
         new_font_name=new_font_name,

@@ -2,6 +2,7 @@ node_modules/
 tmp/
 tsconfig.tsbuildinfo
 .venv/
+.env
 .ruff_cache/
 __pycache__/
 dist/

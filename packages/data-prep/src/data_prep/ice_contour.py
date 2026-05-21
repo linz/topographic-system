@@ -13,7 +13,7 @@ import logging
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
-import geopandas as gpd
+import geopandas as gpd  # type: ignore
 import pandas as pd
 import pyarrow.parquet as pq
 
