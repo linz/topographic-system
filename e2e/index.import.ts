@@ -15,7 +15,7 @@ describe('kart.import', async () => {
 
   await it('should have clone_all', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'list', 'defs', '--assets', 'clone_nz_airport_polygons');
-    assert.ok(ret.stdout.includes('clone_all'));
+    assert.ok(ret.stdout.includes('clone_nz_airport_polygons'));
   });
 
   await it('should clone_airport', async () => {
