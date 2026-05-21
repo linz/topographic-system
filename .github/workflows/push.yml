@@ -77,7 +77,7 @@ jobs:
             --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
             --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
 
-  test-end-2-end-kart:
+  test-end-2-end-kart-import:
     needs: build-container
     runs-on: ubuntu-latest
     steps:

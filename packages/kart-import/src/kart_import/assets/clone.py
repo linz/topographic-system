@@ -55,7 +55,7 @@ def make_clone_asset(dataset_source: str):
                 "clone",
                 str(bundle_target),
                 str(target_dir),
-                "--no-checkout",
+                "--no-checkout"
             ]
             run_command(ctx, cmd)
 
