@@ -1,11 +1,7 @@
-from dagster import Definitions, load_assets_from_modules
+from dagster import definitions, load_from_defs_folder
+from .defs.config import PROJECT_DIR
 
-from .assets import bundle, clone
 
-all_assets_modules = []
-all_assets_modules.append(bundle)
-all_assets_modules.append(clone)
-
-defs = Definitions(
-    assets=[*load_assets_from_modules(all_assets_modules)],
-)
+@definitions
+def defs():
+    return load_from_defs_folder(project_root=PROJECT_DIR)

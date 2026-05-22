@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from kart_import.assets.bundle import fetch_bundle_head
+from kart_import.defs.assets.bundle import fetch_bundle_head
 
 
 def test_fetch_bundle_head_valid():

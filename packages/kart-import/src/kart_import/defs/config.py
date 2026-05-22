@@ -6,14 +6,16 @@ import yaml
 from pydantic import BaseModel, model_validator
 
 # Paths mapped in docker-compose
-DATA_DIR = Path(__file__).parent.parent.parent / "data"
-CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
+PROJECT_DIR = Path(__file__).resolve().parents[3]
+DATA_DIR = PROJECT_DIR / "data"
+CONFIG_DIR = PROJECT_DIR / "config"
 
 CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
+BUNDLE_DIR = DATA_DIR / "bundle"
 RELEASES_DIR = DATA_DIR / "working" / "releases"
 
 # working/ — per-dataset intermediate GeoPackages produced by transform assets

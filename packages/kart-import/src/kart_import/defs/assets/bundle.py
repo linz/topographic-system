@@ -7,7 +7,7 @@ from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, ass
 
 from ..command import run_command
 from ..config import (
-    SOURCE_DIR,
+    BUNDLE_DIR,
     get_bundle_url,
     get_dataset_name,
     get_datasets,
@@ -80,9 +80,9 @@ def make_bundle_asset(dataset_source: str):
 
     @asset(name=f"bundle_{dataset_name}", group_name="kart")
     def _bundle_asset(context: AssetExecutionContext):
-        SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-        target_dir = SOURCE_DIR / dataset_name
-        bundle_path = SOURCE_DIR / f"{dataset_name}.bundle"
+        BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
+        target_dir = BUNDLE_DIR / dataset_name
+        bundle_path = BUNDLE_DIR / f"{dataset_name}.bundle"
 
         bundle_head = fetch_bundle_head(dataset_name)
 
@@ -156,7 +156,7 @@ def make_bundle_asset(dataset_source: str):
 bundle_assets = [make_bundle_asset(t) for t in get_datasets()]
 
 
-@asset(deps=bundle_assets)
+@asset(deps=bundle_assets, group_name="kart")
 def bundle_all(context: AssetExecutionContext):
     """Wait for all bundle assets to be created and checked."""
     context.log.info("All bundles successfully processed.")
