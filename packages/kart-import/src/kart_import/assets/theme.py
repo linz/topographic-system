@@ -45,7 +45,6 @@ def make_theme_asset(context: AssetExecutionContext, theme: Theme, releases: lis
             merged = merged.drop(columns=["fid"])
 
         merged.to_file(output_geojson, driver="GeoJSON", index=False)
-        
 
 
 def make_theme_release_asset(theme: Theme, releases: list[Release]) -> AssetsDefinition:
