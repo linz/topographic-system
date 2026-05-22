@@ -1,25 +1,20 @@
-from ..config import WORKING_LIFECYCLE_DIR
 import json
 import os
 
+import geopandas as gpd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
-from ..git.kart import is_kart
 
-from ..command import run_command
 from ..config import (
-    SOURCE_DIR,
     WORKING_EXPORTS_DIR,
+    WORKING_LIFECYCLE_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
     ThemeDataset,
-    get_releases,
-    get_datasets,
     get_dataset_name,
+    get_releases,
     get_themes,
 )
-from ..git.release import get_release_commit
-import geopandas as gpd
 
 
 def normalize_projection(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, target_epsg: str) -> gpd.GeoDataFrame:
@@ -60,36 +55,42 @@ def normalize_fields(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: 
 
     return gpd.GeoDataFrame(new_data, geometry=gdf.geometry, crs=gdf.crs)
 
-def normalize_field_lifecyle(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset, lifecycle_data: dict) -> gpd.GeoDataFrame:
+
+def normalize_field_lifecyle(
+    context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset, lifecycle_data: dict
+) -> gpd.GeoDataFrame:
     # Initialize lifecycle columns
     gdf["created_at"] = None
     gdf["updated_at"] = None
 
     primary_key = gdf["t50_fid"].astype(str)
-        
-        # Map created_at
+
+    # Map created_at
     gdf["created_at"] = primary_key.map(lambda x: lifecycle_data.get(x, {}).get("created_at"))
-        # Look up pre-computed UUIDv8 id from lifecycle data
+
+    # Look up pre-computed UUIDv8 id from lifecycle data
     def get_feature_id(fid):
         found = lifecycle_data.get(fid, {}).get("id")
         if found:
             return found
-        raise Exception("primary_key not found in lifecycle?")
+        raise Exception(f"primary_key: {fid} not found in lifecycle?")
 
     gdf["id"] = primary_key.map(get_feature_id)
 
     return gdf
 
+
 def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td: ThemeDataset, releases: list[Release]):
     dataset_name = get_dataset_name(td.source)
 
-    lifecycle_file = WORKING_LIFECYCLE_DIR / f"{dataset.name}.json"
+    lifecycle_file = WORKING_LIFECYCLE_DIR / f"{dataset_name}.json"
     lifecycle_data = {}
     if not lifecycle_file.exists():
         raise Exception(f"missing lifecycle_{dataset_name}")
-    with open(lifecycle_file, 'r') as f:
+    with open(lifecycle_file) as f:
         lifecycle_data = json.load(f)
 
+    print(json.dumps(lifecycle_data))
     for release in releases:
         input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
         output_dir = WORKING_TRANSFORM_DIR / f"release_{release.id}"
@@ -124,10 +125,11 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
 def make_dataset_export_transform_asset(theme: Theme, td: ThemeDataset, releases: list[Release]) -> AssetsDefinition:
     dataset_name = get_dataset_name(td.source)
 
-    @asset(name=f"transform_{dataset_name}", group_name="transform", deps=[
-        AssetKey(f"lifecycle_{dataset_name}"),
-        AssetKey(f"release_{dataset_name}")
-    ])
+    @asset(
+        name=f"transform_{dataset_name}",
+        group_name="transform",
+        deps=[AssetKey(f"lifecycle_{dataset_name}"), AssetKey(f"release_{dataset_name}")],
+    )
     def _transform_asset(context: AssetExecutionContext):
         return _transform_dataset_release(context, theme, td, releases)
 

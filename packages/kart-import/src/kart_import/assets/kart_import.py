@@ -45,8 +45,8 @@ def bulk_kart_import(context: AssetExecutionContext):
     for release in all_releases:
         # Set commit date using standard Git environment variables
         env = {
-            "GIT_AUTHOR_DATE": release.date.isoformat(),
-            "GIT_COMMITTER_DATE": release.date.isoformat(),
+            "GIT_AUTHOR_DATE": release.until.isoformat(),
+            "GIT_COMMITTER_DATE": release.until.isoformat(),
         }
 
         for theme in all_themes:

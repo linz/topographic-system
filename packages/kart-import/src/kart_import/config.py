@@ -107,7 +107,7 @@ def get_datasets() -> list[str]:
 class Release(BaseModel):
     id: int
     date: datetime
-    until: datetime | None = None
+    until: datetime = datetime.now()
 
 
 def get_releases() -> list[Release]:
@@ -125,6 +125,7 @@ def get_releases() -> list[Release]:
                 day_before = date - timedelta(days=14)
                 releases[-1].until = day_before
             releases.append(Release(id=int(key), date=date))
+
     return releases
 
 

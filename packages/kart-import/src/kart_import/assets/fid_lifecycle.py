@@ -9,7 +9,7 @@ from ..command import run_command
 from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
 from ..git.kart import kart_dataset_name
 from ..git.release import get_release_commit
-from ..uuid.uuid7 import reproducable_uuid7, reproducable_uuid7_text
+from ..uuid.uuid7 import reproducable_uuid7_text
 
 # Git empty tree hash - used as a starting point for the first diff
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
@@ -56,7 +56,7 @@ def make_lifecycle_id(commit_time: str, fid: str, fid_field: str, dataset_id: st
     ts_ms = int(datetime.fromisoformat(commit_time).timestamp() * 1000)
     if fid_field == "auto_pk":
         return str(reproducable_uuid7_text(ts_ms, f"{dataset_id}:{fid}"))
-    return str(reproducable_uuid7(ts_ms, fid))
+    return str(reproducable_uuid7_text(ts_ms, fid))
 
 
 def parse_kart_diff(
@@ -118,7 +118,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
         releases = get_releases()
 
         # Lifecycle map: fid -> { id, created_at, updated_at, source_datasets }
-        lifecycle = {}
+        lifecycle: dict[str, Any] = {}
 
         # Walk releases and diff for updates
         last_commit = EMPTY_TREE
@@ -149,6 +149,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
             # Use kart diff with json-lines output.
             # delta-filter=+,++ catches both new features and updates.
             cmd = ["kart", "diff", f"{last_commit}...{commit}", "--delta-filter=+,++", "-o", "json-lines"]
+
             stdout = run_command(context, cmd, cwd=str(repo_dir))
             parse_kart_diff(stdout, lifecycle, commit_time, dataset_name, dataset_id, fid_field, context.log)
 

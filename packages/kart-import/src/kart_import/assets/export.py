@@ -28,10 +28,10 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
 
     last_commit = None
     for release in releases:
-        res = get_release_commit(repo_dir, release.date)
+        res = get_release_commit(repo_dir, release.until)
 
         if not res:
-            ctx.log.warning(f"No commit for {dataset_name} release {release.id} (before {release.date}). Skipping.")
+            ctx.log.warning(f"No commit for {dataset_name} release {release.id} (before {release.until}). Skipping.")
             continue
 
         commit, commit_time = res
