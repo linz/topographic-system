@@ -20,6 +20,7 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
     const ret = await $`docker run \
     --rm \
     -e DAGSTER_HOME=/source/packages/kart-import/ \
+    -e UV_CACHE_DIR=/source/.uv \
     -u ${userGroup.uid}:${userGroup.gid} \
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
