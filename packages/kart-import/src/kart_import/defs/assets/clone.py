@@ -30,7 +30,7 @@ def should_pull(target_dir: Path):
 def make_clone_asset(dataset_source: str):
     dataset_name = get_dataset_name(dataset_source)
 
-    @asset(name=f"clone_{dataset_name}", deps=[f"bundle_{dataset_name}"], group_name="clone")
+    @asset(name=f"clone_{dataset_name}", group_name="clone")
     def _clone_asset(context: AssetExecutionContext):
         SOURCE_DIR.mkdir(parents=True, exist_ok=True)
         target_dir = SOURCE_DIR / dataset_name
@@ -60,7 +60,7 @@ def make_clone_asset(dataset_source: str):
             cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
             run_command(context, cmd)
 
-            # bundle_target.unlink()
+            bundle_target.unlink()
             return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
         cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
