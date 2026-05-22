@@ -27,7 +27,6 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
         raise Exception(f"Invalid dataset id: '{kart_dataset_id}'")
 
     last_commit = None
-    last_release_id = None
     for release in releases:
         res = get_release_commit(repo_dir, release.date)
 
@@ -41,22 +40,19 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / f"{dataset_name}.json"
 
-        if commit == last_commit and last_release_id is not None:
+        if commit == last_commit:
             # Same commit as previous release — symlink instead of re-exporting
-            link_target = os.path.relpath(
-                WORKING_EXPORTS_DIR / f"release_{last_release_id}" / f"{dataset_name}.json",
-                output_dir,
-            )
+            previous_file = (WORKING_EXPORTS_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json",)
+
             if output_file.exists() or output_file.is_symlink():
                 output_file.unlink()
-            os.symlink(link_target, output_file)
+            os.symlink(previous_file, output_file)
             ctx.log.info(
-                f"Linked {dataset_name} release {release.id} -> release {last_release_id} (same commit {commit[:8]})"
+                f"Linked {dataset_name} release {release.id} -> release {release.id - 1} (same commit {commit[:8]})"
             )
             continue
 
         last_commit = commit
-        last_release_id = release.id
 
         ctx.log.info(
             f"Exporting {dataset_name} for release {release.id} (commit {commit}) to GeoJSON: {output_file} - {commit_time}"
