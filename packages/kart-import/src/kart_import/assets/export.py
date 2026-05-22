@@ -42,7 +42,7 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
 
         if commit == last_commit:
             # Same commit as previous release — symlink instead of re-exporting
-            previous_file = (WORKING_EXPORTS_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json",)
+            previous_file = WORKING_EXPORTS_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json"
 
             if output_file.exists() or output_file.is_symlink():
                 output_file.unlink()
