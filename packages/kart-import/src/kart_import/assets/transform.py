@@ -1,23 +1,18 @@
 import os
 
+import geopandas as gpd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
-from ..git.kart import is_kart
 
-from ..command import run_command
 from ..config import (
-    SOURCE_DIR,
     WORKING_EXPORTS_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
     ThemeDataset,
-    get_releases,
-    get_datasets,
     get_dataset_name,
+    get_releases,
     get_themes,
 )
-from ..git.release import get_release_commit
-import geopandas as gpd
 
 
 def normalize_projection(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, target_epsg: str) -> gpd.GeoDataFrame:

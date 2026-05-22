@@ -1,7 +1,6 @@
-from dagster import asset, AssetExecutionContext, AssetKey, AssetsDefinition
-
 import geopandas as gpd
 import pandas as pd
+from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..config import WORKING_THEME_DIR, WORKING_TRANSFORM_DIR, Release, Theme, get_releases, get_themes
 

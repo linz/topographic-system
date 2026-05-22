@@ -1,7 +1,8 @@
 from pathlib import Path
+
 from dagster import AssetExecutionContext
 
-from kart_import.command import run_command
+from ..command import run_command
 
 
 def git_to_kart(context: AssetExecutionContext, target_dir: Path):
@@ -25,3 +26,10 @@ def git_to_kart(context: AssetExecutionContext, target_dir: Path):
 def is_kart(target_dir: Path):
     """Is the target folder a kart repo, can be swapped to .git with KART_ALLOW_GIT=1"""
     return (target_dir / ".kart").exists()
+
+
+def kart_dataset_name(context: AssetExecutionContext, target_dir: Path):
+    kart_dataset_id = run_command(context, ["kart", "data", "ls"], cwd=str(target_dir)).strip()
+    if "\n" in kart_dataset_id:
+        raise Exception(f"Invalid dataset id: '{target_dir}'")
+    return kart_dataset_id

@@ -1,17 +1,17 @@
 import os
 
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
-from ..git.kart import is_kart
 
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
     Release,
-    get_releases,
-    get_datasets,
     get_dataset_name,
+    get_datasets,
+    get_releases,
 )
+from ..git.kart import is_kart
 from ..git.release import get_release_commit
 
 

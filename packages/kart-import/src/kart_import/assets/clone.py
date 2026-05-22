@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
-from ..git.kart import git_to_kart
+
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
@@ -11,6 +11,7 @@ from ..config import (
     get_datasets,
     is_use_bundle,
 )
+from ..git.kart import git_to_kart
 
 
 def should_pull(target_dir: Path):
