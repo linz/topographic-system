@@ -14,12 +14,13 @@ CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
-RELEASES_DIR = DATA_DIR / "working" / "releases"
 
-# working/ — per-dataset intermediate GeoPackages produced by transform assets
+# working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"
-TRANSFORM_DIR = WORKING_DIR / "transform"
-LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
+# Exports of all the datasets one file per dataset per release
+WORKING_EXPORTS_DIR = WORKING_DIR / "export"
+WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
+WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
