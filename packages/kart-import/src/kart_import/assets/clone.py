@@ -38,27 +38,27 @@ def make_clone_asset(dataset_source: str):
             context.log.info(f"{target_dir} already exists.")
 
             if should_pull(target_dir):
-                context.log.info("Attempting 'kart pull'.")
-                cmd = ["kart", "pull"]
-                run_command(context, cmd, cwd=str(target_dir))
-        else:
-            cmd = [
-                "git",
-                "clone",
-                f"{dataset_source}",
-                str(target_dir),
-                "--no-checkout",
-            ]
+                context.log.info("Attempting 'git pull'.")
+                run_command(context, ["kart", "pull"], cwd=str(target_dir))
 
-            if is_use_bundle():
-                cmd.append(f"--bundle-uri={get_bundle_url(dataset_name)}")
+            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
+
+        # Clone directly from the source
+        if is_use_bundle():
+            bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
+            cmd = ["curl", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
             run_command(context, cmd)
 
-        return MaterializeResult(
-            metadata={
-                "location": MetadataValue.path(str(target_dir)),
-            }
-        )
+            cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
+            run_command(context, cmd)
+
+            bundle_target.unlink()
+            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
+
+        cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
+        run_command(context, cmd)
+
+        return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
     return _clone_asset
 
