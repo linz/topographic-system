@@ -52,6 +52,7 @@ def make_clone_asset(dataset_source: str):
 
         # Clone directly from the source
         if is_use_bundle():
+            BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
             bundle_target = BUNDLE_DIR / f"{dataset_name}.bundle"
             cmd = ["curl", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
             run_command(context, cmd)
