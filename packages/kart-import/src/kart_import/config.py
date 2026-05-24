@@ -73,7 +73,24 @@ class ThemeDataset(BaseModel):
 
 class Theme(BaseModel):
     name: str
+    """
+    Theme name, e.g. "airport" 
+    """
+
+    target_repo: str
+    """
+    target kart repostiroy to store the theme in, e.g. "topographic-data"
+    """
+
+    target_epsg: str
+    """
+    target epsg projection code
+    """
+
     datasets: list[ThemeDataset]
+    """
+    list of datasets to include in the theme
+    """
 
 
 class Themes(BaseModel):
@@ -85,6 +102,7 @@ class Themes(BaseModel):
 
 ALL_THEMES = Themes(themes=[])
 ALL_DATASETS: set[str] = set()
+ALL_KART_REPOS: set[str] = set()
 
 
 def load_config(file_name: str) -> Theme:
@@ -102,6 +120,10 @@ def get_themes() -> list[Theme]:
 
 def get_datasets() -> list[str]:
     return list(ALL_DATASETS)
+
+
+def get_kart_repos() -> list[str]:
+    return list(ALL_KART_REPOS)
 
 
 class Release(BaseModel):
@@ -133,6 +155,7 @@ for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
     theme = load_config(cfg.stem)
     if theme:
         ALL_THEMES.append(theme)
+        ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
             ALL_DATASETS.add(dataset.source)
 

@@ -63,48 +63,26 @@ def parse_kart_diff(
     stdout: str,
     lifecycle: dict[str, Any],
     commit_time: str,
-    dataset_name: str,
     dataset_id: str,
     fid_field: str,
-    logger: Any,
 ) -> None:
     for line in stdout.splitlines():
         if not line.strip():
             continue
-        try:
-            diff_entry = json.loads(line)
-            if diff_entry.get("type") != "feature":
-                continue
+        diff_entry = json.loads(line)
+        if diff_entry.get("type") != "feature":
+            continue
 
-            change = diff_entry.get("change", {})
+        change = diff_entry.get("change", {}).get("++", None)
+        if change is None:
+            continue
 
-            # Check for addition (++)
-            if "++" in change:
-                fid = str(change["++"].get(fid_field))
-                if fid and fid != "None" and fid not in lifecycle:
-                    lifecycle[fid] = {
-                        "id": make_lifecycle_id(commit_time, fid, fid_field, dataset_id),
-                        "source_datasets": [dataset_name],
-                        "created_at": commit_time,
-                        "updated_at": [],
-                    }
-
-            # Check for update (+)
-            elif "+" in change:
-                fid = str(change["+"].get(fid_field))
-                if fid and fid != "None":
-                    if fid not in lifecycle:
-                        lifecycle[fid] = {
-                            "id": make_lifecycle_id(commit_time, fid, fid_field, dataset_id),
-                            "source_datasets": [dataset_name],
-                            "created_at": commit_time,
-                            "updated_at": [],
-                        }
-                    elif commit_time not in lifecycle[fid]["updated_at"]:
-                        lifecycle[fid]["updated_at"].append(commit_time)
-
-        except Exception as e:
-            logger.warning(f"Failed to parse diff line: {e}")
+        fid = str(change.get(fid_field))
+        if fid and fid != "None" and fid not in lifecycle:
+            lifecycle[fid] = {
+                "id": make_lifecycle_id(commit_time, fid, fid_field, dataset_id),
+                "created_at": commit_time,
+            }
 
 
 def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
@@ -118,7 +96,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
         releases = get_releases()
 
         # Lifecycle map: fid -> { id, created_at, updated_at, source_datasets }
-        lifecycle: dict[str, Any] = {}
+        lifecycle = {}
 
         # Walk releases and diff for updates
         last_commit = EMPTY_TREE
@@ -146,12 +124,11 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
 
             context.log.info(f"Diffing {dataset_name}: {last_commit} -> {commit} (Time {commit_time})")
 
-            # Use kart diff with json-lines output.
-            # delta-filter=+,++ catches both new features and updates.
-            cmd = ["kart", "diff", f"{last_commit}...{commit}", "--delta-filter=+,++", "-o", "json-lines"]
+            # delta-filter=++ catches only new features.
+            cmd = ["kart", "diff", f"{last_commit}...{commit}", "--delta-filter=++", "-o", "json-lines"]
 
             stdout = run_command(context, cmd, cwd=str(repo_dir))
-            parse_kart_diff(stdout, lifecycle, commit_time, dataset_name, dataset_id, fid_field, context.log)
+            parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
 
             last_commit = commit
 

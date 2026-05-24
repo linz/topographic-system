@@ -1,3 +1,4 @@
+import shutil
 import time
 from pathlib import Path
 
@@ -42,15 +43,27 @@ def make_clone_asset(dataset_source: str):
         # Use the bundle if we can to prevent extra pulls
         if is_use_bundle():
             bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
-            cmd = ["curl", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
-            run_command(context, cmd)
+            try:
+                # -f / --fail forces curl to return a non-zero exit status on HTTP errors (e.g., 404)
+                cmd = ["curl", "-f", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
+                run_command(context, cmd)
 
-            cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
-            run_command(context, cmd)
+                cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
+                run_command(context, cmd)
 
-            git_to_kart(context, target_dir)
-            bundle_target.unlink()
-            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
+                git_to_kart(context, target_dir)
+
+                return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
+            except Exception as e:
+                context.log.warning(
+                    f"Failed to clone from bundle for {dataset_name} (likely 404 or network issue): {e}. "
+                    "Falling back to direct kart clone."
+                )
+                if target_dir.exists():
+                    shutil.rmtree(target_dir)
+            finally:
+                if bundle_target.exists():
+                    bundle_target.unlink()
 
         # Clone directly from the source
         cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]

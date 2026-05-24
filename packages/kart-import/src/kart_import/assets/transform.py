@@ -2,6 +2,7 @@ import json
 import os
 
 import geopandas as gpd
+import pandas as pd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..config import (
@@ -36,7 +37,12 @@ def normalize_projection(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, 
 
 
 def normalize_fields(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFrame:
-    new_data = {}
+    new_data = {
+        "id": gdf["id"],
+        "created_at": gdf["created_at"],
+        "updated_at": gdf["updated_at"],
+    }
+
     for target_field, source_val in td.mapping.items():
         if not source_val:
             continue
@@ -57,18 +63,28 @@ def normalize_fields(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: 
 
 
 def normalize_field_lifecyle(
-    context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset, lifecycle_data: dict
+    context: AssetExecutionContext,
+    gdf: gpd.GeoDataFrame,
+    td: ThemeDataset,
+    lifecycle_data: dict,
 ) -> gpd.GeoDataFrame:
     # Initialize lifecycle columns
     gdf["created_at"] = None
     gdf["updated_at"] = None
 
-    primary_key = gdf["t50_fid"].astype(str)
+    # Detect the primary key column
+    if "t50_fid" in gdf.columns:
+        pk_col = "t50_fid"
+    elif "auto_pk" in gdf.columns:
+        pk_col = "auto_pk"
+    else:
+        raise Exception("Neither t50_fid nor auto_pk found in dataset columns")
 
-    # Map created_at
+    primary_key = gdf[pk_col].astype(str)
+
     gdf["created_at"] = primary_key.map(lambda x: lifecycle_data.get(x, {}).get("created_at"))
 
-    # Look up pre-computed UUIDv8 id from lifecycle data
+    # Look up pre-computed UUIDv7 id from lifecycle data
     def get_feature_id(fid):
         found = lifecycle_data.get(fid, {}).get("id")
         if found:
@@ -115,9 +131,14 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
         if gdf.crs is None:
             raise Exception("source frame has no projection")
 
-        gdf = normalize_projection(context, gdf, "EPSG:4167")
+        gdf = normalize_field_lifecyle(
+            context,
+            gdf,
+            td,
+            lifecycle_data,
+        )
+        gdf = normalize_projection(context, gdf, theme.target_epsg)
         gdf = normalize_fields(context, gdf, td)
-        gdf = normalize_field_lifecyle(context, gdf, td, lifecycle_data)
 
         gdf.to_file(output_file, driver="GeoJSON", index=False)
 

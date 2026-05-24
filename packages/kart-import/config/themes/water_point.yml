@@ -1,4 +1,6 @@
 name: water_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
 datasets:
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
     mapping:
