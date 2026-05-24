@@ -60,7 +60,7 @@ jobs:
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
-          --cloud-front "$CLOUDFRONT_URL" \
+          --data-source-url "$CLOUDFRONT_URL" \
           ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
 
       - name: Save snapshots
