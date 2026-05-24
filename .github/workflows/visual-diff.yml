@@ -36,7 +36,7 @@ jobs:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=github.${{ inputs.environment }}'
-      CLOUD_FRONT_HOST: ${{ inputs.environment == 'nonprod' && 'https://d1jzh93b1t1cv.cloudfront.net/' || 'https://d2h9vml0if6bs.cloudfront.net/' }}
+      CLOUDFRONT_URL: ${{ inputs.environment == 'nonprod' && 'https://d1jzh93b1t1cv.cloudfront.net/' || 'https://d2h9vml0if6bs.cloudfront.net/' }}
 
     steps:
       - name: Setup Otel
@@ -60,7 +60,7 @@ jobs:
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
-          --cloud-front "$CLOUD_FRONT_HOST" \
+          --cloud-front "$CLOUDFRONT_URL" \
           ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
 
       - name: Save snapshots

@@ -50,9 +50,9 @@ export const VisualDiffArgs = {
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
-  cloudFront: option({
+  dataSourceURL: option({
     type: optional(Url),
-    long: 'cloud-front',
+    long: 'data-source-url',
     description: 'CloudFront URL to access the source data for the project, that override the default data host.',
   }),
   data: option({
@@ -86,7 +86,7 @@ export const VisualDiffCommand = command({
     const tasks = [];
 
     // Download local data if provided, and add the data path to stac for exporting
-    const downloader = new Downloader(args.tempLocation, q, true, args.cloudFront); // Skip downloading if data already exists in temp location
+    const downloader = new Downloader(args.tempLocation, q, true, args.dataSourceURL); // Skip downloading if data already exists in temp location
     if (args.data) {
       const files = await fsa.toArray(fsa.list(args.data));
       for (const file of files) {
