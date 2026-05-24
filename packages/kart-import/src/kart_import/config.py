@@ -74,7 +74,7 @@ class ThemeDataset(BaseModel):
 class Theme(BaseModel):
     name: str
     """
-    Theme name, e.g. "airport" 
+    Theme name, e.g. "airport"
     """
 
     target_repo: str

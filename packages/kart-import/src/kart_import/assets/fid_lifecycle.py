@@ -95,8 +95,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
         dataset_id = kart_dataset_name(context, repo_dir)
         releases = get_releases()
 
-        # Lifecycle map: fid -> { id, created_at, updated_at, source_datasets }
-        lifecycle = {}
+        lifecycle: dict[str, dict[str, str]] = {}
 
         # Walk releases and diff for updates
         last_commit = EMPTY_TREE

@@ -2,7 +2,6 @@ import json
 import os
 
 import geopandas as gpd
-import pandas as pd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..config import (

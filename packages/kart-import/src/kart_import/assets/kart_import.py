@@ -1,11 +1,11 @@
-from kart_import.config import get_kart_repos
-import shutil
 import shutil
 
 from dagster import AssetExecutionContext, AssetKey, asset
 
+from kart_import.config import get_kart_repos
+
 from ..command import run_command
-from ..config import OUTPUT_DIR, WORKING_THEME_DIR, get_releases, get_themes, Theme, Release
+from ..config import OUTPUT_DIR, WORKING_THEME_DIR, Release, Theme, get_releases, get_themes
 
 
 def kart_import_repo(context: AssetExecutionContext, repo_name: str, themes: list[Theme], releases: list[Release]):
