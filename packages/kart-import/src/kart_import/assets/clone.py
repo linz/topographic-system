@@ -11,6 +11,7 @@ from ..config import (
     get_datasets,
     is_use_bundle,
 )
+from ..git.kart import git_to_kart
 
 
 def should_pull(target_dir: Path):
@@ -36,14 +37,9 @@ def make_clone_asset(dataset_source: str):
 
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
             context.log.info(f"{target_dir} already exists.")
-
-            if should_pull(target_dir):
-                context.log.info("Attempting 'git pull'.")
-                run_command(context, ["kart", "pull"], cwd=str(target_dir))
-
             return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
-        # Clone directly from the source
+        # Use the bundle if we can to prevent extra pulls
         if is_use_bundle():
             bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
             cmd = ["curl", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
@@ -52,9 +48,11 @@ def make_clone_asset(dataset_source: str):
             cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
             run_command(context, cmd)
 
+            git_to_kart(context, target_dir)
             bundle_target.unlink()
             return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
+        # Clone directly from the source
         cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
         run_command(context, cmd)
 

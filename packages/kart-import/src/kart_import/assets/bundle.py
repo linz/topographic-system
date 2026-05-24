@@ -88,8 +88,7 @@ def make_bundle_asset(dataset_source: str):
 
         # Skip bundle creation if the current bundle and remote are the same hash
         if bundle_head:
-            ls_remote_cmd = ["git", "ls-remote", dataset_source, "HEAD"]
-            ls_remote_out = run_command(context, ls_remote_cmd).strip()
+            ls_remote_out = run_command(context, ["git", "ls-remote", dataset_source, "HEAD"]).strip()
             source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
 
             if source_head_sha == bundle_head:
@@ -104,28 +103,11 @@ def make_bundle_asset(dataset_source: str):
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
             if should_pull(target_dir):
                 context.log.info("Attempting 'git pull'.")
-                cmd = ["git", "pull"]
-                run_command(context, cmd, cwd=str(target_dir))
+                run_command(context, ["git", "pull"], cwd=str(target_dir))
         else:
-            cmd = [
-                "git",
-                "clone",
-                f"{dataset_source}",
-                str(target_dir),
-                "--no-checkout",
-            ]
-            run_command(context, cmd)
+            run_command(context, ["git", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"])
 
-        cmd = [
-            "git",
-            "-C",
-            str(target_dir),
-            "bundle",
-            "create",
-            str(bundle_path),
-            "--all",
-        ]
-        run_command(context, cmd)
+        run_command(context, ["git", "-C", str(target_dir), "bundle", "create", str(bundle_path), "--all"])
 
         head_sha = run_command(context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
 
@@ -133,22 +115,11 @@ def make_bundle_asset(dataset_source: str):
         s3_uri = get_s3_bundle_uri()
 
         context.log.info(f"Uploading bundle to {s3_uri}...")
-        aws_cp_bundle = [
-            "aws",
-            "s3",
-            "cp",
-            str(bundle_path),
-            f"{s3_uri}{dataset_name}.bundle",
-        ]
-        run_command(context, aws_cp_bundle)
+        run_command(context, ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"])
 
         context.log.info(f"Successfully uploaded {dataset_name}.bundle")
 
-        return MaterializeResult(
-            metadata={
-                "head_sha": MetadataValue.text(head_sha),
-            }
-        )
+        return MaterializeResult(metadata={"head_sha": MetadataValue.text(head_sha)})
 
     return _bundle_asset
 
