@@ -118,6 +118,14 @@ export class StacPusher {
       const targetItemUrl = new URL(filename, targetUrl);
       item.id = StacStorage.id(s, { ...ctx, item: itemName });
       item.collection = collection.id;
+
+      // Load item links and make relative if possible.
+      for (const link of item.links) {
+        if (link.rel === 'self' || link.rel === 'collection') continue;
+        const relativeLink = getRelativePath(new URL(link.href, itemUrl), targetItemUrl);
+        link.href = relativeLink;
+      }
+
       items.push(targetItemUrl);
       if (commit) {
         todo.push(q(() => HashWriter.writeStac(link, targetItemUrl, JSON.stringify(item, null, 2))));
