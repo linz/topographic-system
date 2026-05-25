@@ -83,7 +83,7 @@ class Theme(BaseModel):
 
     target_repo: str
     """
-    target kart repostiroy to store the theme in, e.g. "topographic-data"
+    target kart repository to store the theme in, e.g. "topographic-data"
     """
 
     target_epsg: str
