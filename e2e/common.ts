@@ -9,7 +9,8 @@ export const mapContainer = process.argv.find((f) => f.startsWith('--container-m
 
 export const targetFolder = fsa.toUrl(`./target/`);
 export const sourceAssets = fileURLToPath(new URL('./assets/', import.meta.url));
-export const sourceCode = fileURLToPath(new URL('../', import.meta.url));
+export const sourceCodeUrl = new URL('../', import.meta.url);
+export const sourceCode = fileURLToPath(sourceCodeUrl);
 
 const userGroup = os.userInfo();
 
