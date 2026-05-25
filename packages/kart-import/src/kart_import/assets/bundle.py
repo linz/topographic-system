@@ -92,14 +92,14 @@ def make_bundle_asset(dataset_source: str):
         # Skip bundle creation if the current bundle and remote are the same hash
         if bundle_head:
             ls_remote_out = run_command(context, ["git", "ls-remote", dataset_source, "HEAD"]).strip()
-            source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
+            source_head_sha = ls_remote_out.split()[0] if ls_remote_out else ""
 
             if source_head_sha == bundle_head:
                 context.log.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
                 return MaterializeResult(
                     metadata={
                         "skipped": MetadataValue.bool(True),
-                        "head_sha": MetadataValue.text(source_head_sha or ""),
+                        "head_sha": MetadataValue.text(source_head_sha),
                     }
                 )
 
