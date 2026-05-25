@@ -13,7 +13,7 @@
     "test": "lerna run test",
     "test:integration": "lerna run test:integration",
     "bundle": "lerna run bundle --stream",
-    "format": "npm run lint && uv run ruff format && uv run ruff check",
+    "format": "npm run lint && uv run ruff format && uv run ruff check --fix",
     "lint:py": "uv run ruff check",
     "format:py": "uv run ruff format --check",
     "typecheck:py": "uv run mypy .",
