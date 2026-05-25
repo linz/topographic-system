@@ -44,6 +44,7 @@ enum BridgeUse2Enum {
 /** Auto-derived from observed values of `charplace`. */
 enum CharplaceEnum {
   _: "",
+  CharactersAtVertices: "CharactersAtVertices",
   StretchCharacterSpacingToFit: "StretchCharacterSpacingToFit",
   StretchWordSpacingToFit: "StretchWordSpacingToFit",
 }
