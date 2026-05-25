@@ -44,7 +44,7 @@ describe('kart.import', async () => {
     assert.ok(ret);
   });
 
-  await it.only('should create theme_airport', async () => {
+  await it('should create theme_airport', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
     assert.ok(ret);
 
@@ -64,7 +64,13 @@ describe('kart.import', async () => {
     assert.equal(airports.features.filter((f) => f.properties.name != null).length, count);
     // queenstown airport exists
     assert.equal(airports.features.filter((f) => f.properties.name === 'Queenstown Airport').length, 1);
+
     // Chatham island data was also imported
-    assert.equal(airports.features.filter((f) => f.properties.name?.includes('Tuuta')).length, 1);
+    const ciAirport = airports.features.find((f) => f.properties.name?.includes('Tuuta'));
+    assert.equal(ciAirport?.properties.id, '014fa452-a5e0-7733-81f0-6d80886c86d5');
+    assert.equal(ciAirport?.properties.created_at, '2015-09-06T20:22:04Z');
+    assert.equal(ciAirport?.properties.updated_at, '2015-09-06T20:22:04Z');
+    assert.equal(ciAirport?.properties.t50_fid, 5454276);
+    assert.equal(ciAirport?.properties.feature_type, 'airport');
   });
 });
