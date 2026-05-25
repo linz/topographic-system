@@ -1,2 +1,14 @@
 telemetry:
   enabled: false
+
+run_storage:
+  module: dagster._core.storage.runs
+  class: InMemoryRunStorage
+
+event_log_storage:
+  module: dagster._core.storage.event_log
+  class: InMemoryEventLogStorage
+
+schedule_storage:
+  module: dagster._core.storage.schedules
+  class: InMemoryScheduleStorage

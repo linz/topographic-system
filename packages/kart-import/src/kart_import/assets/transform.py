@@ -1,9 +1,8 @@
 import json
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
-import dask_geopandas as dgpd  # type: ignore[import-untyped]
 
+import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
@@ -18,6 +17,7 @@ from ..config import (
     get_releases,
     get_themes,
 )
+from ..thread import run_in_thread_pool
 
 
 def normalize_projection(
@@ -161,8 +161,13 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
 
         gdf.to_file(output_file, driver="GeoJSON", index=False)
 
-    for release in releases:
-        process_release(release)
+    run_in_thread_pool(
+        context=context,
+        func=process_release,
+        items=releases,
+        thread_count=4,
+        description=f"Dataset {dataset_name} has {len(lifecycle_data)} lifecycle rows. Processing releases in parallel",
+    )
 
 
 def make_dataset_export_transform_asset(theme: Theme, td: ThemeDataset, releases: list[Release]) -> AssetsDefinition:
