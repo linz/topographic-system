@@ -1,7 +1,28 @@
 import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 import { describe, it } from 'node:test';
 
-import { tsKartImport } from './common.ts';
+import { sourceCodeUrl, tsKartImport } from './common.ts';
+
+interface FeatureCollectionAirport {
+  type: 'Featurecollection';
+  name: 'airport';
+  crs: { type: 'name'; properties: { name: string } };
+  features: FeatureAirport[];
+}
+
+interface FeatureAirport {
+  type: 'Feature';
+  properties: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    t50_fid: number;
+    feature_type: 'airport';
+    name?: string;
+  };
+  geometry: unknown;
+}
 
 describe('kart.import', async () => {
   await it('should have uv and source', async () => {
@@ -21,5 +42,35 @@ describe('kart.import', async () => {
   await it('should clone_airport', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'clone_nz_airport_polygons');
     assert.ok(ret);
+  });
+
+  await it('should create theme_airport', async () => {
+    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
+    assert.ok(ret);
+
+    const release30Airports = new URL(
+      './packages/kart-import/data/working/theme/release_30/airport.geojson',
+      sourceCodeUrl,
+    );
+    const airports = JSON.parse(await readFile(release30Airports, 'utf-8')) as FeatureCollectionAirport;
+
+    assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } });
+    const count = airports.features.length;
+
+    assert.equal(count, 84);
+    // All airports have a t50_fid
+    assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count);
+    // All airports have a name
+    assert.equal(airports.features.filter((f) => f.properties.name != null).length, count);
+    // queenstown airport exists
+    assert.equal(airports.features.filter((f) => f.properties.name === 'Queenstown Airport').length, 1);
+
+    // Chatham island data was also imported
+    const ciAirport = airports.features.find((f) => f.properties.name?.includes('Tuuta'));
+    assert.equal(ciAirport?.properties.id, '014fa452-a5e0-7733-81f0-6d80886c86d5');
+    assert.equal(ciAirport?.properties.created_at, '2015-09-06T20:22:04Z');
+    assert.equal(ciAirport?.properties.updated_at, '2015-09-06T20:22:04Z');
+    assert.equal(ciAirport?.properties.t50_fid, 5454276);
+    assert.equal(ciAirport?.properties.feature_type, 'airport');
   });
 });
