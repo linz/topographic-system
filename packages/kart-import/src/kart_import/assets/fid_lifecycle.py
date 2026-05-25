@@ -7,7 +7,7 @@ from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..command import run_command
 from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
-from ..git.kart import kart_dataset_name
+from ..git.kart import get_kart_dataset_id
 from ..git.release import get_release_commit
 from ..uuid.uuid7 import reproducable_uuid7_text
 
@@ -18,7 +18,7 @@ EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 def get_mapping_commit(context: AssetExecutionContext, repo_dir: Path) -> tuple[str, datetime] | None:
     """Finds the first commit that introduced t50_fid in the schema."""
 
-    dataset_id = kart_dataset_name(context, repo_dir)
+    dataset_id = get_kart_dataset_id(context, repo_dir)
     schema_path = f"{dataset_id}/.table-dataset/meta/schema.json"
 
     # Optimization: Try March 2015 first as most mappings happened then
@@ -102,7 +102,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
     def _lifecycle_asset(context: AssetExecutionContext):
         dataset_name = get_dataset_name(dataset.source)
         repo_dir = SOURCE_DIR / dataset_name
-        dataset_id = kart_dataset_name(context, repo_dir)
+        dataset_id = get_kart_dataset_id(context, repo_dir)
         releases = get_releases()
 
         lifecycle: dict[str, dict[str, str]] = {}

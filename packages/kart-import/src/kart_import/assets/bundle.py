@@ -8,11 +8,14 @@ from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, ass
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
+    WORKING_EXPORTS_DIR,
     get_bundle_url,
     get_dataset_name,
     get_datasets,
     get_s3_bundle_uri,
 )
+from ..git.kart import get_kart_dataset_id
+from ..thread import run_in_thread_pool
 
 """
 Take datasets from the linz data service, bundle them into a git .bundle
@@ -102,10 +105,11 @@ def make_bundle_asset(dataset_source: str):
 
         if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
             if should_pull(target_dir):
+                run_command(context, ["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
                 context.log.info("Attempting 'git pull'.")
                 run_command(context, ["git", "pull"], cwd=str(target_dir))
         else:
-            run_command(context, ["git", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"])
+            run_command(context, ["kart", "clone", dataset_source, str(target_dir), "--no-checkout"])
 
         run_command(context, ["git", "-C", str(target_dir), "bundle", "create", str(bundle_path), "--all"])
 
@@ -117,9 +121,43 @@ def make_bundle_asset(dataset_source: str):
         context.log.info(f"Uploading bundle to {s3_uri}...")
         run_command(context, ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"])
 
+        kart_dataset_id = get_kart_dataset_id(context, target_dir)
+        per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
+        per_commit_dir.mkdir(parents=True, exist_ok=True)
+
+        def export_commit(sha: str) -> bool:
+            s3_key = f"{get_s3_bundle_uri()}{dataset_name}/{sha}.json.gz"
+            result = run_command(context, ["aws", "s3", "ls", s3_key], check_error=False)
+            if result.strip():
+                return False
+            json_export = str(per_commit_dir / f"{sha}.json")
+            run_command(
+                context,
+                ["kart", "export", "--overwrite", "--ref", sha, kart_dataset_id, json_export],
+                cwd=str(target_dir),
+            )
+            run_command(context, ["gzip", "-9", json_export])
+            run_command(context, ["aws", "s3", "cp", f"{json_export}.gz", s3_key])
+            return True
+
+        all_commits = run_command(
+            context, ["git", "log", "--all", "--pretty=format:%H", "--reverse"], cwd=str(target_dir)
+        ).splitlines()
+        results = run_in_thread_pool(
+            context,
+            export_commit,
+            all_commits,
+            thread_count=4,
+            description=f"Exporting {dataset_name} commits in parallel",
+        )
+        exported = sum(results)
+        skipped = len(results) - exported
+
         context.log.info(f"Successfully uploaded {dataset_name}.bundle")
 
-        return MaterializeResult(metadata={"head_sha": MetadataValue.text(head_sha)})
+        return MaterializeResult(
+            metadata={"head_sha": MetadataValue.text(head_sha), "skipped": skipped, "exported": exported}
+        )
 
     return _bundle_asset
 
