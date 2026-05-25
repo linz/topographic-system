@@ -9,7 +9,6 @@ from ..command import run_command
 from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
 from ..git.kart import kart_dataset_name
 from ..git.release import get_release_commit
-from ..thread import run_in_thread_pool
 from ..uuid.uuid7 import reproducable_uuid7_text
 
 # Git empty tree hash - used as a starting point for the first diff
@@ -61,6 +60,7 @@ def make_lifecycle_id(commit_time: str, fid: str, fid_field: str, dataset_id: st
 
 
 def parse_kart_diff(
+    context: AssetExecutionContext,
     stdout: str,
     lifecycle: dict[str, Any],
     commit_time: str,
@@ -74,25 +74,26 @@ def parse_kart_diff(
         if diff_entry.get("type") != "feature":
             continue
 
-        change_obj = diff_entry.get("change", {})
-        # Support both single '+' and double '++' representation of additions/modifications
-        new_state = change_obj.get("+") or change_obj.get("++")
-        old_state = change_obj.get("-") or change_obj.get("--")
+        change_obj = diff_entry.get("change", {}).get("++")
 
-        if new_state is None:
+        if change_obj is None:
             continue
 
-        fid = str(new_state.get(fid_field))
-        if fid and fid != "None":
-            if fid not in lifecycle:
-                lifecycle[fid] = {
-                    "id": make_lifecycle_id(commit_time, fid, fid_field, dataset_id),
-                    "created_at": commit_time,
-                    "updated_at": commit_time,
-                }
-            elif old_state:
-                # Feature exists and was modified in this commit -> update updated_at
-                lifecycle[fid]["updated_at"] = commit_time
+        fid = change_obj.get(fid_field)
+        if fid is None:
+            raise Exception(f"Change without fid: {line}")
+
+        fid_str = str(fid)
+        # Sometimes fids are joined in the reblocker then unjoined later, so skip if we've already seen this fid
+        if fid_str in lifecycle:
+            context.log.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]["created_at"]}")
+            continue
+
+        lifecycle[fid_str] = {
+            "id": make_lifecycle_id(commit_time, fid_str, fid_field, dataset_id),
+            "created_at": commit_time,
+        }
+
 
 
 def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
@@ -119,7 +120,6 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
             fid_field = "auto_pk"
             context.log.info(f"No t50_fid mapping for {dataset_name}, using auto_pk")
 
-        diff_tasks = []
         for release in releases:
             res = get_release_commit(repo_dir, release.until)
             if not res:
@@ -132,27 +132,11 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
                 context.log.debug(f"Release {release.id} has same commit as previous. Skipping diff.")
                 continue
 
-            diff_tasks.append({"last_commit": last_commit, "commit": commit, "commit_time": commit_time})
-            last_commit = commit
-
-        def process_diff(task: dict[str, str]) -> tuple[str, str]:
-            context.log.info(
-                f"Diffing {dataset_name}: {task['last_commit']} -> {task['commit']} (Time {task['commit_time']})"
-            )
-            cmd = ["kart", "diff", f"{task['last_commit']}...{task['commit']}", "-o", "json-lines"]
+            cmd = ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines", "--delta-filter=++"]
             stdout = run_command(context, cmd, cwd=str(repo_dir))
-            return task["commit_time"], stdout
+            parse_kart_diff(context, stdout, lifecycle, commit_time, dataset_id, fid_field)
 
-        results = run_in_thread_pool(
-            context=context,
-            func=process_diff,
-            items=diff_tasks,
-            thread_count=4,
-            description=f"Diffing {dataset_name} lifecycle in parallel",
-        )
-
-        for commit_time, stdout in results:
-            parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
+            last_commit = commit
 
         # Save lifecycle for this dataset
         WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)

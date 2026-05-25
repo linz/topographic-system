@@ -16,9 +16,6 @@ from ..git.kart import is_kart
 from ..git.release import get_release_commit
 from ..thread import run_in_thread_pool
 
-# Set KART_USE_HELPER globally to 0 to disable the background helper process
-os.environ["KART_USE_HELPER"] = "0"
-
 
 @dataclass
 class CommitData:

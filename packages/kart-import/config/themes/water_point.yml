@@ -22,3 +22,11 @@ datasets:
     mapping:
       feature_type: rock
       name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
+    mapping:
+      feature_type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
+    mapping:
+      feature_type: rock
+      name: $

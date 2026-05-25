@@ -5,6 +5,10 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, model_validator
 
+# Set KART_USE_HELPER globally to 0 to disable the background helper process
+# as the helper is limited to 4 threads
+os.environ["KART_USE_HELPER"] = "0"
+
 # Paths mapped in docker-compose
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
