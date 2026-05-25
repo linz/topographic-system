@@ -1,24 +1,24 @@
 import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 import { describe, it } from 'node:test';
 
-import { readFile } from 'node:fs/promises';
 import { sourceCodeUrl, tsKartImport } from './common.ts';
 
 interface FeatureCollectionAirport {
-  type: 'Featurecollection',
-  name: 'airport',
-  crs: { type: 'name', properties: { name: string }},
-  features: FeatureAirport[]
+  type: 'Featurecollection';
+  name: 'airport';
+  crs: { type: 'name'; properties: { name: string } };
+  features: FeatureAirport[];
 }
 
 interface FeatureAirport {
-  type: 'Feature',
+  type: 'Feature';
   properties: {
     id: string;
     created_at: string;
     updated_at: string;
     t50_fid: number;
-    feature_type: 'airport',
+    feature_type: 'airport';
     name?: string;
   };
   geometry: unknown;
@@ -48,20 +48,23 @@ describe('kart.import', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
     assert.ok(ret);
 
-    const release30Airports = new URL("./packages/kart-import/data/working/theme/release_30/airport.geojson", sourceCodeUrl);
-    const airports = JSON.parse(await readFile(release30Airports, 'utf-8' )) as FeatureCollectionAirport
+    const release30Airports = new URL(
+      './packages/kart-import/data/working/theme/release_30/airport.geojson',
+      sourceCodeUrl,
+    );
+    const airports = JSON.parse(await readFile(release30Airports, 'utf-8')) as FeatureCollectionAirport;
 
-    assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } })
+    assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } });
     const count = airports.features.length;
 
-    assert.equal(count, 84)
+    assert.equal(count, 84);
     // All airports have a t50_fid
-    assert.equal(airports.features.filter(f => f.properties.t50_fid > 0).length, count)
+    assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count);
     // All airports have a name
-    assert.equal(airports.features.filter(f => f.properties.name != null).length, count)
+    assert.equal(airports.features.filter((f) => f.properties.name != null).length, count);
     // queenstown airport exists
-    assert.equal(airports.features.filter(f => f.properties.name === 'Queenstown Airport').length, 1)
+    assert.equal(airports.features.filter((f) => f.properties.name === 'Queenstown Airport').length, 1);
     // Chatham island data was also imported
-    assert.equal(airports.features.filter(f => f.properties.name?.includes('Tuuta')).length, 1)
+    assert.equal(airports.features.filter((f) => f.properties.name?.includes('Tuuta')).length, 1);
   });
 });
