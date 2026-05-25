@@ -132,15 +132,13 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
                 context.log.debug(f"Release {release.id} has same commit as previous. Skipping diff.")
                 continue
 
-            diff_tasks.append({
-                "last_commit": last_commit,
-                "commit": commit,
-                "commit_time": commit_time
-            })
+            diff_tasks.append({"last_commit": last_commit, "commit": commit, "commit_time": commit_time})
             last_commit = commit
 
         def process_diff(task: dict[str, str]) -> tuple[str, str]:
-            context.log.info(f"Diffing {dataset_name}: {task['last_commit']} -> {task['commit']} (Time {task['commit_time']})")
+            context.log.info(
+                f"Diffing {dataset_name}: {task['last_commit']} -> {task['commit']} (Time {task['commit_time']})"
+            )
             cmd = ["kart", "diff", f"{task['last_commit']}...{task['commit']}", "-o", "json-lines"]
             stdout = run_command(context, cmd, cwd=str(repo_dir))
             return task["commit_time"], stdout
