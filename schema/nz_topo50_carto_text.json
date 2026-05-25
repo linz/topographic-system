@@ -297,7 +297,7 @@
     },
     "CharplaceEnum": {
       "type": "string",
-      "enum": ["", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"],
+      "enum": ["", "CharactersAtVertices", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"],
       "description": "Auto-derived from observed values of `charplace`."
     },
     "BBox": {
