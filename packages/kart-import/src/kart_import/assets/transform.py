@@ -129,12 +129,9 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
             os.symlink(previous_output, output_file)
             return
 
-        context.log.info(f"Reading {input_file}")
         start_time = time.perf_counter()
         gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
-
-        duration = time.perf_counter() - start_time
-        context.log.info(f"{release.id}: read_file took {duration:.4f}s")
+        read_duration = time.perf_counter() - start_time
 
         if gdf.crs is None:
             raise Exception("source frame has no projection")
@@ -147,19 +144,24 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
             lifecycle_data,
         )
         lifecycle_duration = time.perf_counter() - start_time
-        context.log.info(f"{release.id}: normalize_field_lifecyle took {lifecycle_duration:.4f}s")
 
         start_time = time.perf_counter()
         gdf = normalize_projection(context, gdf, td, theme.target_epsg)
         projection_duration = time.perf_counter() - start_time
-        context.log.info(f"{release.id}: normalize_projection took {projection_duration:.4f}s")
 
         start_time = time.perf_counter()
         gdf = normalize_fields(context, gdf, td)
         fields_duration = time.perf_counter() - start_time
-        context.log.info(f"{release.id}: normalize_fields took {fields_duration:.4f}s")
 
         gdf.to_file(output_file, driver="GeoJSON", index=False)
+
+        context.log.info(
+            f"Release {release.id} transformed. Times: "
+            f"read: {read_duration:.4f}s, "
+            f"lifecycle: {lifecycle_duration:.4f}s, "
+            f"projection: {projection_duration:.4f}s, "
+            f"fields: {fields_duration:.4f}s"
+        )
 
     run_in_thread_pool(
         context=context,

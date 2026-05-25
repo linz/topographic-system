@@ -31,7 +31,7 @@ def kart_import_repo(context: AssetExecutionContext, repo_name: str, themes: lis
             input_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme.name}.geojson"
 
             context.log.info(f"Importing {theme.name} for release {release.id} into Kart repo {repo_name}")
-
+            
             cmd = [
                 "kart",
                 "import",

@@ -8,6 +8,7 @@ from typing import Any, TypeVar
 from dagster import AssetExecutionContext
 
 T = TypeVar("T")
+R = TypeVar("R")
 
 
 def register_sigint_handler() -> None:
@@ -25,11 +26,11 @@ register_sigint_handler()
 
 def run_in_thread_pool(
     context: AssetExecutionContext,
-    func: Callable[[T], None],
+    func: Callable[[T], R],
     items: Iterable[T],
     thread_count: int = 4,
     description: str = "",
-) -> None:
+) -> list[R]:
     """Runs a function in parallel over an iterable of items using a ThreadPoolExecutor.
 
     Bypasses KeyboardInterrupt / SIGINT hangs by polling futures individually and
@@ -40,10 +41,12 @@ def run_in_thread_pool(
 
     executor = ThreadPoolExecutor(max_workers=thread_count)
     futures = [executor.submit(func, item) for item in items]
+    results = []
     try:
         # Resolving futures individually keeps the main thread active to receive KeyboardInterrupt
         for future in futures:
-            future.result()
+            results.append(future.result())
+        return results
     except KeyboardInterrupt:
         context.log.warn("KeyboardInterrupt (Ctrl+C) received. Aborting thread pool...")
         executor.shutdown(wait=False, cancel_futures=True)

@@ -9,6 +9,7 @@ from ..command import run_command
 from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
 from ..git.kart import kart_dataset_name
 from ..git.release import get_release_commit
+from ..thread import run_in_thread_pool
 from ..uuid.uuid7 import reproducable_uuid7_text
 
 # Git empty tree hash - used as a starting point for the first diff
@@ -118,6 +119,7 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
             fid_field = "auto_pk"
             context.log.info(f"No t50_fid mapping for {dataset_name}, using auto_pk")
 
+        diff_tasks = []
         for release in releases:
             res = get_release_commit(repo_dir, release.until)
             if not res:
@@ -130,15 +132,29 @@ def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
                 context.log.debug(f"Release {release.id} has same commit as previous. Skipping diff.")
                 continue
 
-            context.log.info(f"Diffing {dataset_name}: {last_commit} -> {commit} (Time {commit_time})")
-
-            # We want both additions and modifications, so we omit --delta-filter=++
-            cmd = ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines"]
-
-            stdout = run_command(context, cmd, cwd=str(repo_dir))
-            parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
-
+            diff_tasks.append({
+                "last_commit": last_commit,
+                "commit": commit,
+                "commit_time": commit_time
+            })
             last_commit = commit
+
+        def process_diff(task: dict[str, str]) -> tuple[str, str]:
+            context.log.info(f"Diffing {dataset_name}: {task['last_commit']} -> {task['commit']} (Time {task['commit_time']})")
+            cmd = ["kart", "diff", f"{task['last_commit']}...{task['commit']}", "-o", "json-lines"]
+            stdout = run_command(context, cmd, cwd=str(repo_dir))
+            return task["commit_time"], stdout
+
+        results = run_in_thread_pool(
+            context=context,
+            func=process_diff,
+            items=diff_tasks,
+            thread_count=4,
+            description=f"Diffing {dataset_name} lifecycle in parallel",
+        )
+
+        for commit_time, stdout in results:
+            parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
 
         # Save lifecycle for this dataset
         WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)
