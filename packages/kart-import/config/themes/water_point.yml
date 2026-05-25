@@ -1,4 +1,6 @@
 name: water_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
 datasets:
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
     mapping:
@@ -17,6 +19,14 @@ datasets:
       feature_type: rock
       name: $
   - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
+    mapping:
+      feature_type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
+    mapping:
+      feature_type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
     mapping:
       feature_type: rock
       name: $

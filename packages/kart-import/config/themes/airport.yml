@@ -1,4 +1,6 @@
 name: airport
+target_repo: topographic-data
+target_epsg: EPSG:4167
 datasets:
   - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
     mapping:

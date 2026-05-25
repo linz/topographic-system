@@ -3,10 +3,11 @@ import pandas as pd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..config import WORKING_THEME_DIR, WORKING_TRANSFORM_DIR, Release, Theme, get_releases, get_themes
+from ..thread import run_in_thread_pool
 
 
 def make_theme_asset(context: AssetExecutionContext, theme: Theme, releases: list[Release]):
-    for release in releases:
+    def process_theme_release(release: Release):
         context.log.info(f"Merging theme: {theme.name} for release {release.id}")
 
         release_dir = WORKING_THEME_DIR / f"release_{release.id}"
@@ -19,7 +20,7 @@ def make_theme_asset(context: AssetExecutionContext, theme: Theme, releases: lis
 
         for dataset in theme.datasets:
             geojson_path = WORKING_TRANSFORM_DIR / f"release_{release.id}" / f"{dataset.name}.json"
-            gdf = gpd.read_file(geojson_path)
+            gdf = gpd.read_file(geojson_path, engine="pyogrio", use_arrow=True)
             if gdf.empty:
                 context.log.info(f"{dataset.name} (release {release.id}) is empty. Skipping.")
                 continue
@@ -29,7 +30,7 @@ def make_theme_asset(context: AssetExecutionContext, theme: Theme, releases: lis
 
         if not gdfs:
             context.log.warning(f"No data found for theme {theme.name} release {release.id}.")
-            return None
+            return
 
         merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
 
@@ -44,6 +45,14 @@ def make_theme_asset(context: AssetExecutionContext, theme: Theme, releases: lis
             merged = merged.drop(columns=["fid"])
 
         merged.to_file(output_geojson, driver="GeoJSON", index=False)
+
+    run_in_thread_pool(
+        context=context,
+        func=process_theme_release,
+        items=releases,
+        thread_count=4,
+        description=f"Merging theme {theme.name} in parallel",
+    )
 
 
 def make_theme_release_asset(theme: Theme, releases: list[Release]) -> AssetsDefinition:

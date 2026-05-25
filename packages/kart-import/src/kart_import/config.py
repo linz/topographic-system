@@ -5,6 +5,10 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, model_validator
 
+# Set KART_USE_HELPER globally to 0 to disable the background helper process
+# as the helper is limited to 4 threads
+os.environ["KART_USE_HELPER"] = "0"
+
 # Paths mapped in docker-compose
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
@@ -73,7 +77,24 @@ class ThemeDataset(BaseModel):
 
 class Theme(BaseModel):
     name: str
+    """
+    Theme name, e.g. "airport"
+    """
+
+    target_repo: str
+    """
+    target kart repository to store the theme in, e.g. "topographic-data"
+    """
+
+    target_epsg: str
+    """
+    target epsg projection code
+    """
+
     datasets: list[ThemeDataset]
+    """
+    list of datasets to include in the theme
+    """
 
 
 class Themes(BaseModel):
@@ -85,6 +106,7 @@ class Themes(BaseModel):
 
 ALL_THEMES = Themes(themes=[])
 ALL_DATASETS: set[str] = set()
+ALL_KART_REPOS: set[str] = set()
 
 
 def load_config(file_name: str) -> Theme:
@@ -102,6 +124,10 @@ def get_themes() -> list[Theme]:
 
 def get_datasets() -> list[str]:
     return list(ALL_DATASETS)
+
+
+def get_kart_repos() -> list[str]:
+    return list(ALL_KART_REPOS)
 
 
 class Release(BaseModel):
@@ -133,6 +159,7 @@ for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
     theme = load_config(cfg.stem)
     if theme:
         ALL_THEMES.append(theme)
+        ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
             ALL_DATASETS.add(dataset.source)
 
