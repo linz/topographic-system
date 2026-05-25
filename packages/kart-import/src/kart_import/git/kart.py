@@ -28,7 +28,7 @@ def is_kart(target_dir: Path):
     return (target_dir / ".kart").exists()
 
 
-def kart_dataset_name(context: AssetExecutionContext, target_dir: Path):
+def get_kart_dataset_id(context: AssetExecutionContext, target_dir: Path):
     kart_dataset_id = run_command(context, ["kart", "data", "ls"], cwd=str(target_dir)).strip()
     if "\n" in kart_dataset_id:
         raise Exception(f"Invalid dataset id: '{target_dir}'")

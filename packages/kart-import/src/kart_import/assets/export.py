@@ -12,7 +12,7 @@ from ..config import (
     get_datasets,
     get_releases,
 )
-from ..git.kart import is_kart
+from ..git.kart import get_kart_dataset_id, is_kart
 from ..git.release import get_release_commit
 from ..thread import run_in_thread_pool
 
@@ -32,9 +32,7 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
     if not is_kart(repo_dir):
         raise Exception(f"Kart repo not found: {repo_dir}")
 
-    kart_dataset_id = run_command(ctx, ["kart", "data", "ls"], cwd=str(repo_dir)).strip()
-    if "\n" in kart_dataset_id:
-        raise Exception(f"Invalid dataset id: '{kart_dataset_id}'")
+    kart_dataset_id = get_kart_dataset_id(ctx, repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
 
