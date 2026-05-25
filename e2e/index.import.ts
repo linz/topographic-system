@@ -22,4 +22,10 @@ describe('kart.import', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'clone_nz_airport_polygons');
     assert.ok(ret);
   });
+
+
+  await it('should create theme_airport', async () => {
+    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'theme_airport');
+    assert.ok(ret);
+  });
 });
