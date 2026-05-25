@@ -1,5 +1,8 @@
 import json
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+import dask_geopandas as dgpd  # type: ignore[import-untyped]
 
 import geopandas as gpd
 from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
@@ -17,21 +20,25 @@ from ..config import (
 )
 
 
-def normalize_projection(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, target_epsg: str) -> gpd.GeoDataFrame:
-    if gdf.crs != target_epsg:
-        # Reduce precision to 1mm (3 decimal places in EPSG:2193 meters)
-        context.log.info(f"Reducing precision of {dataset.name} to 1mm")
-        gdf.geometry = gdf.geometry.set_precision(0.001)
+def normalize_projection(
+    context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: str
+) -> gpd.GeoDataFrame:
+    if gdf.crs == target_epsg:
+        # Reduce precision to avoid floating point noise in degrees
+        # 1e-8 degrees is approximately 1.1mm
+        context.log.info(f"Reducing precision of {td.name} to 1e-8 degrees (~1mm)")
+        gdf.geometry = gdf.geometry.set_precision(1e-8)
+        return gdf
 
-        # Transform to NZGD2000 (EPSG:4167)
-        context.log.info(f"Transforming {dataset.name} to {target_epsg}")
-        gdf = gdf.to_crs(target_epsg)
+    ddf = dgpd.from_geopandas(gdf, npartitions=4)
+    ddf = ddf.to_crs(target_epsg)
 
-    # Reduce precision again after transform to avoid floating point noise in degrees
-    # 1e-8 degrees is approximately 1.1mm
-    context.log.info(f"Reducing precision of {dataset.name} to 1e-8 degrees (~1mm)")
-    gdf.geometry = gdf.geometry.set_precision(1e-8)
+    def apply_precision(df):
+        df.geometry = df.geometry.set_precision(1e-8)
+        return df
 
+    ddf = ddf.map_partitions(apply_precision, meta=ddf._meta)
+    gdf = ddf.compute()
     return gdf
 
 
@@ -82,6 +89,7 @@ def normalize_field_lifecyle(
     primary_key = gdf[pk_col].astype(str)
 
     gdf["created_at"] = primary_key.map(lambda x: lifecycle_data.get(x, {}).get("created_at"))
+    gdf["updated_at"] = gdf["created_at"]
 
     # Look up pre-computed UUIDv7 id from lifecycle data
     def get_feature_id(fid):
@@ -96,7 +104,7 @@ def normalize_field_lifecyle(
 
 
 def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td: ThemeDataset, releases: list[Release]):
-    dataset_name = get_dataset_name(td.source)
+    dataset_name = td.name
 
     lifecycle_file = WORKING_LIFECYCLE_DIR / f"{dataset_name}.json"
     lifecycle_data = {}
@@ -105,8 +113,7 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
     with open(lifecycle_file) as f:
         lifecycle_data = json.load(f)
 
-    print(json.dumps(lifecycle_data))
-    for release in releases:
+    def process_release(release: Release):
         input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
         output_dir = WORKING_TRANSFORM_DIR / f"release_{release.id}"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -114,32 +121,48 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
 
         if output_file.exists():
             output_file.unlink()  # todo should we keep existing transforms at some point
-            # context.log.info(f"Output exists {output_file}, skipping...")
-            # continue
 
         if input_file.is_symlink():
             previous_output = WORKING_TRANSFORM_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json"
             if output_file.exists() or output_file.is_symlink():
                 output_file.unlink()
             os.symlink(previous_output, output_file)
-            continue
+            return
 
         context.log.info(f"Reading {input_file}")
-        gdf = gpd.read_file(input_file, engine="pyogrio")
+        start_time = time.perf_counter()
+        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+
+        duration = time.perf_counter() - start_time
+        context.log.info(f"{release.id}: read_file took {duration:.4f}s")
 
         if gdf.crs is None:
             raise Exception("source frame has no projection")
 
+        start_time = time.perf_counter()
         gdf = normalize_field_lifecyle(
             context,
             gdf,
             td,
             lifecycle_data,
         )
-        gdf = normalize_projection(context, gdf, theme.target_epsg)
+        lifecycle_duration = time.perf_counter() - start_time
+        context.log.info(f"{release.id}: normalize_field_lifecyle took {lifecycle_duration:.4f}s")
+
+        start_time = time.perf_counter()
+        gdf = normalize_projection(context, gdf, td, theme.target_epsg)
+        projection_duration = time.perf_counter() - start_time
+        context.log.info(f"{release.id}: normalize_projection took {projection_duration:.4f}s")
+
+        start_time = time.perf_counter()
         gdf = normalize_fields(context, gdf, td)
+        fields_duration = time.perf_counter() - start_time
+        context.log.info(f"{release.id}: normalize_fields took {fields_duration:.4f}s")
 
         gdf.to_file(output_file, driver="GeoJSON", index=False)
+
+    for release in releases:
+        process_release(release)
 
 
 def make_dataset_export_transform_asset(theme: Theme, td: ThemeDataset, releases: list[Release]) -> AssetsDefinition:
