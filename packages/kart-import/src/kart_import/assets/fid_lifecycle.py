@@ -86,14 +86,13 @@ def parse_kart_diff(
         fid_str = str(fid)
         # Sometimes fids are joined in the reblocker then unjoined later, so skip if we've already seen this fid
         if fid_str in lifecycle:
-            context.log.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]["created_at"]}")
+            context.log.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]['created_at']}")
             continue
 
         lifecycle[fid_str] = {
             "id": make_lifecycle_id(commit_time, fid_str, fid_field, dataset_id),
             "created_at": commit_time,
         }
-
 
 
 def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
