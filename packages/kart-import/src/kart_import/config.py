@@ -5,6 +5,10 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, model_validator
 
+from kart_import.env import env_releases
+
+from .env import env_themes
+
 # Set KART_USE_HELPER globally to 0 to disable the background helper process
 # as the helper is limited to 4 threads
 os.environ["KART_USE_HELPER"] = "0"
@@ -29,22 +33,6 @@ WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
-
-
-def is_use_bundle() -> bool:
-    return os.getenv("GIT_BUNDLE", "true").lower() == "true"
-
-
-def get_bundle_url(dataset_name: str) -> str:
-    base_url = os.getenv("GIT_BUNDLE_URI", "https://d1jzh93b1t1cv.cloudfront.net/source/")
-    return f"{base_url}{dataset_name}.bundle"
-
-
-def get_s3_bundle_uri() -> str:
-    s3_uri = os.getenv("GIT_BUNDLE_S3_URI", "s3://linz-topography-nonprod/source/")
-    if not s3_uri.endswith("/"):
-        s3_uri += "/"
-    return s3_uri
 
 
 def get_dataset_name(source: str) -> str:
@@ -97,6 +85,12 @@ class Theme(BaseModel):
     """
 
 
+class Release(BaseModel):
+    id: int
+    date: datetime
+    until: datetime = datetime.now()
+
+
 class Themes(BaseModel):
     themes: list[Theme]
 
@@ -107,6 +101,7 @@ class Themes(BaseModel):
 ALL_THEMES = Themes(themes=[])
 ALL_DATASETS: set[str] = set()
 ALL_KART_REPOS: set[str] = set()
+ALL_RELEASES: list[Release] = []
 
 
 def load_config(file_name: str) -> Theme:
@@ -116,6 +111,10 @@ def load_config(file_name: str) -> Theme:
         if not isinstance(data, dict):
             raise Exception(f"Invalid theme config format in {file_name}.yml")
         return Theme(**data)
+
+
+def get_releases() -> list[Release]:
+    return ALL_RELEASES
 
 
 def get_themes() -> list[Theme]:
@@ -130,37 +129,37 @@ def get_kart_repos() -> list[str]:
     return list(ALL_KART_REPOS)
 
 
-class Release(BaseModel):
-    id: int
-    date: datetime
-    until: datetime = datetime.now()
+def load_from_yaml():
+    base_themes = env_themes()
+    base_releases = env_releases()
 
+    for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
+        theme = load_config(cfg.stem)
 
-def get_releases() -> list[Release]:
+        if base_themes and theme.name not in base_themes:
+            continue
+
+        ALL_THEMES.append(theme)
+        ALL_KART_REPOS.add(theme.target_repo)
+        for dataset in theme.datasets:
+            ALL_DATASETS.add(dataset.source)
+
     if not CONFIG_DIR_RELEASE.exists():
         raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
 
     with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
 
-    releases: list[Release] = []
-    for entry in raw.get("releases", []):
-        for key, timestamp in entry.items():
-            date = datetime.fromisoformat(str(timestamp))
-            if releases:
-                day_before = date - timedelta(days=14)
-                releases[-1].until = day_before
-            releases.append(Release(id=int(key), date=date))
+        for entry in raw.get("releases", []):
+            for key, timestamp in entry.items():
+                if base_releases and key not in base_releases:
+                    continue
 
-    return releases
+                date = datetime.fromisoformat(str(timestamp))
+                if ALL_RELEASES:
+                    day_before = date - timedelta(days=14)
+                    ALL_RELEASES[-1].until = day_before
+                ALL_RELEASES.append(Release(id=int(key), date=date))
 
 
-for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
-    theme = load_config(cfg.stem)
-    if theme:
-        ALL_THEMES.append(theme)
-        ALL_KART_REPOS.add(theme.target_repo)
-        for dataset in theme.datasets:
-            ALL_DATASETS.add(dataset.source)
-
-get_releases()
+load_from_yaml()

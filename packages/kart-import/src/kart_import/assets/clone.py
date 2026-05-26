@@ -7,11 +7,10 @@ from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, ass
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
-    get_bundle_url,
     get_dataset_name,
     get_datasets,
-    is_use_bundle,
 )
+from ..env import env_bundle_url, env_use_bundle
 from ..git.kart import git_to_kart
 
 
@@ -41,11 +40,11 @@ def make_clone_asset(dataset_source: str):
             return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
 
         # Use the bundle if we can to prevent extra pulls
-        if is_use_bundle():
+        if env_use_bundle():
             bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
             try:
                 # -f / --fail forces curl to return a non-zero exit status on HTTP errors (e.g., 404)
-                cmd = ["curl", "-f", "-L", get_bundle_url(dataset_name), "-o", str(bundle_target)]
+                cmd = ["curl", "-f", "-L", env_bundle_url(dataset_name), "-o", str(bundle_target)]
                 run_command(context, cmd)
 
                 cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]

@@ -9,11 +9,10 @@ from ..command import run_command
 from ..config import (
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
-    get_bundle_url,
     get_dataset_name,
     get_datasets,
-    get_s3_bundle_uri,
 )
+from ..env import env_bundle_s3_url, env_bundle_url
 from ..git.kart import get_kart_dataset_id
 from ..thread import run_in_thread_pool
 
@@ -44,7 +43,7 @@ def fetch_bundle_head(dataset_name: str) -> str | None:
 
     Extract the current HEAD sha if it exists from the first 128KB of the bundle
     """
-    remote_bundle_url = get_bundle_url(dataset_name)
+    remote_bundle_url = env_bundle_url(dataset_name)
     try:
         req = urllib.request.Request(remote_bundle_url, headers={"Range": "bytes=0-131071"})
         with urllib.request.urlopen(req) as response:
@@ -116,17 +115,17 @@ def make_bundle_asset(dataset_source: str):
         head_sha = run_command(context, ["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
 
         # Upload to S3 via aws s3 cp
-        s3_uri = get_s3_bundle_uri()
+        s3_url = env_bundle_s3_url()
 
-        context.log.info(f"Uploading bundle to {s3_uri}...")
-        run_command(context, ["aws", "s3", "cp", str(bundle_path), f"{s3_uri}{dataset_name}.bundle"])
+        context.log.info(f"Uploading bundle to {s3_url}...")
+        run_command(context, ["aws", "s3", "cp", str(bundle_path), f"{s3_url}{dataset_name}.bundle"])
 
         kart_dataset_id = get_kart_dataset_id(context, target_dir)
         per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
         per_commit_dir.mkdir(parents=True, exist_ok=True)
 
         def export_commit(sha: str) -> bool:
-            s3_key = f"{get_s3_bundle_uri()}{dataset_name}/{sha}.json.gz"
+            s3_key = f"{s3_url}{dataset_name}/{sha}.json.gz"
             result = run_command(context, ["aws", "s3", "ls", s3_key], check_error=False)
             if result.strip():
                 return False
