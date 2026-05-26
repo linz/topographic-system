@@ -57,6 +57,9 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / f"{dataset_name}.json"
 
+        if output_file.exists() or output_file.is_symlink():
+            output_file.unlink()
+
         ctx.log.info(
             f"Exporting {dataset_name} for release {first_release_id} (commit {info.commit}) to GeoJSON: {output_file} - {info.commit_time}"
         )
@@ -71,7 +74,7 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
 
             if release_output_file.exists() or release_output_file.is_symlink():
                 release_output_file.unlink()
-            os.symlink(output_file, release_output_file)
+            os.symlink(os.path.relpath(output_file, release_output_dir), release_output_file)
 
     run_in_thread_pool(
         context=ctx,

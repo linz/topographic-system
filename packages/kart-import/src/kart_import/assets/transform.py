@@ -119,14 +119,14 @@ def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td:
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / f"{dataset_name}.json"
 
-        if output_file.exists():
+        if output_file.exists() or output_file.is_symlink():
             output_file.unlink()  # todo should we keep existing transforms at some point
 
         if input_file.is_symlink():
             previous_output = WORKING_TRANSFORM_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json"
             if output_file.exists() or output_file.is_symlink():
                 output_file.unlink()
-            os.symlink(previous_output, output_file)
+            os.symlink(os.path.relpath(previous_output, output_dir), output_file)
             return
 
         start_time = time.perf_counter()
