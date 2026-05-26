@@ -98,7 +98,7 @@ describe('kart.import', async () => {
       '-o',
       'json',
     );
-    const commits = JSON.parse(retLog.buffer().toString()).map((m) => m.message) as string[];
+    const commits = JSON.parse(retLog.buffer().toString()).map((m: { message: string }) => m.message) as string[];
 
     assert.deepEqual(commits, [
       'import airport for release 32',

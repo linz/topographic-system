@@ -12,7 +12,7 @@ import { skipIfExists, targetFolder, tsArgo, tsKart, tsMap } from './common.ts';
 describe('topographic-system.e2e', async () => {
   before(async () => {
     if ((await fsa.exists(targetFolder)) && process.argv.includes('--remove')) {
-      console.log(`Removing ${targetFolder}`);
+      console.log(`Removing ${targetFolder.href}`);
       await $`rm -fr ${fileURLToPath(targetFolder)}`;
     }
     await mkdir(fileURLToPath(targetFolder), { recursive: true });
