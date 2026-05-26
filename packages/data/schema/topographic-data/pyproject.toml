@@ -1,0 +1,11 @@
+[project]
+name = "topographic-data"
+version = "0.1.0"
+description = "Schema definition"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.0",
+    "geopandas>=0.14",
+    "pandas>=2.0",
+]

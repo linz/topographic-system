@@ -1,0 +1,212 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Topographic Data API",
+    "version": "1.0.0",
+    "description": "API for accessing topographic features"
+  },
+  "servers": [
+    {
+      "url": "https://api.linz.govt.nz/topographic/v1",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/features": {
+      "get": {
+        "summary": "List features",
+        "parameters": [
+          {
+            "name": "featureType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Features found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/features/{featureId}": {
+      "get": {
+        "summary": "Get feature by ID",
+        "parameters": [
+          {
+            "name": "featureId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feature found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feature"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feature not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Feature": {
+        "type": "object",
+        "required": ["topo_id", "feature_type", "geometry"],
+        "properties": {
+          "topo_id": {
+            "type": "string",
+            "example": "feature-123-abc",
+            "description": "The unique identifier for the topographic feature"
+          },
+          "t50_fid": {
+            "type": "integer",
+            "format": "int64",
+            "example": 12345,
+            "description": "The unique identifier for the feature in the source database"
+          },
+          "feature_type": {
+            "type": "string",
+            "example": "building",
+            "description": "The specific type of feature"
+          },
+          "name": {
+            "type": "string",
+            "example": "City Hall",
+            "description": "The name of the feature"
+          },
+          "capture_method": {
+            "type": "string",
+            "example": "automated",
+            "description": "The method used to capture the data"
+          },
+          "change_type": {
+            "type": "string",
+            "example": "new",
+            "description": "The type of change that occurred"
+          },
+          "update_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00Z",
+            "description": "The date when the feature was last updated"
+          },
+          "create_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-10T08:00:00Z",
+            "description": "The date when the feature was created"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1,
+            "description": "The version of the feature"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/Geometry"
+          }
+        }
+      },
+      "Geometry": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Point"
+          },
+          {
+            "$ref": "#/components/schemas/LineString"
+          },
+          {
+            "$ref": "#/components/schemas/Polygon"
+          }
+        ]
+      },
+      "Point": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Point"]
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            },
+            "example": [174.77, -41.29]
+          }
+        }
+      },
+      "LineString": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["LineString"]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "Polygon": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Polygon"]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
