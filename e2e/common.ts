@@ -46,6 +46,10 @@ export const tsKartImport = (...args: (string | string[])[]) =>
     {
       containerName: kartContainer,
       options: [
+        ['-e', `GIT_AUTHOR_NAME=End ToEnd`],
+        ['-e', `GIT_AUTHOR_EMAIL=e2e@example.com`],
+        ['-e', `GIT_COMMITTER_NAME=End ToEnd`],
+        ['-e', `GIT_COMMITTER_EMAIL=e2e@example.com`],
         ['-e', 'KART_IMPORT_THEME=airport'],
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
         ['-e', 'DAGSTER_HOME=/source/packages/kart-import/'],

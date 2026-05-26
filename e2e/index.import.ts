@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { describe, it } from 'node:test';
 
 import { sourceCodeUrl, tsKartImport } from './common.ts';
@@ -25,6 +25,12 @@ interface FeatureAirport {
 }
 
 describe('kart.import', async () => {
+  const state = {
+    hasClone: false,
+    hasTheme: false,
+    hasKart: false,
+  };
+
   await it('should have uv and source', async () => {
     const retUv = await tsKartImport('uv', '--version');
     assert.ok(retUv.stdout.includes('uv'));
@@ -42,9 +48,10 @@ describe('kart.import', async () => {
   await it('should clone_airport', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'clone_nz_airport_polygons');
     assert.ok(ret);
+    state.hasClone = true;
   });
 
-  await it.only('should create theme_airport', async () => {
+  await it('should create theme_airport', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
     assert.ok(ret);
 
@@ -72,10 +79,31 @@ describe('kart.import', async () => {
     assert.equal(ciAirport?.properties.updated_at, '2015-09-06T20:22:04Z');
     assert.equal(ciAirport?.properties.t50_fid, 5454276);
     assert.equal(ciAirport?.properties.feature_type, 'airport');
+    state.hasTheme = true;
   });
 
   await it('should create a topographic kart dataset', async () => {
-    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'kart_import_topographic-data');
+    let jobStar = state.hasTheme ? '' : '*'; // if the theme hasn't been proccessed we should process it here
+    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', `${jobStar}kart_import_topographic-data`);
     assert.ok(ret);
+
+    const topographicData = new URL('./packages/kart-import/data/output/topographic-data', sourceCodeUrl);
+    assert.ok(await stat(topographicData));
+
+    const retLog = await tsKartImport(
+      'kart',
+      '-C',
+      '/source/packages/kart-import/data/output/topographic-data/',
+      'log',
+      '-o',
+      'json',
+    );
+    const commits = JSON.parse(retLog.buffer().toString()).map((m) => m.message) as string[];
+
+    assert.deepEqual(commits, [
+      'import airport for release 32',
+      'import airport for release 31',
+      'import airport for release 30',
+    ]);
   });
 });
