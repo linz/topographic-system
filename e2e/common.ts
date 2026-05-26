@@ -44,6 +44,9 @@ export const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
 
 export const tsKartImport = (...args: (string | string[])[]) =>
   runContainer(
+    // Limit the import process to only a small amount of data to speed up processing time
+    '-e KART_IMPORT_THEME=airport',
+    '-e KART_IMPORT_RELEASE=30,31,32',
     '--entrypoint=/bin/sh',
     '--workdir=/source/packages/kart-import/',
     kartContainer,

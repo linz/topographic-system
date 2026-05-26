@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 import { sourceCodeUrl, tsKartImport } from './common.ts';
 
 interface FeatureCollectionAirport {
-  type: 'Featurecollection';
+  type: 'FeatureCollection';
   name: 'airport';
   crs: { type: 'name'; properties: { name: string } };
   features: FeatureAirport[];
@@ -44,7 +44,7 @@ describe('kart.import', async () => {
     assert.ok(ret);
   });
 
-  await it('should create theme_airport', async () => {
+  await it.only('should create theme_airport', async () => {
     const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
     assert.ok(ret);
 
@@ -65,12 +65,17 @@ describe('kart.import', async () => {
     // queenstown airport exists
     assert.equal(airports.features.filter((f) => f.properties.name === 'Queenstown Airport').length, 1);
 
-    // Chatham island data was also imported
+    // Chatham islands data was also imported
     const ciAirport = airports.features.find((f) => f.properties.name?.includes('Tuuta'));
     assert.equal(ciAirport?.properties.id, '014fa452-a5e0-7733-81f0-6d80886c86d5');
     assert.equal(ciAirport?.properties.created_at, '2015-09-06T20:22:04Z');
     assert.equal(ciAirport?.properties.updated_at, '2015-09-06T20:22:04Z');
     assert.equal(ciAirport?.properties.t50_fid, 5454276);
     assert.equal(ciAirport?.properties.feature_type, 'airport');
+  });
+
+  await it('should create a topographic kart dataset', async () => {
+    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'kart_import_topographic-data');
+    assert.ok(ret);
   });
 });

@@ -91,14 +91,7 @@ class Release(BaseModel):
     until: datetime = datetime.now()
 
 
-class Themes(BaseModel):
-    themes: list[Theme]
-
-    def append(self, theme: Theme):
-        self.themes.append(theme)
-
-
-ALL_THEMES = Themes(themes=[])
+ALL_THEMES: list[Theme] = []
 ALL_DATASETS: set[str] = set()
 ALL_KART_REPOS: set[str] = set()
 ALL_RELEASES: list[Release] = []
@@ -118,7 +111,7 @@ def get_releases() -> list[Release]:
 
 
 def get_themes() -> list[Theme]:
-    return ALL_THEMES.themes
+    return ALL_THEMES
 
 
 def get_datasets() -> list[str]:
@@ -152,7 +145,7 @@ def load_from_yaml():
 
         for entry in raw.get("releases", []):
             for key, timestamp in entry.items():
-                if base_releases and key not in base_releases:
+                if base_releases and str(key) not in base_releases:
                     continue
 
                 date = datetime.fromisoformat(str(timestamp))
@@ -160,6 +153,8 @@ def load_from_yaml():
                     day_before = date - timedelta(days=14)
                     ALL_RELEASES[-1].until = day_before
                 ALL_RELEASES.append(Release(id=int(key), date=date))
+
+    print(f"config-loaded themes: {[t.name for t in ALL_THEMES]} - Releases: {[t.id for t in ALL_RELEASES]}")
 
 
 load_from_yaml()
