@@ -15,22 +15,21 @@ export const sourceCode = fileURLToPath(sourceCodeUrl);
 const userGroup = os.userInfo();
 
 export const isVerbose = process.argv.includes('--verbose');
-async function runContainer(containerName: string, ...args: (string[] | string)[]) {
+async function runContainer(opts: { containerName: string; options?: string[] }, ...args: (string[] | string)[]) {
   for (const arg of args) console.log(`\t${Array.isArray(arg) ? arg.join('=') : arg}`);
   try {
     const ret = await $`docker run \
     --rm \
-    -e DAGSTER_HOME=/source/packages/kart-import/ \
-    -e UV_CACHE_DIR=/source/.uv \
+    ${opts.options ?? []} \
     -u ${userGroup.uid}:${userGroup.gid} \
     -v ${fileURLToPath(targetFolder)}:/target \
     -v ${sourceAssets}:/assets \
     -v ${sourceCode}:/source \
-    ${containerName} \
+    ${opts.containerName} \
     ${args.flat()}`;
 
     if (isVerbose || ret.exitCode !== 0) console.log(`\t${ret.stdout}`);
-    if (ret.exitCode !== 0) throw new Error(`Failed: ${containerName}`);
+    if (ret.exitCode !== 0) throw new Error(`Failed: ${opts.containerName}`);
     return ret;
   } catch (e) {
     if (e instanceof ProcessOutput) console.log(e.stdout);
@@ -38,15 +37,27 @@ async function runContainer(containerName: string, ...args: (string[] | string)[
   }
 }
 
-export const tsKart = runContainer.bind(null, kartContainer);
-export const tsMap = runContainer.bind(null, mapContainer);
-export const tsArgo = runContainer.bind(null, 'ghcr.io/linz/argo-tasks:latest');
+export const tsKart = runContainer.bind(null, { containerName: kartContainer });
+export const tsMap = runContainer.bind(null, { containerName: mapContainer });
+export const tsArgo = runContainer.bind(null, { containerName: 'ghcr.io/linz/argo-tasks:latest' });
 
 export const tsKartImport = (...args: (string | string[])[]) =>
   runContainer(
-    '--entrypoint=/bin/sh',
-    '--workdir=/source/packages/kart-import/',
-    kartContainer,
+    {
+      containerName: kartContainer,
+      options: [
+        ['-e', `GIT_AUTHOR_NAME=End ToEnd`],
+        ['-e', `GIT_AUTHOR_EMAIL=e2e@example.com`],
+        ['-e', `GIT_COMMITTER_NAME=End ToEnd`],
+        ['-e', `GIT_COMMITTER_EMAIL=e2e@example.com`],
+        ['-e', 'KART_IMPORT_THEME=airport'],
+        ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
+        ['-e', 'DAGSTER_HOME=/source/packages/kart-import/'],
+        ['-e', 'UV_CACHE_DIR=/source/.uv'],
+        '--entrypoint=/bin/sh',
+        '--workdir=/source/packages/kart-import/',
+      ].flat(),
+    },
     '-c',
     args.flat().join(' '),
   );

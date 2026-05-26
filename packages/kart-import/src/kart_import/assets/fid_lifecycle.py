@@ -9,7 +9,7 @@ from ..command import run_command
 from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
 from ..git.kart import get_kart_dataset_id
 from ..git.release import get_release_commit
-from ..uuid.uuid7 import reproducable_uuid7_text
+from ..uuid7 import reproducable_uuid7_text
 
 # Git empty tree hash - used as a starting point for the first diff
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
