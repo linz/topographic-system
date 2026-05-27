@@ -1,32 +1,40 @@
 import json
+import logging
 import os
 import time
+from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
-from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..config import (
     WORKING_EXPORTS_DIR,
-    WORKING_LIFECYCLE_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
     ThemeDataset,
-    get_dataset_name,
     get_releases,
     get_themes,
 )
-from ..thread import run_in_thread_pool
+from ..log import log_context
+from .fid_lifecycle import get_fid_lifecycle_file
+
+logger = logging.getLogger("kart_import")
 
 
-def normalize_projection(
-    context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: str
-) -> gpd.GeoDataFrame:
+def get_theme_and_dataset(dataset_name: str) -> tuple[Theme, ThemeDataset]:
+    for theme in get_themes():
+        for dataset in theme.datasets:
+            if dataset.name == dataset_name:
+                return theme, dataset
+    raise Exception(f"Theme not found for dataset: {dataset_name}")
+
+
+def normalize_projection(gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: str) -> gpd.GeoDataFrame:
     if gdf.crs == target_epsg:
         # Reduce precision to avoid floating point noise in degrees
         # 1e-8 degrees is approximately 1.1mm
-        context.log.info(f"Reducing precision of {td.name} to 1e-8 degrees (~1mm)")
+        logger.info(f"Reducing precision of {td.name} to 1e-8 degrees (~1mm)")
         gdf.geometry = gdf.geometry.set_precision(1e-8)
         return gdf
 
@@ -42,7 +50,7 @@ def normalize_projection(
     return gdf
 
 
-def normalize_fields(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFrame:
+def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFrame:
     new_data = {
         "id": gdf["id"],
         "created_at": gdf["created_at"],
@@ -69,7 +77,6 @@ def normalize_fields(context: AssetExecutionContext, gdf: gpd.GeoDataFrame, td: 
 
 
 def normalize_field_lifecyle(
-    context: AssetExecutionContext,
     gdf: gpd.GeoDataFrame,
     td: ThemeDataset,
     lifecycle_data: dict,
@@ -103,92 +110,105 @@ def normalize_field_lifecyle(
     return gdf
 
 
-def _transform_dataset_release(context: AssetExecutionContext, theme: Theme, td: ThemeDataset, releases: list[Release]):
-    dataset_name = td.name
+def find_release_for_source(source_file: Path, dataset_name: str, releases: list[Release]) -> int:
+    """
+    Some releases will point to the same file,
+    we want only want to process the file if we really have to.
+    """
+    for release in releases:
+        input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
+        if input_file.exists() and input_file.resolve() == source_file:
+            return release.id
+    raise Exception(f"No release found for source file: {source_file}")
 
-    lifecycle_file = WORKING_LIFECYCLE_DIR / f"{dataset_name}.json"
-    lifecycle_data = {}
+def wait_for_file_exists(target_file:Path, timeout:int=5):
+    logger.info(
+        "checking/waiting for target file",
+        extra={"target_file": str(target_file)},
+    )
+    for _ in range(timeout):
+        if target_file.exists():
+            return
+        time.sleep(1)
+
+
+def transform_dataset_release(dataset_name: str, release_id: int, wait_for_release: bool = False) -> Path:
+    theme, td = get_theme_and_dataset(dataset_name)
+    releases = get_releases()
+
+    input_file = WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}.json"
+    if not input_file.exists():
+        raise Exception(f"'export' file missing: {input_file}")
+
+    output_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+    output_file = output_dir / f"{dataset_name}.json"
+
+    if output_file.exists():
+        logger.info("transform exists", extra={"target": output_file})
+        return output_file
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    target_release_id = find_release_for_source(input_file.resolve(), dataset_name, releases)
+    if target_release_id != release_id:
+        logger.info("source_file transformed by another release", extra={"target_release": target_release_id})
+        target_transformed_file = WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}.json"
+
+        # Target file should be created by another process if we are running directly via __main__ create the other
+        # releases file, otherwise wait for the target file to exist
+        if wait_for_release:
+            wait_for_file_exists(target_transformed_file)
+        else:
+            with log_context(action="transform", dataset=dataset_name, release=target_release_id, parent_release=release_id):
+                transform_dataset_release(dataset_name, target_release_id)
+
+
+        if not target_transformed_file.exists():
+            raise Exception(f"failed to wait for target: {target_transformed_file}")
+
+        os.symlink(os.path.relpath(target_transformed_file, output_dir), output_file)
+        logger.info(f"symlinked")
+        return output_file
+
+
+    lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
     if not lifecycle_file.exists():
         raise Exception(f"missing lifecycle_{dataset_name}")
     with open(lifecycle_file) as f:
         lifecycle_data = json.load(f)
 
-    def process_release(release: Release):
-        input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
-        output_dir = WORKING_TRANSFORM_DIR / f"release_{release.id}"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_file = output_dir / f"{dataset_name}.json"
+    start_time = time.perf_counter()
+    gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+    logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
-        if output_file.exists() or output_file.is_symlink():
-            output_file.unlink()  # todo should we keep existing transforms at some point
+    if gdf.crs is None:
+        raise Exception("source frame has no projection")
 
-        if input_file.is_symlink():
-            previous_output = WORKING_TRANSFORM_DIR / f"release_{release.id - 1}" / f"{dataset_name}.json"
-            if output_file.exists() or output_file.is_symlink():
-                output_file.unlink()
-            os.symlink(os.path.relpath(previous_output, output_dir), output_file)
-            return
-
-        start_time = time.perf_counter()
-        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
-        read_duration = time.perf_counter() - start_time
-
-        if gdf.crs is None:
-            raise Exception("source frame has no projection")
-
-        start_time = time.perf_counter()
-        gdf = normalize_field_lifecyle(
-            context,
-            gdf,
-            td,
-            lifecycle_data,
-        )
-        lifecycle_duration = time.perf_counter() - start_time
-
-        start_time = time.perf_counter()
-        gdf = normalize_projection(context, gdf, td, theme.target_epsg)
-        projection_duration = time.perf_counter() - start_time
-
-        start_time = time.perf_counter()
-        gdf = normalize_fields(context, gdf, td)
-        fields_duration = time.perf_counter() - start_time
-
-        gdf.to_file(output_file, driver="GeoJSON", index=False)
-
-        context.log.info(
-            f"Release {release.id} transformed. Times: "
-            f"read: {read_duration:.4f}s, "
-            f"lifecycle: {lifecycle_duration:.4f}s, "
-            f"projection: {projection_duration:.4f}s, "
-            f"fields: {fields_duration:.4f}s"
-        )
-
-    run_in_thread_pool(
-        context=context,
-        func=process_release,
-        items=releases,
-        thread_count=4,
-        description=f"Dataset {dataset_name} has {len(lifecycle_data)} lifecycle rows. Processing releases in parallel",
+    start_time = time.perf_counter()
+    gdf = normalize_field_lifecyle(
+        gdf,
+        td,
+        lifecycle_data,
     )
+    logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+    start_time = time.perf_counter()
+    gdf = normalize_projection(gdf, td, theme.target_epsg)
+    logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+    start_time = time.perf_counter()
+    gdf = normalize_fields(gdf, td)
+    logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+    gdf.to_file(output_file, driver="GeoJSON", index=False)
+    return output_file
 
 
-def make_dataset_export_transform_asset(theme: Theme, td: ThemeDataset, releases: list[Release]) -> AssetsDefinition:
-    dataset_name = get_dataset_name(td.source)
+if __name__ == "__main__":
+    import sys
 
-    @asset(
-        name=f"transform_{dataset_name}",
-        group_name="transform",
-        deps=[AssetKey(f"lifecycle_{dataset_name}"), AssetKey(f"release_{dataset_name}")],
-    )
-    def _transform_asset(context: AssetExecutionContext):
-        return _transform_dataset_release(context, theme, td, releases)
-
-    return _transform_asset
-
-
-selected_releases = get_releases()
-release_assets = []
-
-for theme in get_themes():
-    for dataset in theme.datasets:
-        release_assets.append(make_dataset_export_transform_asset(theme, dataset, selected_releases))
+    if len(sys.argv) < 3:
+        print("Usage: python -m kart_import.assets.transform <dataset_name> <release_id>")
+        sys.exit(1)
+    with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
+        transform_dataset_release(sys.argv[1], int(sys.argv[2]))

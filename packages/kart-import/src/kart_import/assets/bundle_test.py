@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
 
-from kart_import.assets.bundle import fetch_bundle_head
+import pytest
+
+from .bundle import fetch_bundle_head
 
 
 def test_fetch_bundle_head_valid():
@@ -32,8 +34,6 @@ def test_fetch_bundle_head_fallback():
         mock_response.read.return_value = mock_data
         mock_urlopen.return_value.__enter__.return_value = mock_response
 
-        import pytest
-
         with pytest.raises(Exception, match="No HEAD found in bundle refs"):
             fetch_bundle_head("nz_chatham_island_airport_polygons")
 
@@ -44,8 +44,6 @@ def test_fetch_bundle_head_invalid():
         mock_response = MagicMock()
         mock_response.read.return_value = b"PACK\x00\x00\x00..."
         mock_urlopen.return_value.__enter__.return_value = mock_response
-
-        import pytest
 
         with pytest.raises(Exception, match="No HEAD found in bundle refs"):
             fetch_bundle_head("nz_chatham_island_airport_polygons")

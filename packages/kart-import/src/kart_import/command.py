@@ -1,23 +1,22 @@
+import logging
 import os
 import subprocess
 from pathlib import Path
 from time import perf_counter
 
-from dagster import AssetExecutionContext
+logger = logging.getLogger("kart_import")
 
 
 def run_command(
-    context: AssetExecutionContext,
     cmd: list[str],
     cwd: Path | str | None = None,
     env: dict | None = None,
     allow_error: str | None = None,
     check_error: bool = True,
 ) -> str:
-    """
-    Runs a command using subprocess.run and returns the stdout.
-    Raises an exception if the command fails, unless prevent by `allow_error` or `check_error`.
-    :param context: dagster runtime context
+    """Runs a command using subprocess.run and returns the stdout.
+
+    Raises an exception if the command fails, unless prevented by `allow_error` or `check_error`.
     :param cmd: command to run as a list of strings
     :param cwd: working directory to run the command in
     :param env: additional environment variables to set when running the command
@@ -33,13 +32,16 @@ def run_command(
     cwd_str = str(cwd) if cwd is not None else None
     result = subprocess.run(cmd, cwd=cwd_str, capture_output=True, text=True, env=full_env)
     duration = perf_counter() - start_time
-    context.log.debug(f"  command: {' '.join(cmd)} completed: {result.returncode} in {duration:.4f}s")
+    logger.debug(
+        "command",
+        extra={"cmd": cmd[0], "cmd_args": cmd[1:], "code": result.returncode, "duration": round(duration * 1000, 4)},
+    )
     if result.returncode != 0:
         if allow_error is not None and allow_error in result.stderr:
             return result.stderr
         if not check_error:
-            context.log.warn(f"Command [{' '.join(cmd)}] failed (not raising) with output:\n{result.stderr}")
+            logger.warning(f"Command [{' '.join(cmd)}] failed (not raising) with output:\n{result.stderr}")
             return result.stdout
-        context.log.error(f"Command failed with output:\n{result.stderr}")
+        logger.error(f"Command failed with output:\n{result.stderr}")
         raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
     return result.stdout

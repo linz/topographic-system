@@ -41,18 +41,18 @@ describe('kart.import', async () => {
   });
 
   await it('should have clone_all', async () => {
-    const ret = await tsKartImport('uv', 'run', 'dg', 'list', 'defs', '--assets', 'clone_nz_airport_polygons');
+    const ret = await tsKartImport('uv', 'run', 'snakemake', '--list-rules');
     assert.ok(ret.stdout.includes('clone_nz_airport_polygons'));
   });
 
   await it('should clone_airport', async () => {
-    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', 'clone_nz_airport_polygons');
+    const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'clone_nz_airport_polygons');
     assert.ok(ret);
     state.hasClone = true;
   });
 
   await it('should create theme_airport', async () => {
-    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', '*theme_airport');
+    const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'theme_airport');
     assert.ok(ret);
 
     const release30Airports = new URL(
@@ -83,8 +83,7 @@ describe('kart.import', async () => {
   });
 
   await it('should create a topographic kart dataset', async () => {
-    let jobStar = state.hasTheme ? '' : '*'; // if the theme hasn't been proccessed we should process it here
-    const ret = await tsKartImport('uv', 'run', 'dg', 'launch', '--assets', `${jobStar}kart_import_topographic-data`);
+    const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'kart_import_topographic_data');
     assert.ok(ret);
 
     const topographicData = new URL('./packages/kart-import/data/output/topographic-data', sourceCodeUrl);
