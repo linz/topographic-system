@@ -36,7 +36,7 @@ class _JsonLineExporter(LogExporter):
     def __init__(self, out=None):
         self._out = out or sys.stdout
 
-    def export(self, batch: Sequence) -> LogExportResult:
+    def export(self, batch: Sequence):
         for r in batch:
             log_record = r.log_record if hasattr(r, "log_record") else r
             attrs = dict(log_record.attributes or {})
