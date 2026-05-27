@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -5,9 +6,9 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, model_validator
 
-from kart_import.env import env_releases
+from .env import env_releases, env_themes
 
-from .env import env_themes
+logger = logging.getLogger("kart_import")
 
 # Set KART_USE_HELPER globally to 0 to disable the background helper process
 # as the helper is limited to 4 threads
@@ -95,6 +96,8 @@ ALL_THEMES: list[Theme] = []
 ALL_DATASETS: set[str] = set()
 ALL_KART_REPOS: set[str] = set()
 ALL_RELEASES: list[Release] = []
+DATASET_MAP: dict[str, ThemeDataset] = {}
+DATASET_TO_THEME_MAP: dict[str, Theme] = {}
 
 
 def load_config(file_name: str) -> Theme:
@@ -114,12 +117,26 @@ def get_themes() -> list[Theme]:
     return ALL_THEMES
 
 
+def get_theme_by_name(theme_name: str) -> Theme:
+    for t in ALL_THEMES:
+        if t.name == theme_name:
+            return t
+    raise Exception(f"{theme_name} does not exist")
+
+
 def get_datasets() -> list[str]:
     return list(ALL_DATASETS)
 
 
 def get_kart_repos() -> list[str]:
     return list(ALL_KART_REPOS)
+
+
+def get_dataset_by_name(dataset_name: str) -> ThemeDataset:
+    dataset = DATASET_MAP.get(dataset_name)
+    if dataset is None:
+        raise Exception(f"Dataset {dataset_name} not found")
+    return dataset
 
 
 def load_from_yaml():
@@ -136,6 +153,9 @@ def load_from_yaml():
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
             ALL_DATASETS.add(dataset.source)
+            if dataset.name in DATASET_MAP:
+                raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
+            DATASET_MAP[dataset.name] = dataset
 
     if not CONFIG_DIR_RELEASE.exists():
         raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
@@ -154,7 +174,13 @@ def load_from_yaml():
                     ALL_RELEASES[-1].until = day_before
                 ALL_RELEASES.append(Release(id=int(key), date=date))
 
-    print(f"config-loaded themes: {[t.name for t in ALL_THEMES]} - Releases: {[t.id for t in ALL_RELEASES]}")
+    logger.info(
+        "config-loaded",
+        extra={
+            "themes": [t.name for t in ALL_THEMES],
+            "releases": ",".join([str(r.id) for r in ALL_RELEASES]),
+        },
+    )
 
 
 load_from_yaml()

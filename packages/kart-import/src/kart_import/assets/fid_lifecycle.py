@@ -1,24 +1,35 @@
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
-
 from ..command import run_command
-from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, ThemeDataset, get_dataset_name, get_releases, get_themes
+from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, Release, get_releases
 from ..git.kart import get_kart_dataset_id
 from ..git.release import get_release_commit
+from ..log import log_context
 from ..uuid7 import reproducable_uuid7_text
+
+logger = logging.getLogger("kart_import")
 
 # Git empty tree hash - used as a starting point for the first diff
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
-def get_mapping_commit(context: AssetExecutionContext, repo_dir: Path) -> tuple[str, datetime] | None:
+def get_fid_lifecycle_file(dataset_name: str, releases: list[Release]) -> Path:
+    """
+    FID output lifecycle file location
+
+    This varies based on which releases are expected
+    """
+    return WORKING_LIFECYCLE_DIR / f"{dataset_name}_release{releases[0].id}-{releases[-1].id}.json"
+
+
+def get_mapping_commit(repo_dir: Path) -> tuple[str, datetime] | None:
     """Finds the first commit that introduced t50_fid in the schema."""
 
-    dataset_id = get_kart_dataset_id(context, repo_dir)
+    dataset_id = get_kart_dataset_id(repo_dir)
     schema_path = f"{dataset_id}/.table-dataset/meta/schema.json"
 
     # Optimization: Try March 2015 first as most mappings happened then
@@ -35,7 +46,7 @@ def get_mapping_commit(context: AssetExecutionContext, repo_dir: Path) -> tuple[
         "--",
         schema_path,
     ]
-    stdout = run_command(context, cmd, cwd=str(repo_dir))
+    stdout = run_command(cmd, cwd=str(repo_dir))
     commits = stdout.strip().split("\n")
     if commits and commits[0]:
         first_line = commits[0].split("|")
@@ -43,9 +54,9 @@ def get_mapping_commit(context: AssetExecutionContext, repo_dir: Path) -> tuple[
 
     # Fallback: Search entire history
     cmd = ["git", "log", "-S", "t50_fid", "--date=iso", "--reverse", "--pretty=format:%H|%ad", "--", schema_path]
-    stdout = run_command(context, cmd, cwd=str(repo_dir)).strip()
+    stdout = run_command(cmd, cwd=str(repo_dir)).strip()
     if not stdout:
-        context.log.info(f"No t50_fid mapping found in {schema_path}")
+        logger.info(f"No t50_fid mapping found in {schema_path}")
         return None
     result = stdout.split("\n")[0].split("|")
     return result[0], datetime.fromisoformat(result[1])
@@ -60,7 +71,6 @@ def make_lifecycle_id(commit_time: str, fid: str, fid_field: str, dataset_id: st
 
 
 def parse_kart_diff(
-    context: AssetExecutionContext,
     stdout: str,
     lifecycle: dict[str, Any],
     commit_time: str,
@@ -86,7 +96,7 @@ def parse_kart_diff(
         fid_str = str(fid)
         # Sometimes fids are joined in the reblocker then unjoined later, so skip if we've already seen this fid
         if fid_str in lifecycle:
-            context.log.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]['created_at']}")
+            logger.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]['created_at']}")
             continue
 
         lifecycle[fid_str] = {
@@ -95,71 +105,59 @@ def parse_kart_diff(
         }
 
 
-def make_dataset_lifecycle_asset(dataset: ThemeDataset) -> AssetsDefinition:
-    dataset_name = get_dataset_name(dataset.source)
+def generate_lifecycle(dataset_name: str):
+    repo_dir = SOURCE_DIR / dataset_name
+    dataset_id = get_kart_dataset_id(repo_dir)
+    releases = get_releases()
 
-    @asset(name=f"lifecycle_{dataset_name}", group_name="lifecycle", deps=[AssetKey(f"clone_{dataset_name}")])
-    def _lifecycle_asset(context: AssetExecutionContext):
-        dataset_name = get_dataset_name(dataset.source)
-        repo_dir = SOURCE_DIR / dataset_name
-        dataset_id = get_kart_dataset_id(context, repo_dir)
-        releases = get_releases()
+    lifecycle: dict[str, dict[str, str]] = {}
 
-        lifecycle: dict[str, dict[str, str]] = {}
+    # Walk releases and diff for updates
+    last_commit = EMPTY_TREE
 
-        # Walk releases and diff for updates
-        last_commit = EMPTY_TREE
+    # Determine which field to use as the feature identifier
+    mapping_result = get_mapping_commit(repo_dir)
+    if mapping_result:
+        fid_field = "t50_fid"
+        logger.info(f"Using t50_fid for {dataset_name}")
+    else:
+        fid_field = "auto_pk"
+        logger.info(f"No t50_fid mapping for {dataset_name}, using auto_pk")
 
-        # Determine which field to use as the feature identifier
-        mapping_result = get_mapping_commit(context, repo_dir)
-        if mapping_result:
-            fid_field = "t50_fid"
-            context.log.info(f"Using t50_fid for {dataset_name}")
-        else:
-            fid_field = "auto_pk"
-            context.log.info(f"No t50_fid mapping for {dataset_name}, using auto_pk")
+    for release in releases:
+        res = get_release_commit(repo_dir, release.until)
+        if not res:
+            logger.debug(f"No commit for release {release.id}. Skipping.")
+            continue
 
-        for release in releases:
-            res = get_release_commit(repo_dir, release.until)
-            if not res:
-                context.log.debug(f"No commit for release {release.id}. Skipping.")
-                continue
+        commit, commit_time = res
 
-            commit, commit_time = res
+        if commit == last_commit:
+            logger.debug(f"Release {release.id} has same commit as previous. Skipping diff.")
+            continue
 
-            if commit == last_commit:
-                context.log.debug(f"Release {release.id} has same commit as previous. Skipping diff.")
-                continue
+        stdout = run_command(
+            ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines", "--delta-filter=++"], cwd=str(repo_dir)
+        )
+        parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
 
-            cmd = ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines", "--delta-filter=++"]
-            stdout = run_command(context, cmd, cwd=str(repo_dir))
-            parse_kart_diff(context, stdout, lifecycle, commit_time, dataset_id, fid_field)
+        last_commit = commit
 
-            last_commit = commit
+    WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)
+    output_file = get_fid_lifecycle_file(dataset_name, releases)
+    with open(output_file, "w") as f:
+        json.dump(lifecycle, f, indent=2)
+    logger.info("write lifecycle", extra={"fids": len(lifecycle), "target": output_file})
 
-        # Save lifecycle for this dataset
-        WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)
-        output_file = WORKING_LIFECYCLE_DIR / f"{dataset.name}.json"
-        with open(output_file, "w") as f:
-            json.dump(lifecycle, f, indent=2)
-
-        return str(output_file)
-
-    return _lifecycle_asset
+    return str(output_file)
 
 
-# Generate assets
-lifecycle_assets = []
-seen_datasets = set()
-for theme in get_themes():
-    if theme.name == "all":
-        continue
-    for dataset in theme.datasets:
-        if dataset.name not in seen_datasets:
-            lifecycle_assets.append(make_dataset_lifecycle_asset(dataset))
-            seen_datasets.add(dataset.name)
+if __name__ == "__main__":
+    import sys
 
+    if len(sys.argv) < 2:
+        print("Usage: python -m kart_import.assets.fid_lifecycle <dataset_name>")
+        sys.exit(1)
 
-@asset(name="lifecycle_all", group_name="lifecycle", deps=[AssetKey(f"lifecycle_{name}") for name in seen_datasets])
-def fid_lifecycle_master(context: AssetExecutionContext):
-    pass
+    with log_context(action="export", dataset=sys.argv[1]):
+        generate_lifecycle(sys.argv[1])

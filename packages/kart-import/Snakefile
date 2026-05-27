@@ -1,0 +1,132 @@
+from kart_import.config import (
+    get_themes,
+    get_releases,
+    get_datasets,
+    get_kart_repos,
+    DATASET_MAP,
+)
+
+# Load configuration details from the Python package
+THEMES = get_themes()
+RELEASES = get_releases()
+DATASETS = get_datasets()
+REPOS = get_kart_repos()
+THEME_MAP = {t.name: t for t in THEMES}
+
+
+# TARGETS
+ALL_IMPORTED = [f"data/output/{repo}/.imported" for repo in REPOS]
+
+rule all:
+    input:
+        ALL_IMPORTED
+
+
+# 1. CLONE
+rule clone:
+    output:
+        cloned = "data/source/{dataset}/.cloned"
+    shell:
+        "uv run python -m kart_import.assets.clone {wildcards.dataset}"
+
+
+# 2. LIFECYCLE
+rule lifecycle:
+    input:
+        cloned = "data/source/{dataset}/.cloned"
+    output:
+        lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
+    shell:
+        "uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
+
+
+# 3. EXPORT RELEASES (Produces all release files for a dataset at once)
+rule export:
+    input:
+        cloned = "data/source/{dataset}/.cloned"
+    output:
+        files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
+    shell:
+        "uv run python -m kart_import.assets.export {wildcards.dataset}"
+
+
+# 4. TRANSFORM
+rule transform:
+    input:
+        lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
+        exported = "data/working/export/release_{release}/{dataset}.json"
+    output:
+        transformed = "data/working/transform/release_{release}/{dataset}.json"
+    shell:
+        "uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
+
+
+# 5. THEME RELEASE (Merges datasets for a single release)
+rule theme_release:
+    input:
+        transformed = lambda wildcards: [
+            f"data/working/transform/release_{wildcards.release}/{ds.name}.json"
+            for ds in THEME_MAP[wildcards.theme].datasets
+        ]
+    output:
+        merged = "data/working/theme/release_{release}/{theme}.geojson"
+    shell:
+        "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
+
+
+# 6. KART IMPORT (Performs chronological imports into a target repository)
+rule kart_import:
+    input:
+        themes = lambda wildcards: [
+            f"data/working/theme/release_{r.id}/{t.name}.geojson"
+            for t in THEMES if t.target_repo == wildcards.repo
+            for r in RELEASES
+        ]
+    output:
+        imported = "data/output/{repo}/.imported"
+    shell:
+        "uv run python -m kart_import.assets.kart_import {wildcards.repo}"
+
+
+# 7. UTILITY BUNDLE RULE
+rule bundle:
+    output:
+        sentinel = "data/source/{dataset}/.bundle_created"
+    shell:
+        "uv run python -m kart_import.assets.bundle {wildcards.dataset}"
+
+
+
+for name in DATASET_MAP:
+    workflow.rule(name=f"clone_{name}")(
+        workflow.input(f"data/source/{name}/.cloned")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+workflow.rule(name="clone_all")(
+    workflow.input([f"data/source/{name}/.cloned" for name in DATASET_MAP])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
+workflow.rule(name="bundle_all")(
+    workflow.input([f"data/source/{name}/.bundle_created" for name in DATASET_MAP])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
+for t in THEMES:
+    workflow.rule(name=f"theme_{t.name}")(
+        workflow.input([f"data/working/theme/release_{r.id}/{t.name}.geojson" for r in RELEASES])(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+for repo in REPOS:
+    safe_repo_name = repo.replace("-", "_")
+    workflow.rule(name=f"kart_import_{safe_repo_name}")(
+        workflow.input(f"data/output/{repo}/.imported")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )

@@ -1,23 +1,23 @@
+import logging
 import shutil
+import sys
 import time
 from pathlib import Path
-
-from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
 
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
-    get_dataset_name,
-    get_datasets,
+    get_dataset_by_name,
 )
 from ..env import env_bundle_url, env_use_bundle
 from ..git.kart import git_to_kart
+from ..log import log_context
+
+logger = logging.getLogger("kart_import")
 
 
 def should_pull(target_dir: Path):
-    """
-    Limit pulls to once per day, so not to overload kart
-    """
+    """Limit pulls to once per day, so not to overload kart"""
     fetch_head = target_dir / ".git" / "FETCH_HEAD"
 
     if not fetch_head.exists():
@@ -27,57 +27,56 @@ def should_pull(target_dir: Path):
     return not time.time() - last_pull_time < 24 * 3600
 
 
-def make_clone_asset(dataset_source: str):
-    dataset_name = get_dataset_name(dataset_source)
+def clone_dataset(dataset_name: str):
+    td = get_dataset_by_name(dataset_name)
+    dataset_source = td.source
+    SOURCE_DIR.mkdir(parents=True, exist_ok=True)
+    target_dir = SOURCE_DIR / dataset_name
+    sentinel = target_dir / ".cloned"
 
-    @asset(name=f"clone_{dataset_name}", group_name="kart")
-    def _clone_asset(context: AssetExecutionContext):
-        SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-        target_dir = SOURCE_DIR / dataset_name
+    if (target_dir / ".kart").exists():
+        logger.info("already exists.", extra={"path": target_dir})
+        sentinel.touch()
+        return
 
-        if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
-            context.log.info(f"{target_dir} already exists.")
-            return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
+    # Use the bundle if we can to prevent extra pulls
+    if env_use_bundle():
+        bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
+        try:
+            cmd = ["curl", "--fail", "-L", env_bundle_url(dataset_name), "-o", str(bundle_target)]
+            run_command(cmd)
 
-        # Use the bundle if we can to prevent extra pulls
-        if env_use_bundle():
-            bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
-            try:
-                # -f / --fail forces curl to return a non-zero exit status on HTTP errors (e.g., 404)
-                cmd = ["curl", "-f", "-L", env_bundle_url(dataset_name), "-o", str(bundle_target)]
-                run_command(context, cmd)
+            cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
+            run_command(cmd)
 
-                cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
-                run_command(context, cmd)
+            git_to_kart(target_dir)
 
-                git_to_kart(context, target_dir)
+            sentinel.touch()
+            return
+        except Exception as e:
+            logger.warning(
+                f"Failed to clone from bundle for {dataset_name} (likely 404 or network issue): {e}. "
+                "Falling back to direct kart clone."
+            )
+            if target_dir.exists():
+                shutil.rmtree(target_dir)
+        finally:
+            if bundle_target.exists():
+                bundle_target.unlink()
 
-                return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
-            except Exception as e:
-                context.log.warning(
-                    f"Failed to clone from bundle for {dataset_name} (likely 404 or network issue): {e}. "
-                    "Falling back to direct kart clone."
-                )
-                if target_dir.exists():
-                    shutil.rmtree(target_dir)
-            finally:
-                if bundle_target.exists():
-                    bundle_target.unlink()
+    # Clone directly from the source
+    cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
+    run_command(cmd)
 
-        # Clone directly from the source
-        cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
-        run_command(context, cmd)
-
-        return MaterializeResult(metadata={"location": MetadataValue.path(str(target_dir))})
-
-    return _clone_asset
+    sentinel.touch()
 
 
-clone_assets = [make_clone_asset(t) for t in get_datasets()]
+if __name__ == "__main__":
+    import sys
 
-
-@asset(deps=clone_assets)
-def clone_all(context: AssetExecutionContext):
-    """Wait for all clone assets to be created and checked."""
-    context.log.info("All clones successfully processed.")
-    return MaterializeResult(metadata={"status": MetadataValue.text("ok")})
+    if len(sys.argv) < 2:
+        print("Usage: uv run python -m kart_import.assets.clone <dataset_name>")
+        sys.exit(1)
+    dataset_name = sys.argv[1]
+    with log_context(action="clone", dataset=dataset_name):
+        clone_dataset(dataset_name)
