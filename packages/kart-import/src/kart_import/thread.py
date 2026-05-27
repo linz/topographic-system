@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypeVar
 
-from kart_import.log import _log_context, log_context
+from .log import _log_context, log_context
 
 logger = logging.getLogger("kart_import")
 
@@ -44,15 +44,12 @@ def run_in_thread_pool(
     func: Callable[[T], R],
     items: Iterable[T],
     thread_count: int = 4,
-    description: str = "",
 ) -> list[R]:
     """Runs a function in parallel over an iterable of items using a ThreadPoolExecutor.
 
     Bypasses KeyboardInterrupt / SIGINT hangs by polling futures individually and
     forcefully aborting the thread pool upon receiving Ctrl+C.
     """
-    if description:
-        logger.info(f"{description} using {thread_count} threads.")
 
     parent_context: dict[Any, Any] = _log_context.get() or {}
 

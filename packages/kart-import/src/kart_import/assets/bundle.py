@@ -142,7 +142,6 @@ def bundle_dataset(dataset_name: str):
         func=export_commit,
         items=all_commits,
         thread_count=4,
-        description=f"Exporting {dataset_name} commits in parallel",
     )
     exported = sum(results)
     skipped = len(results) - exported
