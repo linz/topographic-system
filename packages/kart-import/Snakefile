@@ -96,9 +96,7 @@ rule bundle:
         "uv run python -m kart_import.assets.bundle {wildcards.dataset}"
 
 
-# --- DYNAMIC CONVENIENCE ALIASES (automated from config files in a loop) ---
 
-# Dataset Clones
 for name in DATASET_MAP:
     workflow.rule(name=f"clone_{name}")(
         workflow.input(f"data/source/{name}/.cloned")(
@@ -106,14 +104,18 @@ for name in DATASET_MAP:
         )
     )
 
-# All clones
 workflow.rule(name="clone_all")(
     workflow.input([f"data/source/{name}/.cloned" for name in DATASET_MAP])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
 
-# Themes
+workflow.rule(name="bundle_all")(
+    workflow.input([f"data/source/{name}/.bundle_created" for name in DATASET_MAP])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
 for t in THEMES:
     workflow.rule(name=f"theme_{t.name}")(
         workflow.input([f"data/working/theme/release_{r.id}/{t.name}.geojson" for r in RELEASES])(
@@ -121,7 +123,6 @@ for t in THEMES:
         )
     )
 
-# Kart Imports
 for repo in REPOS:
     safe_repo_name = repo.replace("-", "_")
     workflow.rule(name=f"kart_import_{safe_repo_name}")(
