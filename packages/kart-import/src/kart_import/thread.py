@@ -54,7 +54,7 @@ def run_in_thread_pool(
     if description:
         logger.info(f"{description} using {thread_count} threads.")
 
-    parent_context = _log_context.get() or {}
+    parent_context: dict[Any, Any] = _log_context.get() or {}
 
     def worker_wrapper(item: T) -> R:
         thread_id = _get_clean_thread_id()

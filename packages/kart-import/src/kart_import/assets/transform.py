@@ -121,7 +121,8 @@ def find_release_for_source(source_file: Path, dataset_name: str, releases: list
             return release.id
     raise Exception(f"No release found for source file: {source_file}")
 
-def wait_for_file_exists(target_file:Path, timeout:int=5):
+
+def wait_for_file_exists(target_file: Path, timeout: int = 5):
     logger.info(
         "checking/waiting for target file",
         extra={"target_file": str(target_file)},
@@ -159,17 +160,17 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         if wait_for_release:
             wait_for_file_exists(target_transformed_file)
         else:
-            with log_context(action="transform", dataset=dataset_name, release=target_release_id, parent_release=release_id):
+            with log_context(
+                action="transform", dataset=dataset_name, release=target_release_id, parent_release=release_id
+            ):
                 transform_dataset_release(dataset_name, target_release_id)
-
 
         if not target_transformed_file.exists():
             raise Exception(f"failed to wait for target: {target_transformed_file}")
 
         os.symlink(os.path.relpath(target_transformed_file, output_dir), output_file)
-        logger.info(f"symlinked")
+        logger.info("symlinked")
         return output_file
-
 
     lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
     if not lifecycle_file.exists():
