@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from contextlib import contextmanager
 
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.baggage import set_baggage
+from opentelemetry.baggage import get_all, set_baggage
 from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.context import attach, detach, get_current
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
@@ -46,8 +46,6 @@ class _JsonLineExporter(LogExporter):
         self._out = out or sys.stdout
 
     def export(self, batch: Sequence):
-        from opentelemetry.baggage import get_all
-
         baggage_attrs = get_all()
 
         for r in batch:
