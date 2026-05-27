@@ -40,7 +40,9 @@ class _JsonLineExporter(LogExporter):
         for r in batch:
             log_record = r.log_record if hasattr(r, "log_record") else r
             attrs = dict(log_record.attributes or {})
-            del attrs["code"]
+            attrs.pop("code.file.path", None)
+            attrs.pop("code.function.name", None)
+            attrs.pop("code.line.number", None)
 
             record = {
                 "Timestamp": int(log_record.timestamp / 1_000_000) if log_record.timestamp else None,
@@ -68,11 +70,12 @@ def setup_logging():
 
     handler = LoggingHandler(level=logging.NOTSET, logger_provider=provider)
 
-    root = logging.getLogger()
-    root.setLevel(log_level)
-    if root.hasHandlers():
-        root.handlers.clear()
-    root.addHandler(handler)
+    app_logger = logging.getLogger("kart_import")
+    app_logger.setLevel(log_level)
+    app_logger.propagate = False
+    if app_logger.hasHandlers():
+        app_logger.handlers.clear()
+    app_logger.addHandler(handler)
 
 
 setup_logging()
