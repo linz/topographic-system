@@ -31,8 +31,9 @@ def kart_import_repo(repo_name: str):
     run_command(["git", "init", "."], cwd=str(repo_dir))
     run_command(["git", "config", "commit.gpgsign", "false"], cwd=str(repo_dir))
     
-    # Enable sparse checkout matching nothing to speed up pulls and simulate --no-checkout
-    run_command(["git", "sparse-checkout", "set", "none_to_checkout"], cwd=str(repo_dir))
+    # Enable cone-mode sparse checkout to speed up pulls and simulate --no-checkout
+    run_command(["git", "sparse-checkout", "init", "--cone"], cwd=str(repo_dir))
+    run_command(["git", "sparse-checkout", "set"], cwd=str(repo_dir))
 
     # Fetch all bundles into separate branches
     for theme in themes:
