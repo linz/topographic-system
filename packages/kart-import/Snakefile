@@ -1,21 +1,10 @@
-import logging
-from kart_import.log import log_context
 from kart_import.config import (
     get_themes,
     get_releases,
     get_datasets,
     get_kart_repos,
-    get_dataset_name,
     DATASET_MAP,
-    DATASET_TO_THEME_MAP,
 )
-from kart_import.assets.clone import clone_dataset
-from kart_import.assets.fid_lifecycle import generate_lifecycle
-from kart_import.assets.export import export_dataset_releases
-from kart_import.assets.transform import transform_dataset_release
-from kart_import.assets.theme import merge_theme_release
-from kart_import.assets.kart_import import kart_import_repo
-from kart_import.assets.bundle import bundle_dataset
 
 # Load configuration details from the Python package
 THEMES = get_themes()
@@ -37,9 +26,8 @@ rule all:
 rule clone:
     output:
         cloned = "data/source/{dataset}/.cloned"
-    run:
-        with log_context(action="clone", dataset=wildcards.dataset):
-            clone_dataset(wildcards.dataset)
+    shell:
+        "uv run python -m kart_import.assets.clone {wildcards.dataset}"
 
 
 # 2. LIFECYCLE
@@ -48,9 +36,8 @@ rule lifecycle:
         cloned = "data/source/{dataset}/.cloned"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
-    run:
-        with log_context(action="lifecycle", dataset=wildcards.dataset):
-            generate_lifecycle(wildcards.dataset)
+    shell:
+        "uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
 # 3. EXPORT RELEASES (Produces all release files for a dataset at once)
@@ -59,9 +46,8 @@ rule export:
         cloned = "data/source/{dataset}/.cloned"
     output:
         files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
-    run:
-        with log_context(action="export", dataset=wildcards.dataset):
-            export_dataset_releases(wildcards.dataset)
+    shell:
+        "uv run python -m kart_import.assets.export {wildcards.dataset}"
 
 
 # 4. TRANSFORM
@@ -71,9 +57,8 @@ rule transform:
         exported = "data/working/export/release_{release}/{dataset}.json"
     output:
         transformed = "data/working/transform/release_{release}/{dataset}.json"
-    run:
-        with log_context(action="transform", dataset=wildcards.dataset, release=wildcards.release):
-            transform_dataset_release(wildcards.dataset, int(wildcards.release), wait_for_release=True)
+    shell:
+        "uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
 
 
 # 5. THEME RELEASE (Merges datasets for a single release)
@@ -85,9 +70,8 @@ rule theme_release:
         ]
     output:
         merged = "data/working/theme/release_{release}/{theme}.geojson"
-    run:
-        with log_context(action="theme", theme=wildcards.theme, release=wildcards.release):
-            merge_theme_release(wildcards.theme, int(wildcards.release))
+    shell:
+        "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
 
 # 6. KART IMPORT (Performs chronological imports into a target repository)
@@ -100,18 +84,16 @@ rule kart_import:
         ]
     output:
         imported = "data/output/{repo}/.imported"
-    run:
-        with log_context(action="kart_import", repo=wildcards.repo):
-            kart_import_repo(wildcards.repo)
+    shell:
+        "uv run python -m kart_import.assets.kart_import {wildcards.repo}"
 
 
 # 7. UTILITY BUNDLE RULE
 rule bundle:
     output:
         sentinel = "data/source/{dataset}/.bundle_created"
-    run:
-        with log_context(action="bundle", dataset=wildcards.dataset):
-            bundle_dataset(wildcards.dataset)
+    shell:
+        "uv run python -m kart_import.assets.bundle {wildcards.dataset}"
 
 
 # --- DYNAMIC CONVENIENCE ALIASES (automated from config files in a loop) ---
@@ -140,4 +122,3 @@ for repo in REPOS:
             workflow.run(lambda *args, **kwargs: None)
         )
     )
-

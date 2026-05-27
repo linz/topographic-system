@@ -94,6 +94,20 @@ class OTelJsonFormatter(logging.Formatter):
         return json.dumps(log_record, default=default_serializer)
 
 
+class _AppLogFilter(logging.Filter):
+    """Allows only records from the kart_import application logger tree."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.name == "kart_import" or record.name.startswith("kart_import.")
+
+
+class _SystemLogFilter(logging.Filter):
+    """Allows only records that are NOT from the kart_import application logger tree."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.name != "kart_import" and not record.name.startswith("kart_import.")
+
+
 def setup_logging():
     import os
     import sys
@@ -106,9 +120,19 @@ def setup_logging():
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(OTelJsonFormatter())
-    root_logger.addHandler(handler)
+    # Application logs (kart_import.*) → structured OTel JSON
+    app_handler = logging.StreamHandler(sys.stdout)
+    app_handler.setFormatter(OTelJsonFormatter())
+    app_handler.addFilter(_AppLogFilter())
+    root_logger.addHandler(app_handler)
+
+    # System / Snakemake logs → plain text
+    system_handler = logging.StreamHandler(sys.stdout)
+    system_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)-8s %(name)s: %(message)s", datefmt="%H:%M:%S")
+    )
+    system_handler.addFilter(_SystemLogFilter())
+    root_logger.addHandler(system_handler)
 
 
 # Run automatically on import
