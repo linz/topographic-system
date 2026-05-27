@@ -9,6 +9,8 @@ from typing import Any, TypeVar
 
 from opentelemetry.context import attach, detach, get_current
 
+from .log import log_context
+
 logger = logging.getLogger("kart_import")
 
 T = TypeVar("T")
@@ -57,7 +59,8 @@ def run_in_thread_pool(
         thread_id = _get_clean_thread_id()
         token = attach(parent_otel_context)
         try:
-            return func(item)
+            with log_context(threadId=thread_id):
+                return func(item)
         finally:
             detach(token)
 

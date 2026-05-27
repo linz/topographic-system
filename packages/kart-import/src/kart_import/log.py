@@ -2,17 +2,14 @@ import json
 import logging
 import os
 import sys
+from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Sequence
 
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.baggage import get_all as baggage_get_all
 from opentelemetry.baggage import set_baggage
 from opentelemetry.context import attach, detach, get_current
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import LogExporter, LogExportResult
-from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
-
+from opentelemetry.sdk._logs.export import LogExporter, LogExportResult, SimpleLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 
 
@@ -43,14 +40,14 @@ class _JsonLineExporter(LogExporter):
         for r in batch:
             log_record = r.log_record if hasattr(r, "log_record") else r
             attrs = dict(log_record.attributes or {})
-            del attrs['code']
+            del attrs["code"]
 
             record = {
                 "Timestamp": int(log_record.timestamp / 1_000_000) if log_record.timestamp else None,
                 "SeverityText": log_record.severity_text,
                 "SeverityNumber": log_record.severity_number.value if log_record.severity_number else None,
                 "Body": log_record.body,
-                "Attributes": attrs
+                "Attributes": attrs,
             }
             self._out.write(json.dumps(record, default=str) + "\n")
         self._out.flush()
@@ -76,5 +73,6 @@ def setup_logging():
     if root.hasHandlers():
         root.handlers.clear()
     root.addHandler(handler)
+
 
 setup_logging()
