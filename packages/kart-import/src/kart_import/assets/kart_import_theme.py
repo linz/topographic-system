@@ -4,13 +4,12 @@ import shutil
 from kart_import.log import log_context
 
 from ..command import run_command
-from ..config import OUTPUT_DIR, WORKING_THEME_DIR, get_releases, get_themes
+from ..config import OUTPUT_DIR, WORKING_THEME_DIR, get_releases
 
 logger = logging.getLogger("kart_import")
 
 
 def kart_import_repo(theme_name: str):
-
     repo_dir = OUTPUT_DIR / "theme" / theme_name
     bundle_file = OUTPUT_DIR / f"{theme_name}.bundle"
 
@@ -18,11 +17,11 @@ def kart_import_repo(theme_name: str):
 
     # Init the Kart repo if it doesn't exist
     if (repo_dir / ".kart").exists():
-        logger.info(f"Removing existing Kart Repo", extra={"target": str(repo_dir)})
+        logger.info("Removing existing Kart Repo", extra={"target": str(repo_dir)})
         shutil.rmtree(repo_dir)
 
     repo_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Initializing Kart repo", extra={"target": str(repo_dir)})
+    logger.info("Initializing Kart repo", extra={"target": str(repo_dir)})
     run_command(["kart", "init", "."], cwd=str(repo_dir))
 
     for release in releases:
@@ -37,7 +36,7 @@ def kart_import_repo(theme_name: str):
             logger.warning(f"Theme file not found: {input_file}. Skipping import.")
             continue
 
-        logger.info(f"Importing release", extra={"release":release.id})
+        logger.info("Importing release", extra={"release": release.id})
 
         cmd = [
             "kart",
@@ -52,9 +51,8 @@ def kart_import_repo(theme_name: str):
         ]
         run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
 
-
-    run_command(["kart", "git", "bundle", "create", bundle_file, "--all"], cwd=str(repo_dir))
-    logger.info(f"All releases imported")
+    run_command(["kart", "git", "bundle", "create", str(bundle_file), "--all"], cwd=str(repo_dir))
+    logger.info("All releases imported")
     return str(repo_dir)
 
 

@@ -6,12 +6,21 @@ from kart_import.config import (
     DATASET_MAP,
 )
 
+import os
+import uuid
+
 # Load configuration details from the Python package
 THEMES = get_themes()
 RELEASES = get_releases()
 DATASETS = get_datasets()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
+
+# Generate a single Trace ID for this entire Snakemake run so all distributed logs link together
+if "TRACEPARENT" not in os.environ:
+    run_trace_id = uuid.uuid4().hex
+    run_span_id = uuid.uuid4().hex[:16]
+    os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 
 
 # TARGETS

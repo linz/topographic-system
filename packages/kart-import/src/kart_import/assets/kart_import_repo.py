@@ -1,6 +1,5 @@
 import logging
 import shutil
-from pathlib import Path
 
 from kart_import.log import log_context
 
@@ -11,7 +10,6 @@ logger = logging.getLogger("kart_import")
 
 
 def kart_import_repo(repo_name: str):
-
     repo_dir = OUTPUT_DIR / repo_name
     imported_marker = repo_dir / ".imported"
 
@@ -23,14 +21,14 @@ def kart_import_repo(repo_name: str):
 
     # Ensure a clean state before initializing the repo
     if repo_dir.exists():
-        logger.info(f"Removing existing repo directory", extra={"target": str(repo_dir)})
+        logger.info("Removing existing repo directory", extra={"target": str(repo_dir)})
         shutil.rmtree(repo_dir)
 
     repo_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Initializing Git repo", extra={"target": str(repo_dir)})
+    logger.info("Initializing Git repo", extra={"target": str(repo_dir)})
     run_command(["git", "init", "."], cwd=str(repo_dir))
     run_command(["git", "config", "commit.gpgsign", "false"], cwd=str(repo_dir))
-    
+
     # Enable cone-mode sparse checkout to speed up pulls and simulate --no-checkout
     run_command(["git", "sparse-checkout", "init", "--cone"], cwd=str(repo_dir))
     run_command(["git", "sparse-checkout", "set"], cwd=str(repo_dir))
@@ -41,14 +39,15 @@ def kart_import_repo(repo_name: str):
         if not bundle_file.exists():
             raise Exception(f"Bundle file not found: {bundle_file}")
 
-        logger.info(f"Fetching bundle", extra={"bundle": str(bundle_file), "theme": theme.name})
+        logger.info("Fetching bundle", extra={"bundle": str(bundle_file), "theme": theme.name})
         run_command(["git", "fetch", str(bundle_file), f"master:{theme.name}"], cwd=str(repo_dir))
 
     # Get all commits from all fetched branches sorted by author timestamp
     import subprocess
+
     cmd_log = ["git", "log", "--all", "--format=%at %H"]
     result = subprocess.run(cmd_log, cwd=str(repo_dir), capture_output=True, text=True, check=True)
-    
+
     # Sort lines by timestamp (the first column) and extract the commit hash
     commits = []
     for line in sorted(result.stdout.strip().split("\n")):
