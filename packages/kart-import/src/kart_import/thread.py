@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypeVar
 
-from .log import _log_context, log_context
+from opentelemetry.context import attach, detach, get_current
 
 logger = logging.getLogger("kart_import")
 
@@ -51,12 +51,15 @@ def run_in_thread_pool(
     forcefully aborting the thread pool upon receiving Ctrl+C.
     """
 
-    parent_context: dict[Any, Any] = _log_context.get() or {}
+    parent_otel_context = get_current()
 
     def worker_wrapper(item: T) -> R:
         thread_id = _get_clean_thread_id()
-        with log_context(**parent_context, threadId=thread_id):
+        token = attach(parent_otel_context)
+        try:
             return func(item)
+        finally:
+            detach(token)
 
     executor = ThreadPoolExecutor(max_workers=thread_count)
     futures = [executor.submit(worker_wrapper, item) for item in items]
