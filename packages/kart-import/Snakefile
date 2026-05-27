@@ -87,9 +87,8 @@ rule kart_theme:
 rule kart_repo:
     input:
         themes = lambda wildcards: [
-            f"data/working/theme/release_{r.id}/{t.name}.geojson"
+            f"data/output/{t.name}.bundle"
             for t in THEMES if t.target_repo == wildcards.repo
-            for r in RELEASES
         ]
     output:
         imported = "data/output/{repo}/.imported"
