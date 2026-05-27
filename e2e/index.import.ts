@@ -83,7 +83,7 @@ describe('kart.import', async () => {
   });
 
   await it('should create a topographic kart dataset', async () => {
-    const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'kart_import_topographic_data');
+    const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'kart_theme_airport');
     assert.ok(ret);
 
     const topographicData = new URL('./packages/kart-import/data/output/topographic-data', sourceCodeUrl);

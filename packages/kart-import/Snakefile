@@ -73,9 +73,18 @@ rule theme_release:
     shell:
         "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
+rule kart_theme:
+    input:
+        themes = lambda wildcards: [
+            f"data/working/theme/release_{r.id}/{wildcards.theme}.geojson"
+            for r in RELEASES
+        ]
+    output:
+        imported = "data/output/{theme}.bundle"
+    shell:
+        "uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
 
-# 6. KART IMPORT (Performs chronological imports into a target repository)
-rule kart_import:
+rule kart_repo:
     input:
         themes = lambda wildcards: [
             f"data/working/theme/release_{r.id}/{t.name}.geojson"
@@ -85,7 +94,7 @@ rule kart_import:
     output:
         imported = "data/output/{repo}/.imported"
     shell:
-        "uv run python -m kart_import.assets.kart_import {wildcards.repo}"
+        "uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
 # 7. UTILITY BUNDLE RULE
@@ -122,6 +131,18 @@ for t in THEMES:
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+    workflow.rule(name=f"kart_theme_{t.name}")(
+        workflow.input(f"data/output/{t.name}.bundle")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+workflow.rule(name="kart_theme_all")(
+    workflow.input([f"data/output/{t.name}.bundle" for t in THEMES])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 for repo in REPOS:
     safe_repo_name = repo.replace("-", "_")
