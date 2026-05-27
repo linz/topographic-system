@@ -106,6 +106,13 @@ for name in DATASET_MAP:
         )
     )
 
+# All clones
+workflow.rule(name="clone_all")(
+    workflow.input([f"data/source/{name}/.cloned" for name in DATASET_MAP])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
 # Themes
 for t in THEMES:
     workflow.rule(name=f"theme_{t.name}")(

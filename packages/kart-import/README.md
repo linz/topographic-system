@@ -9,13 +9,13 @@ Datasets are first cloned then transformed and loaded,
 using `dg` individual datasets can be cloned
 
 ```bash
-uv run dg launch --assets clone_nz_airport_polygons
+uv run snakemake --cores=4 clone_all --quiet | pjl
 ```
 
 or entire themes can be imported, which will clone both the NZ and Chatham Islands airports
 
 ```shell
-uv run dg launch --assets theme_airport
+uv run snakemake --cores=4 theme_airport --quiet | pjl
 ```
 
 ## LDS Backup
@@ -31,5 +31,5 @@ These are created with the "\*bundle_all" assets.
 To turn bundle usage off
 
 ```shell
-export GIT_BUNDLE=false; uv run dg launch --assets clone_nz_airport_polygons
+export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | pjl
 ```
