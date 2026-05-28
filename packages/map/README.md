@@ -26,7 +26,7 @@ docker run -it -v $PWD:/working map export \
 
 ## Building container
 
-Build docker containr from the git repository root directory to include python project [qgis](../qgis/README.md).
+Build docker container from the git repository root directory to include python project [qgis](../qgis/README.md).
 
 ```shell
 docker build -f packages/map/Dockerfile -t map .
@@ -37,7 +37,7 @@ docker build -f packages/map/Dockerfile -t map .
 Run it in the container
 
 ```shell
-docker run -it --rm -v ~/.aws:/root/.aws:ro -v $PWD}:/working -e AWS_PROFILE=li-topo-maps-nonprod map visual-diff --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output /working/output
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v $PWD:/working -e AWS_PROFILE=li-topo-maps-nonprod map visual-diff --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output /working/output
 ```
 
 ## Deploy QGIS Project Cli
