@@ -193,7 +193,7 @@ export class Downloader {
         cacheHit: cacheStat.hit,
         duration: performance.now() - startTime,
       },
-      'DownloadFile:Extract:Done',
+      'DownloadFile:Done',
     );
 
     return sourceAsset;
