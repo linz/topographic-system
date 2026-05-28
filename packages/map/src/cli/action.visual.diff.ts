@@ -16,7 +16,7 @@ import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
-import { tempLocation } from './shared.args.ts';
+import { cache, tempLocation } from './shared.args.ts';
 
 interface TestProject {
   name: string; // Matches the project filename from the input project
@@ -62,6 +62,7 @@ export const VisualDiffArgs = {
     description: 'output local folder to save the exported mapsheets for visual diffing.',
   }),
   tempLocation,
+  cache,
 };
 
 export const VisualDiffCommand = command({
@@ -81,7 +82,7 @@ export const VisualDiffCommand = command({
     const tasks = [];
 
     // Download local data if provided, and add the data path to stac for exporting
-    const downloader = new Downloader(args.tempLocation, q, true); // Skip downloading if data already exists in temp location
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
     if (args.data) {
       const files = await fsa.toArray(fsa.list(args.data));
       for (const file of files) {
@@ -106,7 +107,7 @@ export const VisualDiffCommand = command({
         downloader.addStacLinks(stac, DownloadRels, args.project);
 
         // Download all the assets, including the project file and source data for the project.
-        await downloader.getAllAssets();
+        await downloader.getAllAssets(true);
 
         // Prepare test export options
         const exportOptions: ExportOptions = {

@@ -19,8 +19,8 @@ import type { StacCollection, StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
-import { fromFile } from './action.produce.ts';
-import { tempLocation } from './shared.args.ts';
+import { fromFile } from './action.export.ts';
+import { cache, tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -86,7 +86,7 @@ export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl
   for (const source of sources) {
     for (const tag of tags) {
       if (source.href.includes(tag.layer)) {
-        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
+        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'Prepare: DataOverride');
         // Find the source layer with the tag from the catalog and override the source link
         const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer);
         source.href = layerCollection.href;
@@ -160,16 +160,17 @@ const ProduceArgs = {
     description: 'Path or s3 bucket of the output directory to write generated map sheets.',
   }),
   tempLocation,
+  cache,
 };
 
-export const ProduceCoverCommand = command({
-  name: 'produce-cover',
-  description: 'Read a Qgis project and mapsheet data, then generate stac files for the exports.',
+export const PrepareCommand = command({
+  name: 'prepare',
+  description: 'Read a QGIS project and mapsheet data, then generate stac files for the exports.',
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
-    logger.info({ project: args.project.href }, 'ProduceCover: Start');
+    logger.info({ project: args.project.href, cache: args.cache.href }, 'Prepare: Start');
 
     const q = qFromArgs(args);
 
@@ -181,7 +182,7 @@ export const ProduceCoverCommand = command({
 
     // Download project file from the project stac file
     logger.info({ project: args.project.href }, 'Download: Start');
-    const downloader = new Downloader(args.tempLocation, q);
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
     downloader.addStac(args.project);
     downloader.addStacLinks(stac, DownloadRels, args.project);
     await downloader.getAllAssets();
@@ -204,7 +205,7 @@ export const ProduceCoverCommand = command({
     const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
-    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
+    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'Prepare: ExportCover');
     const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
@@ -213,7 +214,7 @@ export const ProduceCoverCommand = command({
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
 
-    logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
+    logger.info({ project: args.project.href, number: metadatas.length }, 'Prepare: CreateStacItems');
 
     for (const metadata of metadatas) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
@@ -251,17 +252,17 @@ export const ProduceCoverCommand = command({
     }
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);
-    logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
+    logger.info({ destination: itemTarget.href }, 'Prepare: WriteStacItem');
     const collectionUrl = await sw.write(itemTarget, q);
 
     if (collectionUrl == null) {
-      throw new Error(`ProduceCover: Failed to write collection for project ${args.project.href}`);
+      throw new Error(`Prepare: Failed to write collection for project ${args.project.href}`);
     }
 
-    logger.info({ project: args.project.href }, 'ProduceCover: UpsertStacCatalog');
+    logger.info({ project: args.project.href }, 'Prepare: UpsertStacCatalog');
     await StacUpdater.collections(rootCatalog, [collectionUrl], true);
 
-    logger.info({ project: args.project.href, target: args.output.href }, 'ProduceCover: Finished');
+    logger.info({ project: args.project.href, target: args.output.href }, 'Prepare: Finished');
 
     // If running in argo dump out output information to be used by further steps
     if (isArgo()) {

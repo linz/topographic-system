@@ -4,18 +4,23 @@ import { subcommands } from 'cmd-ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 import { DeployCommand } from './cli/action.deploy.ts';
-import { ProduceCoverCommand } from './cli/action.produce.cover.ts';
-import { ProduceCommand } from './cli/action.produce.ts';
+import { ExportCommand } from './cli/action.export.ts';
+import { PrepareCommand } from './cli/action.prepare.ts';
 import { VersionCommand } from './cli/action.version.ts';
 import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 
 const cmds = {
-  produce: ProduceCommand,
-  'produce-cover': ProduceCoverCommand,
+  export: ExportCommand,
+  prepare: PrepareCommand,
   deploy: DeployCommand,
   'visual-diff': VisualDiffCommand,
   version: VersionCommand,
   'stac-push': StacPushCommand,
+
+  /** @deprecated 2026-05 */
+  produce: ExportCommand,
+  /** @deprecated 2026-05 */
+  'produce-cover': PrepareCommand,
 };
 
 const Cli = subcommands({
