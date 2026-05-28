@@ -8,10 +8,7 @@ from .kart import git_to_kart
 
 
 def download_bundle(dataset_name: str, target_path: Path) -> None:
-    """Download a git bundle from CloudFront to a local path.
-
-    Raises urllib.error.URLError on network failure or a non-2xx response.
-    """
+    """Download a git bundle from CloudFront to a local path."""
     url = env_bundle_url(dataset_name)
     with urllib.request.urlopen(url) as response, open(target_path, "wb") as f:
         shutil.copyfileobj(response, f)

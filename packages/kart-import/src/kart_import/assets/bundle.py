@@ -87,24 +87,20 @@ def bundle_dataset(dataset_name: str):
     bundle_path = SOURCE_DIR / f"{dataset_name}.bundle"
     sentinel = target_dir / ".bundle_created"
 
-    bundle_head = fetch_bundle_head(dataset_name)
+    bundle_head_sha = fetch_bundle_head(dataset_name)
 
     # Skip bundle creation if the current bundle and remote are the same hash
-    if bundle_head:
+    if bundle_head_sha:
         ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"]).strip()
         source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
-        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head})
+        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head_sha})
 
-        if source_head_sha == bundle_head:
+        if source_head_sha == bundle_head_sha:
             logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
             sentinel.touch()
             return
         else:
-            logger.info(
-                f"Bundle is stale (bundle={bundle_head!r}, remote={source_head_sha!r}). "
-                "Seeding from existing bundle then pulling updates."
-            )
-            logger.info(f"Downloading existing bundle for {dataset_name!r}...")
+            logger.info(f"Bundle is stale ({bundle_head_sha=}, {source_head_sha=}). Seeding from existing bundle.")
             download_bundle(dataset_name, bundle_path)
 
             if not (target_dir / ".git").exists() and not (target_dir / ".kart").exists():
