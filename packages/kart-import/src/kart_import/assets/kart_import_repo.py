@@ -42,24 +42,21 @@ def kart_import_repo(repo_name: str):
         logger.info("Fetching bundle", extra={"bundle": str(bundle_file), "theme": theme.name})
         run_command(["git", "fetch", str(bundle_file), f"master:{theme.name}"], cwd=str(repo_dir))
 
-    # Get all commits from all fetched branches sorted by author timestamp
-    import subprocess
-
-    cmd_log = ["git", "log", "--all", "--format=%at %H"]
-    result = subprocess.run(cmd_log, cwd=str(repo_dir), capture_output=True, text=True, check=True)
+    result = run_command(["git", "log", "--all", "--format=%at|%H"], cwd=str(repo_dir))
 
     # Sort lines by timestamp (the first column) and extract the commit hash
     commits = []
-    for line in sorted(result.stdout.strip().split("\n")):
+    for line in sorted(result.strip().split("\n")):
         if line:
-            commits.append(line.split(" ")[1])
+            commits.append(line.split("|")[1])
 
     logger.info(f"Cherry-picking {len(commits)} commits to create a chronologically ordered linear history")
 
     # Cherry-pick all commits into the current master branch sequentially
-    if commits:
-        cmd_cp = ["git", "cherry-pick", "--allow-empty", "--strategy-option=theirs"] + commits
-        run_command(cmd_cp, cwd=str(repo_dir))
+    if not commits:
+        raise Exception("No commits found")
+
+    run_command(["git", "cherry-pick"] + commits, cwd=str(repo_dir))
 
     # Clean up the temporary fetched branches
     for theme in themes:

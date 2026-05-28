@@ -9,7 +9,7 @@ from ..config import OUTPUT_DIR, WORKING_THEME_DIR, get_releases
 logger = logging.getLogger("kart_import")
 
 
-def kart_import_repo(theme_name: str):
+def kart_import_theme(theme_name: str):
     repo_dir = OUTPUT_DIR / "theme" / theme_name
     bundle_file = OUTPUT_DIR / f"{theme_name}.bundle"
 
@@ -63,4 +63,4 @@ if __name__ == "__main__":
         print("Usage: python -m kart_import.assets.kart_import_theme <theme_name>")
         sys.exit(1)
     with log_context(action="kart_import_theme", theme=sys.argv[1]):
-        kart_import_repo(sys.argv[1])
+        kart_import_theme(sys.argv[1])
