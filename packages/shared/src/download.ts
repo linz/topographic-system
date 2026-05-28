@@ -104,7 +104,12 @@ export class Downloader {
     const exists = await fsa.head(cacheKey).catch(() => null);
 
     if (exists) {
-      return { url: cacheKey, size: exists.size as number, hash: asset['file:checksum'] as string, hit: true };
+      if (exists.size !== fileSize) {
+        logger.warn({ cacheKey: cacheKey.href, localSize: exists.size, expectedSize: fileSize }, 'Cache:Invalid');
+        await fsa.delete(cacheKey);
+      } else {
+        return { url: cacheKey, size: exists.size as number, hash: asset['file:checksum'] as string, hit: true };
+      }
     }
 
     const fileHash = new HashTransform('sha256');
@@ -116,11 +121,13 @@ export class Downloader {
     const head = await fsa.head(cacheKey);
     // validate file was downloaded correctly
     if (head?.size !== fileSize) {
+      await fsa.delete(cacheKey);
       throw new Error(`Failed to download file: ${url.href} size mismatch ${head?.size} vs ${fileSize}`);
     }
 
     const targetHash = fileHash.multihash;
     if (targetHash !== checksum) {
+      await fsa.delete(cacheKey);
       throw new Error(`Failed to download file: ${url.href} checksum mismatch ${targetHash}`);
     }
 
