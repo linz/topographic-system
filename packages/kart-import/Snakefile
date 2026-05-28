@@ -6,12 +6,21 @@ from kart_import.config import (
     DATASET_MAP,
 )
 
+import os
+import uuid
+
 # Load configuration details from the Python package
 THEMES = get_themes()
 RELEASES = get_releases()
 DATASETS = get_datasets()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
+
+# Generate a single Trace ID for this entire Snakemake run so all distributed logs link together
+if "TRACEPARENT" not in os.environ:
+    run_trace_id = uuid.uuid4().hex
+    run_span_id = uuid.uuid4().hex[:16]
+    os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 
 
 # TARGETS
@@ -73,19 +82,27 @@ rule theme_release:
     shell:
         "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
-
-# 6. KART IMPORT (Performs chronological imports into a target repository)
-rule kart_import:
+rule kart_theme:
     input:
         themes = lambda wildcards: [
-            f"data/working/theme/release_{r.id}/{t.name}.geojson"
-            for t in THEMES if t.target_repo == wildcards.repo
+            f"data/working/theme/release_{r.id}/{wildcards.theme}.geojson"
             for r in RELEASES
+        ]
+    output:
+        imported = "data/output/{theme}.bundle"
+    shell:
+        "uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
+
+rule kart_repo:
+    input:
+        themes = lambda wildcards: [
+            f"data/output/{t.name}.bundle"
+            for t in THEMES if t.target_repo == wildcards.repo
         ]
     output:
         imported = "data/output/{repo}/.imported"
     shell:
-        "uv run python -m kart_import.assets.kart_import {wildcards.repo}"
+        "uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
 # 7. UTILITY BUNDLE RULE
@@ -122,6 +139,18 @@ for t in THEMES:
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+    workflow.rule(name=f"kart_theme_{t.name}")(
+        workflow.input(f"data/output/{t.name}.bundle")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+workflow.rule(name="kart_theme_all")(
+    workflow.input([f"data/output/{t.name}.bundle" for t in THEMES])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 for repo in REPOS:
     safe_repo_name = repo.replace("-", "_")
