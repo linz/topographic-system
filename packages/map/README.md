@@ -11,14 +11,14 @@ Exports are made by first creating a map production run with `map prepare`, once
 docker build -f packages/map/Dockerfile -t map .
 
 # Prepare a export for mapsheet BQ32
-docker run -it -v {$PWD}:/working map prepare \
+docker run -it -v $PWD:/working map prepare \
   --project https://d1jzh93b1t1cv.cloudfront.net/qgis/nztopo50/latest/nztopo50.json \
   --output /working/output/ \
   --cache /working/.cache/ \
   BQ32 BQ33
 
 # export mapsheet BQ32
-docker run -it -v {$PWD}:/working map export \
+docker run -it -v $PWD:/working map export \
    --cache /working/.cache/ \
    /working/output/nztopo50/BQ33.json
 ```
@@ -36,7 +36,7 @@ docker build -f packages/map/Dockerfile -t map .
 Run it in the container
 
 ```shell
-docker run -it --rm -v ~/.aws:/root/.aws:ro -v ${PWD}:${PWD} -e AWS_PROFILE=li-topo-maps-nonprod map visual-diff --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output $PWD/output
+docker run -it --rm -v ~/.aws:/root/.aws:ro -v $PWD}:/working -e AWS_PROFILE=li-topo-maps-nonprod map visual-diff --project s3://linz-topography-nonprod/qgis/latest/nztopo50map/nz-topo50-map.json --output /working/output
 ```
 
 ## Deploy QGIS Project Cli

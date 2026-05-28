@@ -43,17 +43,14 @@ export class Downloader {
   cache: Map<string, SourceAsset> = new Map();
   /** Local target location */
   target: URL;
-  /** Skip if linked path already exists */
-  skip: boolean;
   /** Cache asset files into the source cache */
   sourceCache: URL;
 
-  constructor(target: URL, sourceCache: URL, q: LimitFunction, skip = false) {
+  constructor(target: URL, sourceCache: URL, q: LimitFunction) {
     this.q = q;
     this.stacs = new Map<string, SourceStac>();
     this.cache = new Map<string, SourceAsset>();
     this.target = target;
-    this.skip = skip;
     this.sourceCache = sourceCache;
   }
 
