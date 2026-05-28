@@ -63,7 +63,7 @@ export const ProduceArgs = {
     type: UrlFolder,
     long: 'cache',
     description: 'Optional local cache for storing versioned map assets',
-    defaultValue: () => fsa.toUrl('.cache'),
+    defaultValue: () => fsa.toUrl('./.cache'),
   }),
 };
 
