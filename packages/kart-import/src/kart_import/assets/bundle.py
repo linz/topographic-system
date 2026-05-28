@@ -1,4 +1,5 @@
 import logging
+import shutil
 import time
 import urllib.error
 import urllib.request
@@ -11,7 +12,7 @@ from ..config import (
     WORKING_EXPORTS_DIR,
 )
 from ..env import env_bundle_s3_url, env_bundle_url
-from ..git.kart import get_kart_dataset_id
+from ..git.kart import get_kart_dataset_id, git_to_kart
 from ..log import log_context
 from ..thread import run_in_thread_pool
 
@@ -98,6 +99,22 @@ def bundle_dataset(dataset_name: str):
             logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
             sentinel.touch()
             return
+        else:
+            logger.info(
+                f"Bundle is stale (bundle={bundle_head!r}, remote={source_head_sha!r}). "
+                "Seeding from existing bundle then pulling updates."
+            )
+            remote_bundle_url = env_bundle_url(dataset_name)
+            logger.info(f"Downloading existing bundle from {remote_bundle_url!r}...")
+            with urllib.request.urlopen(remote_bundle_url) as response, open(bundle_path, "wb") as f:
+                shutil.copyfileobj(response, f)
+
+            if not (target_dir / ".git").exists() and not (target_dir / ".kart").exists():
+                run_command(["git", "clone", str(bundle_path), str(target_dir), "--no-checkout"])
+                git_to_kart(target_dir)
+
+            run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
+            run_command(["git", "pull"], cwd=str(target_dir))
 
     if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
         if should_pull(target_dir):
@@ -131,7 +148,7 @@ def bundle_dataset(dataset_name: str):
             ["kart", "export", "--overwrite", "--ref", sha, kart_dataset_id, json_export],
             cwd=str(target_dir),
         )
-        run_command(["gzip", "-9", json_export])
+        run_command(["gzip", "-f", "-9", json_export])
         run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key])
         return True
 
