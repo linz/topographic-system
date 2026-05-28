@@ -101,9 +101,9 @@ export class Downloader {
     url: URL,
   ): Promise<{ url: URL; size: number; hash: string; hit?: boolean }> {
     const checksum = asset['file:checksum'] as string | undefined;
+    const fileSize = asset['file:size'] as number | undefined;
     if (checksum == null) throw new Error(`Asset has no "file:checksum" ${url.href}`);
 
-    console.log(this.sourceCache)
     const cacheKey = new URL(`${checksum}_${basename(asset.href)}`, this.sourceCache);
     const exists = await fsa.head(cacheKey).catch(() => null);
 
@@ -119,8 +119,8 @@ export class Downloader {
 
     const head = await fsa.head(cacheKey);
     // validate file was downloaded correctly
-    if (head?.size !== asset['file:size']) {
-      throw new Error(`Failed to download file: ${url.href} size missmatch ${head?.size} vs ${asset['file:size']}`);
+    if (head?.size !== fileSize) {
+      throw new Error(`Failed to download file: ${url.href} size missmatch ${head?.size} vs ${fileSize}`);
     }
 
     const targetHash = fileHash.multihash;

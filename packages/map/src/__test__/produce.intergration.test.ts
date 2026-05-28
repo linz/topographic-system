@@ -36,7 +36,13 @@ describe('deploy -> produce-cover -> produce', () => {
     await StacUpdater.readWriteJson<StacCollection>(new URL('collection.json', waterUrl), () => {
       const col = StacBasic.collection();
       col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
-      col.assets = { parquet: { href: './water.parquet', 'file:checksum': '1220a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e', 'file:size': 11 } };
+      col.assets = {
+        parquet: {
+          href: './water.parquet',
+          'file:checksum': '1220a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e',
+          'file:size': 11,
+        },
+      };
       return col;
     });
     await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl], true);
