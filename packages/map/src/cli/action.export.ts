@@ -10,6 +10,7 @@ import {
   registerFileSystem,
   Url,
   UrlArrayJsonFile,
+  UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
 import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
@@ -19,7 +20,7 @@ import type { StacAsset, StacItem } from 'stac-ts';
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
-import { type ExportFormat, ExportFormats } from './action.produce.cover.ts';
+import { type ExportFormat, ExportFormats } from './action.prepare.ts';
 import { tempLocation } from './shared.args.ts';
 
 function getExtentFormat(format: ExportFormat): string {
@@ -58,11 +59,17 @@ export const ProduceArgs = {
   }),
   tempLocation,
   force: flag({ long: 'force', description: 'Overwrite existing exported files' }),
+  cache: option({
+    type: UrlFolder,
+    long: 'cache',
+    description: 'Optional local cache for storing versioned map assets',
+    defaultValue: () => fsa.toUrl('.cache'),
+  }),
 };
 
-export const ProduceCommand = command({
-  name: 'produce',
-  description: 'Produce',
+export const ExportCommand = command({
+  name: 'export',
+  description: 'Export a collection of mapsheets from a prepared',
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
@@ -74,7 +81,7 @@ export const ProduceCommand = command({
       throw new Error('At least one path to a stac item or item configuration must be provided');
     }
 
-    const downloader = new Downloader(args.tempLocation, q);
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
 
     const stacs = await qMapAll(q, paths, async (path) => {
       const stac = await fsa.readJson<StacItem>(path);

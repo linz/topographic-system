@@ -62,6 +62,12 @@ export const VisualDiffArgs = {
     description: 'output local folder to save the exported mapsheets for visual diffing.',
   }),
   tempLocation,
+  cache: option({
+    type: UrlFolder,
+    long: 'cache',
+    description: 'Optional local cache for storing versioned map assets',
+    defaultValue: () => fsa.toUrl('.cache'),
+  }),
 };
 
 export const VisualDiffCommand = command({
@@ -81,7 +87,7 @@ export const VisualDiffCommand = command({
     const tasks = [];
 
     // Download local data if provided, and add the data path to stac for exporting
-    const downloader = new Downloader(args.tempLocation, q, true); // Skip downloading if data already exists in temp location
+    const downloader = new Downloader(args.tempLocation, args.cache, q, true); // Skip downloading if data already exists in temp location
     if (args.data) {
       const files = await fsa.toArray(fsa.list(args.data));
       for (const file of files) {

@@ -43,6 +43,12 @@ export const IceContourArgs = {
     description: 'Where temporary files are stored, generally in /tmp/...',
     defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `topo-system-${CliId}`)),
   }),
+  cache: option({
+    type: UrlFolder,
+    long: 'cache',
+    description: 'Optional local cache for storing versioned map assets',
+    defaultValue: () => fsa.toUrl('.cache'),
+  }),
 };
 
 const iceContourName = 'nztopo50_ice_contour';
@@ -56,7 +62,7 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
-    const downloader = new Downloader(args.tempLocation, q);
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
 
     // TODO use canonical
     const contourCollection = await fsa.readJson<StacCollection>(args.contour);

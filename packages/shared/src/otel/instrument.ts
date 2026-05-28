@@ -26,8 +26,9 @@ export function monitor<T, K extends keyof T>(c: T, key: K, opts: MonitorOpts<T,
   if (oldHandler == null || typeof oldHandler !== 'function') {
     throw new Error(`${String(key)} does not exist on ${String(c)}`);
   }
+  // Allready monitored ignore
   if (MonitorKey in oldHandler && oldHandler[MonitorKey] === MonitorSym) {
-    throw new Error(`${String(key)} Already monitored`);
+    return;
   }
 
   function newFn(...args: unknown[]) {

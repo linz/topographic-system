@@ -1,6 +1,6 @@
 import type { StacItem } from 'stac-ts';
 
-import { type ExportFormat } from './cli/action.produce.cover.ts';
+import { type ExportFormat } from './cli/action.prepare.ts';
 
 export interface ExportOptions {
   /** layout name used for export, must exist in the QGIS project */

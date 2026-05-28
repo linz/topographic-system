@@ -6,8 +6,8 @@ import { StacUpdater, StacPushCommand, StacBasic } from '@linzjs/topographic-sys
 import type { StacCollection } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
-import { ProduceCoverCommand } from '../cli/action.produce.cover.ts';
-import { ProduceCommand } from '../cli/action.produce.ts';
+import { ExportCommand } from '../cli/action.export.ts';
+import { PrepareCommand } from '../cli/action.prepare.ts';
 import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
 
 describe('deploy -> produce-cover -> produce', () => {
@@ -36,7 +36,7 @@ describe('deploy -> produce-cover -> produce', () => {
     await StacUpdater.readWriteJson<StacCollection>(new URL('collection.json', waterUrl), () => {
       const col = StacBasic.collection();
       col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
-      col.assets = { parquet: { href: './water.parquet' } };
+      col.assets = { parquet: { href: './water.parquet', 'file:checksum': '1220a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e', 'file:size': 11 } };
       return col;
     });
     await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl], true);
@@ -88,7 +88,7 @@ describe('deploy -> produce-cover -> produce', () => {
     });
 
     const targetProduce = new URL('memory://target-produce/');
-    await ProduceCoverCommand.handler({
+    await PrepareCommand.handler({
       concurrency,
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
@@ -101,6 +101,7 @@ describe('deploy -> produce-cover -> produce', () => {
       all: false,
       format: 'pdf',
       dataTags: undefined,
+      cache: new URL('memory://temp-cache/'),
       tempLocation: new URL('memory://temp-produce-cover/'),
     });
 
@@ -115,8 +116,9 @@ describe('deploy -> produce-cover -> produce', () => {
       return outputFile;
     });
 
-    await ProduceCommand.handler({
+    await ExportCommand.handler({
       path: [new URL(`memory://target-produce/topo50/BQ32.json`)],
+      cache: new URL('memory://temp-cache/'),
       tempLocation: new URL('memory://temp-produce/'),
       fromFile: undefined,
       force: false,

@@ -19,7 +19,7 @@ import type { StacCollection, StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
-import { fromFile } from './action.produce.ts';
+import { fromFile } from './action.export.ts';
 import { tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
@@ -160,11 +160,17 @@ const ProduceArgs = {
     description: 'Path or s3 bucket of the output directory to write generated map sheets.',
   }),
   tempLocation,
+  cache: option({
+    type: UrlFolder,
+    long: 'cache',
+    description: 'Optional local cache for storing versioned map assets',
+    defaultValue: () => fsa.toUrl('.cache'),
+  }),
 };
 
-export const ProduceCoverCommand = command({
-  name: 'produce-cover',
-  description: 'Read a Qgis project and mapsheet data, then generate stac files for the exports.',
+export const PrepareCommand = command({
+  name: 'prepare',
+  description: 'Read a QGIS project and mapsheet data, then generate stac files for the exports.',
   args: ProduceArgs,
   async handler(args) {
     registerFileSystem();
@@ -181,7 +187,7 @@ export const ProduceCoverCommand = command({
 
     // Download project file from the project stac file
     logger.info({ project: args.project.href }, 'Download: Start');
-    const downloader = new Downloader(args.tempLocation, q);
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
     downloader.addStac(args.project);
     downloader.addStacLinks(stac, DownloadRels, args.project);
     await downloader.getAllAssets();
