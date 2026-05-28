@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { after, before, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { fsa } from '@chunkd/fs';
+import { fsa, HashTransform } from '@chunkd/fs';
 import { StacBasic, StacUpdater } from '@linzjs/topographic-system-stac';
 import type { StacCollection, StacItem } from 'stac-ts';
 import { $ } from 'zx';
@@ -47,16 +47,18 @@ describe('QGIS Process', () => {
 
   async function writeLatestAsset(name: string, source: URL): Promise<void> {
     const catalog = new URL('source/catalog.json', tempLocation);
-
     const collectionJson = new URL(`source/data/${name}/latest/collection.json`, tempLocation);
+    const ht = new HashTransform('sha256');
+
+    const stream = fsa.readStream(source).pipe(ht);
+    await fsa.write(new URL(`${name}.geojson`, collectionJson), stream);
+
     await StacUpdater.readWriteJson<StacCollection>(collectionJson, () => {
       const col = StacBasic.collection();
-      col.assets = { parquet: { href: `./${name}.geojson` } };
+      col.assets = { parquet: { href: `./${name}.geojson`, 'file:size': ht.bytesRead, 'file:checksum': ht.multihash } };
       col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
       return col;
     });
-
-    await fsa.write(new URL(`${name}.geojson`, collectionJson), fsa.readStream(source));
 
     await StacUpdater.collections(catalog, [collectionJson], true);
   }

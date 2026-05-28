@@ -102,6 +102,7 @@ export class Downloader {
   ): Promise<{ url: URL; size: number; hash: string; hit?: boolean }> {
     const checksum = asset['file:checksum'] as string | undefined;
     const fileSize = asset['file:size'] as number | undefined;
+
     if (checksum == null) throw new Error(`Asset has no "file:checksum" ${url.href}`);
 
     const cacheKey = new URL(`${checksum}_${basename(asset.href)}`, this.sourceCache);
