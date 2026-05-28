@@ -39,8 +39,8 @@ export class Downloader {
   q: LimitFunction;
   /** Cache of stac links that have been resolved to avoid duplicate downloads */
   stacs: Map<string, SourceStac> = new Map();
-  /** Cache of downloaded assets by linked output path */
-  cache: Map<string, SourceAsset> = new Map();
+  /** Previously written items */
+  linkCache: Map<string, SourceAsset> = new Map();
   /** Local target location */
   target: URL;
   /** Cache asset files into the source cache */
@@ -48,8 +48,6 @@ export class Downloader {
 
   constructor(target: URL, sourceCache: URL, q: LimitFunction) {
     this.q = q;
-    this.stacs = new Map<string, SourceStac>();
-    this.cache = new Map<string, SourceAsset>();
     this.target = target;
     this.sourceCache = sourceCache;
   }
@@ -72,7 +70,7 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(url: URL): Promise<SourceAsset[]> {
+  async getAsset(url: URL, skipIfExists: boolean = false): Promise<SourceAsset[]> {
     const sourceStac = this.stacs.get(url.href);
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
     if (sourceStac.assets.length > 0) return sourceStac.assets;
@@ -80,7 +78,7 @@ export class Downloader {
     const stac = await fsa.readJson<StacItem | StacCollection>(url);
     const sourceAssets = [];
     for (const [key, asset] of Object.entries(stac.assets ?? {})) {
-      const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset);
+      const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, skipIfExists);
       sourceAssets.push(sourceAsset);
       if (key === 'project') {
         sourceStac.project = sourceAsset.linked;
@@ -130,8 +128,8 @@ export class Downloader {
   }
 
   /** Get all assets, downloading them if they haven't been already */
-  async getAllAssets(): Promise<SourceAsset[]> {
-    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) => this.getAsset(new URL(url)));
+  async getAllAssets(skipIfExists: boolean = false): Promise<SourceAsset[]> {
+    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) => this.getAsset(new URL(url), skipIfExists));
     return allAssets.flat();
   }
 
@@ -155,11 +153,19 @@ export class Downloader {
   }
 
   /** Download given asset extract it if tar file */
-  async downloadAsset(url: URL, asset: StacAsset | StacLink): Promise<SourceAsset> {
+  async downloadAsset(url: URL, asset: StacAsset | StacLink, skipIfExists: boolean): Promise<SourceAsset> {
     const startTime = performance.now();
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
-    const cacheStat = await this.ensureAssetInCache(asset, url);
     const linkedPath = new URL(basename(url.pathname), this.target);
+
+    const existing = this.linkCache.get(linkedPath.href)
+    if (existing){
+      // Already linked and matches the hash
+      if (existing.hash === asset['file:checksum']) return existing;
+      if (skipIfExists) return existing;
+    }
+
+    const cacheStat = await this.ensureAssetInCache(asset, url);
 
     const sourceAsset: SourceAsset = {
       url,
@@ -186,15 +192,19 @@ export class Downloader {
       await this.ensureLinkedPath(cacheStat.url, linkedPath);
     }
 
+
     logger.info(
       {
         destination: cacheStat.url.href,
         ...sourceAsset,
         cacheHit: cacheStat.hit,
+        overwrite: existing?.hash, // A file existed but was overwritten
         duration: performance.now() - startTime,
       },
       'DownloadFile:Done',
     );
+
+    this.linkCache.set(linkedPath.href, sourceAsset)
 
     return sourceAsset;
   }
