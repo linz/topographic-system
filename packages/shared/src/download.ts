@@ -129,7 +129,9 @@ export class Downloader {
 
   /** Get all assets, downloading them if they haven't been already */
   async getAllAssets(skipIfExists: boolean = false): Promise<SourceAsset[]> {
-    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) => this.getAsset(new URL(url), skipIfExists));
+    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) =>
+      this.getAsset(new URL(url), skipIfExists),
+    );
     return allAssets.flat();
   }
 
@@ -158,8 +160,8 @@ export class Downloader {
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
     const linkedPath = new URL(basename(url.pathname), this.target);
 
-    const existing = this.linkCache.get(linkedPath.href)
-    if (existing){
+    const existing = this.linkCache.get(linkedPath.href);
+    if (existing) {
       // Already linked and matches the hash
       if (existing.hash === asset['file:checksum']) return existing;
       if (skipIfExists) return existing;
@@ -192,7 +194,6 @@ export class Downloader {
       await this.ensureLinkedPath(cacheStat.url, linkedPath);
     }
 
-
     logger.info(
       {
         destination: cacheStat.url.href,
@@ -204,7 +205,7 @@ export class Downloader {
       'DownloadFile:Done',
     );
 
-    this.linkCache.set(linkedPath.href, sourceAsset)
+    this.linkCache.set(linkedPath.href, sourceAsset);
 
     return sourceAsset;
   }
