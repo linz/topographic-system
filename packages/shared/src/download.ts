@@ -116,7 +116,7 @@ export class Downloader {
     const head = await fsa.head(cacheKey);
     // validate file was downloaded correctly
     if (head?.size !== fileSize) {
-      throw new Error(`Failed to download file: ${url.href} size missmatch ${head?.size} vs ${fileSize}`);
+      throw new Error(`Failed to download file: ${url.href} size mismatch ${head?.size} vs ${fileSize}`);
     }
 
     const targetHash = fileHash.multihash;
