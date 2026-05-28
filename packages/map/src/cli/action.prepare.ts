@@ -20,7 +20,7 @@ import type { StacCollection, StacItem } from 'stac-ts';
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
 import { fromFile } from './action.export.ts';
-import { tempLocation } from './shared.args.ts';
+import { cache, tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
   Pdf: 'pdf',
@@ -86,7 +86,7 @@ export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl
   for (const source of sources) {
     for (const tag of tags) {
       if (source.href.includes(tag.layer)) {
-        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'ProduceCover: DataOverride');
+        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'Prepare: DataOverride');
         // Find the source layer with the tag from the catalog and override the source link
         const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer);
         source.href = layerCollection.href;
@@ -160,12 +160,7 @@ const ProduceArgs = {
     description: 'Path or s3 bucket of the output directory to write generated map sheets.',
   }),
   tempLocation,
-  cache: option({
-    type: UrlFolder,
-    long: 'cache',
-    description: 'Optional local cache for storing versioned map assets',
-    defaultValue: () => fsa.toUrl('./.cache'),
-  }),
+  cache,
 };
 
 export const PrepareCommand = command({
@@ -175,7 +170,7 @@ export const PrepareCommand = command({
   async handler(args) {
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
-    logger.info({ project: args.project.href }, 'ProduceCover: Start');
+    logger.info({ project: args.project.href, cache: args.cache.href }, 'Prepare: Start');
 
     const q = qFromArgs(args);
 
@@ -210,7 +205,7 @@ export const PrepareCommand = command({
     const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
-    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'ProduceCover: ExportCover');
+    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'Prepare: ExportCover');
     const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
@@ -219,7 +214,7 @@ export const PrepareCommand = command({
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
 
-    logger.info({ project: args.project.href, number: metadatas.length }, 'ProduceCover: CreateStacItems');
+    logger.info({ project: args.project.href, number: metadatas.length }, 'Prepare: CreateStacItems');
 
     for (const metadata of metadatas) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
@@ -257,17 +252,17 @@ export const PrepareCommand = command({
     }
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);
-    logger.info({ destination: itemTarget.href }, 'ProduceCover: WriteStacItem');
+    logger.info({ destination: itemTarget.href }, 'Prepare: WriteStacItem');
     const collectionUrl = await sw.write(itemTarget, q);
 
     if (collectionUrl == null) {
-      throw new Error(`ProduceCover: Failed to write collection for project ${args.project.href}`);
+      throw new Error(`Prepare: Failed to write collection for project ${args.project.href}`);
     }
 
-    logger.info({ project: args.project.href }, 'ProduceCover: UpsertStacCatalog');
+    logger.info({ project: args.project.href }, 'Prepare: UpsertStacCatalog');
     await StacUpdater.collections(rootCatalog, [collectionUrl], true);
 
-    logger.info({ project: args.project.href, target: args.output.href }, 'ProduceCover: Finished');
+    logger.info({ project: args.project.href, target: args.output.href }, 'Prepare: Finished');
 
     // If running in argo dump out output information to be used by further steps
     if (isArgo()) {

@@ -16,7 +16,7 @@ import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
-import { tempLocation } from './shared.args.ts';
+import { cache, tempLocation } from './shared.args.ts';
 
 interface TestProject {
   name: string; // Matches the project filename from the input project
@@ -62,12 +62,7 @@ export const VisualDiffArgs = {
     description: 'output local folder to save the exported mapsheets for visual diffing.',
   }),
   tempLocation,
-  cache: option({
-    type: UrlFolder,
-    long: 'cache',
-    description: 'Optional local cache for storing versioned map assets',
-    defaultValue: () => fsa.toUrl('./.cache'),
-  }),
+  cache,
 };
 
 export const VisualDiffCommand = command({

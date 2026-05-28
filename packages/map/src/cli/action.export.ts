@@ -10,7 +10,6 @@ import {
   registerFileSystem,
   Url,
   UrlArrayJsonFile,
-  UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
 import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
@@ -21,7 +20,7 @@ import { pyRunner } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
 import { validateTiff } from '../validate.ts';
 import { type ExportFormat, ExportFormats } from './action.prepare.ts';
-import { tempLocation } from './shared.args.ts';
+import { cache, tempLocation } from './shared.args.ts';
 
 function getExtentFormat(format: ExportFormat): string {
   if (format === 'pdf') return 'pdf';
@@ -59,12 +58,7 @@ export const ProduceArgs = {
   }),
   tempLocation,
   force: flag({ long: 'force', description: 'Overwrite existing exported files' }),
-  cache: option({
-    type: UrlFolder,
-    long: 'cache',
-    description: 'Optional local cache for storing versioned map assets',
-    defaultValue: () => fsa.toUrl('./.cache'),
-  }),
+  cache,
 };
 
 export const ExportCommand = command({
