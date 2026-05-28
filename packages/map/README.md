@@ -10,16 +10,17 @@ Exports are made by first creating a map production run with `map prepare`, once
 # Build the map container
 docker build -f packages/map/Dockerfile -t map .
 
-# Prepare a export for mapsheet BQ32
+# Prepare a export for mapsheet BQ32 & BQ33
 docker run -it -v $PWD:/working map prepare \
   --project https://d1jzh93b1t1cv.cloudfront.net/qgis/nztopo50/latest/nztopo50.json \
   --output /working/output/ \
   --cache /working/.cache/ \
   BQ32 BQ33
 
-# export mapsheet BQ32
+# export mapsheet BQ32 & BQ33
 docker run -it -v $PWD:/working map export \
    --cache /working/.cache/ \
+   /working/output/nztopo50/BQ32.json \
    /working/output/nztopo50/BQ33.json
 ```
 
