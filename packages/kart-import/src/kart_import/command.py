@@ -40,7 +40,8 @@ def run_command(
         if allow_error is not None and allow_error in result.stderr:
             return result.stderr
         if not check_error:
-            logger.warning(f"Command [{' '.join(cmd)}] failed (not raising) with output:\n{result.stderr}")
+            msg = f"output:\n{result.stdout}" if result.stderr.strip() else "no error output"
+            logger.warning(f"Command [{' '.join(cmd)}] failed (not raising) with {msg}")
             return result.stdout
         logger.error(f"Command failed with output:\n{result.stderr}")
         raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
