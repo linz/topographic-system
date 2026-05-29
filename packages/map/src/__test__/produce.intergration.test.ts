@@ -109,6 +109,7 @@ describe('deploy -> produce-cover -> produce', () => {
       dataTags: undefined,
       cache: new URL('memory://temp-cache/'),
       tempLocation: new URL('memory://temp-produce-cover/'),
+      export: false,
     });
 
     assert.deepEqual(
