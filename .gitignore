@@ -12,4 +12,3 @@ topographic_system_data_prep.egg-info/
 .idea/
 target/
 .tmp_*
-.snakemake/
