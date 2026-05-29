@@ -1,30 +1,15 @@
 import logging
-import shutil
-import sys
-import time
-from pathlib import Path
 
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
     get_dataset_by_name,
 )
-from ..env import env_bundle_url, env_use_bundle
-from ..git.kart import git_to_kart
+from ..env import env_use_bundle
+from ..git.bundle import download_and_clone_from_bundle
 from ..log import log_context
 
 logger = logging.getLogger("kart_import")
-
-
-def should_pull(target_dir: Path):
-    """Limit pulls to once per day, so not to overload kart"""
-    fetch_head = target_dir / ".git" / "FETCH_HEAD"
-
-    if not fetch_head.exists():
-        return True
-
-    last_pull_time = fetch_head.stat().st_mtime
-    return not time.time() - last_pull_time < 24 * 3600
 
 
 def clone_dataset(dataset_name: str):
@@ -43,30 +28,15 @@ def clone_dataset(dataset_name: str):
     if env_use_bundle():
         bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
         try:
-            cmd = ["curl", "--fail", "-L", env_bundle_url(dataset_name), "-o", str(bundle_target)]
-            run_command(cmd)
-
-            cmd = ["kart", "git", "clone", str(bundle_target), str(target_dir), "--no-checkout"]
-            run_command(cmd)
-
-            git_to_kart(target_dir)
-
-            sentinel.touch()
+            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
             return
         except Exception as e:
             logger.warning(
-                f"Failed to clone from bundle for {dataset_name} (likely 404 or network issue): {e}. "
-                "Falling back to direct kart clone."
+                f"Failed to download and clone from bundle for {dataset_name}: {e}. Falling back to direct kart clone."
             )
-            if target_dir.exists():
-                shutil.rmtree(target_dir)
-        finally:
-            if bundle_target.exists():
-                bundle_target.unlink()
 
     # Clone directly from the source
-    cmd = ["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"]
-    run_command(cmd)
+    run_command(["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"])
 
     sentinel.touch()
 

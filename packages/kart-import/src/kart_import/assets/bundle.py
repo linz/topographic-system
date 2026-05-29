@@ -11,6 +11,7 @@ from ..config import (
     WORKING_EXPORTS_DIR,
 )
 from ..env import env_bundle_s3_url, env_bundle_url
+from ..git.bundle import download_and_clone_from_bundle
 from ..git.kart import get_kart_dataset_id
 from ..log import log_context
 from ..thread import run_in_thread_pool
@@ -83,21 +84,24 @@ def bundle_dataset(dataset_name: str):
 
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / dataset_name
-    bundle_path = SOURCE_DIR / f"{dataset_name}.bundle"
+    bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
     sentinel = target_dir / ".bundle_created"
 
-    bundle_head = fetch_bundle_head(dataset_name)
+    bundle_head_sha = fetch_bundle_head(dataset_name)
 
     # Skip bundle creation if the current bundle and remote are the same hash
-    if bundle_head:
+    if bundle_head_sha:
         ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"]).strip()
         source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
-        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head})
+        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head_sha})
 
-        if source_head_sha == bundle_head:
+        if source_head_sha == bundle_head_sha:
             logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
             sentinel.touch()
             return
+        else:
+            logger.info(f"Bundle is stale ({bundle_head_sha=}, {source_head_sha=}). Seeding from existing bundle.")
+            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
 
     if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
         if should_pull(target_dir):
@@ -107,7 +111,7 @@ def bundle_dataset(dataset_name: str):
     else:
         run_command(["kart", "clone", dataset_source, str(target_dir), "--no-checkout"])
 
-    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_path), "--all"])
+    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_target), "--all"])
 
     head_sha = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
 
@@ -115,7 +119,7 @@ def bundle_dataset(dataset_name: str):
     s3_url = env_bundle_s3_url()
 
     logger.info(f"Uploading bundle to {s3_url}...")
-    run_command(["aws", "s3", "cp", str(bundle_path), f"{s3_url}{dataset_name}.bundle"])
+    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"])
 
     kart_dataset_id = get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
@@ -131,7 +135,7 @@ def bundle_dataset(dataset_name: str):
             ["kart", "export", "--overwrite", "--ref", sha, kart_dataset_id, json_export],
             cwd=str(target_dir),
         )
-        run_command(["gzip", "-9", json_export])
+        run_command(["gzip", "-f", "-9", json_export])
         run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key])
         return True
 
