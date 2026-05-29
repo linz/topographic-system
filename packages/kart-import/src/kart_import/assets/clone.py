@@ -1,5 +1,4 @@
 import logging
-import shutil
 
 from ..command import run_command
 from ..config import (
@@ -7,7 +6,7 @@ from ..config import (
     get_dataset_by_name,
 )
 from ..env import env_use_bundle
-from ..git.bundle import clone_from_bundle, download_bundle
+from ..git.bundle import download_and_clone_from_bundle
 from ..log import log_context
 
 logger = logging.getLogger("kart_import")
@@ -29,20 +28,11 @@ def clone_dataset(dataset_name: str):
     if env_use_bundle():
         bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
         try:
-            download_bundle(dataset_name, bundle_target)
-            clone_from_bundle(bundle_target, target_dir)
-            sentinel.touch()
-            return
+            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
         except Exception as e:
             logger.warning(
-                f"Failed to clone from bundle for {dataset_name} (likely 404 or network issue): {e}. "
-                "Falling back to direct kart clone."
+                f"Failed to download and clone from bundle for {dataset_name}: {e}. Falling back to direct kart clone."
             )
-            if target_dir.exists():
-                shutil.rmtree(target_dir)
-        finally:
-            if bundle_target.exists():
-                bundle_target.unlink()
 
     # Clone directly from the source
     run_command(["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"])

@@ -11,7 +11,7 @@ from ..config import (
     WORKING_EXPORTS_DIR,
 )
 from ..env import env_bundle_s3_url, env_bundle_url
-from ..git.bundle import clone_from_bundle, download_bundle
+from ..git.bundle import download_and_clone_from_bundle
 from ..git.kart import get_kart_dataset_id
 from ..log import log_context
 from ..thread import run_in_thread_pool
@@ -84,7 +84,7 @@ def bundle_dataset(dataset_name: str):
 
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / dataset_name
-    bundle_path = SOURCE_DIR / f"{dataset_name}.bundle"
+    bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
     sentinel = target_dir / ".bundle_created"
 
     bundle_head_sha = fetch_bundle_head(dataset_name)
@@ -101,13 +101,7 @@ def bundle_dataset(dataset_name: str):
             return
         else:
             logger.info(f"Bundle is stale ({bundle_head_sha=}, {source_head_sha=}). Seeding from existing bundle.")
-            download_bundle(dataset_name, bundle_path)
-
-            if not (target_dir / ".git").exists() and not (target_dir / ".kart").exists():
-                clone_from_bundle(bundle_path, target_dir)
-
-            run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
-            run_command(["git", "pull"], cwd=str(target_dir))
+            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
 
     if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
         if should_pull(target_dir):
@@ -117,7 +111,7 @@ def bundle_dataset(dataset_name: str):
     else:
         run_command(["kart", "clone", dataset_source, str(target_dir), "--no-checkout"])
 
-    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_path), "--all"])
+    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_target), "--all"])
 
     head_sha = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
 
@@ -125,7 +119,7 @@ def bundle_dataset(dataset_name: str):
     s3_url = env_bundle_s3_url()
 
     logger.info(f"Uploading bundle to {s3_url}...")
-    run_command(["aws", "s3", "cp", str(bundle_path), f"{s3_url}{dataset_name}.bundle"])
+    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"])
 
     kart_dataset_id = get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
