@@ -19,7 +19,7 @@ import type { StacCollection, StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
-import { fromFile } from './action.export.ts';
+import { ExportCommand, fromFile } from './action.export.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
@@ -161,6 +161,11 @@ const ProduceArgs = {
   }),
   tempLocation,
   cache,
+  export: flag({
+    long: 'export',
+    description: 'Export the assets after writing the STAC metadata',
+    defaultValue: () => false,
+  }),
 };
 
 export const PrepareCommand = command({
@@ -264,16 +269,27 @@ export const PrepareCommand = command({
 
     logger.info({ project: args.project.href, target: args.output.href }, 'Prepare: Finished');
 
+    // Prepare the item paths for group step in Argo
+    const collection = await fsa.readJson<StacCollection>(collectionUrl);
+    if (collection == null) throw new Error(`Invalid STAC Collection generated for project ${args.project.href}`);
+    const itemsLinks = collection.links.filter((link) => link.rel === 'item');
+    const items = itemsLinks.map((link) => ({ path: new URL(link.href, collectionUrl).href }));
+
     // If running in argo dump out output information to be used by further steps
     if (isArgo()) {
-      // Prepare the item paths for group step in Argo
-      const collection = await fsa.readJson<StacCollection>(collectionUrl);
-      if (collection == null) throw new Error(`Invalid STAC Collection generated for project ${args.project.href}`);
-      const itemsLinks = collection.links.filter((link) => link.rel === 'item');
-      const items = itemsLinks.map((link) => ({ path: new URL(link.href, collectionUrl).href }));
-
       // Where the JSON files were written to
       await fsa.write(fsa.toUrl('/tmp/produce/cover-items.json'), JSON.stringify(items));
+    }
+
+    if (args.export) {
+      await ExportCommand.handler({
+        path: items.map((m) => new URL(m.path)),
+        cache: args.cache,
+        tempLocation: args.tempLocation,
+        fromFile: undefined,
+        force: false,
+        worker: args.concurrency,
+      });
     }
   },
 });
