@@ -74,8 +74,7 @@ def env(tmp_path, monkeypatch):
         state=state,
         run_command=MagicMock(side_effect=run_command),
         fetch_bundle_head=MagicMock(return_value=None),
-        download_bundle=MagicMock(),
-        clone_from_bundle=MagicMock(),
+        download_and_clone_from_bundle=MagicMock(),
         run_in_thread_pool=MagicMock(return_value=[]),
         should_pull=MagicMock(return_value=True),
     )
@@ -88,8 +87,7 @@ def env(tmp_path, monkeypatch):
     for name in (
         "run_command",
         "fetch_bundle_head",
-        "download_bundle",
-        "clone_from_bundle",
+        "download_and_clone_from_bundle",
         "run_in_thread_pool",
         "should_pull",
     ):
@@ -120,19 +118,18 @@ def test_stale_downloads_and_clones_when_no_local_repo(env):
 
     bundle_dataset(DATASET)
 
-    env.download_bundle.assert_called_once_with(DATASET, env.bundle_path)
-    env.clone_from_bundle.assert_called_once()
+    env.download_and_clone_from_bundle.assert_called_once_with(env.bundle_path, DATASET, env.target_dir)
 
 
-def test_stale_skips_clone_when_local_repo_exists(env):
+def test_stale_still_seeds_when_local_repo_exists(env):
+    """Even with a local repo present, the stale path still calls the seed helper."""
     env.fetch_bundle_head.return_value = SHA_OLD
     env.state.remote_sha = SHA_NEW
     (env.target_dir / ".kart").mkdir(parents=True)
 
     bundle_dataset(DATASET)
 
-    env.download_bundle.assert_called_once()
-    env.clone_from_bundle.assert_not_called()
+    env.download_and_clone_from_bundle.assert_called_once()
 
 
 def test_no_bundle_kart_clones_when_no_local_repo(env):
