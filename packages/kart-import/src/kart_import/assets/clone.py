@@ -29,6 +29,7 @@ def clone_dataset(dataset_name: str):
         bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
         try:
             download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
+            return
         except Exception as e:
             logger.warning(
                 f"Failed to download and clone from bundle for {dataset_name}: {e}. Falling back to direct kart clone."
