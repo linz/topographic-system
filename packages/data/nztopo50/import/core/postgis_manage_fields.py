@@ -227,9 +227,17 @@ class ModifyTable:
             update_query = (
                 f"UPDATE {schema}.{table} SET geometry = ST_SnapToGrid(geometry, 1.0);"
             )
-            cur.execute(update_query)
-            self.conn.commit()
-            print(f"Updated geometry field in '{schema}.{table}' with ST_SnapToGrid")
+            try:
+                cur.execute(update_query)
+                self.conn.commit()
+                print(
+                    f"Updated geometry field in '{schema}.{table}' with ST_SnapToGrid"
+                )
+            except Exception as e:
+                self.conn.rollback()
+                print(
+                    f"Error updating geometry field in '{schema}.{table}' with ST_SnapToGrid: {e}"
+                )
 
     def update_column_with_default(
         self, schema, table, column_name, default_value, where_clause=None
@@ -410,7 +418,7 @@ class ModifyTable:
                 ``'alter'`` to update the DDL default only.
             schema_name: Target schema.
             full_field_set: When True, includes ``capture_method``,
-                ``change_type``, ``update_date``, ``topo_id``, ``create_date``, and
+                ``change_type``, ``updated_at``, ``id``, ``created_at``, and
                 ``version``.
             include_source_fields: When True, also adds ``source``,
                 ``source_id``, and ``source_date`` columns.
@@ -422,9 +430,9 @@ class ModifyTable:
             fieldList = [
                 ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
                 ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
-                ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-                ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
-                ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
+                ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
@@ -542,7 +550,7 @@ class ModifyTable:
             f"{schema_name}.residential_area": [("feature_type", "'residential_area'")],
             f"{schema_name}.road_line": [("feature_type", "'road'")],
             f"{schema_name}.track_line": [("feature_type", "'track'")],
-            f"{schema_name}.tree_locations": [("feature_type", "'tree'")],
+            f"{schema_name}.tree_point": [("feature_type", "'tree'")],
             f"{schema_name}.trig_point": [("feature_type", "'trig'")],
             f"{schema_name}.tunnel_line": [("feature_type", "'tunnel'")],
         }
@@ -718,7 +726,7 @@ class ModifyTable:
             create_table_sql = f"""
                 CREATE TABLE IF NOT EXISTS "{schema_name}"."collections" (
                     collection_id uuid PRIMARY KEY,
-                    topo_id uuid,
+                    id uuid,
                     source_table VARCHAR(100),
                     collection_name VARCHAR(255)
                 );
@@ -726,7 +734,7 @@ class ModifyTable:
             cur.execute(create_table_sql)
             self.conn.commit()
             print(
-                f'Created table "{schema_name}.collections" with columns collection_id (uuid, primary key) and topo_id (uuid)'
+                f'Created table "{schema_name}.collections" with columns collection_id (uuid, primary key) and id (uuid)'
             )
 
     def rename_columns(self, schema, table, old_column_name, new_column_name):
@@ -901,7 +909,7 @@ class ModifyTable:
         """Return the canonical column order for Topo50 tables.
 
         Args:
-            primary_key_type: ``'uuid'`` repositions ``topo_id`` to index 0
+            primary_key_type: ``'uuid'`` repositions ``id`` to index 0
                 and removes the integer ``id`` column; any other value keeps
                 the full ordered list as-is.
 
@@ -911,7 +919,7 @@ class ModifyTable:
         ordered_list = [
             "id",
             "t50_fid",
-            "topo_id",
+            "id",
             "feature_type",
             "bridge_use",
             "bridge_use2",
@@ -1003,15 +1011,15 @@ class ModifyTable:
             "source_date",
             "capture_method",
             "change_type",
-            "update_date",
-            "create_date",
+            "updated_at",
+            "created_at",
             "version",
         ]
 
         if primary_key_type == "uuid":
             ordered_list.remove("id")
-            ordered_list.remove("topo_id")
-            ordered_list.insert(0, "topo_id")
+            ordered_list.remove("id")
+            ordered_list.insert(0, "id")
         return ordered_list
 
     def get_ordered_columns(self, schema, table, primary_key_type="int"):
@@ -1089,7 +1097,7 @@ class TableModificationWorkflow:
                 self.table_modifer.set_base_column_and_drop_column(
                     schema, table, base_col, drop_col
                 )
-        self.table_modifer.drop_column(self.schema_name, "tree_locations", "name")
+        self.table_modifer.drop_column(self.schema_name, "tree_point", "name")
 
         # specific updates
         self.table_modifer.update_column_with_default(
@@ -1285,7 +1293,7 @@ class TableModificationWorkflow:
                 for table in tables:
                     # all tables processed from any esri fields
                     self.table_modifer.drop_column(schema, table, "ESRI_OID")
-                    self.table_modifer.update_primary_key_guid(schema, table, "topo_id")
+                    self.table_modifer.update_primary_key_guid(schema, table, "id")
 
     # turn the concept of collections off for now as no direct requirement
     # def step_collections(self):
@@ -1314,7 +1322,7 @@ class TableModificationWorkflow:
                     )
 
                     remove_metadata_fields = [
-                        "capture_method", "change_type", "update_date", "create_date", "version"
+                        "capture_method", "change_type", "updated_at", "created_at", "version"
                     ]
                     fields = [
                         field for field in fields if field not in remove_metadata_fields
@@ -1335,12 +1343,12 @@ class TableModificationWorkflow:
                         )
                         cur.execute(drop_query)
 
-                    # Add index on topo_id field if it exists
-                    if self.table_modifer.column_exists("carto", table_name, "topo_id"):
-                        index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_topo_id ON carto.{table_name} (topo_id);"
+                    # Add index on id field if it exists
+                    if self.table_modifer.column_exists("carto", table_name, "id"):
+                        index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table_name}_id ON carto.{table_name} (id);"
                         cur.execute(index_sql)
                         self.table_modifer.conn.commit()
-                        print(f"Created index on topo_id for 'carto.{table_name}'")
+                        print(f"Created index on id for 'carto.{table_name}'")
                     print(
                         f"Copied table '{self.schema_name}.{table_name}' to 'carto.{table_name}'"
                     )
@@ -1405,11 +1413,11 @@ if __name__ == "__main__":
     option = "all"
     # option = "process_carto_tables"
 
-    schema_name = "release64"
-    release_date = "2025-09-25"
+    # schema_name = "release64"
+    # release_date = "2025-09-25"
 
-    # schema_name = "release66"
-    # release_date = "2026-04-20"
+    schema_name = "release66"
+    release_date = "2026-04-20"
 
     # schema_name = "release62"
     # release_date = "2024-11-15"

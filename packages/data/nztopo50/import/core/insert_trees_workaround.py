@@ -24,14 +24,14 @@ engine = create_engine(
 def get_step_query(step: int) -> str:
     """Get the SQL query for a specific step."""
     queries = {
-        1: "SELECT * FROM release64.tree_locations WHERE t50_fid > 3722219 AND t50_fid < 3902324",
-        2: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 3902324 AND t50_fid < 4056631",
-        3: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4056631 AND t50_fid < 4210939",
-        4: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4210939 AND t50_fid < 4365246",
-        5: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4365246 AND t50_fid < 4565246",
-        6: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4565246 AND t50_fid < 4765246",
-        7: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4765246 AND t50_fid < 4965246",
-        8: "SELECT * FROM release64.tree_locations WHERE t50_fid >= 4965246",
+        1: "SELECT * FROM release64.tree_point WHERE t50_fid > 3722219 AND t50_fid < 3902324",
+        2: "SELECT * FROM release64.tree_point WHERE t50_fid >= 3902324 AND t50_fid < 4056631",
+        3: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4056631 AND t50_fid < 4210939",
+        4: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4210939 AND t50_fid < 4365246",
+        5: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4365246 AND t50_fid < 4565246",
+        6: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4565246 AND t50_fid < 4765246",
+        7: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4765246 AND t50_fid < 4965246",
+        8: "SELECT * FROM release64.tree_point WHERE t50_fid >= 4965246",
     }
     return queries.get(step, "")
 
@@ -55,7 +55,7 @@ def main():
             # Write to GeoPackage (same as original)
             gdf.to_file(
                 target_database,
-                layer="tree_locations",
+                layer="tree_point",
                 driver="GPKG",
                 mode="a",
             )

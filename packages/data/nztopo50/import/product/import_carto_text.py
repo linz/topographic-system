@@ -95,11 +95,11 @@ if "text_orientation" in gdf.columns:
 # Adjust schema for column widths
 schema = "carto"
 
-gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(gdf))])
+gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(gdf))])
 print(gdf.columns)
 
 dtype_mapping = {
-    'topo_id': PG_UUID(as_uuid=True),
+    'id': PG_UUID(as_uuid=True),
     'full_text': String(100),
     'text_bend': Integer(),
     'text_char_spacing_distance': Float(),
@@ -128,7 +128,7 @@ gdf.to_postgis(
 with engine.connect() as conn:
     conn.execute(
         text(f"""
-            ALTER TABLE {schema}.nz_topo50_carto_text ADD PRIMARY KEY (topo_id);
+            ALTER TABLE {schema}.nz_topo50_carto_text ADD PRIMARY KEY (id);
         """)
     )
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Standalone script for updating topo_id values from previous database releases.
+Standalone script for updating topo id values from previous database releases.
 
-This script updates topo_id values in a current schema based on matching t50_fid values
+This script updates topo id values in a current schema based on matching t50_fid values
 from a previous release schema. This ensures consistent identifiers across releases
 when features are carried over.
 """
@@ -20,7 +20,7 @@ DB_PARAMS = {
 
 
 class TopoIdUpdater:
-    """Class for updating topo_id values from previous releases."""
+    """Class for updating topo id values from previous releases."""
 
     def __init__(self, db_params):
         """Initialize the updater and open a database connection.
@@ -113,12 +113,12 @@ class TopoIdUpdater:
             return cur.fetchone() is not None
 
     def update_topoid_from_previous_release(self, schema, table, previous_schema):
-        """Update `topo_id`, `create_date`, and `update_date` by matching `t50_fid` with a previous release.
+        """Update `id`, `created_at`, and `updated_at` by matching `t50_fid` with a previous release.
 
         Args:
             schema: Current release schema containing target rows.
             table: Table name to update.
-            previous_schema: Prior release schema used as source of `topo_id`, `create_date`, and `update_date`.
+            previous_schema: Prior release schema used as source of `id`, `created_at`, and `updated_at`.
 
         Returns:
             bool: True when processing completed for the table (including cases
@@ -126,7 +126,7 @@ class TopoIdUpdater:
 
         Notes:
             The update only applies when both tables exist and both contain
-            `t50_fid`, `topo_id`, `create_date`, and `update_date` columns.
+            `t50_fid`, `id`, `created_at`, and `updated_at` columns.
         """
         self.connect()
 
@@ -144,8 +144,8 @@ class TopoIdUpdater:
             if self.column_exists(schema, table, "t50_fid") and self.column_exists(
                 previous_schema, table, "t50_fid"
             ):
-                # Check if topo_id, create_date, and update_date columns exist in both tables
-                required_columns = ["topo_id", "create_date", "update_date"]
+                # Check if id, created_at, and updated_at columns exist in both tables
+                required_columns = ["id", "created_at", "updated_at"]
                 columns_exist = all(
                     self.column_exists(schema, table, col)
                     and self.column_exists(previous_schema, table, col)
@@ -155,12 +155,12 @@ class TopoIdUpdater:
                 if columns_exist:
                     update_query = f"""
                         UPDATE {schema}.{table} AS new
-                        SET topo_id = old.topo_id,
-                            create_date = old.create_date,
-                            update_date = NOW()
+                        SET id = old.id,
+                            created_at = old.created_at,
+                            updated_at = NOW()
                         FROM {previous_schema}.{table} AS old
                         WHERE new.t50_fid = old.t50_fid
-                        AND new.topo_id IS DISTINCT FROM old.topo_id;
+                        AND new.id IS DISTINCT FROM old.id;
                     """
 
                     try:
@@ -169,7 +169,7 @@ class TopoIdUpdater:
                             SELECT COUNT(*) 
                             FROM {schema}.{table} AS new
                             JOIN {previous_schema}.{table} AS old ON new.t50_fid = old.t50_fid
-                            WHERE new.topo_id IS DISTINCT FROM old.topo_id;
+                            WHERE new.id IS DISTINCT FROM old.id;
                         """
                         cur.execute(count_query)
                         update_count = cur.fetchone()[0]
@@ -179,24 +179,24 @@ class TopoIdUpdater:
                             cur.execute(update_query)
                             self.conn.commit()
                             print(
-                                f"Updated {update_count} topo_id values in '{schema}.{table}' from '{previous_schema}.{table}'"
+                                f"Updated {update_count} id values in '{schema}.{table}' from '{previous_schema}.{table}'"
                             )
                         else:
                             print(
-                                f"No topo_id updates needed for '{schema}.{table}' (all values already match)"
+                                f"No id updates needed for '{schema}.{table}' (all values already match)"
                             )
 
                         return True
 
                     except Exception as e:
                         print(
-                            f"Error updating topo_id in '{schema}.{table}' from '{previous_schema}.{table}': {e}"
+                            f"Error updating id in '{schema}.{table}' from '{previous_schema}.{table}': {e}"
                         )
                         self.conn.rollback()
                         return False
                 else:
                     print(
-                        f"'topo_id', 'create_date', or 'update_date' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
+                        f"'id', 'created_at', or 'updated_at' column missing in one of the tables '{schema}.{table}' or '{previous_schema}.{table}'"
                     )
                     return False
             else:
@@ -214,7 +214,7 @@ class TopoIdUpdater:
 
         Returns:
             list[dict]: Per-table statistics including current row count,
-            matching rows by `t50_fid`, and rows requiring `topo_id` updates.
+            matching rows by `t50_fid`, and rows requiring `id` updates.
         """
         self.connect()
         schema_tables = self.list_schema_tables(schema)
@@ -227,12 +227,12 @@ class TopoIdUpdater:
                     if (
                         self.column_exists(schema_name, table, "t50_fid")
                         and self.column_exists(previous_schema, table, "t50_fid")
-                        and self.column_exists(schema_name, table, "topo_id")
-                        and self.column_exists(previous_schema, table, "topo_id")
-                        and self.column_exists(schema_name, table, "create_date")
-                        and self.column_exists(previous_schema, table, "create_date")
-                        and self.column_exists(schema_name, table, "update_date")
-                        and self.column_exists(previous_schema, table, "update_date")
+                        and self.column_exists(schema_name, table, "id")
+                        and self.column_exists(previous_schema, table, "id")
+                        and self.column_exists(schema_name, table, "created_at")
+                        and self.column_exists(previous_schema, table, "created_at")
+                        and self.column_exists(schema_name, table, "updated_at")
+                        and self.column_exists(previous_schema, table, "updated_at")
                     ):
                         # Get matching records count
                         with self.conn.cursor() as cur:
@@ -240,7 +240,7 @@ class TopoIdUpdater:
                                 SELECT 
                                     COUNT(*) as total_current,
                                     COUNT(old.t50_fid) as matching_records,
-                                    COUNT(CASE WHEN new.topo_id IS DISTINCT FROM old.topo_id THEN 1 END) as needs_update
+                                    COUNT(CASE WHEN new.id IS DISTINCT FROM old.id THEN 1 END) as needs_update
                                 FROM {schema_name}.{table} AS new
                                 LEFT JOIN {previous_schema}.{table} AS old ON new.t50_fid = old.t50_fid
                             """
@@ -260,11 +260,11 @@ class TopoIdUpdater:
 
 
 def update_all_tables(current_schema, previous_schema, skip_tables=None):
-    """Run `topo_id` synchronization across all tables in a schema.
+    """Run `topo id` synchronization across all tables in a schema.
 
     Args:
         current_schema: Target schema to update.
-        previous_schema: Source schema to copy historical `topo_id` values from.
+        previous_schema: Source schema to copy historical `id` values from.
         skip_tables: Optional list of table names to skip.
 
     Returns:
@@ -280,10 +280,10 @@ def update_all_tables(current_schema, previous_schema, skip_tables=None):
     failed_updates = 0
     failed_table_names = []
 
-    # Update topo_id from previous release
+    # Update id from previous release
     if skip_tables is None:
         skip_tables = []
-    print(f"Starting topo_id updates from {previous_schema} to {current_schema}...")
+    print(f"Starting id updates from {previous_schema} to {current_schema}...")
 
     for schema, tables in schema_tables.items():
         for table in tables:
@@ -319,7 +319,7 @@ def update_all_tables(current_schema, previous_schema, skip_tables=None):
 
 
 def main():
-    """Run the standalone CLI workflow for `topo_id` synchronization.
+    """Run the standalone CLI workflow for `id` synchronization.
 
     Configures schema names and skipped tables, executes bulk updates, and
     prints a summary of successes and failures.
@@ -345,7 +345,7 @@ def main():
     successful, failed = update_all_tables(current_schema, previous_schema, skip_tables)
 
     if successful > 0:
-        print(f"\n✓ Successfully updated topo_id values in {successful} tables")
+        print(f"\n✓ Successfully updated id values in {successful} tables")
     if failed > 0:
         print(f"\n✗ Failed to update {failed} tables")
 

@@ -85,11 +85,11 @@ _Step 5: Add additional feature metadata fields and Reproject to EPSG:4167 and r
 
 _Note: Apply Constraints_ -while this is code in database_rules - the approach will be to apply this via QGIS
 
-## Sync TOPO_ID - Optional BUT useful if running the changelog process or uploading a new version of data to repo rather than full replacement
+## Sync ID - Optional BUT useful if running the changelog process or uploading a new version of data to repo rather than full replacement
 
-The t50_fid processed for LDS datasets is a life value (same feature same id). The topo_id is newly created on load.
+The t50_fid processed for LDS datasets is a life value (same feature same id). The id is newly created on load.
 
-To sync the TOPO_ID (as the new primary key) between 2 releases use the **sync_topo_ids.py** script. This does a join based on the t50_fid. If there are any 0's in the t50_fid this will throw an error (see roads pre-processing). The script can safely be re-run.
+To sync the ID (as the new primary key) between 2 releases use the **sync_topo_ids.py** script. This does a join based on the t50_fid. If there are any 0's in the t50_fid this will throw an error (see roads pre-processing). The script can safely be re-run.
 
 ## Loaded Data Checker
 
@@ -133,7 +133,7 @@ This will be an empty repo.
 
 Import a small datasets - this will then be deleted.
 
-> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id airport
+> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id airport
 
 > kart push origin master --force
 
@@ -143,7 +143,7 @@ Import a small datasets - this will then be deleted.
 
 **CHECK the import BAT file has the correct settings**
 
-1. tree_locations should be commented out (default) or removed if loading via manual method
+1. tree_point should be commented out (default) or removed if loading via manual method
 
 2. --force option - this clear the repo of all data and code. If loading into a branch make sure the --force is not set (default)
 
@@ -171,7 +171,7 @@ Check all ok
 
 > copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
 
-DO first: Run the tree_locations manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
+DO first: Run the tree_point manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
 
 Run: bat file (windows). This does a push after each load so don't hit timeout issues.
 
@@ -208,7 +208,7 @@ THEN...
 
 > kart remote -v
 
-**WARNINGS - if the tree_locations upload failure has not be fxed follow the tree_location load process 1st**
+**WARNINGS - if the tree_point upload failure has not be fxed follow the tree_location load process 1st**
 
 instruction currently in another project. To transfer.
 If run - REMOVE the tree_location from the master import file.
@@ -218,7 +218,7 @@ Note: this uses a force option on the kart push command - force clears all table
 
 > copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
 
-DO first: Run the tree_locations manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
+DO first: Run the tree_point manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
 
 Run: bat file (windows). This does a push after each load so don't hit timeout issues.
 

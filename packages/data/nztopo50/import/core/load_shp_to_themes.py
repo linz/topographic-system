@@ -42,6 +42,7 @@ class Topo50DataLoader:
         self.layer_info_file = layer_info_file
         self.output = database
         self.layers_info = self._load_layers_info()
+        self.files = []
         self.layer_groups = {}
         self.common_fields = {}
         self.count_log_file = open(count_log, "w")
@@ -64,8 +65,10 @@ class Topo50DataLoader:
             dataset = row.dataset
             feature_type = row.feature_type
             layer_name = row.layer_name
-            layer_list = [object_name, theme, feature_type, layer_name, dataset]
+            kart_layer_name = row.kart_layer_name
+            layer_list = [object_name, theme, feature_type, layer_name, dataset, kart_layer_name]
             layers_info[shp_name] = layer_list
+            layers_info[kart_layer_name] = layer_list
         return layers_info
 
     @staticmethod
@@ -81,7 +84,8 @@ class Topo50DataLoader:
                 - `basename`: Normalized source token used for logging.
         """
         basename = os.path.basename(file)
-        shp_name = basename.split(".")[0]
+        file_name = basename.split(".")[0]
+        '''
         if "_" in basename:
             if basename.count("_") > 1:
                 basename = basename.split("_")[0] + "_" + basename.split("_")[1]
@@ -89,7 +93,8 @@ class Topo50DataLoader:
                 basename = basename.split("_")[0]
         else:
             basename = basename.split(".")[0]
-        return shp_name, basename
+        '''
+        return file_name, basename
 
     @staticmethod
     def write_dataset(
@@ -162,20 +167,29 @@ class Topo50DataLoader:
                         f"Possible unexpected geometry at t50_fid {t50_fid}: {geom_type}"
                     )
 
-    def group_layers(self):
+    def group_layers(self, source_mode="shape_files"):
         """Collect field definitions for each logical output layer.
 
         Reads shapefile metadata and builds `self.layer_groups` as
         `{layer_name: [field_list, ...]}` for later column harmonization.
         """
         files, folders = self.obstore_manager.list_local_filesystem()    
-        shp_files = self.obstore_manager.filter_files_by_extension(files, ".shp", True)
-        for file in shp_files:
-            shp_name, basename = self.get_basename(file)
+        if not files:
+            print("No files found in the specified path.")
+            return
+        if source_mode == "shape_files":   
+            files = self.obstore_manager.filter_files_by_extension(files, ".shp", True)
+        elif source_mode == "gpkg_files":
+            files = self.obstore_manager.filter_files_by_extension(files, ".gpkg", True)
+
+        self.files = files
+
+        for file in files:
+            file_name, basename = self.get_basename(file)
             info = read_info(file)
-            layer_info = self.layers_info.get(shp_name, None)
+            layer_info = self.layers_info.get(file_name, None)
             if layer_info is None:
-                print(f"Skipping {shp_name}")
+                print(f"Skipping {file_name}")
                 continue
             layer_name = layer_info[3]
             fields = info["fields"]
@@ -299,9 +313,10 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"ex_class": "example_class"})
             gdf = gdf.rename(columns={"ex_name": "example_name"})
 
-        if layer_name.lower() == "island":
-            gdf["location"] = gdf["location"].fillna(0)
-            gdf["location"] = gdf["location"].astype(int)
+       # dropping unless future requirement defined.
+       # if layer_name.lower() == "island":
+       #     gdf["location"] = gdf["location"].fillna(0)
+       #     gdf["location"] = gdf["location"].astype(int)
         if "temp" in gdf.columns:
             gdf = gdf.rename(columns={"temp": "temperature"})
         if "temperatur" in gdf.columns:
@@ -346,7 +361,7 @@ class Topo50DataLoader:
             written through `save_dataset`.
         """
         processed_layer = []
-        for file in glob.glob(self.search_path):
+        for file in self.files:
             gdf = gpd.read_file(file)
             # info = read_info(file)
             # if info['geometry_type'] == 'Polygon':
@@ -354,13 +369,13 @@ class Topo50DataLoader:
             #    gdf['Shape_Length'] = gdf.geometry.length
             # elif info['geometry_type']  == 'LineString':
             #    gdf['Shape_Length'] = gdf.geometry.length
-            shp_name, basename = self.get_basename(file)
-            layer_info = self.layers_info.get(shp_name, None)
+            file_name, basename = self.get_basename(file)
+            layer_info = self.layers_info.get(file_name, None)
             if layer_info is None:
                 continue
 
             ############# TEMP for debugging
-            # if layer_info[3].lower() != 'marine':
+            # if layer_info[3].lower() != 'landcover':
             #    print(f"Skipping layer: {layer_info[3]}")
             #    continue
 
@@ -399,7 +414,7 @@ class Topo50DataLoader:
 
             gdf = self.reset_column_names(gdf, layer_name)
 
-            print(f"Saving layer: {layer_name} from file: {basename}")
+            print(f"Saving layer: {layer_name} from file: {file_name}")
             print(gdf.shape[0], "rows in layer", layer_name)
             self.count_log_file.write(f"{layer_name}, {gdf.shape[0]}\n")
 
@@ -453,9 +468,11 @@ class Topo50DataLoader:
         """
         print("Starting...")
         # target = "gdb"
+        # source_mode = "shape_files"
+        source_mode = "gpkg_files"
         target = "postgis"
         schema_name = self.output
-        self.group_layers()
+        self.group_layers(source_mode)
         self.compute_common_fields()
         self.process_and_save_layers(target, schema_name)
         print("Completed...")
@@ -481,7 +498,8 @@ def run_load_shp_to_themes(
         layer_info_file = os.path.join(os.path.dirname(__file__), "layers_info.csv")
 
     if data_folder is None:
-        data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
+        data_folder = rf"C:\Data\Topo50\kart-source\{release}_NZ50"
+        # data_folder = rf"C:\Data\Topo50\{release}_NZ50_Shape"
         obstore_manager = ObstoreManager(data_folder)
 
     if count_log is None:
@@ -501,6 +519,6 @@ def run_load_shp_to_themes(
 
 if __name__ == "__main__":
     # release = "release62"
-    release = "release64"
-    # release = "release66"
+    # release = "release64"
+    release = "release66"
     run_load_shp_to_themes(release=release)

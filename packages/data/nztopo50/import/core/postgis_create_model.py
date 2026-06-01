@@ -71,9 +71,9 @@ def run_model_creation(
                 if primary_key_type == "int":
                     columns = ["id SERIAL PRIMARY KEY"]
                 elif primary_key_type == "uuid":
-                    columns = ["topo_id uuid PRIMARY KEY DEFAULT gen_random_uuid()"]
+                    columns = ["id uuid PRIMARY KEY DEFAULT gen_random_uuid()"]
                 else:
-                    columns = ["topo_id uuid DEFAULT gen_random_uuid()"]
+                    columns = ["id uuid DEFAULT gen_random_uuid()"]
                 for field_name, props in fields.items():
                     if field_name.lower() in ["shape", "objectid", "shape_length"]:
                         continue
@@ -99,7 +99,7 @@ def run_model_creation(
                         elif col_type == "GUID":
                             if (
                                 primary_key_type == "guid"
-                                and field_name.lower() == "topo_id"
+                                and field_name.lower() == "id"
                             ):
                                 continue
                             else:
@@ -183,9 +183,9 @@ def run_model_creation(
 
 if __name__ == "__main__":
     # schema_name = "release62"
-    schema_name = "release64"
+    # schema_name = "release64"
     # schema_name = "model"
-    # schema_name = "release66"
+    schema_name = "release66"
 
     # commands_options = ["drop_tables"]
     # commands_options = ["create_tables"]

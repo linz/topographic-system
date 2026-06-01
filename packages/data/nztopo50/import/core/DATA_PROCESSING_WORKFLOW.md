@@ -1,194 +1,201 @@
-# NZTOPO50 Data Processing Workflow
+2/06/2026 
 
-## Overview
+Shapefile field names are restricted in length - these are renamed to longer versions. These are in the LDS data not matter the export format.
 
-This document describes the comprehensive data processing workflow implemented in `postgis_manage_fields.py` for transforming topographic data from source shapefiles to the standardized topographic model.
+Data going into repo topographic-data is converted to EPSG:4167 New Zealand Geodetic Datum 2000 (NZGD2000). It is a geographic (lat/long) coordinate system based on the GRS80 ellipsoid.
 
-## Data Transformations
+A feature_type fields is added to all layers - the feature type is based on the shapefile name - loaded from layers_info.csv control file.
 
-### 1. Coordinate System Conversions
+An id (formally topo_id) field (UUID/GUID) is added and unique value assigned. 
 
-#### Primary Conversion
+Metadata fields are added to all layers. The create_date->created_at and update_date->updated_at - field renames.
 
-- **Target CRS**: EPSG:4167 (New Zealand Geodetic Datum 2000 - NZGD2000)
-- **Type**: Geographic (lat/long) coordinate system based on GRS80 ellipsoid
-- **Scope**: All data going into topographic-data repository
+Name changes - use and type fields are renamed based on layer name or consistent naming for example road_use, road_type. The field on the right will no longer exist.
 
-#### Exceptions - Retained Original Projections
-
-- **nz_topo50_map_sheet**: NZTM2000 (EPSG:2193)
-- **Carto_text**: NZTM2000 (EPSG:2193)
-- **nz_topo50_dms_grid**: WGS84
-- **nz_topo50_map_sheet**: NZTM2000 (EPSG:2193)
-
-### 2. Field Management
-
-#### Shapefile Field Name Restrictions
-
-- **Issue**: Shapefile field names are restricted in length (10 characters)
-- **Solution**: Renamed to longer, more descriptive versions
-
-#### Standard Field Additions
-
-- **feature_type**: Added to all layers based on shapefile name
-- **topo_id**: UUID/GUID field added with unique value assignment
-- **Metadata fields**: Comprehensive metadata added to all layers
-
-#### Field Renaming Patterns
-
-Systematic renaming of `use` and `type` fields based on layer name:
-
-```python
 update_dict = {
-    (schema_name, "structure_point"): [
-        ("structure_use", "shaft_use"),
-        ("structure_type", "tank_type"),
-        ("material", "materials"),
-    ],
-    (schema_name, "structure_line"): [("status", "dam_status")],
-    (schema_name, "structure"): [
-        ("species", "species_cultivated"),
-        ("lid_type", "reservoir_lid_type"),
-        ("structure_type", "tank_type"),
-    ],
-    (schema_name, "road_line"): [("highway_number", "highway_numb")],
-    (schema_name, "water"): [
-        ("water_use", "pond_use"),
-    ],
-}
-```
+            (schema_name, "structure_point"): [
+                ("structure_use", "shaft_use"),
+                ("structure_type", "tank_type"),
+                ("material", "materials"),
+            ],
+            (schema_name, "structure_line"): [("status", "dam_status")],
+            (schema_name, "structure"): [
+                ("species", "species_cultivated"),
+                ("lid_type", "reservoir_lid_type"),
+                ("structure_type", "tank_type"),
+            ],
+            (schema_name, "road_line"): [("highway_number", "highway_numb")],
+            (schema_name, "water"): [
+                ("water_use", "pond_use"),
+                ("height", "elevation"),
+            ],
+  }
 
-### 3. Data Cleanup
+If shapefile has "ESRI_OID" it is dropped.
 
-#### Field Removal
+Data columns are re-ordered to ensure geometry is the last column.
 
-- **ESRI_OID**: Dropped from all shapefiles where present
-- **tree_locations name field**: Dropped (only 3 trees had names in source, kept for LDS recreation process record)
+Islands - pre-loading step - Island are intersected with a created sea polygon (coastline and outer box) to identify islands in the sea versus “inland”. A new field is added to the dataset called location where 1 = a sea-based island and 0 is inland. - this is being dropped or new requirements required. 
 
-#### Column Reordering
+Road_line has a future field added called name_id and width_indicator. These come from data exported directly from LAMPS and using lookup based on the t50_fid.
 
-- **Geometry field**: Moved to last column position
-- **Standard ordering**: Applied consistent column ordering across all tables
+tree_points (formally tree_locations) - has an unrequired field name - this is dropped. Not only 3 trees have a name in the source - this is dropped but record for LDS recreation process.
 
-### 4. Specialized Processing
+values are fixed or realigned into common fields / give default values
 
-#### Island Classification
+tunnel_line
 
-- **Pre-processing step**: Islands intersected with created sea polygon (coastline + outer box)
-- **New field**: `location` where:
-  - `1` = sea-based island
-  - `0` = inland island
+value ‘ivestock’ updated to 'livestock'
 
-#### Road Line Enhancements
+tunnel_use updated to vehicle where use2 = vehicle
 
-- **Future field**: Added for upcoming functionality
+tunnel_use2 updated to livestock where use2 = vehicle
 
-### 5. Data Quality Corrections
+"trig_point", "trig_type", "'beacon'"
 
-#### Value Standardization
+"road_line", "way_count", "'one way'", "way_count ='1'"
 
-- **tunnel_line**: 'ivestock' → 'livestock'
+ "road_line", "road_access", "'mp'", "road_access ='m'"
 
-#### Conditional Field Updates
+"physical_Infrastructure_line", "support_type", "'pole'","feature_type ='telephone'"
 
-- **tunnel_use**: Updated to 'vehicle' where `use2 = 'vehicle'`
-- **tunnel_use2**: Updated to 'livestock' where `use2 = 'vehicle'`
+A name field is added to these layers
 
-#### Specific Value Corrections
+            "physical_infrastructure_point",
+            "physical_infrastructure_line",
+            "structure",
+            "ferry_crossing",
 
-- **trig_point**: `trig_type` set to 'beacon'
-- **road_line way_count**: Set to 'one way' where `way_count = '1'`
-- **road_line road_access**: 'mp' → 'm' where `road_access = 'm'`
-- **physical_infrastructure_line**: `support_type` set to 'pole' where `feature_type = 'telephone'`
+Version 0.2 of model - changes 
+        "vegetation", - dropped
+        "landcover", - now there because waterfall name
+        "landcover_line", - dropped
 
-### 6. Name Field Additions
+Where null defines a value - set a value instead
 
-Name fields added to the following layers:
+        update_dict = {
+            f"{schema_name}.runway": [("surface", "'grass'", "")],
+            f"{schema_name}.vegetation": [
+                ("species", "'coniferous'", "AND feature_type = 'exotic'")],
+            f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
+            # Add more entries as needed - should be pre-existing
+        }
 
-- physical_infrastructure_point
-- physical_infrastructure_line
-- structure
-- vegetation
-- landcover
-- landcover_line
-- ferry_crossing
 
-### 7. Default Value Assignment
 
-#### Null Value Replacements
+Added / Modfield Fields 
 
-Where fields are null, default values are assigned:
+trig_points
 
-```python
-update_dict = {
-    f"{schema_name}.runway": [("surface", "'grass'", "")],
-    f"{schema_name}.vegetation": [
-        ("species", "'coniferous'", "AND feature_type = 'exotic'")
-    ],
-    f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
-}
-```
+    self.table_modifer.add_column(
+        f"{self.schema_name}.trig_point", "code", "VARCHAR(20)"
+    )
+    self.table_modifer.update_value_by_column(
+        self.schema_name, "trig_point", "code", "name"
+    )
+    self.table_modifer.update_value_by_column(
+        self.schema_name, "trig_point", "name", "null"
+    )
 
-### 8. Metadata Fields
+vegetation
 
-#### Standard Metadata Schema
+    self.table_modifer.add_column(
+        f"{self.schema_name}.vegetation", "sub_type", "VARCHAR(50)"
+    )
+    self.table_modifer.update_value_by_column(
+        self.schema_name, "vegetation", "sub_type", "species"
+    )
+    self.table_modifer.update_value_by_column(
+        self.schema_name, "vegetation", "species", "null"
+    )
 
-```python
-fieldList = [
-    ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
-    ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
-    ["update_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-    ["topo_id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
-    ["create_date", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-    ["version", "INTEGER DEFAULT 1", "DEFAULT"],
-]
-```
 
-## Implementation Methods
 
-### Primary Processing Functions
+landcover
 
-1. **`add_metadata_columns()`**: Adds standard metadata fields
-2. **`populate_defined_null_values()`**: Sets default values for null fields
-3. **`set_default_values()`**: Configures column default values
-4. **`recreate_table_srid()`**: Handles coordinate system transformations
-5. **`rename_columns()`**: Manages field name changes
-6. **`add_name_columns()`**: Adds name fields to specified layers
+   self.table_modifer.add_column(
+        f"{self.schema_name}.landcover", "sub_type", "VARCHAR(50)"
+    )
 
-### Database Operations
 
-- **Primary Key Management**: UUID-based primary keys with sequence support
-- **Index Creation**: Spatial (GIST) and attribute indexes
-- **Column Management**: Add, rename, drop operations
-- **Value Updates**: Conditional and bulk update operations
 
-## Data Quality Assurance
+road_line
 
-### Field Validation
+    self.table_modifer.add_column(
+        f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
+    )
+    self.table_modifer.add_column(
+        f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
+    )
+    self.table_modifer.add_column(
+        f"{self.schema_name}.road_line", "name_id", "BIGINT"
+    )
 
-- Column existence checks before operations
-- Table existence validation
-- Schema consistency verification
 
-### Error Handling
 
-- Comprehensive exception handling for all database operations
-- Rollback capabilities for failed transactions
-- Detailed logging of all operations
+railway_line
 
-## Processing Workflow Summary
+    self.table_modifer.add_column(
+        f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
+    )
+    self.table_modifer.add_column(
+        f"{self.schema_name}.railway_line", "route2", "VARCHAR(30)"
+    )
+    self.table_modifer.add_column(
+        f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
+    )
 
-1. **Source Data Import**: Load shapefiles into PostGIS
-2. **Field Standardization**: Apply naming conventions and add standard fields
-3. **Coordinate Transformation**: Convert to target CRS (EPSG:4167)
-4. **Data Quality**: Apply corrections and standardizations
-5. **Metadata Enhancement**: Add comprehensive metadata fields
-6. **Index Creation**: Create spatial and attribute indexes
-7. **Validation**: Verify data integrity and completeness
 
-This workflow ensures consistent, high-quality topographic data suitable for the LINZ topographic system while maintaining compatibility with existing LDS (LINZ Data Service) processes.
 
-# Notes
+coastline
 
-If createing a dataset externally it needs to be added - git uses add - kart is add-dataset
-kart add-dataset nz_topo50_carto_text -m "add carto text update"
+    self.table_modifer.add_column(
+        f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
+    )
+
+
+
+hierarchy
+   self.table_modifer.add_column(
+        f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
+    )
+
+    self.table_modifer.add_column(
+        f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
+    )
+    self.table_modifer.add_column(
+        f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
+    )
+
+other changes
+
+    self.table_modifer.rename_columns(
+        self.schema_name, "contour", "designated", "designation"
+    )
+
+    self.table_modifer.rename_columns(
+        self.schema_name, "landuse", "track_type", "landuse_type"
+    )
+    self.table_modifer.update_value_by_column(
+        self.schema_name, "landuse", "landuse_type", "visibility"
+    )
+    self.table_modifer.drop_column(self.schema_name, "landuse", "visibility")
+    self.table_modifer.rename_columns(
+        self.schema_name, "landuse_line", "track_type", "landuse_type"
+    )
+    self.table_modifer.rename_columns(
+        self.schema_name, "place_point", "visibility", "place_type"
+    )
+
+
+
+topographic-product-data retains original projections 
+
+nz_topo50_map_sheet NZTM2000 (EPSG:2193)
+
+Carto_text NZTM2000 (EPSG:2193)
+
+grid 1 - WGS84
+
+grid 2 - NZTM2000 (EPSG:2193)
+

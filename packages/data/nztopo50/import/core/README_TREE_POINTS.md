@@ -1,4 +1,4 @@
-Tree Locations are a big dataset. This layer frequently fails to load - times out connection to github.
+Tree Points (was tree locations) are a big dataset. This layer frequently fails to load - times out connection to github.
 
 This has mainly been processed using Windows and from the office location. ZScaler turn off if possibe.
 
@@ -21,21 +21,21 @@ The process involves:
 
 Using **pgAdmin App** to access the POSTGRES database - currently the SQL commands are run manually.
 
-## Define SQL query to select all from tree_locations
+## Define SQL query to select all from tree_point
 
 _min = 3593709_
 
 _max = 4908228_ - the last insert just uses > so ok if number grows (not by to much)
 
-_Step 1 & 2 In database make a copy of all tree_locations and delete some records_
+_Step 1 & 2 In database make a copy of all tree_point and delete some records_
 
 ## 1 Create a temporary backup of the data table (update release64 text if using different version)
 
-create table release64.tree_locations_master as select \* from release64.tree_locations;
+create table release64.tree_locations_master as select \* from release64.tree_point;
 
 ## 2 Delete all the feature over the initial start values
 
-delete from release64.tree_locations where t50_fid > 3722219;
+delete from release64.tree_point where t50_fid > 3722219;
 
 commit;
 
@@ -49,17 +49,17 @@ If you are starting from scratch...
 
 > cd topographic-data
 
-> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tree_locations
+> kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id tree_point
 
 **ONLY if doing first use force to clear repo - see main process**
 
 > kart push origin master [--force]
 
-# 4 In database drop tree_locations and rename master to tree_locations
+# 4 In database drop tree_point and rename master to tree_point
 
-drop table release64.tree_locations;
+drop table release64.tree_point;
 
-alter table release64.tree_locations_master rename to tree_locations;
+alter table release64.tree_point_master rename to tree_point;
 
 # 5 Start with the first SQL and work you way down doing commit / push after each run
 
@@ -78,12 +78,12 @@ NOTE: commit can take a long long long time\*\*
 **### **DO A KART COMMIT BETWEEN EACH OF THESE\*\*
 
 This one will be done by default as initial load skip - so is not run in the manual process
-sql = "SELECT \* FROM release64.tree_locations where t50_fid <= 3722219"
+sql = "SELECT \* FROM release64.tree_point where t50_fid <= 3722219"
 
 SQL Examples - see script for details
 
-sql = "SELECT \* FROM release64.tree_locations where t50_fid > 3722219 and t50_fid < 3902324"
+sql = "SELECT \* FROM release64.tree_point where t50_fid > 3722219 and t50_fid < 3902324"
 
-sql = "SELECT \* FROM release64.tree_locations where t50_fid >= 3902324 and t50_fid < 4056631"
+sql = "SELECT \* FROM release64.tree_point where t50_fid >= 3902324 and t50_fid < 4056631"
 
-sql = "SELECT \* FROM release64.tree_locations where t50_fid >= 4965246"
+sql = "SELECT \* FROM release64.tree_point where t50_fid >= 4965246"

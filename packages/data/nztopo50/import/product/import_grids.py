@@ -21,11 +21,11 @@ dms_grid_file = os.path.join(path, dms_grid)
 dms_grid_gdf = gpd.read_file(dms_grid_file, layer=grid_dms_layer, engine="pyogrio")
 
 # grid_gdf = grid_gdf.drop(columns=["fid"])
-grid_gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(grid_gdf))])
+grid_gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(grid_gdf))])
 print(grid_gdf.columns)
 
 # dms_grid_gdf = dms_grid_gdf.drop(columns=["fid"])
-dms_grid_gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(dms_grid_gdf))])
+dms_grid_gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(dms_grid_gdf))])
 print(dms_grid_gdf.columns)
 
 engine = create_engine(db_params)
@@ -49,11 +49,11 @@ dms_grid_gdf.to_postgis(
 with engine.connect() as conn:
     conn.execute(
         text(
-            f"ALTER TABLE {schema}.nz_topo50_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"
+            f"ALTER TABLE {schema}.nz_topo50_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
         )
     )
     conn.execute(
         text(
-            f"ALTER TABLE {schema}.nz_topo50_dms_grid ALTER COLUMN topo_id SET DEFAULT gen_random_uuid()"
+            f"ALTER TABLE {schema}.nz_topo50_dms_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
         )
     )

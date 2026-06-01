@@ -57,7 +57,7 @@ topographic_data_layers: dict[str, list[str]] = {
     "bridge_line": ["bridge"],
     "building": ["building"],
     "building_point": ["building"],
-    "water": ["canal", "lagoon", "lake", "pond", "river", "swamp"],
+    "water": ["canal", "lagoon", "lake", "pond", "river"],
     "water_line": ["canal", "drain", "river"],
     "place_point": [
         "cave",
@@ -84,7 +84,7 @@ topographic_data_layers: dict[str, list[str]] = {
         "showground",
         "sportsfield",
     ],
-    "relief_line": ["cliff_edge", "cutting_edge", "embankment", "slip_edge"],
+    "relief_line": ["cliff_edge", "cutting_edge", "embankment", "slip_edge", "rapid", "waterfall", "waterfall_edge"],
     "coastline": ["coastline"],
     "descriptive_text": ["descriptive_text"],
     "landcover_line": ["dredge_tailing"],
@@ -107,11 +107,12 @@ topographic_data_layers: dict[str, list[str]] = {
     "fence_line": ["fence"],
     "ferry_crossing": ["ferry_crossing"],
     "transport_point": ["ford", "helipad"],
-    "landcover_point": ["fumarole", "rock_outcrop"],
+    "landcover_point": ["fumarole", "rock_outcrop", "swamp"],
     "physical_infrastructure_point": ["gas_valve", "geo_bore", "pylon"],
     "geographic_name": ["geographic_name"],
     "relief_point": ["height", "sinkhole"],
-    "landcover": ["ice", "moraine", "moraine_wall", "mud", "sand", "scree", "shingle"],
+    "relief": ["waterfall"],
+    "landcover": ["ice", "moraine", "moraine_wall", "mud", "sand", "scree", "shingle","rapid", "swamp"],
     "island": ["island"],
     "marine": ["mangrove", "reef", "rock", "shoal"],
     "physical_infrastructure_line": [
@@ -123,15 +124,13 @@ topographic_data_layers: dict[str, list[str]] = {
     ],
     "railway_station": ["rail_station"],
     "railway_line": ["railway"],
-    "waterway_feature": ["rapid", "waterfall"],
-    "waterway_feature_line": ["rapid", "waterfall", "waterfall_edge"],
     "residential_area": ["residential_area"],
     "road_line": ["road"],
-    "water_point": ["rock", "soakhole", "spring", "swamp", "waterfall"],
+    "water_point": ["rock", "soakhole", "spring", "waterfall"],
     "runway": ["runway"],
     "vegetation_line": ["shelter_belt"],
     "track_line": ["track"],
-    "tree_locations": ["tree"],
+    "tree_point": ["tree"],
     "trig_point": ["trig"],
     "tunnel_line": ["tunnel"],
 }
@@ -311,20 +310,20 @@ def test_coordinate_system_conversions(db_tables: DBTables) -> dict[str, Any]:
 
 
 def test_field_management(db_tables: DBTables) -> dict[str, Any]:
-    """Test 2: Verify Field Management (feature_type, topo_id, metadata fields).
+    """Test 2: Verify Field Management (feature_type, id, metadata fields).
 
-    Expected: All layers should have feature_type and topo_id columns.
-    Metadata fields: capture_method, change_type, update_date, create_date, version
+    Expected: All layers should have feature_type and id columns.
+    Metadata fields: capture_method, change_type, updated_at, created_at, version
     """
     conn = db_tables.get_connection()
     results: dict[str, Any] = {"test_name": "Field Management", "details": []}
     required_fields = [
         "feature_type",
-        "topo_id",
+        "id",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
     ]
 
@@ -676,9 +675,9 @@ def test_metadata_schema(db_tables: DBTables) -> dict[str, Any]:
     Expected: All layers should have metadata fields with proper defaults:
     - capture_method (DEFAULT 'manual')
     - change_type (DEFAULT 'new')
-    - update_date (DEFAULT CURRENT_DATE)
-    - topo_id (DEFAULT gen_random_uuid())
-    - create_date (DEFAULT CURRENT_DATE)
+    - updated_at (DEFAULT CURRENT_DATE)
+    - id (DEFAULT gen_random_uuid())
+    - created_at (DEFAULT CURRENT_DATE)
     - version (DEFAULT 1)
     """
     results: dict[str, Any] = {"test_name": "Metadata Schema", "details": []}
@@ -710,7 +709,7 @@ def test_metadata_schema(db_tables: DBTables) -> dict[str, Any]:
                         SELECT column_name, column_default, data_type 
                         FROM information_schema.columns 
                         WHERE table_schema = %s AND table_name = %s 
-                        AND column_name IN ('capture_method', 'change_type', 'version', 'topo_id', 'create_date', 'update_date')
+                        AND column_name IN ('capture_method', 'change_type', 'version', 'id', 'created_at', 'updated_at')
                         """,
                         (schema, table_name),
                     )

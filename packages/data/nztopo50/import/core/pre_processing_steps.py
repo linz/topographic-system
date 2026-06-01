@@ -3,6 +3,7 @@ import geopandas as gpd
 # offshore (1) or inland island (0) - intersect using sea_coastline poly shapefile
 # create from coastline and outer box
 
+exit() # process discontinued until clear requirements defined
 schema_name = "release66"
 
 islands = rf"C:\Data\Topo50\{schema_name}_NZ50_Shape\island_poly.shp"

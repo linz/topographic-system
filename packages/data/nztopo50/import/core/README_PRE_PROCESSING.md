@@ -23,13 +23,13 @@ NOT currently implemented but the expectation is this is extended to water names
 
 Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script has a SQL command to update the IDS once in Postgres.
 
-If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning topo_id between releases. This is a work around.
+If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning id between releases. This is a work around.
 
 ## LINZ MAP SHEET
 
 This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder. It is processed as part of the core and copied into the carto schema in the postgis_manage_fields script.
 
-## ISLANDS POLYGONS
+## ISLANDS POLYGONS - THIS STEP HAS BEEN STOPPED UNTIL CLEAR REQUIREMENTS DRAFT. FIELD DROPPED MAY2026
 
 **islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box
 

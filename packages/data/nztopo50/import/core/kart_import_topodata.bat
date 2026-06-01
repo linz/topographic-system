@@ -1,85 +1,84 @@
-REM kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tree_locations 
+REM kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id tree_point 
 REM kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id airport 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id airport 
 kart push origin master 
 REM kart push origin master --force
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id bridge_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id bridge_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id building 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id building 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id building_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id building_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id coastline 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id coastline 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id descriptive_text 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id descriptive_text 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id fence_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id fence_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id ferry_crossing 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id ferry_crossing 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id geographic_name 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id geographic_name 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id island 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id island 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landcover 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id landcover 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landcover_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id landcover_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landcover_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id landcover_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landuse 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id landuse 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id landuse_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id landuse_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id marine 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id marine 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id physical_infrastructure_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id physical_infrastructure_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id physical_infrastructure_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id physical_infrastructure_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id place_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id place_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id railway_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id railway_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id railway_station 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id railway_station 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id relief_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id relief_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id relief_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id relief_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id residential_area 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id relief 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id road_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id residential_area 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id runway 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id road_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id structure 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id runway 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id structure_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id structure 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id structure_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id structure_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id track_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id structure_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id transport_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id track_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id trig_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id transport_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id tunnel_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id trig_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id vegetation 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id tunnel_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id vegetation_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id vegetation 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id water 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id vegetation_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id water_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id water 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id water_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id water_line 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id waterway_feature 
+kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key id water_point 
 kart push origin master
-kart import postgresql://postgres:landinformation@localhost/topo/release64 --primary-key topo_id waterway_feature_line 
-kart push origin master
+
 
 

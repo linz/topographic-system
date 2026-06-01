@@ -4,10 +4,11 @@ import uuid
 
 
 # Database connection parameters
-db_params = "postgresql://postgres:landinformation@localhost:5432/topo"
+# postgresql+psycopg:// tells SQLAlchemy to use the installed psycopg v3 driver.
+db_params = "postgresql+psycopg://postgres:landinformation@localhost:5432/topo"
 path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\nz-contours-topo-150k_2d.gpkg"
 layer = "nz_contours_topo_150k"
-schema = "release64"
+schema = "release66"
 load_data = True
 remove_geometryZ = False 
 
@@ -19,7 +20,7 @@ if load_data:
     gdf = gpd.read_file(path, layer=layer, engine="pyogrio")
 
     # gdf = gdf.drop(columns=["FID"])
-    gdf.insert(0, "topo_id", [uuid.uuid4() for _ in range(len(gdf))])
+    gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(gdf))])
     gdf["feature_type"] = "contour"
     print(gdf.columns)
 
@@ -42,7 +43,7 @@ if load_data:
     with engine.connect() as conn:
         conn.execute(
             text(f"""
-                ALTER TABLE {schema}.contour ADD PRIMARY KEY (topo_id);
+                ALTER TABLE {schema}.contour ADD PRIMARY KEY (id);
             """)
         )
     
