@@ -5,6 +5,7 @@ import sys
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
+    QgsExpressionContextUtils,
     QgsLayoutExporter,
     QgsLayoutItemMap,
     QgsProject,
@@ -62,6 +63,28 @@ for feature in topo_sheet_layer.getFeatures():
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
+
+    QgsExpressionContextUtils.setLayoutVariable(
+        layout,
+        "gm_degrees",
+        "23½"
+    )
+    QgsExpressionContextUtils.setLayoutVariable(
+        layout,
+        "gm_mils",
+        "418"
+    )
+    QgsExpressionContextUtils.setLayoutVariable(
+        layout,
+        "gm_year",
+        "2019"
+    )
+    QgsExpressionContextUtils.setLayoutVariable(
+        layout,
+        "gm_rate_years",
+        "8"
+    )
+
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
