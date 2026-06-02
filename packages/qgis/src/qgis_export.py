@@ -64,26 +64,10 @@ for feature in topo_sheet_layer.getFeatures():
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
 
-    QgsExpressionContextUtils.setLayoutVariable(
-        layout,
-        "gm_degrees",
-        "23½"
-    )
-    QgsExpressionContextUtils.setLayoutVariable(
-        layout,
-        "gm_mils",
-        "418"
-    )
-    QgsExpressionContextUtils.setLayoutVariable(
-        layout,
-        "gm_year",
-        "2019"
-    )
-    QgsExpressionContextUtils.setLayoutVariable(
-        layout,
-        "gm_rate_years",
-        "8"
-    )
+    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_degrees", "23½")
+    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_mils", "418")
+    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_year", "2019")
+    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_rate_years", "8")
 
     export_result = None
     if export_format == "pdf":
