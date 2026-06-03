@@ -5,7 +5,7 @@ import uuid
 
 
 # Database connection parameters
-db_params = "postgresql://postgres:landinformation@localhost:5432/topo"
+db_params = "postgresql+psycopg://postgres:landinformation@localhost:5432/topo"
 path = r"C:\Data\Topo50\grids"
 grid = "grid.gpkg"
 grid_layer = "grid"
@@ -31,7 +31,7 @@ print(dms_grid_gdf.columns)
 engine = create_engine(db_params)
 schema = "carto"
 grid_gdf.to_postgis(
-    name="nz_topo50_grid",
+    name="nztopo50_grid",
     con=engine,
     schema=schema,
     if_exists="replace",
@@ -39,7 +39,7 @@ grid_gdf.to_postgis(
 )
 
 dms_grid_gdf.to_postgis(
-    name="nz_topo50_dms_grid",
+    name="nztopo50_dms_grid",
     con=engine,
     schema=schema,
     if_exists="replace",
@@ -49,11 +49,11 @@ dms_grid_gdf.to_postgis(
 with engine.connect() as conn:
     conn.execute(
         text(
-            f"ALTER TABLE {schema}.nz_topo50_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
+            f"ALTER TABLE {schema}.nztopo50_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
         )
     )
     conn.execute(
         text(
-            f"ALTER TABLE {schema}.nz_topo50_dms_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
+            f"ALTER TABLE {schema}.nztopo50_dms_grid ALTER COLUMN id SET DEFAULT gen_random_uuid()"
         )
     )
