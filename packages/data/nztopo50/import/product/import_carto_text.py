@@ -117,7 +117,7 @@ dtype_mapping = {
 # Write GeoDataFrame to PostGIS with explicit column types
 engine = create_engine(db_params)
 gdf.to_postgis(
-    name="nz_topo50_carto_text",
+    name="nztopo50_carto_text",
     con=engine,
     schema=schema,
     if_exists="replace",
@@ -128,7 +128,7 @@ gdf.to_postgis(
 with engine.connect() as conn:
     conn.execute(
         text(f"""
-            ALTER TABLE {schema}.nz_topo50_carto_text ADD PRIMARY KEY (id);
+            ALTER TABLE {schema}.nztopo50_carto_text ADD PRIMARY KEY (id);
         """)
     )
 

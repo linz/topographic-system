@@ -583,7 +583,7 @@ class ModifyTable:
 
         for schema, tables in schema_tables.items():
             for table in tables:
-                if table == "collections" or table == "nz_topo50_map_sheet":
+                if table == "collections" or table == "nztopo50_map_sheet":
                     continue
 
                 # if table == "contour":
@@ -1272,7 +1272,7 @@ class TableModificationWorkflow:
 
     def step_carto_text_geom_update(self):
         self.table_modifer.carto_text_geom_update(
-            self.schema_name, "nz_topo50_map_sheet"
+            self.schema_name, "nztopo50_map_sheet"
         )
 
     def step_recreate_table_srid(self):
@@ -1300,7 +1300,7 @@ class TableModificationWorkflow:
     #     self.table_modifer.create_collections_table(self.schema_name)
 
     def step_process_carto_tables(self):
-        tables_to_copy = ["nz_topo50_map_sheet"]
+        tables_to_copy = ["nztopo50_map_sheet"]
         if self.schema_name == "model":
             return
         
