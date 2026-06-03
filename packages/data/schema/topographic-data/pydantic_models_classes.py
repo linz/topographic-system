@@ -23,13 +23,13 @@ class Airport(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -41,14 +41,14 @@ class BridgeLine(BaseTopoModel):
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
     construction_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -58,14 +58,14 @@ class Building(BaseTopoModel):
     building_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -75,15 +75,15 @@ class BuildingPoint(BaseTopoModel):
     building_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     orientation: Optional[float] = Field(None)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -93,13 +93,13 @@ class Coastline(BaseTopoModel):
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
     coastline_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -108,16 +108,16 @@ class Contour(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     definition: Optional[str] = Field(None)
     designation: Optional[str] = Field(None)
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').")
     formation: Optional[str] = Field(None)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -126,14 +126,14 @@ class DescriptiveText(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     info_display: Optional[str] = Field(None, max_length=255)
     size: Optional[float] = Field(None)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -142,12 +142,12 @@ class FenceLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -156,12 +156,12 @@ class FerryCrossing(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -170,15 +170,15 @@ class GeographicName(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     desc_code: Optional[str] = Field(None, max_length=15)
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     size: Optional[float] = Field(None)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -187,15 +187,14 @@ class Island(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     group_name: Optional[str] = Field(None, max_length=60)
-    location: Optional[int] = Field(None)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -204,14 +203,13 @@ class Landcover(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=50)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     sub_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -220,13 +218,13 @@ class LandcoverLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -235,16 +233,16 @@ class LandcoverPoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     display: Optional[str] = Field(None, max_length=50)
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     orientation: Optional[float] = Field(None)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -253,17 +251,17 @@ class Landuse(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     landuse_type: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     landuse_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     substance: Optional[str] = Field(None, max_length=11)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -272,15 +270,15 @@ class LanduseLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     landuse_type: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     landuse_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -290,13 +288,13 @@ class Marine(BaseTopoModel):
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
     composition: Optional[str] = Field(None, max_length=9)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -306,11 +304,11 @@ class NzTopo50MapSheet(BaseTopoModel):
     edition: str = Field(..., max_length=30)
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     revised: Optional[str] = Field(None, max_length=60)
     sheet_code: str = Field(..., max_length=21)
     sheet_name: str = Field(..., max_length=50)
     t50_fid: int = Field(..., description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
 
 
 class PhysicalInfrastructureLine(BaseTopoModel):
@@ -318,16 +316,16 @@ class PhysicalInfrastructureLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     infrastructure_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     support_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
     visibility: Optional[str] = Field(None, max_length=11)
 
@@ -337,13 +335,13 @@ class PhysicalInfrastructurePoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     orientation: Optional[float] = Field(None)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -353,19 +351,18 @@ class PlacePoint(BaseTopoModel):
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
     composition: Optional[str] = Field(None, max_length=9)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     description: Optional[str] = Field(None, max_length=80)
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     orientation: Optional[float] = Field(None)
     place_type: Optional[str] = Field(None, description="The type of the feature.", max_length=11)
     status: Optional[str] = Field(None, max_length=25)
     substance: Optional[str] = Field(None, max_length=11)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -374,9 +371,10 @@ class RailwayLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     railway_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     route: Optional[str] = Field(None, max_length=30)
@@ -384,9 +382,8 @@ class RailwayLine(BaseTopoModel):
     route3: Optional[str] = Field(None, max_length=30)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
     track_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     vehicle_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     version: int = Field(..., description="The version of the feature.")
 
@@ -396,13 +393,13 @@ class RailwayStation(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -411,14 +408,14 @@ class ReliefLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     relief_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -427,15 +424,15 @@ class ReliefPoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     display: Optional[str] = Field(None, max_length=50)
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -444,13 +441,13 @@ class ResidentialArea(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -459,11 +456,12 @@ class RoadLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     hierarchy: Optional[str] = Field(None, max_length=50)
     highway_number: Optional[str] = Field(None, max_length=20)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     lane_count: Optional[int] = Field(None)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     name_id: Optional[int] = Field(None)
@@ -472,8 +470,7 @@ class RoadLine(BaseTopoModel):
     status: Optional[str] = Field(None, max_length=25)
     surface: Optional[str] = Field(None, max_length=10)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
     way_count: Optional[str] = Field(None, max_length=7)
     width_indicator: Optional[str] = Field(None, max_length=5)
@@ -484,15 +481,15 @@ class Runway(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     runway_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     status: Optional[str] = Field(None, max_length=25)
     surface: Optional[str] = Field(None, max_length=10)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -501,9 +498,10 @@ class Structure(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     lid_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=50)
     species: Optional[str] = Field(None, max_length=14)
@@ -511,8 +509,7 @@ class Structure(BaseTopoModel):
     stored_item: Optional[str] = Field(None, max_length=5)
     structure_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -521,9 +518,10 @@ class StructureLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     material: Optional[str] = Field(None, max_length=5)
     material_conveyed: Optional[str] = Field(None, max_length=4)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
@@ -532,8 +530,7 @@ class StructureLine(BaseTopoModel):
     status: Optional[str] = Field(None, max_length=25)
     structure_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -542,10 +539,11 @@ class StructurePoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     height: Optional[float] = Field(None, description="The height of the feature in metres")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     location: Optional[str] = Field(None, max_length=5)
     material: Optional[str] = Field(None, max_length=8)
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
@@ -556,8 +554,7 @@ class StructurePoint(BaseTopoModel):
     structure_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     structure_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
     wreck_of: Optional[str] = Field(None, max_length=6)
 
@@ -567,16 +564,16 @@ class TrackLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
     track_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     track_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -585,27 +582,27 @@ class TransportPoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
-class TreeLocations(BaseTopoModel):
+class TreePoint(BaseTopoModel):
     """Represents individual trees or notable groups of trees."""
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: Optional[str] = Field(None, description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: Optional[str] = Field(None, description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -615,15 +612,15 @@ class TrigPoint(BaseTopoModel):
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
     code: Optional[str] = Field(None, max_length=20)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
     trig_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -632,17 +629,17 @@ class TunnelLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
     tunnel_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     tunnel_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
     tunnel_use2: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -651,14 +648,14 @@ class Vegetation(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     species: Optional[str] = Field(None, max_length=14)
     sub_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -667,12 +664,12 @@ class VegetationLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -681,20 +678,20 @@ class Water(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     group_name: Optional[str] = Field(None, max_length=60)
     height: Optional[float] = Field(None, description="The height of the feature in metres")
     hierarchy: Optional[str] = Field(None, max_length=25)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     nzgb_feat_id: Optional[float] = Field(None)
     perennial: Optional[str] = Field(None, max_length=8)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
     temperature: Optional[str] = Field(None, max_length=3)
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
     water_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
 
@@ -704,16 +701,16 @@ class WaterLine(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     height: Optional[float] = Field(None, description="The height of the feature in metres")
     hierarchy: Optional[str] = Field(None, max_length=25)
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     status: Optional[str] = Field(None, max_length=25)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")
 
 
@@ -722,46 +719,14 @@ class WaterPoint(BaseTopoModel):
 
     capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
     change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
+    created_at: str = Field(..., description="The date when the feature was created in the database.")
     feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
     geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
     height: Optional[float] = Field(None, description="The height of the feature in metres")
+    id: str = Field(..., description="The unique identifier for the topographic feature.")
     name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
     orientation: Optional[float] = Field(None)
     t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
     temperature_indicator: Optional[str] = Field(None, max_length=4)
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
-    version: int = Field(..., description="The version of the feature.")
-
-
-class WaterwayFeature(BaseTopoModel):
-    """Represents rapids and waterfall areas."""
-
-    capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
-    change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
-    feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    height: Optional[float] = Field(None, description="The height of the feature in metres")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
-    version: int = Field(..., description="The version of the feature.")
-
-
-class WaterwayFeatureLine(BaseTopoModel):
-    """Represents edges of rapids and waterfalls"""
-
-    capture_method: str = Field(..., description="The method used to capture the data (e.g., 'manual','automated').", max_length=25)
-    change_type: str = Field(..., description="The type of change that occurred to the feature (e.g., 'new', 'updated').", max_length=25)
-    create_date: str = Field(..., description="The date when the feature was created in the database.")
-    feature_type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    height: Optional[float] = Field(None, description="The height of the feature in metres")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    topo_id: str = Field(..., description="The unique identifier for the topographic feature.")
-    update_date: str = Field(..., description="The date when the feature was last updated in the database.")
+    updated_at: str = Field(..., description="The date when the feature was last updated in the database.")
     version: int = Field(..., description="The version of the feature.")

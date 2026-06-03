@@ -1,90 +1,22 @@
 {
   "$defs": {
-    "waterway_feature_line": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "waterway_feature_line",
-      "description": "Represents edges of rapids and waterfalls",
-      "type": "object",
-      "required": [
-        "topo_id",
-        "feature_type",
-        "capture_method",
-        "change_type",
-        "update_date",
-        "create_date",
-        "version",
-        "geometry"
-      ],
-      "properties": {
-        "topo_id": {
-          "type": "string",
-          "description": "The unique identifier for the topographic feature."
-        },
-        "t50_fid": {
-          "type": "integer",
-          "description": "The unique identifier for the feature in the source database.",
-          "precision": 64
-        },
-        "feature_type": {
-          "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
-          "maxLength": 50
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the feature.",
-          "maxLength": 75
-        },
-        "height": {
-          "type": "number",
-          "description": "The height of the feature in metres"
-        },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
-        "update_date": {
-          "type": "string",
-          "description": "The date when the feature was last updated in the database."
-        },
-        "create_date": {
-          "type": "string",
-          "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
-        },
-        "geometry": {
-          "type": "linestring",
-          "description": "The geometry of the feature."
-        }
-      }
-    },
     "descriptive_text": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "descriptive_text",
       "description": "Represents text annotations for labeling or descriptions.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -117,11 +49,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -142,17 +74,17 @@
       "description": "Represents walking tracks, trails, or unsealed paths.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -196,11 +128,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -221,17 +153,17 @@
       "description": "Represents airport runway areas.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -270,11 +202,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -295,17 +227,17 @@
       "description": "Represents linear infrastructure such as  pipelines, power lines.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -354,11 +286,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -379,17 +311,17 @@
       "description": "Represents railway tracks. Dual tracks may be represented as single entity.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -453,11 +385,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -478,17 +410,17 @@
       "description": "Represents features in the marine environment such as mangrives, reef, rocks and shoals.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -522,11 +454,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -547,17 +479,17 @@
       "description": "Represents water-related features such as springs.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -599,11 +531,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -624,17 +556,17 @@
       "description": "Represents tunnels for roads, railways, or utilities.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -683,11 +615,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -708,17 +640,17 @@
       "description": "Represents point infrastructure such as poles, towers.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -746,11 +678,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -771,17 +703,17 @@
       "description": "Represents bridges crossing roads, railways, walkways or water features.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -830,11 +762,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -849,22 +781,22 @@
         }
       }
     },
-    "tree_locations": {
+    "tree_point": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "tree_locations",
+      "title": "tree_point",
       "description": "Represents individual trees or notable groups of trees.",
       "type": "object",
       "required": [
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -888,11 +820,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -913,17 +845,17 @@
       "description": "Represents linear vegetation features such as shelter belts.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -947,11 +879,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -972,17 +904,17 @@
       "description": "Represents transport-related locations (e.g., bus stops, terminals).",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1011,11 +943,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1036,17 +968,17 @@
       "description": "Represents man-made structures other than buildings (e.g., reservoir, dry_dock, fish_farm, marine_farm, siphon, tank).",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1100,11 +1032,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1125,17 +1057,17 @@
       "description": "Represents areas primarily used for housing.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1164,11 +1096,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1189,17 +1121,17 @@
       "description": "Represents linear of land use features suck as racetracks.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1238,11 +1170,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1263,17 +1195,17 @@
       "description": "",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1297,11 +1229,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1322,17 +1254,17 @@
       "description": "Represents land cover feature locations suck as rock outcrops.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1375,11 +1307,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1400,17 +1332,17 @@
       "description": "Represents the extent of a building. Captured from aerial imagery.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1449,11 +1381,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1474,17 +1406,17 @@
       "description": "Represents the location of a building.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1527,11 +1459,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1552,17 +1484,17 @@
       "description": "Represents areas designated for specific uses such as mines, racetracks.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1611,11 +1543,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1636,17 +1568,17 @@
       "description": "Represents terrain features such as cliffs.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1680,11 +1612,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1705,17 +1637,17 @@
       "description": "Represents areas of vegetation landcover such as trees, scrub, vineyards.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1749,11 +1681,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1774,17 +1706,17 @@
       "description": "Location of a railway station.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1813,11 +1745,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1838,17 +1770,17 @@
       "description": "Represents structural features such as  cableways, ladders, wharf, weirs etc.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -1907,11 +1839,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -1926,91 +1858,23 @@
         }
       }
     },
-    "waterway_feature": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "waterway_feature",
-      "description": "Represents rapids and waterfall areas.",
-      "type": "object",
-      "required": [
-        "topo_id",
-        "feature_type",
-        "capture_method",
-        "change_type",
-        "update_date",
-        "create_date",
-        "version",
-        "geometry"
-      ],
-      "properties": {
-        "topo_id": {
-          "type": "string",
-          "description": "The unique identifier for the topographic feature."
-        },
-        "t50_fid": {
-          "type": "integer",
-          "description": "The unique identifier for the feature in the source database.",
-          "precision": 64
-        },
-        "feature_type": {
-          "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
-          "maxLength": 50
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the feature.",
-          "maxLength": 75
-        },
-        "height": {
-          "type": "number",
-          "description": "The height of the feature in metres"
-        },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
-        "update_date": {
-          "type": "string",
-          "description": "The date when the feature was last updated in the database."
-        },
-        "create_date": {
-          "type": "string",
-          "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
-        },
-        "geometry": {
-          "type": "polygon",
-          "description": "The geometry of the feature."
-        }
-      }
-    },
     "landcover": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "landcover",
       "description": "Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2039,11 +1903,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2064,17 +1928,17 @@
       "description": "Represents small structures or structural features such as gates, masts tanks, windmills.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2151,11 +2015,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2176,17 +2040,17 @@
       "description": "Indicates ferry links to terminal locations.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2210,11 +2074,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2235,17 +2099,17 @@
       "description": "Represents a named place or locality.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2303,11 +2167,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2328,17 +2192,17 @@
       "description": "Represents terrain features such as peaks or saddles.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2377,11 +2241,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2402,17 +2266,17 @@
       "description": "Represents water features such as rivers, canals, drains.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2455,11 +2319,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2480,17 +2344,17 @@
       "description": "Represents the boundary between land and sea.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2524,11 +2388,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2549,17 +2413,17 @@
       "description": "Represents roads, including highways and streets.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2638,11 +2502,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2663,17 +2527,17 @@
       "description": "Represents the boundary of an airport facility.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2702,11 +2566,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2727,17 +2591,17 @@
       "description": "Represents linear of land cover features such as dredge tailings.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2766,11 +2630,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2791,17 +2655,17 @@
       "description": "Represents water bodies such as  rivers, lakes.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2868,11 +2732,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2893,17 +2757,17 @@
       "description": "Represents an island within a water body. Onshore and Offshore.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -2927,11 +2791,6 @@
           "description": "",
           "maxLength": 60
         },
-        "location": {
-          "type": "integer",
-          "description": "",
-          "precision": 32
-        },
         "capture_method": {
           "type": "string",
           "description": "The method used to capture the data (e.g., 'manual','automated').",
@@ -2942,11 +2801,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -2967,7 +2826,7 @@
       "description": "Represents the LINZ Topographic 1:50,000 map sheets.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "t50_fid",
         "feature_type",
         "sheet_code",
@@ -2978,7 +2837,7 @@
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -3024,17 +2883,17 @@
       "description": "Represents a geodetic survey control point.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -3078,11 +2937,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -3103,17 +2962,17 @@
       "description": "Represents elevation lines for terrain representation.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -3153,11 +3012,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -3178,17 +3037,17 @@
       "description": "Represents named geographic locations and features.",
       "type": "object",
       "required": [
-        "topo_id",
+        "id",
         "feature_type",
         "capture_method",
         "change_type",
-        "update_date",
-        "create_date",
+        "updated_at",
+        "created_at",
         "version",
         "geometry"
       ],
       "properties": {
-        "topo_id": {
+        "id": {
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
@@ -3226,11 +3085,11 @@
           "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
           "maxLength": 25
         },
-        "update_date": {
+        "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
         },
-        "create_date": {
+        "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
@@ -3350,7 +3209,7 @@
       "$ref": "#/$defs/transport_point"
     },
     {
-      "$ref": "#/$defs/tree_locations"
+      "$ref": "#/$defs/tree_point"
     },
     {
       "$ref": "#/$defs/trig_point"
@@ -3372,12 +3231,6 @@
     },
     {
       "$ref": "#/$defs/water_point"
-    },
-    {
-      "$ref": "#/$defs/waterway_feature"
-    },
-    {
-      "$ref": "#/$defs/waterway_feature_line"
     }
   ]
 }
