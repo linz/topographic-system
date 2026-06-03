@@ -1274,7 +1274,7 @@ if __name__ == "__main__":
 
 
 
-    carto_text_layer = "nz_topo50_carto_text"
+    carto_text_layer = "nztopo50_carto_text"
     create_csv_files = True
 
     new_font_name = "Nimbus Sans"
