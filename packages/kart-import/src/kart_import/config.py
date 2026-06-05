@@ -36,23 +36,48 @@ WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 OUTPUT_DIR = DATA_DIR / "output"
 
 
-def get_dataset_name(source: str) -> str:
-    """Convert a Kart/Gtihb source name into a human friendly name"""
-    if not source.startswith("kart@data.koordinates.com:linz/"):
-        raise ValueError(f"Invalid source format: {source}")
+KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"
 
-    # "kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k"
-    # converts to "nz-chatham-island-airport-polygons"
-    parts = source.split("linz/")[1].split("-")
-    if len(parts) > 4:
-        trimmed = parts[:-2]
-        return "_".join(trimmed)
-    else:
-        raise ValueError(f"Invalid layer ID format: {source}")
+
+def get_dataset_name(source: "Source") -> str:
+    """Derive a human friendly dataset name from a source.
+
+    Only Koordinates layer URLs can be derived automatically; any other source
+    (e.g. a multi-dataset github repo) must declare an explicit ``name`` in the
+    theme config.
+    """
+    url = source.url
+    if url.startswith(KOORDINATES_PREFIX):
+        # "kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k"
+        # converts to "nz_chatham_island_airport_polygons"
+        parts = url.split("linz/")[1].split("-")
+        if len(parts) > 4:
+            return "_".join(parts[:-2])
+        raise ValueError(f"Invalid Koordinates layer URL: {url}")
+    raise ValueError(f"Cannot derive a name for source {url!r}; set 'name:' explicitly in the theme config")
+
+
+class Source(BaseModel):
+    """Where a dataset comes from.
+
+    A plain string in the YAML is coerced to ``{"url": <string>}``. ``dataset``
+    selects a single dataset inside a multi-dataset Kart repo; when omitted the
+    repo's sole dataset id is auto-detected.
+    """
+
+    url: str
+    dataset: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_string(cls, data):
+        if isinstance(data, str):
+            return {"url": data}
+        return data
 
 
 class ThemeDataset(BaseModel):
-    source: str
+    source: Source
     name: str = ""
     mapping: dict = {}
 
@@ -60,7 +85,7 @@ class ThemeDataset(BaseModel):
     @classmethod
     def populate_name(cls, data):
         if isinstance(data, dict) and data.get("source") and not data.get("name"):
-            data["name"] = get_dataset_name(data["source"])
+            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
         return data
 
 
@@ -152,7 +177,7 @@ def load_from_yaml():
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
-            ALL_DATASETS.add(dataset.source)
+            ALL_DATASETS.add(dataset.source.url)
             if dataset.name in DATASET_MAP:
                 raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
             DATASET_MAP[dataset.name] = dataset

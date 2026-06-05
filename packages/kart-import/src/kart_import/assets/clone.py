@@ -14,7 +14,7 @@ logger = logging.getLogger("kart_import")
 
 def clone_dataset(dataset_name: str):
     td = get_dataset_by_name(dataset_name)
-    dataset_source = td.source
+    dataset_url = td.source.url
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / dataset_name
     sentinel = target_dir / ".cloned"
@@ -36,7 +36,7 @@ def clone_dataset(dataset_name: str):
             )
 
     # Clone directly from the source
-    run_command(["kart", "clone", f"{dataset_source}", str(target_dir), "--no-checkout"])
+    run_command(["kart", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
 
     sentinel.touch()
 
