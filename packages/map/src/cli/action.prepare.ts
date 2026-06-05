@@ -15,7 +15,7 @@ import {
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import type { StacCollection, StacItem } from 'stac-ts';
+import type { StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
 import { type ExportOptions } from '../stac.ts';
@@ -207,7 +207,7 @@ export const PrepareCommand = command({
     };
 
     // Find downloaded project file
-    const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
+    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
     logger.info({ project: args.project.href, exportOptions: exportOptions }, 'Prepare: ExportCover');
@@ -240,16 +240,28 @@ export const PrepareCommand = command({
       });
 
       // Add source data links
-      const sources: URL[] = stac.links
+      const sources = stac.links
         .filter((link) => link.rel === 'dataset')
-        .map((link) => new URL(link.href, args.project));
-
-      for (const file of sources) {
-        item.links.push({
-          rel: 'source',
-          href: file.href,
-          type: 'application/json',
+        .map((link) => {
+          const linkUrl = new URL(link.href, args.project);
+          const item = downloader.stac.get(linkUrl.href);
+          if (item == null) throw new Error('Unable to find source stac for url: ' + linkUrl.href);
+          return { item, url: linkUrl };
         });
+
+      for (const s of sources) {
+        if (s.item.json == null) throw new Error(`Source stac json not found for url: ${s.url.href}`);
+        const canonicalLink = s.item.json.links.find((link) => link.rel === 'canonical');
+
+        const itemLink: StacLink = {
+          rel: 'source',
+          href: canonicalLink ? new URL(canonicalLink.href, s.url).href : s.url.href,
+          type: 'application/json',
+          // TODO: if these are canonical links, we should add file:size and file:checksum
+        };
+
+        if (typeof s.item.json.title === 'string') itemLink.title = s.item.json.title;
+        item.links.push(itemLink);
       }
 
       // Add assets link if available
