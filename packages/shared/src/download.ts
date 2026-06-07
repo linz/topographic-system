@@ -8,7 +8,7 @@ import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { logger, qMapAll } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
-import tar from 'tar';
+import * as tar from 'tar';
 
 export interface SourceAsset {
   /** downloaded URL */
@@ -24,12 +24,10 @@ export interface SourceAsset {
 export interface SourceStac {
   /** Source stac file location */
   url: URL;
-
+  /** Once the STAC document has been fetched the raw JSON of the stac */
+  json?: StacItem | StacCollection;
   /** stac assets to download */
   assets: SourceAsset[];
-
-  /** Optional project download link if available */
-  project?: URL;
 }
 
 /** STAC Link "rel" that should be downloaded */
@@ -38,7 +36,7 @@ export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'proje
 export class Downloader {
   q: LimitFunction;
   /** Cache of stac links that have been resolved to avoid duplicate downloads */
-  stacs: Map<string, SourceStac> = new Map();
+  stac: Map<string, SourceStac> = new Map();
   /** Previously written items */
   linkCache: Map<string, SourceAsset> = new Map();
   /** Local target location */
@@ -54,11 +52,11 @@ export class Downloader {
 
   /** Add an asset URL to the download list */
   addStac(url: URL): URL {
-    if (!this.stacs.has(url.href)) {
+    if (!this.stac.has(url.href)) {
       logger.debug({ url: url.href }, 'Downloader: Add asset');
-      this.stacs.set(url.href, { url, assets: [] });
+      this.stac.set(url.href, { url, assets: [], json: undefined });
     } else {
-      logger.debug({ url: url.href }, 'Downloader: Asset already added');
+      logger.trace({ url: url.href }, 'Downloader: Asset already added');
     }
     return url;
   }
@@ -71,21 +69,28 @@ export class Downloader {
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
   async getAsset(url: URL, skipIfExists: boolean = false): Promise<SourceAsset[]> {
-    const sourceStac = this.stacs.get(url.href);
+    const sourceStac = this.stac.get(url.href);
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
     if (sourceStac.assets.length > 0) return sourceStac.assets;
 
-    const stac = await fsa.readJson<StacItem | StacCollection>(url);
+    const stac = sourceStac.json ?? (await fsa.readJson<StacItem | StacCollection>(url));
+    sourceStac.json = stac;
+
     const sourceAssets = [];
-    for (const [key, asset] of Object.entries(stac.assets ?? {})) {
+    for (const asset of Object.values(stac.assets ?? {})) {
       const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, skipIfExists);
       sourceAssets.push(sourceAsset);
-      if (key === 'project') {
-        sourceStac.project = sourceAsset.linked;
-      }
     }
     sourceStac.assets = sourceAssets;
     return sourceAssets;
+  }
+
+  findAsset(f: (asset: SourceAsset) => boolean): SourceAsset | undefined {
+    for (const stac of this.stac.values()) {
+      const asset = stac.assets.find(f);
+      if (asset) return asset;
+    }
+    return undefined;
   }
 
   /**
@@ -136,7 +141,7 @@ export class Downloader {
 
   /** Get all assets, downloading them if they haven't been already */
   async getAllAssets(skipIfExists: boolean = false): Promise<SourceAsset[]> {
-    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) =>
+    const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
       this.getAsset(new URL(url), skipIfExists),
     );
     return allAssets.flat();
@@ -183,7 +188,7 @@ export class Downloader {
       hash: cacheStat.hash,
     };
 
-    if (cacheStat.url.pathname.endsWith('.tar')) {
+    if (cacheStat.url.pathname.endsWith('.tar') || cacheStat.url.pathname.endsWith('.tar.zst')) {
       const startExtractTime = performance.now();
       await tar.extract({
         file: fileURLToPath(cacheStat.url),

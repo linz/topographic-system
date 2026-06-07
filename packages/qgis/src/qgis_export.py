@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import sys
@@ -10,6 +11,7 @@ from qgis.core import (
     QgsLayoutItemMap,
     QgsProject,
 )
+from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 from utils.mag_info import calculate_mag_info, render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
@@ -26,6 +28,11 @@ excluded_layer_names = set(json.loads(sys.argv[8]))
 QgsApplication.setPrefixPath("/usr", True)  # Adjust path as needed
 qgs = QgsApplication([], False)  # False = no GUI
 qgs.initQgis()
+
+# Load custom fonts
+project_dir = os.path.dirname(project_path)
+for font_file in glob.glob(os.path.join(project_dir, "*.otf")):
+    QFontDatabase.addApplicationFont(font_file)
 
 project = QgsProject.instance()
 success = project.read(project_path)
