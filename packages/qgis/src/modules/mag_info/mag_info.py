@@ -8,10 +8,9 @@ from qgis.core import (
     QgsPointXY,
     QgsProject,
 )
-from utils.mag_dec import calculate_magnetic_declination
+from modules.mag_info.utils.mag_dec import calculate_magnetic_declination
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
-
 
 class MagInfoFloat(TypedDict):
     gm_degrees: float
