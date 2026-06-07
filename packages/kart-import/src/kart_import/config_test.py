@@ -5,17 +5,13 @@ from .config import Source, ThemeDataset, get_dataset_name
 
 
 def test_string_source_is_coerced_to_url():
-    td = ThemeDataset.model_validate(
-        {"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"}
-    )
+    td = ThemeDataset.model_validate({"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"})
     assert td.source.url == "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"
     assert td.source.dataset is None
 
 
 def test_string_source_derives_name():
-    td = ThemeDataset.model_validate(
-        {"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"}
-    )
+    td = ThemeDataset.model_validate({"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"})
     assert td.name == "nz_airport_polygons"
 
 
