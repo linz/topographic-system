@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { fsa, HashTransform } from '@chunkd/fs';
 import { StacBasic, StacUpdater } from '@linzjs/topographic-system-stac';
+import sharp from 'sharp';
 import type { StacCollection, StacItem } from 'stac-ts';
 import { $ } from 'zx';
 
@@ -64,9 +65,10 @@ describe('QGIS Process', () => {
   }
 
   it('should export a png', async () => {
-    const qgisProject = new URL('../../assets/beehive.qgs', import.meta.url);
-    const qgisData = new URL('../../assets/beehive.geojson', import.meta.url);
-    const topo50Data = new URL('../../assets/topo50.geojson', import.meta.url);
+    const qgisProject = new URL('../../assets/project/beehive.qgs', import.meta.url);
+    const qgisData = new URL('../../assets/project/beehive.geojson', import.meta.url);
+    const topo50Data = new URL('../../assets/project/topo50.geojson', import.meta.url);
+    const fonts = new URL('../../assets/fonts/', import.meta.url);
 
     await fsa.write(new URL('source/project/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
 
@@ -77,6 +79,7 @@ describe('QGIS Process', () => {
       // Deploy the QGIS project into local files
       await cli(
         'deploy',
+        ['--extra-assets', fileURLToPath(fonts)],
         ['--source', fileURLToPath(baseDeployArgs.source)],
         ['--target', fileURLToPath(new URL('target-deploy/', tempLocation))],
         fileURLToPath(new URL('source/project/beehive.qgs', tempLocation)),
@@ -85,7 +88,13 @@ describe('QGIS Process', () => {
       const deployPath = new URL('target-deploy/', tempLocation);
       assert.deepEqual(
         [...(await fsa.toArray(fsa.list(deployPath)))].map((f) => f.href.replace(deployPath.href, '')).sort(),
-        [`beehive/beehive.json`, `beehive/collection.json`, `beehive/beehive.qgs`, `catalog.json`].sort(),
+        [
+          `beehive/beehive.json`,
+          `beehive/collection.json`,
+          `beehive/beehive.qgs`,
+          'beehive/beehive.tar.zst',
+          `catalog.json`,
+        ].sort(),
       );
     });
 
@@ -106,9 +115,11 @@ describe('QGIS Process', () => {
         [
           `qgis/beehive/latest/beehive.json`,
           `qgis/beehive/latest/collection.json`,
+          'qgis/beehive/latest/beehive.tar.zst',
           `qgis/beehive/latest/beehive.qgs`,
           `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/catalog.json`,
           `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.json`,
+          `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.tar.zst`,
           `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/collection.json`,
           `qgis/beehive/commit_prefix=${baseDeployArgs.githash.charAt(0)}/commit=${baseDeployArgs.githash}/beehive.qgs`,
           `qgis/beehive/catalog.json`,
@@ -188,6 +199,28 @@ describe('QGIS Process', () => {
           `catalog.json`,
         ].sort(),
       );
+    });
+
+    await it('should compare the PNG', async () => {
+      const before = await fsa.read(new URL('../../assets/BQ31.png', import.meta.url));
+      const producePushPath = new URL('target-produce-push/', tempLocation);
+      const after = await fsa.read(new URL('product/beehive/latest/BQ31.png', producePushPath));
+
+      const difference = await sharp(before)
+        .removeAlpha()
+        .composite([{ input: await sharp(after).removeAlpha().toBuffer(), blend: 'difference' }])
+        .toBuffer();
+
+      const stats = await sharp(difference).stats();
+
+      if (stats.channels.find((f) => f.max > 0)) {
+        await sharp(difference).png().toFile('produce.test.diff.png');
+      }
+
+      // No changes in RGB channels
+      assert.deepEqual(stats.channels[0]?.max, 0);
+      assert.deepEqual(stats.channels[1]?.max, 0);
+      assert.deepEqual(stats.channels[2]?.max, 0);
     });
   });
 });

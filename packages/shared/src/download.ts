@@ -8,7 +8,7 @@ import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import { logger, qMapAll } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
-import tar from 'tar';
+import * as tar from 'tar';
 
 export interface SourceAsset {
   /** downloaded URL */
@@ -183,7 +183,7 @@ export class Downloader {
       hash: cacheStat.hash,
     };
 
-    if (cacheStat.url.pathname.endsWith('.tar')) {
+    if (cacheStat.url.pathname.endsWith('.tar') || cacheStat.url.pathname.endsWith('.tar.zst')) {
       const startExtractTime = performance.now();
       await tar.extract({
         file: fileURLToPath(cacheStat.url),
