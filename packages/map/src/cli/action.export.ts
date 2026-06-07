@@ -77,17 +77,17 @@ export const ExportCommand = command({
 
     const downloader = new Downloader(args.tempLocation, args.cache, q);
 
-    const stacs = await qMapAll(q, paths, async (path) => {
+    const items = await qMapAll(q, paths, async (path) => {
       const stac = await fsa.readJson<StacItem>(path);
       if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
       return { stac, path };
     });
-    stacs.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
+    items.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
 
     // Download all the assets, including the project file and source data for the project.
     await downloader.getAllAssets();
 
-    const projectPath = downloader.stacs.values().find((stac) => stac.project != null)?.project;
+    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
     await qMapAll(q, paths, (p) => produce(p, projectPath, args));

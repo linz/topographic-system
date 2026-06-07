@@ -119,9 +119,7 @@ export const VisualDiffCommand = command({
         };
 
         // Get the downloaded project file path
-        const projectPath = downloader.stacs
-          .values()
-          .find((stac) => stac.project != null && stac.project.href.includes(`${test.name}.qgs`))?.project;
+        const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         // Start to export file

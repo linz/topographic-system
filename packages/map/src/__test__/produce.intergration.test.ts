@@ -2,8 +2,9 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
-import { StacUpdater, StacPushCommand, StacBasic } from '@linzjs/topographic-system-stac';
-import type { StacCollection } from 'stac-ts';
+import { StacCollectionWriter, StacPushCommand, StacPusher, StacUpdater } from '@linzjs/topographic-system-stac';
+import pLimit from 'p-limit';
+import type { StacItem } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ExportCommand } from '../cli/action.export.ts';
@@ -28,25 +29,38 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.equal(from, `FROM ${BaseCommandOptions.container}`);
   });
 
+  async function writeWaterData(rootCatalog: URL): Promise<URL> {
+    const limit = pLimit(1);
+    const sourceDataUrl = new URL('memory://source-data/water.parquet');
+    await fsa.write(new URL('water.parquet', sourceDataUrl), 'Hello World');
+
+    const dataSourceUrl = new URL('memory://source-data/catalog.json');
+
+    const sw = new StacCollectionWriter('data', 'water');
+    sw.collection.title = 'Topographic Water';
+    sw.collection.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
+    sw.asset('parquet', sourceDataUrl, { href: './water.parquet' });
+    const collectionUrl = await sw.write(dataSourceUrl, limit);
+
+    await StacUpdater.collections(dataSourceUrl, [collectionUrl], true);
+
+    const push = new StacPusher(rootCatalog, 'data');
+    push.strategy({ type: 'latest' });
+    push.strategy({ type: 'date', date: new Date('2026-06-01T14:32:00.123Z') });
+
+    const { collections } = await push.push(dataSourceUrl, limit, true);
+
+    await StacUpdater.collections(rootCatalog, collections, true);
+
+    const latest = collections.find((f) => f.href.includes('/latest/'));
+    if (latest == null) throw new Error('Unable to find water collection');
+    return latest;
+  }
+
   it('should deploy a qgs file', async (t) => {
     await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
-    const waterUrl = fsa.toUrl('memory://source/data/water/latest/');
-    await fsa.write(new URL('water.parquet', waterUrl), 'Hello World');
-
-    await StacUpdater.readWriteJson<StacCollection>(new URL('collection.json', waterUrl), () => {
-      const col = StacBasic.collection();
-      col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
-      col.assets = {
-        parquet: {
-          href: './water.parquet',
-          'file:checksum': '1220a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e',
-          'file:size': 11,
-        },
-      };
-      return col;
-    });
-    await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl], true);
-
+    const rootCatalog = new URL('memory://source/catalog.json');
+    await writeWaterData(rootCatalog);
     t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
 
     // Deploy the QGIS project into memory
@@ -165,5 +179,17 @@ describe('deploy -> produce-cover -> produce', () => {
         'catalog.json',
       ].sort(),
     );
+    const exportUrl = new URL(`memory://target-produce/topo50/BQ32.json`);
+    const exportedJson = await fsa.readJson<StacItem>(exportUrl);
+    const dateLinks = exportedJson.links.filter((f) => f.href.includes('year=2026/'));
+    // Ensure the water data was linked to the canonical path
+    assert.deepEqual(dateLinks, [
+      {
+        rel: 'source',
+        href: 'memory://source/data/water/year=2026/date=2026-06-01T14-32-00.123Z/collection.json',
+        type: 'application/json',
+        title: 'Topographic Water',
+      },
+    ]);
   });
 });
