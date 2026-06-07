@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+from modules.mag_info.mag_info import calculate_mag_info, render_mag_info
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
@@ -64,10 +65,12 @@ for feature in topo_sheet_layer.getFeatures():
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
 
-    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_degrees", "23½")
-    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_mils", "418")
-    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_year", "2019")
-    QgsExpressionContextUtils.setLayoutVariable(layout, "gm_rate_years", "8")
+    # handle magnetic info
+    mag_info_float = calculate_mag_info(project, sheet_code)
+    mag_info_str = render_mag_info(mag_info_float)
+
+    for key, value in mag_info_str.items():
+        QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
 
     export_result = None
     if export_format == "pdf":
