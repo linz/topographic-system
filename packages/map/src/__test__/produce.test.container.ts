@@ -213,7 +213,9 @@ describe('QGIS Process', () => {
 
       const stats = await sharp(difference).stats();
 
-      if (stats.channels.find((f) => f.max > 0)) {
+      if (stats.channels.slice(0, 3).find((f) => f.max > 0)) {
+        await sharp(before).png().toFile('produce.test.before.png');
+        await sharp(after).png().toFile('produce.test.after.png');
         await sharp(difference).png().toFile('produce.test.diff.png');
       }
 
