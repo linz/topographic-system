@@ -10,7 +10,7 @@ from qgis.core import (
     QgsLayoutItemMap,
     QgsProject,
 )
-from qgis.PyQt.QtGui import QFontDatabase
+from qgis.PyQt.QtGui import QFontDatabase # type: ignore[import-not-found]
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
