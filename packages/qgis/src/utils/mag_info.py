@@ -1,6 +1,5 @@
 from typing import TypedDict
 
-from modules.mag_info.utils.mag_dec import calculate_magnetic_declination
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
@@ -9,6 +8,8 @@ from qgis.core import (
     QgsPointXY,
     QgsProject,
 )
+
+from utils.mag_dec import calculate_magnetic_declination
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -74,7 +75,7 @@ def calculate_mag_info(sheet_code: str, project: QgsProject) -> MagInfoFloat:
         gm_degrees = decl - conv
         gm_mils = _degrees_to_mils(gm_degrees)
 
-        return MagInfoFloat(gm_degrees, gm_mils, gm_year=2026, gm_rate_years=7)
+        return MagInfoFloat(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=2026, gm_rate_years=7)
 
     raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
 

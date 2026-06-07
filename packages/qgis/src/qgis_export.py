@@ -2,7 +2,6 @@ import json
 import os
 import sys
 
-from modules.mag_info.mag_info import calculate_mag_info, render_mag_info
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
@@ -11,6 +10,7 @@ from qgis.core import (
     QgsLayoutItemMap,
     QgsProject,
 )
+from utils.mag_info import calculate_mag_info, render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
