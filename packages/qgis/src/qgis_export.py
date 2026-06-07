@@ -3,15 +3,14 @@ import json
 import os
 import sys
 
-from qgis.PyQt.QtGui import QFontDatabase
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
     QgsLayoutExporter,
     QgsLayoutItemMap,
     QgsProject,
-    
 )
+from qgis.PyQt.QtGui import QFontDatabase
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
