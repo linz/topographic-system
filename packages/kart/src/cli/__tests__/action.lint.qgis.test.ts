@@ -106,7 +106,7 @@ describe('action.lint.qgis', () => {
     });
 
     it('should lint beehive.qgs with no errors', async () => {
-      const qgisFile = await fsa.read(new URL('../../../../map/assets/beehive.qgs', import.meta.url));
+      const qgisFile = await fsa.read(new URL('../../../../map/assets/project/beehive.qgs', import.meta.url));
       const parser = new XMLParser();
       const qgisXml = parser.parse(qgisFile);
       const errors = lintDatasources(qgisXml);

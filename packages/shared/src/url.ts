@@ -36,6 +36,12 @@ export const UrlFolder: cmdts.Type<string, URL> = {
   },
 };
 
+export const UrlFolders: cmdts.Type<string[], URL[]> = {
+  async from(str) {
+    return await Promise.all(str.map((m) => UrlFolder.from(m)));
+  },
+};
+
 /**
  * Parse a JSON file containing an array of URLs.
  *

@@ -67,6 +67,7 @@ describe('deploy -> produce-cover -> produce', () => {
     const targetDeploy = new URL('memory://target-deploy/');
     await DeployCommand.handler({
       concurrency,
+      extras: [],
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: targetDeploy,
       source: new URL('memory://source/catalog.json'),

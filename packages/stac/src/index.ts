@@ -16,3 +16,4 @@ export { StacGeometry } from './geo.ts';
 export { StacBasic } from './stac.basic.ts';
 export { StacPusher } from './stac.pusher.ts';
 export { StacPushCommand } from './cli/action.stac.push.ts';
+export { getRelativePath } from './stac.paths.ts';
