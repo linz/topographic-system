@@ -80,7 +80,7 @@ def bundle_dataset(dataset_name: str):
     td = DATASET_MAP.get(dataset_name)
     if not td:
         raise ValueError(f"Dataset not found for name: {dataset_name}")
-    dataset_source = td.source
+    dataset_source = td.source.url
 
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / dataset_name

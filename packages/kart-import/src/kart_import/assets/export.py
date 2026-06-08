@@ -34,8 +34,7 @@ def export_dataset_releases(dataset_name: str):
     repo_dir = SOURCE_DIR / dataset_name
     if not is_kart(repo_dir):
         raise Exception(f"Kart repo not found: {repo_dir}")
-
-    kart_dataset_id = get_kart_dataset_id(repo_dir)
+    kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
 
