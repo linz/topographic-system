@@ -57,21 +57,27 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFram
         "updated_at": gdf["updated_at"],
     }
 
-    for target_field, source_val in td.mapping.items():
-        if not source_val:
-            continue
-        if source_val == "$":
-            source_col = target_field
-        elif source_val.startswith("$"):
-            source_col = source_val[1:]
-        else:
-            new_data[target_field] = source_val
+    for target_field, spec in td.field_specs().items():
+        source = spec.source
+
+        # `null`/omitted source -> skip the column entirely.
+        if source is None:
             continue
 
-        if source_col in gdf.columns:
-            new_data[target_field] = gdf[source_col]
+        # A column reference ("$" / "$col"); anything else is a literal constant.
+        if isinstance(source, str) and source.startswith("$"):
+            source_col = target_field if source == "$" else source[1:]
+            # An absent column is a config/schema error: fail loudly. `default` only
+            # substitutes NULL values within an existing column. To set a fixed value
+            # for a new column, use a literal constant instead.
+            if source_col not in gdf.columns:
+                raise Exception(f"Source column not found: {source_col} in {td.name}")
+            values = gdf[source_col]
+            if spec.default is not None:
+                values = values.fillna(spec.default)
+            new_data[target_field] = values
         else:
-            raise Exception(f"Source column not found: {source_col}")
+            new_data[target_field] = source
 
     return gpd.GeoDataFrame(new_data, geometry=gdf.geometry, crs=gdf.crs)
 

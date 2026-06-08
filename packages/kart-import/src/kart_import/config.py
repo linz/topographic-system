@@ -2,9 +2,10 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import yaml
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from .env import env_releases, env_themes
 
@@ -76,6 +77,33 @@ class Source(BaseModel):
         return data
 
 
+class FieldSpec(BaseModel):
+    """A single target column's mapping rule.
+
+    In the YAML a mapping value is either a scalar shorthand or a dict:
+
+        name: $                       # copy same-named source column
+        highway_number: $hway_num     # copy a named source column
+        feature_type: road            # literal constant
+        version: 1                    # literal constant (non-string is fine)
+        topo_id: null                 # skip this column
+        name: {source: $, default: "Unknown"}   # default when the value is NULL
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: Any = None
+    """Column reference (``$`` / ``$col``), a literal constant, or ``None`` to skip."""
+    default: Any = None
+    """Value substituted when the resolved source is NULL/NaN."""
+
+    @classmethod
+    def parse(cls, value: Any) -> "FieldSpec":
+        if isinstance(value, dict):
+            return cls(**value)
+        return cls(source=value)
+
+
 class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
@@ -87,6 +115,16 @@ class ThemeDataset(BaseModel):
         if isinstance(data, dict) and data.get("source") and not data.get("name"):
             data["name"] = get_dataset_name(Source.model_validate(data["source"]))
         return data
+
+    @model_validator(mode="after")
+    def validate_mapping(self):
+        # Parse eagerly so a malformed field spec fails at config load, not mid-run.
+        self.field_specs()
+        return self
+
+    def field_specs(self) -> dict[str, FieldSpec]:
+        """The mapping parsed into normalized per-column rules."""
+        return {target: FieldSpec.parse(value) for target, value in self.mapping.items()}
 
 
 class Theme(BaseModel):
