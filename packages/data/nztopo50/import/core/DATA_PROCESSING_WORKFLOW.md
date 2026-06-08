@@ -100,10 +100,10 @@ trig_points
 vegetation
 
     self.table_modifer.add_column(
-        f"{self.schema_name}.vegetation", "sub_type", "VARCHAR(50)"
+        f"{self.schema_name}.vegetation", "subtype", "VARCHAR(50)"
     )
     self.table_modifer.update_value_by_column(
-        self.schema_name, "vegetation", "sub_type", "species"
+        self.schema_name, "vegetation", "subtype", "species"
     )
     self.table_modifer.update_value_by_column(
         self.schema_name, "vegetation", "species", "null"
@@ -114,7 +114,7 @@ vegetation
 landcover
 
    self.table_modifer.add_column(
-        f"{self.schema_name}.landcover", "sub_type", "VARCHAR(50)"
+        f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
     )
 
 

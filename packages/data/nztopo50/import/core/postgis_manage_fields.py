@@ -948,7 +948,7 @@ class ModifyTable:
             "vehicle_type",
             "structure_type",
             "trig_type",
-            "sub_type",
+            "subtype",
             "coastline_type",
             "place_type",
             "hierarchy",
@@ -1163,17 +1163,17 @@ class TableModificationWorkflow:
         )
 
         self.table_modifer.add_column(
-            f"{self.schema_name}.vegetation", "sub_type", "VARCHAR(50)"
+            f"{self.schema_name}.vegetation", "subtype", "VARCHAR(50)"
         )
         self.table_modifer.update_value_by_column(
-            self.schema_name, "vegetation", "sub_type", "species"
+            self.schema_name, "vegetation", "subtype", "species"
         )
         self.table_modifer.update_value_by_column(
             self.schema_name, "vegetation", "species", "null"
         )
 
         self.table_modifer.add_column(
-            f"{self.schema_name}.landcover", "sub_type", "VARCHAR(50)"
+            f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
         )
 
         # self.table_modifer.add_column(f"{self.schema_name}.road_line", "level", "INTEGER")
@@ -1198,6 +1198,7 @@ class TableModificationWorkflow:
         # self.table_modifer.add_column(
         #     f"{self.schema_name}.railway_line", "nzgb_id", "BIGINT"
         # )
+        
         self.table_modifer.add_column(
             f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
         )
