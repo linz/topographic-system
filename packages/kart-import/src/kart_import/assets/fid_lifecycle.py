@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from ..command import run_command
-from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, Release, get_releases
+from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, Release, get_dataset_by_name, get_releases
 from ..git.kart import get_kart_dataset_id
 from ..git.release import get_release_commit
 from ..log import log_context
@@ -17,6 +17,16 @@ logger = logging.getLogger("kart_import")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
+def resolve_dataset_id(dataset_name: str, repo_dir: Path) -> str:
+    """Dataset id within the (possibly multi-dataset) Kart repo.
+
+    Prefer the explicit ``source.dataset`` from the theme config; fall back to
+    auto-detecting the repo's sole dataset.
+    """
+    td = get_dataset_by_name(dataset_name)
+    return td.source.dataset or get_kart_dataset_id(repo_dir)
+
+
 def get_fid_lifecycle_file(dataset_name: str, releases: list[Release]) -> Path:
     """
     FID output lifecycle file location
@@ -26,10 +36,9 @@ def get_fid_lifecycle_file(dataset_name: str, releases: list[Release]) -> Path:
     return WORKING_LIFECYCLE_DIR / f"{dataset_name}_release{releases[0].id}-{releases[-1].id}.json"
 
 
-def get_mapping_commit(repo_dir: Path) -> tuple[str, datetime] | None:
+def get_mapping_commit(repo_dir: Path, dataset_id: str) -> tuple[str, datetime] | None:
     """Finds the first commit that introduced t50_fid in the schema."""
 
-    dataset_id = get_kart_dataset_id(repo_dir)
     schema_path = f"{dataset_id}/.table-dataset/meta/schema.json"
 
     # Optimization: Try March 2015 first as most mappings happened then
@@ -107,7 +116,7 @@ def parse_kart_diff(
 
 def generate_lifecycle(dataset_name: str):
     repo_dir = SOURCE_DIR / dataset_name
-    dataset_id = get_kart_dataset_id(repo_dir)
+    dataset_id = resolve_dataset_id(dataset_name, repo_dir)
     releases = get_releases()
 
     lifecycle: dict[str, dict[str, str]] = {}
@@ -116,7 +125,7 @@ def generate_lifecycle(dataset_name: str):
     last_commit = EMPTY_TREE
 
     # Determine which field to use as the feature identifier
-    mapping_result = get_mapping_commit(repo_dir)
+    mapping_result = get_mapping_commit(repo_dir, dataset_id)
     if mapping_result:
         fid_field = "t50_fid"
         logger.info(f"Using t50_fid for {dataset_name}")
@@ -137,7 +146,9 @@ def generate_lifecycle(dataset_name: str):
             continue
 
         stdout = run_command(
-            ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines", "--delta-filter=++"], cwd=str(repo_dir)
+            # Scope the diff to this dataset; the source repo may hold several
+            ["kart", "diff", f"{last_commit}...{commit}", "-o", "json-lines", "--delta-filter=++", "--", dataset_id],
+            cwd=str(repo_dir),
         )
         parse_kart_diff(stdout, lifecycle, commit_time, dataset_id, fid_field)
 
