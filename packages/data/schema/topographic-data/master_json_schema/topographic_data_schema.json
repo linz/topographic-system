@@ -1661,7 +1661,7 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "sub_type": {
+        "subtype": {
           "type": "string",
           "description": "The type of the feature.",
           "maxLength": 50
@@ -1888,7 +1888,7 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "sub_type": {
+        "subtype": {
           "type": "string",
           "description": "The type of the feature.",
           "maxLength": 50
@@ -2295,19 +2295,10 @@
           "description": "",
           "maxLength": 25
         },
-        "status": {
-          "type": "string",
-          "description": "",
-          "maxLength": 25
-        },
         "name": {
           "type": "string",
           "description": "The name of the feature.",
           "maxLength": 75
-        },
-        "height": {
-          "type": "number",
-          "description": "The height of the feature in metres"
         },
         "capture_method": {
           "type": "string",
