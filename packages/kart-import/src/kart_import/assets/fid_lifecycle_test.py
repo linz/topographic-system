@@ -31,3 +31,18 @@ def test_resolve_dataset_id_falls_back_to_autodetect(monkeypatch):
     monkeypatch.setattr(fid_lifecycle, "get_kart_dataset_id", lambda _repo_dir: "nz-airport-polygons-topo-150k")
 
     assert fid_lifecycle.resolve_dataset_id(td.name, Path("/tmp/repo")) == "nz-airport-polygons-topo-150k"
+
+
+def test_make_lifecycle_id_namespaces_non_t50_fid_by_dataset():
+    """t50_fid is global; auto_pk and any configured key are per-dataset, so the
+    same raw fid in two datasets must yield different ids."""
+    commit_time = "2015-03-15T00:00:00+00:00"
+
+    t50_a = fid_lifecycle.make_lifecycle_id(commit_time, "123", "t50_fid", "dataset_a")
+    t50_b = fid_lifecycle.make_lifecycle_id(commit_time, "123", "t50_fid", "dataset_b")
+    assert t50_a == t50_b  # dataset id is irrelevant for t50_fid
+
+    for field in ("auto_pk", "lol_sufi"):
+        id_a = fid_lifecycle.make_lifecycle_id(commit_time, "123", field, "dataset_a")
+        id_b = fid_lifecycle.make_lifecycle_id(commit_time, "123", field, "dataset_b")
+        assert id_a != id_b, f"{field} should be namespaced by dataset id"

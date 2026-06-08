@@ -37,3 +37,19 @@ def test_non_koordinates_source_without_name_is_rejected():
 def test_get_dataset_name_rejects_non_koordinates_source():
     with pytest.raises(ValueError, match="set 'name:' explicitly"):
         get_dataset_name(Source(url="git@github.com:linz/topographic-source-data"))
+
+
+def test_fid_field_defaults_to_none():
+    td = ThemeDataset.model_validate({"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"})
+    assert td.fid_field is None
+
+
+def test_fid_field_can_be_configured():
+    td = ThemeDataset.model_validate(
+        {
+            "name": "lamps_linz_road_cl",
+            "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
+            "fid_field": "lol_sufi",
+        }
+    )
+    assert td.fid_field == "lol_sufi"
