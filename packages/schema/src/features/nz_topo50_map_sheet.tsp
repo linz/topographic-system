@@ -14,6 +14,7 @@ model nz_topo50_map_sheet {
   edition?: string | null;
   example_class?: Topo.ExampleClassEnum | null;
   example_name?: string | null;
+  example_id?: unknown /* int64 t50_fid of the example feature; hyparquet returns BigInt */;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
