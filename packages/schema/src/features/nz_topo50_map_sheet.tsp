@@ -15,7 +15,7 @@ model nz_topo50_map_sheet {
   example_class?: Topo.ExampleClassEnum | null;
   example_name?: string | null;
   /** topo_id (UUID) of the example feature. */
-  example_id?: string | null;
+  example_id?: string;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;

@@ -73,14 +73,7 @@
       ]
     },
     "example_id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
+      "type": "string",
       "description": "topo_id (UUID) of the example feature."
     },
     "geometry": {
