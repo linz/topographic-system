@@ -72,6 +72,10 @@
         }
       ]
     },
+    "example_id": {
+      "type": "string",
+      "description": "topo_id (UUID) of the example feature."
+    },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
       "not": {
