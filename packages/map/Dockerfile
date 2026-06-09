@@ -1,4 +1,4 @@
-FROM ghcr.io/linz/qgis-flatpak:linz-qgis_1ddcee-a6a40d_build-34
+FROM ghcr.io/linz/qgis-flatpak:linz-qgis_f04b83-922072_build-38
 
 WORKDIR /app
 
