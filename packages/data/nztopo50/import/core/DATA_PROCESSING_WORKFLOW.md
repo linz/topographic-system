@@ -27,7 +27,6 @@ update_dict = {
             (schema_name, "road_line"): [("highway_number", "highway_numb")],
             (schema_name, "water"): [
                 ("water_use", "pond_use"),
-                ("height", "elevation"),
             ],
   }
 
@@ -39,7 +38,7 @@ Islands - pre-loading step - Island are intersected with a created sea polygon (
 
 Road_line has a future field added called name_id and width_indicator. These come from data exported directly from LAMPS and using lookup based on the t50_fid.
 
-tree_points (formally tree_locations) - has an unrequired field name - this is dropped. Not only 3 trees have a name in the source - this is dropped but record for LDS recreation process.
+vegetation_points (formally tree_locations) - has an unrequired field name - this is dropped. Not only 3 trees have a name in the source - this is dropped but record for LDS recreation process.
 
 values are fixed or realigned into common fields / give default values
 
@@ -51,18 +50,18 @@ tunnel_use updated to vehicle where use2 = vehicle
 
 tunnel_use2 updated to livestock where use2 = vehicle
 
-"trig_point", "trig_type", "'beacon'"
+"trig_point", "trig_type", "'beaconed'"
 
 "road_line", "way_count", "'one way'", "way_count ='1'"
 
  "road_line", "road_access", "'mp'", "road_access ='m'"
 
-"physical_Infrastructure_line", "support_type", "'pole'","feature_type ='telephone'"
+"utility_line (formally physical_Infrastructure_line)", "support_type", "'pole'","feature_type ='telephone'"
 
 A name field is added to these layers
 
-            "physical_infrastructure_point",
-            "physical_infrastructure_line",
+            "utility_point (previous name - physical_infrastructure_point)",
+            "utility_line (previous name - physical_infrastructure_line",
             "structure",
             "ferry_crossing",
 
@@ -124,6 +123,8 @@ road_line
     self.table_modifer.add_column(
         f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
     )
+
+    These fields are populated from lookup table created from LAMPS data dump of toads.
     self.table_modifer.add_column(
         f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
     )
