@@ -334,7 +334,7 @@ class Topo50DataLoader:
         if "bldg_use" in gdf.columns:
             gdf = gdf.rename(columns={"bldg_use": "building_use"})
         if "pipe_use" in gdf.columns:
-            gdf = gdf.rename(columns={"pipe_use": "infrastructure_use"})
+            gdf = gdf.rename(columns={"pipe_use": "utility_use"})
         if "rway_use" in gdf.columns:
             gdf = gdf.rename(columns={"rway_use": "railway_use"})
         if "embkmt_use" in gdf.columns:
@@ -345,7 +345,8 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"grp_macron": "group_macron"})
         if "grp_name" in gdf.columns:
             gdf = gdf.rename(columns={"grp_name": "group_name"})
-
+        if "substance" in gdf.columns:
+            gdf = gdf.rename(columns={"substance": "substance_extracted"})
         return gdf
 
     def process_and_save_layers(self, target="postgis", schema_name="toposource"):

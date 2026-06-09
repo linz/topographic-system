@@ -417,9 +417,7 @@ class ModifyTable:
             mode: ``'add'`` to add missing columns and populate them, or
                 ``'alter'`` to update the DDL default only.
             schema_name: Target schema.
-            full_field_set: When True, includes ``capture_method``,
-                ``change_type``, ``updated_at``, ``id``, ``created_at``, and
-                ``version``.
+            full_field_set: When True, includes ``updated_at``, ``id``, ``created_at``
             include_source_fields: When True, also adds ``source``,
                 ``source_id``, and ``source_date`` columns.
         """
@@ -428,12 +426,12 @@ class ModifyTable:
 
         if full_field_set:
             fieldList = [
-                ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
-                ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
-                ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+               # ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
+               # ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
                 ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
+                ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-                ["version", "INTEGER DEFAULT 1", "DEFAULT"],
+               # ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
             fieldList.extend(
@@ -550,7 +548,7 @@ class ModifyTable:
             f"{schema_name}.residential_area": [("feature_type", "'residential_area'")],
             f"{schema_name}.road_line": [("feature_type", "'road'")],
             f"{schema_name}.track_line": [("feature_type", "'track'")],
-            f"{schema_name}.tree_point": [("feature_type", "'tree'")],
+            f"{schema_name}.vegetation_point": [("feature_type", "'tree'")],
             f"{schema_name}.trig_point": [("feature_type", "'trig'")],
             f"{schema_name}.tunnel_line": [("feature_type", "'tunnel'")],
         }
@@ -678,8 +676,8 @@ class ModifyTable:
         """
         self.connect()
         table_list = [
-            "physical_infrastructure_point",
-            "physical_infrastructure_line",
+            "utility_point",
+            "utility_line",
             "structure",
             "ferry_crossing",
         ]
@@ -919,7 +917,6 @@ class ModifyTable:
         ordered_list = [
             "id",
             "t50_fid",
-            "id",
             "feature_type",
             "bridge_use",
             "bridge_use2",
@@ -927,6 +924,7 @@ class ModifyTable:
             "elevation_use",
             "relief_use",
             "infrastructure_use",
+            "utility_use",
             "landcover_use",
             "landuse_use",
             "railway_use",
@@ -989,6 +987,7 @@ class ModifyTable:
             "size",
             "stored_item",
             "substance",
+            "substance_extracted",
             "surface",
             "temperature",
             "temperature_indicator",
@@ -1097,7 +1096,7 @@ class TableModificationWorkflow:
                 self.table_modifer.set_base_column_and_drop_column(
                     schema, table, base_col, drop_col
                 )
-        self.table_modifer.drop_column(self.schema_name, "tree_point", "name")
+        self.table_modifer.drop_column(self.schema_name, "vegetation_point", "name")
 
         # specific updates
         self.table_modifer.update_column_with_default(
@@ -1138,7 +1137,7 @@ class TableModificationWorkflow:
 
         self.table_modifer.update_column_with_default(
             self.schema_name,
-            "physical_infrastructure_line",
+            "utility_line",
             "support_type",
             "'pole'",
             "feature_type ='telephone'",
