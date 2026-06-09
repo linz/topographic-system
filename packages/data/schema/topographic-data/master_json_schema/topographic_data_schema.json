@@ -8,11 +8,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -39,16 +36,6 @@
           "type": "number",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -56,11 +43,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -76,11 +58,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -118,16 +97,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -135,11 +104,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -155,11 +119,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -192,16 +153,6 @@
           "description": "",
           "maxLength": 10
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -210,30 +161,22 @@
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
-        },
         "geometry": {
           "type": "polygon",
           "description": "The geometry of the feature."
         }
       }
     },
-    "physical_infrastructure_line": {
+    "utility_line": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "physical_infrastructure_line",
-      "description": "Represents linear infrastructure such as  pipelines, power lines.",
+      "title": "utility_line",
+      "description": "Represents linear utility infrastructure such as  pipelines, power lines.",
       "type": "object",
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -251,7 +194,7 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "infrastructure_use": {
+        "utility_use": {
           "type": "string",
           "description": "The use of the feature.",
           "maxLength": 50
@@ -276,16 +219,6 @@
           "description": "",
           "maxLength": 11
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -293,11 +226,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -313,11 +241,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -375,16 +300,6 @@
           "description": "",
           "maxLength": 30
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -392,11 +307,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -412,11 +322,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -444,16 +351,6 @@
           "description": "",
           "maxLength": 9
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -461,11 +358,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -481,11 +373,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -521,16 +410,6 @@
           "description": "",
           "maxLength": 4
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -538,11 +417,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -558,11 +432,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -605,16 +476,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -623,30 +484,22 @@
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
-        },
         "geometry": {
           "type": "linestring",
           "description": "The geometry of the feature."
         }
       }
     },
-    "physical_infrastructure_point": {
+    "utility_point": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "physical_infrastructure_point",
-      "description": "Represents point infrastructure such as poles, towers.",
+      "title": "utility_point",
+      "description": "Represents point utility infrastructure such as poles, towers.",
       "type": "object",
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -668,16 +521,6 @@
           "type": "number",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -685,11 +528,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -705,11 +543,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -752,16 +587,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -770,29 +595,21 @@
           "type": "string",
           "description": "The date when the feature was created in the database."
         },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
-        },
         "geometry": {
           "type": "linestring",
           "description": "The geometry of the feature."
         }
       }
     },
-    "tree_point": {
+    "vegetation_point": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "tree_point",
+      "title": "vegetation_point",
       "description": "Represents individual trees or notable groups of trees.",
       "type": "object",
       "required": [
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -810,16 +627,6 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -827,11 +634,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -847,11 +649,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -869,16 +668,6 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -886,11 +675,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -906,11 +690,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -933,16 +714,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -950,11 +721,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -970,11 +736,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1022,16 +785,6 @@
           "description": "",
           "maxLength": 5
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1039,11 +792,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1059,11 +807,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1086,16 +831,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1103,11 +838,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1123,11 +853,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1160,16 +887,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1177,11 +894,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -1197,11 +909,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1219,16 +928,6 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1236,11 +935,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -1256,11 +950,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1297,16 +988,6 @@
           "type": "number",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1314,11 +995,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -1334,11 +1010,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1371,16 +1044,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1388,11 +1051,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1408,11 +1066,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1449,16 +1104,6 @@
           "type": "number",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1466,11 +1111,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -1486,11 +1126,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1528,20 +1165,10 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "substance": {
+        "substance_extracted": {
           "type": "string",
           "description": "",
           "maxLength": 11
-        },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
         },
         "updated_at": {
           "type": "string",
@@ -1550,11 +1177,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1570,11 +1192,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1602,16 +1221,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1619,11 +1228,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -1639,11 +1243,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1671,16 +1272,6 @@
           "description": "",
           "maxLength": 14
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1688,11 +1279,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1708,11 +1294,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1735,16 +1318,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1752,11 +1325,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -1772,11 +1340,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1829,16 +1394,6 @@
           "description": "",
           "maxLength": 6
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1846,11 +1401,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -1866,11 +1416,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -1893,16 +1440,6 @@
           "description": "The type of the feature.",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -1910,11 +1447,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -1930,11 +1462,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2005,16 +1534,6 @@
           "description": "",
           "maxLength": 6
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2022,11 +1541,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -2042,11 +1556,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2064,16 +1575,6 @@
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2081,11 +1582,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -2101,11 +1597,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2152,20 +1645,10 @@
           "type": "number",
           "description": ""
         },
-        "substance": {
+        "substance_extracted": {
           "type": "string",
           "description": "",
           "maxLength": 11
-        },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
         },
         "updated_at": {
           "type": "string",
@@ -2174,11 +1657,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -2194,11 +1672,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2231,16 +1706,6 @@
           "description": "",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2248,11 +1713,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -2268,11 +1728,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2300,16 +1757,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2317,11 +1764,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -2337,11 +1779,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2369,16 +1808,6 @@
           "description": "The elevation above mean sea level.",
           "precision": 32
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2386,11 +1815,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -2406,11 +1830,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2483,16 +1904,6 @@
           "description": "",
           "precision": 64
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2500,11 +1911,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -2520,11 +1926,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2547,16 +1950,6 @@
           "description": "The name of the feature.",
           "maxLength": 75
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2564,11 +1957,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -2584,11 +1972,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2611,16 +1996,6 @@
           "description": "The name of the feature.",
           "maxLength": 50
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2628,11 +2003,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "linestring",
@@ -2648,11 +2018,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2713,16 +2080,6 @@
           "description": "",
           "maxLength": 3
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2730,11 +2087,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -2750,11 +2102,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2782,16 +2131,6 @@
           "description": "",
           "maxLength": 60
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2799,11 +2138,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "polygon",
@@ -2876,11 +2210,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2918,16 +2249,6 @@
           "description": "The elevation above mean sea level.",
           "precision": 32
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -2935,11 +2256,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -2955,11 +2271,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -2993,16 +2306,6 @@
           "type": "string",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -3010,11 +2313,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "multilinestring",
@@ -3030,11 +2328,8 @@
       "required": [
         "id",
         "feature_type",
-        "capture_method",
-        "change_type",
         "updated_at",
         "created_at",
-        "version",
         "geometry"
       ],
       "properties": {
@@ -3066,16 +2361,6 @@
           "type": "number",
           "description": ""
         },
-        "capture_method": {
-          "type": "string",
-          "description": "The method used to capture the data (e.g., 'manual','automated').",
-          "maxLength": 25
-        },
-        "change_type": {
-          "type": "string",
-          "description": "The type of change that occurred to the feature (e.g., 'new', 'updated').",
-          "maxLength": 25
-        },
         "updated_at": {
           "type": "string",
           "description": "The date when the feature was last updated in the database."
@@ -3083,11 +2368,6 @@
         "created_at": {
           "type": "string",
           "description": "The date when the feature was created in the database."
-        },
-        "version": {
-          "type": "integer",
-          "description": "The version of the feature.",
-          "precision": 32
         },
         "geometry": {
           "type": "point",
@@ -3155,10 +2435,10 @@
       "$ref": "#/$defs/nz_topo50_map_sheet"
     },
     {
-      "$ref": "#/$defs/physical_infrastructure_line"
+      "$ref": "#/$defs/utility_line"
     },
     {
-      "$ref": "#/$defs/physical_infrastructure_point"
+      "$ref": "#/$defs/utility_point"
     },
     {
       "$ref": "#/$defs/place_point"
@@ -3200,7 +2480,7 @@
       "$ref": "#/$defs/transport_point"
     },
     {
-      "$ref": "#/$defs/tree_point"
+      "$ref": "#/$defs/vegetation_point"
     },
     {
       "$ref": "#/$defs/trig_point"
