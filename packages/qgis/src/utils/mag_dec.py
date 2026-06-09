@@ -3,7 +3,7 @@ from datetime import datetime
 from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextScope, QgsPoint
 
 MODEL_NAME = "igrf13"
-MODEL_PATH = "/usr/qgis/assets/models"
+MODEL_PATH = "/usr/qgis/models"
 
 NOW = datetime.now()
 YEAR = NOW.year
