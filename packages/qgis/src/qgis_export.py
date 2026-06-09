@@ -73,7 +73,7 @@ for feature in topo_sheet_layer.getFeatures():
     map_item.setExtent(bbox)
 
     # handle magnetic info
-    mag_info_float = calculate_mag_info(sheet_code, project)
+    mag_info_float = calculate_mag_info(project, topo_map_sheet, sheet_code)
     mag_info_str = render_mag_info(mag_info_float)
 
     for key, value in mag_info_str.items():

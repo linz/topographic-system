@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from qgis.core import QgsExpression, QgsPoint
+from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextScope, QgsPoint
 
 MODEL_NAME = "igrf13"
 MODEL_PATH = "/usr/qgis/assets/models"
@@ -26,13 +26,32 @@ def calculate_magnetic_declination(
     lat = point.y()  # y axis, vertical axis, north/south, latitude
     lon = point.x()  # x axis, horizontal axis, east/west, longitude
 
+    scope = QgsExpressionContextScope()
+    scope.setVariable("model_name", MODEL_NAME)
+    scope.setVariable("model_path", MODEL_PATH)
+
+    scope.setVariable("lat", lat)
+    scope.setVariable("lon", lon)
+
+    scope.setVariable("year", year)
+    scope.setVariable("month", month)
+    scope.setVariable("day", day)
+    scope.setVariable("hour", HOUR)
+    scope.setVariable("minute", MINUTE)
+    scope.setVariable("second", SECOND)
+
+    scope.setVariable("height", HEIGHT)
+
+    context = QgsExpressionContext()
+    context.appendScope(scope)
+
     expr = QgsExpression(
-        f"magnetic_declination({MODEL_NAME}, make_datetime({year}, {month}, {day}, {HOUR}, {MINUTE}, {SECOND}), {lat}, {lon}, {HEIGHT}, {MODEL_PATH})"
+        "magnetic_declination(@model_name, make_datetime(@year, @month, @day, @hour, @minute, @second), @lat, @lon, @height, @model_path)"
     )
     if expr.hasParserError():
         raise RuntimeError(expr.parserErrorString())
 
-    result = expr.evaluate()
+    result = expr.evaluate(context)
 
     if expr.hasEvalError():
         raise RuntimeError(expr.evalErrorString())

@@ -36,8 +36,8 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(sheet_code: str, project: QgsProject) -> MagInfoFloat:
-    nz_topo50_map_sheet = project.mapLayersByName("nz_topo50_map_sheet")[0]
+def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoFloat:
+    nz_topo50_map_sheet = project.mapLayersByName(topo_map_sheet)[0]
 
     features = list(nz_topo50_map_sheet.getFeatures())
 
