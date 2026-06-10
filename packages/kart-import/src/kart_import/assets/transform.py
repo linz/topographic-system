@@ -16,10 +16,25 @@ from ..config import (
     get_releases,
     get_themes,
 )
+from ..fixups import FIXUPS
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
+
+
+def _fixup_applies(fixup, release_id: int) -> bool:
+    return fixup.releases is None or release_id in fixup.releases
+
+
+def apply_fixups(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Run the dataset's configured fixups for this release, in order."""
+    for fixup in td.fixups:
+        if not _fixup_applies(fixup, release_id):
+            continue
+        logger.info("apply_fixup", extra={"fn": fixup.fn, "dataset": td.name, "release": release_id})
+        gdf = FIXUPS[fixup.fn](gdf, td, release_id)
+    return gdf
 
 
 def get_theme_and_dataset(dataset_name: str) -> tuple[Theme, ThemeDataset]:
@@ -153,6 +168,13 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
 
     target_release_id = find_release_for_source(input_file.resolve(), dataset_name, releases)
     if target_release_id != release_id:
+        gated_here = [f.fn for f in td.fixups if f.releases is not None and release_id in f.releases]
+        if gated_here:
+            raise Exception(
+                f"fixup(s) {gated_here} target release {release_id}, which shares a source file with release "
+                f"{target_release_id} and is not transformed on its own; gate the fixup to the canonical "
+                f"release {target_release_id} instead"
+            )
         logger.info("source_file transformed by another release", extra={"target_release": target_release_id})
         target_transformed_file = WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}.json"
 
@@ -201,6 +223,11 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     start_time = time.perf_counter()
     gdf = normalize_fields(gdf, td)
     logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+    if td.fixups:
+        start_time = time.perf_counter()
+        gdf = apply_fixups(gdf, td, release_id)
+        logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
     gdf.to_file(output_file, driver="GeoJSON", index=False)
     return output_file

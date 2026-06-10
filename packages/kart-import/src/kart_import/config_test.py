@@ -59,6 +59,32 @@ def test_field_spec_rejects_unknown_keys():
         FieldSpec.parse({"surce": "$"})  # typo'd key
 
 
+def test_fixups_default_to_empty():
+    td = ThemeDataset.model_validate({"source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"})
+    assert td.fixups == []
+
+
+def test_fixup_is_parsed():
+    td = ThemeDataset.model_validate(
+        {
+            "source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k",
+            "fixups": [{"fn": "change_type_to_none", "releases": [64, 65]}],
+        }
+    )
+    assert td.fixups[0].fn == "change_type_to_none"
+    assert td.fixups[0].releases == [64, 65]
+
+
+def test_unknown_fixup_is_rejected_at_load():
+    with pytest.raises(ValidationError):
+        ThemeDataset.model_validate(
+            {
+                "source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k",
+                "fixups": [{"fn": "no_such_fixup"}],
+            }
+        )
+
+
 def test_theme_dataset_validates_mapping_at_load():
     with pytest.raises(ValidationError):
         ThemeDataset.model_validate(
