@@ -19,7 +19,7 @@ type LintRule = (node: Record<string, unknown>) => string | null;
 /**
  * List of Fonts to allow with their namedStyles
  */
-const AllowedFonts: Record<string, boolean | Set<string>> = {
+const AllowedFonts: Record<string, true | Set<string>> = {
   'Nimbus Sans Narrow': new Set(['default', 'Oblique', 'Regular', 'Bold']),
   'Nimbus Sans': new Set(['default', 'Regular', 'Bold', 'Italic', 'Bold Italic']),
 };
@@ -81,15 +81,16 @@ export function lintFontFamilies(node: Record<string, unknown>): string | null {
   if (fontFamily == null) return null;
 
   const fontConfig = AllowedFonts[fontFamily];
-  if (fontConfig === true) return null; // All styles of this font are allowed
-  if (fontConfig instanceof Set) {
-    // Default "" and null to "default"
-    const fontStyle = (node['@_namedStyle'] || 'default') as string;
-    if (fontConfig.has(fontStyle)) return null; // This style of the font is allowed
-    return `Font Style "${fontFamily}" does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
+  if (fontConfig == null) {
+    return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
   }
 
-  return `Font family "${fontFamily}" is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
+  if (fontConfig === true) return null; // All styles of this font are allowed
+
+  // Default "" and null to "default"
+  const fontStyle = (node['@_namedStyle'] || 'default') as string;
+  if (fontConfig.has(fontStyle)) return null; // This style of the font is allowed
+  return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
 }
 
 /**
