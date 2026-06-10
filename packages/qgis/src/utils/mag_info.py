@@ -74,7 +74,7 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         decl = calculate_magnetic_declination(center_transformed_point, date)
 
         # rate of change
-        rate_years = calculate_rate_of_change(center_transformed_point, date, 0.5, 10)
+        rate_years = calculate_rate_of_change(center_transformed_point, date, 0.5)
 
         # gm angle
         gm_degrees = decl - conv
