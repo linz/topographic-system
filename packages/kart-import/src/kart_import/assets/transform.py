@@ -1,7 +1,9 @@
+import fcntl
 import json
 import logging
 import os
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
@@ -138,6 +140,18 @@ def find_release_for_source(source_file: Path, dataset_name: str, releases: list
     raise Exception(f"No release found for source file: {source_file}")
 
 
+@contextmanager
+def exclusive_lock(target_file: Path):
+    """Hold an exclusive cross-process lock keyed on `target_file`."""
+    lock_path = target_file.with_name(f"{target_file.name}.lock")
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
 def wait_for_file_exists(target_file: Path, timeout: int = 5):
     logger.info(
         "checking/waiting for target file",
@@ -195,41 +209,46 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         logger.info("symlinked")
         return output_file
 
-    lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
-    if not lifecycle_file.exists():
-        raise Exception(f"missing lifecycle_{dataset_name}")
-    with open(lifecycle_file) as f:
-        lifecycle_data = json.load(f)
+    with exclusive_lock(output_file):
+        if output_file.exists():
+            logger.info("transform produced while waiting for lock", extra={"target": output_file})
+            return output_file
 
-    start_time = time.perf_counter()
-    gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
-    logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
+        if not lifecycle_file.exists():
+            raise Exception(f"missing lifecycle_{dataset_name}")
+        with open(lifecycle_file) as f:
+            lifecycle_data = json.load(f)
 
-    if gdf.crs is None:
-        raise Exception("source frame has no projection")
-
-    start_time = time.perf_counter()
-    gdf = normalize_field_lifecyle(
-        gdf,
-        td,
-        lifecycle_data,
-    )
-    logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    start_time = time.perf_counter()
-    gdf = normalize_projection(gdf, td, theme.target_epsg)
-    logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    start_time = time.perf_counter()
-    gdf = normalize_fields(gdf, td)
-    logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    if td.fixups:
         start_time = time.perf_counter()
-        gdf = apply_fixups(gdf, td, release_id)
-        logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+        logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
-    gdf.to_file(output_file, driver="GeoJSON", index=False)
+        if gdf.crs is None:
+            raise Exception("source frame has no projection")
+
+        start_time = time.perf_counter()
+        gdf = normalize_field_lifecyle(
+            gdf,
+            td,
+            lifecycle_data,
+        )
+        logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        start_time = time.perf_counter()
+        gdf = normalize_projection(gdf, td, theme.target_epsg)
+        logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        start_time = time.perf_counter()
+        gdf = normalize_fields(gdf, td)
+        logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        if td.fixups:
+            start_time = time.perf_counter()
+            gdf = apply_fixups(gdf, td, release_id)
+            logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        gdf.to_file(output_file, driver="GeoJSON", index=False)
     return output_file
 
 
