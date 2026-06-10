@@ -15,14 +15,14 @@ from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_chan
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
 
-class MagInfoFloat(TypedDict):
+class MagInfoRaw(TypedDict):
     gm_degrees: float
     gm_mils: float
     gm_year: int
     gm_rate_years: float
 
 
-class MagInfoStr(TypedDict):
+class MagInfoRender(TypedDict):
     gm_degrees: str
     gm_mils: str
     gm_year: str
@@ -37,7 +37,7 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoFloat:
+def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoRaw:
     nz_topo50_map_sheet = project.mapLayersByName(topo_map_sheet)[0]
 
     features = list(nz_topo50_map_sheet.getFeatures())
@@ -80,12 +80,12 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         gm_degrees = decl - conv
         gm_mils = _degrees_to_mils(gm_degrees)
 
-        return MagInfoFloat(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=date.year, gm_rate_years=rate_years)
+        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=date.year, gm_rate_years=rate_years)
 
     raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
 
 
-def render_mag_info(mag_info: MagInfoFloat) -> MagInfoStr:
+def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
     # gm_degrees
     gm_degrees_rounded = round(mag_info["gm_degrees"] * 2) / 2  # nearest 0.5
 
@@ -106,6 +106,6 @@ def render_mag_info(mag_info: MagInfoFloat) -> MagInfoStr:
     gm_rate_years_rounded = round(mag_info["gm_rate_years"])
     gm_rate_years_str = f"{gm_rate_years_rounded}"
 
-    return MagInfoStr(
+    return MagInfoRender(
         gm_degrees=gm_degrees_str, gm_mils=gm_mils_str, gm_year=gm_year_str, gm_rate_years=gm_rate_years_str
     )
