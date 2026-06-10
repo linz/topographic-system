@@ -50,16 +50,16 @@ def calculate_magnetic_declination(
     return result
 
 
-def calculate_rate_of_change(point: QgsPoint, date: datetime, num_degrees=0.5, num_years=10) -> float:
-    num_years_half = num_years / 2
+def calculate_rate_of_change(point: QgsPoint, date: datetime, num_degrees=0.5) -> float:
+    # period: 10 years before, 10 years after
 
-    date_before = date.replace(year=date.year - num_years_half)
-    date_after = date.replace(year=date.year + num_years_half)
+    date_before = date.replace(year=date.year - 10)
+    date_after = date.replace(year=date.year + 10)
 
     decl_before = calculate_magnetic_declination(point, date_before)
     decl_after = calculate_magnetic_declination(point, date_after)
     decl_delta = decl_after - decl_before
 
-    rate_of_change = (num_degrees * num_years) / decl_delta
+    rate_of_change = (num_degrees * 20) / decl_delta
 
     return rate_of_change
