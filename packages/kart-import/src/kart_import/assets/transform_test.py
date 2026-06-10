@@ -33,9 +33,14 @@ def test_column_references():
     assert out["highway_number"].tolist() == ["SH1"]
 
 
-def test_none_source_skips_column():
-    out = normalize_fields(_gdf([{"name": "a"}]), _td({"topo_id": None}))
-    assert "topo_id" not in out.columns
+def test_none_source_creates_null_column():
+    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": None}))
+    assert out["topo_id"].tolist() == [None, None]
+
+
+def test_none_source_with_default_fills_every_row():
+    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": {"default": "X"}}))
+    assert out["topo_id"].tolist() == ["X", "X"]
 
 
 def test_default_fills_nulls_in_column():
