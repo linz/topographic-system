@@ -19,7 +19,7 @@ class MagInfoFloat(TypedDict):
     gm_degrees: float
     gm_mils: float
     gm_year: int
-    gm_rate_years: int
+    gm_rate_years: float
 
 
 class MagInfoStr(TypedDict):
