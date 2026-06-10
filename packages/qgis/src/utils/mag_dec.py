@@ -5,23 +5,11 @@ from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextS
 MODEL_NAME = "igrf13"
 MODEL_PATH = "/usr/qgis/models"
 
-NOW = datetime.now()
-YEAR = NOW.year
-MONTH = NOW.month
-DAY = NOW.day
-HOUR = 0
-MINUTE = 0
-SECOND = 0
-
-HEIGHT = 0
-
 
 # expects a lat-lon pair in WGS84 (EPSG:4326)
 def calculate_magnetic_declination(
     point: QgsPoint,
-    year=YEAR,
-    month=MONTH,
-    day=DAY,
+    date: datetime,
 ) -> float:
     lat = point.y()  # y axis, vertical axis, north/south, latitude
     lon = point.x()  # x axis, horizontal axis, east/west, longitude
@@ -33,14 +21,14 @@ def calculate_magnetic_declination(
     scope.setVariable("lat", lat)
     scope.setVariable("lon", lon)
 
-    scope.setVariable("year", year)
-    scope.setVariable("month", month)
-    scope.setVariable("day", day)
-    scope.setVariable("hour", HOUR)
-    scope.setVariable("minute", MINUTE)
-    scope.setVariable("second", SECOND)
+    scope.setVariable("year", date.year)
+    scope.setVariable("month", date.month)
+    scope.setVariable("day", date.day)
+    scope.setVariable("hour", 0)
+    scope.setVariable("minute", 0)
+    scope.setVariable("second", 0)
 
-    scope.setVariable("height", HEIGHT)
+    scope.setVariable("height", 0)
 
     context = QgsExpressionContext()
     context.appendScope(scope)
@@ -60,3 +48,18 @@ def calculate_magnetic_declination(
         raise TypeError("The calculated magnetic declination value is not a float number.")
 
     return result
+
+
+def calculate_rate_of_change(point: QgsPoint, date: datetime, num_degrees=0.5, num_years=10) -> float:
+    num_years_half = num_years / 2
+
+    date_before = date.replace(year=date.year - num_years_half)
+    date_after = date.replace(year=date.year + num_years_half)
+
+    decl_before = calculate_magnetic_declination(point, date_before)
+    decl_after = calculate_magnetic_declination(point, date_after)
+    decl_delta = decl_after - decl_before
+
+    rate_of_change = (num_degrees * num_years) / decl_delta
+
+    return rate_of_change

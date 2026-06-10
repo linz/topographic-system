@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TypedDict
 
 from qgis.core import (
@@ -9,7 +10,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from utils.mag_dec import calculate_magnetic_declination
+from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -69,13 +70,17 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         conv = source_crs.factors(center_transformed_point).meridianConvergence()
 
         # magnetic declination
-        decl = calculate_magnetic_declination(center_transformed_point)
+        date = datetime.now()
+        decl = calculate_magnetic_declination(center_transformed_point, date)
+
+        # rate of change
+        rate_years = calculate_rate_of_change(center_transformed_point, date, 0.5, 10)
 
         # gm angle
         gm_degrees = decl - conv
         gm_mils = _degrees_to_mils(gm_degrees)
 
-        return MagInfoFloat(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=2026, gm_rate_years=7)
+        return MagInfoFloat(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=date.year, gm_rate_years=rate_years)
 
     raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
 
@@ -98,7 +103,8 @@ def render_mag_info(mag_info: MagInfoFloat) -> MagInfoStr:
     gm_year_str = f"{mag_info['gm_year']}"
 
     # gm_rate_years
-    gm_rate_years_str = f"{mag_info['gm_rate_years']}"
+    gm_rate_years_rounded = round(mag_info["gm_rate_years"])
+    gm_rate_years_str = f"{gm_rate_years_rounded}"
 
     return MagInfoStr(
         gm_degrees=gm_degrees_str, gm_mils=gm_mils_str, gm_year=gm_year_str, gm_rate_years=gm_rate_years_str
