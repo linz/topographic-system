@@ -46,6 +46,8 @@ _Step 2: Create Model in PostGIS_ - Note: option to DROP tables available. comma
 
 _Step 3: Load Shapefiles into PostGIS_
 
+    **Note: map_sheet has been moved to product load needs to happen or align with trig and geographic names having updated ID (UUID) values.**
+
     Run script manually - load_shp_to_themes.py
     pyproj (project database) - had issue locating this after qgis installed. This can be commented out if not an issue.
     check layer_info_file is pointing to core/layers_info.csv
@@ -59,6 +61,8 @@ _Step 3a: Load contours into PostGIS_
     **If new dataset - run the drop_z_from_source.py script.**
 
     Run script under contours - import contours.py - this uses the LDS version of contours which covers all of NZ.
+
+
 
 _Step 4: Create Indexes in PostGIS (optional)_
 Run script manually - postgis_create_model.py

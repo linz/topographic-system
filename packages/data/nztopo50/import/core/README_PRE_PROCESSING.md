@@ -29,6 +29,8 @@ If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mai
 
 This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder. It is processed as part of the core and copied into the carto schema in the postgis_manage_fields script.
 
+This requires **post processing step** as new field example_point_id is now link to feature id in related trig or geographic name tables.
+
 ## ISLANDS POLYGONS - THIS STEP HAS BEEN STOPPED UNTIL CLEAR REQUIREMENTS DRAFT. FIELD DROPPED MAY2026
 
 **islands_poly.shp** - this needs the additional field (location) and calculation of offshore (1) or inland island (0) - added using the pre_processing_steps.py script. The sea_coastline poly shapefile create from coastline and outer box

@@ -26,7 +26,13 @@ Run: import_carto_text.py
 
 _ADD QGIS Fields_ - See Cartographic Text Post Processing and Re-Loading section below
 
-**nztopo50_map_sheet** - added via main topographic process and copied into carto schema (SRID=NZTM2000 EPSG:2193)
+**nztopo50_map_sheet** 
+
+run import_map_sheet.py - add into carto schema (SRID=NZTM2000 EPSG:2193)
+
+This also does a lookup based on name between trig_point, geographic_name to create the example_point_id.
+
+**IMPORTANT - run after topographic data loaded and topo ids aligned.**
 
 GRIDS
 

@@ -215,7 +215,7 @@ class ModifyTable:
             result = cur.fetchone()
             return result[0] if result else None
 
-    def carto_text_geom_update(self, schema, table):
+    def geom_snap_update(self, schema, table):
         """Snap all geometry coordinates to a 1-metre grid using ST_SnapToGrid.
 
         Args:
@@ -1017,7 +1017,6 @@ class ModifyTable:
 
         if primary_key_type == "uuid":
             ordered_list.remove("id")
-            ordered_list.remove("id")
             ordered_list.insert(0, "id")
         return ordered_list
 
@@ -1271,7 +1270,7 @@ class TableModificationWorkflow:
                 )
 
     def step_carto_text_geom_update(self):
-        self.table_modifer.carto_text_geom_update(
+        self.table_modifer.geom_snap_update(
             self.schema_name, "nztopo50_map_sheet"
         )
 
@@ -1300,7 +1299,9 @@ class TableModificationWorkflow:
     #     self.table_modifer.create_collections_table(self.schema_name)
 
     def step_process_carto_tables(self):
-        tables_to_copy = ["nztopo50_map_sheet"]
+        # tables_to_copy = ["nztopo50_map_sheet"]
+        # now loaded via product code
+        tables_to_copy = []
         if self.schema_name == "model":
             return
         
