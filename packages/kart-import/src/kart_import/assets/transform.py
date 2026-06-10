@@ -60,22 +60,17 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFram
     for target_field, spec in td.field_specs().items():
         source = spec.source
 
-        # `null`/omitted source -> skip the column entirely.
-        if source is None:
-            continue
-
         # A column reference ("$" / "$col"); anything else is a literal constant.
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
-            # An absent column is a config/schema error: fail loudly. `default` only
-            # substitutes NULL values within an existing column. To set a fixed value
-            # for a new column, use a literal constant instead.
             if source_col not in gdf.columns:
                 raise Exception(f"Source column not found: {source_col} in {td.name}")
             values = gdf[source_col]
             if spec.default is not None:
                 values = values.fillna(spec.default)
             new_data[target_field] = values
+        elif source is None:
+            new_data[target_field] = spec.default
         else:
             new_data[target_field] = source
 

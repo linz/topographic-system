@@ -86,14 +86,16 @@ class FieldSpec(BaseModel):
         highway_number: $hway_num     # copy a named source column
         feature_type: road            # literal constant
         version: 1                    # literal constant (non-string is fine)
-        topo_id: null                 # skip this column
+        topo_id: null                 # create the column populated with NULL
         name: {source: $, default: "Unknown"}   # default when the value is NULL
+
+    An unlisted source column is dropped.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     source: Any = None
-    """Column reference (``$`` / ``$col``), a literal constant, or ``None`` to skip."""
+    """Column reference (``$`` / ``$col``), a literal constant, or ``None`` for an all-NULL column."""
     default: Any = None
     """Value substituted when the resolved source is NULL/NaN."""
 
