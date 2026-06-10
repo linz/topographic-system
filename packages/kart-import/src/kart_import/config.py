@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from .env import env_releases, env_themes
+from .env import env_releases, env_themes, env_transform_format
 
 logger = logging.getLogger("kart_import")
 
@@ -35,6 +35,10 @@ WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
+
+# Format of the working/transform intermediates (GeoParquet by default)
+TRANSFORM_FORMAT = env_transform_format()
+TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"
 
 
 KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"

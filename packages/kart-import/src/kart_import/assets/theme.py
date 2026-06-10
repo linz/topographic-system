@@ -3,8 +3,9 @@ import logging
 import geopandas as gpd
 import pandas as pd
 
-from ..config import WORKING_THEME_DIR, WORKING_TRANSFORM_DIR, get_theme_by_name
+from ..config import TRANSFORM_SUFFIX, WORKING_THEME_DIR, WORKING_TRANSFORM_DIR, get_theme_by_name
 from ..log import log_context
+from .transform import read_transform
 
 logger = logging.getLogger("kart_import")
 
@@ -24,14 +25,14 @@ def merge_theme_release(theme_name: str, release_id: int):
 
     has_missing = False
     for dataset in theme.datasets:
-        geojson_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}.json"
-        if not geojson_path.exists():
+        transform_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}"
+        if not transform_path.exists():
             logger.warning(
-                f"Transformed file not found: {geojson_path}. Skipping.", extra={"source_dataset": dataset.name}
+                f"Transformed file not found: {transform_path}. Skipping.", extra={"source_dataset": dataset.name}
             )
             has_missing = True
             continue
-        gdf = gpd.read_file(geojson_path, engine="pyogrio", use_arrow=True)
+        gdf = read_transform(transform_path)
         if gdf.empty:
             logger.info(f"{dataset.name} (release {release_id}) is empty. Skipping.")
             continue

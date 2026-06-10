@@ -10,6 +10,8 @@ import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
 
 from ..config import (
+    TRANSFORM_FORMAT,
+    TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
@@ -23,6 +25,21 @@ from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
+
+
+def write_transform(gdf: gpd.GeoDataFrame, output_file: Path) -> None:
+    """Write a transform intermediate in the configured format (see TRANSFORM_FORMAT)."""
+    if TRANSFORM_FORMAT == "parquet":
+        gdf.to_parquet(output_file, compression="zstd", index=False)
+    else:
+        gdf.to_file(output_file, driver="GeoJSON", index=False)
+
+
+def read_transform(path: Path) -> gpd.GeoDataFrame:
+    """Read a transform intermediate written by `write_transform`."""
+    if TRANSFORM_FORMAT == "parquet":
+        return gpd.read_parquet(path)
+    return gpd.read_file(path, engine="pyogrio", use_arrow=True)
 
 
 def _fixup_applies(fixup, release_id: int) -> bool:
@@ -172,7 +189,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         raise Exception(f"'export' file missing: {input_file}")
 
     output_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
-    output_file = output_dir / f"{dataset_name}.json"
+    output_file = output_dir / f"{dataset_name}{TRANSFORM_SUFFIX}"
 
     if output_file.exists():
         logger.info("transform exists", extra={"target": output_file})
@@ -190,7 +207,9 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
                 f"release {target_release_id} instead"
             )
         logger.info("source_file transformed by another release", extra={"target_release": target_release_id})
-        target_transformed_file = WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}.json"
+        target_transformed_file = (
+            WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}{TRANSFORM_SUFFIX}"
+        )
 
         # Target file should be created by another process if we are running directly via __main__ create the other
         # releases file, otherwise wait for the target file to exist
@@ -248,7 +267,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             gdf = apply_fixups(gdf, td, release_id)
             logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
-        gdf.to_file(output_file, driver="GeoJSON", index=False)
+        write_transform(gdf, output_file)
     return output_file
 
 

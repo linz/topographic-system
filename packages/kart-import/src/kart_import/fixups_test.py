@@ -138,7 +138,7 @@ def test_fixup_on_canonical_release_is_inherited_by_group(tmp_path, monkeypatch)
 
     out66 = transform.transform_dataset_release("ds", 66)
     assert os.path.islink(out66)  # still deduped
-    assert _status_of_a(gpd.read_file(out66)) == "FIXED"  # inherits the canonical's fix
+    assert _status_of_a(transform.read_transform(out66)) == "FIXED"  # inherits the canonical's fix
 
 
 def test_non_fixup_dataset_still_reuses_shared_source(tmp_path, monkeypatch):
