@@ -20,8 +20,17 @@ type LintRule = (node: Record<string, unknown>) => string | null;
  * List of Fonts to allow with their namedStyles
  */
 const AllowedFonts: Record<string, true | Set<string>> = {
-  'Nimbus Sans Narrow': new Set(['default', 'Oblique', 'Regular', 'Bold']),
-  'Nimbus Sans': new Set(['default', 'Regular', 'Bold', 'Italic', 'Bold Italic']),
+  'Nimbus Sans LINZ': new Set([
+    'default',
+    'Regular',
+    'Bold',
+    'Italic',
+    'Bold Italic',
+    'Narrow',
+    'Narrow Oblique',
+    'Narrow Bold',
+    'Narrow Bold Italic',
+  ]),
 };
 
 const LintRules: LintRule[] = [lintDataSources, lintFontFamilies];
@@ -41,9 +50,7 @@ export const LintQgisProjectCommand = command({
       if (path == null) continue;
 
       const qgisFile = await fsa.read(path);
-      const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
-      const qgisXml = parser.parse(qgisFile);
-      const errors = lint(qgisXml, LintRules);
+      const errors = lint(qgisFile, LintRules);
 
       if (errors.length > 0) {
         for (const error of errors) logger.error({ error }, 'LintQgis:Error');
@@ -54,23 +61,28 @@ export const LintQgisProjectCommand = command({
   },
 });
 
-export function lint(node: unknown, rules: LintRule[], visited = new Set<unknown>(), errors: string[] = []): string[] {
-  if (node == null) return errors;
-  if (visited.has(node)) {
-    console.warn('Already visited node, skipping to avoid circular reference', { node });
-    return errors;
+export function lint(obj: string | Buffer | Record<string, unknown>, rules: LintRule[]): string[] {
+  if (typeof obj === 'string' || Buffer.isBuffer(obj)) {
+    const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
+    const qgisXml = parser.parse(obj);
+    return doLint(qgisXml, rules, []);
   }
+
+  return doLint(Object, rules, []);
+}
+
+export function doLint(node: unknown, rules: LintRule[], errors: string[]): string[] {
+  if (node == null) return errors;
 
   for (const rule of rules) {
     const error = rule(node as Record<string, unknown>);
     if (error != null) errors.push(error);
   }
 
-  visited.add(node);
   for (const value of Object.values(node)) {
     if (value == null) continue;
     if (typeof value !== 'object') continue;
-    lint(value, rules, visited, errors);
+    doLint(value, rules, errors);
   }
 
   return errors;
@@ -80,6 +92,7 @@ export function lintFontFamilies(node: Record<string, unknown>): string | null {
   const fontFamily = node['@_fontFamily'] as string | undefined;
   if (fontFamily == null) return null;
 
+  console.log({ fontFamily });
   const fontConfig = AllowedFonts[fontFamily];
   if (fontConfig == null) {
     return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
