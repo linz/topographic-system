@@ -68,7 +68,7 @@ export function lint(obj: string | Buffer | Record<string, unknown>, rules: Lint
     return doLint(qgisXml, rules, []);
   }
 
-  return doLint(Object, rules, []);
+  return doLint(obj, rules, []);
 }
 
 export function doLint(node: unknown, rules: LintRule[], errors: string[]): string[] {
@@ -92,7 +92,6 @@ export function lintFontFamilies(node: Record<string, unknown>): string | null {
   const fontFamily = node['@_fontFamily'] as string | undefined;
   if (fontFamily == null) return null;
 
-  console.log({ fontFamily });
   const fontConfig = AllowedFonts[fontFamily];
   if (fontConfig == null) {
     return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
