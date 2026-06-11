@@ -66,7 +66,10 @@ rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
         exported = "data/working/export/release_{release}/{dataset}.json",
-        config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
+        config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
+        fixups = lambda wildcards: (
+            ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
+        )
     output:
         transformed = "data/working/transform/release_{release}/{dataset}.json"
     shell:
