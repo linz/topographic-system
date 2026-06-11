@@ -181,6 +181,7 @@ def load_from_yaml():
             if dataset.name in DATASET_MAP:
                 raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
             DATASET_MAP[dataset.name] = dataset
+            DATASET_TO_THEME_MAP[dataset.name] = theme
 
     if not CONFIG_DIR_RELEASE.exists():
         raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
