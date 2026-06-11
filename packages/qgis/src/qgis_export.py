@@ -76,8 +76,8 @@ for feature in topo_sheet_layer.getFeatures():
     map_item.setExtent(bbox)
 
     # TODO add example_id to test data
-    if "example_id" in feature:
-        example_id = feature["example_id"]
+    example_id = feature["example_id"] if "example_id" in feature.fields().names() else None
+    if example_id is not None:
         # example_id may reference a feature in trig_point or geographic_name.
         # The label shown for the example depends on the layer it came from
         example_label_formats = {
