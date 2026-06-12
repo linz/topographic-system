@@ -1,0 +1,5 @@
+extends: ./tspconfig.yaml
+options:
+  '@typespec/json-schema':
+    emitter-output-dir: '{project-root}/../../schema/next'
+    file-type: 'json'
