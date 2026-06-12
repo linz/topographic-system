@@ -6,11 +6,13 @@ import sys
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
+    QgsExpressionContextUtils,
     QgsLayoutExporter,
     QgsLayoutItemMap,
     QgsProject,
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
+from utils.mag_info import calculate_mag_info, render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -69,6 +71,14 @@ for feature in topo_sheet_layer.getFeatures():
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
+
+    # handle magnetic info
+    mag_info_float = calculate_mag_info(project, topo_map_sheet, sheet_code)
+    mag_info_str = render_mag_info(mag_info_float)
+
+    for key, value in mag_info_str.items():
+        QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
+
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
