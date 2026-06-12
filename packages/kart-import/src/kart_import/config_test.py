@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from .config import Source, ThemeDataset, get_dataset_name
+from .config import FieldSpec, Source, ThemeDataset, get_dataset_name
 
 
 def test_string_source_is_coerced_to_url():
@@ -37,3 +37,33 @@ def test_non_koordinates_source_without_name_is_rejected():
 def test_get_dataset_name_rejects_non_koordinates_source():
     with pytest.raises(ValueError, match="set 'name:' explicitly"):
         get_dataset_name(Source(url="git@github.com:linz/topographic-source-data"))
+
+
+def test_field_spec_parses_scalar_shorthand():
+    assert FieldSpec.parse("$").source == "$"
+    assert FieldSpec.parse("$hway_num").source == "$hway_num"
+    assert FieldSpec.parse("road").source == "road"
+    assert FieldSpec.parse(1).source == 1
+    spec = FieldSpec.parse(None)
+    assert spec.source is None and spec.default is None
+
+
+def test_field_spec_parses_dict_with_default():
+    spec = FieldSpec.parse({"source": "$", "default": "Unknown"})
+    assert spec.source == "$"
+    assert spec.default == "Unknown"
+
+
+def test_field_spec_rejects_unknown_keys():
+    with pytest.raises(ValidationError):
+        FieldSpec.parse({"surce": "$"})  # typo'd key
+
+
+def test_theme_dataset_validates_mapping_at_load():
+    with pytest.raises(ValidationError):
+        ThemeDataset.model_validate(
+            {
+                "source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k",
+                "mapping": {"name": {"surce": "$"}},  # bad spec surfaces at load
+            }
+        )
