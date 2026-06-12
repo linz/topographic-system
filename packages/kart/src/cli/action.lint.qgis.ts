@@ -27,7 +27,7 @@ const AllowedFonts: Record<string, true | Set<string>> = {
     'Italic',
     'Bold Italic',
     'Narrow',
-    'Narrow Oblique',
+    'Narrow Italic',
     'Narrow Bold',
     'Narrow Bold Italic',
   ]),
