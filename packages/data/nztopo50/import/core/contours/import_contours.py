@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine, text
+from sqlalchemy.dialects.postgresql import UUID
 import geopandas as gpd  # type: ignore
 import uuid
 
@@ -21,7 +22,7 @@ if load_data:
 
     # gdf = gdf.drop(columns=["FID"])
     gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(gdf))])
-    gdf["feature_type"] = "contour"
+    gdf["type"] = "contour"
     print(gdf.columns)
 
     if_exists_option = "replace"
@@ -37,6 +38,7 @@ if load_data:
             schema=schema,
             if_exists="append" if i > 0 else if_exists_option,
             index=False,
+            dtype={"id": UUID(as_uuid=True)},
         )
 
 

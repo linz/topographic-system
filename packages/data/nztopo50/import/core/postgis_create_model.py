@@ -158,7 +158,7 @@ def run_model_creation(
                                 continue
                     print(f"Index for '{table}' created successfully.")
 
-                    index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema_name}.{table}(feature_type);"
+                    index_sql = f"CREATE INDEX IF NOT EXISTS idx_{table}_class ON {schema_name}.{table}(type);"
                     with psycopg.connect(**active_db_params) as conn:
                         with conn.cursor() as cur:
                             try:

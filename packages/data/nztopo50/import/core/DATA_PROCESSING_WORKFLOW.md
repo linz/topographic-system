@@ -4,7 +4,7 @@ Shapefile field names are restricted in length - these are renamed to longer ver
 
 Data going into repo topographic-data is converted to EPSG:4167 New Zealand Geodetic Datum 2000 (NZGD2000). It is a geographic (lat/long) coordinate system based on the GRS80 ellipsoid.
 
-A feature_type fields is added to all layers - the feature type is based on the shapefile name - loaded from layers_info.csv control file.
+A type fields is added to all layers - the feature type is based on the shapefile name - loaded from layers_info.csv control file.
 
 An id (formally topo_id) field (UUID/GUID) is added and unique value assigned. 
 
@@ -56,7 +56,7 @@ tunnel_use2 updated to livestock where use2 = vehicle
 
  "road_line", "road_access", "'mp'", "road_access ='m'"
 
-"utility_line (formally physical_Infrastructure_line)", "support_type", "'pole'","feature_type ='telephone'"
+"utility_line (formally physical_Infrastructure_line)", "support_type", "'pole'","type ='telephone'"
 
 A name field is added to these layers
 
@@ -75,7 +75,7 @@ Where null defines a value - set a value instead
         update_dict = {
             f"{schema_name}.runway": [("surface", "'grass'", "")],
             f"{schema_name}.vegetation": [
-                ("species", "'coniferous'", "AND feature_type = 'exotic'")],
+                ("species", "'coniferous'", "AND type = 'exotic'")],
             f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
             # Add more entries as needed - should be pre-existing
         }

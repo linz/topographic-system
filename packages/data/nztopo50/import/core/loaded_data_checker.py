@@ -161,7 +161,7 @@ def check_layer_has_records_and_features(
     """Check row count and expected feature presence for one layer.
 
     A layer passes when it has more than one row and, if expected features are
-    provided, at least one row exists with a matching ``feature_type`` value.
+    provided, at least one row exists with a matching ``type`` value.
     """
     conn = db_tables.get_connection()
 
@@ -176,7 +176,7 @@ def check_layer_has_records_and_features(
     has_expected_feature = expected_features is None
 
     if expected_features is not None:
-        if not db_tables.column_exists(schema, layer, "feature_type"):
+        if not db_tables.column_exists(schema, layer, "type"):
             has_expected_feature = False
         else:
             with conn.cursor() as cur:
@@ -185,7 +185,7 @@ def check_layer_has_records_and_features(
                     SELECT EXISTS(
                         SELECT 1
                         FROM {}.{}
-                        WHERE feature_type = ANY(%s)
+                        WHERE type = ANY(%s)
                     );
                     """
                 ).format(sql.Identifier(schema), sql.Identifier(layer))
@@ -310,15 +310,15 @@ def test_coordinate_system_conversions(db_tables: DBTables) -> dict[str, Any]:
 
 
 def test_field_management(db_tables: DBTables) -> dict[str, Any]:
-    """Test 2: Verify Field Management (feature_type, id, metadata fields).
+    """Test 2: Verify Field Management (type, id, metadata fields).
 
-    Expected: All layers should have feature_type and id columns.
+    Expected: All layers should have type and id columns.
     Metadata fields: capture_method, change_type, updated_at, created_at, version
     """
     conn = db_tables.get_connection()
     results: dict[str, Any] = {"test_name": "Field Management", "details": []}
     required_fields = [
-        "feature_type",
+        "type",
         "id",
         "capture_method",
         "change_type",
@@ -631,7 +631,7 @@ def test_default_value_assignment(db_tables: DBTables) -> dict[str, Any]:
                 cur.execute(
                     """
                     SELECT COUNT(*) FROM release64.vegetation 
-                    WHERE feature_type = 'exotic' AND (species IS NULL OR species = '')
+                    WHERE type = 'exotic' AND (species IS NULL OR species = '')
                     """
                 )
                 null_count = cur.fetchone()[0]

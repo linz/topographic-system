@@ -498,7 +498,7 @@ class ModifyTable:
         update_dict = {
             f"{schema_name}.runway": [("surface", "'grass'", "")],
             f"{schema_name}.vegetation": [
-                ("species", "'coniferous'", "AND feature_type = 'exotic'")
+                ("species", "'coniferous'", "AND type = 'exotic'")
             ],
             f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
             # Add more entries as needed - should be pre-existing
@@ -525,7 +525,7 @@ class ModifyTable:
                             )
 
     def set_default_values(self, schema_name="toposource"):
-        """Apply DDL default expressions for feature_type and status columns.
+        """Apply DDL default expressions for type and status columns.
 
         Updates ``ALTER COLUMN … SET DEFAULT`` for a curated set of tables so
         that new rows automatically receive the correct attribute values.
@@ -538,23 +538,23 @@ class ModifyTable:
         # Define a dictionary with key as "schema.table" and value as a list of (column_name, update_value) tuples
         update_dict = {
             f"{schema_name}.runway": [("status", "'active'"), ("surface", "'sealed'")],
-            f"{schema_name}.airport": [("feature_type", "'airport'")],
-            f"{schema_name}.bridge_line": [("feature_type", "'bridge'")],
-            f"{schema_name}.building": [("feature_type", "'building'")],
-            f"{schema_name}.building_point": [("feature_type", "'building'")],
-            f"{schema_name}.descriptive_text": [("feature_type", "'descriptive_text'")],
-            f"{schema_name}.railway_line": [("feature_type", "'railway'")],
-            f"{schema_name}.railway_station": [("feature_type", "'railway_station'")],
-            f"{schema_name}.residential_area": [("feature_type", "'residential_area'")],
-            f"{schema_name}.road_line": [("feature_type", "'road'")],
-            f"{schema_name}.track_line": [("feature_type", "'track'")],
-            f"{schema_name}.vegetation_point": [("feature_type", "'tree'")],
-            f"{schema_name}.trig_point": [("feature_type", "'trig'")],
-            f"{schema_name}.tunnel_line": [("feature_type", "'tunnel'")],
+            f"{schema_name}.airport": [("type", "'airport'")],
+            f"{schema_name}.bridge_line": [("type", "'bridge'")],
+            f"{schema_name}.building": [("type", "'building'")],
+            f"{schema_name}.building_point": [("type", "'building'")],
+            f"{schema_name}.descriptive_text": [("type", "'descriptive_text'")],
+            f"{schema_name}.railway_line": [("type", "'railway'")],
+            f"{schema_name}.railway_station": [("type", "'railway_station'")],
+            f"{schema_name}.residential_area": [("type", "'residential_area'")],
+            f"{schema_name}.road_line": [("type", "'road'")],
+            f"{schema_name}.track_line": [("type", "'track'")],
+            f"{schema_name}.vegetation_point": [("type", "'tree'")],
+            f"{schema_name}.trig_point": [("type", "'trig'")],
+            f"{schema_name}.tunnel_line": [("type", "'tunnel'")],
         }
 
-        # f"{schema_name}.river": [("feature_type", "'river'")],
-        # f"{schema_name}.river_line": [("feature_type", "'river'")],
+        # f"{schema_name}.river": [("type", "'river'")],
+        # f"{schema_name}.river_line": [("type", "'river'")],
 
         with self.conn.cursor() as cur:
             for table_name, columns in update_dict.items():
@@ -917,7 +917,7 @@ class ModifyTable:
         ordered_list = [
             "id",
             "t50_fid",
-            "feature_type",
+            "type",
             "bridge_use",
             "bridge_use2",
             "building_use",
@@ -1139,7 +1139,7 @@ class TableModificationWorkflow:
             "utility_line",
             "support_type",
             "'pole'",
-            "feature_type ='telephone'",
+            "type ='telephone'",
         )
 
     def step_name(self):

@@ -6,6 +6,7 @@ import geopandas as gpd
 import pandas as pd
 import uuid
 
+final_drop_fields = False
 # source = 'windows-shp'
 source = 'windows-gpkg'
 # source = 'aws-gpkg'
@@ -25,8 +26,30 @@ else:
     layer = "linz_map_sheet"
 
 carto_schema="carto"
-release_schema="release64"
-topo_id_name="topo_id"
+release_schema="release66"
+topo_id_name="id"
+
+def top_left_from_geometry(geom):
+    if geom is None or geom.is_empty:
+        return (pd.NA, pd.NA)
+
+    xs = []
+    ys = []
+
+    def walk_coords(node):
+        if isinstance(node, (list, tuple)):
+            if len(node) >= 2 and isinstance(node[0], Real) and isinstance(node[1], Real):
+                xs.append(float(node[0]))
+                ys.append(float(node[1]))
+            else:
+                for child in node:
+                    walk_coords(child)
+
+    walk_coords(geom.__geo_interface__.get("coordinates"))
+    if not xs or not ys:
+        return (pd.NA, pd.NA)
+
+    return (min(xs), max(ys))
 
 input_file = os.path.join(path, file)
 
@@ -55,13 +78,17 @@ if "FID" in gdf.columns:
 
 # Coerce known carto fields into stable numeric/string types before DB load.
 string_columns = ["example_name", "example_class", "sheet_code", "sheet_name", "edition"]
-#int_columns = ["t50_fid"]
+#int_columns = ["x_origin", "y_origin"]
 int64_columns = ["t50_fid"]
 
 
 for col in string_columns:
     if col in gdf.columns:
         gdf[col] = gdf[col].astype("string")
+
+#for col in int_columns:
+#    if col in gdf.columns:
+#        gdf[col] = pd.to_numeric(gdf[col], errors="coerce").astype("Int32")
 
 for col in int64_columns:
     if col in gdf.columns:
@@ -76,34 +103,10 @@ gdf.insert(0, "id", [uuid.uuid4() for _ in range(len(gdf))])
 # Add required output fields for map sheet load.
 gdf["type"] = "nztopo50_map_sheet"
 
-
-def top_left_from_geometry(geom):
-    if geom is None or geom.is_empty:
-        return (pd.NA, pd.NA)
-
-    xs = []
-    ys = []
-
-    def walk_coords(node):
-        if isinstance(node, (list, tuple)):
-            if len(node) >= 2 and isinstance(node[0], Real) and isinstance(node[1], Real):
-                xs.append(float(node[0]))
-                ys.append(float(node[1]))
-            else:
-                for child in node:
-                    walk_coords(child)
-
-    walk_coords(geom.__geo_interface__.get("coordinates"))
-    if not xs or not ys:
-        return (pd.NA, pd.NA)
-
-    return (min(xs), max(ys))
-
-
 origins = gdf.geometry.apply(top_left_from_geometry)
 origins_df = origins.apply(pd.Series)
-gdf["x_origin"] = pd.to_numeric(origins_df[0], errors="coerce").round(0)
-gdf["y_origin"] = pd.to_numeric(origins_df[1], errors="coerce").round(0)
+gdf["x_origin"] = pd.to_numeric(origins_df[0], errors="coerce").round(0).astype("Int32")
+gdf["y_origin"] = pd.to_numeric(origins_df[1], errors="coerce").round(0).astype("Int32")
 
 if "example_point_id" not in gdf.columns:
     gdf["example_point_id"] = pd.NA
@@ -155,7 +158,7 @@ if geometry_column in gdf.columns:
 gdf = gdf[ordered_columns]
 
 
-def update_example_point_ids(conn, carto_schema="carto", release_schema="release64", topo_id_name = "topo_id"):
+def update_example_point_ids(conn, carto_schema="carto", release_schema="release66", topo_id_name = "id"):
     conn.execute(
         text(f"""
             UPDATE {carto_schema}.nztopo50_map_sheet ms
@@ -176,6 +179,39 @@ def update_example_point_ids(conn, carto_schema="carto", release_schema="release
         """)
     )
 
+def data_fixes(conn, carto_schema="carto"):
+    conn.execute(
+        text(f"""
+            UPDATE {carto_schema}.nztopo50_map_sheet ms
+            SET example_name = regexp_replace(example_name, '^Mt\\s+', 'Mount ')
+            WHERE example_point_id IS NULL
+              AND example_name ~ '^Mt\\s+';
+        """)
+
+    )
+    conn.execute(
+        text(f"""
+            UPDATE {carto_schema}.nztopo50_map_sheet ms
+            SET example_name = CASE
+                WHEN example_name = 'A0TR' THEN 'A0U2'
+                WHEN example_name = 'AP8Y' THEN 'A4UX'
+                ELSE example_name
+            END
+            WHERE example_name IN ('A0TR', 'AP8Y');
+        """)
+    )
+    conn.execute(
+        text(f"""
+            UPDATE {carto_schema}.nztopo50_map_sheet ms
+            SET example_name = CASE
+                WHEN example_name = 'Putata' THEN 'Pūtata'
+                WHEN example_name = 'Pohoi' THEN 'Pōhoi'
+                WHEN example_name = 'Rahuimokairoa' THEN 'Rāhuimōkairoa'
+                ELSE example_name
+            END
+            WHERE example_name IN ('Putata', 'Pohoi', 'Rahuimokairoa');
+        """)
+    )
 
 def drop_post_update_columns(conn, carto_schema="carto"):
     conn.execute(
@@ -206,7 +242,24 @@ with engine.begin() as conn:
         """)
     )
     update_example_point_ids(conn, carto_schema=carto_schema, release_schema=release_schema, topo_id_name=topo_id_name)
-    drop_post_update_columns(conn, carto_schema=carto_schema)
+
+    # temp fix for missing example_point_ids
+    data_fixes(conn, carto_schema=carto_schema)
+    update_example_point_ids(conn, carto_schema=carto_schema, release_schema=release_schema, topo_id_name=topo_id_name)
+
+    if final_drop_fields:
+        drop_post_update_columns(conn, carto_schema=carto_schema)
+        conn.commit()
+
+    # remove 3 superfluous polygon areas not needed for map sheet product
+    conn.execute(
+        text(f"""
+            DELETE FROM {carto_schema}.nztopo50_map_sheet
+            WHERE sheet_code LIKE 'Topo%';
+        """)
+    )
+
+
     conn.commit()
 
 print("Data imported successfully")

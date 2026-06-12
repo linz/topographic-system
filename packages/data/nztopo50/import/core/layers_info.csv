@@ -1,4 +1,4 @@
-﻿object_name,shp_name,theme,dataset,feature_type,layer_name,type,lds_Name,gpkg_file,kart_layer_name,geometry_type,has_z,feature_count,crs_code
+﻿object_name,shp_name,theme,dataset,type,layer_name,type,lds_Name,gpkg_file,kart_layer_name,geometry_type,has_z,feature_count,crs_code
 Transport,airport_poly,Transport,Transport_Layers,airport,Airport,poly,50237-nz-airport-polygons-topo-150k,50237-nz-airport-polygons-topo-150k\nz_airport_polygons_topo_150k.gpkg,nz_airport_polygons_topo_150k,Polygon,FALSE,83,EPSG:2193
 Structure,bridge_cl,Transport,Transport_Layers,bridge,Bridge_line,line,50244-nz-bridge-centrelines-topo-150k,50244-nz-bridge-centrelines-topo-150k\nz_bridge_centrelines_topo_150k.gpkg,nz_bridge_centrelines_topo_150k,LineString,FALSE,16365,EPSG:2193
 Structure,building_poly,Buildings,Buildings_Layers,building,Building,poly,50246-nz-building-polygons-topo-150k,50246-nz-building-polygons-topo-150k\nz_building_polygons_topo_150k.gpkg,nz_building_polygons_topo_150k,Polygon,FALSE,66229,EPSG:2193

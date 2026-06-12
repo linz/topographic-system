@@ -20,9 +20,9 @@
 ### generic layer processing that can affect road_line 
 - During process_and_save_layers:
   - Missing common columns are added as null before save.
-  - feature_type is set from layers_info mapping.
+  - type is set from layers_info mapping.
   - Geometry is reprojected to EPSG:2193.
-  - Columns are reduced/reordered to common columns + feature_type + geometry.
+  - Columns are reduced/reordered to common columns + type + geometry.
   - Data is written to PostGIS table named by layer_name in the selected schema.
 
 
@@ -58,7 +58,7 @@
     - width_indicator = l.width_indicator
     - name_id = l.name_id
 - defaults step:
-  - Set road_line.feature_type default to 'road'.
+  - Set road_line.type default to 'road'.
 
 ### generic workflow changes that can affect road_line
 - metadata step:

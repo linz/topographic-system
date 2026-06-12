@@ -1,5 +1,4 @@
 import os
-import glob
 import pandas as pd  # type: ignore
 import geopandas as gpd
 
@@ -54,7 +53,7 @@ class Topo50DataLoader:
 
         Returns:
             dict: Mapping of `shp_name` to
-                `[object_name, theme, feature_type, layer_name, dataset]`.
+                `[object_name, theme, type, layer_name, dataset]`.
         """
         source = pd.read_csv(self.layer_info_file)
         layers_info = {}
@@ -63,10 +62,10 @@ class Topo50DataLoader:
             shp_name = row.shp_name
             theme = row.theme
             dataset = row.dataset
-            feature_type = row.feature_type
+            type = row.type
             layer_name = row.layer_name
             kart_layer_name = row.kart_layer_name
-            layer_list = [object_name, theme, feature_type, layer_name, dataset, kart_layer_name]
+            layer_list = [object_name, theme, type, layer_name, dataset, kart_layer_name]
             layers_info[shp_name] = layer_list
             layers_info[kart_layer_name] = layer_list
         return layers_info
@@ -233,14 +232,14 @@ class Topo50DataLoader:
             if "use2" in gdf.columns:
                 gdf = gdf.rename(columns={"use2": "tunnel_use2"})
             if "type" in gdf.columns:
-                gdf = gdf.rename(columns={"type": "tunnel_type"})
+                gdf = gdf.rename(columns={"type": "subtype"})
 
         if layer_name.lower() == "structure":
-            gdf = gdf.rename(columns={"type": "structure_type"})
+            gdf = gdf.rename(columns={"type": "subtype"})
 
         if layer_name.lower() == "structure_point":
             gdf = gdf.rename(columns={"use": "structure_use"})
-            gdf = gdf.rename(columns={"type": "structure_type"})
+            gdf = gdf.rename(columns={"type": "subtype"})
 
         if layer_name.lower() == "structure_line":
             gdf = gdf.rename(columns={"wharf_use": "structure_use"})
@@ -266,10 +265,14 @@ class Topo50DataLoader:
         if layer_name.lower() == "landuse":
             if "track_use" in gdf.columns:
                 gdf = gdf.rename(columns={"track_use": "landuse_use"})
+            if"track_type" in gdf.columns:
+                gdf = gdf.rename(columns={"track_type": "subtype"})
 
         if layer_name.lower() == "landuse_line":
             if "track_use" in gdf.columns:
                 gdf = gdf.rename(columns={"track_use": "landuse_use"})
+            if"track_type" in gdf.columns:
+                gdf = gdf.rename(columns={"track_type": "subtype"})
 
         if layer_name.lower() == "water":
             if "lake_use" in gdf.columns:
@@ -347,6 +350,12 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"grp_name": "group_name"})
         if "substance" in gdf.columns:
             gdf = gdf.rename(columns={"substance": "substance_extracted"})
+
+
+        # rename feature_type for all layers - all type fields should be rename above
+        if "feature_type" in gdf.columns:
+            gdf = gdf.rename(columns={"feature_type": "type"})
+
         return gdf
 
     def process_and_save_layers(self, target="postgis", schema_name="toposource"):
@@ -376,7 +385,7 @@ class Topo50DataLoader:
                 continue
 
             ############# TEMP for debugging
-            # if layer_info[3].lower() != 'landcover':
+            #if layer_info[3].lower() != 'structure_point':
             #    print(f"Skipping layer: {layer_info[3]}")
             #    continue
 

@@ -1,9 +1,0 @@
-geopandas
-geoalchemy2
-numpy
-openpyxl
-pandas
-pyogrio
-shapely
-sqlalchemy
-psycopg[binary]

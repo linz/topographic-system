@@ -63,7 +63,7 @@ def extract_topoid_fields_from_layer(gpkg_path: Path, layer_name: str) -> pd.Dat
 
 	topo_id_col = _find_column_name(columns, ["topo_id", "id"])
 	t50_fid_col = _find_column_name(columns, ["t50_fid"])
-	feature_type_col = _find_column_name(columns, ["feature_type"])
+	type_col = _find_column_name(columns, ["type"])
 	created_at_col = _find_column_name(columns, ["created_at", "create_date"])
 
 	missing = []
@@ -71,8 +71,8 @@ def extract_topoid_fields_from_layer(gpkg_path: Path, layer_name: str) -> pd.Dat
 		missing.append("topo_id/id")
 	if t50_fid_col is None:
 		missing.append("t50_fid")
-	if feature_type_col is None:
-		missing.append("feature_type")
+	if type_col is None:
+		missing.append("type")
 	if created_at_col is None:
 		missing.append("created_at/create_date")
 
@@ -81,21 +81,21 @@ def extract_topoid_fields_from_layer(gpkg_path: Path, layer_name: str) -> pd.Dat
 			f"Skipping layer '{layer_name}' - missing required fields: {', '.join(missing)}"
 		)
 		return pd.DataFrame(
-			columns=["topo_id", "t50_fid", "feature_type", "created_at", "layer_name"]
+			columns=["topo_id", "t50_fid", "type", "created_at", "layer_name"]
 		)
 
 	out = pd.DataFrame(
 		{
 			"topo_id": layer_df[topo_id_col],
 			"t50_fid": layer_df[t50_fid_col],
-			"feature_type": layer_df[feature_type_col],
+			"type": layer_df[type_col],
 			"created_at": layer_df[created_at_col],
 			"layer_name": layer_name,
 		}
 	)
 
 	out["topo_id"] = out["topo_id"].astype("string")
-	out["feature_type"] = out["feature_type"].astype("string")
+	out["type"] = out["type"].astype("string")
 	out["created_at"] = pd.to_datetime(out["created_at"], errors="coerce")
 	out["layer_name"] = out["layer_name"].astype("string")
 	out["t50_fid"] = pd.to_numeric(out["t50_fid"], errors="coerce").astype("Int64")

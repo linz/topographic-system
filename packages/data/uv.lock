@@ -1201,14 +1201,14 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "geoalchemy2", specifier = ">=0.19.0" },
-    { name = "geopandas", specifier = ">=1.1.3" },
+    { name = "geopandas" },
     { name = "numpy", specifier = ">=2.4.4" },
     { name = "obstore" },
     { name = "openpyxl" },
-    { name = "pandas", specifier = ">=3.0.2" },
+    { name = "pandas" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.3" },
     { name = "pyogrio", specifier = ">=0.12.1" },
-    { name = "shapely", specifier = ">=2.1.2" },
+    { name = "shapely" },
     { name = "sqlalchemy", specifier = ">=2.0.49" },
 ]
 
