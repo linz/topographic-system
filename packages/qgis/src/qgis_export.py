@@ -6,6 +6,9 @@ import sys
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
+    QgsExpression,
+    QgsExpressionContextUtils,
+    QgsFeatureRequest,
     QgsLayoutExporter,
     QgsLayoutItemMap,
     QgsProject,
@@ -52,6 +55,8 @@ for item in layout.items():
 if map_item is None:
     raise RuntimeError(f"No QgsLayoutItemMap found in layout '{project_layout}'.")
 
+QgsExpressionContextUtils.setLayoutVariable(layout, "sheet_code", sheet_code)
+
 for layer in list(project.mapLayers().values()):
     if layer.name() in excluded_layer_names:
         project.removeMapLayer(layer.id())
@@ -69,6 +74,42 @@ for feature in topo_sheet_layer.getFeatures():
     geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, QgsProject.instance()))
     bbox = geom.boundingBox()
     map_item.setExtent(bbox)
+
+    # TODO add example_id to test data
+    example_id = feature["example_id"] if "example_id" in feature.fields().names() else None
+    if example_id is not None:
+        # example_id may reference a feature in trig_point or geographic_name.
+        # The label shown for the example depends on the layer it came from
+        example_label_formats = {
+            "trig_point": ("code", "▲ {}"),
+            "geographic_name": ("name", "<i>· {}</i>"),
+        }
+        example_layer = None
+        example_feature = None
+        example_label = None
+        for layer_name, (label_field, label_format) in example_label_formats.items():
+            layer = QgsProject.instance().mapLayersByName(layer_name)[0]
+            matches = layer.getFeatures(
+                QgsFeatureRequest().setFilterExpression(
+                    QgsExpression.createFieldEqualityExpression("topo_id", example_id)
+                )
+            )
+            match = next(matches, None)
+            if match is not None:
+                example_layer = layer
+                example_feature = match
+                example_label = label_format.format(match[label_field])
+                break
+
+        if example_feature is None or example_layer is None:
+            raise RuntimeError(f"No feature with topo_id = {example_id} found in trig_point or geographic_name.")
+
+        example_geom = example_feature.geometry()
+        example_geom.transform(QgsCoordinateTransform(example_layer.crs(), map_crs, QgsProject.instance()))
+        QgsExpressionContextUtils.setLayoutVariable(layout, "example_x", example_geom.asPoint().x())
+        QgsExpressionContextUtils.setLayoutVariable(layout, "example_y", example_geom.asPoint().y())
+        QgsExpressionContextUtils.setLayoutVariable(layout, "example_class", example_label)
+
     export_result = None
     if export_format == "pdf":
         output_file = os.path.join(file_output_path, f"{feature_code}.pdf")
