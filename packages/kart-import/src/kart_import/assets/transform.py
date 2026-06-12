@@ -85,8 +85,13 @@ def normalize_field_lifecyle(
     gdf["created_at"] = None
     gdf["updated_at"] = None
 
-    # Detect the primary key column
-    if "t50_fid" in gdf.columns:
+    # Determine the primary key column. A configured fid_field wins so it stays
+    # in sync with the lifecycle map; otherwise fall back to auto-detection.
+    if td.fid_field:
+        pk_col = td.fid_field
+        if pk_col not in gdf.columns:
+            raise Exception(f"Configured fid_field '{pk_col}' not found in {td.name} columns")
+    elif "t50_fid" in gdf.columns:
         pk_col = "t50_fid"
     elif "auto_pk" in gdf.columns:
         pk_col = "auto_pk"

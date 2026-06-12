@@ -80,6 +80,13 @@ class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
     mapping: dict = {}
+    fid_field: str | None = None
+    """
+    Column that identifies a feature for the lifecycle/id assignment. When unset
+    the lifecycle auto-detects `t50_fid` (if mapped in history) else `auto_pk`.
+    Set this for sources where that detection is wrong, e.g. LAMPS data whose
+    `t50_fid` is null.
+    """
 
     @model_validator(mode="before")
     @classmethod

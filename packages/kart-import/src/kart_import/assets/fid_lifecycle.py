@@ -72,9 +72,14 @@ def get_mapping_commit(repo_dir: Path, dataset_id: str) -> tuple[str, datetime] 
 
 
 def make_lifecycle_id(commit_time: str, fid: str, fid_field: str, dataset_id: str) -> str:
-    """Generate a reproducible UUID for a lifecycle entry."""
+    """Generate a reproducible UUID for a lifecycle entry.
+
+    `t50_fid` is globally unique, so the fid alone seeds the UUID. Any other
+    field (auto_pk, or a configured per-dataset key) is only unique within its
+    dataset, so it is namespaced by the dataset id.
+    """
     ts_ms = int(datetime.fromisoformat(commit_time).timestamp() * 1000)
-    if fid_field == "auto_pk":
+    if fid_field != "t50_fid":
         return str(reproducable_uuid7_text(ts_ms, f"{dataset_id}:{fid}"))
     return str(reproducable_uuid7_text(ts_ms, fid))
 
@@ -116,6 +121,7 @@ def parse_kart_diff(
 
 def generate_lifecycle(dataset_name: str):
     repo_dir = SOURCE_DIR / dataset_name
+    td = get_dataset_by_name(dataset_name)
     dataset_id = resolve_dataset_id(dataset_name, repo_dir)
     releases = get_releases()
 
@@ -125,8 +131,10 @@ def generate_lifecycle(dataset_name: str):
     last_commit = EMPTY_TREE
 
     # Determine which field to use as the feature identifier
-    mapping_result = get_mapping_commit(repo_dir, dataset_id)
-    if mapping_result:
+    if td.fid_field:
+        fid_field = td.fid_field
+        logger.info(f"Using configured fid_field={fid_field} for {dataset_name}")
+    elif get_mapping_commit(repo_dir, dataset_id):
         fid_field = "t50_fid"
         logger.info(f"Using t50_fid for {dataset_name}")
     else:
