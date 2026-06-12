@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.10.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.9.0...topographic-system-kart-v0.10.0) (2026-06-12)
+
+
+### Features
+
+* add a font family and style linter ([#189](https://github.com/linz/topographic-system/issues/189)) ([ba1ef9a](https://github.com/linz/topographic-system/commit/ba1ef9af9341ca9a1ad1013ffc54c5452ba73278))
+* add local cache to reusue assets across map production run ([#175](https://github.com/linz/topographic-system/issues/175)) ([6076b87](https://github.com/linz/topographic-system/commit/6076b87c0c3030c600cb3bf7ad1ad533bdc7babb))
+* **kart:** Update kart flow to use stac push. BM-1625 ([#120](https://github.com/linz/topographic-system/issues/120)) ([ba04f4f](https://github.com/linz/topographic-system/commit/ba04f4f7224cc014b222b73b754cd2c2d1413b1d))
+* lint qgis project file BM-1516 ([#117](https://github.com/linz/topographic-system/issues/117)) ([fcebbc8](https://github.com/linz/topographic-system/commit/fcebbc89098e07ebf734363fdf7dababd1b17e4a))
+* **map:** Resolve STAC inconsistencies across the codebase. BM-1578 ([#87](https://github.com/linz/topographic-system/issues/87)) ([9e09afc](https://github.com/linz/topographic-system/commit/9e09afc26ff5754bd17ef6688e897029e767d142))
+* **map:** Stac push command to copy stac files and assets with storage stategy. BM-1619 ([#114](https://github.com/linz/topographic-system/issues/114)) ([9d1dc2f](https://github.com/linz/topographic-system/commit/9d1dc2f6ec198a6c821dd6243fd66abb6f105c92))
+* package fonts with QGIS projects ([#182](https://github.com/linz/topographic-system/issues/182)) ([ea2f25f](https://github.com/linz/topographic-system/commit/ea2f25f519a0875b244eb950060fedddb82839e7))
+* parquet schema validator ([#129](https://github.com/linz/topographic-system/issues/129)) ([3842d81](https://github.com/linz/topographic-system/commit/3842d81a5d645ff85770b9fa8bb29d31a04326fa))
+* **shared:** Add concurrency parameter for all the clis that have limit queue. BM-1599 ([#126](https://github.com/linz/topographic-system/issues/126)) ([0f7d32c](https://github.com/linz/topographic-system/commit/0f7d32c79445ee0870c7b131e4581733ce675736))
+* **shared:** Implement download manager to avoid multiple downloading. BM-1604 ([#132](https://github.com/linz/topographic-system/issues/132)) ([df52b13](https://github.com/linz/topographic-system/commit/df52b1374475af0cb8fe7d0dd00ede7f6eb7f4d6))
+* validate parquet against schema BM-1541 ([#146](https://github.com/linz/topographic-system/issues/146)) ([a253b23](https://github.com/linz/topographic-system/commit/a253b23178e44bd207c7dede4cdd920dc760501d))
+
+
+### Bug Fixes
+
+* disable validation over geometries ([#155](https://github.com/linz/topographic-system/issues/155)) ([9e8af2f](https://github.com/linz/topographic-system/commit/9e8af2f6e94ad5eb891f0002dc18ffbf559d96ba))
+* ice_contour add stac table and extents BM-1648 ([#136](https://github.com/linz/topographic-system/issues/136)) ([8a35311](https://github.com/linz/topographic-system/commit/8a353114dea18cb63c99abf8a7351985bcd40d41))
+* lint qgis wms connections BM-1516 ([#121](https://github.com/linz/topographic-system/issues/121)) ([c6653e9](https://github.com/linz/topographic-system/commit/c6653e9f50db5ec3de9624d3b0ee756bc8505c46))
+* **map:** Fix the downloader to get asset with correct path. ([#137](https://github.com/linz/topographic-system/issues/137)) ([38ce63f](https://github.com/linz/topographic-system/commit/38ce63f45fd94edcdbb8c9003758c8dea8b8dc2e))
+* truncate long diffs BM-1603 ([#109](https://github.com/linz/topographic-system/issues/109)) ([9d754ae](https://github.com/linz/topographic-system/commit/9d754ae0b812fc439218e7a970e7b82479b34634))
+* use NZGD2000 projection BM-1664 ([#142](https://github.com/linz/topographic-system/issues/142)) ([3ad9d68](https://github.com/linz/topographic-system/commit/3ad9d68844d69dc3a722b6c376729e471a675a16))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.8.0 to ^0.9.0
+    * @linzjs/topographic-system-stac bumped from ^0.7.0 to ^1.0.0
+
 ## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-kart-v0.8.0...topographic-system-kart-v0.9.0) (2026-04-01)
 
 

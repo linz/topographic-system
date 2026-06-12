@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.3.0...topographic-system-data-prep-v0.4.0) (2026-06-12)
+
+
+### Features
+
+* derived dataset schema for ice contours BM-1602 ([#105](https://github.com/linz/topographic-system/issues/105)) ([208eeb9](https://github.com/linz/topographic-system/commit/208eeb9b1128d99fc1ef3d957536dbe06bcacee0))
+
+
+### Bug Fixes
+
+* data-prep schema update ([#113](https://github.com/linz/topographic-system/issues/113)) ([207f6c7](https://github.com/linz/topographic-system/commit/207f6c71f9850a29b74fdc4c56ff54f847f4727c))
+* ice_contour add stac table and extents BM-1648 ([#136](https://github.com/linz/topographic-system/issues/136)) ([8a35311](https://github.com/linz/topographic-system/commit/8a353114dea18cb63c99abf8a7351985bcd40d41))
+* use NZGD2000 projection BM-1664 ([#142](https://github.com/linz/topographic-system/issues/142)) ([3ad9d68](https://github.com/linz/topographic-system/commit/3ad9d68844d69dc3a722b6c376729e471a675a16))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.2.0...topographic-system-data-prep-v0.3.0) (2026-04-01)
 
 
