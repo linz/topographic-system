@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.10.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.9.0...topographic-system-map-v0.10.0) (2026-06-12)
+
+
+### Features
+
+* add --export to force export at the STAC creation time ([#177](https://github.com/linz/topographic-system/issues/177)) ([3f84e20](https://github.com/linz/topographic-system/commit/3f84e2053da7cc9ce5169b3b97a984fc8f8f9db6))
+* add local cache to reusue assets across map production run ([#175](https://github.com/linz/topographic-system/issues/175)) ([6076b87](https://github.com/linz/topographic-system/commit/6076b87c0c3030c600cb3bf7ad1ad533bdc7babb))
+* **kart:** Update kart flow to use stac push. BM-1625 ([#120](https://github.com/linz/topographic-system/issues/120)) ([ba04f4f](https://github.com/linz/topographic-system/commit/ba04f4f7224cc014b222b73b754cd2c2d1413b1d))
+* **map:** Hash the downloaded file paths to avoid overwrites existing file. BM-1604 ([#131](https://github.com/linz/topographic-system/issues/131)) ([ee0483d](https://github.com/linz/topographic-system/commit/ee0483dbdf405f9adcf77b932c4017eda4f21a27))
+* **map:** Resolve STAC inconsistencies across the codebase. BM-1578 ([#87](https://github.com/linz/topographic-system/issues/87)) ([9e09afc](https://github.com/linz/topographic-system/commit/9e09afc26ff5754bd17ef6688e897029e767d142))
+* **map:** Stac push command to copy stac files and assets with storage stategy. BM-1619 ([#114](https://github.com/linz/topographic-system/issues/114)) ([9d1dc2f](https://github.com/linz/topographic-system/commit/9d1dc2f6ec198a6c821dd6243fd66abb6f105c92))
+* **map:** Update produce command to use stac push. BM-1624 ([#119](https://github.com/linz/topographic-system/issues/119)) ([11d8fe1](https://github.com/linz/topographic-system/commit/11d8fe1ce59cba3ba0cd2a2338113ca41e1696ba))
+* **map:** Update visual diff to support local data override. BM-1570 ([#138](https://github.com/linz/topographic-system/issues/138)) ([e1b9cc3](https://github.com/linz/topographic-system/commit/e1b9cc33782d4c283be02a57cd18883822a66330))
+* package fonts with QGIS projects ([#182](https://github.com/linz/topographic-system/issues/182)) ([ea2f25f](https://github.com/linz/topographic-system/commit/ea2f25f519a0875b244eb950060fedddb82839e7))
+* **shared:** Add concurrency parameter for all the clis that have limit queue. BM-1599 ([#126](https://github.com/linz/topographic-system/issues/126)) ([0f7d32c](https://github.com/linz/topographic-system/commit/0f7d32c79445ee0870c7b131e4581733ce675736))
+* **shared:** Implement download manager to avoid multiple downloading. BM-1604 ([#132](https://github.com/linz/topographic-system/issues/132)) ([df52b13](https://github.com/linz/topographic-system/commit/df52b1374475af0cb8fe7d0dd00ede7f6eb7f4d6))
+
+
+### Bug Fixes
+
+* import directly from package entry point BM-1638 ([#123](https://github.com/linz/topographic-system/issues/123)) ([fdff98d](https://github.com/linz/topographic-system/commit/fdff98dd06d478bdfd464a4a8dddedcfea91a543))
+* **map:** prepare should resolve to canonical links if it can ([#180](https://github.com/linz/topographic-system/issues/180)) ([8d3bc9a](https://github.com/linz/topographic-system/commit/8d3bc9a87330c79bd7ad8334c38dbc0659f596da))
+* nztopo50 is the name of the product ([#112](https://github.com/linz/topographic-system/issues/112)) ([45e1135](https://github.com/linz/topographic-system/commit/45e113501bd994a29be7e9d91d0bc6becdc64234))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @linzjs/topographic-system-shared bumped from ^0.8.0 to ^0.9.0
+    * @linzjs/topographic-system-stac bumped from ^0.7.0 to ^1.0.0
+
 ## [0.9.0](https://github.com/linz/topographic-system/compare/topographic-system-map-v0.8.0...topographic-system-map-v0.9.0) (2026-03-26)
 
 
