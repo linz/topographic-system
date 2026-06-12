@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from .env import env_releases, env_themes
 
@@ -106,10 +106,31 @@ class FieldSpec(BaseModel):
         return cls(source=value)
 
 
+class Fixup(BaseModel):
+    """Reference to a release-aware fixup function (see ``kart_import.fixups``)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    fn: str
+    """Name of a function registered in ``kart_import.fixups.FIXUPS``."""
+    releases: list[int] | None = None
+    """Release ids to apply the fixup to; ``None`` applies it to every release."""
+
+    @field_validator("fn")
+    @classmethod
+    def known_fn(cls, value: str) -> str:
+        from .fixups import FIXUPS
+
+        if value not in FIXUPS:
+            raise ValueError(f"Unknown fixup '{value}'. Available: {sorted(FIXUPS)}")
+        return value
+
+
 class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
     mapping: dict = {}
+    fixups: list[Fixup] = []
 
     @model_validator(mode="before")
     @classmethod
