@@ -1,13 +1,17 @@
+import fcntl
 import json
 import logging
 import os
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
 
 from ..config import (
+    TRANSFORM_FORMAT,
+    TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
@@ -21,6 +25,21 @@ from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
+
+
+def write_transform(gdf: gpd.GeoDataFrame, output_file: Path) -> None:
+    """Write a transform intermediate in the configured format (see TRANSFORM_FORMAT)."""
+    if TRANSFORM_FORMAT == "parquet":
+        gdf.to_parquet(output_file, compression="zstd", index=False)
+    else:
+        gdf.to_file(output_file, driver="GeoJSON", index=False)
+
+
+def read_transform(path: Path) -> gpd.GeoDataFrame:
+    """Read a transform intermediate written by `write_transform`."""
+    if TRANSFORM_FORMAT == "parquet":
+        return gpd.read_parquet(path)
+    return gpd.read_file(path, engine="pyogrio", use_arrow=True)
 
 
 def _fixup_applies(fixup, release_id: int) -> bool:
@@ -138,6 +157,18 @@ def find_release_for_source(source_file: Path, dataset_name: str, releases: list
     raise Exception(f"No release found for source file: {source_file}")
 
 
+@contextmanager
+def exclusive_lock(target_file: Path):
+    """Hold an exclusive cross-process lock keyed on `target_file`."""
+    lock_path = target_file.with_name(f"{target_file.name}.lock")
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
 def wait_for_file_exists(target_file: Path, timeout: int = 5):
     logger.info(
         "checking/waiting for target file",
@@ -158,7 +189,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         raise Exception(f"'export' file missing: {input_file}")
 
     output_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
-    output_file = output_dir / f"{dataset_name}.json"
+    output_file = output_dir / f"{dataset_name}{TRANSFORM_SUFFIX}"
 
     if output_file.exists():
         logger.info("transform exists", extra={"target": output_file})
@@ -176,7 +207,9 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
                 f"release {target_release_id} instead"
             )
         logger.info("source_file transformed by another release", extra={"target_release": target_release_id})
-        target_transformed_file = WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}.json"
+        target_transformed_file = (
+            WORKING_TRANSFORM_DIR / f"release_{target_release_id}" / f"{dataset_name}{TRANSFORM_SUFFIX}"
+        )
 
         # Target file should be created by another process if we are running directly via __main__ create the other
         # releases file, otherwise wait for the target file to exist
@@ -195,41 +228,46 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         logger.info("symlinked")
         return output_file
 
-    lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
-    if not lifecycle_file.exists():
-        raise Exception(f"missing lifecycle_{dataset_name}")
-    with open(lifecycle_file) as f:
-        lifecycle_data = json.load(f)
+    with exclusive_lock(output_file):
+        if output_file.exists():
+            logger.info("transform produced while waiting for lock", extra={"target": output_file})
+            return output_file
 
-    start_time = time.perf_counter()
-    gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
-    logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
+        if not lifecycle_file.exists():
+            raise Exception(f"missing lifecycle_{dataset_name}")
+        with open(lifecycle_file) as f:
+            lifecycle_data = json.load(f)
 
-    if gdf.crs is None:
-        raise Exception("source frame has no projection")
-
-    start_time = time.perf_counter()
-    gdf = normalize_field_lifecyle(
-        gdf,
-        td,
-        lifecycle_data,
-    )
-    logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    start_time = time.perf_counter()
-    gdf = normalize_projection(gdf, td, theme.target_epsg)
-    logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    start_time = time.perf_counter()
-    gdf = normalize_fields(gdf, td)
-    logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
-
-    if td.fixups:
         start_time = time.perf_counter()
-        gdf = apply_fixups(gdf, td, release_id)
-        logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+        logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
-    gdf.to_file(output_file, driver="GeoJSON", index=False)
+        if gdf.crs is None:
+            raise Exception("source frame has no projection")
+
+        start_time = time.perf_counter()
+        gdf = normalize_field_lifecyle(
+            gdf,
+            td,
+            lifecycle_data,
+        )
+        logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        start_time = time.perf_counter()
+        gdf = normalize_projection(gdf, td, theme.target_epsg)
+        logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        start_time = time.perf_counter()
+        gdf = normalize_fields(gdf, td)
+        logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        if td.fixups:
+            start_time = time.perf_counter()
+            gdf = apply_fixups(gdf, td, release_id)
+            logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        write_transform(gdf, output_file)
     return output_file
 
 
