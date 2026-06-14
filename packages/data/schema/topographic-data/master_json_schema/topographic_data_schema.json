@@ -7,7 +7,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -22,7 +22,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -37,11 +37,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -57,7 +57,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -72,7 +72,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -98,11 +98,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -118,7 +118,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -133,7 +133,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -154,11 +154,11 @@
           "maxLength": 10
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -174,7 +174,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -189,7 +189,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -220,11 +220,11 @@
           "maxLength": 11
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -240,7 +240,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -255,7 +255,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -301,11 +301,11 @@
           "maxLength": 30
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -321,7 +321,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -336,7 +336,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -352,11 +352,11 @@
           "maxLength": 9
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -372,7 +372,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -387,7 +387,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -411,11 +411,11 @@
           "maxLength": 4
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -431,7 +431,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -446,7 +446,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -461,9 +461,9 @@
           "description": "The use of the feature.",
           "maxLength": 50
         },
-        "tunnel_type": {
+        "subtype": {
           "type": "string",
-          "description": "The type of the feature.",
+          "description": "The subtype of the feature.",
           "maxLength": 50
         },
         "status": {
@@ -477,11 +477,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -497,7 +497,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -512,7 +512,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -522,11 +522,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -542,7 +542,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -557,7 +557,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -588,11 +588,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -607,7 +607,7 @@
       "description": "Represents individual trees or notable groups of trees.",
       "type": "object",
       "required": [
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -622,17 +622,17 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -648,7 +648,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -663,17 +663,17 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -689,7 +689,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -704,7 +704,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -715,11 +715,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -735,7 +735,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -750,7 +750,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -760,7 +760,7 @@
           "description": "The type of the feature.",
           "maxLength": 50
         },
-        "structure_type": {
+        "subtype": {
           "type": "string",
           "description": "The type of the feature.",
           "maxLength": 50
@@ -786,11 +786,11 @@
           "maxLength": 5
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -806,7 +806,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -821,7 +821,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -832,11 +832,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -852,7 +852,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -867,7 +867,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -877,9 +877,9 @@
           "description": "The use of the feature.",
           "maxLength": 50
         },
-        "landuse_type": {
+        "subtype": {
           "type": "string",
-          "description": "The use of the feature.",
+          "description": "The subtype of the feature.",
           "maxLength": 50
         },
         "name": {
@@ -888,11 +888,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -908,7 +908,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -923,17 +923,17 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -949,7 +949,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -964,7 +964,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -989,11 +989,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1009,7 +1009,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1024,7 +1024,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1045,11 +1045,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1065,7 +1065,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1080,7 +1080,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1105,11 +1105,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1125,7 +1125,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1140,7 +1140,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1150,9 +1150,9 @@
           "description": "The use of the feature.",
           "maxLength": 50
         },
-        "landuse_type": {
+        "subtype": {
           "type": "string",
-          "description": "The use of the feature.",
+          "description": "The subtype of the feature.",
           "maxLength": 50
         },
         "status": {
@@ -1171,11 +1171,11 @@
           "maxLength": 11
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1191,7 +1191,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1206,7 +1206,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1222,11 +1222,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1242,7 +1242,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1257,7 +1257,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1273,11 +1273,11 @@
           "maxLength": 14
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1293,7 +1293,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1308,7 +1308,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1319,11 +1319,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1339,7 +1339,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1354,7 +1354,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1395,11 +1395,11 @@
           "maxLength": 6
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1415,7 +1415,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1430,7 +1430,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1441,11 +1441,11 @@
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1461,7 +1461,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1476,7 +1476,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1486,9 +1486,9 @@
           "description": "The use of the feature.",
           "maxLength": 50
         },
-        "structure_type": {
+        "subtype": {
           "type": "string",
-          "description": "The type of the feature.",
+          "description": "The subtype of the feature.",
           "maxLength": 50
         },
         "status": {
@@ -1535,11 +1535,11 @@
           "maxLength": 6
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1555,7 +1555,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1570,17 +1570,17 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1596,7 +1596,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1611,7 +1611,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1651,11 +1651,11 @@
           "maxLength": 11
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1671,7 +1671,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1686,7 +1686,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1707,11 +1707,11 @@
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1727,7 +1727,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1742,7 +1742,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1758,11 +1758,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1778,7 +1778,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1793,7 +1793,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1809,11 +1809,11 @@
           "precision": 32
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1829,7 +1829,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1844,7 +1844,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1905,11 +1905,11 @@
           "precision": 64
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1925,7 +1925,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1940,7 +1940,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1951,11 +1951,11 @@
           "maxLength": 75
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -1971,7 +1971,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -1986,7 +1986,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -1997,11 +1997,11 @@
           "maxLength": 50
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -2017,7 +2017,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -2032,7 +2032,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -2081,11 +2081,11 @@
           "maxLength": 3
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -2101,7 +2101,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -2116,7 +2116,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -2132,11 +2132,11 @@
           "maxLength": 60
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -2153,12 +2153,15 @@
       "required": [
         "id",
         "t50_fid",
-        "feature_type",
+        "type",
         "sheet_code",
         "sheet_name",
-        "edition",
-        "example_class",
-        "example_name",
+        "x_origin",
+        "y_origin",
+        "example_point_id",
+        "published_version",
+        "published_at",
+        "updated_at",
         "geometry"
       ],
       "properties": {
@@ -2166,20 +2169,15 @@
           "type": "string",
           "description": "The unique identifier for the topographic feature."
         },
-        "edition": {
-          "type": "string",
-          "description": "",
-          "maxLength": 30
+        "t50_fid": {
+          "type": "integer",
+          "description": "The unique identifier for the feature in the source database.",
+          "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
-        },
-        "revised": {
-          "type": "string",
-          "description": "",
-          "maxLength": 60
         },
         "sheet_code": {
           "type": "string",
@@ -2191,10 +2189,29 @@
           "description": "",
           "maxLength": 50
         },
-        "t50_fid": {
-          "type": "integer",
-          "description": "The unique identifier for the feature in the source database.",
-          "precision": 64
+        "x_origin": {
+          "type": "number",
+          "description": "The x-coordinate of the origin point."
+        },
+        "y_origin": {
+          "type": "number",
+          "description": "The y-coordinate of the origin point."
+        },
+        "example_point_id": {
+          "type": "string",
+          "description": "The identifier for an example point."
+        },
+        "published_version": {
+          "type": "string",
+          "description": "The published version of the map sheet."
+        },
+        "published_at": {
+          "type": "date",
+          "description": "The date when the map sheet was published."
+        },
+        "updated_at": {
+          "type": "date",
+          "description": "The date when the map sheet was last updated."
         },
         "geometry": {
           "type": "polygon",
@@ -2209,7 +2226,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -2224,7 +2241,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -2250,11 +2267,11 @@
           "precision": 32
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -2270,7 +2287,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -2285,7 +2302,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 32
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building')."
         },
@@ -2307,11 +2324,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
@@ -2327,7 +2344,7 @@
       "type": "object",
       "required": [
         "id",
-        "feature_type",
+        "type",
         "updated_at",
         "created_at",
         "geometry"
@@ -2342,7 +2359,7 @@
           "description": "The unique identifier for the feature in the source database.",
           "precision": 64
         },
-        "feature_type": {
+        "type": {
           "type": "string",
           "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
           "maxLength": 50
@@ -2362,11 +2379,11 @@
           "description": ""
         },
         "updated_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was last updated in the database."
         },
         "created_at": {
-          "type": "string",
+          "type": "date",
           "description": "The date when the feature was created in the database."
         },
         "geometry": {
