@@ -1263,11 +1263,11 @@ if __name__ == "__main__":
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
     # output_directory = r"C:\temp\carto"
-    output_directory = r"C:\Data\topoedit\topographic-product-data"
+    output_directory = r"C:\Data\toposource\topographic-product-data-source"
     product_database = "topographic-product-data.gpkg"
     logs_csv_folder = r"C:\temp\carto"
 
-    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data"
+    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data-source"
     source_product_database = "topographic-product-data.gpkg" 
     # source_carto_text_folder = r"C:\Data\toposource\carto_text"
     # source_product_database = "carto_text.gpkg"
