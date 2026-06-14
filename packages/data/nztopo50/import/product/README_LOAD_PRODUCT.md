@@ -56,7 +56,8 @@ if work flow is going to load to branch and then PR into master create a branch 
 
 > Make sure it is a new branch
 
-kart init -b release64 topographic-data
+kart init -b release64 topographic-product-data
+
 
 THEN...
 
@@ -64,9 +65,17 @@ cd topographic-product-data
 
 kart remote add origin git@github.com:linz/topographic-product-data
 
-CHECK the remote is correct
+or if updating from repo
+
+kart clone git@github.com:linz/topographic-product-data
+
+kart checkout -b my-new-branch
+
+CHECK the remote is correct & on branch
 
 kart remote -v
+
+kart status
 
 Note: Current the data can be loaded in one go. Memory/Timeout ok. If more add at some point may need to follow topo-data approach and do import/push in bat file.
 
