@@ -414,7 +414,7 @@ class MapSheetImporter:
                     FROM {self.carto_schema}.nztopo50_carto_text ct
                     JOIN ambiguous_points ap
                         ON ct.full_text = ap.example_name
-                       AND ST_DWithin(ct.geometry, ap.geometry, 500)
+                       AND ST_DWithin(ct.geometry, ap.geometry, 200)
                     ORDER BY ct.id, ST_Distance(ct.geometry, ap.geometry)
                 )
                 UPDATE {self.carto_schema}.nztopo50_carto_text ct
