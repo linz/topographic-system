@@ -3,9 +3,9 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_carto_text")
+@jsonSchema("nztopo50_carto_text")
 @extension("additionalProperties", false)
-model nz_topo50_carto_text {
+model nztopo50_carto_text {
   ...Topo.TopoIdentity;
   /** topo_id (UUID) of the example feature. */
   example_point_id?: string | null;
