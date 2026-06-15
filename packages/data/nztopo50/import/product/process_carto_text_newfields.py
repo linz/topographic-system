@@ -1263,11 +1263,11 @@ if __name__ == "__main__":
     new_values_sheet = "New values"
     font_mapping_sheet = "Font mapping"
     # output_directory = r"C:\temp\carto"
-    output_directory = r"C:\Data\toposource\topographic-product-data-source"
+    output_directory = r"C:\Data\toposource\topographic-product-data-target"
     product_database = "topographic-product-data.gpkg"
     logs_csv_folder = r"C:\temp\carto"
 
-    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data-source"
+    source_carto_text_folder = r"C:\Data\toposource\topographic-product-data"
     source_product_database = "topographic-product-data.gpkg" 
     # source_carto_text_folder = r"C:\Data\toposource\carto_text"
     # source_product_database = "carto_text.gpkg"
@@ -1277,7 +1277,7 @@ if __name__ == "__main__":
     carto_text_layer = "nztopo50_carto_text"
     create_csv_files = True
 
-    new_font_name = "Nimbus Sans"
+    new_font_name = "Nimbus Sans LINZ"
 
     # Initialize processor with all configuration parameters
     processor = CartoTextProcessor(
