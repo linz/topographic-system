@@ -66,7 +66,7 @@ def create_features_dict(
     for _, row in themes_df.iterrows():
         table = row["table"]
         theme = row["theme"]
-        feature_type = row["feature_type"]
+        feature_type = row["type"]
 
         # Determine table_lds and table_type
         if table.endswith("_point"):

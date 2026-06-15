@@ -11,15 +11,15 @@ def main() -> None:
 	layers_df = pd.read_excel(
 		layers_info_file,
 		sheet_name="Sheet1",
-		usecols=["layer_name", "theme", "feature_type"],
+		usecols=["layer_name", "theme", "type"],
 	)
 
 	features_bythemes_df = layers_df.rename(columns={"layer_name": "table"})[
-		["table", "theme", "feature_type"]
+		["table", "theme", "type"]
 	]
 	features_bythemes_df["table"] = features_bythemes_df["table"].astype(str).str.lower()
-	features_bythemes_df["feature_type"] = (
-		features_bythemes_df["feature_type"].astype(str).str.lower()
+	features_bythemes_df["type"] = (
+		features_bythemes_df["type"].astype(str).str.lower()
 	)
 
 	features_bythemes_df.to_csv(features_bythemes_file, index=False)
