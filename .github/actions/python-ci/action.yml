@@ -33,4 +33,4 @@ runs:
 
     - name: Test
       shell: bash
-      run: uv run pytest || [ $? -eq 5 ]
+      run: uv run pytest
