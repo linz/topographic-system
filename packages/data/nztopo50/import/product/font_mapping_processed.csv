@@ -1,11 +1,11 @@
 LAMPS,FONT,STYLE
-ATTriumMou-Regular,Nimbus Sans,Regular
-ATTriumMou-Cond,Nimbus Sans,Narrow
-ATTriumMou-CondItalic,Nimbus Sans,Narrow Oblique
-ATTriumMou-Italic,Nimbus Sans,Italic
-ATTriumMou-CondBold,Nimbus Sans,Narrow Bold
-empty,Nimbus Sans,Narrow Bold Oblique
-empty,Nimbus Sans,Bold Italic
-empty,Nimbus Sans,Bold
-ATTrium-Italic,empty,ERROR
-Courier Bold Oblique,empty,ERROR
+ATTriumMou-Regular,Nimbus Sans LINZ,Regular
+ATTriumMou-Cond,Nimbus Sans LINZ,Narrow
+ATTriumMou-CondItalic,Nimbus Sans LINZ,Narrow Italic
+ATTriumMou-Italic,Nimbus Sans LINZ,Italic
+ATTriumMou-CondBold,Nimbus Sans LINZ,Narrow Bold
+empty,Nimbus Sans LINZ,Narrow Bold Italic
+empty,Nimbus Sans LINZ,Bold Italic
+empty,Nimbus Sans LINZ,Bold
+ATTrium-Italic,Nimbus Sans LINZ,Regular
+Courier Bold Oblique,Nimbus Sans LINZ,Regular
