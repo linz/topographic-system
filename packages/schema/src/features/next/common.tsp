@@ -30,7 +30,7 @@ model TopographicFeature {
   /**
    * Reference topo50 feature ID.
    * 
-   * Will be null if the feature is new has has not been published in a Topo50 edition.
+   * Will be null if the feature is new and has not been published in a Topo50 edition.
    */
-  t50_fid: uint32;
+  t50_fid: uint32 | null;
 }
