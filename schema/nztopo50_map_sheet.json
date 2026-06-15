@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "nz_topo50_dms_grid",
+  "$id": "nztopo50_map_sheet",
   "type": "object",
   "properties": {
     "topo_id": {
@@ -10,25 +10,37 @@
     "fid": {
       "description": "Unique identifier for the feature"
     },
-    "direction": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/DirectionEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "t50_fid": {},
+    "type": {
+      "type": "string",
+      "const": "nztopo50_map_sheet"
     },
-    "value": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "sheet_code": {
+      "type": "string"
+    },
+    "sheet_name": {
+      "type": "string"
+    },
+    "x_origin": {
+      "type": "number"
+    },
+    "y_origin": {
+      "type": "number"
+    },
+    "example_point_id": {
+      "type": "string",
+      "description": "topo_id (UUID) of the example feature."
+    },
+    "published_version": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
@@ -40,14 +52,22 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "geometry"],
+  "required": [
+    "topo_id",
+    "fid",
+    "type",
+    "sheet_code",
+    "sheet_name",
+    "x_origin",
+    "y_origin",
+    "example_point_id",
+    "published_version",
+    "published_at",
+    "updated_at",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "DirectionEnum": {
-      "type": "string",
-      "enum": ["x", "y"],
-      "description": "Auto-derived from observed values of `direction`."
-    },
     "BBox": {
       "type": "object",
       "properties": {

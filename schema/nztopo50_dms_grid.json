@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "nz_topo50_map_sheet",
+  "$id": "nztopo50_dms_grid",
   "type": "object",
   "properties": {
     "topo_id": {
@@ -10,71 +10,25 @@
     "fid": {
       "description": "Unique identifier for the feature"
     },
-    "t50_fid": {},
-    "feature_type": {
+    "direction": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "nz_topo50_map_sheet"
+          "$ref": "#/$defs/DirectionEnum"
         },
         {
           "type": "null"
         }
       ]
     },
-    "sheet_code": {
+    "value": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "number"
         },
         {
           "type": "null"
         }
       ]
-    },
-    "sheet_name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "edition": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "example_class": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/ExampleClassEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "example_name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "example_id": {
-      "type": "string",
-      "description": "topo_id (UUID) of the example feature."
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
@@ -89,10 +43,10 @@
   "required": ["topo_id", "fid", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "ExampleClassEnum": {
+    "DirectionEnum": {
       "type": "string",
-      "enum": ["geographic_name", "trig_pnt"],
-      "description": "Auto-derived from observed values of `example_class`."
+      "enum": ["x", "y"],
+      "description": "Auto-derived from observed values of `direction`."
     },
     "BBox": {
       "type": "object",

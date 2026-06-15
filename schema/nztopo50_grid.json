@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "nz_topo50_grid",
+  "$id": "nztopo50_grid",
   "type": "object",
   "properties": {
     "topo_id": {
