@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "nz_topo50_carto_text",
+  "$id": "nztopo50_carto_text",
   "type": "object",
   "properties": {
     "topo_id": {
@@ -9,6 +9,17 @@
     },
     "fid": {
       "description": "Unique identifier for the feature"
+    },
+    "example_point_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "topo_id (UUID) of the example feature."
     },
     "full_text": {
       "anyOf": [

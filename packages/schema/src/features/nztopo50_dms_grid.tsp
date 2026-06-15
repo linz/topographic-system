@@ -3,9 +3,9 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_grid")
+@jsonSchema("nztopo50_dms_grid")
 @extension("additionalProperties", false)
-model nz_topo50_grid {
+model nztopo50_dms_grid {
   ...Topo.TopoIdentity;
   direction?: Topo.DirectionEnum | null;
   value?: float64 | null;
