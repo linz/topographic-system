@@ -8,15 +8,18 @@ from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
+import pandas as pd
 
 from ..config import (
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
+    WORKING_LOOKUP_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
     ThemeDataset,
+    get_lookup_by_name,
     get_releases,
     get_themes,
 )
@@ -54,6 +57,50 @@ def apply_fixups(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gp
             continue
         logger.info("apply_fixup", extra={"fn": fixup.fn, "dataset": td.name, "release": release_id})
         gdf = FIXUPS[fixup.fn](gdf, td, release_id)
+    return gdf
+
+
+def _normalise_join_key(series: pd.Series) -> pd.Series:
+    """
+    Canonicalise a join key so int/float/string forms match (e.g. 5.0 == 5 == '5').
+    FIXME: This will clobber leading-zero string keys. Remove / update if needed.
+    """
+    numeric = pd.to_numeric(series, errors="coerce")
+    if numeric.notna().any():
+        return numeric.astype("Int64").astype("string")
+    return series.astype("string")
+
+
+def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Left-join each configured lookup's columns onto the source frame by key.
+
+    Runs on the raw source columns (before normalize_fields) so the mapping can
+    reference the joined-in columns with `$col`. Lookups are unique on their key,
+    so a left join never changes the row count.
+    """
+    for join in td.joins:
+        lookup = get_lookup_by_name(join.lookup)
+        lookup_file = WORKING_LOOKUP_DIR / f"release_{release_id}" / f"{join.lookup}.parquet"
+        if not lookup_file.exists():
+            raise Exception(f"prepared lookup missing: {lookup_file}")
+        if join.left_on not in gdf.columns:
+            raise Exception(f"join left_on '{join.left_on}' not found in {td.name} source columns")
+
+        lk = pd.read_parquet(lookup_file)
+        wanted = join.columns or [c for c in lk.columns if c != lookup.key]
+        right = lk[[lookup.key, *wanted]].copy()
+        right["__join_key__"] = _normalise_join_key(right[lookup.key])
+        right = right.drop(columns=[lookup.key])
+
+        gdf = gdf.copy()
+        gdf["__join_key__"] = _normalise_join_key(gdf[join.left_on])
+        merged = gdf.merge(right, on="__join_key__", how="left").drop(columns="__join_key__")
+        gdf = gpd.GeoDataFrame(merged, geometry=gdf.geometry.name, crs=gdf.crs)
+        matched = int(gdf[wanted[0]].notna().sum()) if wanted else 0
+        logger.info(
+            "apply_join",
+            extra={"dataset": td.name, "lookup": join.lookup, "columns": wanted, "matched_rows": matched},
+        )
     return gdf
 
 
@@ -246,6 +293,11 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
 
         if gdf.crs is None:
             raise Exception("source frame has no projection")
+
+        if td.joins:
+            start_time = time.perf_counter()
+            gdf = apply_joins(gdf, td, release_id)
+            logger.info("apply_joins", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         start_time = time.perf_counter()
         gdf = normalize_field_lifecyle(

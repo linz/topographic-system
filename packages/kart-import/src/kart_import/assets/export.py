@@ -4,10 +4,10 @@ from dataclasses import dataclass
 
 from ..command import run_command
 from ..config import (
-    DATASET_MAP,
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
     get_releases,
+    get_source_entry,
 )
 from ..git.kart import get_kart_dataset_id, is_kart
 from ..git.release import get_release_commit
@@ -25,9 +25,7 @@ class CommitData:
 
 
 def export_dataset_releases(dataset_name: str):
-    td = DATASET_MAP.get(dataset_name)
-    if not td:
-        raise ValueError(f"Dataset not found for name: {dataset_name}")
+    td = get_source_entry(dataset_name)
 
     releases = get_releases()
 

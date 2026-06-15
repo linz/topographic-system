@@ -32,6 +32,7 @@ WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
+WORKING_LOOKUP_DIR = WORKING_DIR / "lookup"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
@@ -167,12 +168,47 @@ class Correction(BaseModel):
         return self
 
 
+class Lookup(BaseModel):
+    """A slim derived table, prepared from a source dataset, used to enrich
+    emitted datasets via a join (the "prepare" step).
+
+    `key` is the join key kept in the prepared table
+    `columns` selects/renames the source columns to expose ({target_name: "$source_col"}).
+    The lookup is cloned + exported like a dataset, then prepared (slimmed).
+    It is NOT emitted as theme features.
+    """
+
+    source: Source
+    name: str = ""
+    key: str
+    columns: dict = {}
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_name(cls, data):
+        if isinstance(data, dict) and data.get("source") and not data.get("name"):
+            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+        return data
+
+
+class Join(BaseModel):
+    """Left-join a prepared `Lookup`'s columns onto a dataset, matched on a key."""
+
+    lookup: str
+    """Name of the `Lookup` to join in."""
+    left_on: str
+    """Column on this dataset's source matched against the lookup's `key`."""
+    columns: list[str] | None = None
+    """Subset of the lookup's columns to bring in; `None` brings all of them."""
+
+
 class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
     mapping: dict = {}
     fixups: list[Fixup] = []
     corrections: list[Correction] = []
+    joins: list[Join] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -213,6 +249,11 @@ class Theme(BaseModel):
     list of datasets to include in the theme
     """
 
+    lookups: list[Lookup] = []
+    """
+    derived lookup tables prepared from sources and joined into datasets (not emitted)
+    """
+
 
 class Release(BaseModel):
     id: int
@@ -221,11 +262,12 @@ class Release(BaseModel):
 
 
 ALL_THEMES: list[Theme] = []
-ALL_DATASETS: set[str] = set()
 ALL_KART_REPOS: set[str] = set()
 ALL_RELEASES: list[Release] = []
 DATASET_MAP: dict[str, ThemeDataset] = {}
 DATASET_TO_THEME_MAP: dict[str, Theme] = {}
+LOOKUP_MAP: dict[str, Lookup] = {}
+LOOKUP_TO_THEME_MAP: dict[str, Theme] = {}
 
 
 def load_config(file_name: str) -> Theme:
@@ -233,7 +275,7 @@ def load_config(file_name: str) -> Theme:
     with open(file) as f:
         data = yaml.safe_load(f)
         if not isinstance(data, dict):
-            raise Exception(f"Invalid theme config format in {file_name}.yml")
+            raise ValueError(f"Invalid theme config format in {file_name}.yml")
         return Theme(**data)
 
 
@@ -249,11 +291,7 @@ def get_theme_by_name(theme_name: str) -> Theme:
     for t in ALL_THEMES:
         if t.name == theme_name:
             return t
-    raise Exception(f"{theme_name} does not exist")
-
-
-def get_datasets() -> list[str]:
-    return list(ALL_DATASETS)
+    raise LookupError(f"Theme {theme_name!r} does not exist")
 
 
 def get_kart_repos() -> list[str]:
@@ -263,8 +301,45 @@ def get_kart_repos() -> list[str]:
 def get_dataset_by_name(dataset_name: str) -> ThemeDataset:
     dataset = DATASET_MAP.get(dataset_name)
     if dataset is None:
-        raise Exception(f"Dataset {dataset_name} not found")
+        raise LookupError(f"Dataset {dataset_name!r} not found")
     return dataset
+
+
+def get_lookup_by_name(lookup_name: str) -> Lookup:
+    lookup = LOOKUP_MAP.get(lookup_name)
+    if lookup is None:
+        raise LookupError(f"Lookup {lookup_name!r} not found")
+    return lookup
+
+
+def get_source_entry(name: str) -> ThemeDataset | Lookup:
+    """The clone/export-able entry (dataset or lookup) for a name; both carry `.source`."""
+    if name in DATASET_MAP:
+        return DATASET_MAP[name]
+    if name in LOOKUP_MAP:
+        return LOOKUP_MAP[name]
+    raise LookupError(f"No dataset or lookup named {name!r}")
+
+
+def validate_theme_joins(theme: Theme) -> None:
+    """Check every dataset join in a theme references a known lookup and only its columns."""
+    theme_lookups = {lookup.name: lookup for lookup in theme.lookups}
+    for dataset in theme.datasets:
+        for join in dataset.joins:
+            lookup = theme_lookups.get(join.lookup)
+            if lookup is None:
+                raise ValueError(
+                    f"Dataset {dataset.name} joins unknown lookup '{join.lookup}'; "
+                    f"theme '{theme.name}' lookups: {sorted(theme_lookups)}"
+                )
+            if join.columns is not None:
+                unknown = [c for c in join.columns if c not in lookup.columns]
+                if unknown:
+                    raise ValueError(
+                        f"Dataset {dataset.name} join on lookup '{join.lookup}' "
+                        f"requests unknown columns {unknown}; "
+                        f"lookup exposes: {sorted(lookup.columns)}"
+                    )
 
 
 def load_from_yaml():
@@ -280,14 +355,21 @@ def load_from_yaml():
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
-            ALL_DATASETS.add(dataset.source.url)
-            if dataset.name in DATASET_MAP:
-                raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
+            if dataset.name in DATASET_MAP or dataset.name in LOOKUP_MAP:
+                raise ValueError(f"Dataset {dataset.name!r} name collides with an existing dataset/lookup")
             DATASET_MAP[dataset.name] = dataset
             DATASET_TO_THEME_MAP[dataset.name] = theme
 
+        for lookup in theme.lookups:
+            if lookup.name in DATASET_MAP or lookup.name in LOOKUP_MAP:
+                raise ValueError(f"Lookup {lookup.name!r} name collides with an existing dataset/lookup")
+            LOOKUP_MAP[lookup.name] = lookup
+            LOOKUP_TO_THEME_MAP[lookup.name] = theme
+
+        validate_theme_joins(theme)
+
     if not CONFIG_DIR_RELEASE.exists():
-        raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
+        raise FileNotFoundError(CONFIG_DIR_RELEASE)
 
     with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
