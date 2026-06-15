@@ -730,7 +730,7 @@ class CartoTextProcessor:
                     ]
                 elif text_colour_number == 6:
                     matching_new_values = matching_new_values[
-                        matching_new_values["Colour"] == "steelblue"
+                        matching_new_values["Colour"] == "process_blue"
                     ]
                 else:
                     # 1 record has code in datafile - 1680
