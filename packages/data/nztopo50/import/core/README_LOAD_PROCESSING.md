@@ -155,13 +155,12 @@ Import a small datasets - this will then be deleted.
 
 4. Confirm you are pushing to the correct branch e.g kart push origin master **versus** kart push origin release64
 
-## Main Process - Approach 1
+## Main Process - Approach 1 - update existing repo
 
 Approach 1 - In the clean repo - Add any requirments before load.
 
-Typically this is the ACTIONS code.
 
-Could include a README.md file to document current load (not these files are not visible via Kart Download)
+Could include a README.md file to document current load (note these files are not visible via Kart Download)
 
 In this approach we clone the repo
 
@@ -169,9 +168,13 @@ In this approach we clone the repo
 
 > kart clone git@github.com:linz/topographic-data [or target repo for other data]
 
+> kart checkout -b my-new-branch (data-schemaupdates0.2)
+
 Check all ok
 
 > kart remote -v
+
+> kart status
 
 > copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
 

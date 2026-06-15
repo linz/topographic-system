@@ -1,4 +1,4 @@
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id tree_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id vegetation_point 
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id airport 
 kart push origin dataload-release66 
@@ -32,9 +32,9 @@ kart import postgresql://postgres:landinformation@localhost/topo/release66 --rep
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id marine 
 kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id physical_infrastructure_line 
+kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id utility_line 
 kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id physical_infrastructure_point 
+kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id utility_point 
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id place_point 
 kart push origin dataload-release66
@@ -76,9 +76,6 @@ kart import postgresql://postgres:landinformation@localhost/topo/release66 --rep
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id water_point 
 kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id waterway_feature 
-kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id waterway_feature_line 
-kart push origin dataload-release66
+
 
 
