@@ -18,10 +18,17 @@
       "description": "ISO Datetime of when the feature was last updated"
     },
     "t50_fid": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 4294967295,
-      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new has has not been published in a Topo50 edition."
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "feature_type": {
       "type": "string",

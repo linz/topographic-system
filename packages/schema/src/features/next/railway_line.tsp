@@ -3,8 +3,6 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-namespace Topo.Next;
-
 @jsonSchema("next/railway_line")
 @extension("additionalProperties", false)
 /**
