@@ -38,11 +38,13 @@ def _resolve_field_type(field_schema: dict[str, Any]) -> Any:
 
     if schema_type == "string":
         return _string_type(field_schema.get("maxLength"))
-    if schema_type == "integer":
+    elif schema_type == "integer":
         return int
-    if schema_type == "number":
+    elif schema_type == "number":
         return float
-    if schema_type in GEOMETRY_TYPE_NAMES:
+    elif schema_type == "date":
+        return float
+    elif schema_type in GEOMETRY_TYPE_NAMES:
         # Geometry fields use custom schema type names in source JSON schemas.
         return dict[str, Any]
 
