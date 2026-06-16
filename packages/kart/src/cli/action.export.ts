@@ -17,10 +17,8 @@ import { $ } from 'zx';
 type KartDiffOutput = Record<string, number>;
 
 /**
- * Choose which datasets to export. Only datasets that exist at the target ref are eligible — a
- * branch can rename or delete datasets, so a changed-set (which includes the deleted/old side of a
- * rename) or a HEAD listing can contain names that don't exist at the ref and fail to export. When
- * specific datasets are requested, the result is further narrowed to those.
+ * Select which datasets to export.
+ * Based on which datasets were requested, and which exist on the target ref.
  *
  * @param existing Datasets that exist at the ref being exported (`kart data ls <ref>`).
  * @param requested Datasets explicitly requested on the CLI; empty means "all".
@@ -85,8 +83,6 @@ export const ExportCommand = command({
     logger.info({ ref, datasets: args.datasets }, 'Export:Start');
     const q = qFromArgs(args);
 
-    // List datasets that exist at the ref being exported (not at HEAD, which may differ on a
-    // branch that renames datasets).
     const existingList = await $`kart ${gitContext(args.context)} data ls ${ref}`;
     const existing = new Set(existingList.stdout.split('\n').filter(Boolean));
     logger.info({ datasets: [...existing] }, 'Export:DatasetsListed');
