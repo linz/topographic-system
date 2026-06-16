@@ -16,6 +16,23 @@ import { $ } from 'zx';
 
 type KartDiffOutput = Record<string, number>;
 
+/**
+ * Choose which datasets to export. Only datasets that exist at the target ref are eligible — a
+ * branch can rename or delete datasets, so a changed-set (which includes the deleted/old side of a
+ * rename) or a HEAD listing can contain names that don't exist at the ref and fail to export. When
+ * specific datasets are requested, the result is further narrowed to those.
+ *
+ * @param existing Datasets that exist at the ref being exported (`kart data ls <ref>`).
+ * @param requested Datasets explicitly requested on the CLI; empty means "all".
+ * @param changedKeys Changed datasets from the diff, or undefined to export all existing datasets.
+ */
+export function selectExportDatasets(existing: Set<string>, requested: string[], changedKeys?: string[]): string[] {
+  const eligible = changedKeys ? changedKeys.filter((dataset) => existing.has(dataset)) : [...existing];
+  if (requested.length === 0) return eligible;
+  const eligibleSet = new Set(eligible);
+  return [...new Set(requested)].filter((dataset) => eligibleSet.has(dataset));
+}
+
 export function buildKartExportArgs(dataset: string, outputPath: string, ref: string, context?: URL): string[] {
   const outputFile = path.join(outputPath, `${dataset}.gpkg`);
   return [
@@ -67,24 +84,25 @@ export const ExportCommand = command({
     const ref = args.ref ?? 'FETCH_HEAD';
     logger.info({ ref, datasets: args.datasets }, 'Export:Start');
     const q = qFromArgs(args);
-    const allDatasetsRequested = args.datasets.length === 0;
-    let datasets = new Set<string>();
+
+    // List datasets that exist at the ref being exported (not at HEAD, which may differ on a
+    // branch that renames datasets).
+    const existingList = await $`kart ${gitContext(args.context)} data ls ${ref}`;
+    const existing = new Set(existingList.stdout.split('\n').filter(Boolean));
+    logger.info({ datasets: [...existing] }, 'Export:DatasetsListed');
+
+    let changedKeys: string[] | undefined;
     if (args.changed) {
       logger.info('Export:OnlyChangedDatasets');
       const kartData = await $`kart ${gitContext(args.context)} diff master..${ref} -o json --only-feature-count exact`;
-      const diffOutput = JSON.parse(kartData.stdout) as KartDiffOutput;
-      datasets = new Set(Object.keys(diffOutput));
+      changedKeys = Object.keys(JSON.parse(kartData.stdout) as KartDiffOutput);
     } else {
       logger.info('Export:AllDatasets');
-      const kartData = await $`kart ${gitContext(args.context)} data ls`;
-      datasets = new Set(kartData.stdout.split('\n').filter(Boolean));
     }
-    logger.info({ datasets: [...datasets] }, 'Export:DatasetsListed');
+
     const exportDir = fileURLToPath(args.output);
     await $`mkdir -p ${exportDir}`; // kart will fail with unclear error if this doesn't exist
-    const datasetsToProcess = allDatasetsRequested
-      ? [...datasets]
-      : [...new Set(args.datasets)].filter((dataset) => datasets.has(dataset));
+    const datasetsToProcess = selectExportDatasets(existing, args.datasets, changedKeys);
     logger.info({ worker: args.worker, datasetsToProcess }, 'Export:DatasetsToProcess');
 
     await qMapAll(
