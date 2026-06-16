@@ -1,9 +1,8 @@
 """Prepare step: build a slim lookup table from a source dataset's export.
 
-A `Lookup` selects/renames a few columns from its source (keyed by `key`),
-dropping geometry and rows without a key, deduped on the key. The result is a
-small attribute table that the transform stage left-joins into emitted datasets
-(see `transform.apply_joins`). Lookups are never emitted as theme features.
+A `Lookup` selects/renames a few columns from its source, dropping geometry and rows without a key, deduped on the key.
+The result is a small attribute table that the transform stage left-joins into emitted datasets.
+Lookups are never emitted as theme features.
 """
 
 import logging
@@ -47,38 +46,42 @@ def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame
     return keyed.reset_index(drop=True)
 
 
-def prepare_lookup_release(lookup_name: str, release_id: int) -> Path:
+def prepare_lookup(lookup_name: str) -> Path:
+    """Slim each of the lookup's per-commit exports into a parquet (keyed by commit)."""
     lookup = get_lookup_by_name(lookup_name)
 
-    input_file = WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{lookup_name}.json"
-    if not input_file.exists():
-        raise FileNotFoundError(input_file)
+    input_dir = WORKING_EXPORTS_DIR / "lookup" / lookup_name
+    if not input_dir.exists():
+        raise FileNotFoundError(f"no exported lookup {lookup_name!r} at {input_dir}")
 
-    output_dir = WORKING_LOOKUP_DIR / f"release_{release_id}"
+    output_dir = WORKING_LOOKUP_DIR / lookup_name
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / f"{lookup_name}.parquet"
 
-    start_time = time.perf_counter()
-    gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
-    out = select_lookup_columns(gdf, lookup)
-    out.to_parquet(output_file, compression="zstd", index=False)
-    logger.info(
-        "prepare_lookup",
-        extra={
-            "lookup": lookup_name,
-            "release": release_id,
-            "rows": len(out),
-            "duration": round(time.perf_counter() - start_time, 4),
-        },
-    )
-    return output_file
+    for input_file in sorted(input_dir.glob("*.json")):
+        commit = input_file.stem
+        output_file = output_dir / f"{commit}.parquet"
+
+        start_time = time.perf_counter()
+        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+        out = select_lookup_columns(gdf, lookup)
+        out.to_parquet(output_file, compression="zstd", index=False)
+        logger.info(
+            "prepare_lookup",
+            extra={
+                "lookup": lookup_name,
+                "commit": commit,
+                "rows": len(out),
+                "duration": round(time.perf_counter() - start_time, 4),
+            },
+        )
+    return output_dir
 
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 3:
-        print("Usage: python -m kart_import.assets.prepare <lookup_name> <release_id>")
+    if len(sys.argv) < 2:
+        print("Usage: python -m kart_import.assets.prepare <lookup_name>")
         sys.exit(1)
-    with log_context(action="prepare", lookup=sys.argv[1], release=sys.argv[2]):
-        prepare_lookup_release(sys.argv[1], int(sys.argv[2]))
+    with log_context(action="prepare", lookup=sys.argv[1]):
+        prepare_lookup(sys.argv[1])

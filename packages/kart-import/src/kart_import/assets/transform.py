@@ -11,6 +11,7 @@ import geopandas as gpd
 import pandas as pd
 
 from ..config import (
+    SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
@@ -25,6 +26,7 @@ from ..config import (
 )
 from ..corrections import apply_corrections
 from ..fixups import FIXUPS
+from ..git.release import get_release_commit
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
@@ -61,33 +63,48 @@ def apply_fixups(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gp
 
 
 def _normalise_join_key(series: pd.Series) -> pd.Series:
-    """
-    Canonicalise a join key so int/float/string forms match (e.g. 5.0 == 5 == '5').
-    FIXME: This will clobber leading-zero string keys. Remove / update if needed.
-    """
+    """Canonicalise a join key so int/float/string forms match (e.g. 5.0 == 5 == '5')."""
     numeric = pd.to_numeric(series, errors="coerce")
     if numeric.notna().any():
-        return numeric.astype("Int64").astype("string")
+        return numeric.astype("Int64").astype("string")  # FIXME: This will clobber leading-zero string keys. Remove / update if needed.
     return series.astype("string")
 
 
-def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Left-join each configured lookup's columns onto the source frame by key.
+def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
+    """The lookup commit as-of this release, or None if the release predates any commits."""
+    release = next((r for r in get_releases() if r.id == release_id), None)
+    if release is None:
+        return None
+    res = get_release_commit(SOURCE_DIR / lookup_name, release.until)
+    return res[0] if res is not None else None
 
-    Runs on the raw source columns (before normalize_fields) so the mapping can
-    reference the joined-in columns with `$col`. Lookups are unique on their key,
-    so a left join never changes the row count.
-    """
+
+def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Left-join each configured lookup's columns onto the source frame by key."""
     for join in td.joins:
         lookup = get_lookup_by_name(join.lookup)
-        lookup_file = WORKING_LOOKUP_DIR / f"release_{release_id}" / f"{join.lookup}.parquet"
+        wanted = join.columns or list(lookup.columns)
+
+        commit = _resolve_lookup_commit(join.lookup, release_id)
+        if commit is None:
+            logger.info(
+                "no lookup for this release; filling join columns null",
+                extra={"dataset": td.name, "lookup": join.lookup, "release": release_id, "columns": wanted},
+            )
+            gdf = gdf.copy()
+            for col in wanted:
+                gdf[col] = pd.NA
+            continue
+
+        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
         if not lookup_file.exists():
-            raise Exception(f"prepared lookup missing: {lookup_file}")
+            raise FileNotFoundError(
+                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
+            )
         if join.left_on not in gdf.columns:
-            raise Exception(f"join left_on '{join.left_on}' not found in {td.name} source columns")
+            raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
 
         lk = pd.read_parquet(lookup_file)
-        wanted = join.columns or [c for c in lk.columns if c != lookup.key]
         right = lk[[lookup.key, *wanted]].copy()
         right["__join_key__"] = _normalise_join_key(right[lookup.key])
         right = right.drop(columns=[lookup.key])
