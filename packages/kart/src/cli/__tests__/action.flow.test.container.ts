@@ -65,6 +65,28 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
     env: { ...process.env, ...gitEnv },
   })`kart init --import ${`GPKG:${fileURLToPath(seedGpkg)}`} ${fileURLToPath(bareRepo)} --bare -b master`;
 
+  // diff step skips writing a summary when nothing changed.
+  const workingCopy = new URL('wc/', baseDir);
+  const changeGeojson = new URL('change.geojson', baseDir);
+  await $`kart clone ${fileURLToPath(bareRepo)} ${fileURLToPath(workingCopy)}`;
+  await $({ env: { ...process.env, ...gitEnv } })`kart -C ${fileURLToPath(workingCopy)} checkout -b changes`;
+  await fsa.write(
+    changeGeojson,
+    JSON.stringify({
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { fid: 2, name: 'elsewhere' },
+          geometry: { type: 'Point', coordinates: [174.7633, -36.8485] },
+        },
+      ],
+    }),
+  );
+  await $`ogr2ogr -append -f GPKG ${fileURLToPath(new URL('wc.gpkg', workingCopy))} ${fileURLToPath(changeGeojson)} -nln test_points`;
+  await $({ env: { ...process.env, ...gitEnv } })`kart -C ${fileURLToPath(workingCopy)} commit -m ${'Add another point'}`;
+  await $`kart -C ${fileURLToPath(workingCopy)} push origin changes`;
+
   return bareRepo;
 }
 
@@ -87,7 +109,7 @@ describe('action.flow integration', () => {
     // Create a bare kart repo with a single dataset, then clone + fetch.
     const bareRepo = await createFixtureRepo(new URL('source/', tempDir));
     await $`kart clone ${bareRepo.href} --no-checkout ${repoUrl.pathname}`;
-    await $`kart -C ${repoUrl.pathname} fetch origin master`;
+    await $`kart -C ${repoUrl.pathname} fetch origin changes`;
 
     const datasets = await $`kart -C ${repoUrl.pathname} data ls`;
     assert.ok(datasets.stdout.includes('test_points'), 'fixture should contain test_points dataset');
