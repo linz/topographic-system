@@ -84,7 +84,9 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
     }),
   );
   await $`ogr2ogr -append -f GPKG ${fileURLToPath(new URL('wc.gpkg', workingCopy))} ${fileURLToPath(changeGeojson)} -nln test_points`;
-  await $({ env: { ...process.env, ...gitEnv } })`kart -C ${fileURLToPath(workingCopy)} commit -m ${'Add another point'}`;
+  await $({
+    env: { ...process.env, ...gitEnv },
+  })`kart -C ${fileURLToPath(workingCopy)} commit -m ${'Add another point'}`;
   await $`kart -C ${fileURLToPath(workingCopy)} push origin changes`;
 
   return bareRepo;
