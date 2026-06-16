@@ -9,4 +9,6 @@ dependencies = [
     "geopandas>=0.14",
     "pandas>=2.0",
     "openpyxl",
+    "graphviz",
+    "matplotlib",
 ]
