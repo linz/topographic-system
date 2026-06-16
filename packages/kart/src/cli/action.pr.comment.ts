@@ -29,7 +29,6 @@ export const CommentCommand = command({
   async handler(args) {
     logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile.href }, 'PRComment:Start');
 
-    // The diff step omits the summary when nothing changed — skip rather than post an empty comment.
     if (!(await fsa.exists(args.bodyFile))) {
       logger.info({ bodyFile: args.bodyFile.href }, 'PRComment:Skipped:NoSummary');
       return;

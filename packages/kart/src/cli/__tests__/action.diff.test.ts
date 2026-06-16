@@ -253,12 +253,9 @@ describe('buildMarkdownSummary', () => {
 
   it('should stay under the GitHub comment size limit at the embed boundary', () => {
     // GitHub rejects PR comment bodies over 65536 chars (MAX_COMMENT_SIZE in the shared GithubApi).
-    // MaxGeoJsonLength must be low enough that even the largest summary fits.
+    // MaxGeoJsonLength must be low enough that even the largest summary fits even if the full summary renders.
     const GithubCommentLimit = 65_536;
 
-    // Grow datasets until the combined GeoJSON sits just under MaxGeoJsonLength, so BOTH the
-    // combined preview and the per-dataset section render — the largest summary buildMarkdownSummary
-    // can produce.
     const geojson: Record<string, string> = {};
     for (let i = 0; i < 1000; i++) {
       const candidate = { ...geojson, [`layer-${i}`]: makeGeoJson(5, 200) };
