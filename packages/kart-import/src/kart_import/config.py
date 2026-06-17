@@ -172,8 +172,9 @@ class Lookup(BaseModel):
     """A slim derived table, prepared from a source dataset, used to enrich
     emitted datasets via a join (the "prepare" step).
 
-    `key` is the join key kept in the prepared table
-    `columns` selects/renames the source columns to expose ({target_name: "$source_col"}).
+    `key` is the join key kept in the prepared table.
+    `columns` lists the source columns to expose.
+    Each column accessed namespaced as `<lookup name>.<column>`
     The lookup is cloned + exported like a dataset, then prepared (slimmed).
     It is NOT emitted as theme features.
     """
@@ -181,7 +182,7 @@ class Lookup(BaseModel):
     source: Source
     name: str = ""
     key: str
-    columns: dict = {}
+    columns: list[str] = []
 
     @model_validator(mode="before")
     @classmethod

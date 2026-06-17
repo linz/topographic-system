@@ -15,7 +15,7 @@ def _theme_with_join(join_columns):
                     "name": "road_lkp",
                     "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
                     "key": "t50_fid",
-                    "columns": {"width_indicator": "$width", "name_id": "$name_id"},
+                    "columns": ["width", "name_id"],
                 }
             ],
             "datasets": [
@@ -74,7 +74,7 @@ def test_lookup_and_join_parse():
                     "name": "road_lkp",
                     "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
                     "key": "t50_fid",
-                    "columns": {"width_indicator": "$width", "name_id": "$name_id"},
+                    "columns": ["width", "name_id"],
                 }
             ],
             "datasets": [
@@ -93,13 +93,13 @@ def test_lookup_and_join_parse():
 
 
 def test_validate_theme_joins_accepts_known_columns():
-    validate_theme_joins(_theme_with_join(["width_indicator"]))  # subset of lookup columns -> ok
+    validate_theme_joins(_theme_with_join(["width"]))  # subset of lookup columns -> ok
     validate_theme_joins(_theme_with_join(None))  # None -> all columns -> ok
 
 
 def test_validate_theme_joins_rejects_unknown_column():
     with pytest.raises(ValueError, match="unknown columns \\['nope'\\]"):
-        validate_theme_joins(_theme_with_join(["width_indicator", "nope"]))
+        validate_theme_joins(_theme_with_join(["width", "nope"]))
 
 
 def test_validate_theme_joins_rejects_unknown_lookup():

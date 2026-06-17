@@ -86,15 +86,22 @@ def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd
     for join in td.joins:
         lookup = get_lookup_by_name(join.lookup)
         wanted = join.columns or list(lookup.columns)
+        # Namespace by lookup name so columns can't clash across lookups or with the source.
+        qualified = {col: f"{lookup.name}.{col}" for col in wanted}
 
         commit = _resolve_lookup_commit(join.lookup, release_id)
         if commit is None:
             logger.info(
                 "no lookup for this release; filling join columns null",
-                extra={"dataset": td.name, "lookup": join.lookup, "release": release_id, "columns": wanted},
+                extra={
+                    "dataset": td.name,
+                    "lookup": join.lookup,
+                    "release": release_id,
+                    "columns": list(qualified.values()),
+                },
             )
             gdf = gdf.copy()
-            for col in wanted:
+            for col in qualified.values():
                 gdf[col] = pd.NA
             continue
 
@@ -109,16 +116,21 @@ def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd
         lk = pd.read_parquet(lookup_file)
         right = lk[[lookup.key, *wanted]].copy()
         right["__join_key__"] = _normalise_join_key(right[lookup.key])
-        right = right.drop(columns=[lookup.key])
+        right = right.drop(columns=[lookup.key]).rename(columns=qualified)
 
         gdf = gdf.copy()
         gdf["__join_key__"] = _normalise_join_key(gdf[join.left_on])
         merged = gdf.merge(right, on="__join_key__", how="left").drop(columns="__join_key__")
         gdf = gpd.GeoDataFrame(merged, geometry=gdf.geometry.name, crs=gdf.crs)
-        matched = int(gdf[wanted[0]].notna().sum()) if wanted else 0
+        matched = int(gdf[qualified[wanted[0]]].notna().sum()) if wanted else 0
         logger.info(
             "apply_join",
-            extra={"dataset": td.name, "lookup": join.lookup, "columns": wanted, "matched_rows": matched},
+            extra={
+                "dataset": td.name,
+                "lookup": join.lookup,
+                "columns": list(qualified.values()),
+                "matched_rows": matched,
+            },
         )
     return gdf
 

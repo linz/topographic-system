@@ -88,7 +88,7 @@ lookups:
       dataset: linz_road_cl # lookup dataset name in the repository
     key: t50_fid # key column in the *lookup* dataset
     columns:
-      width_lookup: $width # column to bring in from the lookup, with optional renaming
+      - width # source column(s) to bring in from the lookup
 
 datasets:
   - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
@@ -99,8 +99,8 @@ datasets:
       status: $
       name: $
       highway_number: $hway_num
-      width_indicator: $width_lookup # populated from the lookup
+      width_indicator: $road_width_lkp.width # populated from the lookup
     joins:
       - lookup: road_width_lkp
-        left_on: t50_fid  # name of foreign key column in the *source* dataset to join on
+        left_on: t50_fid # key column in the *source* dataset to join on
 ```

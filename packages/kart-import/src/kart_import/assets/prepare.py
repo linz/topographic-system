@@ -1,6 +1,6 @@
 """Prepare step: build a slim lookup table from a source dataset's export.
 
-A `Lookup` selects/renames a few columns from its source, dropping geometry and rows without a key, deduped on the key.
+A `Lookup` selects a few columns from its source, dropping rows without a key, deduped on the key.
 The result is a small attribute table that the transform stage left-joins into emitted datasets.
 Lookups are never emitted as theme features.
 """
@@ -24,18 +24,15 @@ logger = logging.getLogger("kart_import")
 
 
 def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame:
-    """The key + selected/renamed columns as a plain (geometry-free) DataFrame."""
+    """The key + selected columns as a plain DataFrame."""
     if lookup.key not in gdf.columns:
         raise KeyError(f"Lookup '{lookup.name}' key column '{lookup.key}' not found in source")
 
     out = pd.DataFrame({lookup.key: gdf[lookup.key].to_numpy()})
-    for target, expr in lookup.columns.items():
-        if not (isinstance(expr, str) and expr.startswith("$")):
-            raise ValueError(f"Lookup '{lookup.name}' column '{target}' must reference a source column ($col)")
-        source_col = target if expr == "$" else expr[1:]
-        if source_col not in gdf.columns:
-            raise KeyError(f"Lookup '{lookup.name}' source column '{source_col}' not found")
-        out[target] = gdf[source_col].to_numpy()
+    for col in lookup.columns:
+        if col not in gdf.columns:
+            raise KeyError(f"Lookup '{lookup.name}' source column '{col}' not found")
+        out[col] = gdf[col].to_numpy()
 
     # A lookup must be unique on its key (left-joins assume one row per key).
     keyed = out[out[lookup.key].notna()]
