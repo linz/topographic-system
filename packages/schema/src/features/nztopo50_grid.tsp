@@ -6,7 +6,7 @@ using TypeSpec.JsonSchema;
 @jsonSchema("nztopo50_grid")
 @extension("additionalProperties", false)
 model nztopo50_grid {
-  ...Topo.TopoIdentity;
+  ...Topo.ProductIdentity;
   direction?: Topo.DirectionEnum | null;
   value?: float64 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */

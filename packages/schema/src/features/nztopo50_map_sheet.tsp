@@ -6,7 +6,7 @@ using TypeSpec.JsonSchema;
 @jsonSchema("nztopo50_map_sheet")
 @extension("additionalProperties", false)
 model nztopo50_map_sheet {
-  ...Topo.TopoIdentity;
+  ...Topo.ProductIdentity;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type: "nztopo50_map_sheet";
   sheet_code: string;
