@@ -94,12 +94,17 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
     name: road_line_with_lookup
     mapping:
-      id: $t50_fid
-      feature_type: road
-      status: $
-      name: $
-      highway_number: $hway_num
-      width_indicator: $road_width_lkp.width # populated from the lookup
+      id: $t50_fid # target column `id` is based on source column `t50_fid`
+      feature_type: road # target column `feature_type` gets populated with literal value `road` for all rows
+      status: $ # plain `$` resolves to the source column of the same name (i.e. `status` in this case)
+      name: { source: $, default: 'unnamed road' } # use source value if present, default value if null
+      highway_number: # same as above but with a different notation style
+        source: $hway_num
+        default: 888
+      width_indicator: $road_width_lkp.width # populated from the lookup defined at the top of the file, using the `width` column from that lookup
+      width_indicator2:
+        source: $road_width_lkp.width
+        default: 'wide' # lookups also support defaults if the key value is not found in the lookup dataset
     joins:
       - lookup: road_width_lkp
         left_on: t50_fid # key column in the *source* dataset to join on
