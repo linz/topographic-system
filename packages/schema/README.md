@@ -20,7 +20,6 @@ Check fields and related allow values. Enum typically in common.
 
 bridge_use2?: Topo.BridgeUse2Enum
 
-
 ## Step 2
 
 Update the json file - This can be done by running the commands
@@ -38,7 +37,6 @@ Then run **oxfmt** to reformat the json files
 
 Other ways of running
 
-> npx oxfmt  .
+> npx oxfmt .
 
 > npx oxfmt --help
-
