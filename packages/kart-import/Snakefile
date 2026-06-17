@@ -79,7 +79,7 @@ rule prepare_lookup:
     output:
         prepared = directory("data/working/lookup/{lookup}")
     shell:
-        "uv run python -m kart_import.assets.prepare_lookup {wildcards.lookup}"
+        "uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
 # 4. TRANSFORM

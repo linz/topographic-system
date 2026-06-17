@@ -73,3 +73,34 @@ datasets:
       - fn: change_type_to_none
         releases: [64, 65] # omit `releases` to apply the fixup to every release
 ```
+
+## Left Join Example
+
+```yaml
+name: road_line_with_lookup
+target_repo: topographic-data-demo
+target_epsg: EPSG:4167
+
+lookups:
+  - name: road_width_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_road_cl # lookup dataset name in the repository
+    key: t50_fid # key column in the *lookup* dataset
+    columns:
+      width_lookup: $width # column to bring in from the lookup, with optional renaming
+
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
+    name: road_line_with_lookup
+    mapping:
+      id: $t50_fid
+      feature_type: road
+      status: $
+      name: $
+      highway_number: $hway_num
+      width_indicator: $width_lookup # populated from the lookup
+    joins:
+      - lookup: road_width_lkp
+        left_on: t50_fid  # name of foreign key column in the *source* dataset to join on
+```

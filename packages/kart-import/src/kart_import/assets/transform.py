@@ -66,7 +66,9 @@ def _normalise_join_key(series: pd.Series) -> pd.Series:
     """Canonicalise a join key so int/float/string forms match (e.g. 5.0 == 5 == '5')."""
     numeric = pd.to_numeric(series, errors="coerce")
     if numeric.notna().any():
-        return numeric.astype("Int64").astype("string")  # FIXME: This will clobber leading-zero string keys. Remove / update if needed.
+        return numeric.astype("Int64").astype(
+            "string"
+        )  # FIXME: This will clobber leading-zero string keys. Remove / update if needed.
     return series.astype("string")
 
 
