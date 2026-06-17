@@ -8,6 +8,7 @@ from qgis.core import (
     QgsProject,
 )
 
+from utils.mag_dec import MagDecOptions
 from utils.mag_info import calculate_mag_info, render_mag_info
 
 # from root: (topographic-system)
@@ -18,7 +19,6 @@ from utils.mag_info import calculate_mag_info, render_mag_info
 
 DATE = datetime(2026, 1, 1)
 MODEL_NAME = "igrf14"
-
 
 parser = ArgumentParser()
 parser.add_argument("--qgis-project-path", required=True, type=str)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 sheet_code = feature.attribute("sheet_code")
 
                 # handle magnetic info
-                options = {"date": DATE, "model_name": MODEL_NAME}
+                options: MagDecOptions = {"date": DATE, "model_name": MODEL_NAME}
                 mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code, options)
                 mag_info_render = render_mag_info(mag_info_raw)
 
