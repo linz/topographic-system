@@ -1,212 +1,245 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "structure",
-  "type": "object",
-  "properties": {
-    "topo_id": {
-      "type": "string",
-      "description": "UUID for the feature."
-    },
-    "fid": {
-      "description": "Unique identifier for the feature"
-    },
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Should be on or after create_date."
-    },
-    "create_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
-    "t50_fid": {},
-    "feature_type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "dry_dock"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "structure",
+    "type": "object",
+    "properties": {
+        "topo_id": {
+            "type": "string",
+            "description": "UUID for the feature."
         },
-        {
-          "type": "string",
-          "const": "fish_farm"
+        "capture_method": {
+            "$ref": "#/$defs/CaptureMethod",
+            "default": "manual",
+            "description": "How the feature was captured."
         },
-        {
-          "type": "string",
-          "const": "marine_farm"
+        "change_type": {
+            "$ref": "#/$defs/ChangeType",
+            "default": "new",
+            "description": "What kind of change this row represents."
         },
-        {
-          "type": "string",
-          "const": "reservoir"
+        "update_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Should be on or after create_date."
         },
-        {
-          "type": "string",
-          "const": "siphon"
+        "create_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Default at write time: today."
         },
-        {
-          "type": "string",
-          "const": "tank"
+        "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1,
+            "description": "Lifecycle counter; increments on each update."
         },
-        {
-          "type": "null"
+        "t50_fid": {},
+        "feature_type": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "const": "dry_dock"
+                },
+                {
+                    "type": "string",
+                    "const": "fish_farm"
+                },
+                {
+                    "type": "string",
+                    "const": "marine_farm"
+                },
+                {
+                    "type": "string",
+                    "const": "reservoir"
+                },
+                {
+                    "type": "string",
+                    "const": "siphon"
+                },
+                {
+                    "type": "string",
+                    "const": "tank"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "lid_type": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/LidTypeEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "structure_type": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StructureTypeEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "species": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/SpeciesEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "status": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StatusEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "name": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "stored_item": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StoredItemEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "geometry": {
+            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+            "not": {
+                "type": "null"
+            }
+        },
+        "bbox": {
+            "$ref": "#/$defs/BBox"
         }
-      ]
     },
-    "lid_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LidTypeEnum"
+    "required": [
+        "topo_id",
+        "capture_method",
+        "change_type",
+        "update_date",
+        "create_date",
+        "version",
+        "geometry"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "CaptureMethod": {
+            "type": "string",
+            "enum": [
+                "manual",
+                "automated",
+                "surveyed"
+            ],
+            "description": "How the feature was captured."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "structure_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StructureTypeEnum"
+        "ChangeType": {
+            "type": "string",
+            "enum": [
+                "new",
+                "update",
+                "modified attributes",
+                "modified geometry",
+                "modified geometry and attributes"
+            ],
+            "description": "Lifecycle change type for a feature row."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "species": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SpeciesEnum"
+        "LidTypeEnum": {
+            "type": "string",
+            "enum": [
+                "covered"
+            ],
+            "description": "Auto-derived from observed values of `lid_type`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StatusEnum"
+        "StructureTypeEnum": {
+            "type": "string",
+            "enum": [
+                "lighthouse",
+                "surge chamber",
+                "uncovered",
+                "water"
+            ],
+            "description": "Auto-derived from observed values of `structure_type`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
+        "SpeciesEnum": {
+            "type": "string",
+            "enum": [
+                "mussels",
+                "salmon"
+            ],
+            "description": "Auto-derived from observed values of `species`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "stored_item": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StoredItemEnum"
+        "StatusEnum": {
+            "type": "string",
+            "enum": [
+                "closed",
+                "dangerous",
+                "derelict",
+                "disused",
+                "historic",
+                "locked",
+                "old",
+                "private",
+                "remains",
+                "ruins",
+                "under construction"
+            ],
+            "description": "Auto-derived from observed values of `status`."
         },
-        {
-          "type": "null"
+        "StoredItemEnum": {
+            "type": "string",
+            "enum": [
+                "fuel",
+                "water"
+            ],
+            "description": "Auto-derived from observed values of `stored_item`."
+        },
+        "BBox": {
+            "type": "object",
+            "properties": {
+                "xmin": {
+                    "type": "number"
+                },
+                "ymin": {
+                    "type": "number"
+                },
+                "xmax": {
+                    "type": "number"
+                },
+                "ymax": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax"
+            ],
+            "description": "GeoParquet 1.1 covering bbox struct."
         }
-      ]
-    },
-    "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-      "not": {
-        "type": "null"
-      }
-    },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
     }
-  },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
-  "additionalProperties": false,
-  "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
-    "LidTypeEnum": {
-      "type": "string",
-      "enum": ["covered"],
-      "description": "Auto-derived from observed values of `lid_type`."
-    },
-    "StructureTypeEnum": {
-      "type": "string",
-      "enum": ["lighthouse", "surge chamber", "uncovered", "water"],
-      "description": "Auto-derived from observed values of `structure_type`."
-    },
-    "SpeciesEnum": {
-      "type": "string",
-      "enum": ["mussels", "salmon"],
-      "description": "Auto-derived from observed values of `species`."
-    },
-    "StatusEnum": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "StoredItemEnum": {
-      "type": "string",
-      "enum": ["fuel", "water"],
-      "description": "Auto-derived from observed values of `stored_item`."
-    },
-    "BBox": {
-      "type": "object",
-      "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
-      },
-      "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
-    }
-  }
 }

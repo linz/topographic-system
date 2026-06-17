@@ -30,6 +30,8 @@ create json [Note: can be edited is small simple change]
 
 If this does not run consider
 
+> npx tsp compile .
+
 depending on where you run this from, and how your tsp is installed; You may need to npx tsp compile ./packages/schema/src/
 or just tsp compile . (dot for current folder) should be enough.
 

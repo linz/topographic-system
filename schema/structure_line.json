@@ -1,267 +1,303 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "structure_line",
-  "type": "object",
-  "properties": {
-    "topo_id": {
-      "type": "string",
-      "description": "UUID for the feature."
-    },
-    "fid": {
-      "description": "Unique identifier for the feature"
-    },
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Should be on or after create_date."
-    },
-    "create_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
-    "t50_fid": {},
-    "feature_type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "boatramp"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "structure_line",
+    "type": "object",
+    "properties": {
+        "topo_id": {
+            "type": "string",
+            "description": "UUID for the feature."
         },
-        {
-          "type": "string",
-          "const": "boom"
+        "capture_method": {
+            "$ref": "#/$defs/CaptureMethod",
+            "default": "manual",
+            "description": "How the feature was captured."
         },
-        {
-          "type": "string",
-          "const": "breakwater"
+        "change_type": {
+            "$ref": "#/$defs/ChangeType",
+            "default": "new",
+            "description": "What kind of change this row represents."
         },
-        {
-          "type": "string",
-          "const": "cableway_industrial"
+        "update_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Should be on or after create_date."
         },
-        {
-          "type": "string",
-          "const": "cableway_people"
+        "create_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Default at write time: today."
         },
-        {
-          "type": "string",
-          "const": "dam"
+        "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1,
+            "description": "Lifecycle counter; increments on each update."
         },
-        {
-          "type": "string",
-          "const": "flume"
+        "t50_fid": {},
+        "feature_type": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "const": "boatramp"
+                },
+                {
+                    "type": "string",
+                    "const": "boom"
+                },
+                {
+                    "type": "string",
+                    "const": "breakwater"
+                },
+                {
+                    "type": "string",
+                    "const": "cableway_industrial"
+                },
+                {
+                    "type": "string",
+                    "const": "cableway_people"
+                },
+                {
+                    "type": "string",
+                    "const": "dam"
+                },
+                {
+                    "type": "string",
+                    "const": "flume"
+                },
+                {
+                    "type": "string",
+                    "const": "ladder"
+                },
+                {
+                    "type": "string",
+                    "const": "marine_farm"
+                },
+                {
+                    "type": "string",
+                    "const": "ski_lift"
+                },
+                {
+                    "type": "string",
+                    "const": "ski_tow"
+                },
+                {
+                    "type": "string",
+                    "const": "slipway"
+                },
+                {
+                    "type": "string",
+                    "const": "spillway_edge"
+                },
+                {
+                    "type": "string",
+                    "const": "weir"
+                },
+                {
+                    "type": "string",
+                    "const": "wharf"
+                },
+                {
+                    "type": "string",
+                    "const": "wharf_edge"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "ladder"
+        "structure_use": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StructureUseEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "marine_farm"
+        "species": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/SpeciesEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "ski_lift"
+        "status": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StatusEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "ski_tow"
+        "name": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "slipway"
+        "material": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/MaterialEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "spillway_edge"
+        "material_conveyed": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/MaterialConveyedEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "weir"
+        "restrictions": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/RestrictionsEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "wharf"
+        "geometry": {
+            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+            "not": {
+                "type": "null"
+            }
         },
-        {
-          "type": "string",
-          "const": "wharf_edge"
-        },
-        {
-          "type": "null"
+        "bbox": {
+            "$ref": "#/$defs/BBox"
         }
-      ]
     },
-    "structure_use": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StructureUseEnum"
+    "required": [
+        "topo_id",
+        "capture_method",
+        "change_type",
+        "update_date",
+        "create_date",
+        "version",
+        "geometry"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "CaptureMethod": {
+            "type": "string",
+            "enum": [
+                "manual",
+                "automated",
+                "surveyed"
+            ],
+            "description": "How the feature was captured."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "species": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SpeciesEnum"
+        "ChangeType": {
+            "type": "string",
+            "enum": [
+                "new",
+                "update",
+                "modified attributes",
+                "modified geometry",
+                "modified geometry and attributes"
+            ],
+            "description": "Lifecycle change type for a feature row."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StatusEnum"
+        "StructureUseEnum": {
+            "type": "string",
+            "enum": [
+                "historic",
+                "jetty",
+                "power generation",
+                "tunnel ventilation"
+            ],
+            "description": "Auto-derived from observed values of `structure_use`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
+        "SpeciesEnum": {
+            "type": "string",
+            "enum": [
+                "mussels",
+                "salmon"
+            ],
+            "description": "Auto-derived from observed values of `species`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "material": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/MaterialEnum"
+        "StatusEnum": {
+            "type": "string",
+            "enum": [
+                "closed",
+                "dangerous",
+                "derelict",
+                "disused",
+                "historic",
+                "locked",
+                "old",
+                "private",
+                "remains",
+                "ruins",
+                "under construction"
+            ],
+            "description": "Auto-derived from observed values of `status`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "material_conveyed": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/MaterialConveyedEnum"
+        "MaterialEnum": {
+            "type": "string",
+            "enum": [
+                "concrete",
+                "rock"
+            ],
+            "description": "Auto-derived from observed values of `material`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "restrictions": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/RestrictionsEnum"
+        "MaterialConveyedEnum": {
+            "type": "string",
+            "enum": [
+                "coal",
+                "lime"
+            ],
+            "description": "Auto-derived from observed values of `material_conveyed`."
         },
-        {
-          "type": "null"
+        "RestrictionsEnum": {
+            "type": "string",
+            "enum": [
+                "locked"
+            ],
+            "description": "Auto-derived from observed values of `restrictions`."
+        },
+        "BBox": {
+            "type": "object",
+            "properties": {
+                "xmin": {
+                    "type": "number"
+                },
+                "ymin": {
+                    "type": "number"
+                },
+                "xmax": {
+                    "type": "number"
+                },
+                "ymax": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax"
+            ],
+            "description": "GeoParquet 1.1 covering bbox struct."
         }
-      ]
-    },
-    "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-      "not": {
-        "type": "null"
-      }
-    },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
     }
-  },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
-  "additionalProperties": false,
-  "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
-    "StructureUseEnum": {
-      "type": "string",
-      "enum": ["historic", "jetty", "power generation", "tunnel ventilation"],
-      "description": "Auto-derived from observed values of `structure_use`."
-    },
-    "SpeciesEnum": {
-      "type": "string",
-      "enum": ["mussels", "salmon"],
-      "description": "Auto-derived from observed values of `species`."
-    },
-    "StatusEnum": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "MaterialEnum": {
-      "type": "string",
-      "enum": ["concrete", "rock"],
-      "description": "Auto-derived from observed values of `material`."
-    },
-    "MaterialConveyedEnum": {
-      "type": "string",
-      "enum": ["coal", "lime"],
-      "description": "Auto-derived from observed values of `material_conveyed`."
-    },
-    "RestrictionsEnum": {
-      "type": "string",
-      "enum": ["locked"],
-      "description": "Auto-derived from observed values of `restrictions`."
-    },
-    "BBox": {
-      "type": "object",
-      "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
-      },
-      "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
-    }
-  }
 }

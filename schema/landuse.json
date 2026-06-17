@@ -1,234 +1,262 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "landuse",
-  "type": "object",
-  "properties": {
-    "topo_id": {
-      "type": "string",
-      "description": "UUID for the feature."
-    },
-    "fid": {
-      "description": "Unique identifier for the feature"
-    },
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Should be on or after create_date."
-    },
-    "create_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
-    "t50_fid": {},
-    "feature_type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "cemetery"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "landuse",
+    "type": "object",
+    "properties": {
+        "topo_id": {
+            "type": "string",
+            "description": "UUID for the feature."
         },
-        {
-          "type": "string",
-          "const": "golf_course"
+        "capture_method": {
+            "$ref": "#/$defs/CaptureMethod",
+            "default": "manual",
+            "description": "How the feature was captured."
         },
-        {
-          "type": "string",
-          "const": "gravel_pit"
+        "change_type": {
+            "$ref": "#/$defs/ChangeType",
+            "default": "new",
+            "description": "What kind of change this row represents."
         },
-        {
-          "type": "string",
-          "const": "landfill"
+        "update_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Should be on or after create_date."
         },
-        {
-          "type": "string",
-          "const": "mine"
+        "create_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Default at write time: today."
         },
-        {
-          "type": "string",
-          "const": "pumice_pit"
+        "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1,
+            "description": "Lifecycle counter; increments on each update."
         },
-        {
-          "type": "string",
-          "const": "quarry"
+        "t50_fid": {},
+        "feature_type": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "const": "cemetery"
+                },
+                {
+                    "type": "string",
+                    "const": "golf_course"
+                },
+                {
+                    "type": "string",
+                    "const": "gravel_pit"
+                },
+                {
+                    "type": "string",
+                    "const": "landfill"
+                },
+                {
+                    "type": "string",
+                    "const": "mine"
+                },
+                {
+                    "type": "string",
+                    "const": "pumice_pit"
+                },
+                {
+                    "type": "string",
+                    "const": "quarry"
+                },
+                {
+                    "type": "string",
+                    "const": "racetrack"
+                },
+                {
+                    "type": "string",
+                    "const": "rifle_range"
+                },
+                {
+                    "type": "string",
+                    "const": "showground"
+                },
+                {
+                    "type": "string",
+                    "const": "sportsfield"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "racetrack"
+        "landuse_use": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/LanduseUseEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "rifle_range"
+        "landuse_type": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/LanduseTypeEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "showground"
+        "status": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StatusEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string",
-          "const": "sportsfield"
+        "name": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "null"
+        "substance": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/SubstanceEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "geometry": {
+            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+            "not": {
+                "type": "null"
+            }
+        },
+        "bbox": {
+            "$ref": "#/$defs/BBox"
         }
-      ]
     },
-    "landuse_use": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LanduseUseEnum"
+    "required": [
+        "topo_id",
+        "capture_method",
+        "change_type",
+        "update_date",
+        "create_date",
+        "version",
+        "geometry"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "CaptureMethod": {
+            "type": "string",
+            "enum": [
+                "manual",
+                "automated",
+                "surveyed"
+            ],
+            "description": "How the feature was captured."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "landuse_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LanduseTypeEnum"
+        "ChangeType": {
+            "type": "string",
+            "enum": [
+                "new",
+                "update",
+                "modified attributes",
+                "modified geometry",
+                "modified geometry and attributes"
+            ],
+            "description": "Lifecycle change type for a feature row."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StatusEnum"
+        "LanduseUseEnum": {
+            "type": "string",
+            "enum": [
+                "cycle",
+                "dog",
+                "horse",
+                "vehicle"
+            ],
+            "description": "Auto-derived from observed values of `landuse_use`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
+        "LanduseTypeEnum": {
+            "type": "string",
+            "enum": [
+                "opencast",
+                "training"
+            ],
+            "description": "Auto-derived from observed values of `landuse_type`."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "substance": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SubstanceEnum"
+        "StatusEnum": {
+            "type": "string",
+            "enum": [
+                "closed",
+                "dangerous",
+                "derelict",
+                "disused",
+                "historic",
+                "locked",
+                "old",
+                "private",
+                "remains",
+                "ruins",
+                "under construction"
+            ],
+            "description": "Auto-derived from observed values of `status`."
         },
-        {
-          "type": "null"
+        "SubstanceEnum": {
+            "type": "string",
+            "enum": [
+                "bentonite",
+                "clay",
+                "coal",
+                "gold",
+                "gravel",
+                "ironsand",
+                "lime",
+                "limestone",
+                "metal",
+                "quartz",
+                "scheelite",
+                "shingle",
+                "silica sand",
+                "silver",
+                "stone",
+                "zeolite"
+            ],
+            "description": "Auto-derived from observed values of `substance`."
+        },
+        "BBox": {
+            "type": "object",
+            "properties": {
+                "xmin": {
+                    "type": "number"
+                },
+                "ymin": {
+                    "type": "number"
+                },
+                "xmax": {
+                    "type": "number"
+                },
+                "ymax": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax"
+            ],
+            "description": "GeoParquet 1.1 covering bbox struct."
         }
-      ]
-    },
-    "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-      "not": {
-        "type": "null"
-      }
-    },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
     }
-  },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
-  "additionalProperties": false,
-  "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
-    "LanduseUseEnum": {
-      "type": "string",
-      "enum": ["cycle", "dog", "horse", "vehicle"],
-      "description": "Auto-derived from observed values of `landuse_use`."
-    },
-    "LanduseTypeEnum": {
-      "type": "string",
-      "enum": ["opencast", "training"],
-      "description": "Auto-derived from observed values of `landuse_type`."
-    },
-    "StatusEnum": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "SubstanceEnum": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ],
-      "description": "Auto-derived from observed values of `substance`."
-    },
-    "BBox": {
-      "type": "object",
-      "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
-      },
-      "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
-    }
-  }
 }

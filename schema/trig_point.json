@@ -1,142 +1,164 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "trig_point",
-  "type": "object",
-  "properties": {
-    "topo_id": {
-      "type": "string",
-      "description": "UUID for the feature."
-    },
-    "fid": {
-      "description": "Unique identifier for the feature"
-    },
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Should be on or after create_date."
-    },
-    "create_date": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
-    "t50_fid": {},
-    "feature_type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "trig"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "trig_point",
+    "type": "object",
+    "properties": {
+        "topo_id": {
+            "type": "string",
+            "description": "UUID for the feature."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "trig_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/TrigTypeEnum"
+        "capture_method": {
+            "$ref": "#/$defs/CaptureMethod",
+            "default": "manual",
+            "description": "How the feature was captured."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
+        "change_type": {
+            "$ref": "#/$defs/ChangeType",
+            "default": "new",
+            "description": "What kind of change this row represents."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "code": {
-      "anyOf": [
-        {
-          "type": "string"
+        "update_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Should be on or after create_date."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "elevation": {
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": -2147483648,
-          "maximum": 2147483647
+        "create_date": {
+            "type": "object",
+            "properties": {},
+            "description": "Default at write time: today."
         },
-        {
-          "type": "null"
+        "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1,
+            "description": "Lifecycle counter; increments on each update."
+        },
+        "t50_fid": {},
+        "feature_type": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "const": "trig"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "trig_type": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/TrigTypeEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "name": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "code": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "elevation": {
+            "anyOf": [
+                {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "geometry": {
+            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+            "not": {
+                "type": "null"
+            }
+        },
+        "bbox": {
+            "$ref": "#/$defs/BBox"
         }
-      ]
     },
-    "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-      "not": {
-        "type": "null"
-      }
-    },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
+    "required": [
+        "topo_id",
+        "capture_method",
+        "change_type",
+        "update_date",
+        "create_date",
+        "version",
+        "geometry"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "CaptureMethod": {
+            "type": "string",
+            "enum": [
+                "manual",
+                "automated",
+                "surveyed"
+            ],
+            "description": "How the feature was captured."
+        },
+        "ChangeType": {
+            "type": "string",
+            "enum": [
+                "new",
+                "update",
+                "modified attributes",
+                "modified geometry",
+                "modified geometry and attributes"
+            ],
+            "description": "Lifecycle change type for a feature row."
+        },
+        "TrigTypeEnum": {
+            "type": "string",
+            "enum": [
+                "beacon"
+            ],
+            "description": "Auto-derived from observed values of `trig_type`."
+        },
+        "BBox": {
+            "type": "object",
+            "properties": {
+                "xmin": {
+                    "type": "number"
+                },
+                "ymin": {
+                    "type": "number"
+                },
+                "xmax": {
+                    "type": "number"
+                },
+                "ymax": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax"
+            ],
+            "description": "GeoParquet 1.1 covering bbox struct."
+        }
     }
-  },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
-  "additionalProperties": false,
-  "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
-    "TrigTypeEnum": {
-      "type": "string",
-      "enum": ["beacon"],
-      "description": "Auto-derived from observed values of `trig_type`."
-    },
-    "BBox": {
-      "type": "object",
-      "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
-      },
-      "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
-    }
-  }
 }
