@@ -25,7 +25,7 @@ Also **CHECK** if it has to50_fid still set to 0. The pre-processing.py script h
 
 If road_line - t50_fid in database has 0 values - run SQL to assign a value. Mainly used when aligning id between releases. This is a work around.
 
-## LINZ MAP SHEET
+## LINZ MAP SHEET (X) - This is now managed standalone in product steps
 
 This is export directly from LAMPS for addition example information. This replaces the LDS version in the shape folder. It is processed as part of the core and copied into the carto schema in the postgis_manage_fields script.
 

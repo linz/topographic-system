@@ -1,202 +1,159 @@
-2/06/2026 
+## Data Processing Workflow (Current as implemented)
+
+Last checked: 2026-06-17
+
+This document reflects the current behaviour in:
+- core/load_shp_to_themes.py
+- core/postgis_manage_fields.py
+
+## 1) Load and normalize source layers (load_shp_to_themes.py)
+
+### Source selection
+- The current run path uses `source_mode = "gpkg_files"` and targets PostGIS.
+- Input files are grouped by logical layer using `layers_info.csv`.
+- Both `shp_name` and `kart_layer_name` are accepted for mapping.
+
+### Layer harmonization
+- For each logical layer, field sets from all contributing files are unioned.
+- Missing columns are added as `None` so all rows for a layer share one schema.
+- `feature_type` is added from the mapping file (`type` column), then renamed to `type`.
+
+### Projection and column order
+- Data is transformed to EPSG:2193 before writing.
+- Geometry is forced to be the last column.
+
+### Key active field renames in loader
+- Generic short-field expansions:
+  - `compositn -> composition`
+  - `descriptn -> description`
+  - `info_disp -> info_display`
+  - `veh_type -> vehicle_type`
+  - `restrictns -> restrictions`
+  - `orientatn -> orientation`
+  - `constr_typ -> construction_type`
+  - `support_typ -> support_type`
+  - `support_ty -> support_type`
+  - `bldg_use -> building_use`
+  - `pipe_use -> utility_use`
+  - `rway_use -> railway_use`
+  - `embkmt_use -> relief_use`
+  - `grp_ascii -> group_ascii`
+  - `grp_macron -> group_macron`
+  - `grp_name -> group_name`
+  - `substance -> substance_extracted`
+
+- Layer-specific examples:
+  - `tunnel_line`: `use1 -> tunnel_use`, `use2 -> tunnel_use2`, `type -> subtype`
+  - `structure`: `type -> subtype`
+  - `structure_point`: `use -> structure_use`, `type -> subtype`
+  - `structure_line`: `wharf_use -> structure_use`
+  - `bridge_line`: `use_1 -> bridge_use`, `use_2 -> bridge_use2`
+  - `water_point`: `temp -> temperature_indicator`
+  - `landcover` / `landcover_line`: `track_use -> landcover_use`
+  - `landuse` / `landuse_line`: `track_use -> landuse_use`, `track_type -> subtype`
+  - `water`: `lake_use -> water_use`, `gazfeatid -> nzgb_feat_id`
+  - `road_line`: `hway_num -> highway_number`, `num_lanes -> lane_count`, `lol_sufi -> rna_sufi`, `width -> width_indicator`
+
+- ID normalization:
+  - `UFID -> t50_fid` (integer)
+  - `nz_topo50_map_sheet.t50id -> t50_fid` (integer)
+
+### Current exclusions
+- `contour` is skipped in this loader path (handled separately by contours/import_contours.py).
+
+## 2) Post-load table/field management (postgis_manage_fields.py)
+
+Execution order (`option="all"`):
+1. `metadata`
+2. `columns`
+3. `name`
+4. `null_updates`
+5. `additions`
+6. `road_lkp_updates`
+7. `defaults`
+8. `rename`
+9. `carto_text_geom_update`
+10. `recreate_table_srid`
+11. `primary_key`
+12. `process_carto_tables`
+
+### Metadata step
+- Adds metadata columns (default configuration):
+  - `id uuid DEFAULT gen_random_uuid()`
+  - `updated_at DATE DEFAULT CURRENT_DATE`
+  - `created_at DATE DEFAULT CURRENT_DATE`
+
+### Column consolidation and cleanup
+- Moves values then drops old columns:
+  - `structure_point`: `shaft_use -> structure_use`, `tank_type -> structure_type`, `materials -> material`
+  - `structure_line`: `dam_status -> status`
+  - `structure`: `species_cultivated -> species`, `reservoir_lid_type -> lid_type`, `tank_type -> structure_type`
+  - `road_line`: `highway_numb -> highway_number`
+  - `water`: `pond_use -> water_use`
+- Drops `vegetation_point.name`.
+
+### Value corrections
+- `tunnel_line.tunnel_use2`: `'ivestock' -> 'livestock'`
+- `tunnel_line.tunnel_use`: set `'vehicle'` where `tunnel_use2 = 'vehicle'`
+- `tunnel_line.tunnel_use2`: set `'livestock'` where `tunnel_use2 = 'vehicle'`
+- `trig_point.trig_type`: set to `'beaconed'`
+- `road_line.way_count`: set `'one way'` where `way_count = '1'`
+- `road_line.road_access`: set `'mp'` where `road_access = 'm'` (if column exists)
+- `utility_line.support_type`: set `'pole'` where `type = 'telephone'`
+
+### Null fill rules
+- `runway.surface = 'grass'` where null
+- `vegetation.species = 'coniferous'` where null and `type = 'exotic'`
+- `railway_line.vehicle_type = 'train'` where null
+
+### Added/derived fields
+- `trig_point.code` from `trig_point.name`, then `trig_point.name` set to null
+- `vegetation.subtype` from `vegetation.species`, then `vegetation.species` set to null
+- `landcover.subtype`
+- `road_line.hierarchy`, `road_line.width_indicator`, `road_line.name_id`
+- `railway_line.route`, `railway_line.route2`, `railway_line.route3`
+- `coastline.coastline_type`
+- `water_line.hierarchy`, `water.hierarchy`
+
+### Additional renames in this stage
+- `contour.nat_form -> formation`
+- `contour.designated -> designation`
+- `landuse.track_type -> landuse_type`, then `landuse.landuse_type` populated from `visibility`, and `visibility` dropped
+- `landuse_line.track_type -> landuse_type`
+- `place_point.visibility -> place_type`
+- `structure_line.materials -> material`
+- `structure_line.mtlconveyd -> material_conveyed`
+- `structure_point.store_item -> stored_item`
+- `structure.store_item -> stored_item`
+
+### Name field additions
+- Adds `name` column when missing for:
+  - `utility_point`
+  - `utility_line`
+  - `structure`
+  - `ferry_crossing`
+
+### Road lookup enrichment
+- Updates `road_line.width_indicator` and `road_line.name_id` from `lookups.road_lkp` on `t50_fid`.
+
+### Default values (DDL defaults)
+- Sets defaults for selected fields including:
+  - `runway.status = 'active'`, `runway.surface = 'sealed'`
+  - type defaults on tables such as `airport`, `bridge_line`, `building`, `road_line`, `track_line`, `vegetation_point`, `trig_point`, `tunnel_line`, etc.
+
+### Geometry handling and final CRS
+- `nztopo50_map_sheet` geometry is snapped with `ST_SnapToGrid(geometry, 1.0)`.
+- Most tables are re-created from EPSG:2193 to EPSG:4167 using `ST_Transform`.
+- Excluded from SRID recreation: `collections`, `nztopo50_map_sheet`.
+
+### Primary key and ESRI cleanup
+- Drops `ESRI_OID` where present. Hang over from LAMPS export. May not be present in new download process.
+- Primary key strategy (current default): UUID primary key on `id` using `gen_random_uuid()`.
+
+
+## 3) Notes on legacy/disabled behaviour
+
+- Island `location` generation (sea/inland) is not active in current code path.
+- Contour loading is handled by the dedicated contours workflow, not by the main loader.
 
-Shapefile field names are restricted in length - these are renamed to longer versions. These are in the LDS data not matter the export format.
-
-Data going into repo topographic-data is converted to EPSG:4167 New Zealand Geodetic Datum 2000 (NZGD2000). It is a geographic (lat/long) coordinate system based on the GRS80 ellipsoid.
-
-A type fields is added to all layers - the feature type is based on the shapefile name - loaded from layers_info.csv control file.
-
-An id (formally topo_id) field (UUID/GUID) is added and unique value assigned. 
-
-Metadata fields are added to all layers. The create_date->created_at and update_date->updated_at - field renames.
-
-Name changes - use and type fields are renamed based on layer name or consistent naming for example road_use, road_type. The field on the right will no longer exist.
-
-update_dict = {
-            (schema_name, "structure_point"): [
-                ("structure_use", "shaft_use"),
-                ("structure_type", "tank_type"),
-                ("material", "materials"),
-            ],
-            (schema_name, "structure_line"): [("status", "dam_status")],
-            (schema_name, "structure"): [
-                ("species", "species_cultivated"),
-                ("lid_type", "reservoir_lid_type"),
-                ("structure_type", "tank_type"),
-            ],
-            (schema_name, "road_line"): [("highway_number", "highway_numb")],
-            (schema_name, "water"): [
-                ("water_use", "pond_use"),
-            ],
-  }
-
-If shapefile has "ESRI_OID" it is dropped.
-
-Data columns are re-ordered to ensure geometry is the last column.
-
-Islands - pre-loading step - Island are intersected with a created sea polygon (coastline and outer box) to identify islands in the sea versus “inland”. A new field is added to the dataset called location where 1 = a sea-based island and 0 is inland. - this is being dropped or new requirements required. 
-
-Road_line has a future field added called name_id and width_indicator. These come from data exported directly from LAMPS and using lookup based on the t50_fid.
-
-vegetation_points (formally tree_locations) - has an unrequired field name - this is dropped. Not only 3 trees have a name in the source - this is dropped but record for LDS recreation process.
-
-values are fixed or realigned into common fields / give default values
-
-tunnel_line
-
-value ‘ivestock’ updated to 'livestock'
-
-tunnel_use updated to vehicle where use2 = vehicle
-
-tunnel_use2 updated to livestock where use2 = vehicle
-
-"trig_point", "trig_type", "'beaconed'"
-
-"road_line", "way_count", "'one way'", "way_count ='1'"
-
- "road_line", "road_access", "'mp'", "road_access ='m'"
-
-"utility_line (formally physical_Infrastructure_line)", "support_type", "'pole'","type ='telephone'"
-
-A name field is added to these layers
-
-            "utility_point (previous name - physical_infrastructure_point)",
-            "utility_line (previous name - physical_infrastructure_line",
-            "structure",
-            "ferry_crossing",
-
-Version 0.2 of model - changes 
-        "vegetation", - dropped
-        "landcover", - now there because waterfall name
-        "landcover_line", - dropped
-
-Where null defines a value - set a value instead
-
-        update_dict = {
-            f"{schema_name}.runway": [("surface", "'grass'", "")],
-            f"{schema_name}.vegetation": [
-                ("species", "'coniferous'", "AND type = 'exotic'")],
-            f"{schema_name}.railway_line": [("vehicle_type", "'train'", "")],
-            # Add more entries as needed - should be pre-existing
-        }
-
-
-
-Added / Modfield Fields 
-
-trig_points
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.trig_point", "code", "VARCHAR(20)"
-    )
-    self.table_modifer.update_value_by_column(
-        self.schema_name, "trig_point", "code", "name"
-    )
-    self.table_modifer.update_value_by_column(
-        self.schema_name, "trig_point", "name", "null"
-    )
-
-vegetation
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.vegetation", "subtype", "VARCHAR(50)"
-    )
-    self.table_modifer.update_value_by_column(
-        self.schema_name, "vegetation", "subtype", "species"
-    )
-    self.table_modifer.update_value_by_column(
-        self.schema_name, "vegetation", "species", "null"
-    )
-
-
-
-landcover
-
-   self.table_modifer.add_column(
-        f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
-    )
-
-
-
-road_line
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
-    )
-
-    These fields are populated from lookup table created from LAMPS data dump of toads.
-    self.table_modifer.add_column(
-        f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
-    )
-    self.table_modifer.add_column(
-        f"{self.schema_name}.road_line", "name_id", "BIGINT"
-    )
-
-
-
-railway_line
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
-    )
-    self.table_modifer.add_column(
-        f"{self.schema_name}.railway_line", "route2", "VARCHAR(30)"
-    )
-    self.table_modifer.add_column(
-        f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
-    )
-
-
-
-coastline
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
-    )
-
-
-
-hierarchy
-   self.table_modifer.add_column(
-        f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
-    )
-
-    self.table_modifer.add_column(
-        f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
-    )
-    self.table_modifer.add_column(
-        f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
-    )
-
-other changes
-
-    self.table_modifer.rename_columns(
-        self.schema_name, "contour", "designated", "designation"
-    )
-
-    self.table_modifer.rename_columns(
-        self.schema_name, "landuse", "track_type", "landuse_type"
-    )
-    self.table_modifer.update_value_by_column(
-        self.schema_name, "landuse", "landuse_type", "visibility"
-    )
-    self.table_modifer.drop_column(self.schema_name, "landuse", "visibility")
-    self.table_modifer.rename_columns(
-        self.schema_name, "landuse_line", "track_type", "landuse_type"
-    )
-    self.table_modifer.rename_columns(
-        self.schema_name, "place_point", "visibility", "place_type"
-    )
-
-
-
-topographic-product-data retains original projections 
-
-nz_topo50_map_sheet NZTM2000 (EPSG:2193)
-
-Carto_text NZTM2000 (EPSG:2193)
-
-grid 1 - WGS84
-
-grid 2 - NZTM2000 (EPSG:2193)
 
