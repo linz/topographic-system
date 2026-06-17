@@ -10,7 +10,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
+from utils.mag_dec import MagDecOptions, calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -18,7 +18,7 @@ TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 class MagInfoRaw(TypedDict):
     gm_degrees: float
     gm_mils: float
-    gm_year: int
+    gm_date: datetime
     gm_rate_years: float
 
 
@@ -37,7 +37,7 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoRaw:
+def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str, options: MagDecOptions) -> MagInfoRaw:
     nz_topo50_map_sheet = project.mapLayersByName(topo_map_sheet)[0]
 
     features = list(nz_topo50_map_sheet.getFeatures())
@@ -70,17 +70,16 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         conv = source_crs.factors(center_transformed_point).meridianConvergence()
 
         # magnetic declination
-        date = datetime.now()
-        decl = calculate_magnetic_declination(center_transformed_point, date)
+        decl = calculate_magnetic_declination(center_transformed_point, options)
 
         # rate of change
-        rate_years = calculate_rate_of_change(center_transformed_point, date, 0.5)
+        rate_years = calculate_rate_of_change(center_transformed_point, options)
 
         # gm angle
         gm_degrees = decl - conv
         gm_mils = _degrees_to_mils(gm_degrees)
 
-        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_year=date.year, gm_rate_years=rate_years)
+        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=options["date"], gm_rate_years=rate_years)
 
     raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
 
@@ -100,7 +99,7 @@ def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
     gm_mils_str = f"{gm_mils_int}"
 
     # gm_year
-    gm_year_str = f"{mag_info['gm_year']}"
+    gm_year_str = f"{mag_info['gm_date'].year}"
 
     # gm_rate_years
     gm_rate_years_rounded = round(mag_info["gm_rate_years"])
