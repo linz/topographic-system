@@ -1,236 +1,208 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "water",
-    "type": "object",
-    "properties": {
-        "topo_id": {
-            "type": "string",
-            "description": "UUID for the feature."
-        },
-        "capture_method": {
-            "$ref": "#/$defs/CaptureMethod",
-            "default": "manual",
-            "description": "How the feature was captured."
-        },
-        "change_type": {
-            "$ref": "#/$defs/ChangeType",
-            "default": "new",
-            "description": "What kind of change this row represents."
-        },
-        "update_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Should be on or after create_date."
-        },
-        "create_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Default at write time: today."
-        },
-        "version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647,
-            "default": 1,
-            "description": "Lifecycle counter; increments on each update."
-        },
-        "t50_fid": {},
-        "feature_type": {
-            "anyOf": [
-                {
-                    "type": "string",
-                    "const": "canal"
-                },
-                {
-                    "type": "string",
-                    "const": "lagoon"
-                },
-                {
-                    "type": "string",
-                    "const": "lake"
-                },
-                {
-                    "type": "string",
-                    "const": "pond"
-                },
-                {
-                    "type": "string",
-                    "const": "river"
-                },
-                {
-                    "type": "string",
-                    "const": "swamp"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "water_use": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/WaterUseEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "hierarchy": {
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "name": {
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "group_name": {
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "height": {
-            "anyOf": [
-                {
-                    "type": "number"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "perennial": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/PerennialEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "temperature": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/TemperatureEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "geometry": {
-            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-            "not": {
-                "type": "null"
-            }
-        },
-        "bbox": {
-            "$ref": "#/$defs/BBox"
-        }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "water",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string",
+      "description": "UUID for the feature."
     },
-    "required": [
-        "topo_id",
-        "capture_method",
-        "change_type",
-        "update_date",
-        "create_date",
-        "version",
-        "geometry"
-    ],
-    "additionalProperties": false,
-    "$defs": {
-        "CaptureMethod": {
-            "type": "string",
-            "enum": [
-                "manual",
-                "automated",
-                "surveyed"
-            ],
-            "description": "How the feature was captured."
+    "capture_method": {
+      "$ref": "#/$defs/CaptureMethod",
+      "default": "manual",
+      "description": "How the feature was captured."
+    },
+    "change_type": {
+      "$ref": "#/$defs/ChangeType",
+      "default": "new",
+      "description": "What kind of change this row represents."
+    },
+    "update_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Should be on or after create_date."
+    },
+    "create_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "default": 1,
+      "description": "Lifecycle counter; increments on each update."
+    },
+    "t50_fid": {},
+    "feature_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "canal"
         },
-        "ChangeType": {
-            "type": "string",
-            "enum": [
-                "new",
-                "update",
-                "modified attributes",
-                "modified geometry",
-                "modified geometry and attributes"
-            ],
-            "description": "Lifecycle change type for a feature row."
+        {
+          "type": "string",
+          "const": "lagoon"
         },
-        "WaterUseEnum": {
-            "type": "string",
-            "enum": [
-                "evaporation",
-                "hydro-electric",
-                "ice skating",
-                "oil",
-                "oxidation",
-                "reservoir",
-                "settling",
-                "sewage",
-                "sewage treatment",
-                "sludge"
-            ],
-            "description": "Auto-derived from observed values of `water_use`."
+        {
+          "type": "string",
+          "const": "lake"
         },
-        "PerennialEnum": {
-            "type": "string",
-            "enum": [
-                "dry",
-                "seasonal"
-            ],
-            "description": "Auto-derived from observed values of `perennial`."
+        {
+          "type": "string",
+          "const": "pond"
         },
-        "TemperatureEnum": {
-            "type": "string",
-            "enum": [
-                "hot"
-            ],
-            "description": "Auto-derived from observed values of `temperature`."
+        {
+          "type": "string",
+          "const": "river"
         },
-        "BBox": {
-            "type": "object",
-            "properties": {
-                "xmin": {
-                    "type": "number"
-                },
-                "ymin": {
-                    "type": "number"
-                },
-                "xmax": {
-                    "type": "number"
-                },
-                "ymax": {
-                    "type": "number"
-                }
-            },
-            "required": [
-                "xmin",
-                "ymin",
-                "xmax",
-                "ymax"
-            ],
-            "description": "GeoParquet 1.1 covering bbox struct."
+        {
+          "type": "string",
+          "const": "swamp"
+        },
+        {
+          "type": "null"
         }
+      ]
+    },
+    "water_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WaterUseEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hierarchy": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "group_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "perennial": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PerennialEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "temperature": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TemperatureEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
     }
+  },
+  "required": ["topo_id", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "CaptureMethod": {
+      "type": "string",
+      "enum": ["manual", "automated", "surveyed"],
+      "description": "How the feature was captured."
+    },
+    "ChangeType": {
+      "type": "string",
+      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
+      "description": "Lifecycle change type for a feature row."
+    },
+    "WaterUseEnum": {
+      "type": "string",
+      "enum": [
+        "evaporation",
+        "hydro-electric",
+        "ice skating",
+        "oil",
+        "oxidation",
+        "reservoir",
+        "settling",
+        "sewage",
+        "sewage treatment",
+        "sludge"
+      ],
+      "description": "Auto-derived from observed values of `water_use`."
+    },
+    "PerennialEnum": {
+      "type": "string",
+      "enum": ["dry", "seasonal"],
+      "description": "Auto-derived from observed values of `perennial`."
+    },
+    "TemperatureEnum": {
+      "type": "string",
+      "enum": ["hot"],
+      "description": "Auto-derived from observed values of `temperature`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
 }

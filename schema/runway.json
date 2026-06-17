@@ -1,181 +1,149 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "runway",
-    "type": "object",
-    "properties": {
-        "topo_id": {
-            "type": "string",
-            "description": "UUID for the feature."
-        },
-        "capture_method": {
-            "$ref": "#/$defs/CaptureMethod",
-            "default": "manual",
-            "description": "How the feature was captured."
-        },
-        "change_type": {
-            "$ref": "#/$defs/ChangeType",
-            "default": "new",
-            "description": "What kind of change this row represents."
-        },
-        "update_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Should be on or after create_date."
-        },
-        "create_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Default at write time: today."
-        },
-        "version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647,
-            "default": 1,
-            "description": "Lifecycle counter; increments on each update."
-        },
-        "t50_fid": {},
-        "feature_type": {
-            "anyOf": [
-                {
-                    "type": "string",
-                    "const": "runway"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "runway_use": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/RunwayUseEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "status": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/StatusEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "surface": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/SurfaceEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "geometry": {
-            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-            "not": {
-                "type": "null"
-            }
-        },
-        "bbox": {
-            "$ref": "#/$defs/BBox"
-        }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "runway",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string",
+      "description": "UUID for the feature."
     },
-    "required": [
-        "topo_id",
-        "capture_method",
-        "change_type",
-        "update_date",
-        "create_date",
-        "version",
-        "geometry"
-    ],
-    "additionalProperties": false,
-    "$defs": {
-        "CaptureMethod": {
-            "type": "string",
-            "enum": [
-                "manual",
-                "automated",
-                "surveyed"
-            ],
-            "description": "How the feature was captured."
+    "capture_method": {
+      "$ref": "#/$defs/CaptureMethod",
+      "default": "manual",
+      "description": "How the feature was captured."
+    },
+    "change_type": {
+      "$ref": "#/$defs/ChangeType",
+      "default": "new",
+      "description": "What kind of change this row represents."
+    },
+    "update_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Should be on or after create_date."
+    },
+    "create_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "default": 1,
+      "description": "Lifecycle counter; increments on each update."
+    },
+    "t50_fid": {},
+    "feature_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "runway"
         },
-        "ChangeType": {
-            "type": "string",
-            "enum": [
-                "new",
-                "update",
-                "modified attributes",
-                "modified geometry",
-                "modified geometry and attributes"
-            ],
-            "description": "Lifecycle change type for a feature row."
-        },
-        "RunwayUseEnum": {
-            "type": "string",
-            "enum": [
-                "aerodrome",
-                "airport",
-                "airstrip"
-            ],
-            "description": "Auto-derived from observed values of `runway_use`."
-        },
-        "StatusEnum": {
-            "type": "string",
-            "enum": [
-                "closed",
-                "dangerous",
-                "derelict",
-                "disused",
-                "historic",
-                "locked",
-                "old",
-                "private",
-                "remains",
-                "ruins",
-                "under construction"
-            ],
-            "description": "Auto-derived from observed values of `status`."
-        },
-        "SurfaceEnum": {
-            "type": "string",
-            "enum": [
-                "grass",
-                "metalled",
-                "sealed",
-                "unmetalled"
-            ],
-            "description": "Auto-derived from observed values of `surface`."
-        },
-        "BBox": {
-            "type": "object",
-            "properties": {
-                "xmin": {
-                    "type": "number"
-                },
-                "ymin": {
-                    "type": "number"
-                },
-                "xmax": {
-                    "type": "number"
-                },
-                "ymax": {
-                    "type": "number"
-                }
-            },
-            "required": [
-                "xmin",
-                "ymin",
-                "xmax",
-                "ymax"
-            ],
-            "description": "GeoParquet 1.1 covering bbox struct."
+        {
+          "type": "null"
         }
+      ]
+    },
+    "runway_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RunwayUseEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "surface": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SurfaceEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
     }
+  },
+  "required": ["topo_id", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "CaptureMethod": {
+      "type": "string",
+      "enum": ["manual", "automated", "surveyed"],
+      "description": "How the feature was captured."
+    },
+    "ChangeType": {
+      "type": "string",
+      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
+      "description": "Lifecycle change type for a feature row."
+    },
+    "RunwayUseEnum": {
+      "type": "string",
+      "enum": ["aerodrome", "airport", "airstrip"],
+      "description": "Auto-derived from observed values of `runway_use`."
+    },
+    "StatusEnum": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ],
+      "description": "Auto-derived from observed values of `status`."
+    },
+    "SurfaceEnum": {
+      "type": "string",
+      "enum": ["grass", "metalled", "sealed", "unmetalled"],
+      "description": "Auto-derived from observed values of `surface`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
 }

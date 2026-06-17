@@ -1,374 +1,326 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "structure_point",
-    "type": "object",
-    "properties": {
-        "topo_id": {
-            "type": "string",
-            "description": "UUID for the feature."
-        },
-        "capture_method": {
-            "$ref": "#/$defs/CaptureMethod",
-            "default": "manual",
-            "description": "How the feature was captured."
-        },
-        "change_type": {
-            "$ref": "#/$defs/ChangeType",
-            "default": "new",
-            "description": "What kind of change this row represents."
-        },
-        "update_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Should be on or after create_date."
-        },
-        "create_date": {
-            "type": "object",
-            "properties": {},
-            "description": "Default at write time: today."
-        },
-        "version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647,
-            "default": 1,
-            "description": "Lifecycle counter; increments on each update."
-        },
-        "t50_fid": {},
-        "feature_type": {
-            "anyOf": [
-                {
-                    "type": "string",
-                    "const": "beacon"
-                },
-                {
-                    "type": "string",
-                    "const": "bivouac"
-                },
-                {
-                    "type": "string",
-                    "const": "buoy"
-                },
-                {
-                    "type": "string",
-                    "const": "chimney"
-                },
-                {
-                    "type": "string",
-                    "const": "dredge"
-                },
-                {
-                    "type": "string",
-                    "const": "flare"
-                },
-                {
-                    "type": "string",
-                    "const": "floodgate"
-                },
-                {
-                    "type": "string",
-                    "const": "gate"
-                },
-                {
-                    "type": "string",
-                    "const": "ladder"
-                },
-                {
-                    "type": "string",
-                    "const": "mast"
-                },
-                {
-                    "type": "string",
-                    "const": "redoubt"
-                },
-                {
-                    "type": "string",
-                    "const": "shaft"
-                },
-                {
-                    "type": "string",
-                    "const": "siphon"
-                },
-                {
-                    "type": "string",
-                    "const": "stockyard"
-                },
-                {
-                    "type": "string",
-                    "const": "tank"
-                },
-                {
-                    "type": "string",
-                    "const": "tower"
-                },
-                {
-                    "type": "string",
-                    "const": "well"
-                },
-                {
-                    "type": "string",
-                    "const": "windmill"
-                },
-                {
-                    "type": "string",
-                    "const": "wreck"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "structure_use": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/StructureUseEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "structure_type": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/StructureTypeEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "status": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/StatusEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "name": {
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "location": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/LocationEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "height": {
-            "anyOf": [
-                {
-                    "type": "number"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "orientation": {
-            "anyOf": [
-                {
-                    "type": "number"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "material": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/MaterialEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "restrictions": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/RestrictionsEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "stored_item": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/StoredItemEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "wreck_of": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/WreckOfEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "geometry": {
-            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-            "not": {
-                "type": "null"
-            }
-        },
-        "bbox": {
-            "$ref": "#/$defs/BBox"
-        }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "structure_point",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string",
+      "description": "UUID for the feature."
     },
-    "required": [
-        "topo_id",
-        "capture_method",
-        "change_type",
-        "update_date",
-        "create_date",
-        "version",
-        "geometry"
-    ],
-    "additionalProperties": false,
-    "$defs": {
-        "CaptureMethod": {
-            "type": "string",
-            "enum": [
-                "manual",
-                "automated",
-                "surveyed"
-            ],
-            "description": "How the feature was captured."
+    "capture_method": {
+      "$ref": "#/$defs/CaptureMethod",
+      "default": "manual",
+      "description": "How the feature was captured."
+    },
+    "change_type": {
+      "$ref": "#/$defs/ChangeType",
+      "default": "new",
+      "description": "What kind of change this row represents."
+    },
+    "update_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Should be on or after create_date."
+    },
+    "create_date": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "default": 1,
+      "description": "Lifecycle counter; increments on each update."
+    },
+    "t50_fid": {},
+    "feature_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "beacon"
         },
-        "ChangeType": {
-            "type": "string",
-            "enum": [
-                "new",
-                "update",
-                "modified attributes",
-                "modified geometry",
-                "modified geometry and attributes"
-            ],
-            "description": "Lifecycle change type for a feature row."
+        {
+          "type": "string",
+          "const": "bivouac"
         },
-        "StructureUseEnum": {
-            "type": "string",
-            "enum": [
-                "historic",
-                "jetty",
-                "power generation",
-                "tunnel ventilation"
-            ],
-            "description": "Auto-derived from observed values of `structure_use`."
+        {
+          "type": "string",
+          "const": "buoy"
         },
-        "StructureTypeEnum": {
-            "type": "string",
-            "enum": [
-                "lighthouse",
-                "surge chamber",
-                "uncovered",
-                "water"
-            ],
-            "description": "Auto-derived from observed values of `structure_type`."
+        {
+          "type": "string",
+          "const": "chimney"
         },
-        "StatusEnum": {
-            "type": "string",
-            "enum": [
-                "closed",
-                "dangerous",
-                "derelict",
-                "disused",
-                "historic",
-                "locked",
-                "old",
-                "private",
-                "remains",
-                "ruins",
-                "under construction"
-            ],
-            "description": "Auto-derived from observed values of `status`."
+        {
+          "type": "string",
+          "const": "dredge"
         },
-        "LocationEnum": {
-            "type": "string",
-            "enum": [
-                "lake",
-                "land",
-                "sea"
-            ],
-            "description": "Auto-derived from observed values of `location`."
+        {
+          "type": "string",
+          "const": "flare"
         },
-        "MaterialEnum": {
-            "type": "string",
-            "enum": [
-                "concrete",
-                "rock"
-            ],
-            "description": "Auto-derived from observed values of `material`."
+        {
+          "type": "string",
+          "const": "floodgate"
         },
-        "RestrictionsEnum": {
-            "type": "string",
-            "enum": [
-                "locked"
-            ],
-            "description": "Auto-derived from observed values of `restrictions`."
+        {
+          "type": "string",
+          "const": "gate"
         },
-        "StoredItemEnum": {
-            "type": "string",
-            "enum": [
-                "fuel",
-                "water"
-            ],
-            "description": "Auto-derived from observed values of `stored_item`."
+        {
+          "type": "string",
+          "const": "ladder"
         },
-        "WreckOfEnum": {
-            "type": "string",
-            "enum": [
-                "plane",
-                "ship"
-            ],
-            "description": "Auto-derived from observed values of `wreck_of`."
+        {
+          "type": "string",
+          "const": "mast"
         },
-        "BBox": {
-            "type": "object",
-            "properties": {
-                "xmin": {
-                    "type": "number"
-                },
-                "ymin": {
-                    "type": "number"
-                },
-                "xmax": {
-                    "type": "number"
-                },
-                "ymax": {
-                    "type": "number"
-                }
-            },
-            "required": [
-                "xmin",
-                "ymin",
-                "xmax",
-                "ymax"
-            ],
-            "description": "GeoParquet 1.1 covering bbox struct."
+        {
+          "type": "string",
+          "const": "redoubt"
+        },
+        {
+          "type": "string",
+          "const": "shaft"
+        },
+        {
+          "type": "string",
+          "const": "siphon"
+        },
+        {
+          "type": "string",
+          "const": "stockyard"
+        },
+        {
+          "type": "string",
+          "const": "tank"
+        },
+        {
+          "type": "string",
+          "const": "tower"
+        },
+        {
+          "type": "string",
+          "const": "well"
+        },
+        {
+          "type": "string",
+          "const": "windmill"
+        },
+        {
+          "type": "string",
+          "const": "wreck"
+        },
+        {
+          "type": "null"
         }
+      ]
+    },
+    "structure_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructureUseEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "structure_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructureTypeEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "location": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocationEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "material": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MaterialEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "restrictions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RestrictionsEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stored_item": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StoredItemEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "wreck_of": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WreckOfEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
     }
+  },
+  "required": ["topo_id", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "CaptureMethod": {
+      "type": "string",
+      "enum": ["manual", "automated", "surveyed"],
+      "description": "How the feature was captured."
+    },
+    "ChangeType": {
+      "type": "string",
+      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
+      "description": "Lifecycle change type for a feature row."
+    },
+    "StructureUseEnum": {
+      "type": "string",
+      "enum": ["historic", "jetty", "power generation", "tunnel ventilation"],
+      "description": "Auto-derived from observed values of `structure_use`."
+    },
+    "StructureTypeEnum": {
+      "type": "string",
+      "enum": ["lighthouse", "surge chamber", "uncovered", "water"],
+      "description": "Auto-derived from observed values of `structure_type`."
+    },
+    "StatusEnum": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ],
+      "description": "Auto-derived from observed values of `status`."
+    },
+    "LocationEnum": {
+      "type": "string",
+      "enum": ["lake", "land", "sea"],
+      "description": "Auto-derived from observed values of `location`."
+    },
+    "MaterialEnum": {
+      "type": "string",
+      "enum": ["concrete", "rock"],
+      "description": "Auto-derived from observed values of `material`."
+    },
+    "RestrictionsEnum": {
+      "type": "string",
+      "enum": ["locked"],
+      "description": "Auto-derived from observed values of `restrictions`."
+    },
+    "StoredItemEnum": {
+      "type": "string",
+      "enum": ["fuel", "water"],
+      "description": "Auto-derived from observed values of `stored_item`."
+    },
+    "WreckOfEnum": {
+      "type": "string",
+      "enum": ["plane", "ship"],
+      "description": "Auto-derived from observed values of `wreck_of`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
 }

@@ -1,14 +1,12 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "ProductIdentity.json",
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "string",
-            "description": "UUID for the feature."
-        }
-    },
-    "required": [
-        "id"
-    ]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProductIdentity.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    }
+  },
+  "required": ["id"]
 }

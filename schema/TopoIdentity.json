@@ -1,15 +1,13 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "TopoIdentity.json",
-    "type": "object",
-    "properties": {
-        "topo_id": {
-            "type": "string",
-            "description": "UUID for the feature."
-        }
-    },
-    "required": [
-        "topo_id"
-    ],
-    "description": "Identity columns shared by every file in the dataset."
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "TopoIdentity.json",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    }
+  },
+  "required": ["topo_id"],
+  "description": "Identity columns shared by every file in the dataset."
 }
