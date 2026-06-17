@@ -53,7 +53,7 @@ enum CharplaceEnum {
 enum ColourEnum {
   _: "",
   Black: "black",
-  Steelblue: "steelblue",
+  ProcessBlue: "process_blue",
   Red: "red",
 }
 
@@ -98,7 +98,7 @@ enum ExampleClassEnum {
 /** Auto-derived from observed values of `font`. */
 enum FontEnum {
   _: "",
-  NimbusSans: "Nimbus Sans",
+  NimbusSansLinz: "Nimbus Sans LINZ",
 }
 
 /** Auto-derived from observed values of `formation`. */
@@ -249,7 +249,7 @@ enum StyleEnum {
   Italic: "Italic",
   Narrow: "Narrow",
   NarrowBold: "Narrow Bold",
-  NarrowOblique: "Narrow Oblique",
+  NarrowItalic: "Narrow Italic",
   Regular: "Regular",
 }
 
@@ -417,8 +417,12 @@ model BBox {
 model TopoIdentity {
   /** UUID for the feature. */
   topo_id: string;
-  /** Unique identifier for the feature */
-  fid: unknown;
+}
+
+@jsonSchema
+model ProductIdentity {
+  /** UUID for the feature. */
+  id: string;
 }
 
 /** Capture / change-tracking columns shared by most features. */

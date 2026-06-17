@@ -3,12 +3,9 @@
   "$id": "nztopo50_grid",
   "type": "object",
   "properties": {
-    "topo_id": {
+    "id": {
       "type": "string",
       "description": "UUID for the feature."
-    },
-    "fid": {
-      "description": "Unique identifier for the feature"
     },
     "direction": {
       "anyOf": [
@@ -40,7 +37,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "geometry"],
+  "required": ["id", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "DirectionEnum": {

@@ -7,9 +7,6 @@
       "type": "string",
       "description": "UUID for the feature."
     },
-    "fid": {
-      "description": "Unique identifier for the feature"
-    },
     "capture_method": {
       "$ref": "#/$defs/CaptureMethod",
       "default": "manual",
@@ -83,7 +80,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "required": ["topo_id", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "CaptureMethod": {

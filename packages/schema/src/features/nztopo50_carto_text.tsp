@@ -6,8 +6,8 @@ using TypeSpec.JsonSchema;
 @jsonSchema("nztopo50_carto_text")
 @extension("additionalProperties", false)
 model nztopo50_carto_text {
-  ...Topo.TopoIdentity;
-  /** topo_id (UUID) of the example feature. */
+  ...Topo.ProductIdentity;
+  /** id (UUID) of the example feature. */
   example_point_id?: string | null;
   full_text?: string | null;
   text_bend?: int32 | null;
