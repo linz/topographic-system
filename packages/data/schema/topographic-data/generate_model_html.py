@@ -41,12 +41,12 @@ def _json_type_to_text(property_schema: dict[str, Any]) -> str:
     return "unknown"
 
 
-def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
+def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[str, str]]]:
     doc = (model_class.__doc__ or "").strip()
     model_schema = model_class.model_json_schema()
     required = set(model_schema.get("required", []))
     properties = model_schema.get("properties", {})
-    rows: list[str] = []
+    rows: list[dict[str, str]] = []
 
     for field_name, property_schema in properties.items():
         if not isinstance(property_schema, dict):
@@ -71,17 +71,36 @@ def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
             if key in property_schema:
                 value = property_schema[key]
                 extra_parts.append(f"{key}={value}")
-        extras_text = "; ".join(extra_parts)
 
         rows.append(
+            {
+                "field": field_name,
+                "type": field_type,
+                "required": required_text,
+                "default": default_text,
+                "max_length": max_length_text,
+                "description": description,
+                "extra": "; ".join(extra_parts),
+            }
+        )
+
+    return doc, rows
+
+
+def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
+    doc, field_rows = _collect_model_rows(model_class)
+    rows: list[str] = []
+
+    for field_row in field_rows:
+        rows.append(
             "<tr>"
-            f"<td>{html.escape(field_name)}</td>"
-            f"<td>{html.escape(field_type)}</td>"
-            f"<td>{html.escape(required_text)}</td>"
-            f"<td>{html.escape(default_text)}</td>"
-            f"<td>{html.escape(max_length_text)}</td>"
-            f"<td>{html.escape(description)}</td>"
-            f"<td>{html.escape(extras_text)}</td>"
+        f"<td>{html.escape(field_row['field'])}</td>"
+        f"<td>{html.escape(field_row['type'])}</td>"
+        f"<td>{html.escape(field_row['required'])}</td>"
+        f"<td>{html.escape(field_row['default'])}</td>"
+        f"<td>{html.escape(field_row['max_length'])}</td>"
+        f"<td>{html.escape(field_row['description'])}</td>"
+        f"<td>{html.escape(field_row['extra'])}</td>"
             "</tr>"
         )
 
@@ -101,6 +120,50 @@ def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
         "</table>"
         "</section>"
     )
+
+
+def _escape_markdown_table_cell(value: str) -> str:
+    return value.replace("|", "\\|").replace("\n", " ").strip()
+
+
+def _render_model_markdown_section(model_name: str, model_class: type[BaseModel]) -> str:
+    doc, field_rows = _collect_model_rows(model_class)
+    lines = [f"## {model_name}", ""]
+
+    if doc:
+        lines.append(doc)
+        lines.append("")
+
+    lines.extend(
+        [
+            "| Field | Type | Required | Default | Max Length | Description | Extra |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+
+    if not field_rows:
+        lines.append("| No fields |  |  |  |  |  |  |")
+    else:
+        for field_row in field_rows:
+            lines.append(
+                "| "
+                + " | ".join(
+                    _escape_markdown_table_cell(field_row[key])
+                    for key in (
+                        "field",
+                        "type",
+                        "required",
+                        "default",
+                        "max_length",
+                        "description",
+                        "extra",
+                    )
+                )
+                + " |"
+            )
+
+    lines.append("")
+    return "\n".join(lines)
 
 
 def build_html(models_file: Path, output_file: Path) -> None:
@@ -238,9 +301,40 @@ def build_html(models_file: Path, output_file: Path) -> None:
     output_file.write_text(page, encoding="utf-8")
 
 
+def build_markdown(models_file: Path, output_file: Path) -> None:
+  module = _load_pydantic_models_module(models_file)
+
+  models_by_title = getattr(module, "MODELS_BY_TITLE", None)
+  if not isinstance(models_by_title, dict):
+    raise RuntimeError("MODELS_BY_TITLE was not found in the loaded module")
+
+  model_items = sorted(models_by_title.items(), key=lambda item: item[0])
+  toc_items = [f"- [{name}](#{name.lower()})" for name, _ in model_items]
+  sections = [
+    _render_model_markdown_section(name, model_class)
+    for name, model_class in model_items
+  ]
+
+  page = "\n".join(
+    [
+      "# Topographic Data Models",
+      "",
+      f"Total models: {len(model_items)}",
+      "",
+      "## Models",
+      "",
+      *toc_items,
+      "",
+      *sections,
+    ]
+  ).rstrip() + "\n"
+
+  output_file.write_text(page, encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate an HTML reference document from generated topographic data models."
+      description="Generate HTML and Markdown reference documents from generated topographic data models."
     )
     parser.add_argument(
         "--models-file",
@@ -254,9 +348,16 @@ def main() -> None:
         default=Path(__file__).resolve().parent / "examples" / "topographic_data_models.html",
         help="Output HTML file path",
     )
+    parser.add_argument(
+      "--markdown-output",
+      type=Path,
+      default=Path(__file__).resolve().parent / "examples" / "topographic_data_models.md",
+      help="Output Markdown file path",
+    )
 
     args = parser.parse_args()
     build_html(args.models_file.resolve(), args.output.resolve())
+    build_markdown(args.models_file.resolve(), args.markdown_output.resolve())
 
 
 if __name__ == "__main__":

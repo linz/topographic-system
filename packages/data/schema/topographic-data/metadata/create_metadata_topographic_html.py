@@ -2,20 +2,176 @@ import os
 import shutil
 import json
 
+
+def ensure_output_folders(output_folder):
+    images_folder = os.path.join(output_folder, "images")
+    model_images_folder = os.path.join(images_folder, "model")
+    feature_images_folder = os.path.join(images_folder, "features")
+    aerial_images_folder = os.path.join(images_folder, "aerial")
+
+    os.makedirs(model_images_folder, exist_ok=True)
+    os.makedirs(feature_images_folder, exist_ok=True)
+    os.makedirs(aerial_images_folder, exist_ok=True)
+
+    return {
+        "images": images_folder,
+        "model": model_images_folder,
+        "features": feature_images_folder,
+        "aerial": aerial_images_folder,
+    }
+
+
+def copy_asset_if_present(source_path, destination_folder):
+    if not os.path.exists(source_path):
+        return None
+
+    filename = os.path.basename(source_path)
+    shutil.copy2(source_path, os.path.join(destination_folder, filename))
+    return filename
+
+
+def create_markdown_file(table_dictionary, output_folder):
+    image_folders = ensure_output_folders(output_folder)
+    summary_data = table_dictionary.get("summary", {})
+    category_items = [
+        (category_name, tables)
+        for category_name, tables in table_dictionary.items()
+        if category_name != "summary"
+    ]
+
+    markdown_lines = ["# Topo50 Features Documentation", ""]
+
+    for category_name, tables in category_items:
+        markdown_lines.append(f"## {category_name}")
+        markdown_lines.append("")
+        markdown_lines.append(
+            f"**Features in this table:** {', '.join(tables['feature_types'])}"
+        )
+        markdown_lines.append("")
+        markdown_lines.append(
+            f"**Total feature types:** {len(tables['feature_types'])}"
+        )
+        markdown_lines.append("")
+        markdown_lines.append(f"**Layer Category:** {tables['layer_category']}")
+        markdown_lines.append("")
+        markdown_lines.append(
+            f"**Layer Description:** {tables['layer_description']}"
+        )
+        markdown_lines.append("")
+
+        model_filename = copy_asset_if_present(
+            tables["model_picture_path"], image_folders["model"]
+        )
+        if model_filename:
+            markdown_lines.append("### Model Schema")
+            markdown_lines.append("")
+            markdown_lines.append(
+                f"![Model for {category_name}](images/model/{model_filename})"
+            )
+            markdown_lines.append("")
+
+        for feature_type, feature_info in tables.get("features", {}).items():
+            markdown_lines.append(f"### {feature_type}")
+            markdown_lines.append("")
+            markdown_lines.append(f"**Theme:** {feature_info['theme']}")
+            markdown_lines.append("")
+            markdown_lines.append(f"**LDS Table:** {feature_info['table_lds']}")
+            markdown_lines.append("")
+            markdown_lines.append(f"**Type:** {feature_info['table_type']}")
+            markdown_lines.append("")
+            markdown_lines.append(
+                f"**Description:** {feature_info['description']}"
+            )
+            markdown_lines.append("")
+
+            feature_filename = copy_asset_if_present(
+                feature_info["feature_picture_path"], image_folders["features"]
+            )
+            if feature_filename:
+                markdown_lines.append("#### Feature Visualization")
+                markdown_lines.append("")
+                markdown_lines.append(
+                    f"![Feature {feature_type}](images/features/{feature_filename})"
+                )
+                markdown_lines.append("")
+
+            aerial_filename = copy_asset_if_present(
+                feature_info["aerial_picture_path"], image_folders["aerial"]
+            )
+            if aerial_filename:
+                markdown_lines.append("#### Aerial View")
+                markdown_lines.append("")
+                markdown_lines.append(
+                    f"![Aerial {feature_type}](images/aerial/{aerial_filename})"
+                )
+                markdown_lines.append("")
+
+    markdown_file_path = os.path.join(
+        output_folder, "topographic_layers_metadata.md"
+    )
+    with open(markdown_file_path, "w", encoding="utf-8") as markdown_file:
+        markdown_file.write("\n".join(markdown_lines).rstrip() + "\n")
+
+    index_lines = [
+        "# Topographic Features Documentation",
+        "",
+        "## Overview",
+        "",
+        f"**Total Tables:** {len(category_items)}",
+        "",
+        "**Total Feature Types:** "
+        + str(sum(len(table_info["feature_types"]) for _, table_info in category_items)),
+        "",
+        "## Documentation",
+        "",
+        "[View Complete Documentation](topographic_layers_metadata.md)",
+        "",
+    ]
+
+    if summary_data:
+        index_lines.extend(["## Category Diagrams", ""])
+        for category_name, summary_info in summary_data.items():
+            model_filename = copy_asset_if_present(
+                summary_info[2], image_folders["model"]
+            )
+            if model_filename:
+                heading = category_name.replace("_", " ").title()
+                index_lines.append(
+                    f"### {heading} Layers -> Themes -> Feature Types"
+                )
+                index_lines.append("")
+                index_lines.append(
+                    f"![Model for {category_name}](images/model/{model_filename})"
+                )
+                index_lines.append("")
+
+    index_lines.extend(["## Layer Index", ""])
+    for category_name, tables in category_items:
+        feature_types = ", ".join(tables["feature_types"])
+        index_lines.append(
+            f"- [{category_name}](topographic_layers_metadata.md#{category_name})"
+        )
+        index_lines.append(
+            f"  - {len(tables['feature_types'])} feature types: {feature_types}"
+        )
+
+    index_markdown_path = os.path.join(output_folder, "index.md")
+    with open(index_markdown_path, "w", encoding="utf-8") as index_file:
+        index_file.write("\n".join(index_lines).rstrip() + "\n")
+
+    print(f"Markdown index created: {index_markdown_path}")
+    print(f"Markdown documentation created: {markdown_file_path}")
+    return markdown_file_path
+
 def create_html_file(table_dictionary, html_output_folder):
     """
     Create a static HTML file with all feature information and copy images for self-contained package.
     """
 
-    # Create images subdirectories
-    html_images_folder = os.path.join(html_output_folder, "images")
-    model_images_folder = os.path.join(html_images_folder, "model")
-    feature_images_folder = os.path.join(html_images_folder, "features")
-    aerial_images_folder = os.path.join(html_images_folder, "aerial")
-
-    os.makedirs(model_images_folder, exist_ok=True)
-    os.makedirs(feature_images_folder, exist_ok=True)
-    os.makedirs(aerial_images_folder, exist_ok=True)
+    image_folders = ensure_output_folders(html_output_folder)
+    model_images_folder = image_folders["model"]
+    feature_images_folder = image_folders["features"]
+    aerial_images_folder = image_folders["aerial"]
 
     # Start HTML content
     html_content = """
@@ -23,11 +179,10 @@ def create_html_file(table_dictionary, html_output_folder):
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Topo50 Features Documentation</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .table-section { margin-bottom: 40px; border: 1px solid #ddd; padding: 20px; }
+        model_filename = copy_asset_if_present(
+            tables["model_picture_path"], model_images_folder
+        )
+        if model_filename:
                 .table-title { background-color: #f5f5f5; padding: 10px; margin: -20px -20px 20px -20px; }
                 .feature { margin-bottom: 20px; padding: 15px; border-left: 3px solid #007acc; }
                 .feature-images { display: flex; gap: 20px; margin-top: 10px; }
@@ -80,18 +235,16 @@ def create_html_file(table_dictionary, html_output_folder):
             html_content += '<div class="feature-images">\n'
 
             # Copy and reference feature picture
-            feature_src = feature_info["feature_picture_path"]
-            aerial_src = feature_info["aerial_picture_path"]
-            if os.path.exists(feature_src):
-                feature_filename = os.path.basename(feature_src)
-                feature_dest = os.path.join(feature_images_folder, feature_filename)
-                shutil.copy2(feature_src, feature_dest)
+            feature_filename = copy_asset_if_present(
+                feature_info["feature_picture_path"], feature_images_folder
+            )
+            aerial_filename = copy_asset_if_present(
+                feature_info["aerial_picture_path"], aerial_images_folder
+            )
+            if feature_filename:
                 html_content += f'<div><h4>Feature Visualization</h4><img src="images/features/{feature_filename}" alt="Feature {feature_type}" style="border: none;"></div>\n'
             # Copy and reference aerial picture
-            if os.path.exists(aerial_src):
-                aerial_filename = os.path.basename(aerial_src)
-                aerial_dest = os.path.join(aerial_images_folder, aerial_filename)
-                shutil.copy2(aerial_src, aerial_dest)
+            if aerial_filename:
                 html_content += f'<div><h4>Aerial View</h4><img src="images/aerial/{aerial_filename}" alt="Aerial {feature_type}" style="border: none;"></div>\n'
             html_content += "</div>\n"
             html_content += "</div>\n"
@@ -110,8 +263,12 @@ def create_html_file(table_dictionary, html_output_folder):
         f.write(html_content)
 
     # Create an index page with table of contents
-    summary_data = table_dictionary["summary"]
-    table_dictionary.pop("summary")
+    summary_data = table_dictionary.get("summary", {})
+    category_items = [
+        (category_name, table_info)
+        for category_name, table_info in table_dictionary.items()
+        if category_name != "summary"
+    ]
 
     index_html_content = (
         """
@@ -138,13 +295,13 @@ def create_html_file(table_dictionary, html_output_folder):
             <div class="stats">
                 <h3>Overview</h3>
                 <p><strong>Total Tables:</strong> """
-        + str(len(table_dictionary))
+        + str(len(category_items))
         + """</p>
                 <p><strong>Total Feature Types:</strong> """
         + str(
             sum(
                 len(table_info["feature_types"])
-                for table_info in table_dictionary.values()
+                for _, table_info in category_items
             )
         )
         + """</p>
@@ -164,11 +321,9 @@ def create_html_file(table_dictionary, html_output_folder):
 
     for category_name, summary_info in summary_data.items():
         index_html_content += '<div class="model-drawings">\n'
-        model_src = summary_info[2]
-        if os.path.exists(model_src):
-            model_filename = os.path.basename(model_src)
-            model_dest = os.path.join(model_images_folder, model_filename)
-            shutil.copy2(model_src, model_dest)
+        model_filename = copy_asset_if_present(summary_info[2], model_images_folder)
+
+        if model_filename:
 
             if category_name == "Buildings_and_Structures":
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 500px;"></div>\n'
@@ -186,7 +341,7 @@ def create_html_file(table_dictionary, html_output_folder):
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 500px;"></div>\n'
         index_html_content += "</div>\n"
 
-    for category_name, summary_info in table_dictionary.items():
+    for category_name, summary_info in category_items:
         feature_types = summary_info["feature_types"]
         index_html_content += f"""
                     <li class="table-item">
@@ -234,3 +389,4 @@ if __name__ == "__main__":
 
     # Create the HTML documentation
     create_html_file(table_dictionary, html_output_folder)
+    create_markdown_file(table_dictionary, html_output_folder)

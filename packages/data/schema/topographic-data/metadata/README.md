@@ -4,7 +4,7 @@ This code base uses existing (from topo data dictionary) and new created metadat
 
 The source images have been zipped into a file under metadata_source. model-images.zip needs to be unzipped into working metadata_source folder.
 
-The output is an **HTML index and features files** with imagery. It is created in the folder call metadata and has been zipped into a file under metadata_output_html for access.
+The output is an **HTML and Markdown index and features files** with imagery. It is created in the folder call metadata and has been zipped into a file under metadata_output_html for access.
 
 The core information is stored in json file - **metadata_info.json** - it holds descriptions and default paths to imgages etc.
 
@@ -51,9 +51,9 @@ model/metadata_source/diagrams
 > **4. create_category_diagram.py** -> create a diagrams showing themes and features types.
 
 
-## Finally create a html files
+## Finally create html and markdown files
 
-The **create_metadata_topographic_html.py** script generate an index.html and metadata html files and copies images to create a html based metadata lookup.
+The **create_metadata_topographic_html.py** script generates `index.html`, `topographic_layers_metadata.html`, `index.md`, and `topographic_layers_metadata.md`, and copies images to create HTML and Markdown based metadata lookup outputs.
 
 
 
@@ -65,7 +65,7 @@ The **create_metadata_topographic_html.py** script generate an index.html and me
 | `create_category_diagram.py`               | Generates diagrams (SVG/PNG) for categories, themes, layers, and feature types using Graphviz. |
 | `create_metadata_info.py`               | Pull metadata information together into single json file. |
 | `create_model_diagrams.py` | Creates diagrams from a database (SQLite). |
-| `create_metadata_topographic_html.py`                  | Utilities for extracting and documenting metadata, including descriptions and features.  Creates html files.       |            |
+| `create_metadata_topographic_html.py`                  | Utilities for extracting and documenting metadata, including descriptions and features. Creates HTML and Markdown files.       |            |
 | `create_schema_feature_theme.py`   | Extracts information from layers_info and table, theme, feature type summary fields.                  |
 
 
