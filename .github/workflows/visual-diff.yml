@@ -1,4 +1,4 @@
-name: visual-diff
+name: visual-diff (Temporarily disabled. See BM-1737)
 
 on:
   workflow_call:
@@ -19,8 +19,14 @@ on:
         description: 'Optional path to download the source data for the project, that override the default data from project.'
         type: string
 
+# Temporarily disabled:
+# visual-diff is currently broken and intentionally skipped
+# until the root cause is fixed. See BM-1737
+
 jobs:
   produce-mapsheets:
+    # Temporarily disabled. Remove condition to enable.
+    if: ${{ false }}
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
@@ -69,7 +75,10 @@ jobs:
 
   visual-diff:
     environment: ${{ inputs.environment }}
-    if: github.ref != 'refs/heads/master'
+    # Temporarily disabled. See BM-1737.
+    # Re-enable with:
+    # if: ${{ github.ref != 'refs/heads/master' }}
+    if: ${{ false }}
     permissions:
       id-token: write
       contents: write
