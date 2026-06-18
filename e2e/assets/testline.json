@@ -6,7 +6,6 @@
     "topo_id": {
       "type": "string"
     },
-    "fid": {},
     "created_date": {
       "anyOf": [
         {
@@ -27,7 +26,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "geometry"],
+  "required": ["topo_id", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {
