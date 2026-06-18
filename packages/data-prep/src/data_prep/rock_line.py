@@ -9,8 +9,8 @@ import argparse
 import logging
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 
 from data_prep.parquet_utils import write_parquet
 
