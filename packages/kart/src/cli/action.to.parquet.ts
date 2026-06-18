@@ -21,6 +21,32 @@ import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-st
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
+export interface Ogr2OgrParquetOptions {
+  compression?: string;
+  compressionLevel?: number;
+  rowGroupSize?: number;
+  sortByBbox: boolean;
+}
+
+/** Build the `ogr2ogr` command arguments to convert a gpkg file into a parquet file. */
+export function buildOgr2OgrArgs(parquetFile: URL, gpkgFile: URL, options: Ogr2OgrParquetOptions): string[] {
+  const command = [
+    'ogr2ogr',
+    ['-unsetFid'],
+    ['-f', 'Parquet'],
+    fileURLToPath(parquetFile),
+    fileURLToPath(gpkgFile),
+    ['-lco', `COMPRESSION=${options.compression}`],
+    ['-lco', `COMPRESSION_LEVEL=${options.compressionLevel}`],
+    ['-lco', `ROW_GROUP_SIZE=${options.rowGroupSize}`],
+    ['-lco', 'WRITE_COVERING_BBOX=YES'],
+    ['-lco', 'COVERING_BBOX_NAME=bbox'],
+    ['-a_srs', 'epsg:4167'],
+  ];
+  if (options.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
+  return command.flat();
+}
+
 export const ParquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
@@ -104,20 +130,13 @@ export const ParquetCommand = command({
       const dataset = path.basename(gpkgFile.pathname, extension);
       const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
       logger.info({ parquetFile: parquetFile.pathname, dataset }, 'ToParquet:DestinationFile');
-      const command = [
-        'ogr2ogr',
-        ['-f', 'Parquet'],
-        fileURLToPath(parquetFile),
-        fileURLToPath(gpkgFile),
-        ['-lco', `COMPRESSION=${args.compression}`],
-        ['-lco', `COMPRESSION_LEVEL=${args.compressionLevel}`],
-        ['-lco', `ROW_GROUP_SIZE=${args.rowGroupSize}`],
-        ['-lco', 'WRITE_COVERING_BBOX=YES'],
-        ['-lco', 'COVERING_BBOX_NAME=bbox'],
-        ['-a_srs', 'epsg:4167'],
-      ];
-      if (args.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
-      await $`${command.flat()}`;
+      const command = buildOgr2OgrArgs(parquetFile, gpkgFile, {
+        compression: args.compression,
+        compressionLevel: args.compressionLevel,
+        rowGroupSize: args.rowGroupSize,
+        sortByBbox: args.sortByBbox,
+      });
+      await $`${command}`;
 
       const stat = await fsa.head(parquetFile);
 
