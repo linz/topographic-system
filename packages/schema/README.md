@@ -6,7 +6,7 @@ Making a change to the schema - update / add to the require yml schema construct
 
 **src\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed.
 
-**src\main.tsk** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
+**src\main.tsp** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
 
 **Example element to review**
 
@@ -24,7 +24,7 @@ bridge_use2?: Topo.BridgeUse2Enum
 
 Update the json file - This can be done by running the commands
 
-create json [Note: can be edited is small simple change]
+create json [Note: should alway be run so nothing is missed/]
 
 > tsp compile .
 
@@ -35,10 +35,14 @@ If this does not run consider
 depending on where you run this from, and how your tsp is installed; You may need to npx tsp compile ./packages/schema/src/
 or just tsp compile . (dot for current folder) should be enough.
 
+Then move to the json output folder - topographic-system/schema
+
 Then run **oxfmt** to reformat the json files
 
 Other ways of running
 
 > npx oxfmt .
+
+for help..
 
 > npx oxfmt --help

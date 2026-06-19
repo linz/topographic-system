@@ -3,11 +3,11 @@
   "$id": "TopoIdentity.json",
   "type": "object",
   "properties": {
-    "topo_id": {
+    "id": {
       "type": "string",
       "description": "UUID for the feature."
     }
   },
-  "required": ["topo_id"],
+  "required": ["id"],
   "description": "Identity columns shared by every file in the dataset."
 }

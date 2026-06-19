@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vegetation_line",
+  "$id": "utility_point",
   "type": "object",
   "properties": {
     "id": {
@@ -21,7 +21,25 @@
       "anyOf": [
         {
           "type": "string",
-          "const": "shelter_belt"
+          "const": "gas_valve"
+        },
+        {
+          "type": "string",
+          "const": "geo_bore"
+        },
+        {
+          "type": "string",
+          "const": "pylon"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "number"
         },
         {
           "type": "null"

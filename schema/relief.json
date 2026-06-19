@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vegetation_line",
+  "$id": "relief",
   "type": "object",
   "properties": {
     "id": {
@@ -18,10 +18,23 @@
     },
     "t50_fid": {},
     "type": {
+      "type": "string",
+      "const": "waterfall"
+    },
+    "name": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "shelter_belt"
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
         },
         {
           "type": "null"

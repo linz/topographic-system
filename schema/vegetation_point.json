@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vegetation_line",
+  "$id": "vegetation_point",
   "type": "object",
   "properties": {
     "id": {
@@ -21,7 +21,7 @@
       "anyOf": [
         {
           "type": "string",
-          "const": "shelter_belt"
+          "const": "tree"
         },
         {
           "type": "null"

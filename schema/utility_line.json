@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "railway_line",
+  "$id": "utility_line",
   "type": "object",
   "properties": {
     "id": {
@@ -21,37 +21,35 @@
       "anyOf": [
         {
           "type": "string",
-          "const": "railway"
+          "const": "pipeline"
+        },
+        {
+          "type": "string",
+          "const": "powerline"
+        },
+        {
+          "type": "string",
+          "const": "telephone"
         },
         {
           "type": "null"
         }
       ]
     },
-    "railway_use": {
+    "infrastructure_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/RailwayUseEnum"
+          "$ref": "#/$defs/InfrastructureUseEnum"
         },
         {
           "type": "null"
         }
       ]
     },
-    "track_type": {
+    "support_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/TrackTypeEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "vehicle_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/VehicleTypeEnum"
+          "$ref": "#/$defs/SupportTypeEnum"
         },
         {
           "type": "null"
@@ -78,31 +76,10 @@
         }
       ]
     },
-    "nzgb_id": {},
-    "route": {
+    "visibility": {
       "anyOf": [
         {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "route2": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "route3": {
-      "anyOf": [
-        {
-          "type": "string"
+          "$ref": "#/$defs/VisibilityEnum"
         },
         {
           "type": "null"
@@ -122,20 +99,15 @@
   "required": ["id", "updated_at", "created_at", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "RailwayUseEnum": {
+    "InfrastructureUseEnum": {
       "type": "string",
-      "enum": ["siding"],
-      "description": "Auto-derived from observed values of `railway_use`."
+      "enum": ["ironsand", "sewage", "steam", "water"],
+      "description": "Auto-derived from observed values of `infrastructure_use`."
     },
-    "TrackTypeEnum": {
+    "SupportTypeEnum": {
       "type": "string",
-      "enum": ["connector", "multiple", "route", "single"],
-      "description": "Auto-derived from observed values of `track_type`."
-    },
-    "VehicleTypeEnum": {
-      "type": "string",
-      "enum": ["cablecar", "rail cart", "train", "tram"],
-      "description": "Auto-derived from observed values of `vehicle_type`."
+      "enum": ["pole", "pylon"],
+      "description": "Auto-derived from observed values of `support_type`."
     },
     "StatusEnum": {
       "type": "string",
@@ -153,6 +125,11 @@
         "under construction"
       ],
       "description": "Auto-derived from observed values of `status`."
+    },
+    "VisibilityEnum": {
+      "type": "string",
+      "enum": ["underground"],
+      "description": "Auto-derived from observed values of `visibility`."
     },
     "BBox": {
       "type": "object",
