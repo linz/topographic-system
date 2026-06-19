@@ -11,9 +11,7 @@ model water_line {
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type?: "canal" | "drain" | "river" | null;
   hierarchy?: string | null;
-  status?: Topo.StatusEnum | null;
   name?: string | null;
-  height?: float64 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
