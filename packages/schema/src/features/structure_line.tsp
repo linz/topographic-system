@@ -9,7 +9,7 @@ model structure_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "boatramp" | "boom" | "breakwater" | "cableway_industrial" | "cableway_people" | "dam" | "flume" | "ladder" | "marine_farm" | "ski_lift" | "ski_tow" | "slipway" | "spillway_edge" | "weir" | "wharf" | "wharf_edge" | null;
+  type?: "boatramp" | "boom" | "breakwater" | "cableway_industrial" | "cableway_people" | "dam" | "flume" | "ladder" | "marine_farm" | "ski_lift" | "ski_tow" | "slipway" | "spillway_edge" | "walkwire" | "water_race" | "weir" | "wharf" | "wharf_edge" | null;
   structure_use?: Topo.StructureUseEnum | null;
   species?: Topo.SpeciesEnum | null;
   status?: Topo.StatusEnum | null;
