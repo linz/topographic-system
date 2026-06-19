@@ -3,13 +3,13 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("waterway_feature_line")
+@jsonSchema("relief")
 @extension("additionalProperties", false)
-model waterway_feature_line {
+model relief {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "rapid" | "waterfall" | "waterfall_edge" | null;
+  type?: "waterfall";
   name?: string | null;
   height?: float64 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
