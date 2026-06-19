@@ -9,9 +9,9 @@ model structure_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "beacon" | "bivouac" | "buoy" | "chimney" | "dredge" | "flare" | "floodgate" | "gate" | "ladder" | "mast" | "redoubt" | "shaft" | "siphon" | "stockyard" | "tank" | "tower" | "well" | "windmill" | "wreck" | null;
+  type?: "beacon" | "bivouac" | "buoy" | "chimney" | "dredge" | "flare" | "floodgate" | "gate" | "ladder" | "mast" | "redoubt" | "shaft" | "siphon" | "stockyard" | "tank" | "tower" | "well" | "windmill" | "wreck" | null;
   structure_use?: Topo.StructureUseEnum | null;
-  structure_type?: Topo.StructureTypeEnum | null;
+  subtype?: Topo.StructureSubTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
   location?: Topo.LocationEnum | null;

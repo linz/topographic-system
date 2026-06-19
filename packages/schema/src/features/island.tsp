@@ -9,7 +9,7 @@ model island {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "island" | null;
+  type?: "island" | null;
   name?: string | null;
   group_name?: string | null;
   location?: int32 | null;

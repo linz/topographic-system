@@ -9,7 +9,7 @@ model vegetation {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "exotic" | "native" | "orchard" | "scattered_scrub" | "scrub" | "vineyard" | null;
+  type?: "exotic" | "native" | "orchard" | "scattered_scrub" | "scrub" | "vineyard" | null;
   sub_type?: Topo.SubTypeEnum | null;
   species?: Topo.SpeciesEnum | null;
   name?: string | null;

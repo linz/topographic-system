@@ -9,7 +9,7 @@ model place_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "cave" | "cemetery" | "grave" | "historic_site" | "mine" | "monument" | "pa" | "radar_dome" | "saddle" | "satellite_station" | null;
+  type?: "cave" | "cemetery" | "grave" | "historic_site" | "mine" | "monument" | "pa" | "radar_dome" | "saddle" | "satellite_station" | null;
   place_type?: Topo.PlaceTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;

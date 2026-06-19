@@ -9,7 +9,7 @@ model contour {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: int32 | null;
-  feature_type?: "contour" | null;
+  type?: "contour" | null;
   elevation?: int32 | null;
   definition?: string | null;
   designation?: Topo.DesignationEnum | null;

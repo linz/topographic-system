@@ -9,7 +9,7 @@ model railway_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "railway" | null;
+  type?: "railway" | null;
   railway_use?: Topo.RailwayUseEnum | null;
   track_type?: Topo.TrackTypeEnum | null;
   vehicle_type?: Topo.VehicleTypeEnum | null;

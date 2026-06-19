@@ -9,7 +9,7 @@ model descriptive_text {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "descriptive_text" | null;
+  type?: "descriptive_text" | null;
   nzgb_id?: unknown /* int64; hyparquet returns BigInt */;
   info_display?: string | null;
   size?: float64 | null;

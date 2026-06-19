@@ -211,8 +211,8 @@ enum StoredItemEnum {
   Water: "water",
 }
 
-/** Auto-derived from observed values of `structure_type`. */
-enum StructureTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum StructureSubTypeEnum {
   Lighthouse: "lighthouse",
   SurgeChamber: "surge chamber",
   Uncovered: "uncovered",
@@ -329,8 +329,8 @@ enum TrigTypeEnum {
   Beacon: "beacon",
 }
 
-/** Auto-derived from observed values of `tunnel_type`. */
-enum TunnelTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum TunnelSubTypeEnum {
   Natural: "natural",
 }
 

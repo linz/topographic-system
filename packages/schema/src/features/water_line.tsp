@@ -9,7 +9,7 @@ model water_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "canal" | "drain" | "river" | null;
+  type?: "canal" | "drain" | "river" | null;
   hierarchy?: string | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;

@@ -9,7 +9,7 @@ model coastline {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "coastline" | null;
+  type?: "coastline" | null;
   coastline_type?: string | null;
   elevation?: int32 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
