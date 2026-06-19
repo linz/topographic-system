@@ -11,7 +11,7 @@ model landuse_line {
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type?: "racetrack" | null;
   landuse_use?: Topo.LanduseUseEnum | null;
-  landuse_type?: Topo.LanduseTypeEnum | null;
+  subtype?: Topo.LanduseSubTypeEnum | null;
   name?: string | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })

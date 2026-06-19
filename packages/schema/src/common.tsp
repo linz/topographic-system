@@ -98,8 +98,8 @@ enum InfrastructureUseEnum {
   Water: "water",
 }
 
-/** Auto-derived from observed values of `landuse_type`. */
-enum LanduseTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum LanduseSubTypeEnum {
   Opencast: "opencast",
   Training: "training",
 }

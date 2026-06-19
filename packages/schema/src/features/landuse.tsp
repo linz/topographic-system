@@ -11,7 +11,7 @@ model landuse {
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type?: "cemetery" | "golf_course" | "gravel_pit" | "landfill" | "mine" | "pumice_pit" | "quarry" | "racetrack" | "rifle_range" | "showground" | "sportsfield" | null;
   landuse_use?: Topo.LanduseUseEnum | null;
-  landuse_type?: Topo.LanduseTypeEnum | null;
+  subtype?: Topo.LanduseSubTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
   substance?: Topo.SubstanceEnum | null;
