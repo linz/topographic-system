@@ -3,9 +3,9 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("tree_locations")
+@jsonSchema("vegetation_point")
 @extension("additionalProperties", false)
-model tree_locations {
+model vegetation_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;

@@ -10,7 +10,6 @@ model landcover_line {
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type?: "dredge_tailing" | null;
-  name?: string | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;

@@ -12,7 +12,6 @@ model island {
   type?: "island" | null;
   name?: string | null;
   group_name?: string | null;
-  location?: int32 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;

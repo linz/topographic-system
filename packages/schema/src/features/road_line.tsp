@@ -17,6 +17,7 @@ model road_line {
   lane_count?: int32 | null;
   surface?: Topo.SurfaceEnum | null;
   way_count?: Topo.WayCountEnum | null;
+  width_indicator?: "w" | null;
   road_access?: Topo.RoadAccessEnum | null;
   name_id?: unknown /* int64; hyparquet returns BigInt */;
   rna_sufi?: unknown /* int64; hyparquet returns BigInt */;

@@ -37,7 +37,7 @@ import "./features/structure_line.tsp";
 import "./features/structure_point.tsp";
 import "./features/track_line.tsp";
 import "./features/transport_point.tsp";
-import "./features/tree_locations.tsp";
+import "./features/vegetation_point.tsp";
 import "./features/trig_point.tsp";
 import "./features/tunnel_line.tsp";
 import "./features/vegetation.tsp";

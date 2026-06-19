@@ -14,7 +14,9 @@ model water {
   hierarchy?: string | null;
   name?: string | null;
   group_name?: string | null;
+  nzgb_feat_id?: unknown /* int64; hyparquet returns BigInt */;
   height?: float64 | null;
+  elevation?: int32 | null;
   perennial?: Topo.PerennialEnum | null;
   temperature?: Topo.TemperatureEnum | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */

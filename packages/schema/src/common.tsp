@@ -326,7 +326,7 @@ enum TrackUseEnum {
 
 /** Auto-derived from observed values of `trig_type`. */
 enum TrigTypeEnum {
-  Beacon: "beacon",
+  Beacon: "beaconed",
 }
 
 /** Auto-derived from observed values of `subtype`. */

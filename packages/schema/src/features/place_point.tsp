@@ -17,7 +17,7 @@ model place_point {
   composition?: Topo.CompositionEnum | null;
   description?: string | null;
   orientation?: float64 | null;
-  substance?: Topo.SubstanceEnum | null;
+  substance_extracted?: Topo.SubstanceEnum | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
