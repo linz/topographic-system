@@ -99,15 +99,60 @@ To sync the ID (as the new primary key) between 2 releases use the **sync_topo_i
 
 The script loaded_data_checcker.py can be run to check the data meets the change expectations.
 
-# Kart Import and Push
+# Kart Import and Push - Introduction
 
 More information - https://toitutewhenua.atlassian.net/wiki/spaces/LI/pages/1171718236/Kart+Data+Import+and+Environment
+
+**There are 2 main approach  (1) clear out data and reload clean (2) merge changes.**
+
+**The default process i snow to merge changes.**
 
 Repeat as needed for:
 
 > topographic-data
 
 > topographic-contour-data
+
+# Kart Import and Push - Update existing data with changes on branch
+
+## Main Process - update existing repo
+
+
+In this approach we clone the repo
+
+> Using CLI (Kart enabled) - cd to working folder. For example c:\data\toposource
+
+> kart clone git@github.com:linz/topographic-data [or target repo for other data]
+
+> kart checkout -b my-new-branch (data-schemaupdates0.2)
+
+Check all ok
+
+> kart remote -v
+
+> kart status
+
+> copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings - MUST HAVE --replace-existing**
+
+Note: --replace-existing actually does a diff rather than a full replace.
+
+example:
+
+kart import postgresql://postgres:landinformation@localhost/topo/**release66** --replace-existing --primary-key id vegetation_point 
+
+kart push origin **dataload-release66**
+
+
+Run: bat file (windows). This does a push after each load so don't hit timeout issues. Copy from code repo into the local kart folder
+
+When ready - run...
+
+@kart_import_topodata.bat
+
+**End of Process**
+
+
+# Kart Import and Push - Clear and Load from start
 
 ## Clean existing repo
 
@@ -145,7 +190,7 @@ Import a small datasets - this will then be deleted.
 
 > kart push origin master
 
-**CHECK the import BAT file has the correct settings**
+**CHECK the import BAT file has the correct settings - example here add --force**
 
 1. tree_point should be commented out (default) or removed if loading via manual method
 
@@ -155,40 +200,11 @@ Import a small datasets - this will then be deleted.
 
 4. Confirm you are pushing to the correct branch e.g kart push origin master **versus** kart push origin release64
 
-## Main Process - Approach 1 - update existing repo
-
-Approach 1 - In the clean repo - Add any requirments before load.
 
 
-Could include a README.md file to document current load (note these files are not visible via Kart Download)
+## Main Process 
 
-In this approach we clone the repo
-
-> Using CLI (Kart enabled) - cd to working folder. For example c:\data\toposource
-
-> kart clone git@github.com:linz/topographic-data [or target repo for other data]
-
-> kart checkout -b my-new-branch (data-schemaupdates0.2)
-
-Check all ok
-
-> kart remote -v
-
-> kart status
-
-> copy the kart_import_topodata.bat into the topographic-data folder and check settings correct - SEE: **CHECK the import BAT file has the correct settings**
-
-DO first: Run the tree_point manually first sometimes it works. If not the the README_TREE_LOCATIONS.md instructions. Best to do this work-around first. If it fails you may need to delete the topographic-data folder and contents and redo steps from the Kart Import instructions (this section)
-
-Run: bat file (windows). This does a push after each load so don't hit timeout issues.
-
-When ready - run...
-
-@kart_import_topodata.bat
-
-## Main Process - Approach 2
-
-Approach 2 - We do a force which removes all content of the repo. In this approach any additional requirement like ACTIONS are added after the data is loaded.
+We do a force which removes all content of the repo. In this approach any additional requirement like ACTIONS are added after the data is loaded.
 
 **By default kart will create a main branch so use -b master for a forced load.**
 
@@ -262,6 +278,14 @@ Single layer so can run manually or
 copy kart_import_contours.bat into topographic-contour-data
 
 @kart_import_contours
+
+# CREATE PR FROM DESKTOP
+
+gh pr create \
+  --base master \
+  --head my-feature-branch \
+  --title "Add new feature" \
+  --body "Description of changes"
 
 # PROCESS PRODUCTS
 
