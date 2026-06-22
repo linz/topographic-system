@@ -18,15 +18,8 @@
     },
     "t50_fid": {},
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "tunnel"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "tunnel"
     },
     "tunnel_use": {
       "anyOf": [
@@ -88,7 +81,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "TunnelUseEnum": {

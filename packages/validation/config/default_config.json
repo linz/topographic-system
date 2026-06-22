@@ -244,8 +244,8 @@
   "not_null_all": [
     {
       "table": "all_spatial_tables",
-      "column": "topo_id",
-      "message": "topo_id identity must have a topo_id UUID"
+      "column": "id",
+      "message": "id identity must have a id UUID"
     },
     {
       "table": "all_spatial_tables",

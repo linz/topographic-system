@@ -9,7 +9,7 @@ model trig_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "trig" | null;
+  type: "trig";
   trig_type?: Topo.TrigTypeEnum | null;
   name?: string | null;
   code?: string | null;
@@ -19,3 +19,4 @@ model trig_point {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

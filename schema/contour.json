@@ -29,15 +29,8 @@
       ]
     },
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "contour"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "contour"
     },
     "elevation": {
       "anyOf": [
@@ -91,7 +84,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "DesignationEnum": {

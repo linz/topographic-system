@@ -9,7 +9,7 @@ model relief_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "cliff_edge" | "cutting_edge" | "embankment" | "rapid" | "slip_edge" | "waterfall" | "waterfall_edge" | null;
+  type: "cliff_edge" | "cutting_edge" | "embankment" | "rapid" | "slip_edge" | "waterfall" | "waterfall_edge";
   relief_use?: Topo.ReliefUseEnum | null;
   name?: string | null;
   height?: float64 | null;
@@ -18,3 +18,4 @@ model relief_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

@@ -38,9 +38,6 @@
         {
           "type": "string",
           "const": "waterfall"
-        },
-        {
-          "type": "null"
         }
       ]
     },
@@ -94,7 +91,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "TemperatureIndicatorEnum": {

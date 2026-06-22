@@ -9,7 +9,7 @@ model vegetation {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "exotic" | "native" | "scattered_scrub" | "scrub" | null;
+  type: "exotic" | "native" | "scattered_scrub" | "scrub";
   subtype?: Topo.SubTypeEnum | null;
   species?: Topo.SpeciesEnum | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
@@ -17,3 +17,4 @@ model vegetation {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

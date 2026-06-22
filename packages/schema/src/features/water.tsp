@@ -9,7 +9,7 @@ model water {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "canal" | "lagoon" | "lake" | "pond" | "river" | null;
+  type: "canal" | "lagoon" | "lake" | "pond" | "river";
   water_use?: Topo.WaterUseEnum | null;
   hierarchy?: string | null;
   name?: string | null;
@@ -24,3 +24,4 @@ model water {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

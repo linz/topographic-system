@@ -9,7 +9,7 @@ model bridge_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "bridge" | null;
+  type: "bridge";
   bridge_use?: Topo.BridgeUseEnum | null;
   bridge_use2?: Topo.BridgeUse2Enum | null;
   construction_type?: Topo.ConstructionTypeEnum | null;
@@ -20,3 +20,4 @@ model bridge_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

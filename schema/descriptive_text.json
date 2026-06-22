@@ -18,15 +18,8 @@
     },
     "t50_fid": {},
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "descriptive_text"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "descriptive_text"
     },
     "nzgb_id": {},
     "info_display": {
@@ -59,7 +52,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {

@@ -9,7 +9,7 @@ model landcover {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "ice" | "moraine" | "moraine_wall" | "mud" | "sand" | "scree" | "shingle" | "swamp" | null;
+  type: "ice" | "moraine" | "moraine_wall" | "mud" | "sand" | "scree" | "shingle" | "swamp";
   subtype?: Topo.SubTypeEnum | null;
   name?: string | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
@@ -17,3 +17,4 @@ model landcover {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

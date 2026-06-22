@@ -9,7 +9,7 @@ model tunnel_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "tunnel" | null;
+  type: "tunnel";
   tunnel_use?: Topo.TunnelUseEnum | null;
   tunnel_use2?: Topo.TunnelUse2Enum | null;
   subtype?: Topo.TunnelSubTypeEnum | null;
@@ -20,3 +20,4 @@ model tunnel_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

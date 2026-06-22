@@ -9,7 +9,7 @@ model landuse_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "racetrack" | null;
+  type: "racetrack";
   landuse_use?: Topo.LanduseUseEnum | null;
   subtype?: Topo.LanduseSubTypeEnum | null;
   name?: string | null;
@@ -18,3 +18,4 @@ model landuse_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

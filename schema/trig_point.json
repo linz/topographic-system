@@ -18,15 +18,8 @@
     },
     "t50_fid": {},
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "trig"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "trig"
     },
     "trig_type": {
       "anyOf": [
@@ -80,7 +73,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "TrigTypeEnum": {

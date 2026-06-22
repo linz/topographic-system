@@ -18,15 +18,8 @@
     },
     "t50_fid": {},
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "residential_area"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "residential_area"
     },
     "name": {
       "anyOf": [
@@ -48,7 +41,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {

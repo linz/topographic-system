@@ -9,7 +9,7 @@ model landuse {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "cemetery" | "golf_course" | "gravel_pit" | "landfill" | "mine" | "orchard" | "pumice_pit" | "quarry" | "racetrack" | "rifle_range" | "showground" | "sportsfield" | "vineyard" | null;
+  type: "cemetery" | "golf_course" | "gravel_pit" | "landfill" | "mine" | "orchard" | "pumice_pit" | "quarry" | "racetrack" | "rifle_range" | "showground" | "sportsfield" | "vineyard";
   landuse_use?: Topo.LanduseUseEnum | null;
   subtype?: Topo.LanduseSubTypeEnum | null;
   status?: Topo.StatusEnum | null;
@@ -20,3 +20,4 @@ model landuse {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

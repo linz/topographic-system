@@ -9,7 +9,7 @@ model island {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "island" | null;
+  type: "island";
   name?: string | null;
   group_name?: string | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
@@ -17,3 +17,4 @@ model island {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

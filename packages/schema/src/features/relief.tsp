@@ -9,7 +9,7 @@ model relief {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "waterfall";
+  type: "waterfall";
   name?: string | null;
   height?: float64 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
@@ -17,3 +17,4 @@ model relief {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

@@ -9,7 +9,7 @@ model road_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type?: "road" | null;
+  type: "road";
   hierarchy?: string | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
@@ -26,3 +26,4 @@ model road_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

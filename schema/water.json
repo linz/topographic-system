@@ -38,9 +38,6 @@
         {
           "type": "string",
           "const": "river"
-        },
-        {
-          "type": "null"
         }
       ]
     },
@@ -137,7 +134,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "WaterUseEnum": {

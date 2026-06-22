@@ -18,15 +18,8 @@
     },
     "t50_fid": {},
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "building"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "const": "building"
     },
     "building_use": {
       "anyOf": [
@@ -78,7 +71,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "StatusEnum": {
