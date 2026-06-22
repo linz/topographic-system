@@ -1532,6 +1532,59 @@
         }
       }
     },
+    "relief": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "relief",
+      "description": "Represents terrain areas.",
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "updated_at",
+        "created_at",
+        "geometry"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique identifier for the topographic feature."
+        },
+        "t50_fid": {
+          "type": "integer",
+          "description": "The unique identifier for the feature in the source database.",
+          "precision": 64
+        },
+        "type": {
+          "type": "string",
+          "description": "The specific type of feature being represented (e.g., 'relief', 'relief').",
+          "maxLength": 50,
+          "enum": [
+            "waterfall"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the feature.",
+          "maxLength": 75
+        },
+        "height": {
+          "type": "number",
+          "description": "The height of the feature in metres"
+        },
+        "updated_at": {
+          "type": "date",
+          "description": "The date when the feature was last updated in the database."
+        },
+        "created_at": {
+          "type": "date",
+          "description": "The date when the feature was created in the database."
+        },
+        "geometry": {
+          "type": "polygon",
+          "description": "The geometry of the feature."
+        }
+      }
+    },
     "relief_line": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "relief_line",
@@ -4146,6 +4199,9 @@
     },
     {
       "$ref": "#/$defs/railway_station"
+    },
+    {
+      "$ref": "#/$defs/relief"
     },
     {
       "$ref": "#/$defs/relief_line"
