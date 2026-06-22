@@ -86,6 +86,7 @@ def parse_kart_diff(
     dataset_id: str,
     fid_field: str,
 ) -> None:
+    skipped_fids = []
     for line in stdout.splitlines():
         if not line.strip():
             continue
@@ -105,13 +106,16 @@ def parse_kart_diff(
         fid_str = str(fid)
         # Sometimes fids are joined in the reblocker then unjoined later, so skip if we've already seen this fid
         if fid_str in lifecycle:
-            logger.info(f"skipping duplicate fid {fid_str} - previously seen: {lifecycle[fid_str]['created_at']}")
+            skipped_fids.append(fid_str)
             continue
 
         lifecycle[fid_str] = {
             "id": make_lifecycle_id(commit_time, fid_str, fid_field, dataset_id),
             "created_at": commit_time,
         }
+    logger.info(f"skipped {len(skipped_fids)} duplicate fids.")
+    for i, fid_str in enumerate(skipped_fids[:10]):
+        logger.debug(f"{i: 4}/{len(skipped_fids)}: [{fid_str}] previously seen: {lifecycle[fid_str]['created_at']}")
 
 
 def generate_lifecycle(dataset_name: str):
