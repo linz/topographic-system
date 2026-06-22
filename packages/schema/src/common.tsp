@@ -237,7 +237,7 @@ enum StyleEnum {
   Regular: "Regular",
 }
 
-/** Auto-derived from observed values of `sub_type`. */
+/** Auto-derived from observed values of `subtype`. */
 enum SubTypeEnum {
   Coniferous: "coniferous",
   NonConiferous: "non-coniferous",
