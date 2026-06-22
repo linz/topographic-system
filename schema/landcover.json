@@ -89,7 +89,7 @@
     "SubTypeEnum": {
       "type": "string",
       "enum": ["coniferous", "non-coniferous"],
-      "description": "Auto-derived from observed values of `sub_type`."
+      "description": "Auto-derived from observed values of `subtype`."
     },
     "BBox": {
       "type": "object",

@@ -33,10 +33,6 @@
         },
         {
           "type": "string",
-          "const": "swamp"
-        },
-        {
-          "type": "string",
           "const": "waterfall"
         }
       ]
