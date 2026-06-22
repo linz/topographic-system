@@ -3,9 +3,9 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
-from .. import config
-from ..config import Join, Lookup, Source, ThemeDataset
-from . import prepare, transform
+from . import config, joins
+from .assets import prepare
+from .config import Join, Lookup, Source, ThemeDataset
 
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")
 
@@ -44,8 +44,8 @@ def test_select_lookup_columns_raises_on_missing_source_column():
 def test_apply_joins_left_merges_by_key_dtype_robust(tmp_path, monkeypatch):
     lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
-    monkeypatch.setattr(transform, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
-    monkeypatch.setattr(transform, "_resolve_lookup_commit", lambda name, release_id: "abc123")
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "abc123")
 
     (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
     pd.DataFrame({"t50_fid": [1, 3], "width": ["WIDE", "NARROW"]}).to_parquet(
@@ -60,7 +60,7 @@ def test_apply_joins_left_merges_by_key_dtype_robust(tmp_path, monkeypatch):
         joins=[Join(lookup="road_lkp", left_on="t50_fid")],
     )
 
-    out = transform.apply_joins(gdf, td, 66)
+    out = joins.apply_joins(gdf, td, 66)
 
     assert len(out) == 3  # left join, lookup unique on key -> no fan-out
     assert out.loc[out["t50_fid"] == 1.0, "road_lkp.width"].iloc[0] == "WIDE"
@@ -73,8 +73,8 @@ def test_apply_joins_release_predating_lookup_fills_null(tmp_path, monkeypatch):
     """A release older than the lookup's first commit is not enriched; the columns are added as null."""
     lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
-    monkeypatch.setattr(transform, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
-    monkeypatch.setattr(transform, "_resolve_lookup_commit", lambda name, release_id: None)  # predates lookup
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: None)  # predates lookup
 
     gdf = gpd.GeoDataFrame({"t50_fid": [1.0, 2.0]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326")
     td = ThemeDataset(
@@ -83,7 +83,7 @@ def test_apply_joins_release_predating_lookup_fills_null(tmp_path, monkeypatch):
         joins=[Join(lookup="road_lkp", left_on="t50_fid")],
     )
 
-    out = transform.apply_joins(gdf, td, 40)
+    out = joins.apply_joins(gdf, td, 40)
 
     assert len(out) == 2  # rows untouched
     assert "road_lkp.width" in out.columns  # namespaced column present
@@ -95,9 +95,9 @@ def test_apply_joins_picks_parquet_for_resolved_commit(tmp_path, monkeypatch):
     """Per-release versioning: each release loads the parquet for its resolved commit."""
     lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
-    monkeypatch.setattr(transform, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
     # release 60 -> older commit, release 66 -> newer commit
-    monkeypatch.setattr(transform, "_resolve_lookup_commit", lambda name, release_id: f"commit{release_id}")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: f"commit{release_id}")
 
     (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
     pd.DataFrame({"t50_fid": [1], "width": ["OLD"]}).to_parquet(tmp_path / "lookup" / "road_lkp" / "commit60.parquet")
@@ -110,17 +110,17 @@ def test_apply_joins_picks_parquet_for_resolved_commit(tmp_path, monkeypatch):
         joins=[Join(lookup="road_lkp", left_on="t50_fid")],
     )
 
-    assert transform.apply_joins(gdf, td, 60)["road_lkp.width"].iloc[0] == "OLD"
-    assert transform.apply_joins(gdf, td, 66)["road_lkp.width"].iloc[0] == "NEW"
+    assert joins.apply_joins(gdf, td, 60)["road_lkp.width"].iloc[0] == "OLD"
+    assert joins.apply_joins(gdf, td, 66)["road_lkp.width"].iloc[0] == "NEW"
 
 
 def test_resolve_lookup_commit_follows_commit_resolution(monkeypatch):
     """The release->commit gate is purely 'what commit does the lookup have as-of this release'."""
-    monkeypatch.setattr(transform, "get_release_commit", lambda repo, until: ("abcdef12", "2026-05-15T00:00:00Z"))
-    assert transform._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
+    monkeypatch.setattr(joins, "get_release_commit", lambda repo, until: ("abcdef12", "2026-05-15T00:00:00Z"))
+    assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
 
-    monkeypatch.setattr(transform, "get_release_commit", lambda repo, until: None)
-    assert transform._resolve_lookup_commit("road_lkp", 66) is None
+    monkeypatch.setattr(joins, "get_release_commit", lambda repo, until: None)
+    assert joins._resolve_lookup_commit("road_lkp", 66) is None
 
 
 def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
