@@ -9,7 +9,7 @@ model landcover_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "fumarole" | "rock_outcrop";
+  type: "fumarole" | "rock_outcrop" | "swamp";
   name?: string | null;
   elevation?: int32 | null;
   display?: Topo.DisplayEnum | null;

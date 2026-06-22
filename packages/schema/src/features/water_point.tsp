@@ -9,7 +9,7 @@ model water_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "rock" | "soakhole" | "spring" | "swamp" | "waterfall";
+  type: "rock" | "soakhole" | "spring" | "waterfall";
   name?: string | null;
   height?: float64 | null;
   orientation?: float64 | null;
