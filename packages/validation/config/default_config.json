@@ -245,7 +245,7 @@
     {
       "table": "all_spatial_tables",
       "column": "id",
-      "message": "id identity must have a id UUID"
+      "message": "feature id must be a UUID"
     },
     {
       "table": "all_spatial_tables",
