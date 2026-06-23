@@ -1,12 +1,14 @@
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from ..command import run_command
 from ..config import (
     DATASET_MAP,
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
+    Release,
     get_releases,
 )
 from ..git.kart import get_kart_dataset_id, is_kart
@@ -24,6 +26,22 @@ class CommitData:
     releases: list[int]
 
 
+def resolve_commits(repo_dir: Path, releases: list[Release]) -> dict[str, CommitData]:
+    """Group releases by the commit each resolves to (as-of `release.until`), in first-seen order.
+    Releases predating the repo's first commit resolve to nothing and are omitted.
+    """
+    by_commit: dict[str, CommitData] = {}
+    for release in releases:
+        res = get_release_commit(repo_dir, release.until)
+        if res is None:
+            continue
+        commit, commit_time = res
+        if commit not in by_commit:
+            by_commit[commit] = CommitData(commit=commit, commit_time=commit_time, releases=[])
+        by_commit[commit].releases.append(release.id)
+    return by_commit
+
+
 def export_dataset_releases(dataset_name: str):
     td = DATASET_MAP.get(dataset_name)
     if not td:
@@ -36,20 +54,7 @@ def export_dataset_releases(dataset_name: str):
         raise Exception(f"Kart repo not found: {repo_dir}")
     kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
 
-    commit_to_releases: dict[str, CommitData] = {}
-
-    for release in releases:
-        res = get_release_commit(repo_dir, release.until)
-        if res is None:
-            continue
-        commit, commit_time = res
-        if commit not in commit_to_releases:
-            commit_to_releases[commit] = CommitData(
-                commit=commit,
-                commit_time=commit_time,
-                releases=[],
-            )
-        commit_to_releases[commit].releases.append(release.id)
+    commit_to_releases = resolve_commits(repo_dir, releases)
 
     def process_export_release(info: CommitData):
         target_commit = WORKING_EXPORTS_DIR / dataset_name
@@ -74,7 +79,9 @@ def export_dataset_releases(dataset_name: str):
             if release_output_file.exists():
                 release_output_file.unlink()
             os.symlink(os.path.relpath(target_commit_file, release_output_dir), release_output_file)
-            logger.info("link", extra={"release": release_id, "commit": commit, "commit_time": info.commit_time[0:10]})
+            logger.info(
+                "link", extra={"release": release_id, "commit": info.commit, "commit_time": info.commit_time[0:10]}
+            )
 
     run_in_thread_pool(
         func=process_export_release,
