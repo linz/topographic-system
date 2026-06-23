@@ -26,19 +26,36 @@ def _normalise_join_key(series: pd.Series) -> pd.Series:
 
 
 def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
-    """The lookup commit as-of this release, or None if the release predates any commits."""
+    """The lookup commit as-of this release, or None if the release predates the lookup's history."""
     release = next((r for r in get_releases() if r.id == release_id), None)
     if release is None:
         return None
-    res = get_release_commit(SOURCE_DIR / lookup_name, release.until)
-    return res[0] if res is not None else None
+    repo_dir = SOURCE_DIR / lookup_name
+    if not repo_dir.exists():
+        raise FileNotFoundError(
+            f"lookup {lookup_name!r} source repo not found at {repo_dir}; clone+export the lookup before transform"
+        )
+    res = get_release_commit(repo_dir, release.until)
+    if res is not None:
+        return res[0]
+
+    if get_release_commit(repo_dir, None) is None:  # check if missing release _or_ genuine `None` value
+        raise FileNotFoundError(
+            f"lookup {lookup_name!r} at {repo_dir} has no resolvable commits; re-clone/export the lookup"
+        )
+    return None
+
+
+def join_fingerprint(td: ThemeDataset, release_id: int) -> tuple[tuple[str, str | None], ...]:
+    """The lookup commit each join resolves to for this release."""
+    return tuple(sorted((join.lookup, _resolve_lookup_commit(join.lookup, release_id)) for join in td.joins))
 
 
 def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Left-join each configured lookup's columns onto the source frame by key."""
     for join in td.joins:
         lookup = get_lookup_by_name(join.lookup)
-        wanted = join.columns or list(lookup.columns)
+        wanted = list(lookup.columns) if join.columns is None else join.columns
         # Namespace by lookup name so columns can't clash across lookups or with the source.
         qualified = {col: f"{lookup.name}.{col}" for col in wanted}
 
