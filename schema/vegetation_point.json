@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fence_line",
+  "$id": "vegetation_point",
   "type": "object",
   "properties": {
     "id": {
@@ -19,7 +19,7 @@
     "t50_fid": {},
     "type": {
       "type": "string",
-      "const": "fence"
+      "const": "tree"
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",

@@ -9,22 +9,6 @@ using TypeSpec.JsonSchema;
  */
 namespace Topo;
 
-/** How the feature was captured. */
-enum CaptureMethod {
-  Manual: "manual",
-  Automated: "automated",
-  Surveyed: "surveyed",
-}
-
-/** Lifecycle change type for a feature row. */
-enum ChangeType {
-  New: "new",
-  Update: "update", // TODO: needs to be removed from source data and replaced with more specific update types (see below)
-  ModifiedAttributes: "modified attributes",
-  ModifiedGeometry: "modified geometry",
-  ModifiedGeometryAndAttributes: "modified geometry and attributes",
-}
-
 // ---- Auto-detected enums (column-level, < 20 distinct values across dataset) ----
 
 /** Auto-derived from observed values of `bridge_use`. */
@@ -114,8 +98,8 @@ enum InfrastructureUseEnum {
   Water: "water",
 }
 
-/** Auto-derived from observed values of `landuse_type`. */
-enum LanduseTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum LanduseSubTypeEnum {
   Opencast: "opencast",
   Training: "training",
 }
@@ -227,8 +211,8 @@ enum StoredItemEnum {
   Water: "water",
 }
 
-/** Auto-derived from observed values of `structure_type`. */
-enum StructureTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum StructureSubTypeEnum {
   Lighthouse: "lighthouse",
   SurgeChamber: "surge chamber",
   Uncovered: "uncovered",
@@ -253,7 +237,7 @@ enum StyleEnum {
   Regular: "Regular",
 }
 
-/** Auto-derived from observed values of `sub_type`. */
+/** Auto-derived from observed values of `subtype`. */
 enum SubTypeEnum {
   Coniferous: "coniferous",
   NonConiferous: "non-coniferous",
@@ -342,11 +326,11 @@ enum TrackUseEnum {
 
 /** Auto-derived from observed values of `trig_type`. */
 enum TrigTypeEnum {
-  Beacon: "beacon",
+  Beacon: "beaconed",
 }
 
-/** Auto-derived from observed values of `tunnel_type`. */
-enum TunnelTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum TunnelSubTypeEnum {
   Natural: "natural",
 }
 
@@ -416,7 +400,7 @@ model BBox {
 @jsonSchema
 model TopoIdentity {
   /** UUID for the feature. */
-  topo_id: string;
+  id: string;
 }
 
 @jsonSchema
@@ -428,15 +412,8 @@ model ProductIdentity {
 /** Capture / change-tracking columns shared by most features. */
 @jsonSchema
 model AuditFields {
-  /** How the feature was captured. */
-  capture_method: CaptureMethod = CaptureMethod.Manual;
-  /** What kind of change this row represents. */
-  change_type: ChangeType = ChangeType.New;
-  /** Should be on or after create_date. */
-  update_date: {};
+  updated_at: {};
   /** Default at write time: today. */
-  create_date: {};
-  /** Lifecycle counter; increments on each update. */
-  @minValue(1)
-  version: int32 = 1;
+  created_at: {};
+
 }

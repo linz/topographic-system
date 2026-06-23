@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fence_line",
+  "$id": "relief",
   "type": "object",
   "properties": {
     "id": {
@@ -19,7 +19,27 @@
     "t50_fid": {},
     "type": {
       "type": "string",
-      "const": "fence"
+      "const": "waterfall"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",

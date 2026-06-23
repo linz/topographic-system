@@ -1,41 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "physical_infrastructure_line",
+  "$id": "utility_line",
   "type": "object",
   "properties": {
-    "topo_id": {
+    "id": {
       "type": "string",
       "description": "UUID for the feature."
     },
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
-    },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
+    "updated_at": {
       "type": "object",
-      "properties": {},
-      "description": "Should be on or after create_date."
+      "properties": {}
     },
-    "create_date": {
+    "created_at": {
       "type": "object",
       "properties": {},
       "description": "Default at write time: today."
     },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
     "t50_fid": {},
-    "feature_type": {
+    "type": {
       "anyOf": [
         {
           "type": "string",
@@ -48,17 +30,6 @@
         {
           "type": "string",
           "const": "telephone"
-        },
-        {
-          "type": "string",
-          "const": "walkwire"
-        },
-        {
-          "type": "string",
-          "const": "water_race"
-        },
-        {
-          "type": "null"
         }
       ]
     },
@@ -122,19 +93,9 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "update", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
     "InfrastructureUseEnum": {
       "type": "string",
       "enum": ["ironsand", "sewage", "steam", "water"],

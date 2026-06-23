@@ -5,7 +5,7 @@
     "coordinates": [174.76, -41.24]
   },
   "properties": {
-    "topo_id": "00000000-0000-0000-0000-000000000000",
+    "id": "00000000-0000-0000-0000-000000000000",
     "t50_fid": 1000000,
     "feature_type": "rail_station",
     "name": "Station away from Railway Line",
