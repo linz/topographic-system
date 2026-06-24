@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .env import env_releases, env_themes, env_transform_format
 
@@ -130,11 +130,49 @@ class Fixup(BaseModel):
         return value
 
 
+class Correction(BaseModel):
+    """A declarative value correction applied to one target `column` after field
+    normalization. Two forms:
+        # value->value map within the column (multiple pairs allowed)
+        - {column: tunnel_use2, replace: {ivestock: livestock}}
+
+        # set the column on rows where every `where` condition matches
+        - {column: support_type, set: pole, where: {type: telephone}}
+
+    `set` requires `where` (an unconditional set is a literal-constant mapping entry).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    column: str
+    """Target column to modify."""
+    replace: dict[Any, Any] | None = None
+    """Value->value map applied within `column`."""
+    set_value: Any = Field(default=None, alias="set")
+    """Value to assign to `column` on the rows matched by `where`."""
+    where: dict[str, Any] | None = None
+    """Equality conditions ``{column: value}``; all must match (AND). Required with `set`."""
+
+    @model_validator(mode="after")
+    def check_form(self):
+        # `set` may legitimately be null, so detect its presence via the set fields.
+        has_set = "set_value" in self.model_fields_set
+        has_replace = self.replace is not None
+        if has_set == has_replace:
+            raise ValueError(f"correction for '{self.column}' needs exactly one of 'replace' or 'set'")
+        if has_set and self.where is None:
+            raise ValueError(f"correction for '{self.column}' with 'set' requires 'where'")
+        if has_replace and self.where is not None:
+            raise ValueError(f"correction for '{self.column}' with 'replace' must not use 'where'")
+        return self
+
+
 class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
     mapping: dict = {}
     fixups: list[Fixup] = []
+    corrections: list[Correction] = []
 
     @model_validator(mode="before")
     @classmethod

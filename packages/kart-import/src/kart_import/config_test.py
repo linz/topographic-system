@@ -93,3 +93,47 @@ def test_theme_dataset_validates_mapping_at_load():
                 "mapping": {"name": {"surce": "$"}},  # bad spec surfaces at load
             }
         )
+
+
+SOURCE = "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"
+
+
+def _with_corrections(corrections: list[dict]) -> ThemeDataset:
+    return ThemeDataset.model_validate({"source": SOURCE, "corrections": corrections})
+
+
+def test_corrections_default_to_empty():
+    assert ThemeDataset.model_validate({"source": SOURCE}).corrections == []
+
+
+def test_correction_replace_is_parsed():
+    td = _with_corrections([{"column": "way_count", "replace": {"1": "one way"}}])
+    assert td.corrections[0].column == "way_count"
+    assert td.corrections[0].replace == {"1": "one way"}
+
+
+def test_correction_set_where_is_parsed():
+    td = _with_corrections([{"column": "support_type", "set": "pole", "where": {"type": "telephone"}}])
+    correction = td.corrections[0]
+    assert correction.set_value == "pole"
+    assert correction.where == {"type": "telephone"}
+
+
+def test_correction_with_both_replace_and_set_is_rejected():
+    with pytest.raises(ValidationError, match="exactly one"):
+        _with_corrections([{"column": "c", "replace": {"a": "b"}, "set": "x", "where": {"c": "a"}}])
+
+
+def test_correction_with_neither_replace_nor_set_is_rejected():
+    with pytest.raises(ValidationError, match="exactly one"):
+        _with_corrections([{"column": "c"}])
+
+
+def test_correction_set_without_where_is_rejected():
+    with pytest.raises(ValidationError, match="requires 'where'"):
+        _with_corrections([{"column": "c", "set": "x"}])
+
+
+def test_correction_replace_with_where_is_rejected():
+    with pytest.raises(ValidationError, match="must not use 'where'"):
+        _with_corrections([{"column": "c", "replace": {"a": "b"}, "where": {"c": "a"}}])

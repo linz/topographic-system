@@ -37,3 +37,37 @@ To turn bundle usage off
 ```shell
 export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | pjl
 ```
+
+# Example YAML Configuration Files
+
+```yaml
+name: road_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
+    name: road_line
+    mapping:
+      id: $t50_fid # target column `id` is based on source column `t50_fid`
+      feature_type: road # target column `feature_type` gets populated with literal value `road` for all rows
+      status: $ # plain `$` resolves to the source column of the same name (i.e. `status` in this case)
+      name: { source: $, default: 'unnamed road' } # use source value if present, default value if null
+      highway_number: # same as above but with a different notation style
+        source: $hway_num
+        default: 888
+      way_count: $
+      road_access: $
+    # NOTE: Fictional examples for illustrative purposes :-) 
+    corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
+      # values are matched on their string form, so a string key matches an int/float-read column too.
+      # `replace`: remap values within a single column (multiple old -> new pairs allowed)
+      - { column: way_count, replace: { '1': 'one way' } }
+      - { column: road_access, replace: { m: mp } }
+      # `set` + `where`: set a column on the rows where every `where` condition matches.
+      # entries apply in order, so later ones see the results of earlier ones.
+      - { column: road_access, set: private, where: { status: closed } }
+    fixups: # release-aware Python repairs registered in `kart_import.fixups.FIXUPS`
+      - fn: change_type_to_none
+        releases: [64, 65] # omit `releases` to apply the fixup to every release
+```
