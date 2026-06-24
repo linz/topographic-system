@@ -55,14 +55,15 @@ topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./outp
 
 ### Processing Options
 
-| Option                      | Description                                       |
-| --------------------------- | ------------------------------------------------- |
-| `--use-date-folder`         | Create date-based output subfolders               |
-| `--report-only`             | Don't export validation data - only create report |
+| Option              | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `--use-date-folder` | Create date-based output subfolders               |
+| `--report-only`     | Don't export validation data - only create report |
+
 mainly used for debug speed
-| `--skip-queries`            | Skip query-based validations                      |
-| `--skip-features-on-layer`  | Skip features-on-layer checks                     |
-| `--skip-self-intersections` | Skip self-intersection checks                     |
+| `--skip-queries` | Skip query-based validations |
+| `--skip-features-on-layer` | Skip features-on-layer checks |
+| `--skip-self-intersections` | Skip self-intersection checks |
 
 ### Filtering Options
 
@@ -86,6 +87,7 @@ mainly used for debug speed
 ```bash
 topographic_validation --mode generic --db-path "topo50.gpkg" --output-dir "./validation-output"
 ```
+
 ### Spatial and Temporal Filtering
 
 ```bash
@@ -110,6 +112,7 @@ topographic_validation \
     --skip-queries \
     --verbose
 ```
+
 ### PostGIS with Custom Output
 
 ```bash
@@ -150,9 +153,9 @@ topographic_validation \
 
 ### Attribute Checks
 
-| Check Type     | Description                              |
-| -------------- | ---------------------------------------- |
-| `query_rules`  | Features must pass specified query rules |
+| Check Type    | Description                              |
+| ------------- | ---------------------------------------- |
+| `query_rules` | Features must pass specified query rules |
 
 ## Configuration
 
