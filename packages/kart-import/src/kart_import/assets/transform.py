@@ -22,7 +22,7 @@ from ..config import (
 )
 from ..corrections import apply_corrections
 from ..fixups import FIXUPS
-from ..joins import apply_joins
+from ..joins import apply_joins, join_fingerprint
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
@@ -63,7 +63,7 @@ def get_theme_and_dataset(dataset_name: str) -> tuple[Theme, ThemeDataset]:
         for dataset in theme.datasets:
             if dataset.name == dataset_name:
                 return theme, dataset
-    raise Exception(f"Theme not found for dataset: {dataset_name}")
+    raise LookupError(f"Theme not found for dataset: {dataset_name}")
 
 
 def normalize_projection(gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: str) -> gpd.GeoDataFrame:
@@ -100,7 +100,7 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFram
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
             if source_col not in gdf.columns:
-                raise Exception(f"Source column not found: {source_col} in {td.name}")
+                raise KeyError(f"Source column not found: {source_col} in {td.name}")
             values = gdf[source_col]
             if spec.default is not None:
                 values = values.fillna(spec.default)
@@ -128,7 +128,7 @@ def normalize_field_lifecyle(
     elif "auto_pk" in gdf.columns:
         pk_col = "auto_pk"
     else:
-        raise Exception("Neither t50_fid nor auto_pk found in dataset columns")
+        raise KeyError("Neither t50_fid nor auto_pk found in dataset columns")
 
     primary_key = gdf[pk_col].astype(str)
 
@@ -140,23 +140,38 @@ def normalize_field_lifecyle(
         found = lifecycle_data.get(fid, {}).get("id")
         if found:
             return found
-        raise Exception(f"primary_key: {fid} not found in lifecycle?")
+        raise KeyError(f"primary_key: {fid} not found in lifecycle?")
 
     gdf["id"] = primary_key.map(get_feature_id)
 
     return gdf
 
 
-def find_release_for_source(source_file: Path, dataset_name: str, releases: list[Release]) -> int:
+def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int) -> tuple:
+    """Identity of a release's transform output: equal fingerprints => identical output, so it can
+    be produced once and shared. Combines the resolved source export (already shared across
+    releases by commit via export symlinks) with the join lookup commits (which can advance
+    between releases independently of the source). A join-free dataset fingerprints on its source
+    alone, preserving the original source-only dedup behaviour.
     """
-    Some releases will point to the same file,
-    we want only want to process the file if we really have to.
+    source_file = (WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}.json").resolve()
+    return (source_file, join_fingerprint(td, release_id))
+
+
+def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int, releases: list[Release]) -> int:
+    """The earliest release whose transform fingerprint matches this one's, so its transform can be
+    reused instead of recomputed. Returns release_id itself when nothing earlier matches.
+
+    Several releases can point to the same source export, so we only process it once; but two
+    releases sharing a source still differ when a join's lookup advanced between them, so the
+    fingerprint folds both source and lookups into one equivalence.
     """
+    target = _transform_fingerprint(dataset_name, td, release_id)
     for release in releases:
         input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
-        if input_file.exists() and input_file.resolve() == source_file:
+        if input_file.exists() and _transform_fingerprint(dataset_name, td, release.id) == target:
             return release.id
-    raise Exception(f"No release found for source file: {source_file}")
+    raise LookupError(f"No release found for source file: {dataset_name} (release {release_id})")
 
 
 @contextmanager
@@ -188,7 +203,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
 
     input_file = WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}.json"
     if not input_file.exists():
-        raise Exception(f"'export' file missing: {input_file}")
+        raise FileNotFoundError(f"'export' file missing: {input_file}")
 
     output_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
     output_file = output_dir / f"{dataset_name}{TRANSFORM_SUFFIX}"
@@ -199,13 +214,13 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    target_release_id = find_release_for_source(input_file.resolve(), dataset_name, releases)
+    target_release_id = find_canonical_release(dataset_name, td, release_id, releases)
     if target_release_id != release_id:
         gated_here = [f.fn for f in td.fixups if f.releases is not None and release_id in f.releases]
         if gated_here:
-            raise Exception(
-                f"fixup(s) {gated_here} target release {release_id}, which shares a source file with release "
-                f"{target_release_id} and is not transformed on its own; gate the fixup to the canonical "
+            raise ValueError(
+                f"fixup(s) {gated_here} target release {release_id}, which shares a source file and lookups with "
+                f"release {target_release_id} and is not transformed on its own; gate the fixup to the canonical "
                 f"release {target_release_id} instead"
             )
         logger.info("source_file transformed by another release", extra={"target_release": target_release_id})
@@ -224,7 +239,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
                 transform_dataset_release(dataset_name, target_release_id)
 
         if not target_transformed_file.exists():
-            raise Exception(f"failed to wait for target: {target_transformed_file}")
+            raise FileNotFoundError(f"failed to wait for target: {target_transformed_file}")
 
         os.symlink(os.path.relpath(target_transformed_file, output_dir), output_file)
         logger.info("symlinked")
@@ -237,7 +252,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
 
         lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
         if not lifecycle_file.exists():
-            raise Exception(f"missing lifecycle_{dataset_name}")
+            raise FileNotFoundError(f"missing lifecycle_{dataset_name}")
         with open(lifecycle_file) as f:
             lifecycle_data = json.load(f)
 
@@ -246,7 +261,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if gdf.crs is None:
-            raise Exception("source frame has no projection")
+            raise ValueError("source frame has no projection")
 
         if td.joins:
             start_time = time.perf_counter()

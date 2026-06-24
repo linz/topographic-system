@@ -252,7 +252,7 @@ class Theme(BaseModel):
 
     lookups: list[Lookup] = []
     """
-    derived lookup tables prepared from sources and joined into datasets (not emitted)
+    derived lookup tables prepared from sources and joined into datasets
     """
 
 
@@ -322,25 +322,59 @@ def get_source_entry(name: str) -> ThemeDataset | Lookup:
     raise LookupError(f"No dataset or lookup named {name!r}")
 
 
+def _validate_dataset_joins(dataset: ThemeDataset, theme: Theme, theme_lookups: dict[str, Lookup]) -> dict[str, set[str]]:
+    """Validate each join targets a known lookup and only its columns."""
+    joined: dict[str, set[str]] = {}
+    for join in dataset.joins:
+        lookup = theme_lookups.get(join.lookup)
+        if lookup is None:
+            raise ValueError(
+                f"Dataset {dataset.name} joins unknown lookup '{join.lookup}'; "
+                f"theme '{theme.name}' lookups: {sorted(theme_lookups)}"
+            )
+        if join.columns is not None:
+            unknown = [c for c in join.columns if c not in lookup.columns]
+            if unknown:
+                raise ValueError(
+                    f"Dataset {dataset.name} join on lookup '{join.lookup}' "
+                    f"requests unknown columns {unknown}; "
+                    f"lookup exposes: {sorted(lookup.columns)}"
+                )
+        joined[join.lookup] = set(join.columns) if join.columns is not None else set(lookup.columns)
+    return joined
+
+
+def _validate_mapping_join_refs(
+    dataset: ThemeDataset, theme_lookups: dict[str, Lookup], joined: dict[str, set[str]]
+) -> None:
+    """Every mapping reference to a namespaced lookup column (`$<lookup>.<col>`) must exist."""
+    for target, spec in dataset.field_specs().items():
+        source = spec.source
+        if not (isinstance(source, str) and source.startswith("$")):
+            continue
+        ref = target if source == "$" else source[1:]
+        prefix, _, col = ref.partition(".")
+        if not col or prefix not in theme_lookups:
+            continue
+        if prefix not in joined:
+            raise ValueError(
+                f"Dataset {dataset.name} mapping '{target}' references lookup '{prefix}' "
+                f"via '{source}', but the dataset has no join on '{prefix}'"
+            )
+        if col not in joined[prefix]:
+            raise ValueError(
+                f"Dataset {dataset.name} mapping '{target}' references '{source}', but its join on "
+                f"'{prefix}' does not bring in column '{col}'; joined columns: {sorted(joined[prefix])}"
+            )
+
+
 def validate_theme_joins(theme: Theme) -> None:
-    """Check every dataset join in a theme references a known lookup and only its columns."""
+    """Each dataset's joins must reference known lookups/columns, and its mapping may only
+    reference lookup columns it actually joins in."""
     theme_lookups = {lookup.name: lookup for lookup in theme.lookups}
     for dataset in theme.datasets:
-        for join in dataset.joins:
-            lookup = theme_lookups.get(join.lookup)
-            if lookup is None:
-                raise ValueError(
-                    f"Dataset {dataset.name} joins unknown lookup '{join.lookup}'; "
-                    f"theme '{theme.name}' lookups: {sorted(theme_lookups)}"
-                )
-            if join.columns is not None:
-                unknown = [c for c in join.columns if c not in lookup.columns]
-                if unknown:
-                    raise ValueError(
-                        f"Dataset {dataset.name} join on lookup '{join.lookup}' "
-                        f"requests unknown columns {unknown}; "
-                        f"lookup exposes: {sorted(lookup.columns)}"
-                    )
+        joined = _validate_dataset_joins(dataset, theme, theme_lookups)
+        _validate_mapping_join_refs(dataset, theme_lookups, joined)
 
 
 def load_from_yaml():

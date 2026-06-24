@@ -109,6 +109,60 @@ def test_validate_theme_joins_rejects_unknown_lookup():
         validate_theme_joins(theme)
 
 
+def _theme_with_mapping(mapping, joins):
+    return Theme.model_validate(
+        {
+            "name": "road_line",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "lookups": [
+                {
+                    "name": "road_lkp",
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
+                    "key": "t50_fid",
+                    "columns": ["width", "name_id"],
+                }
+            ],
+            "datasets": [
+                {
+                    "source": "kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k",
+                    "mapping": mapping,
+                    "joins": joins,
+                }
+            ],
+        }
+    )
+
+
+def test_validate_theme_joins_accepts_mapping_backed_by_join():
+    theme = _theme_with_mapping(
+        {"width_indicator": "$road_lkp.width"},
+        [{"lookup": "road_lkp", "left_on": "t50_fid"}],  # None columns -> brings all, incl. width
+    )
+    validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_rejects_mapping_with_no_join():
+    theme = _theme_with_mapping({"width_indicator": "$road_lkp.width"}, [])
+    with pytest.raises(ValueError, match="has no join on 'road_lkp'"):
+        validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_rejects_mapping_column_not_brought_in():
+    theme = _theme_with_mapping(
+        {"the_name": "$road_lkp.name_id"},
+        [{"lookup": "road_lkp", "left_on": "t50_fid", "columns": ["width"]}],  # name_id not joined
+    )
+    with pytest.raises(ValueError, match="does not bring in column 'name_id'"):
+        validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_ignores_plain_dotted_source_column():
+    # A dotted ref whose prefix is not a lookup name is a plain source column, not a join ref.
+    theme = _theme_with_mapping({"x": "$some.other"}, [])
+    validate_theme_joins(theme)
+
+
 def test_field_spec_parses_scalar_shorthand():
     assert FieldSpec.parse("$").source == "$"
     assert FieldSpec.parse("$hway_num").source == "$hway_num"

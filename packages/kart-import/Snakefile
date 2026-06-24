@@ -94,6 +94,11 @@ rule transform:
         lookups = lambda wildcards: [
             f"data/working/lookup/{join.lookup}"
             for join in DATASET_MAP[wildcards.dataset].joins
+        ],
+        # clone must be present (not just the prepared parquet).
+        lookup_clones = lambda wildcards: [
+            f"data/source/{join.lookup}/.cloned"
+            for join in DATASET_MAP[wildcards.dataset].joins
         ]
     output:
         transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
