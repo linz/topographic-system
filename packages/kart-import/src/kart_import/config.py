@@ -322,7 +322,9 @@ def get_source_entry(name: str) -> ThemeDataset | Lookup:
     raise LookupError(f"No dataset or lookup named {name!r}")
 
 
-def _validate_dataset_joins(dataset: ThemeDataset, theme: Theme, theme_lookups: dict[str, Lookup]) -> dict[str, set[str]]:
+def _validate_dataset_joins(
+    dataset: ThemeDataset, theme: Theme, theme_lookups: dict[str, Lookup]
+) -> dict[str, set[str]]:
     """Validate each join targets a known lookup and only its columns."""
     joined: dict[str, set[str]] = {}
     for join in dataset.joins:
