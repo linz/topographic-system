@@ -153,9 +153,10 @@ topographic_validation \
 
 ### Attribute Checks
 
-| Check Type    | Description                              |
-| ------------- | ---------------------------------------- |
-| `query_rules` | Features must pass specified query rules |
+| Check Type     | Description                              |
+| -------------- | ---------------------------------------- |
+| `null_columns` | Specified columns must not be null       |
+| `query_rules`  | Features must pass specified query rules |
 
 ## Configuration
 

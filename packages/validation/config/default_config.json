@@ -214,10 +214,10 @@
       "message": "Water point features must have a temperature_indicator attribute for type spring"
     },
     {
-      "table": "water_line",
+      "table": "relief_line",
       "column": "height",
       "where": "(type = 'waterfall' OR type = 'waterfall_edge')",
-      "message": "Water line features must have a height attribute for types waterfall and waterfall_edge"
+      "message": "Relief line features must have a height attribute for types waterfall and waterfall_edge"
     },
     {
       "table": "water",

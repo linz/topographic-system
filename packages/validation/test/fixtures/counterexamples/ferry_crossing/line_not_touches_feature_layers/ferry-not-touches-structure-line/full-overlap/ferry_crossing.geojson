@@ -12,7 +12,6 @@
     "t50_fid": 1000000,
     "type": "ferry_crossing",
     "name": null,
-    "collection_id": null,
     "updated_at": "2025-03-24",
     "created_at": "2025-03-24"
   }
