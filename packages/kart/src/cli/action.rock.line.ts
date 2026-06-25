@@ -64,7 +64,7 @@ export const RockLineArgs = {
     type: Url,
     long: 'schema',
     description: 'Path to the JSON schema to validate the rock line output against',
-    defaultValue: () => new URL('file:///schema/nztopo50_rock_line.json'),
+    defaultValue: () => new URL(`file:///schema/${rockLineName}.json`),
   }),
 };
 
