@@ -19,6 +19,7 @@ import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
 import { rockLine } from '../python.runner.ts';
+import { ValidateSchemaCommand } from './action.validate.schema.ts';
 
 export const RockLineArgs = {
   concurrency,
@@ -58,6 +59,12 @@ export const RockLineArgs = {
     long: 'cache',
     description: 'Optional local cache for storing versioned map assets',
     defaultValue: () => fsa.toUrl('./.cache'),
+  }),
+  schema: option({
+    type: Url,
+    long: 'schema',
+    description: 'Path to the JSON schema to validate the rock line output against',
+    defaultValue: () => new URL('file:///schema/nztopo50_rock_line.json'),
   }),
 };
 
@@ -123,6 +130,14 @@ export const RockLineCommand = command({
     const tempOutputParquet = new URL(`${rockLineName}.parquet`, args.tempLocation);
 
     await rockLine(marinePath, coastlinePath, islandPath, waterPath, tempOutputParquet);
+
+    // validate output against schema
+    await ValidateSchemaCommand.handler({
+      concurrency: args.concurrency,
+      schema: args.schema,
+      paths: [tempOutputParquet],
+      decodeGeometry: false,
+    });
 
     const parquetStats = await parquetToStac(tempOutputParquet);
 
