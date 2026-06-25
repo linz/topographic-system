@@ -62,7 +62,7 @@ jobs:
           ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
 
       - name: Save snapshots
-        uses: linz/action-visual-snapshot@v2.1
+        uses: linz/action-visual-snapshot@v2.2
         with:
           save-only: true
           snapshot-path: .artifacts/visual-snapshots
@@ -89,7 +89,7 @@ jobs:
 
       - name: Diff snapshots
         id: visual-snapshots-diff
-        uses: linz/action-visual-snapshot@v2.1
+        uses: linz/action-visual-snapshot@v2.2
         env:
           GITHUB_WORKFLOW: push
         with:
