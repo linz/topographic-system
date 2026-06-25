@@ -55,13 +55,15 @@ topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./outp
 
 ### Processing Options
 
-| Option                      | Description                                       |
-| --------------------------- | ------------------------------------------------- |
-| `--use-date-folder`         | Create date-based output subfolders               |
-| `--report-only`             | Don't export validation data - only create report |
-| `--skip-queries`            | Skip query-based validations                      |
-| `--skip-features-on-layer`  | Skip features-on-layer checks                     |
-| `--skip-self-intersections` | Skip self-intersection checks                     |
+| Option              | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `--use-date-folder` | Create date-based output subfolders               |
+| `--report-only`     | Don't export validation data - only create report |
+
+mainly used for debug speed
+| `--skip-queries` | Skip query-based validations |
+| `--skip-features-on-layer` | Skip features-on-layer checks |
+| `--skip-self-intersections` | Skip self-intersection checks |
 
 ### Filtering Options
 
@@ -86,16 +88,6 @@ topographic_validation --mode generic --db-path "data.gpkg" --output-dir "./outp
 topographic_validation --mode generic --db-path "topo50.gpkg" --output-dir "./validation-output"
 ```
 
-### PostGIS with Custom Output
-
-```bash
-topographic_validation \
-    --mode postgis \
-    --db-path "postgresql://user:pass@localhost/topo50" \
-    --output-dir "/custom/output/path" \
-    --verbose
-```
-
 ### Spatial and Temporal Filtering
 
 ```bash
@@ -118,6 +110,16 @@ topographic_validation \
     --export-parquet \
     --export-parquet-by-geometry \
     --skip-queries \
+    --verbose
+```
+
+### PostGIS with Custom Output
+
+```bash
+topographic_validation \
+    --mode postgis \
+    --db-path "postgresql://user:pass@localhost/topo50" \
+    --output-dir "/custom/output/path" \
     --verbose
 ```
 
@@ -151,10 +153,9 @@ topographic_validation \
 
 ### Attribute Checks
 
-| Check Type     | Description                              |
-| -------------- | ---------------------------------------- |
-| `null_columns` | Specified columns must not be null       |
-| `query_rules`  | Features must pass specified query rules |
+| Check Type    | Description                              |
+| ------------- | ---------------------------------------- |
+| `query_rules` | Features must pass specified query rules |
 
 ## Configuration
 
@@ -162,8 +163,8 @@ Validation rules are defined in JSON configuration files. A default configuratio
 
 The CLI automatically selects configuration files based on mode:
 
-- **PostGIS mode**: `./validation_postgis_config.json`
 - **Generic mode**: `./validation_generic_config.json`
+- **PostGIS mode**: `./validation_postgis_config.json`
 - **Custom**: Use `--config-file` option
 
 ### Configuration Structure
@@ -205,17 +206,6 @@ Optional filters:
   "table": "vegetation",
   "layername": "vegetation-validation",
   "message": "Vegetation features must not self-intersect"
-}
-```
-
-### Null Column Configuration
-
-```json
-{
-  "table": "descriptive_text",
-  "column": "info_display",
-  "message": "Descriptive text features must have an info_display attribute",
-  "where": "(feature_type = 'waterfall' OR feature_type = 'soakhole')"
 }
 ```
 
