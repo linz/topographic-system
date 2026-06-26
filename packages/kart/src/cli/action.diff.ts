@@ -276,21 +276,20 @@ export const DiffCommand = command({
     logger.info(ctx, 'Diff:UsingRange');
 
     try {
-      // Always generate the raw artifacts on disk so they are downloadable even when no summary is
-      // posted (e.g. git changes with no feature changes, or a diff too large to preview).
-      await writeDiffArtifacts(ctx);
-
       const featureCounts = await getFeatureCount(ctx);
       const featureCount = sumFeatureCounts(featureCounts);
 
-      if (featureCount === 0) {
-        logger.info({ ...ctx }, 'Diff:NoFeatureChanges');
-        return;
-      }
       if (featureCount > MaxFeatureCount) {
         logger.warn({ featureCount, maxFeatureCount: MaxFeatureCount }, 'Diff:TooLargeToPreview');
         await fsa.write(args.summaryFile, buildTooLargeSummary(featureCounts));
         logger.info('Diff:CommandCompleted');
+        return;
+      }
+
+      await writeDiffArtifacts(ctx);
+
+      if (featureCount === 0) {
+        logger.info({ ...ctx }, 'Diff:NoFeatureChanges');
         return;
       }
 
