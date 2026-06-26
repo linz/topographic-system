@@ -290,7 +290,7 @@ class AbstractTopologyValidator(ABC):
             self.update_summary_report("feature_in_layers")
 
         endtime = datetime.datetime.now()
-        print("Time taken for spatial index query:", endtime - starttime)
+        print("Time taken for spatial index query:", endtime - starttime, flush=True)
 
         return intersecting_features
 
@@ -331,7 +331,7 @@ class AbstractTopologyValidator(ABC):
         if self.export_validation_data is False:
             return
         if gdf.empty:
-            print(f"No validation errors found for {self.table}.")
+            print(f"No validation errors found for {self.table}.", flush=True)
             return
         if len(extended_name) > 0:
             extended_name = f"_{extended_name}"
@@ -385,7 +385,7 @@ class AbstractTopologyValidator(ABC):
         if intersection_geometries_multipolygon:
             all_intersection_geometries += intersection_geometries_multipolygon
         if len(all_intersection_geometries) == 0:
-            print("No topology errors found")
+            print("No topology errors found", flush=True)
             return
 
         if self.export_parquet:
@@ -518,7 +518,7 @@ class AbstractTopologyValidator(ABC):
             intersection_geometries_multipolygon,
             geomtypes,
         ) = self.find_self_intersecting()
-        print("Unique intersection geometry types:", list(set(geomtypes)))
+        print("Unique intersection geometry types:", list(set(geomtypes)), flush=True)
 
         if has_validation_errors:
             self.update_summary_report("self_intersect_layers")
@@ -528,7 +528,7 @@ class AbstractTopologyValidator(ABC):
             intersection_geometries_line,
             intersection_geometries_multipolygon,
         )
-        print("Time taken for read_datasets:", datetime.datetime.now() - starttime)
+        print("Time taken for read_datasets:", datetime.datetime.now() - starttime, flush=True)
 
     def run_layer_intersections(
         self,
@@ -553,7 +553,7 @@ class AbstractTopologyValidator(ABC):
         self.save_gdf(gdf, validation_type=val_type, extended_name=self.table2.replace(".", "_"))
         print(
             "Time taken to process layer intersections:",
-            datetime.datetime.now() - starttime,
+            datetime.datetime.now() - starttime, flush=True
         )
 
     def run_null_column_checks(self, rule_name: str = "", column_name: str = "") -> None:
@@ -565,7 +565,7 @@ class AbstractTopologyValidator(ABC):
         self.save_gdf(self.gdf, validation_type="null", extended_name=column_name)
         print(
             "Time taken for process null column check:",
-            datetime.datetime.now() - starttime,
+            datetime.datetime.now() - starttime, flush=True
         )
 
     def run_query_rule_checks(self, rule_name: str, rule: str, column_name: str) -> None:
@@ -577,5 +577,5 @@ class AbstractTopologyValidator(ABC):
         self.save_gdf(self.gdf, validation_type="query", extended_name=column_name)
         print(
             "Time taken for process query rule check:",
-            datetime.datetime.now() - starttime,
+            datetime.datetime.now() - starttime, flush=True
         )
