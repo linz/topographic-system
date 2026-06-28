@@ -33,6 +33,16 @@
         }
       ]
     },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "orientation": {
       "anyOf": [
         {

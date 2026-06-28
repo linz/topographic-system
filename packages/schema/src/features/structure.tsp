@@ -11,6 +11,7 @@ model structure {
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type: "dry_dock" | "fish_farm" | "marine_farm" | "reservoir" | "siphon" | "tank";
   lid_type?: Topo.LidTypeEnum | null;
+  tank_type?: string | null;
   subtype?: Topo.StructureSubTypeEnum | null;
   species?: Topo.SpeciesEnum | null;
   status?: Topo.StatusEnum | null;

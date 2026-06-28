@@ -22,7 +22,14 @@
       "const": "airport"
     },
     "name": {
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",

@@ -10,7 +10,7 @@ model utility_line {
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type: "pipeline" | "powerline" | "telephone";
-  infrastructure_use?: Topo.InfrastructureUseEnum | null;
+  utility_use?: Topo.UtilityUseEnum | null;
   support_type?: Topo.SupportTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;

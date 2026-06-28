@@ -91,7 +91,7 @@ enum FormationEnum {
 }
 
 /** Auto-derived from observed values of `infrastructure_use`. */
-enum InfrastructureUseEnum {
+enum UtilityUseEnum {
   Ironsand: "ironsand",
   Sewage: "sewage",
   Steam: "steam",

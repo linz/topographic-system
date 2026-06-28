@@ -55,6 +55,16 @@
         }
       ]
     },
+    "tank_type": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "subtype": {
       "anyOf": [
         {

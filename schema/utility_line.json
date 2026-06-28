@@ -33,10 +33,10 @@
         }
       ]
     },
-    "infrastructure_use": {
+    "utility_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/InfrastructureUseEnum"
+          "$ref": "#/$defs/UtilityUseEnum"
         },
         {
           "type": "null"
@@ -96,7 +96,7 @@
   "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "InfrastructureUseEnum": {
+    "UtilityUseEnum": {
       "type": "string",
       "enum": ["ironsand", "sewage", "steam", "water"],
       "description": "Auto-derived from observed values of `infrastructure_use`."
