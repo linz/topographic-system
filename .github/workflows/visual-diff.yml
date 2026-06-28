@@ -89,7 +89,7 @@ jobs:
 
       - name: Diff snapshots
         id: visual-snapshots-diff
-        uses: linz/action-visual-snapshot@v2.1
+        uses: linz/action-visual-snapshot@fix/redirect-problem
         env:
           GITHUB_WORKFLOW: push
         with:
