@@ -107,6 +107,25 @@
         }
       ]
     },
+    "tank_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "uncovered"
+        },
+        {
+          "type": "string",
+          "const": "water"
+        },
+        {
+          "type": "string",
+          "const": "surge chamber"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "subtype": {
       "anyOf": [
         {

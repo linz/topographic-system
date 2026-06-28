@@ -37,6 +37,10 @@
         },
         {
           "type": "string",
+          "const": "rapid"
+        },
+        {
+          "type": "string",
           "const": "sand"
         },
         {

@@ -22,7 +22,14 @@
       "const": "airport"
     },
     "name": {
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
@@ -34,7 +41,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry", "bbox"],
+  "required": ["id", "updated_at", "created_at", "type", "name", "geometry", "bbox"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {
