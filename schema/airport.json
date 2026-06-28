@@ -41,7 +41,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry", "bbox"],
+  "required": ["id", "updated_at", "created_at", "type", "name", "geometry", "bbox"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {
