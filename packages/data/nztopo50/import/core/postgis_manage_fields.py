@@ -1142,6 +1142,15 @@ class TableModificationWorkflow:
             "type ='telephone'",
         )
 
+        # this fixes a typo in the tank points - may get fixed.
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "structure_point",
+            "stored_item",
+            "'watre'",
+            "stored_item ='water'",
+        )
+
     def step_name(self):
         self.table_modifer.add_name_columns()
         # self.table_modifer.add_collectionid_columns()
