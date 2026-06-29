@@ -221,6 +221,7 @@ enum StructureSubTypeEnum {
 
 /** Auto-derived from observed values of `structure_use`. */
 enum StructureUseEnum {
+  Disused: "disused",
   Historic: "historic",
   Jetty: "jetty",
   PowerGeneration: "power generation",
