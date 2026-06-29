@@ -56,6 +56,14 @@ def prepare_lookup(lookup_name: str) -> Path:
     output_dir = WORKING_LOOKUP_DIR / lookup_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Drop parquets whose source export no longer exists (commit pruned upstream by export_lookup),
+    # so orphaned commits don't accumulate on disk across runs.
+    valid_commits = {input_file.stem for input_file in input_dir.glob("*.json")}
+    for stale in output_dir.glob("*.parquet"):
+        if stale.stem not in valid_commits:
+            logger.info("pruning stale prepared lookup", extra={"lookup": lookup_name, "file": stale.name})
+            stale.unlink()
+
     for input_file in sorted(input_dir.glob("*.json")):
         commit = input_file.stem
         output_file = output_dir / f"{commit}.parquet"

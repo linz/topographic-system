@@ -1,3 +1,4 @@
+import functools
 import logging
 
 import geopandas as gpd
@@ -53,8 +54,14 @@ def _require_compatible_join_keys(
         )
 
 
+@functools.cache
 def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
-    """The lookup commit as-of this release, or None if the release predates the lookup's history."""
+    """The lookup commit as-of this release, or None if the release predates the lookup's history.
+
+    Memoized on (lookup_name, release_id): a single transform process resolves the same pair
+    repeatedly (once per release while fingerprinting in find_canonical_release, again when it
+    recurses into the canonical release, and again in validate_join_key_types/apply_joins).
+    """
     release = next((r for r in get_releases() if r.id == release_id), None)
     if release is None:
         return None

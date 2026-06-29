@@ -10,6 +10,15 @@ from .config import Join, Lookup, Source, ThemeDataset
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")
 
 
+@pytest.fixture(autouse=True)
+def _clear_resolve_lookup_cache():
+    """_resolve_lookup_commit is @functools.cache'd; clear it between tests so a value cached by
+    one test (keyed on lookup_name/release_id) can't bleed into another and mask a real resolve."""
+    if hasattr(joins._resolve_lookup_commit, "cache_clear"):
+        joins._resolve_lookup_commit.cache_clear()
+    yield
+
+
 def test_select_lookup_columns_selects_dedups_and_drops_null_key():
     gdf = gpd.GeoDataFrame(
         {"t50_fid": [1, 2, 2, None], "width": ["a", "b", "c", "d"], "name_id": [10, 20, 30, 40]},
@@ -265,6 +274,7 @@ def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
     assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
 
     # release predates the lookup: no commit as-of the release, but the repo HAS history.
+    joins._resolve_lookup_commit.cache_clear()  # re-resolving the same pair under a new git state
     monkeypatch.setattr(
         joins, "get_release_commit", lambda repo, until: None if until else ("head0001", "2026-01-01T00:00:00Z")
     )

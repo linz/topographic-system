@@ -120,6 +120,13 @@ def export_lookup(lookup_name: str) -> str:
         cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
         run_command(cmd, cwd=str(repo_dir))
 
+    # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
+    referenced = {f"{commit}.json" for commit in commits}
+    for stale in output_dir.glob("*.json"):
+        if stale.name not in referenced:
+            logger.info("pruning stale lookup export", extra={"lookup": lookup_name, "file": stale.name})
+            stale.unlink()
+
     logger.info("export_lookup", extra={"lookup": lookup_name, "commits": len(commits)})
     return str(output_dir)
 
