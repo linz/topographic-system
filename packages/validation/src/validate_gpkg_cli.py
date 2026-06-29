@@ -63,7 +63,7 @@ Examples:
     parser.add_argument(
         "--use-date-folder",
         action="store_true",
-        default=True,
+        default=False,
         help="Create date-based subfolder in output directory",
     )
 
@@ -169,7 +169,7 @@ def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
     # Export format settings
     settings.export_gpkg = True
     settings.export_parquet = False
-    settings.export_parquet_by_geometry_type = True
+    settings.export_parquet_by_geometry_type = False
 
     # Processing settings
     settings.use_date_folder = args.use_date_folder
