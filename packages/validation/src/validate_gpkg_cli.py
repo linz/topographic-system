@@ -24,13 +24,13 @@ def parse_arguments() -> argparse.Namespace:
 Examples:
 
   # Run validation on Parquet files with custom output
-  python topo_validation_cli.py --db-path "data.parquet" --output-dir "c:\temp\validation" --use-date-folder True
+  python validate_gpkg_cli.py --db-path "data.parquet" --output-dir "c:\temp\validation" --use-date-folder True
 
   # Run with bounding box 
-  python topo_validation_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 --output-dir "c:\temp\validation"
+  python validate_gpkg_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 --output-dir "c:\temp\validation"
 
   # Run with bounding box and date filtering
-  python topo_validation_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
+  python validate_gpkg_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
         """,
     )
 
