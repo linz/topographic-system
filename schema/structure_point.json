@@ -241,7 +241,7 @@
   "$defs": {
     "StructureUseEnum": {
       "type": "string",
-      "enum": ["historic", "jetty", "power generation", "tunnel ventilation"],
+      "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"],
       "description": "Auto-derived from observed values of `structure_use`."
     },
     "StructureSubTypeEnum": {
