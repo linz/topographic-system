@@ -15,14 +15,42 @@ from .git.release import get_release_commit
 logger = logging.getLogger("kart_import")
 
 
-def _normalise_join_key(series: pd.Series) -> pd.Series:
-    """Canonicalise a join key so int/float/string forms match (e.g. 5.0 == 5 == '5')."""
-    numeric = pd.to_numeric(series, errors="coerce")
-    if numeric.notna().any():
-        return numeric.astype("Int64").astype(
-            "string"
-        )  # FIXME: This will clobber leading-zero string keys. Remove / update if needed.
-    return series.astype("string")
+def _join_key_category(series: pd.Series) -> str:
+    """Coarse type bucket used to decide whether two join keys are compatible."""
+    dtype = series.dtype
+    if pd.api.types.is_bool_dtype(dtype):
+        return "bool"
+    if pd.api.types.is_integer_dtype(dtype):
+        return "integer"
+    if pd.api.types.is_float_dtype(dtype):
+        return "float"
+    if pd.api.types.is_datetime64_any_dtype(dtype):
+        return "datetime"
+    if pd.api.types.is_string_dtype(dtype) or pd.api.types.is_object_dtype(dtype):
+        return "string"
+    return dtype.name
+
+
+def _require_compatible_join_keys(
+    left: pd.Series, right: pd.Series, *, lookup_name: str, left_on: str, lookup_key: str
+) -> None:
+    """Raise unless two join keys can be safely merged.
+
+    Keys must share a coarse type (int<->int, str<->str, ...); differing types are a config/data
+    error we surface rather than silently coerce. An empty key column (a release or lookup with no
+    rows) is compatible: there is nothing to join, so no type can clash.
+    """
+    if left.empty or right.empty:
+        return
+    left_cat = _join_key_category(left)
+    right_cat = _join_key_category(right)
+    if left_cat != right_cat:
+        raise TypeError(
+            f"join key type mismatch for lookup {lookup_name!r}: "
+            f"left '{left_on}' is {left.dtype} ({left_cat}), "
+            f"right '{lookup_key}' is {right.dtype} ({right_cat}); "
+            f"align the column types before joining"
+        )
 
 
 def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
@@ -49,6 +77,28 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
 def join_fingerprint(td: ThemeDataset, release_id: int) -> tuple[tuple[str, str | None], ...]:
     """The lookup commit each join resolves to for this release."""
     return tuple(sorted((join.lookup, _resolve_lookup_commit(join.lookup, release_id)) for join in td.joins))
+
+
+def validate_join_key_types(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> None:
+    """Pre-flight every join's key types before any merge runs, so a mismatch fails fast and
+    atomically rather than after some lookups have already been joined onto the frame.
+    """
+    for join in td.joins:
+        if join.left_on not in gdf.columns:
+            raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
+        commit = _resolve_lookup_commit(join.lookup, release_id)
+        if commit is None:
+            continue
+        lookup = get_lookup_by_name(join.lookup)
+        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
+        if not lookup_file.exists():
+            raise FileNotFoundError(
+                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
+            )
+        key = pd.read_parquet(lookup_file, columns=[lookup.key])[lookup.key]
+        _require_compatible_join_keys(
+            gdf[join.left_on], key, lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
+        )
 
 
 def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
@@ -84,13 +134,18 @@ def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd
             raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
 
         lk = pd.read_parquet(lookup_file)
-        right = lk[[lookup.key, *wanted]].copy()
-        right["__join_key__"] = _normalise_join_key(right[lookup.key])
-        right = right.drop(columns=[lookup.key]).rename(columns=qualified)
+        if lookup.key not in lk.columns:
+            raise KeyError(f"lookup key '{lookup.key}' not found in lookup {join.lookup!r} columns")
 
+        _require_compatible_join_keys(
+            gdf[join.left_on], lk[lookup.key], lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
+        )
+
+        right = lk[[lookup.key, *wanted]].rename(columns=qualified)
         gdf = gdf.copy()
-        gdf["__join_key__"] = _normalise_join_key(gdf[join.left_on])
-        merged = gdf.merge(right, on="__join_key__", how="left").drop(columns="__join_key__")
+        merged = gdf.merge(right, left_on=join.left_on, right_on=lookup.key, how="left")
+        if lookup.key in merged.columns and lookup.key != join.left_on:
+            merged = merged.drop(columns=lookup.key)
         gdf = gpd.GeoDataFrame(merged, geometry=gdf.geometry.name, crs=gdf.crs)
         matched = int(gdf[qualified[wanted[0]]].notna().sum()) if wanted else 0
         logger.info(

@@ -18,7 +18,6 @@ from ..config import (
     Lookup,
     get_lookup_by_name,
 )
-from ..joins import _normalise_join_key
 from ..log import log_context
 
 logger = logging.getLogger("kart_import")
@@ -35,12 +34,12 @@ def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame
             raise KeyError(f"Lookup '{lookup.name}' source column '{col}' not found")
         out[col] = gdf[col].to_numpy()
 
-    # A lookup must be unique on the *normalised* join key.
-    # Deduping on the raw key would let two raw-distinct keys that normalise to the
-    # same value (e.g. 7 and "7") both survive and fan out the left-join, duplicating rows.
+    # A lookup must be unique on the join key, or a duplicate key would fan out the
+    # left-join and duplicate rows. The join matches on raw values of a single dtype,
+    # so dedupe on the raw key directly.
     keyed = out[out[lookup.key].notna()].copy()
     before = len(keyed)
-    keyed = keyed[~_normalise_join_key(keyed[lookup.key]).duplicated(keep="first")]
+    keyed = keyed[~keyed[lookup.key].duplicated(keep="first")]
     if len(keyed) != before:
         logger.warning(f"Lookup '{lookup.name}' had {before - len(keyed)} duplicate '{lookup.key}' rows; kept first")
     return keyed.reset_index(drop=True)

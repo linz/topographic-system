@@ -41,23 +41,6 @@ def test_select_lookup_columns_raises_on_missing_source_column():
         prepare.select_lookup_columns(gdf, lookup)
 
 
-def test_select_lookup_columns_dedups_on_normalised_key():
-    # "5" and "5.0" are the same key in two string forms, so the join (which merges on the
-    # normalised key) can only match one of them. The prepared lookup must collapse them too,
-    # otherwise the left-join fans out and duplicates source rows. Raw-key dedup kept both.
-    gdf = gpd.GeoDataFrame(
-        {"t50_fid": ["5", "5.0", "8"], "width": ["a", "b", "c"]},
-        geometry=[Point(0, 0)] * 3,
-        crs="EPSG:4326",
-    )
-    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
-
-    out = prepare.select_lookup_columns(gdf, lookup)
-
-    assert out["t50_fid"].tolist() == ["5", "8"]  # "5.0" collapsed into "5" (kept first)
-    assert out.loc[out["t50_fid"] == "5", "width"].iloc[0] == "a"
-
-
 def test_join_fingerprint_reflects_lookup_commits(monkeypatch):
     td = ThemeDataset(
         name="ds",
@@ -80,7 +63,7 @@ def test_join_fingerprint_empty_without_joins():
     assert joins.join_fingerprint(td, 2) == ()
 
 
-def test_apply_joins_left_merges_by_key_dtype_robust(tmp_path, monkeypatch):
+def test_apply_joins_left_merges_on_matching_key_type(tmp_path, monkeypatch):
     lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
     monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
@@ -91,8 +74,8 @@ def test_apply_joins_left_merges_by_key_dtype_robust(tmp_path, monkeypatch):
         tmp_path / "lookup" / "road_lkp" / "abc123.parquet"
     )
 
-    # source t50_fid is float. The join must still match the int lookup key.
-    gdf = gpd.GeoDataFrame({"t50_fid": [1.0, 2.0, 3.0]}, geometry=[Point(0, 0)] * 3, crs="EPSG:4326")
+    # source t50_fid is the same (integer) type as the lookup key, so the join matches.
+    gdf = gpd.GeoDataFrame({"t50_fid": [1, 2, 3]}, geometry=[Point(0, 0)] * 3, crs="EPSG:4326")
     td = ThemeDataset(
         name="ds",
         source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
@@ -102,10 +85,130 @@ def test_apply_joins_left_merges_by_key_dtype_robust(tmp_path, monkeypatch):
     out = joins.apply_joins(gdf, td, 66)
 
     assert len(out) == 3  # left join, lookup unique on key -> no fan-out
-    assert out.loc[out["t50_fid"] == 1.0, "road_lkp.width"].iloc[0] == "WIDE"
-    assert out.loc[out["t50_fid"] == 3.0, "road_lkp.width"].iloc[0] == "NARROW"
-    assert out.loc[out["t50_fid"] == 2.0, "road_lkp.width"].isna().all()  # unmatched -> null
+    assert out.loc[out["t50_fid"] == 1, "road_lkp.width"].iloc[0] == "WIDE"
+    assert out.loc[out["t50_fid"] == 3, "road_lkp.width"].iloc[0] == "NARROW"
+    assert out.loc[out["t50_fid"] == 2, "road_lkp.width"].isna().all()  # unmatched -> null
     assert isinstance(out, gpd.GeoDataFrame) and out.crs is not None  # stays geo
+
+
+def test_apply_joins_matches_leading_zero_string_keys_exactly(tmp_path, monkeypatch):
+    """Strings are strings: '01' matches its own row, not '1'"""
+    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
+    monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "abc123")
+
+    (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
+    pd.DataFrame({"t50_fid": ["01", "1"], "width": ["ZERO_ONE", "ONE"]}).to_parquet(
+        tmp_path / "lookup" / "road_lkp" / "abc123.parquet"
+    )
+
+    gdf = gpd.GeoDataFrame({"t50_fid": ["01", "1", "02"]}, geometry=[Point(0, 0)] * 3, crs="EPSG:4326")
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    out = joins.apply_joins(gdf, td, 66)
+
+    assert out.loc[out["t50_fid"] == "01", "road_lkp.width"].iloc[0] == "ZERO_ONE"
+    assert out.loc[out["t50_fid"] == "1", "road_lkp.width"].iloc[0] == "ONE"
+    assert out.loc[out["t50_fid"] == "02", "road_lkp.width"].isna().all()
+
+
+def test_apply_joins_raises_on_key_type_mismatch(tmp_path, monkeypatch):
+    """Joining keys of different types is a config/data error, not silently coerced."""
+    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
+    monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "abc123")
+
+    (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
+    pd.DataFrame({"t50_fid": [1, 3], "width": ["WIDE", "NARROW"]}).to_parquet(
+        tmp_path / "lookup" / "road_lkp" / "abc123.parquet"
+    )
+
+    # source t50_fid is float; lookup key is integer -> mismatch -> raise.
+    gdf = gpd.GeoDataFrame({"t50_fid": [1.0, 2.0, 3.0]}, geometry=[Point(0, 0)] * 3, crs="EPSG:4326")
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    with pytest.raises(TypeError, match="join key type mismatch"):
+        joins.apply_joins(gdf, td, 66)
+
+
+def test_apply_joins_empty_lookup_matches_without_raising(tmp_path, monkeypatch):
+    """A lookup with no rows for this release (e.g. no data yet) must not trip the type guard:
+    the join still runs and the lookup columns come through null."""
+    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
+    monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "abc123")
+
+    (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
+    # Empty parquet whose key dtype (object) even *differs* from the source (int): still must not raise,
+    # because an empty side has nothing to join and pandas merges it cleanly regardless of dtype.
+    pd.DataFrame({"t50_fid": pd.Series([], dtype="object"), "width": pd.Series([], dtype="object")}).to_parquet(
+        tmp_path / "lookup" / "road_lkp" / "abc123.parquet"
+    )
+
+    gdf = gpd.GeoDataFrame({"t50_fid": [1, 2, 3]}, geometry=[Point(0, 0)] * 3, crs="EPSG:4326")
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    joins.validate_join_key_types(gdf, td, 66)  # pre-flight is also tolerant of the empty key
+    out = joins.apply_joins(gdf, td, 66)
+
+    assert len(out) == 3  # rows preserved
+    assert "road_lkp.width" in out.columns
+    assert out["road_lkp.width"].isna().all()  # nothing to match -> null
+    assert isinstance(out, gpd.GeoDataFrame) and out.crs is not None
+
+
+def test_validate_join_key_types_raises_on_mismatch(tmp_path, monkeypatch):
+    """Pre-flight catches the same type mismatch apply_joins would, but before any merge runs."""
+    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
+    monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "abc123")
+
+    (tmp_path / "lookup" / "road_lkp").mkdir(parents=True)
+    pd.DataFrame({"t50_fid": [1, 3], "width": ["WIDE", "NARROW"]}).to_parquet(
+        tmp_path / "lookup" / "road_lkp" / "abc123.parquet"
+    )
+
+    gdf = gpd.GeoDataFrame({"t50_fid": [1.0, 2.0]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326")  # float vs int
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    with pytest.raises(TypeError, match="join key type mismatch"):
+        joins.validate_join_key_types(gdf, td, 66)
+
+
+def test_validate_join_key_types_skips_release_predating_lookup(monkeypatch):
+    """A release with no lookup commit has no key to compare, so pre-flight skips it (no file access)."""
+    lookup = Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
+    monkeypatch.setitem(config.LOOKUP_MAP, "road_lkp", lookup)
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: None)
+
+    gdf = gpd.GeoDataFrame({"t50_fid": [1.0, 2.0]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326")
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    joins.validate_join_key_types(gdf, td, 40)  # no raise, no lookup dir needed
 
 
 def test_apply_joins_release_predating_lookup_fills_null(tmp_path, monkeypatch):
@@ -142,7 +245,7 @@ def test_apply_joins_picks_parquet_for_resolved_commit(tmp_path, monkeypatch):
     pd.DataFrame({"t50_fid": [1], "width": ["OLD"]}).to_parquet(tmp_path / "lookup" / "road_lkp" / "commit60.parquet")
     pd.DataFrame({"t50_fid": [1], "width": ["NEW"]}).to_parquet(tmp_path / "lookup" / "road_lkp" / "commit66.parquet")
 
-    gdf = gpd.GeoDataFrame({"t50_fid": [1.0]}, geometry=[Point(0, 0)], crs="EPSG:4326")
+    gdf = gpd.GeoDataFrame({"t50_fid": [1]}, geometry=[Point(0, 0)], crs="EPSG:4326")
     td = ThemeDataset(
         name="ds",
         source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
