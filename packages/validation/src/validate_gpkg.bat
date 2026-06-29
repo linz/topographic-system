@@ -1,6 +1,6 @@
 REM topo_validation_qgis.bat "C:\Data\topoedit\topographic-data\topographic-data.gpkg" --v "C:\Data\topoedit\topology-validation" 174.81 -41.31 174.82 -41.30
 
-set BBOX=""
+set BBOX=
 
 if not "%~3"=="" set BBOX=--bbox %3 %4 %5 %6
 
