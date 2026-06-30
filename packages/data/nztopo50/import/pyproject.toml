@@ -3,7 +3,7 @@ name = "topographic-system-data-import"
 version = "0.1.0"
 description = "Data loading init tools for LINZ Topographic Data"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 authors = [
     { name = "Andrew McMenamin", email = "amcmenamin@linz.govt.nz" }
 ]
