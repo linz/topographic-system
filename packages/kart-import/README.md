@@ -58,7 +58,7 @@ datasets:
         default: 888
       way_count: $
       road_access: $
-    # NOTE: Fictional examples for illustrative purposes :-) 
+    # NOTE: Fictional examples for illustrative purposes :-)
     corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
       # keys are matched on their raw YAML value, so the key's type must match the column's:
       # use an int key (`1`) for an int column and a quoted string (`'1'`) for a string column.
