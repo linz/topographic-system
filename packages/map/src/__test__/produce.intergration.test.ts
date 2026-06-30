@@ -114,7 +114,7 @@ describe('deploy -> produce-cover -> produce', () => {
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
-      mapSheetLayer: 'nz_topo50_map_sheet',
+      mapSheetLayer: 'nztopo50_map_sheet',
       source: new URL('memory://source/catalog.json'),
       dpi: 300,
       output: targetProduce,

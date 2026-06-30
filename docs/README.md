@@ -12,5 +12,5 @@ The topographic system is a collection of components that are used to create New
 topographic data is stored as kart repos roughly broken down into a similar groups, some large datasets (contours) are in seperate repositories due to performance impacts of their size
 
 - [linz/topographic-data](https://github.com/linz/topographic-data) - Topographic data eg `water` or `airport`
-- [linz/topographic-product-data](https://github.com/linz/topographic-product-data) - Product specific datasets (eg `nz_topo50_map_sheet`)
+- [linz/topographic-product-data](https://github.com/linz/topographic-product-data) - Product specific datasets (eg `nztopo50_map_sheet`)
 - [linz/topographic-contour-data](https://github.com/linz/topographic-contour-data) - Topo50 Contour lines

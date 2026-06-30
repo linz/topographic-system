@@ -133,7 +133,7 @@ const ProduceArgs = {
     type: string,
     long: 'map-sheet-layer',
     description: 'Qgis Map Sheet Layer name to use for export',
-    defaultValue: () => 'nz_topo50_map_sheet',
+    defaultValue: () => 'nztopo50_map_sheet',
     defaultValueIsSerializable: true,
   }),
   source: option({
