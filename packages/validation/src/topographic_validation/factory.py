@@ -1,13 +1,14 @@
+import topographic_validation
 from topographic_validation.tools import TopoValidatorSettings
 from topographic_validation.validators.gpkg import GpkgTopologyValidator
 try:
     from topographic_validation.validators.parquet import ParquetTopologyValidator
 except ImportError:
-    ParquetTopologyValidator = None
+    from topographic_validation.validators.base import AbstractTopologyValidator as ParquetTopologyValidator
 try:
     from topographic_validation.validators.postgis import PostgisTopologyValidator
 except ImportError:
-    PostgisTopologyValidator = None
+    from topographic_validation.validators.base import AbstractTopologyValidator as PostgisTopologyValidator
 
 """Factory class to create the appropriate TopologyValidator based on db_path"""
 class TopologyValidatorFactory:

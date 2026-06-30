@@ -28,7 +28,7 @@ Examples:
   python cli.py --mode generic --db-path "data.gpkg"
 
   # Run validation on Parquet files with custom output
-  python cli.py --mode generic --db-path "data.parquet" --output-dir "/tmp/validation"
+  python cli.py --mode generic --db-path "C:\\temp\\data" --output-dir "C:\\temp\\validation"
 
   # Run with bounding box and date filtering
   python cli.py --mode generic --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
@@ -146,7 +146,7 @@ def validate_arguments(args: argparse.Namespace) -> list[str]:
         if not args.db_path.startswith("postgresql://"):
             errors.append("PostGIS mode requires a PostgreSQL connection string starting with 'postgresql://'")
     else:
-        if not (args.db_path.endswith(".gpkg") or args.db_path.endswith(".parquet") or "parquet" in args.db_path):
+        if not (args.db_path.endswith(".gpkg") or args.db_path.endswith(".parquet") or os.path.exists(args.db_path)):
             errors.append("Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)")
         if not os.path.exists(args.db_path.replace("files.parquet", "")):
             errors.append(f"Database file/directory not found: {args.db_path}")
