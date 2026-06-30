@@ -67,20 +67,65 @@ def test_tunnel_rule_ordering():
     assert out["tunnel_use2"].tolist() == ["livestock", "rail"]
 
 
-def test_matches_numeric_column_with_string_key():
-    """A column read as int (pyogrio may do this) still matches a YAML string key, for both
+def test_matches_int_column_with_int_key():
+    """Keys are matched on their raw value: an int column matches an int YAML key, for both
     `set`/`where` and `replace`."""
     gdf, td = _td(
         [
-            {"column": "lane_count", "set": "single", "where": {"way_count": "1"}},
-            {"column": "way_count", "replace": {"1": "one way"}},
+            {"column": "lane_count", "set": "single", "where": {"way_count": 1}},
+            {"column": "way_count", "replace": {1: "one way"}},
         ],
-        way_count=[1, 2, 1],  # integer dtype; config keys are strings
+        way_count=[1, 2, 1],  # integer dtype; config keys are ints to match
         lane_count=["x", "x", "x"],
     )
     out = apply_corrections(gdf, td)
     assert out["lane_count"].tolist() == ["single", "x", "single"]
     assert out["way_count"].tolist() == ["one way", 2, "one way"]
+
+
+def test_type_mismatch_between_key_and_column_raises():
+    """A string config key against an int column is a config error, not a silent no-match."""
+    gdf, td = _td([{"column": "way_count", "replace": {"1": "one way"}}], way_count=[1, 2, 1])
+    with pytest.raises(TypeError, match="type mismatch.*way_count.*integer.*'1' is string"):
+        apply_corrections(gdf, td)
+
+
+def test_float_key_matches_float_column():
+    """When nulls widen an int column to float, a float YAML key (`1.0`, not `1`) matches it.
+    This is the supported way to correct a float-read column under the strict type rule."""
+    gdf, td = _td([{"column": "way_count", "replace": {1.0: "one way"}}], way_count=[1.0, 2.0, 1.0])
+    out = apply_corrections(gdf, td)
+    assert out["way_count"].tolist() == ["one way", 2.0, "one way"]
+
+
+def test_int_key_against_float_column_raises():
+    """An int key (`1`) does not silently match a float column - the author must use `1.0`."""
+    gdf, td = _td([{"column": "way_count", "replace": {1: "one way"}}], way_count=[1.0, 2.0, 1.0])
+    with pytest.raises(TypeError, match="type mismatch.*way_count.*float.*config value 1 is integer"):
+        apply_corrections(gdf, td)
+
+
+def test_where_type_mismatch_raises():
+    gdf, td = _td(
+        [{"column": "lane_count", "set": "single", "where": {"way_count": "1"}}],
+        way_count=[1, 2, 1],
+        lane_count=["x", "x", "x"],
+    )
+    with pytest.raises(TypeError, match="type mismatch.*way_count.*integer.*'1' is string"):
+        apply_corrections(gdf, td)
+
+
+def test_set_null_on_multi_condition_where():
+    """BM-1741 comment: structure_point.structure_type -> NULL where structure_type='uncovered'
+    AND type='tank'. Only the row matching both conditions is nulled."""
+    gdf, td = _td(
+        [{"column": "structure_type", "set": None, "where": {"structure_type": "uncovered", "type": "tank"}}],
+        structure_type=["uncovered", "uncovered", "covered"],
+        type=["tank", "pipe", "tank"],
+    )
+    out = apply_corrections(gdf, td)
+    assert out["structure_type"].isna().tolist() == [True, False, False]
+    assert out["structure_type"].tolist()[1:] == ["uncovered", "covered"]
 
 
 def test_missing_target_column_raises():

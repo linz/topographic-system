@@ -38,9 +38,9 @@ Fixup = Callable[["gpd.GeoDataFrame", "ThemeDataset", int], "gpd.GeoDataFrame"]
 def _match_fids(gdf: gpd.GeoDataFrame, fids: set[int]):
     """Boolean mask of rows whose `fid` is in `fids`, robust to int/float dtypes
     (pyogrio may read an integer fid as float)."""
-    from .match import normalise
+    import pandas as pd
 
-    return normalise(gdf["fid"]).isin({normalise(fid) for fid in fids})
+    return pd.to_numeric(gdf["fid"], errors="coerce").isin(fids)
 
 
 def change_type_to_none(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:

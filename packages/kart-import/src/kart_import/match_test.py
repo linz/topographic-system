@@ -1,53 +1,53 @@
 import pandas as pd
+import pytest
 
-from .match import normalise
-
-
-def test_scalar_int_float_string_all_canonicalise_equal():
-    # The core promise: 5, 5.0 and "5" are the same key.
-    assert normalise(5) == normalise(5.0) == normalise("5") == "5"
+from .match import require_compatible, value_category
 
 
-def test_scalar_leading_zero_string_is_preserved():
-    assert normalise("007") == "007"
+def test_scalar_categories():
+    assert value_category(5) == "integer"
+    assert value_category(5.0) == "float"
+    assert value_category("5") == "string"
+    assert value_category(True) == "bool"  # bool before int
+    assert value_category(None) == "null"
+    assert value_category(float("nan")) == "null"
 
 
-def test_scalar_non_integral_float_keeps_full_form():
-    assert normalise(2.5) == "2.5"
+def test_series_categories():
+    assert value_category(pd.Series([1, 2, 3])) == "integer"
+    assert value_category(pd.Series([1.0, 2.0])) == "float"
+    assert value_category(pd.Series(["a", "b"])) == "string"
+    assert value_category(pd.Series([1, None], dtype="Int64")) == "integer"
+    assert value_category(pd.Series([1, None])) == "float"  # pandas widens these by default
+    assert value_category(pd.Series([True, False])) == "bool"
+    assert value_category(pd.Series(pd.to_datetime(["2020-01-01", "2020-01-02"]))) == "datetime"
 
 
-def test_scalar_none_is_none():
-    assert normalise(None) is None
-    assert normalise(float("nan")) is None
+def test_require_compatible_passes_for_matching_categories():
+    require_compatible(pd.Series([1, 2, 3]), 2, column_name="c", dataset="t")
+    require_compatible(pd.Series([1.0, 2.0]), 1.0, column_name="c", dataset="t")
+    require_compatible(pd.Series(["a", "b"]), "a", column_name="c", dataset="t")
+    require_compatible(pd.Series([True, False]), True, column_name="c", dataset="t")
 
 
-def test_float_column_matches_string_config_value():
-    # pyogrio may read an int id column as float when nulls widen it.
-    col = pd.Series([1.0, 2.0, 3.0])
-    assert (normalise(col) == normalise("1")).tolist() == [True, False, False]
+def test_require_compatible_raises_on_mismatch():
+    with pytest.raises(TypeError, match="type mismatch.*column 'c' is.*integer.*config value '1' is string"):
+        require_compatible(pd.Series([1, 2, 3]), "1", column_name="c", dataset="t")
 
 
-def test_int_column_matches_string_config_value():
-    col = pd.Series([1, 2, 3])
-    assert (normalise(col) == normalise("2")).tolist() == [False, True, False]
+def test_require_compatible_distinguishes_int_from_float():
+    with pytest.raises(TypeError, match="float.*config value 1 is integer"):
+        require_compatible(pd.Series([1.0, 2.0]), 1, column_name="c", dataset="t")
 
 
-def test_string_column_with_leading_zeros_not_collapsed():
-    col = pd.Series(["007", "012", "7"])
-    assert normalise(col).tolist() == ["007", "012", "7"]
-    assert (normalise(col) == normalise("007")).tolist() == [True, False, False]
+def test_require_compatible_distinguishes_bool_from_int():
+    # `True == 1` in pandas, so without the category guard a bool column would silently
+    # match an int key. The guard must reject it.
+    with pytest.raises(TypeError, match="bool.*config value 1 is integer"):
+        require_compatible(pd.Series([True, False]), 1, column_name="c", dataset="t")
 
 
-def test_null_rows_canonicalise_to_none_and_never_match():
-    col = pd.Series([1.0, None, 3.0])
-    canon = normalise(col)
-    assert canon.tolist() == ["1", None, "3"]
-    # A null cell yields a plain-False mask, never NA (which would corrupt `Series.where`).
-    mask = canon == normalise("1")
-    assert mask.dtype == bool
-    assert mask.tolist() == [True, False, False]
-
-
-def test_mixed_integral_and_non_integral_float_column():
-    col = pd.Series([1.0, 2.5, 3.0])
-    assert normalise(col).tolist() == ["1", "2.5", "3"]
+def test_require_compatible_allows_null_value_and_empty_column():
+    # A null key clashes with nothing; an empty column has nothing to clash with.
+    require_compatible(pd.Series([1, 2, 3]), None, column_name="c", dataset="t")
+    require_compatible(pd.Series([], dtype="object"), "anything", column_name="c", dataset="t")

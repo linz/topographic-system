@@ -1,57 +1,67 @@
-"""Type-tolerant value matching for config-driven transforms.
+"""Type-strict value matching for config-driven transforms.
 
-Config values come from YAML (strings or ints), but pyogrio may read a column as int,
-float, or string depending on the data - an integer id can arrive as ``5.0`` when nulls
-widen the column to float. `normalise` canonicalises a value, or a whole Series, so that
-``5``, ``5.0`` and ``"5"`` compare equal, while genuine strings are left untouched so a
-leading-zero id like ``"007"`` is never collapsed to ``7``. NaN/None canonicalise to
-``None`` and therefore never match a real key.
+Config values come from YAML, where the literal type is significant: ``1`` is an int,
+``'1'`` a string. Columns come from pyogrio. Corrections match on the *raw* value and
+refuse to coerce across type categories - an integer column compared against a YAML string
+key is a config/data error we surface rather than silently matching nothing.
 
-This is the single home for the int/float/string matching rule shared by `corrections`,
-`fixups`, and lookup joins - prefer it over ad-hoc ``astype(str)`` or ``to_numeric``.
+This is the single home for the type-category matching rule shared by `corrections` (and,
+once merged, lookup joins) - prefer it over ad-hoc ``astype(str)`` or ``to_numeric``.
 """
 
 from __future__ import annotations
 
-from typing import overload
+from typing import Any
 
 import pandas as pd
 
 
-@overload
-def normalise(value: pd.Series) -> pd.Series: ...
-@overload
-def normalise(value: object) -> object: ...
-def normalise(value: object) -> object:
-    """Canonical comparable form of a scalar, or an object-dtype Series of them.
+def value_category(value: Any) -> str:
+    """Coarse type bucket for a column (Series) or a scalar config value.
 
-    Pass a pandas Series to canonicalise a whole column; pass any scalar (e.g. a value
-    read from a YAML config) to canonicalise one value. A scalar and a column cell that
-    represent the same number always normalise to the same string, so a mask such as
-    ``normalise(series) == normalise(config_value)`` is type-tolerant by construction.
+    Two values can only be matched when their categories are equal. The buckets mirror the
+    join-key categories so the two matching rules stay aligned.
     """
     if isinstance(value, pd.Series):
-        return _normalise_series(value)
-    # Route the scalar through the same Series logic so the two paths can never diverge.
-    return _normalise_series(pd.Series([value])).iloc[0]
+        dtype = value.dtype
+        if pd.api.types.is_bool_dtype(dtype):
+            return "bool"
+        if pd.api.types.is_integer_dtype(dtype):
+            return "integer"
+        if pd.api.types.is_float_dtype(dtype):
+            return "float"
+        if pd.api.types.is_datetime64_any_dtype(dtype):
+            return "datetime"
+        if pd.api.types.is_string_dtype(dtype) or pd.api.types.is_object_dtype(dtype):
+            return "string"
+        return dtype.name
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return "null"
+    # bool is a subclass of int, so it must be checked first.
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, int):
+        return "integer"
+    if isinstance(value, float):
+        return "float"
+    if isinstance(value, str):
+        return "string"
+    return type(value).__name__
 
 
-def _normalise_series(series: pd.Series) -> pd.Series:
-    if pd.api.types.is_bool_dtype(series):
-        # Bools stringify like the scalar path ("True"/"False"); rare as a key.
-        canon = series.astype("string")
-    elif pd.api.types.is_numeric_dtype(series):
-        num = pd.to_numeric(series, errors="coerce")
-        # Render whole numbers without a trailing ".0" so 5.0 matches 5 and "5";
-        # non-integral values keep their full string form (e.g. "2.5").
-        integral = num.notna() & (num % 1 == 0)
-        whole = num.where(integral).astype("Int64").astype("string")
-        canon = whole.fillna(num.astype("string"))
-    else:
-        # Object/string: keep the literal text so "007" stays "007" (no numeric coercion).
-        canon = series.astype("string")
-    # Use real None (not pd.NA) for nulls so equality yields plain bool masks, never NA -
-    # an NA-valued mask would make `Series.where` treat null rows as matches.
-    result = canon.astype(object)
-    result[canon.isna()] = None
-    return result
+def require_compatible(column: pd.Series, value: Any, *, column_name: str, dataset: str) -> None:
+    """Raise ``TypeError`` unless config `value` can match `column` without coercion.
+
+    A null key matches nothing and so clashes with nothing; an empty column has no values to
+    clash with either. Both are compatible.
+    """
+    value_cat = value_category(value)
+    if value_cat == "null" or column.empty:
+        return
+    column_cat = value_category(column)
+    if column_cat != value_cat:
+        raise TypeError(
+            f"correction type mismatch in {dataset}: column '{column_name}' is "
+            f"{column.dtype} ({column_cat}) but config value {value!r} is {value_cat}; "
+            f"align the config value's type with the column"
+        )

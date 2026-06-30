@@ -60,9 +60,11 @@ datasets:
       road_access: $
     # NOTE: Fictional examples for illustrative purposes :-) 
     corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
-      # values are matched on their string form, so a string key matches an int/float-read column too.
+      # keys are matched on their raw YAML value, so the key's type must match the column's:
+      # use an int key (`1`) for an int column and a quoted string (`'1'`) for a string column.
+      # a type mismatch (e.g. string key vs int column) raises rather than silently matching nothing.
       # `replace`: remap values within a single column (multiple old -> new pairs allowed)
-      - { column: way_count, replace: { '1': 'one way' } }
+      - { column: way_count, replace: { 1: 'one way' } }
       - { column: road_access, replace: { m: mp } }
       # `set` + `where`: set a column on the rows where every `where` condition matches.
       # entries apply in order, so later ones see the results of earlier ones.
