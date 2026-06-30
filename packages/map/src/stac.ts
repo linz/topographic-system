@@ -5,8 +5,6 @@ import { type ExportFormat } from './cli/action.prepare.ts';
 export interface ExportOptions {
   /** layout name used for export, must exist in the QGIS project */
   layout: string;
-  /** map sheet layer name used for export */
-  mapSheetLayer: string;
   /** Creation Format  */
   format: ExportFormat;
   /** Creation dpi */

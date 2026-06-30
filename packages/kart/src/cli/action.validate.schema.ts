@@ -1,12 +1,8 @@
-import { zstdDecompressSync } from 'zlib';
-
 import { fsa } from '@chunkd/fs';
-import { concurrency, logger, qFromArgs, qMapAll, Url } from '@linzjs/topographic-system-shared';
+import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
-import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet';
-import { DEFAULT_PARSERS } from 'hyparquet/src/convert.js';
 import yaml from 'js-yaml';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
@@ -16,14 +12,6 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
     return yaml.load(String(content)) as SchemaObject;
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
-
-// Prevent WKB's from being decoded as geometry objects,
-// as it takes a very long time for large geometries
-const ParserNoGeo: typeof DEFAULT_PARSERS = {
-  ...DEFAULT_PARSERS,
-  geometryFromBytes: (bytes) => bytes,
-  geographyFromBytes: (bytes) => bytes,
-};
 
 export const MaxErrorSamples = 5;
 const MaxSampleLength = 80;
@@ -137,37 +125,14 @@ export const ValidateSchemaCommand = command({
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);
     await qMapAll(q, args.paths, async (path) => {
-      const source = fsa.source(path);
-      const head = await fsa.head(path);
-      if (head == null) throw new Error('Missing file: ' + path.href);
-      const asyncBuffer = {
-        byteLength: head.size as number,
-        slice(start: number, end?: number) {
-          return source.fetch(start, end == null ? undefined : end - start);
-        },
-      };
-      const metadata = await parquetMetadataAsync(asyncBuffer);
-      const startTime = performance.now();
-      const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
+      const errorSummary = new Map<string, ErrorAggregate>();
 
+      const startTime = performance.now();
       logger.info({ file: path.href, schema: args.schema.href }, 'ValidateSchema: Started');
-      let rowStart = 0;
       let valid = 0;
       let invalid = 0;
-      const errorSummary = new Map<string, ErrorAggregate>();
-      for (const group of metadata.row_groups) {
-        const rowEnd = rowStart + Number(group.num_rows);
-        const groupData = await parquetReadObjects({
-          file: asyncBuffer,
-          metadata,
-          compressors: { ZSTD },
-          rowStart,
-          rowEnd,
-          parsers: args.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo,
-          geoparquet: args.decodeGeometry,
-        });
-
-        for (const record of groupData) {
+      for await (const group of readParquetGroups(path, { decodeGeometry: args.decodeGeometry })) {
+        for (const record of group) {
           const ret = validate(record);
           if (ret) {
             valid++;
@@ -176,7 +141,6 @@ export const ValidateSchemaCommand = command({
             summariseErrors(validate.errors ?? [], errorSummary);
           }
         }
-        rowStart = rowEnd;
       }
 
       for (const [error, { count, samples }] of errorSummary) {

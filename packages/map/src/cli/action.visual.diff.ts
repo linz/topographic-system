@@ -20,7 +20,6 @@ import { cache, tempLocation } from './shared.args.ts';
 
 interface TestProject {
   name: string; // Matches the project filename from the input project
-  mapSheetLayer: string;
   layout: string;
   sheetCodes: string[];
   dpi: number;
@@ -30,7 +29,6 @@ interface TestProject {
 const defaultTests: TestProject[] = [
   {
     name: 'nztopo50',
-    mapSheetLayer: 'nz_topo50_map_sheet',
     layout: 'tiff-50',
     sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 100,
@@ -111,7 +109,6 @@ export const VisualDiffCommand = command({
 
         // Prepare test export options
         const exportOptions: ExportOptions = {
-          mapSheetLayer: test.mapSheetLayer,
           layout: test.layout,
           dpi: test.dpi,
           format: 'png',

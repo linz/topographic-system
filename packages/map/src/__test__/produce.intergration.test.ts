@@ -104,9 +104,9 @@ describe('deploy -> produce-cover -> produce', () => {
       ].sort(),
     );
 
-    t.mock.method(pyRunner, 'qgisExportCover', () => {
-      return [{ sheetCode: 'BQ32', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
-    });
+    // t.mock.method(pyRunner, 'qgisExportCover', () => {
+    //   return [{ sheetCode: 'BQ32', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
+    // });
 
     const targetProduce = new URL('memory://target-produce/');
     await PrepareCommand.handler({
