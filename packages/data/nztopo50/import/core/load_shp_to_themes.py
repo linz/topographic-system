@@ -246,9 +246,9 @@ class Topo50DataLoader:
 
         if layer_name.lower() == "bridge_line":
             if "use_1" in gdf.columns:
-                gdf = gdf.rename(columns={"use_1": "bridge_use"})
+                gdf = gdf.rename(columns={"use_1": "use1"})
             if "use_2" in gdf.columns:
-                gdf = gdf.rename(columns={"use_2": "bridge_use2"})
+                gdf = gdf.rename(columns={"use_2": "use2"})
 
         if layer_name.lower() == "water_point":
             if "temp" in gdf.columns:
