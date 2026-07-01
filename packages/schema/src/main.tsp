@@ -21,6 +21,7 @@ import "./features/nztopo50_carto_text.tsp";
 import "./features/nztopo50_dms_grid.tsp";
 import "./features/nztopo50_grid.tsp";
 import "./features/nztopo50_map_sheet.tsp";
+import "./features/nztopo50_rock_line.tsp";
 import "./features/physical_infrastructure_line.tsp";
 import "./features/physical_infrastructure_point.tsp";
 import "./features/place_point.tsp";

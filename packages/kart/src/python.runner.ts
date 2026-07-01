@@ -9,3 +9,12 @@ export async function iceContour(contour: URL, landcover: URL, output: URL): Pro
     await $`uv run --directory /packages/data-prep src/data_prep/ice_contour.py --contour ${contour.pathname} --landcover ${landcover.pathname} --output ${output.pathname}`;
   logger.debug('ice_contour.py ' + res.stdout);
 }
+
+/**
+ * Running python commands to create rock line which doesn't coincide with coastlines, island shorelines and lake shorelines
+ */
+export async function rockLine(marine: URL, coastline: URL, island: URL, water: URL, output: URL): Promise<void> {
+  const res =
+    await $`uv run --directory /packages/data-prep src/data_prep/rock_line.py --marine ${marine.pathname} --coastline ${coastline.pathname} --island ${island.pathname} --water ${water.pathname} --output ${output.pathname}`;
+  logger.debug('rock_line.py ' + res.stdout);
+}
