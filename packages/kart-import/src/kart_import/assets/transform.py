@@ -20,6 +20,7 @@ from ..config import (
     get_releases,
     get_themes,
 )
+from ..corrections import apply_corrections
 from ..fixups import FIXUPS
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
@@ -261,6 +262,11 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         start_time = time.perf_counter()
         gdf = normalize_fields(gdf, td)
         logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        if td.corrections:
+            start_time = time.perf_counter()
+            gdf = apply_corrections(gdf, td)
+            logger.info("apply_corrections", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if td.fixups:
             start_time = time.perf_counter()
