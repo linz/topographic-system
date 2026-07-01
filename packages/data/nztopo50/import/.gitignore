@@ -41,6 +41,7 @@ ENV/
 # IDE / editor
 .vscode/
 .idea/
+settings.json
 
 # OS generated files
 .DS_Store
