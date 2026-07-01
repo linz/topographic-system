@@ -24,7 +24,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "descriptive_text"
@@ -77,7 +77,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "track"
@@ -156,7 +156,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "runway"
@@ -229,7 +229,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "pipeline",
@@ -319,7 +319,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "railway"
@@ -421,7 +421,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "mangrove",
@@ -481,7 +481,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "rock",
@@ -551,7 +551,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "tunnel"
@@ -637,12 +637,13 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "gas_valve",
             "geo_bore",
-            "pylon"
+            "pylon",
+            "substation"
           ]
         },
         "orientation": {
@@ -687,13 +688,13 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "bridge"
           ]
         },
-        "bridge_use": {
+        "use1": {
           "type": "string",
           "description": "The use of the feature.",
           "maxLength": 50,
@@ -705,11 +706,12 @@
             "vehicle"
           ]
         },
-        "bridge_use2": {
+        "use2": {
           "type": "string",
           "description": "The use of the feature.",
           "maxLength": 50,
           "enum": [
+            "foot traffic",
             "train",
             null
           ]
@@ -778,7 +780,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "tree"
@@ -822,7 +824,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50
         },
         "updated_at": {
@@ -863,7 +865,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "ford",
@@ -913,7 +915,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50
         },
         "lid_type": {
@@ -1004,7 +1006,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "residential_area"
@@ -1053,7 +1055,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "racetrack"
@@ -1123,7 +1125,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "fence"
@@ -1167,12 +1169,23 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "fumarole",
             "rock_outcrop",
             "swamp"
+          ]
+        },
+        "subtype": {
+          "type": "string",
+          "description": "The type of the feature.",
+          "maxLength": 50,
+          "enum": [
+            "large_boulder",
+            "small_rock_outcrop",
+            "large_rock_outcrop",
+            null
           ]
         },
         "name": {
@@ -1184,18 +1197,6 @@
           "type": "integer",
           "description": "The elevation above mean sea level.",
           "precision": 32
-        },
-        "display": {
-          "type": "string",
-          "description": "",
-          "maxLength": 50,
-          "enum": [
-            "0",
-            "1",
-            "2",
-            "3",
-            null
-          ]
         },
         "orientation": {
           "type": "number",
@@ -1239,7 +1240,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "building"
@@ -1337,7 +1338,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "building"
@@ -1445,7 +1446,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "cemetery",
@@ -1559,6 +1560,7 @@
           "description": "The specific type of feature being represented (e.g., 'relief', 'relief').",
           "maxLength": 50,
           "enum": [
+            "rapid",
             "waterfall"
           ]
         },
@@ -1609,7 +1611,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "cliff_edge",
@@ -1674,7 +1676,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50
         },
         "subtype": {
@@ -1725,7 +1727,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "rail_station"
@@ -1774,7 +1776,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "boatramp",
@@ -1897,14 +1899,13 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "ice",
             "moraine",
             "moraine_wall",
             "mud",
-            "rapid",
             "sand",
             "scree",
             "shingle",
@@ -1957,7 +1958,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "beacon",
@@ -2111,7 +2112,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "ferry_crossing"
@@ -2155,7 +2156,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "cave",
@@ -2268,7 +2269,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "height",
@@ -2334,7 +2335,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "canal",
@@ -2390,10 +2391,12 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
-            "coastline"
+            "coastline",
+            "water_confluence",
+            "wharf"
           ]
         },
         "coastline_type": {
@@ -2447,7 +2450,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "road"
@@ -2578,7 +2581,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "airport"
@@ -2627,7 +2630,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "dredge_tailing"
@@ -2676,7 +2679,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "canal",
@@ -2788,7 +2791,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "island"
@@ -2849,7 +2852,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             null,
@@ -3954,7 +3957,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "trig"
@@ -4021,7 +4024,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "enum": [
             "contour"
           ]
@@ -4092,7 +4095,7 @@
         },
         "type": {
           "type": "string",
-          "description": "The specific type of feature being represented (e.g., 'bridge_line', 'building').",
+          "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
             "geographic_name"
