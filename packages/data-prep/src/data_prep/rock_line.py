@@ -18,18 +18,10 @@ from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
 
-
-# Approximate a metre distance as degrees
-def metres_to_degrees(metres: float, epsg: int) -> float:
-    ellipsoid = CRS.from_epsg(epsg).ellipsoid
-    assert ellipsoid is not None
-    return metres / (ellipsoid.semi_major_metre * math.pi / 180)
-
-
 # buffer applied to mask lines before difference
 LINE_TOL_M = 1.0
 # buffer converted to degrees as using geographic CRS(NZGD2000 4167)
-LINE_TOL_DEG = metres_to_degrees(LINE_TOL_M, 4167)
+LINE_TOL_DEG = LINE_TOL_M / ((2 * math.pi * CRS.from_epsg(4167).ellipsoid.semi_major_metre) / 360)
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
