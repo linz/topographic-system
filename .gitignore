@@ -1,6 +1,9 @@
 node_modules/
 tmp/
 tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example
 .venv/
 .ruff_cache/
 .mypy_cache/

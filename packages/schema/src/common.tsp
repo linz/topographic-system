@@ -11,8 +11,8 @@ namespace Topo;
 
 // ---- Auto-detected enums (column-level, < 20 distinct values across dataset) ----
 
-/** Auto-derived from observed values of `bridge_use`. */
-enum BridgeUseEnum {
+/** Auto-derived from observed values of `use1`. */
+enum BridgeUse1Enum {
   Cablecar: "cablecar",
   Farm: "farm",
   FootTraffic: "foot traffic",
@@ -20,9 +20,10 @@ enum BridgeUseEnum {
   Vehicle: "vehicle",
 }
 
-/** Auto-derived from observed values of `bridge_use2`. */
+/** Auto-derived from observed values of `use2`. */
 enum BridgeUse2Enum {
   Train: "train",
+  FootTraffic: "foot traffic",
 }
 
 /** Auto-derived from observed values of `charplace`. */

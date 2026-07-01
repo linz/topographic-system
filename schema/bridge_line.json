@@ -21,17 +21,17 @@
       "type": "string",
       "const": "bridge"
     },
-    "bridge_use": {
+    "use1": {
       "anyOf": [
         {
-          "$ref": "#/$defs/BridgeUseEnum"
+          "$ref": "#/$defs/BridgeUse1Enum"
         },
         {
           "type": "null"
         }
       ]
     },
-    "bridge_use2": {
+    "use2": {
       "anyOf": [
         {
           "$ref": "#/$defs/BridgeUse2Enum"
@@ -84,15 +84,15 @@
   "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "BridgeUseEnum": {
+    "BridgeUse1Enum": {
       "type": "string",
       "enum": ["cablecar", "farm", "foot traffic", "train", "vehicle"],
-      "description": "Auto-derived from observed values of `bridge_use`."
+      "description": "Auto-derived from observed values of `use1`."
     },
     "BridgeUse2Enum": {
       "type": "string",
-      "enum": ["train"],
-      "description": "Auto-derived from observed values of `bridge_use2`."
+      "enum": ["train", "foot traffic"],
+      "description": "Auto-derived from observed values of `use2`."
     },
     "ConstructionTypeEnum": {
       "type": "string",
