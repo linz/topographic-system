@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "AuditFields.json",
+  "type": "object",
+  "properties": {
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    }
+  },
+  "required": ["updated_at", "created_at"],
+  "description": "Capture / change-tracking columns shared by most features."
+}
