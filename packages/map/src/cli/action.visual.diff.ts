@@ -15,6 +15,7 @@ import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
+import { getQgisProjectMeta, getQgisMapSheetLayer } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
@@ -107,17 +108,21 @@ export const VisualDiffCommand = command({
         // Download all the assets, including the project file and source data for the project.
         await downloader.getAllAssets(true);
 
+        // Get the downloaded project file path
+        const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;
+        if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
+
+        const projectMeta = await getQgisProjectMeta(projectPath);
+        const mapSheetLayer = getQgisMapSheetLayer(projectMeta.layers);
+
         // Prepare test export options
         const exportOptions: ExportOptions = {
           layout: test.layout,
           dpi: test.dpi,
+          mapSheetLayerName: mapSheetLayer.name,
           format: 'png',
           excludeLayers: test.excludeLayers,
         };
-
-        // Get the downloaded project file path
-        const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;
-        if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>

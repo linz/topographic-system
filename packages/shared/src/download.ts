@@ -246,6 +246,11 @@ export async function getDataFromCatalog(stacUrl: URL, layerName: string): Promi
 
   const targetLayer = `/${layerName}/catalog.json`;
   const catLink = catalog.links.find((link) => link.href.endsWith(targetLayer));
+  console.log(
+    targetLayer,
+    catalog.links.map((m) => m.href),
+  );
+
   if (catLink) {
     const catUrl = new URL(catLink.href, stacUrl); // /data/airport/catalog.json
     return new URL('latest/collection.json', catUrl); // /data/airport/latest/collection.json

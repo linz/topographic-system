@@ -1,6 +1,6 @@
 import { basename } from 'path';
 
-import { Projection } from '@basemaps/geo';
+import { Epsg, Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
@@ -9,18 +9,19 @@ import {
   getDataFromCatalog,
   isArgo,
   logger,
+  parquetGeometryStats,
   qFromArgs,
   readParquet,
+  readParquetFileMetadata,
   registerFileSystem,
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { parquetGeometryStats, readParquetFileMetadata } from '@linzjs/topographic-system-shared';
-import { geoJsonToWgs84, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import { XMLParser } from 'fast-xml-parser';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
+import { getQgisMapSheetLayer, getQgisProjectMeta } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { cache, tempLocation } from './shared.args.ts';
@@ -70,9 +71,7 @@ export function parseDataTag(input: string): dataTag[] {
 
 interface SheetMetadata {
   sheetCode: string;
-  epsg: number;
   geometry: GeoJSONPolygon;
-  bbox: [number, number, number, number];
 }
 
 interface TopoMapSheetParquet {
@@ -148,7 +147,7 @@ const ProduceArgs = {
   mapSheetLayer: option({
     type: optional(string),
     long: 'map-sheet-layer',
-    description: 'Qgis Map Sheet Layer name to use for export',
+    description: 'Qgis Map sheet layer name to use for export',
   }),
   source: option({
     type: optional(Url),
@@ -214,45 +213,39 @@ export const PrepareCommand = command({
       throw new Error('--data-tags not supported');
     }
 
-    // Run python list all the mapsheet covering metadata
-    const exportOptions: ExportOptions = {
-      layout: args.layout,
-      dpi: args.dpi,
-      format: args.format,
-    };
-
     // Find downloaded project file
     const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
-    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'Prepare: ExportCover');
-    const layers = await getQgisLayers(projectPath);
+    logger.info({ project: args.project.href }, 'Prepare');
+    const projectMeta = await getQgisProjectMeta(projectPath);
+    const mapSheetLayer = getQgisMapSheetLayer(projectMeta.layers, args.mapSheetLayer);
 
-    const mapSheetLayer = getQgisMapSheetLayer(layers, args.mapSheetLayer);
-
-    const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer));
-    if (mapSheetFile == null) throw new Error('MapSheet File not found');
+    const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
+    if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
 
     const mapSheetMeta = await readParquetFileMetadata(mapSheetFile.linked);
     const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);
-    const proj = Projection.get(mapSheetGeo.epsg);
+    const mapSheetProj = Projection.get(mapSheetGeo.epsg);
 
-    console.log(mapSheetGeo);
+    // Run python list all the mapsheet covering metadata
+    const exportOptions: ExportOptions = {
+      layout: args.layout,
+      mapSheetLayerName: mapSheetLayer.name,
+      dpi: args.dpi,
+      format: args.format,
+    };
 
+    // FIXME mapSheetProj is 4167 but the data is in EPSG:2193
     const mapSheetsToCreate: SheetMetadata[] = [];
     for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.linked, { decodeGeometry: true })) {
       if (args.all || mapSheets.has(row.sheet_code)) {
         mapSheetsToCreate.push({
           sheetCode: row.sheet_code,
-          epsg: 2193, // FIXME: mapSheetGeo.epsg.code is 4167 do we want a "rendering" projection per mapsheet?
-          geometry: geoJsonToWgs84(row.geometry, proj),
-          bbox: [row.bbox.xmin, row.bbox.ymin, row.bbox.xmax, row.bbox.ymax],
+          geometry: geoJsonToWgs84(row.geometry, Projection.get(Epsg.Nztm2000) ?? mapSheetProj),
         });
-        // console.log(JSON.stringify(row.geometry))
       }
     }
-
-    // const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
 
     // Create Stac Files and upload to destination
     const projectName = basename(args.project.href, '.json');
@@ -267,8 +260,8 @@ export const PrepareCommand = command({
 
       const item = sw.item(standardizedSheetCode);
       item.geometry = metadata.geometry;
-      item.bbox = metadata.bbox;
-      item.properties['proj:epsg'] = metadata.epsg;
+      item.bbox = getJsonToWgs84Bbox(metadata.geometry);
+      item.properties['proj:epsg'] = projectMeta.epsg.code;
       item.properties['linz:mapsheet'] = metadata.sheetCode;
       item.properties['linz_topographic_system:options'] = exportOptions;
 
@@ -346,42 +339,3 @@ export const PrepareCommand = command({
     }
   },
 });
-
-export async function getQgisLayers(path: URL): Promise<Set<string>> {
-  const lines = String(await fsa.read(path)).split('\n');
-
-  const dataSources = new Set<string>();
-
-  const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
-  for (const line of lines) {
-    if (!line.trim().startsWith('<layer-tree-layer')) continue;
-
-    const xml = parser.parse(line);
-    const dataSource = xml?.['layer-tree-layer']?.['@_source'];
-    if (dataSource == null) continue;
-
-    const parquetFile = /([a-zA-Z0-9_]+.parquet)/.exec(dataSource);
-    if (parquetFile == null) continue;
-    dataSources.add(parquetFile[0]);
-  }
-
-  return dataSources;
-}
-
-function getQgisMapSheetLayer(layers: Set<string>, mapSheetLayer?: string): string {
-  if (mapSheetLayer != null) {
-    const expectedLayerName = mapSheetLayer.endsWith('.parquet') ? mapSheetLayer : `${mapSheetLayer}.parquet`;
-    if (layers.has(expectedLayerName)) return expectedLayerName;
-    throw new Error(`Mapsheet layer not found: "${mapSheetLayer}"`);
-  }
-  const mapSheet = [...layers].find((f) => f.endsWith('map_sheet.parquet'));
-  if (mapSheet == null) throw new Error('No map sheet layer ending with "map_sheet.parquet" found');
-  return mapSheet;
-}
-
-/**
-```
-<layer-tree-layer checked="Qt::Checked" expanded="1" id="road_line_2_lane_map_e799a785_d8c6_4175_9251_610c0f53d138" legend_exp="" legend_split_behavior="0" name="road_line 2 lane highway map" patch_size="-1,-1" providerKey="ogr" source="./road_line.parquet|subset=&quot;lane_count&quot; > 1 and &quot;highway_number&quot; is NOT NULL">
-<layer-tree-layer checked="Qt::Unchecked" expanded="1" id="descriptive_text_611314fa_e5da_45d6_ae50_9f398ec0b39c" legend_exp="" legend_split_behavior="0" name="descriptive_text" patch_size="-1,-1" providerKey="ogr" source="./descriptive_text.parquet">
-<layer-tree-layer checked="Qt::Unchecked" expanded="1" id="descriptive_text_611314fa_e5da_45d6_ae50_9f398ec0b39c" legend_exp="" legend_split_behavior="0" name="descriptive_text" patch_size="-1,-1" providerKey="ogr" source="./descriptive_text.parquet">
-*/

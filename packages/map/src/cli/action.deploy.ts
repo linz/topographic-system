@@ -18,7 +18,7 @@ import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
-import { pyRunner } from '../python.runner.ts';
+import { getQgisProjectMeta } from '../qgis.ts';
 
 async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   const tarPack = tar.pack();
@@ -73,13 +73,13 @@ async function deployProject(
   q: LimitFunction,
 ): Promise<URL> {
   const projectName = basename(project.href, '.qgs');
-  const layers = await pyRunner.listSourceLayers(project);
-  if (layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
+  const meta = await getQgisProjectMeta(project);
+  if (meta.layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
 
   const datasetLinks = await Promise.all(
-    layers.map((layer) =>
+    meta.layers.map((layer) =>
       q(async () => {
-        const collectionUrl = await getDataFromCatalog(args.source, layer);
+        const collectionUrl = await getDataFromCatalog(args.source, layer.source.replace('.parquet', ''));
         const collection = await fsa.readJson<StacCollection>(collectionUrl);
         return { collection, url: collectionUrl };
       }),
