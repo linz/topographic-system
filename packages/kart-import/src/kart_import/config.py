@@ -2,11 +2,12 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import yaml
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_releases, env_themes
+from .env import env_releases, env_themes, env_transform_format
 
 logger = logging.getLogger("kart_import")
 
@@ -35,33 +36,160 @@ WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
 
+# Format of the working/transform intermediates (GeoParquet by default)
+TRANSFORM_FORMAT = env_transform_format()
+TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"
 
-def get_dataset_name(source: str) -> str:
-    """Convert a Kart/Gtihb source name into a human friendly name"""
-    if not source.startswith("kart@data.koordinates.com:linz/"):
-        raise ValueError(f"Invalid source format: {source}")
 
-    # "kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k"
-    # converts to "nz-chatham-island-airport-polygons"
-    parts = source.split("linz/")[1].split("-")
-    if len(parts) > 4:
-        trimmed = parts[:-2]
-        return "_".join(trimmed)
-    else:
-        raise ValueError(f"Invalid layer ID format: {source}")
+KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"
+
+
+def get_dataset_name(source: "Source") -> str:
+    """Derive a human friendly dataset name from a source.
+
+    Only Koordinates layer URLs can be derived automatically; any other source
+    (e.g. a multi-dataset github repo) must declare an explicit ``name`` in the
+    theme config.
+    """
+    url = source.url
+    if url.startswith(KOORDINATES_PREFIX):
+        # "kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k"
+        # converts to "nz_chatham_island_airport_polygons"
+        parts = url.split("linz/")[1].split("-")
+        if len(parts) > 4:
+            return "_".join(parts[:-2])
+        raise ValueError(f"Invalid Koordinates layer URL: {url}")
+    raise ValueError(f"Cannot derive a name for source {url!r}; set 'name:' explicitly in the theme config")
+
+
+class Source(BaseModel):
+    """Where a dataset comes from.
+
+    A plain string in the YAML is coerced to ``{"url": <string>}``. ``dataset``
+    selects a single dataset inside a multi-dataset Kart repo; when omitted the
+    repo's sole dataset id is auto-detected.
+    """
+
+    url: str
+    dataset: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_string(cls, data):
+        if isinstance(data, str):
+            return {"url": data}
+        return data
+
+
+class FieldSpec(BaseModel):
+    """A single target column's mapping rule.
+
+    In the YAML a mapping value is either a scalar shorthand or a dict:
+
+        name: $                       # copy same-named source column
+        highway_number: $hway_num     # copy a named source column
+        feature_type: road            # literal constant
+        version: 1                    # literal constant (non-string is fine)
+        topo_id: null                 # create the column populated with NULL
+        name: {source: $, default: "Unknown"}   # default when the value is NULL
+
+    An unlisted source column is dropped.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: Any = None
+    """Column reference (``$`` / ``$col``), a literal constant, or ``None`` for an all-NULL column."""
+    default: Any = None
+    """Value substituted when the resolved source is NULL/NaN."""
+
+    @classmethod
+    def parse(cls, value: Any) -> "FieldSpec":
+        if isinstance(value, dict):
+            return cls(**value)
+        return cls(source=value)
+
+
+class Fixup(BaseModel):
+    """Reference to a release-aware fixup function (see ``kart_import.fixups``)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    fn: str
+    """Name of a function registered in ``kart_import.fixups.FIXUPS``."""
+    releases: list[int] | None = None
+    """Release ids to apply the fixup to; ``None`` applies it to every release."""
+
+    @field_validator("fn")
+    @classmethod
+    def known_fn(cls, value: str) -> str:
+        from .fixups import FIXUPS
+
+        if value not in FIXUPS:
+            raise ValueError(f"Unknown fixup '{value}'. Available: {sorted(FIXUPS)}")
+        return value
+
+
+class Correction(BaseModel):
+    """A declarative value correction applied to one target `column` after field
+    normalization. Two forms:
+        # value->value map within the column (multiple pairs allowed)
+        - {column: tunnel_use2, replace: {ivestock: livestock}}
+
+        # set the column on rows where every `where` condition matches
+        - {column: support_type, set: pole, where: {type: telephone}}
+
+    `set` requires `where` (an unconditional set is a literal-constant mapping entry).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    column: str
+    """Target column to modify."""
+    replace: dict[Any, Any] | None = None
+    """Value->value map applied within `column`."""
+    set_value: Any = Field(default=None, alias="set")
+    """Value to assign to `column` on the rows matched by `where`."""
+    where: dict[str, Any] | None = None
+    """Equality conditions ``{column: value}``; all must match (AND). Required with `set`."""
+
+    @model_validator(mode="after")
+    def check_form(self):
+        # `set` may legitimately be null, so detect its presence via the set fields.
+        has_set = "set_value" in self.model_fields_set
+        has_replace = self.replace is not None
+        if has_set == has_replace:
+            raise ValueError(f"correction for '{self.column}' needs exactly one of 'replace' or 'set'")
+        if has_set and self.where is None:
+            raise ValueError(f"correction for '{self.column}' with 'set' requires 'where'")
+        if has_replace and self.where is not None:
+            raise ValueError(f"correction for '{self.column}' with 'replace' must not use 'where'")
+        return self
 
 
 class ThemeDataset(BaseModel):
-    source: str
+    source: Source
     name: str = ""
     mapping: dict = {}
+    fixups: list[Fixup] = []
+    corrections: list[Correction] = []
 
     @model_validator(mode="before")
     @classmethod
     def populate_name(cls, data):
         if isinstance(data, dict) and data.get("source") and not data.get("name"):
-            data["name"] = get_dataset_name(data["source"])
+            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
         return data
+
+    @model_validator(mode="after")
+    def validate_mapping(self):
+        # Parse eagerly so a malformed field spec fails at config load, not mid-run.
+        self.field_specs()
+        return self
+
+    def field_specs(self) -> dict[str, FieldSpec]:
+        """The mapping parsed into normalized per-column rules."""
+        return {target: FieldSpec.parse(value) for target, value in self.mapping.items()}
 
 
 class Theme(BaseModel):
@@ -152,10 +280,11 @@ def load_from_yaml():
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
-            ALL_DATASETS.add(dataset.source)
+            ALL_DATASETS.add(dataset.source.url)
             if dataset.name in DATASET_MAP:
                 raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
             DATASET_MAP[dataset.name] = dataset
+            DATASET_TO_THEME_MAP[dataset.name] = theme
 
     if not CONFIG_DIR_RELEASE.exists():
         raise Exception(f"Missing {CONFIG_DIR_RELEASE}")

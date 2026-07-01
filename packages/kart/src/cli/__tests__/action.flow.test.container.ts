@@ -6,8 +6,23 @@ import { after, before, describe, it } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { logger, stringToUrlFolder } from '@linzjs/topographic-system-shared';
+import { logger, stringToUrlFolder, readParquetFileMetadata } from '@linzjs/topographic-system-shared';
 import { $ } from 'zx';
+
+import { buildOgr2OgrArgs } from '../action.to.parquet.ts';
+
+/** Read the primary geometry column's EPSG code straight from the parquet `geo` metadata. */
+async function readParquetEpsg(parquetFile: URL): Promise<number> {
+  const meta = await readParquetFileMetadata(parquetFile);
+  const geo = meta.key_value_metadata?.find((f) => f.key === 'geo');
+  assert.ok(geo?.value, 'parquet should carry `geo` metadata');
+  const geomMeta = JSON.parse(geo.value) as {
+    columns: Record<string, { crs?: { id: { code: number } } }>;
+    primary_column: string;
+  };
+  // geoparquet omits crs when the data is 4326
+  return geomMeta.columns[geomMeta.primary_column]?.crs?.id?.code ?? 4326;
+}
 
 let cliLocation = '/app/index.cjs';
 async function findCli(): Promise<string> {
@@ -65,6 +80,30 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
     env: { ...process.env, ...gitEnv },
   })`kart init --import ${`GPKG:${fileURLToPath(seedGpkg)}`} ${fileURLToPath(bareRepo)} --bare -b master`;
 
+  // diff step skips writing a summary when nothing changed.
+  const workingCopy = new URL('wc/', baseDir);
+  const changeGeojson = new URL('change.geojson', baseDir);
+  await $`kart clone ${fileURLToPath(bareRepo)} ${fileURLToPath(workingCopy)}`;
+  await $({ env: { ...process.env, ...gitEnv } })`kart -C ${fileURLToPath(workingCopy)} checkout -b changes`;
+  await fsa.write(
+    changeGeojson,
+    JSON.stringify({
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { fid: 2, name: 'elsewhere' },
+          geometry: { type: 'Point', coordinates: [174.7633, -36.8485] },
+        },
+      ],
+    }),
+  );
+  await $`ogr2ogr -append -f GPKG ${fileURLToPath(new URL('wc.gpkg', workingCopy))} ${fileURLToPath(changeGeojson)} -nln test_points`;
+  await $({
+    env: { ...process.env, ...gitEnv },
+  })`kart -C ${fileURLToPath(workingCopy)} commit -m ${'Add another point'}`;
+  await $`kart -C ${fileURLToPath(workingCopy)} push origin changes`;
+
   return bareRepo;
 }
 
@@ -87,7 +126,7 @@ describe('action.flow integration', () => {
     // Create a bare kart repo with a single dataset, then clone + fetch.
     const bareRepo = await createFixtureRepo(new URL('source/', tempDir));
     await $`kart clone ${bareRepo.href} --no-checkout ${repoUrl.pathname}`;
-    await $`kart -C ${repoUrl.pathname} fetch origin master`;
+    await $`kart -C ${repoUrl.pathname} fetch origin changes`;
 
     const datasets = await $`kart -C ${repoUrl.pathname} data ls`;
     assert.ok(datasets.stdout.includes('test_points'), 'fixture should contain test_points dataset');
@@ -151,10 +190,15 @@ describe('action.flow integration', () => {
       );
 
       const parquetFiles = await fsa.toArray(fsa.list(outputUrl, { recursive: true }));
+      const parquetFile = parquetFiles.find((f) => f.href.endsWith('.parquet'));
       assert.ok(
-        parquetFiles.some((f) => f.href.endsWith('.parquet')),
+        parquetFile,
         `Expected .parquet in ${outputUrl.href}, got: ${parquetFiles.map((f) => f.href).join(', ')}`,
       );
+
+      // The fixture is seeded from GeoJSON (EPSG:4326); the source CRS must survive the
+      // gpkg→parquet conversion and never be force-stamped (previously to 4167).
+      assert.strictEqual(await readParquetEpsg(parquetFile), 4326, 'parquet must preserve the source EPSG');
 
       const catalogUrl = new URL('catalog.json', outputUrl);
       const catalog = await fsa.readJson(catalogUrl);
@@ -199,4 +243,47 @@ describe('action.flow integration', () => {
       assert.ok(catalog, 'catalog.json should exist in output');
     });
   });
+});
+
+describe('to-parquet CRS preservation', () => {
+  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-to-parquet-crs'));
+  const geojson = new URL('seed.geojson', tempDir);
+
+  before(async () => {
+    await mkdir(fileURLToPath(tempDir), { recursive: true });
+    await fsa.write(
+      geojson,
+      JSON.stringify({
+        type: 'FeatureCollection',
+        features: [
+          { type: 'Feature', properties: { fid: 1 }, geometry: { type: 'Point', coordinates: [174.7794, -41.2809] } },
+        ],
+      }),
+    );
+  });
+
+  after(async () => {
+    await rm(fileURLToPath(tempDir), { recursive: true, force: true });
+  });
+
+  // The conversion must keep whatever CRS the source gpkg is in
+  for (const sourceEpsg of [2193, 4167]) {
+    it(`preserves source EPSG:${sourceEpsg} into the parquet`, async () => {
+      const gpkg = new URL(`src-${sourceEpsg}.gpkg`, tempDir);
+      const parquet = new URL(`out-${sourceEpsg}.parquet`, tempDir);
+
+      // Build a gpkg genuinely in the source CRS.
+      await $`ogr2ogr -f GPKG -t_srs EPSG:${sourceEpsg} -lco GEOMETRY_NAME=geometry ${fileURLToPath(gpkg)} ${fileURLToPath(geojson)} -nln pts`;
+
+      const args = buildOgr2OgrArgs(parquet, gpkg, {
+        compression: 'zstd',
+        compressionLevel: 17,
+        rowGroupSize: 2 ** 15,
+        sortByBbox: false,
+      });
+      await $`${args}`;
+
+      assert.strictEqual(await readParquetEpsg(parquet), sourceEpsg, `parquet must preserve source EPSG:${sourceEpsg}`);
+    });
+  }
 });

@@ -3,17 +3,21 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_map_sheet")
+@jsonSchema("nztopo50_map_sheet")
 @extension("additionalProperties", false)
-model nz_topo50_map_sheet {
-  ...Topo.TopoIdentity;
+model nztopo50_map_sheet {
+  ...Topo.ProductIdentity;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "nz_topo50_map_sheet" | null;
-  sheet_code?: string | null;
-  sheet_name?: string | null;
-  edition?: string | null;
-  example_class?: Topo.ExampleClassEnum | null;
-  example_name?: string | null;
+  type: "nztopo50_map_sheet";
+  sheet_code: string;
+  sheet_name: string;
+  x_origin: float64;
+  y_origin: float64;
+  /** topo_id (UUID) of the example feature. */
+  example_point_id: string;
+  published_version: string;
+  published_at: {};
+  updated_at: {};
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;

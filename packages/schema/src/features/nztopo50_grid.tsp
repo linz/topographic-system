@@ -3,10 +3,10 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_grid")
+@jsonSchema("nztopo50_grid")
 @extension("additionalProperties", false)
-model nz_topo50_grid {
-  ...Topo.TopoIdentity;
+model nztopo50_grid {
+  ...Topo.ProductIdentity;
   direction?: Topo.DirectionEnum | null;
   value?: float64 | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */

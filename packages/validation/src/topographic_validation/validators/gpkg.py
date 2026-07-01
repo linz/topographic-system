@@ -36,7 +36,7 @@ class GpkgTopologyValidator(AbstractTopologyValidator):
         if not db_url.endswith(".gpkg"):
             raise ValueError("db_url must be a GeoPackage file path ending with .gpkg")
 
-        self.pkey = "topo_id"
+        self.pkey = "id"
         self.source = "gpkg"
         self.geom_column = "geometry"
 

@@ -9,12 +9,14 @@ model water {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "canal" | "lagoon" | "lake" | "pond" | "river" | "swamp" | null;
+  type: "canal" | "lagoon" | "lake" | "pond" | "river";
   water_use?: Topo.WaterUseEnum | null;
   hierarchy?: string | null;
   name?: string | null;
   group_name?: string | null;
+  nzgb_feat_id?: unknown /* int64; hyparquet returns BigInt */;
   height?: float64 | null;
+  elevation?: int32 | null;
   perennial?: Topo.PerennialEnum | null;
   temperature?: Topo.TemperatureEnum | null;
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
@@ -22,3 +24,4 @@ model water {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

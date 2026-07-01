@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from ..config import Source
 from .bundle import bundle_dataset, fetch_bundle_head
 
 SHA = "a" * 40  # up-to-date (bundle == remote)
@@ -81,7 +82,7 @@ def env(tmp_path, monkeypatch):
 
     monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
     monkeypatch.setattr(f"{MODULE}.WORKING_EXPORTS_DIR", tmp_path / "exports")
-    monkeypatch.setattr(f"{MODULE}.DATASET_MAP", {DATASET: MagicMock(source="kart@example.com:linz/test")})
+    monkeypatch.setattr(f"{MODULE}.DATASET_MAP", {DATASET: MagicMock(source=Source(url="kart@example.com:linz/test"))})
     monkeypatch.setattr(f"{MODULE}.get_kart_dataset_id", MagicMock(return_value="ds_id"))
     monkeypatch.setattr(f"{MODULE}.env_bundle_s3_url", MagicMock(return_value=S3_URL))
     for name in (

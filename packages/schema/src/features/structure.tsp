@@ -9,9 +9,10 @@ model structure {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "dry_dock" | "fish_farm" | "marine_farm" | "reservoir" | "siphon" | "tank" | null;
+  type: "dry_dock" | "fish_farm" | "marine_farm" | "reservoir" | "siphon" | "tank";
   lid_type?: Topo.LidTypeEnum | null;
-  structure_type?: Topo.StructureTypeEnum | null;
+  tank_type?: string | null;
+  subtype?: Topo.StructureSubTypeEnum | null;
   species?: Topo.SpeciesEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
@@ -21,3 +22,4 @@ model structure {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

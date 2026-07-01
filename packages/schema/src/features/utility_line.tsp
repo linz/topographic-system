@@ -3,14 +3,14 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("physical_infrastructure_line")
+@jsonSchema("utility_line")
 @extension("additionalProperties", false)
-model physical_infrastructure_line {
+model utility_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "pipeline" | "powerline" | "telephone" | "walkwire" | "water_race" | null;
-  infrastructure_use?: Topo.InfrastructureUseEnum | null;
+  type: "pipeline" | "powerline" | "telephone";
+  utility_use?: Topo.UtilityUseEnum | null;
   support_type?: Topo.SupportTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
@@ -20,3 +20,4 @@ model physical_infrastructure_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

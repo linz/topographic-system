@@ -3,14 +3,16 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_dms_grid")
+@jsonSchema("vegetation_point")
 @extension("additionalProperties", false)
-model nz_topo50_dms_grid {
+model vegetation_point {
   ...Topo.TopoIdentity;
-  direction?: Topo.DirectionEnum | null;
-  value?: float64 | null;
+  ...Topo.AuditFields;
+  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  type: "tree";
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

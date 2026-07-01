@@ -9,7 +9,7 @@ model runway {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "runway" | null;
+  type: "runway";
   runway_use?: Topo.RunwayUseEnum | null;
   status?: Topo.StatusEnum | null;
   surface?: Topo.SurfaceEnum | null;
@@ -18,3 +18,4 @@ model runway {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+

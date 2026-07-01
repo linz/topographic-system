@@ -41,7 +41,7 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
 
         # Remove 'files.parquet' from the end if present
         self.db_url = db_url.replace("files.parquet", "")
-        self.pkey = "topo_id"
+        self.pkey = "id"
         self.source = "parquet"
         self.geom_column = "geometry"
 

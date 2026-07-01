@@ -2,12 +2,11 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import { fsa } from '@chunkd/fs';
-import { XMLParser } from 'fast-xml-parser';
 
-import { lintDatasources } from '../action.lint.qgis.ts';
+import { lint, lintDataSources, lintFontFamilies } from '../action.lint.qgis.ts';
 
 describe('action.lint.qgis', () => {
-  describe('lintDatasources', () => {
+  describe('lintDataSources', () => {
     it('should pass for relative datasource paths', () => {
       const xml = {
         qgis: {
@@ -19,7 +18,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -34,7 +33,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -48,7 +47,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.strictEqual(errors.length, 3);
     });
 
@@ -62,7 +61,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.strictEqual(errors.length, 3);
     });
 
@@ -76,7 +75,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.strictEqual(errors.length, 3);
     });
 
@@ -92,7 +91,7 @@ describe('action.lint.qgis', () => {
           ],
         },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -100,25 +99,31 @@ describe('action.lint.qgis', () => {
       const xml = {
         a: { b: { c: { d: { datasource: '/deep.parquet', provider: 'ogr' } } } },
       };
-      const errors = lintDatasources(xml);
+      const errors = lint(xml, [lintDataSources]);
       assert.strictEqual(errors.length, 1);
       assert.ok(errors[0]?.includes('/deep.parquet'));
     });
 
     it('should lint beehive.qgs with no errors', async () => {
       const qgisFile = await fsa.read(new URL('../../../../map/assets/project/beehive.qgs', import.meta.url));
-      const parser = new XMLParser();
-      const qgisXml = parser.parse(qgisFile);
-      const errors = lintDatasources(qgisXml);
+      const errors = lint(qgisFile, [lintDataSources]);
       assert.deepStrictEqual(errors, []);
     });
 
     it('should lint topo-test.qgs with no errors', async () => {
       const qgisFile = await fsa.read(new URL('../../../../../e2e/assets/topo-test.qgs', import.meta.url));
-      const parser = new XMLParser();
-      const qgisXml = parser.parse(qgisFile);
-      const errors = lintDatasources(qgisXml);
+      const errors = lint(qgisFile, [lintDataSources]);
       assert.deepStrictEqual(errors, []);
+    });
+  });
+
+  describe('lintFontFamilies', () => {
+    it('should lint beehive.qgs with no errors', async () => {
+      const qgisFile = await fsa.read(new URL('../../../../map/assets/project/beehive.qgs', import.meta.url));
+      const errors = lint(qgisFile, [lintFontFamilies]);
+      assert.deepStrictEqual(errors, [
+        "Font family 'Nimbus Sans Narrow' is not allowed. Allowed fonts are: Nimbus Sans LINZ",
+      ]);
     });
   });
 });

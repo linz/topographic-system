@@ -4,6 +4,8 @@ from kart_import.config import (
     get_datasets,
     get_kart_repos,
     DATASET_MAP,
+    DATASET_TO_THEME_MAP,
+    TRANSFORM_SUFFIX,
 )
 
 import os
@@ -42,7 +44,8 @@ rule clone:
 # 2. LIFECYCLE
 rule lifecycle:
     input:
-        cloned = "data/source/{dataset}/.cloned"
+        cloned = "data/source/{dataset}/.cloned",
+        config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
     shell:
@@ -63,9 +66,13 @@ rule export:
 rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
-        exported = "data/working/export/release_{release}/{dataset}.json"
+        exported = "data/working/export/release_{release}/{dataset}.json",
+        config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
+        fixups = lambda wildcards: (
+            ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
+        )
     output:
-        transformed = "data/working/transform/release_{release}/{dataset}.json"
+        transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
     shell:
         "uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
 
@@ -73,8 +80,9 @@ rule transform:
 # 5. THEME RELEASE (Merges datasets for a single release)
 rule theme_release:
     input:
+        config = "config/themes/{theme}.yml",
         transformed = lambda wildcards: [
-            f"data/working/transform/release_{wildcards.release}/{ds.name}.json"
+            f"data/working/transform/release_{wildcards.release}/{ds.name}{TRANSFORM_SUFFIX}"
             for ds in THEME_MAP[wildcards.theme].datasets
         ]
     output:

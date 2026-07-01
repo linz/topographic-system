@@ -1,34 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "nz_topo50_dms_grid",
+  "$id": "vegetation_point",
   "type": "object",
   "properties": {
-    "topo_id": {
+    "id": {
       "type": "string",
       "description": "UUID for the feature."
     },
-    "fid": {
-      "description": "Unique identifier for the feature"
+    "updated_at": {
+      "type": "object",
+      "properties": {}
     },
-    "direction": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/DirectionEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
     },
-    "value": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "t50_fid": {},
+    "type": {
+      "type": "string",
+      "const": "tree"
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
@@ -40,14 +31,9 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "DirectionEnum": {
-      "type": "string",
-      "enum": ["x", "y"],
-      "description": "Auto-derived from observed values of `direction`."
-    },
     "BBox": {
       "type": "object",
       "properties": {

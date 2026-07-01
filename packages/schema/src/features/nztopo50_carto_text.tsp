@@ -3,10 +3,12 @@ import "../common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("nz_topo50_carto_text")
+@jsonSchema("nztopo50_carto_text")
 @extension("additionalProperties", false)
-model nz_topo50_carto_text {
-  ...Topo.TopoIdentity;
+model nztopo50_carto_text {
+  ...Topo.ProductIdentity;
+  /** id (UUID) of the example feature. */
+  example_point_id?: string | null;
   full_text?: string | null;
   text_bend?: int32 | null;
   text_char_spacing_distance?: int32 | null;
