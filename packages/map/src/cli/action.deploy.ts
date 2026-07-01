@@ -79,7 +79,10 @@ async function deployProject(
   const datasetLinks = await Promise.all(
     meta.layers.map((layer) =>
       q(async () => {
-        const collectionUrl = await getDataFromCatalog(args.source, layer.source.replace('.parquet', '').replace('.geojson', ''));
+        const collectionUrl = await getDataFromCatalog(
+          args.source,
+          layer.source.replace('.parquet', '').replace('.geojson', ''),
+        );
         const collection = await fsa.readJson<StacCollection>(collectionUrl);
         return { collection, url: collectionUrl };
       }),

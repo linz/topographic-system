@@ -47,7 +47,7 @@ describe('QGIS Process', () => {
   };
 
   async function writeLatestAsset(fileName: string, source: URL): Promise<void> {
-    const [name] = fileName.split('.');;
+    const [name] = fileName.split('.');
     const catalog = new URL('source/catalog.json', tempLocation);
     const collectionJson = new URL(`source/data/${name}/latest/collection.json`, tempLocation);
     const ht = new HashTransform('sha256');

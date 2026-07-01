@@ -1,8 +1,9 @@
+import { basename } from 'node:path';
+
 import type { Epsg } from '@basemaps/geo';
 import { ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { XMLParser } from 'fast-xml-parser';
-import { basename } from 'node:path';
 
 const LayerDefs = new Map<string, Promise<{ layers: QgisLayerDef[]; epsg: Epsg }>>();
 

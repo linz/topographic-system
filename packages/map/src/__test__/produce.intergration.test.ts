@@ -74,7 +74,6 @@ describe('deploy -> produce-cover -> produce', () => {
       ].sort(),
     );
 
-
     const targetProduce = new URL('memory://target-produce/');
     await PrepareCommand.handler({
       concurrency,
