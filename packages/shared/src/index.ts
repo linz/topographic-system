@@ -16,6 +16,6 @@ export {
   readParquetGroups,
   readParquet,
   parquetGeometryStats,
-  readParquetMetadata as readParquetFileMetadata,
+  readParquetMetadata,
 } from './parquet.metadata.ts';
 export { concurrency, qFromArgs, qMap, qMapAll, worker } from './limit.ts';

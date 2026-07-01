@@ -7,6 +7,7 @@ import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-co
 import { Command } from '@linzjs/docker-command';
 import { logger, trace } from '@linzjs/topographic-system-shared';
 
+import { getQgisProjectMeta } from './qgis.ts';
 import type { ExportOptions } from './stac.ts';
 
 export const BaseCommandOptions = {
@@ -81,6 +82,14 @@ async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult>
 async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
   const startTime = performance.now();
   const sourceLocation = await findQgisSource();
+
+  // We store the dataset name as nztopo50_map_sheet.parquet
+  // But we need the layer name for the qgis project
+  const layerDef = await getQgisProjectMeta(input);
+  const mapSheetLayerName = layerDef.layers.find((l) => l.source === options.mapSheetDataset)?.name;
+  if (mapSheetLayerName == null)
+    throw new Error(`Unable to find map sheet layer for dataset: ${options.mapSheetDataset}`);
+
   const cmd = Python3.create(BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
@@ -91,7 +100,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(fileURLToPath(input));
   cmd.args.push(fileURLToPath(output));
   cmd.args.push(options.layout);
-  cmd.args.push(options.mapSheetLayerName);
+  cmd.args.push(mapSheetLayerName);
   cmd.args.push(options.format);
   cmd.args.push(options.dpi.toFixed());
   cmd.args.push(sheetCode);

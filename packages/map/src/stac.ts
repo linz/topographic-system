@@ -6,12 +6,13 @@ export interface ExportOptions {
   /** layout name used for export, must exist in the QGIS project */
   layout: string;
   /**
-   * map sheet layer name used for export
+   * map sheet dataset name used for export
    *
-   * This is the layer name of the layer as it appears in the QGIS project file,
-   * not the file name.
+   * This is the dataset name of the dataset as it appears in the stac item json
+   *
+   * @example "nztopo50_map_sheet.parquet"
    */
-  mapSheetLayerName: string;
+  mapSheetDataset: string;
   /** Creation Format  */
   format: ExportFormat;
   /** Creation dpi */

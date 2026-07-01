@@ -84,7 +84,7 @@ describe('deploy -> produce-cover -> produce', () => {
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
-      mapSheetLayer: undefined,
+      mapSheetDataset: undefined,
       source: new URL('memory://source/catalog.json'),
       dpi: 300,
       output: targetProduce,
@@ -107,7 +107,7 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
       layout: 'tiff-50',
-      mapSheetLayerName: 'MapSheetLayer',
+      mapSheetDataset: 'nztopo50_map_sheet.parquet',
       dpi: 300,
       format: 'pdf',
     });

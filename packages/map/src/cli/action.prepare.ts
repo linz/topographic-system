@@ -12,7 +12,7 @@ import {
   parquetGeometryStats,
   qFromArgs,
   readParquet,
-  readParquetFileMetadata,
+  readParquetMetadata,
   registerFileSystem,
   Url,
   UrlFolder,
@@ -21,7 +21,7 @@ import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater }
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { getQgisMapSheetLayer, getQgisProjectMeta } from '../qgis.ts';
+import { getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { cache, tempLocation } from './shared.args.ts';
@@ -144,10 +144,10 @@ const ProduceArgs = {
     defaultValue: () => 'tiff-50',
     defaultValueIsSerializable: true,
   }),
-  mapSheetLayer: option({
+  mapSheetDataset: option({
     type: optional(string),
-    long: 'map-sheet-layer',
-    description: 'Qgis Map sheet layer name to use for export',
+    long: 'map-sheet-dataset',
+    description: 'Map sheet dataset name to use for export',
   }),
   source: option({
     type: optional(Url),
@@ -219,19 +219,20 @@ export const PrepareCommand = command({
 
     logger.info({ project: args.project.href }, 'Prepare');
     const projectMeta = await getQgisProjectMeta(projectPath);
-    const mapSheetLayer = getQgisMapSheetLayer(projectMeta.layers, args.mapSheetLayer);
+    const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
 
     const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
 
-    const mapSheetMeta = await readParquetFileMetadata(mapSheetFile.linked);
+    const mapSheetMeta = await readParquetMetadata(mapSheetFile.linked);
     const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);
     const mapSheetProj = Projection.get(mapSheetGeo.epsg);
 
+    console.log(`MapSheet Layer:`, mapSheetFile);
     // Run python list all the mapsheet covering metadata
     const exportOptions: ExportOptions = {
       layout: args.layout,
-      mapSheetLayerName: mapSheetLayer.name,
+      mapSheetDataset: mapSheetLayer.source,
       dpi: args.dpi,
       format: args.format,
     };

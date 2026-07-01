@@ -15,7 +15,7 @@ import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
-import { getQgisProjectMeta, getQgisMapSheetLayer } from '../qgis.ts';
+import { getQgisProjectMeta, getQgisMapSheetDataset } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
@@ -113,13 +113,13 @@ export const VisualDiffCommand = command({
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         const projectMeta = await getQgisProjectMeta(projectPath);
-        const mapSheetLayer = getQgisMapSheetLayer(projectMeta.layers);
+        const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers);
 
         // Prepare test export options
         const exportOptions: ExportOptions = {
           layout: test.layout,
           dpi: test.dpi,
-          mapSheetLayerName: mapSheetLayer.name,
+          mapSheetDataset: mapSheetLayer.source,
           format: 'png',
           excludeLayers: test.excludeLayers,
         };

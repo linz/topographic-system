@@ -3,6 +3,8 @@ import { ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { XMLParser } from 'fast-xml-parser';
 
+const LayerDefs = new Map<string, Promise<{ layers: QgisLayerDef[]; epsg: Epsg }>>();
+
 interface QgisLayerDef {
   /**
    * QGIS layer name
@@ -23,7 +25,21 @@ interface QgisLayerDef {
  * @param path souce QGIS project
  * @returns
  */
-export async function getQgisProjectMeta(path: URL): Promise<{ layers: QgisLayerDef[]; epsg: Epsg }> {
+export function getQgisProjectMeta(path: URL): Promise<{ layers: QgisLayerDef[]; epsg: Epsg }> {
+  const layerDef = LayerDefs.get(path.href);
+  if (layerDef != null) return layerDef;
+  const promise = getQgisProjectMetaImpl(path);
+  if (LayerDefs.size > 100) {
+    // Remove the first entry in the map to keep the cache size under 100
+    const firstKey = LayerDefs.keys().next().value as string;
+    LayerDefs.delete(firstKey);
+  }
+
+  LayerDefs.set(path.href, promise);
+  return promise;
+}
+
+async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef[]; epsg: Epsg }> {
   const lines = String(await fsa.read(path));
 
   /** Mapping of QGIS layer name to source file name */
@@ -53,11 +69,12 @@ export async function getQgisProjectMeta(path: URL): Promise<{ layers: QgisLayer
 }
 
 /** Attempt to find a MapSheet metadata layer */
-export function getQgisMapSheetLayer(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
+export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
   if (mapSheetLayerName != null) {
-    const layer = layers.find((f) => f.name === mapSheetLayerName);
+    const searchName = mapSheetLayerName.endsWith('.parquet') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
+    const layer = layers.find((f) => f.source === searchName);
     if (layer) return layer;
-    throw new Error(`Mapsheet layer not found: "${mapSheetLayerName}"`);
+    throw new Error(`Map sheet source layer not found: "${mapSheetLayerName}"`);
   }
   // Find the first layer that looks like a map_sheet configuration layer
   const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet'));
