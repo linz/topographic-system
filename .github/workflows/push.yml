@@ -19,16 +19,25 @@ jobs:
         with:
           node-version-file: .node-version
 
+      - name: Python CI
+        id: python-ci
+        uses: ./.github/actions/python-ci
+        background: true
+
       - run: npm ci
       - run: npm run build
+
       - run: npm run check
+        id: check
+        background: true
       - run: npm run test
+        id: test
+        background: true
+
       - run: npm run bundle
 
+      - wait: [check, test, python-ci]
       - run: git diff --exit-code
-
-      - name: Python CI
-        uses: ./.github/actions/python-ci
 
   build-container:
     uses: ./.github/workflows/containers.yml
