@@ -1,139 +1,163 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "bridge_line",
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
-    },
-    "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "t50_fid": {},
-    "type": {
-      "type": "string",
-      "const": "bridge"
-    },
-    "bridge_use": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/BridgeUseEnum"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "bridge_line",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "UUID for the feature."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "bridge_use2": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/BridgeUse2Enum"
+        "updated_at": {
+            "type": "object",
+            "properties": {}
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "construction_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/ConstructionTypeEnum"
+        "created_at": {
+            "type": "object",
+            "properties": {},
+            "description": "Default at write time: today."
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StatusEnum"
+        "t50_fid": {},
+        "type": {
+            "type": "string",
+            "const": "bridge"
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
+        "use1": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/BridgeUse1Enum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "null"
+        "use2": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/BridgeUse2Enum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "construction_type": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ConstructionTypeEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "status": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/StatusEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "name": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "geometry": {
+            "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+            "not": {
+                "type": "null"
+            }
+        },
+        "bbox": {
+            "$ref": "#/$defs/BBox"
         }
-      ]
     },
-    "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
-      "not": {
-        "type": "null"
-      }
-    },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
+    "required": [
+        "id",
+        "updated_at",
+        "created_at",
+        "type",
+        "geometry"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "BridgeUse1Enum": {
+            "type": "string",
+            "enum": [
+                "cablecar",
+                "farm",
+                "foot traffic",
+                "train",
+                "vehicle"
+            ],
+            "description": "Auto-derived from observed values of `use1`."
+        },
+        "BridgeUse2Enum": {
+            "type": "string",
+            "enum": [
+                "train",
+                "foot traffic"
+            ],
+            "description": "Auto-derived from observed values of `use2`."
+        },
+        "ConstructionTypeEnum": {
+            "type": "string",
+            "enum": [
+                "suspension",
+                "swing",
+                "trestle"
+            ],
+            "description": "Auto-derived from observed values of `construction_type`."
+        },
+        "StatusEnum": {
+            "type": "string",
+            "enum": [
+                "closed",
+                "dangerous",
+                "derelict",
+                "disused",
+                "historic",
+                "locked",
+                "old",
+                "private",
+                "remains",
+                "ruins",
+                "under construction"
+            ],
+            "description": "Auto-derived from observed values of `status`."
+        },
+        "BBox": {
+            "type": "object",
+            "properties": {
+                "xmin": {
+                    "type": "number"
+                },
+                "ymin": {
+                    "type": "number"
+                },
+                "xmax": {
+                    "type": "number"
+                },
+                "ymax": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax"
+            ],
+            "description": "GeoParquet 1.1 covering bbox struct."
+        }
     }
-  },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
-  "additionalProperties": false,
-  "$defs": {
-    "BridgeUseEnum": {
-      "type": "string",
-      "enum": ["cablecar", "farm", "foot traffic", "train", "vehicle"],
-      "description": "Auto-derived from observed values of `bridge_use`."
-    },
-    "BridgeUse2Enum": {
-      "type": "string",
-      "enum": ["train"],
-      "description": "Auto-derived from observed values of `bridge_use2`."
-    },
-    "ConstructionTypeEnum": {
-      "type": "string",
-      "enum": ["suspension", "swing", "trestle"],
-      "description": "Auto-derived from observed values of `construction_type`."
-    },
-    "StatusEnum": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "BBox": {
-      "type": "object",
-      "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
-      },
-      "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
-    }
-  }
 }

@@ -10,8 +10,8 @@ model bridge_line {
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type: "bridge";
-  bridge_use?: Topo.BridgeUseEnum | null;
-  bridge_use2?: Topo.BridgeUse2Enum | null;
+  use1?: Topo.BridgeUse1Enum | null;
+  use2?: Topo.BridgeUse2Enum | null;
   construction_type?: Topo.ConstructionTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
