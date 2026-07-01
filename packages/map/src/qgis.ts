@@ -3,15 +3,27 @@ import { ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { XMLParser } from 'fast-xml-parser';
 
+interface QgisLayerDef {
+  /**
+   * QGIS layer name
+   *
+   * @example "road_line 1 lane sealed map"
+   */
+  name: string;
+  /**
+   * Referenced file source file
+   *
+   * @example "nztopo50_map_sheet.parquet"
+   */
+  source: string;
+}
 /**
  * Load a QGS project and extract the layers names and their source and basic projection information
  *
  * @param path souce QGIS project
  * @returns
  */
-export async function getQgisProjectMeta(
-  path: URL,
-): Promise<{ layers: { name: string; source: string }[]; epsg: Epsg }> {
+export async function getQgisProjectMeta(path: URL): Promise<{ layers: QgisLayerDef[]; epsg: Epsg }> {
   const lines = String(await fsa.read(path));
 
   /** Mapping of QGIS layer name to source file name */
@@ -41,10 +53,7 @@ export async function getQgisProjectMeta(
 }
 
 /** Attempt to find a MapSheet metadata layer */
-export function getQgisMapSheetLayer(
-  layers: { name: string; source: string }[],
-  mapSheetLayerName?: string,
-): { name: string; source: string } {
+export function getQgisMapSheetLayer(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
   if (mapSheetLayerName != null) {
     const layer = layers.find((f) => f.name === mapSheetLayerName);
     if (layer) return layer;
@@ -55,10 +64,3 @@ export function getQgisMapSheetLayer(
   if (mapSheet == null) throw new Error('No map sheet layer ending with "map_sheet.parquet" found');
   return mapSheet;
 }
-
-/**
-```
-<layer-tree-layer checked="Qt::Checked" expanded="1" id="road_line_2_lane_map_e799a785_d8c6_4175_9251_610c0f53d138" legend_exp="" legend_split_behavior="0" name="road_line 2 lane highway map" patch_size="-1,-1" providerKey="ogr" source="./road_line.parquet|subset=&quot;lane_count&quot; > 1 and &quot;highway_number&quot; is NOT NULL">
-<layer-tree-layer checked="Qt::Unchecked" expanded="1" id="descriptive_text_611314fa_e5da_45d6_ae50_9f398ec0b39c" legend_exp="" legend_split_behavior="0" name="descriptive_text" patch_size="-1,-1" providerKey="ogr" source="./descriptive_text.parquet">
-<layer-tree-layer checked="Qt::Unchecked" expanded="1" id="descriptive_text_611314fa_e5da_45d6_ae50_9f398ec0b39c" legend_exp="" legend_split_behavior="0" name="descriptive_text" patch_size="-1,-1" providerKey="ogr" source="./descriptive_text.parquet">
-*/
