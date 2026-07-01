@@ -5,8 +5,8 @@ Transport_Layers,airport,name,name,String,75
 Transport_Layers,airport,name_ascii,name_ascii,String,75
 Transport_Layers,airport,SHAPE,SHAPE,Polygon,0
 Transport_Layers,airport,t50_fid,t50_fid,BigInteger,8
-Transport_Layers,bridge_line,use_1,bridge_use,String,50
-Transport_Layers,bridge_line,use_2,bridge_use2,String,50
+Transport_Layers,bridge_line,use_1,use1,String,50
+Transport_Layers,bridge_line,use_2,use2,String,50
 Transport_Layers,bridge_line,constr_typ,construction_type,String,50
 Transport_Layers,bridge_line,feature_type,type,String,50
 Transport_Layers,bridge_line,macronated,macronated,String,1
@@ -69,7 +69,6 @@ Water_Layers,island,grp_name,group_name,String,60
 Water_Layers,island,macronated,macronated,String,1
 Water_Layers,island,name,name,String,75
 Water_Layers,island,name_ascii,name_ascii,String,75
-Water_Layers,island,location,location,Integer,4
 Water_Layers,island,SHAPE,SHAPE,Polygon,0
 Water_Layers,island,t50_fid,t50_fid,BigInteger,8
 Land_Layers,landcover,feature_type,type,String,50

@@ -261,11 +261,17 @@ class ModifyTable:
                 )
             else:
                 update_query = f"UPDATE {schema}.{table} SET {column_name} = {default_value} WHERE {where_clause};"
-            cur.execute(update_query)
-            self.conn.commit()
-            print(
-                f"Updated '{column_name}' in '{schema}.{table}' with default value '{default_value}'"
-            )
+            try:
+                cur.execute(update_query)
+                self.conn.commit()
+                print(
+                    f"Updated '{column_name}' in '{schema}.{table}' with default value '{default_value}'"
+                )
+            except Exception as e:
+                self.conn.rollback()
+                print(
+                    f"Error updating '{column_name}' in '{schema}.{table}' with default value '{default_value}': {e}. Query: {update_query}"
+                )
 
     def update_default_value(self, schema, table, column_name, default_value):
         """Set the DDL default expression for a column.
@@ -464,6 +470,7 @@ class ModifyTable:
                         elif mode == "alter":
                             self.alter_column(schema, table, column_name, data_type)
                     except Exception as e:
+                        self.conn.rollback()
                         print(f"Error '{column_name}' in table '{schema}.{table}': {e}")
 
     def alter_column(self, schema, table_name, column_name, data_type):
@@ -520,8 +527,9 @@ class ModifyTable:
                                         f"Updated '{column_name}' in '{schema}.{table}' with value '{update_value}'"
                                     )
                         except Exception as e:
+                            self.conn.rollback()
                             print(
-                                f"Error updating '{column_name}' in table '{schema}.{table}': {e}"
+                                f"Error updating '{column_name}' in table '{schema}.{table}': {e}. Query: {update_query}"
                             )
 
     def set_default_values(self, schema_name="toposource"):
@@ -647,6 +655,7 @@ class ModifyTable:
                             cur.execute(index_sql)
                             self.conn.commit()
                         except Exception as e:
+                            self.conn.rollback()
                             print(f"Error creating index for '{table}': {e}")
                             continue
                     print(f"Index for '{table}' created successfully.")
@@ -662,13 +671,15 @@ class ModifyTable:
                                 with self.conn.cursor() as cur:
                                     try:
                                         cur.execute(sql)
+                                        self.conn.commit()
                                     except Exception as e:
+                                        self.conn.rollback()
                                         print(
-                                            f"Error creating index for '{table}': {e}"
+                                            f"Error creating index for '{table}': {e}. Query: {sql}"
                                         )
                                         continue
 
-    def add_name_columns(self):
+    def add_name_columns(self, schema):
         """Add a ``name`` column to tables that represent named features.
 
         Applies only to tables in the hard-coded list that do not already have
@@ -681,13 +692,12 @@ class ModifyTable:
             "structure",
             "ferry_crossing",
         ]
-
-        for table in table_list:
-            schema = self.table_schema(table)[0]
+        
+        for table in table_list:   
             if not self.column_exists(schema, table, "name"):
                 self.add_column(f'"{schema}"."{table}"', "name", "VARCHAR(50)")
 
-    def add_collectionid_columns(self):
+    def add_collectionid_columns(self, schema):
         """Add a ``collection_id`` UUID column to tables that support grouping.
 
         Applies only to tables in the hard-coded list that do not already have
@@ -707,7 +717,7 @@ class ModifyTable:
         ]
 
         for table in table_list:
-            schema = self.table_schema(table)[0]
+            schema = self.schema_name
             if not self.column_exists(schema, table, "collection_id"):
                 self.add_column(f'"{schema}"."{table}"', "collection_id", "uuid")
             # if not tableModifer.column_exists(schema, table, "collection_name"):
@@ -845,7 +855,7 @@ class ModifyTable:
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
                 )
 
-    def update_column_by_value(self, schema, table, column_name, value):
+    def update_column_by_value(self, schema, table, column_name, value, where_statement=None):
         """Set every row in a column to a fixed value.
 
         String values that are not already quoted will have single quotes
@@ -863,13 +873,22 @@ class ModifyTable:
             if self.column_exists(schema, table, column_name):
                 if isinstance(value, str) and not value.startswith("'"):
                     value = f"'{value}'"
-                update_query = f"UPDATE {schema}.{table} SET {column_name} = {value};"
+                update_query = f"UPDATE {schema}.{table} SET {column_name} = {value}"
+                if where_statement:
+                    update_query += f" WHERE {where_statement}"
+                update_query += ";"
 
-                cur.execute(update_query)
-                self.conn.commit()
-                print(
-                    f"Set value of column '{column_name}' to '{value}' in table '{schema}.{table}'"
-                )
+                try:
+                    cur.execute(update_query)
+                    self.conn.commit()
+                    print(
+                        f"Set value of column '{column_name}' to '{value}' in table '{schema}.{table}'"
+                    )
+                except Exception as e:
+                    self.conn.rollback()
+                    print(
+                        f"Error updating '{column_name}' in table '{schema}.{table}' with value '{value}': {e}. Query: {update_query}"
+                    )
             else:
                 print(
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
@@ -1146,13 +1165,13 @@ class TableModificationWorkflow:
         self.table_modifer.update_column_with_default(
             self.schema_name,
             "structure_point",
-            "stored_item",
+            "store_item",
             "'watre'",
-            "stored_item ='water'",
+            "store_item ='water'",
         )
 
     def step_name(self):
-        self.table_modifer.add_name_columns()
+        self.table_modifer.add_name_columns(self.schema_name)
         # self.table_modifer.add_collectionid_columns()
 
     def step_null_updates(self):
@@ -1182,6 +1201,25 @@ class TableModificationWorkflow:
         self.table_modifer.add_column(
             f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
         )
+
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.landcover_point", "subtype", "VARCHAR(50)"
+        )
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "landcover_point", "subtype", "large_boulder", "display = '0'"
+        )
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "landcover_point", "subtype", "large_boulder", "display = '1'"
+        )
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "landcover_point", "subtype", "small_rock_outcrop", "display = '2'"
+        )
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "landcover_point", "subtype", "large_rock_outcrop", "display = '3'"
+        )
+        self.table_modifer.drop_column(self.schema_name, "landcover_point", "display")
+
 
         # self.table_modifer.add_column(f"{self.schema_name}.road_line", "level", "INTEGER")
         # self.table_modifer.update_column_by_value(
