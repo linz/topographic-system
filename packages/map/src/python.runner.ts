@@ -14,20 +14,6 @@ export const BaseCommandOptions = {
   container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_70e40a-ff162c_build-43',
 };
 
-// interface SheetMetadataStdOut {
-//   sheetCode: string;
-//   geometry: string; // Geometry encoded as string
-//   epsg: number;
-//   bbox: [number, number, number, number];
-// }
-
-// export type SheetMetadata = {
-//   sheetCode: string;
-//   geometry: GeoJSONPolygon | GeoJSONMultiPolygon;
-//   epsg: number;
-//   bbox: [number, number, number, number];
-// };
-
 const Python3 = new Command('python3', BaseCommandOptions);
 
 /** Location of the source files if they have been found by {@link findQgisSource} */
@@ -115,42 +101,6 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   logger.info({ sheetCode, output: res.stdout.trim(), duration: performance.now() - startTime }, 'Export:Done');
   return pathToFileURL(res.stdout.trim());
 }
-
-/**
- * Running python commands for qgis_export_cover
- * This command is used to load map sheet layers from the input project and mapsheet data and return geometry and metadata of the mapsheets.
- * @param input URL of the input QGIS project file
- * @param options ExportOptions containing layout and mapSheetLayer information
- *
- * @param mapsheets Optional to specify which mapsheets to list. If not provided, all mapsheets in the project will be listed.
- *
- * @returns mapsheet metadata including sheetcode and geometry information for the stac files
- */
-// export async function qgisExportCover(
-//   input: URL,
-//   options: ExportOptions,
-//   mapsheets?: string[],
-// ): Promise<SheetMetadata[]> {
-//   const sourceLocation = await findQgisSource();
-//   const cmd = Python3.create(BaseCommandOptions);
-
-//   cmd.mount(fileURLToPath(sourceLocation));
-//   cmd.mount(fileURLToPath(new URL('.', input)));
-
-//   cmd.args.push(fileURLToPath(new URL('qgis_export_cover.py', sourceLocation)));
-//   cmd.args.push(fileURLToPath(input));
-//   cmd.args.push(options.layout);
-//   cmd.args.push(options.mapSheetLayer);
-//   // list all if mapsheets is not provided, otherwise list the mapsheets passed from CLI
-//   if (mapsheets) {
-//     cmd.args.push('False');
-//     for (const mapsheet of mapsheets) cmd.args.push(mapsheet);
-//   } else {
-//     cmd.args.push('True');
-//   }
-//   const res = await runAndLog(cmd);
-//   return await parseSheetsMetadata(res.stdout);
-// }
 
 /**
  * Load and print the QGIS verison from python
