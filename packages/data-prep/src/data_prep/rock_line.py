@@ -7,33 +7,32 @@ linework already drawn by the coastline, island and lake.
 
 import argparse
 import logging
-import math
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
-from pyproj import CRS
 
 from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
 
-# buffer applied to mask lines before difference
+# NZTM2000
+METRIC_CRS = 2193
+
+# buffer applied to mask lines before difference(set 0 to disable)
 LINE_TOL_M = 1.0
-# buffer converted to degrees as using geographic CRS(NZGD2000 4167)
-LINE_TOL_DEG = LINE_TOL_M / ((2 * math.pi * CRS.from_epsg(4167).ellipsoid.semi_major_metre) / 360)
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
-    rock_gdf = gpd.read_parquet(marine_path, filters=[("feature_type", "==", "rock")])
+    rock_gdf = gpd.read_parquet(marine_path, filters=[("feature_type", "==", "rock")]).to_crs(METRIC_CRS)
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
 
-    coastline_gdf = gpd.read_parquet(coastline_path)
+    coastline_gdf = gpd.read_parquet(coastline_path).to_crs(METRIC_CRS)
 
-    island_gdf = gpd.read_parquet(island_path)
+    island_gdf = gpd.read_parquet(island_path).to_crs(METRIC_CRS)
     island_line_gdf = island_gdf.assign(geometry=island_gdf.geometry.boundary)
 
-    lake_gdf = gpd.read_parquet(water_path, filters=[("feature_type", "==", "lake")])
+    lake_gdf = gpd.read_parquet(water_path, filters=[("feature_type", "==", "lake")]).to_crs(METRIC_CRS)
     lake_line_gdf = lake_gdf.assign(geometry=lake_gdf.geometry.boundary)
 
     mask_gdf = gpd.GeoDataFrame(
@@ -41,10 +40,10 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
             [coastline_gdf.geometry, island_line_gdf.geometry, lake_line_gdf.geometry], ignore_index=True
         )
     )
-    mask_buffer_gdf = gpd.GeoDataFrame(geometry=mask_gdf.geometry.buffer(LINE_TOL_DEG))
+    mask_buffer_gdf = gpd.GeoDataFrame(geometry=mask_gdf.geometry.buffer(LINE_TOL_M))
 
     rock_line_clip_gdf = gpd.overlay(rock_line_gdf, mask_buffer_gdf, how="difference")
-    rock_line_clip_gdf = rock_line_clip_gdf
+    rock_line_clip_gdf = rock_line_clip_gdf.to_crs(4167)
 
     write_parquet(rock_line_clip_gdf, output_path)
 
