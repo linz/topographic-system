@@ -2,9 +2,10 @@
 """
 Command line interface for topology validation.
 This script provides a CLI interface to run various topology validation checks
-on geospatial datasets (PostGIS, GeoPackage, or Parquet files).
+on geospatial datasets (GeoPackage only - designed to run on local machines).
 """
 
+from __future__ import annotations
 import argparse
 import os
 import sys
@@ -21,26 +22,24 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run validation on PostGIS database
-  python cli.py --mode postgis --db-path "postgresql://user:pass@localhost/db"
-
-  # Run validation on GeoPackage file
-  python cli.py --mode generic --db-path "data.gpkg"
 
   # Run validation on Parquet files with custom output
-  python cli.py --mode generic --db-path "C:\\temp\\data" --output-dir "C:\\temp\\validation"
+  python validate_gpkg_cli.py --db-path "data.parquet" --output-dir "c:\temp\validation" --use-date-folder True
+
+  # Run with bounding box 
+  python validate_gpkg_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 --output-dir "c:\temp\validation"
 
   # Run with bounding box and date filtering
-  python cli.py --mode generic --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
+  python validate_gpkg_cli.py --db-path "data.gpkg" --bbox 174.81 -41.31 174.82 -41.30 --date today
         """,
     )
 
     # Required arguments
     parser.add_argument(
         "--mode",
-        choices=["generic", "postgis"],
+        choices=["generic"],
         default="generic",
-        help="Validation mode: generic for GPKG/Parquet, postgis for PostgreSQL/PostGIS",
+        help="Validation mode: generic for GPKG",
     )
 
     parser.add_argument(
@@ -58,28 +57,6 @@ Examples:
         type=int,
         default=2193,
         help="CRS code for area calculations (default: 2193)",
-    )
-
-    # Export format options
-    parser.add_argument(
-        "--export-parquet",
-        action="store_true",
-        default=False,
-        help="Export results to Parquet format",
-    )
-
-    parser.add_argument(
-        "--export-parquet-by-geometry",
-        action="store_true",
-        default=False,
-        help="Export Parquet files separated by geometry type",
-    )
-
-    parser.add_argument(
-        "--no-export-gpkg",
-        action="store_true",
-        default=False,
-        help="Disable GeoPackage export",
     )
 
     # Processing options
@@ -146,7 +123,7 @@ def validate_arguments(args: argparse.Namespace) -> list[str]:
         if not args.db_path.startswith("postgresql://"):
             errors.append("PostGIS mode requires a PostgreSQL connection string starting with 'postgresql://'")
     else:
-        if not (args.db_path.endswith(".gpkg") or args.db_path.endswith(".parquet") or os.path.exists(args.db_path)):
+        if not (args.db_path.endswith(".gpkg") or args.db_path.endswith(".parquet") or "parquet" in args.db_path):
             errors.append("Generic mode requires a GPKG file (.gpkg) or Parquet file/directory (.parquet)")
         if not os.path.exists(args.db_path.replace("files.parquet", "")):
             errors.append(f"Database file/directory not found: {args.db_path}")
@@ -176,10 +153,8 @@ def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
     # Set configuration file based on mode or user input
     if args.config_file:
         settings.validation_config_file = args.config_file
-    elif args.mode == "postgis":
-        settings.validation_config_file = "./validation_postgis_config.json"
     else:
-        settings.validation_config_file = "./validation_generic_config.json"
+        settings.validation_config_file = "./config/default_config.json"
 
     # Database connection
     settings.db_path = args.db_path
@@ -192,12 +167,9 @@ def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
         settings.export_validation_data = False
 
     # Export format settings
-    settings.export_parquet = args.export_parquet
-    settings.export_parquet_by_geometry_type = args.export_parquet_by_geometry
-    if args.no_export_gpkg:
-        settings.export_gpkg = False
-    else:
-        settings.export_gpkg = True
+    settings.export_gpkg = True
+    settings.export_parquet = False
+    settings.export_parquet_by_geometry_type = False
 
     # Processing settings
     settings.use_date_folder = args.use_date_folder
