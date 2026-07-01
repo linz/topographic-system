@@ -39,7 +39,7 @@ export async function writeBaseLayers(rootCatalog: URL): Promise<URL> {
 
     if (layer === 'nztopo50_map_sheet') {
       // This layer needs to be a valid parquet file
-      const parquet = await fsa.read(new URL('../../assets/nztopo50_map_sheet.parquet', import.meta.url));
+      const parquet = await fsa.read(new URL('../../assets/project/nztopo50_map_sheet.parquet', import.meta.url));
       await fsa.write(assetUrl, parquet);
     } else {
       await fsa.write(assetUrl, 'Hello World');

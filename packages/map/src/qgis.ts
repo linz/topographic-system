@@ -2,6 +2,7 @@ import type { Epsg } from '@basemaps/geo';
 import { ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { XMLParser } from 'fast-xml-parser';
+import { basename } from 'node:path';
 
 const LayerDefs = new Map<string, Promise<{ layers: QgisLayerDef[]; epsg: Epsg }>>();
 
@@ -60,9 +61,11 @@ async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef
     const dataSource = xml?.['layer-tree-layer'];
     if (dataSource == null) continue;
 
-    const parquetFile = /([a-zA-Z0-9_]+.parquet)/.exec(dataSource['@_source']);
-    if (parquetFile == null) continue;
-    layers.push({ name: dataSource['@_name'] as string, source: parquetFile[0] });
+    const source = dataSource['@_source']?.split('|').at(0);
+    if (source == null) continue;
+    const parquetFile = basename(source) as string;
+
+    layers.push({ name: dataSource['@_name'] as string, source: parquetFile });
   }
 
   return { layers, epsg };
@@ -71,7 +74,8 @@ async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef
 /** Attempt to find a MapSheet metadata layer */
 export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
   if (mapSheetLayerName != null) {
-    const searchName = mapSheetLayerName.endsWith('.parquet') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
+    // add .parquet if there is no extension
+    const searchName = mapSheetLayerName.includes('.') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
     const layer = layers.find((f) => f.source === searchName);
     if (layer) return layer;
     throw new Error(`Map sheet source layer not found: "${mapSheetLayerName}"`);

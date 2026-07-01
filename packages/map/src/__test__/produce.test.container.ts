@@ -46,17 +46,18 @@ describe('QGIS Process', () => {
     source: new URL('/source/catalog.json', tempLocation),
   };
 
-  async function writeLatestAsset(name: string, source: URL): Promise<void> {
+  async function writeLatestAsset(fileName: string, source: URL): Promise<void> {
+    const [name] = fileName.split('.');;
     const catalog = new URL('source/catalog.json', tempLocation);
     const collectionJson = new URL(`source/data/${name}/latest/collection.json`, tempLocation);
     const ht = new HashTransform('sha256');
 
     const stream = fsa.readStream(source).pipe(ht);
-    await fsa.write(new URL(`${name}.geojson`, collectionJson), stream);
+    await fsa.write(new URL(fileName, collectionJson), stream);
 
     await StacUpdater.readWriteJson<StacCollection>(collectionJson, () => {
       const col = StacBasic.collection();
-      col.assets = { parquet: { href: `./${name}.geojson`, 'file:size': ht.bytesRead, 'file:checksum': ht.multihash } };
+      col.assets = { parquet: { href: `./${fileName}`, 'file:size': ht.bytesRead, 'file:checksum': ht.multihash } };
       col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
       return col;
     });
@@ -67,13 +68,13 @@ describe('QGIS Process', () => {
   it('should export a png', async () => {
     const qgisProject = new URL('../../assets/project/beehive.qgs', import.meta.url);
     const qgisData = new URL('../../assets/project/beehive.geojson', import.meta.url);
-    const topo50Data = new URL('../../assets/project/topo50.geojson', import.meta.url);
+    const topo50Data = new URL('../../assets/project/nztopo50_map_sheet.parquet', import.meta.url);
     const fonts = new URL('../../assets/fonts/', import.meta.url);
 
     await fsa.write(new URL('source/project/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
 
-    await writeLatestAsset('beehive', qgisData);
-    await writeLatestAsset('topo50', topo50Data);
+    await writeLatestAsset('beehive.geojson', qgisData);
+    await writeLatestAsset('nztopo50_map_sheet.parquet', topo50Data);
 
     await it('deploy', async () => {
       // Deploy the QGIS project into local files
@@ -129,12 +130,11 @@ describe('QGIS Process', () => {
       );
     });
 
-    await it('produce-cover', async () => {
+    await it('prepare', async () => {
       await cli(
-        'produce-cover',
+        'prepare',
         ['--project', fileURLToPath(new URL('target-deploy-push/qgis/beehive/latest/beehive.json', tempLocation))],
         ['--layout', 'tiff-50'],
-        ['--map-sheet-layer', 'topo50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
         ['--format', 'png'],
@@ -151,10 +151,9 @@ describe('QGIS Process', () => {
       );
     });
 
-    await it('produce', async () => {
+    await it('export', async () => {
       const targetJson = new URL('target-produce/working/beehive/BQ31.json', tempLocation);
-
-      await cli('produce', fileURLToPath(targetJson), [
+      await cli('export', fileURLToPath(targetJson), [
         '--temp-location',
         fileURLToPath(new URL('temp-produce/', tempLocation)),
       ]);
