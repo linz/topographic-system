@@ -4,7 +4,7 @@ from typing import TypedDict
 from PyQt6.QtCore import QDate
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
-from packages.qgis.src.utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
+from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -43,13 +43,12 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         if feature.attribute("sheet_code") != sheet_code:
             continue
 
-        # date
+        # date (rounded to july 1st)
         published_at = feature.attribute("published_at")
         if not isinstance(published_at, QDate):
             raise TypeError("published_at is not a QDate")
 
-        date = published_at.toPyDate()
-        date = date.replace(month=7, day=1)  # set to July 1st
+        date = datetime(published_at.toPyDate().year, month=7, day=1)
 
         # geometry (source crs)
         geometry = feature.geometry()
