@@ -66,6 +66,5 @@ export async function writeBaseLayers(rootCatalog: URL): Promise<URL> {
   const latest = collections.find((f) => f.href.includes('/latest/'));
   if (latest == null) throw new Error('Unable to find water collection');
 
-  console.log((await fsa.toArray(fsa.list(new URL('.', rootCatalog)))).map((m) => m.pathname));
   return latest;
 }
