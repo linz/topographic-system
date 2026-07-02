@@ -1,6 +1,6 @@
 import { basename } from 'path';
 
-import { Epsg, Projection } from '@basemaps/geo';
+import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
