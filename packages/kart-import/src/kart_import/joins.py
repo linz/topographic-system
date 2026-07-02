@@ -1,5 +1,6 @@
 import functools
 import logging
+from dataclasses import dataclass
 
 import geopandas as gpd
 import pandas as pd
@@ -7,6 +8,8 @@ import pandas as pd
 from .config import (
     SOURCE_DIR,
     WORKING_LOOKUP_DIR,
+    Join,
+    Lookup,
     ThemeDataset,
     get_lookup_by_name,
     get_releases,
@@ -60,7 +63,7 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
 
     Memoized on (lookup_name, release_id): a single transform process resolves the same pair
     repeatedly (once per release while fingerprinting in find_canonical_release, again when it
-    recurses into the canonical release, and again in validate_join_key_types/apply_joins).
+    recurses into the canonical release, and again in apply_joins).
     """
     release = next((r for r in get_releases() if r.id == release_id), None)
     if release is None:
@@ -86,30 +89,22 @@ def join_fingerprint(td: ThemeDataset, release_id: int) -> tuple[tuple[str, str 
     return tuple(sorted((join.lookup, _resolve_lookup_commit(join.lookup, release_id)) for join in td.joins))
 
 
-def validate_join_key_types(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> None:
-    """Pre-flight every join's key types before any merge runs, so a mismatch fails fast and
-    atomically rather than after some lookups have already been joined onto the frame.
-    """
-    for join in td.joins:
-        if join.left_on not in gdf.columns:
-            raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
-        commit = _resolve_lookup_commit(join.lookup, release_id)
-        if commit is None:
-            continue
-        lookup = get_lookup_by_name(join.lookup)
-        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
-        if not lookup_file.exists():
-            raise FileNotFoundError(
-                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
-            )
-        key = pd.read_parquet(lookup_file, columns=[lookup.key])[lookup.key]
-        _require_compatible_join_keys(
-            gdf[join.left_on], key, lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
-        )
+@dataclass
+class _JoinPlan:
+    """A validated, ready-to-apply join. `frame` is None when this release has no lookup commit.
+    The columns are still added, but null-filled."""
+
+    join: Join
+    lookup: Lookup
+    wanted: list[str]
+    qualified: dict[str, str]  # source column -> namespaced output column
+    frame: pd.DataFrame | None
 
 
-def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Left-join each configured lookup's columns onto the source frame by key."""
+def _plan_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> list[_JoinPlan]:
+    """Resolve, load and type-check every join before any merge runs, so a mismatch fails fast and
+    atomically rather than after some lookups have already been joined onto the frame."""
+    plans: list[_JoinPlan] = []
     for join in td.joins:
         lookup = get_lookup_by_name(join.lookup)
         wanted = list(lookup.columns) if join.columns is None else join.columns
@@ -118,11 +113,37 @@ def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd
 
         commit = _resolve_lookup_commit(join.lookup, release_id)
         if commit is None:
+            plans.append(_JoinPlan(join, lookup, wanted, qualified, None))
+            continue
+
+        if join.left_on not in gdf.columns:
+            raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
+        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
+        if not lookup_file.exists():
+            raise FileNotFoundError(
+                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
+            )
+        lookup_data = pd.read_parquet(lookup_file)
+        if lookup.key not in lookup_data.columns:
+            raise KeyError(f"lookup key '{lookup.key}' not found in lookup {join.lookup!r} columns")
+        _require_compatible_join_keys(
+            gdf[join.left_on], lookup_data[lookup.key], lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
+        )
+        plans.append(_JoinPlan(join, lookup, wanted, qualified, lookup_data))
+    return plans
+
+
+def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Left-join each configured lookup's columns onto the source frame by key. All joins are
+    validated up front, so a key-type mismatch on any of them fails before the frame is mutated."""
+    for plan in _plan_joins(gdf, td, release_id):
+        qualified = plan.qualified
+        if plan.frame is None:
             logger.info(
                 "no lookup for this release; filling join columns null",
                 extra={
                     "dataset": td.name,
-                    "lookup": join.lookup,
+                    "lookup": plan.join.lookup,
                     "release": release_id,
                     "columns": list(qualified.values()),
                 },
@@ -132,34 +153,19 @@ def apply_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd
                 gdf[col] = pd.NA
             continue
 
-        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
-        if not lookup_file.exists():
-            raise FileNotFoundError(
-                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
-            )
-        if join.left_on not in gdf.columns:
-            raise KeyError(f"join left_on '{join.left_on}' not found in {td.name} source columns")
-
-        lk = pd.read_parquet(lookup_file)
-        if lookup.key not in lk.columns:
-            raise KeyError(f"lookup key '{lookup.key}' not found in lookup {join.lookup!r} columns")
-
-        _require_compatible_join_keys(
-            gdf[join.left_on], lk[lookup.key], lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
-        )
-
-        right = lk[[lookup.key, *wanted]].rename(columns=qualified)
+        key = plan.lookup.key
+        right = plan.frame[[key, *plan.wanted]].rename(columns=qualified)
         gdf = gdf.copy()
-        merged = gdf.merge(right, left_on=join.left_on, right_on=lookup.key, how="left")
-        if lookup.key in merged.columns and lookup.key != join.left_on:
-            merged = merged.drop(columns=lookup.key)
+        merged = gdf.merge(right, left_on=plan.join.left_on, right_on=key, how="left")
+        if key in merged.columns and key != plan.join.left_on:
+            merged = merged.drop(columns=key)
         gdf = gpd.GeoDataFrame(merged, geometry=gdf.geometry.name, crs=gdf.crs)
-        matched = int(gdf[qualified[wanted[0]]].notna().sum()) if wanted else 0
+        matched = int(gdf[qualified[plan.wanted[0]]].notna().sum()) if plan.wanted else 0
         logger.info(
             "apply_join",
             extra={
                 "dataset": td.name,
-                "lookup": join.lookup,
+                "lookup": plan.join.lookup,
                 "columns": list(qualified.values()),
                 "matched_rows": matched,
             },

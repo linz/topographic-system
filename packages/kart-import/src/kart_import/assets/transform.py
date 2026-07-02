@@ -22,7 +22,7 @@ from ..config import (
 )
 from ..corrections import apply_corrections
 from ..fixups import FIXUPS
-from ..joins import apply_joins, join_fingerprint, validate_join_key_types
+from ..joins import apply_joins, join_fingerprint
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
@@ -264,7 +264,6 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             raise ValueError("source frame has no projection")
 
         if td.joins:
-            validate_join_key_types(gdf, td, release_id)  # fail fast on key-type mismatch before any merge
             start_time = time.perf_counter()
             gdf = apply_joins(gdf, td, release_id)
             logger.info("apply_joins", extra={"duration": round(time.perf_counter() - start_time, 4)})
