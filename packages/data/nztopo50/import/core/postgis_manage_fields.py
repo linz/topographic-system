@@ -551,8 +551,9 @@ class ModifyTable:
             f"{schema_name}.building": [("type", "'building'")],
             f"{schema_name}.building_point": [("type", "'building'")],
             f"{schema_name}.descriptive_text": [("type", "'descriptive_text'")],
+            f"{schema_name}.ferry_line": [("type", "'ferry_crossing'")],
             f"{schema_name}.railway_line": [("type", "'railway'")],
-            f"{schema_name}.railway_station": [("type", "'railway_station'")],
+            f"{schema_name}.railway_point": [("type", "'station'")],
             f"{schema_name}.residential_area": [("type", "'residential_area'")],
             f"{schema_name}.road_line": [("type", "'road'")],
             f"{schema_name}.track_line": [("type", "'track'")],
@@ -690,7 +691,7 @@ class ModifyTable:
             "utility_point",
             "utility_line",
             "structure",
-            "ferry_crossing",
+            "ferry_line",
         ]
         
         for table in table_list:   
@@ -706,13 +707,13 @@ class ModifyTable:
         self.connect()
         table_list = [
             "road_line",
-            "ferry_crossing",
+            "ferry_line",
             "water",
             "water_line",
             "water_point",
             "coastline",
             "island",
-            "railway_station",
+            "railway_point",
             "railway_line",
         ]
 
