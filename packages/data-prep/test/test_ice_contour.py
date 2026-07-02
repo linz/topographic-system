@@ -14,8 +14,8 @@ def result(tmp_path: Path):
 
     contour_gdf = gpd.GeoDataFrame(
         {
-            "feature_type": ["contour"],
-            "topo_id": [1],
+            "type": ["contour"],
+            "id": [1],
             "update_date": [date(2024, 1, 1)],
             "version": [3],
             "geometry": [poly1],
@@ -24,8 +24,8 @@ def result(tmp_path: Path):
 
     landcover_gdf = gpd.GeoDataFrame(
         {
-            "feature_type": ["ice"],
-            "topo_id": [10],
+            "type": ["ice"],
+            "id": [10],
             "update_date": [date(2025, 6, 15)],
             "version": [1],
             "geometry": [poly2],
@@ -45,17 +45,17 @@ def result(tmp_path: Path):
 
 
 def test_output_has_expected_columns(result):
-    assert "feature_type" in result.columns
-    assert "topo_id" in result.columns
+    assert "type" in result.columns
+    assert "id" in result.columns
     assert "landcover_id" in result.columns
-    assert "landcover_feature_type" in result.columns
+    assert "landcover_type" in result.columns
     assert "update_date" in result.columns
     assert "version" in result.columns
 
 
-def test_landcover_feature_type_is_ice(result):
+def test_landcover_type_is_ice(result):
     assert not result.empty
-    assert (result["landcover_feature_type"] == "ice").all()
+    assert (result["landcover_type"] == "ice").all()
 
 
 def test_landcover_id(result):

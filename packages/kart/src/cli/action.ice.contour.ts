@@ -63,29 +63,16 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
 
     const contourUrl = await getCanonical(args.contour);
-    const contourCollection = await fsa.readJson<StacCollection>(contourUrl);
-
-    const contourParquetAsset = contourCollection.assets?.['parquet'];
-    if (contourParquetAsset == null) {
-      throw new Error(`Contour collection must have a parquet asset: ${contourUrl.toString()}`);
-    }
-
     const landcoverUrl = await getCanonical(args.landcover);
-    const landcoverCollection = await fsa.readJson<StacCollection>(landcoverUrl);
-    const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
-    if (landcoverParquetAsset == null) {
-      throw new Error(`Landcover collection must have a parquet asset: ${landcoverUrl.toString()}`);
-    }
 
     const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
       if (
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === contourParquetAsset.href) &&
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === landcoverParquetAsset.href)
+        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === contourUrl.href) &&
+        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === landcoverUrl.href)
       ) {
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
@@ -95,19 +82,20 @@ export const IceContourCommand = command({
       }
     }
 
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
     downloader.addStac(contourUrl);
     downloader.addStac(landcoverUrl);
     const contourAsset = await downloader.getAsset(contourUrl);
     const landcoverAsset = await downloader.getAsset(landcoverUrl);
-    const contourtPath = contourAsset[0]?.linked;
+    const contourPath = contourAsset[0]?.linked;
     const landcoverPath = landcoverAsset[0]?.linked;
-    if (contourtPath == null || landcoverPath == null) {
+    if (contourPath == null || landcoverPath == null) {
       throw new Error('Failed to download contour or landcover assets');
     }
 
     const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 
-    await iceContour(contourtPath, landcoverPath, tempOutputParquet);
+    await iceContour(contourPath, landcoverPath, tempOutputParquet);
 
     const parquetStats = await parquetToStac(tempOutputParquet);
 
@@ -120,8 +108,8 @@ export const IceContourCommand = command({
       ...parquetStats.table,
     });
 
-    sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
-    sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
+    sw.collection.links.push({ rel: 'derived_from', href: contourUrl.href });
+    sw.collection.links.push({ rel: 'derived_from', href: landcoverUrl.href });
     sw.collection.extent = parquetStats.extent;
 
     const collections = await sw.write(rootCatalog, q);

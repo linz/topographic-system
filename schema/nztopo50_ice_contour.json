@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nztopo50_ice_contour",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "t50_fid": {},
+    "type": {
+      "type": "string",
+      "const": "contour"
+    },
+    "elevation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "definition": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "designation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DesignationEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "formation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FormationEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "landcover_id": {
+      "type": "string",
+      "description": "UUID for the intersecting landcover feature."
+    },
+    "landcover_type": {
+      "type": "string",
+      "const": "ice"
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["id", "updated_at", "created_at", "type", "landcover_id", "landcover_type", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "DesignationEnum": {
+      "type": "string",
+      "enum": ["supplementary"],
+      "description": "Auto-derived from observed values of `designation`."
+    },
+    "FormationEnum": {
+      "type": "string",
+      "enum": ["depression"],
+      "description": "Auto-derived from observed values of `formation`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

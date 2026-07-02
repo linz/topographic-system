@@ -1,10 +1,8 @@
 """Intersect Topo50 contour lines with ice landcover polygons.
 
 Contour geometries are split at ice polygon boundaries. Each resulting
-segment is tagged with the landcover feature type(ice) it falls within.
+segment is tagged with the landcover type(ice) it falls within.
 Processing is parallelised across available CPU cores.
-
-Output schema: ice_contour.yaml
 """
 
 import argparse
@@ -68,15 +66,15 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])["primary_column"]
     _landcover_gdf = gpd.read_parquet(
         landcover_path,
-        filters=[("feature_type", "==", "ice")],
+        filters=[("type", "==", "ice")],
         columns=[
-            "topo_id",
-            "feature_type",
+            "id",
+            "type",
             "update_date",
             "version",
             landcover_geom_col,
         ],
-    ).rename(columns={"topo_id": "landcover_id", "feature_type": "landcover_feature_type"})
+    ).rename(columns={"id": "landcover_id", "type": "landcover_type"})
 
     n_workers = cpu_count()
     n_chunks = 100
