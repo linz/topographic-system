@@ -7,7 +7,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from packages.qgis.src.utils.mag_info import calculate_mag_info, render_mag_info
+from utils.mag_info import calculate_mag_info, render_mag_info
 
 # from root: (topographic-system)
 # 1. npm run build && npm run bundle

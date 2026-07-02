@@ -13,7 +13,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 
-from packages.qgis.src.utils.mag_info import calculate_mag_info, render_mag_info
+from utils.mag_info import calculate_mag_info, render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
