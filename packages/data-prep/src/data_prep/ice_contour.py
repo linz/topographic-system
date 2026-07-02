@@ -22,6 +22,9 @@ from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
 
+# All inputs and the output are in NZGD2000
+NZGD2000 = 4167
+
 # Module-level globals so forked workers inherit via copy-on-write
 # instead of pickling gigabytes of geodata per worker
 _landcover_gdf = None
@@ -58,13 +61,21 @@ def split_gdf(gdf, n_chunks):
     return [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
 
 
+def read_nzgd2000(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
+    gdf = gpd.read_parquet(path, **read_kwargs)
+    epsg = gdf.crs.to_epsg() if gdf.crs else None
+    if epsg != NZGD2000:
+        raise ValueError(f"{path} must be NZGD2000 (EPSG:{NZGD2000}), got EPSG:{epsg}")
+    return gdf
+
+
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    contour_gdf = gpd.read_parquet(contour_path).drop(columns=["update_date", "version"])
+    contour_gdf = read_nzgd2000(contour_path).drop(columns=["update_date", "version"])
 
     landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])["primary_column"]
-    _landcover_gdf = gpd.read_parquet(
+    _landcover_gdf = read_nzgd2000(
         landcover_path,
         filters=[("type", "==", "ice")],
         columns=[
@@ -91,7 +102,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     _contour_chunks = None
 
     overlay_gdf = gpd.GeoDataFrame(pd.concat(results, ignore_index=True))
-    overlay_gdf = overlay_gdf.set_crs(epsg=4167, allow_override=True)
+    overlay_gdf = overlay_gdf.set_crs(epsg=NZGD2000)
 
     write_parquet(overlay_gdf, overlay_path)
 
