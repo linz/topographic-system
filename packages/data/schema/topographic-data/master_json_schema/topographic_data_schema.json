@@ -486,18 +486,13 @@
           "enum": [
             "rock",
             "soakhole",
-            "spring",
-            "waterfall"
+            "spring"
           ]
         },
         "name": {
           "type": "string",
           "description": "The name of the feature.",
           "maxLength": 75
-        },
-        "height": {
-          "type": "number",
-          "description": "The height of the feature in metres"
         },
         "orientation": {
           "type": "number",
@@ -2324,7 +2319,8 @@
           "enum": [
             "height",
             "saddle",
-            "sinkhole"
+            "sinkhole",
+            "waterfall"
           ]
         },
         "name": {
@@ -2334,6 +2330,14 @@
           "enum": [
             null
           ]
+        },
+        "orientation": {
+          "type": "number",
+          "description": ""
+        },
+        "height": {
+          "type": "number",
+          "description": "The height of the feature in metres"
         },
         "elevation": {
           "type": "integer",
