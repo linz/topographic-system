@@ -50,6 +50,7 @@ def env(tmp_path, monkeypatch):
 
     return SimpleNamespace(td=_td(), resolves_to=resolves_to, write=write)
 
+
 def test_select_lookup_columns_selects_dedups_and_drops_null_key():
     gdf = gpd.GeoDataFrame(
         {"t50_fid": [1, 2, 2, None], "width": ["a", "b", "c", "d"], "name_id": [10, 20, 30, 40]},
@@ -75,6 +76,7 @@ def test_select_lookup_columns_raises(columns, cols, match):
     gdf = gpd.GeoDataFrame(cols, geometry=[Point(0, 0)] * len(next(iter(cols.values()))), crs="EPSG:4326")
     with pytest.raises(KeyError, match=match):
         prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=columns))
+
 
 def test_join_fingerprint_reflects_lookup_commits(monkeypatch):
     td = _td()

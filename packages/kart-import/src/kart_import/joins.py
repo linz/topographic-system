@@ -127,7 +127,11 @@ def _plan_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> lis
         if lookup.key not in lookup_data.columns:
             raise KeyError(f"lookup key '{lookup.key}' not found in lookup {join.lookup!r} columns")
         _require_compatible_join_keys(
-            gdf[join.left_on], lookup_data[lookup.key], lookup_name=join.lookup, left_on=join.left_on, lookup_key=lookup.key
+            gdf[join.left_on],
+            lookup_data[lookup.key],
+            lookup_name=join.lookup,
+            left_on=join.left_on,
+            lookup_key=lookup.key,
         )
         plans.append(_JoinPlan(join, lookup, wanted, qualified, lookup_data))
     return plans
