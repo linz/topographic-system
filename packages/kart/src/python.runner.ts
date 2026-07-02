@@ -19,3 +19,13 @@ export async function coastlinePolygon(coastline: URL, island: URL, output: URL)
     await $`uv run --directory /packages/data-prep src/data_prep/coastline_polygon.py --coastline ${coastline.pathname} --island ${island.pathname} --output ${output.pathname}`;
   logger.debug('coastline_polygon.py ' + res.stdout);
 }
+
+/**
+ * Running python commands to create rock line which doesn't coincide with coastlines, island shorelines and lake shorelines
+ */
+export async function rockLine(marine: URL, coastline: URL, island: URL, water: URL, output: URL): Promise<void> {
+  const res =
+    await $`uv run --directory /packages/data-prep src/data_prep/rock_line.py --marine ${marine.pathname} --coastline ${coastline.pathname} --island ${island.pathname} --water ${water.pathname} --output ${output.pathname}`;
+  logger.debug('rock_line.py ' + res.stdout);
+
+}

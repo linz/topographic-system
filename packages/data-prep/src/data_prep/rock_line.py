@@ -36,7 +36,7 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
-    rock_gdf = read_and_project(marine_path, filters=[("feature_type", "==", "rock")])
+    rock_gdf = read_and_project(marine_path, filters=[("type", "==", "rock")])
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
 
     coastline_gdf = read_and_project(coastline_path)
@@ -44,7 +44,7 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     island_gdf = read_and_project(island_path)
     island_line_gdf = island_gdf.assign(geometry=island_gdf.geometry.boundary)
 
-    lake_gdf = read_and_project(water_path, filters=[("feature_type", "==", "lake")])
+    lake_gdf = read_and_project(water_path, filters=[("type", "==", "lake")])
     lake_line_gdf = lake_gdf.assign(geometry=lake_gdf.geometry.boundary)
 
     mask_gdf = gpd.GeoDataFrame(
