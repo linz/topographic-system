@@ -1168,6 +1168,7 @@
           "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
+            "cemetery",
             "fumarole",
             "rock_outcrop",
             "swamp"
@@ -1795,10 +1796,10 @@
         }
       }
     },
-    "railway_station": {
+    "railway_point": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "railway_station",
-      "description": "Location of a railway station.",
+      "title": "railway_point",
+      "description": "Location of a railway point.",
       "type": "object",
       "required": [
         "id",
@@ -1822,7 +1823,7 @@
           "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
-            "rail_station"
+            "station"
           ]
         },
         "name": {
@@ -2063,7 +2064,9 @@
             "gate",
             "ladder",
             "mast",
+            "radar_dome",
             "redoubt",
+            "satellite_station",
             "shaft",
             "siphon",
             "stockyard",
@@ -2071,7 +2074,7 @@
             "tower",
             "well",
             "windmill",
-            "wreck"
+            "wreck" 
           ]
         },
         "structure_use": {
@@ -2180,9 +2183,9 @@
         }
       }
     },
-    "ferry_crossing": {
+    "ferry_line": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ferry_crossing",
+      "title": "ferry_line",
       "description": "Indicates ferry links to terminal locations.",
       "type": "object",
       "required": [
@@ -2207,7 +2210,7 @@
           "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
-            "ferry_crossing"
+            "ferry_line"
           ]
         },
         "updated_at": {
@@ -2252,13 +2255,10 @@
           "maxLength": 50,
           "enum": [
             "cave",
-            "cemetery",
             "grave",
             "historic_site",
             "monument",
-            "pa",
-            "radar_dome",
-            "satellite_station"
+            "pa"
           ]
         },
         "composition": {
@@ -4206,7 +4206,7 @@
       "$ref": "#/$defs/fence_line"
     },
     {
-      "$ref": "#/$defs/ferry_crossing"
+      "$ref": "#/$defs/ferry_line"
     },
     {
       "$ref": "#/$defs/geographic_name"
@@ -4251,7 +4251,7 @@
       "$ref": "#/$defs/railway_line"
     },
     {
-      "$ref": "#/$defs/railway_station"
+      "$ref": "#/$defs/railway_point"
     },
     {
       "$ref": "#/$defs/relief"
