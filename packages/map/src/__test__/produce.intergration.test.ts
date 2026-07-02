@@ -2,14 +2,14 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
-import { StacCollectionWriter, StacPushCommand, StacPusher, StacUpdater } from '@linzjs/topographic-system-stac';
-import pLimit from 'p-limit';
+import { StacPushCommand } from '@linzjs/topographic-system-stac';
 import type { StacItem } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { ExportCommand } from '../cli/action.export.ts';
 import { PrepareCommand } from '../cli/action.prepare.ts';
 import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
+import { writeBaseLayers } from './util.ts';
 
 describe('deploy -> produce-cover -> produce', () => {
   const mem = new FsMemory();
@@ -29,39 +29,9 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.equal(from, `FROM ${BaseCommandOptions.container}`);
   });
 
-  async function writeWaterData(rootCatalog: URL): Promise<URL> {
-    const limit = pLimit(1);
-    const sourceDataUrl = new URL('memory://source-data/water.parquet');
-    await fsa.write(new URL('water.parquet', sourceDataUrl), 'Hello World');
-
-    const dataSourceUrl = new URL('memory://source-data/catalog.json');
-
-    const sw = new StacCollectionWriter('data', 'water');
-    sw.collection.title = 'Topographic Water';
-    sw.collection.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
-    sw.asset('parquet', sourceDataUrl, { href: './water.parquet' });
-    const collectionUrl = await sw.write(dataSourceUrl, limit);
-
-    await StacUpdater.collections(dataSourceUrl, [collectionUrl], true);
-
-    const push = new StacPusher(rootCatalog, 'data');
-    push.strategy({ type: 'latest' });
-    push.strategy({ type: 'date', date: new Date('2026-06-01T14:32:00.123Z') });
-
-    const { collections } = await push.push(dataSourceUrl, limit, true);
-
-    await StacUpdater.collections(rootCatalog, collections, true);
-
-    const latest = collections.find((f) => f.href.includes('/latest/'));
-    if (latest == null) throw new Error('Unable to find water collection');
-    return latest;
-  }
-
   it('should deploy a qgs file', async (t) => {
-    await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
     const rootCatalog = new URL('memory://source/catalog.json');
-    await writeWaterData(rootCatalog);
-    t.mock.method(pyRunner, 'listSourceLayers', () => ['water']);
+    await writeBaseLayers(rootCatalog);
 
     // Deploy the QGIS project into memory
     const targetDeploy = new URL('memory://target-deploy/');
@@ -104,17 +74,13 @@ describe('deploy -> produce-cover -> produce', () => {
       ].sort(),
     );
 
-    t.mock.method(pyRunner, 'qgisExportCover', () => {
-      return [{ sheetCode: 'BQ32', epsg: 2193, bbox: [1756000, 5406000, 1780000, 5442000] }];
-    });
-
     const targetProduce = new URL('memory://target-produce/');
     await PrepareCommand.handler({
       concurrency,
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
-      mapSheetLayer: 'nz_topo50_map_sheet',
+      mapSheetDataset: undefined,
       source: new URL('memory://source/catalog.json'),
       dpi: 300,
       output: targetProduce,
@@ -131,6 +97,16 @@ describe('deploy -> produce-cover -> produce', () => {
       [...(await fsa.toArray(fsa.list(targetProduce)))].map((f) => f.href.replace(targetProduce.href, '')).sort(),
       [`topo50/BQ32.json`, `topo50/collection.json`, 'catalog.json'].sort(),
     );
+
+    const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduce));
+    assert.equal(bq32Json.properties['proj:epsg'], 2193);
+    assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
+    assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
+      layout: 'tiff-50',
+      mapSheetDataset: 'nztopo50_map_sheet.parquet',
+      dpi: 300,
+      format: 'pdf',
+    });
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL) => {
       const outputFile = new URL('product/latest/BQ32.pdf', output);
@@ -184,13 +160,29 @@ describe('deploy -> produce-cover -> produce', () => {
     const exportedJson = await fsa.readJson<StacItem>(exportUrl);
     const dateLinks = exportedJson.links.filter((f) => f.href.includes('year=2026/'));
     // Ensure the water data was linked to the canonical path
-    assert.deepEqual(dateLinks, [
+    assert.deepEqual(dateLinks[0], {
+      rel: 'source',
+      href: 'memory://source/data/road_line/year=2026/date=2026-06-01T14-32-00.123Z/collection.json',
+      type: 'application/json',
+      title: 'Topographic road_line',
+    });
+    assert.deepEqual(
+      dateLinks[1],
+
       {
         rel: 'source',
         href: 'memory://source/data/water/year=2026/date=2026-06-01T14-32-00.123Z/collection.json',
         type: 'application/json',
-        title: 'Topographic Water',
+        title: 'Topographic water',
       },
-    ]);
+    );
+
+    assert.deepEqual(dateLinks[2], {
+      rel: 'source',
+      href: 'memory://source/data/nztopo50_map_sheet/year=2026/date=2026-06-01T14-32-00.123Z/collection.json',
+      type: 'application/json',
+      title: 'Topographic nztopo50_map_sheet',
+    });
+    assert.equal(dateLinks.length, 3);
   });
 });

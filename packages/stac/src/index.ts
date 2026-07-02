@@ -11,7 +11,13 @@ export type {
 export type { StacStorageCategory } from './stac.storage.ts';
 export { StacStorageCategoryTypes } from './stac.storage.ts';
 export { HashWriter } from './hash.writer.ts';
-export { multipolygonToWgs84, polygonToWgs84, round } from './geo.ts';
+export {
+  multipolygonToWgs84,
+  polygonToWgs84,
+  round,
+  geoJsonToWgs84,
+  geoJsonToWgs84Bbox as getJsonToWgs84Bbox,
+} from './geo.ts';
 export { StacGeometry } from './geo.ts';
 export { StacBasic } from './stac.basic.ts';
 export { StacPusher } from './stac.pusher.ts';

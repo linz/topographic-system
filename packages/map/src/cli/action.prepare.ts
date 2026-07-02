@@ -1,5 +1,6 @@
 import { basename } from 'path';
 
+import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
@@ -8,16 +9,19 @@ import {
   getDataFromCatalog,
   isArgo,
   logger,
+  parquetGeometryStats,
   qFromArgs,
+  readParquet,
+  readParquetMetadata,
   registerFileSystem,
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
-import type { StacCollection, StacItem, StacLink } from 'stac-ts';
+import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { pyRunner } from '../python.runner.ts';
+import { getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { cache, tempLocation } from './shared.args.ts';
@@ -63,6 +67,17 @@ export function parseDataTag(input: string): dataTag[] {
     }
   }
   return tags;
+}
+
+interface SheetMetadata {
+  sheetCode: string;
+  geometry: GeoJSONPolygon;
+}
+
+interface TopoMapSheetParquet {
+  sheet_code: string;
+  bbox: { xmin: number; ymin: number; xmax: number; ymax: number };
+  geometry: GeoJSONPolygon;
 }
 
 /**
@@ -129,12 +144,10 @@ const ProduceArgs = {
     defaultValue: () => 'tiff-50',
     defaultValueIsSerializable: true,
   }),
-  mapSheetLayer: option({
-    type: string,
-    long: 'map-sheet-layer',
-    description: 'Qgis Map Sheet Layer name to use for export',
-    defaultValue: () => 'nz_topo50_map_sheet',
-    defaultValueIsSerializable: true,
+  mapSheetDataset: option({
+    type: optional(string),
+    long: 'map-sheet-dataset',
+    description: 'Map sheet dataset name to use for export',
   }),
   source: option({
     type: optional(Url),
@@ -179,7 +192,9 @@ export const PrepareCommand = command({
 
     const q = qFromArgs(args);
 
-    const mapSheets = args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet;
+    const mapSheets = new Set(
+      args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
+    );
 
     // Download mapshseet layer data from the project stac file
     const stac = await fsa.readJson<StacItem>(args.project);
@@ -198,20 +213,39 @@ export const PrepareCommand = command({
       throw new Error('--data-tags not supported');
     }
 
-    // Run python list all the mapsheet covering metadata
-    const exportOptions: ExportOptions = {
-      layout: args.layout,
-      mapSheetLayer: args.mapSheetLayer,
-      dpi: args.dpi,
-      format: args.format,
-    };
-
     // Find downloaded project file
     const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
 
-    logger.info({ project: args.project.href, exportOptions: exportOptions }, 'Prepare: ExportCover');
-    const metadatas = await pyRunner.qgisExportCover(projectPath, exportOptions, args.all ? undefined : mapSheets);
+    logger.info({ project: args.project.href }, 'Prepare');
+    const projectMeta = await getQgisProjectMeta(projectPath);
+    const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
+
+    const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
+    if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
+
+    const mapSheetMeta = await readParquetMetadata(mapSheetFile.linked);
+    const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);
+    const mapSheetProj = Projection.get(mapSheetGeo.epsg);
+
+    // Run python list all the mapsheet covering metadata
+    const exportOptions: ExportOptions = {
+      layout: args.layout,
+      mapSheetDataset: mapSheetLayer.source,
+      dpi: args.dpi,
+      format: args.format,
+    };
+
+    const mapSheetsToCreate: SheetMetadata[] = [];
+
+    for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.linked, { decodeGeometry: true })) {
+      if (args.all || mapSheets.has(row.sheet_code)) {
+        mapSheetsToCreate.push({
+          sheetCode: row.sheet_code,
+          geometry: geoJsonToWgs84(row.geometry, mapSheetProj),
+        });
+      }
+    }
 
     // Create Stac Files and upload to destination
     const projectName = basename(args.project.href, '.json');
@@ -219,15 +253,15 @@ export const PrepareCommand = command({
     sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
     sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
 
-    logger.info({ project: args.project.href, number: metadatas.length }, 'Prepare: CreateStacItems');
+    logger.info({ project: args.project.href, number: mapSheetsToCreate.length }, 'Prepare: CreateStacItems');
 
-    for (const metadata of metadatas) {
+    for (const metadata of mapSheetsToCreate) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
 
       const item = sw.item(standardizedSheetCode);
       item.geometry = metadata.geometry;
-      item.bbox = metadata.bbox;
-      item.properties['proj:epsg'] = metadata.epsg;
+      item.bbox = getJsonToWgs84Bbox(metadata.geometry);
+      item.properties['proj:epsg'] = projectMeta.epsg.code;
       item.properties['linz:mapsheet'] = metadata.sheetCode;
       item.properties['linz_topographic_system:options'] = exportOptions;
 
