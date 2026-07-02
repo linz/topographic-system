@@ -1533,6 +1533,102 @@
         }
       }
     },
+    ,
+    "landuse_point": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "landuse_point",
+      "description": "Represents areas designated for specific uses such as mines, racetracks.",
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "updated_at",
+        "created_at",
+        "geometry"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique identifier for the topographic feature."
+        },
+        "t50_fid": {
+          "type": "integer",
+          "description": "The unique identifier for the feature in the source database.",
+          "precision": 64
+        },
+        "type": {
+          "type": "string",
+          "description": "The specific type of feature being represented.",
+          "maxLength": 50,
+          "enum": [
+            "mine"
+          ]
+        },
+        "subtype": {
+          "type": "string",
+          "description": "The subtype of the feature.",
+          "maxLength": 50,
+          "enum": [
+            "opencast",
+            "underground",
+            null
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "",
+          "maxLength": 25,
+          "enum": [
+            "disused",
+            "historic",
+            "old",
+            "dangerous",
+            null
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the feature.",
+          "maxLength": 75
+        },
+        "substance_extracted": {
+          "type": "string",
+          "description": "",
+          "maxLength": 11,
+          "enum": [
+            "bentonit",
+            "clay",
+            "coal",
+            "gold",
+            "gravel",
+            "ironsand",
+            "lime",
+            "limestone",
+            "metal",
+            "scheelite",
+            "shingle",
+            "silica sand",
+            "sliver",
+            "stone",
+            "quartz",
+            "zeolite",
+            null
+          ]
+        },
+        "updated_at": {
+          "type": "date",
+          "description": "The date when the feature was last updated in the database."
+        },
+        "created_at": {
+          "type": "date",
+          "description": "The date when the feature was created in the database."
+        },
+        "geometry": {
+          "type": "point",
+          "description": "The geometry of the feature."
+        }
+      }
+    },
     "relief": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "relief",
@@ -2163,40 +2259,11 @@
             "cemetery",
             "grave",
             "historic_site",
-            "mine",
             "monument",
             "pa",
             "radar_dome",
-            "saddle",
             "satellite_station"
           ]
-        },
-        "place_type": {
-          "type": "string",
-          "description": "The type of the feature.",
-          "maxLength": 11,
-          "enum": [
-            "opencast",
-            "underground",
-            null
-          ]
-        },
-        "status": {
-          "type": "string",
-          "description": "",
-          "maxLength": 25,
-          "enum": [
-            "dangerous",
-            "disused",
-            "historic",
-            "old",
-            null
-          ]
-        },
-        "elevation": {
-          "type": "integer",
-          "description": "The elevation above mean sea level.",
-          "precision": 32
         },
         "composition": {
           "type": "string",
@@ -2212,24 +2279,6 @@
           "type": "string",
           "description": "",
           "maxLength": 80
-        },
-        "orientation": {
-          "type": "number",
-          "description": ""
-        },
-        "substance_extracted": {
-          "type": "string",
-          "description": "",
-          "maxLength": 11,
-          "enum": [
-            "bentonite",
-            "coal",
-            "gold",
-            "quartz",
-            "scheelite",
-            "silver",
-            null
-          ]
         },
         "updated_at": {
           "type": "date",
@@ -2273,6 +2322,7 @@
           "maxLength": 50,
           "enum": [
             "height",
+            "saddle",
             "sinkhole"
           ]
         },
@@ -2288,14 +2338,6 @@
           "type": "integer",
           "description": "The elevation above mean sea level.",
           "precision": 32
-        },
-        "display": {
-          "type": "string",
-          "description": "",
-          "maxLength": 50,
-          "enum": [
-            null
-          ]
         },
         "updated_at": {
           "type": "date",
@@ -4181,6 +4223,9 @@
     },
     {
       "$ref": "#/$defs/landuse_line"
+    },
+    {
+      "$ref": "#/$defs/landuse_point"
     },
     {
       "$ref": "#/$defs/marine"
