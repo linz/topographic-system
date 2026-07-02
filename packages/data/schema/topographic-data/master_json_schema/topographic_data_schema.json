@@ -783,7 +783,8 @@
           "description": "The specific type of feature being represented.",
           "maxLength": 50,
           "enum": [
-            "tree"
+            "tree",
+            "scattered_scrub"
           ]
         },
         "updated_at": {
