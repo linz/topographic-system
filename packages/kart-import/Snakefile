@@ -1,11 +1,11 @@
 from kart_import.config import (
     get_themes,
     get_releases,
-    get_datasets,
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
     TRANSFORM_SUFFIX,
+    LOOKUP_TO_THEME_MAP,
 )
 
 import os
@@ -14,7 +14,6 @@ import uuid
 # Load configuration details from the Python package
 THEMES = get_themes()
 RELEASES = get_releases()
-DATASETS = get_datasets()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
 
@@ -52,7 +51,7 @@ rule lifecycle:
         "uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
-# 3. EXPORT RELEASES (Produces all release files for a dataset at once)
+# 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
 rule export:
     input:
         cloned = "data/source/{dataset}/.cloned"
@@ -60,6 +59,27 @@ rule export:
         files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
     shell:
         "uv run python -m kart_import.assets.export {wildcards.dataset}"
+
+
+# 3b. EXPORT LOOKUP (one export of full lookup source per distinct commit across releases; not per release)
+rule export_lookup:
+    input:
+        cloned = "data/source/{lookup}/.cloned"
+    output:
+        exported = directory("data/working/export/lookup/{lookup}")
+    shell:
+        "uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
+
+
+# 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
+rule prepare_lookup:
+    input:
+        exported = "data/working/export/lookup/{lookup}",
+        config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
+    output:
+        prepared = directory("data/working/lookup/{lookup}")
+    shell:
+        "uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
 # 4. TRANSFORM
@@ -70,7 +90,16 @@ rule transform:
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
-        )
+        ),
+        lookups = lambda wildcards: [
+            f"data/working/lookup/{join.lookup}"
+            for join in DATASET_MAP[wildcards.dataset].joins
+        ],
+        # clone must be present (not just the prepared parquet).
+        lookup_clones = lambda wildcards: [
+            f"data/source/{join.lookup}/.cloned"
+            for join in DATASET_MAP[wildcards.dataset].joins
+        ]
     output:
         transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
     shell:
