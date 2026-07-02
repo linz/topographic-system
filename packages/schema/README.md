@@ -14,9 +14,9 @@ Files are updated in **NEXT** until **manual** release process which will move t
 
 and pointer to common.tsp
 
-import "../common.tsp"; -> import "./common.tsp"; -> 
+import "../common.tsp"; -> import "./common.tsp"; ->
 
-**D)** Review check 
+**D)** Review check
 
 **src\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed.
 
@@ -49,7 +49,6 @@ Run Main - this is **when full release** is required
 If this does not run in your environment try
 
 > npx tsp compile .
-
 
 depending on where you run this from, and how your tsp is installed; You may need to npx tsp compile ./packages/schema/src/
 or just tsp compile . (dot for current folder) should be enough.
