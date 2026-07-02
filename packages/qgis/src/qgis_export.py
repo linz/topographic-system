@@ -2,7 +2,6 @@ import glob
 import json
 import os
 import sys
-from datetime import datetime
 
 from qgis.core import (
     QgsApplication,
@@ -74,7 +73,7 @@ for feature in topo_sheet_layer.getFeatures():
     map_item.setExtent(bbox)
 
     # handle magnetic info
-    mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code, {"date": datetime.now()})
+    mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code)
     mag_info_render = render_mag_info(mag_info_raw)
 
     for key, value in mag_info_render.items():

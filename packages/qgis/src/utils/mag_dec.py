@@ -1,34 +1,19 @@
 from datetime import datetime
-from typing import NotRequired, TypedDict
 
 from qgis.core import QgsExpression, QgsExpressionContext, QgsExpressionContextScope, QgsPoint
 
-DEFAULTS = {"MODEL_NAME": "igrf14", "MODEL_PATH": "/usr/qgis/models", "HEIGHT": 0}
-
-
-class MagDecOptions(TypedDict):
-    date: datetime
-    model_name: NotRequired[str]
-    model_path: NotRequired[str]
-    height: NotRequired[float]
+MODEL_NAME = "igrf14"
+MODEL_PATH = "/usr/qgis/models"
 
 
 # expects a lat-lon pair in WGS84 (EPSG:4326)
-def calculate_magnetic_declination(
-    point: QgsPoint,
-    options: MagDecOptions,
-) -> float:
+def calculate_magnetic_declination(point: QgsPoint, date: datetime) -> float:
     lat = point.y()  # y axis, vertical axis, north/south, latitude
     lon = point.x()  # x axis, horizontal axis, east/west, longitude
 
-    date = options["date"]
-    model_name = options.get("model_name", DEFAULTS["MODEL_NAME"])
-    model_path = options.get("model_path", DEFAULTS["MODEL_PATH"])
-    height = options.get("height", DEFAULTS["HEIGHT"])
-
     scope = QgsExpressionContextScope()
-    scope.setVariable("model_name", model_name)
-    scope.setVariable("model_path", model_path)
+    scope.setVariable("model_name", MODEL_NAME)
+    scope.setVariable("model_path", MODEL_PATH)
 
     scope.setVariable("lat", lat)
     scope.setVariable("lon", lon)
@@ -40,7 +25,7 @@ def calculate_magnetic_declination(
     scope.setVariable("minute", 0)
     scope.setVariable("second", 0)
 
-    scope.setVariable("height", height)
+    scope.setVariable("height", 0)
 
     context = QgsExpressionContext()
     context.appendScope(scope)
@@ -62,17 +47,15 @@ def calculate_magnetic_declination(
     return result
 
 
-def calculate_rate_of_change(point: QgsPoint, options: MagDecOptions) -> float:
-    date = options["date"]
-
+def calculate_rate_of_change(point: QgsPoint, date: datetime) -> float:
     num_degrees = 0.5
     num_years = 20
 
     date_before = date.replace(year=date.year - int(num_years / 2))
     date_after = date.replace(year=date.year + int(num_years / 2))
 
-    decl_before = calculate_magnetic_declination(point, {**options, "date": date_before})
-    decl_after = calculate_magnetic_declination(point, {**options, "date": date_after})
+    decl_before = calculate_magnetic_declination(point, date_before)
+    decl_after = calculate_magnetic_declination(point, date_after)
 
     decl_delta = decl_after - decl_before
 

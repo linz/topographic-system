@@ -1,16 +1,10 @@
 from datetime import datetime
 from typing import TypedDict
 
-from qgis.core import (
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsFeature,
-    QgsPoint,
-    QgsPointXY,
-    QgsProject,
-)
+from PyQt6.QtCore import QDate
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
-from utils.mag_dec import MagDecOptions, calculate_magnetic_declination, calculate_rate_of_change
+from packages.qgis.src.utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -37,7 +31,7 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str, options: MagDecOptions) -> MagInfoRaw:
+def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoRaw:
     nz_topo50_map_sheet = project.mapLayersByName(topo_map_sheet)[0]
 
     features = list(nz_topo50_map_sheet.getFeatures())
@@ -48,6 +42,14 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
 
         if feature.attribute("sheet_code") != sheet_code:
             continue
+
+        # date
+        published_at = feature.attribute("published_at")
+        if not isinstance(published_at, QDate):
+            raise TypeError("published_at is not a QDate")
+
+        date = published_at.toPyDate()
+        date = date.replace(month=7, day=1)  # set to July 1st
 
         # geometry (source crs)
         geometry = feature.geometry()
@@ -70,16 +72,16 @@ def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str
         conv = source_crs.factors(center_transformed_point).meridianConvergence()
 
         # magnetic declination
-        decl = calculate_magnetic_declination(center_transformed_point, options)
+        decl = calculate_magnetic_declination(center_transformed_point, date)
 
         # rate of change
-        rate_years = calculate_rate_of_change(center_transformed_point, options)
+        rate_years = calculate_rate_of_change(center_transformed_point, date)
 
         # gm angle
         gm_degrees = decl - conv
         gm_mils = _degrees_to_mils(gm_degrees)
 
-        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=options["date"], gm_rate_years=rate_years)
+        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=date, gm_rate_years=rate_years)
 
     raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
 

@@ -1,6 +1,5 @@
 import csv
 from argparse import ArgumentParser
-from datetime import datetime
 
 from qgis.core import (
     QgsApplication,
@@ -8,8 +7,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from utils.mag_dec import MagDecOptions
-from utils.mag_info import calculate_mag_info, render_mag_info
+from packages.qgis.src.utils.mag_info import calculate_mag_info, render_mag_info
 
 # from root: (topographic-system)
 # 1. npm run build && npm run bundle
@@ -17,12 +15,9 @@ from utils.mag_info import calculate_mag_info, render_mag_info
 # 3. docker run -it --rm -u $(id -u):$(id -g) -v "${PWD}:${PWD}" -w "${PWD}" --entrypoint uv map run --no-project packages/qgis/src/utils/mag_info_to_csv.py --qgis-project-path ./qgis/nztopo50.qgs
 # 4. the qgis project file and parquet files must live under PWD, such as "${PWD}/qgis/". otherwise, they're not accessible.
 
-DATE = datetime(2026, 1, 1)
-MODEL_NAME = "igrf14"
-
 parser = ArgumentParser()
 parser.add_argument("--qgis-project-path", required=True, type=str)
-parser.add_argument("--topo-map-sheet", default="nz_topo50_map_sheet", type=str)
+parser.add_argument("--topo-map-sheet", default="nztopo50_map_sheet", type=str)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -47,7 +42,7 @@ if __name__ == "__main__":
         features = list(topo_sheet_layer.getFeatures())
         features_sorted = sorted(features, key=lambda f: f["sheet_code"])
 
-        csv_filename = f"mag_info_{MODEL_NAME}_{DATE.year}.{DATE.month:02d}.{DATE.day:02d}"
+        csv_filename = "mag_info"
         with open(f"{csv_filename}.csv", "w", newline="", encoding="utf-8") as file:
             writer_conv = csv.writer(file, delimiter="\t")
             writer_conv.writerow(["sheet_code", "gm_degrees", "gm_mils", "gm_year", "gm_rate_years"])
@@ -59,8 +54,7 @@ if __name__ == "__main__":
                 sheet_code = feature.attribute("sheet_code")
 
                 # handle magnetic info
-                options: MagDecOptions = {"date": DATE, "model_name": MODEL_NAME}
-                mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code, options)
+                mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code)
                 mag_info_render = render_mag_info(mag_info_raw)
 
                 writer_conv.writerow(
