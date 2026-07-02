@@ -228,7 +228,6 @@ export const PrepareCommand = command({
     const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);
     const mapSheetProj = Projection.get(mapSheetGeo.epsg);
 
-    console.log(`MapSheet Layer:`, mapSheetFile);
     // Run python list all the mapsheet covering metadata
     const exportOptions: ExportOptions = {
       layout: args.layout,
@@ -240,12 +239,10 @@ export const PrepareCommand = command({
     const mapSheetsToCreate: SheetMetadata[] = [];
 
     for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.linked, { decodeGeometry: true })) {
-      // FIXME mapSheetProj is 4167 but the data is in EPSG:2193
-      const sourceProj = (mapSheetGeo.epsg.code as number) === 4167 ? Projection.get(Epsg.Nztm2000) : mapSheetProj;
       if (args.all || mapSheets.has(row.sheet_code)) {
         mapSheetsToCreate.push({
           sheetCode: row.sheet_code,
-          geometry: geoJsonToWgs84(row.geometry, sourceProj),
+          geometry: geoJsonToWgs84(row.geometry, mapSheetProj),
         });
       }
     }
