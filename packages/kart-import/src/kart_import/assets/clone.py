@@ -3,7 +3,7 @@ import logging
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
-    get_dataset_by_name,
+    get_source_entry,
 )
 from ..env import env_use_bundle
 from ..git.bundle import download_and_clone_from_bundle
@@ -13,7 +13,7 @@ logger = logging.getLogger("kart_import")
 
 
 def clone_dataset(dataset_name: str):
-    td = get_dataset_by_name(dataset_name)
+    td = get_source_entry(dataset_name)
     dataset_url = td.source.url
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / dataset_name
