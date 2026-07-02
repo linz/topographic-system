@@ -1287,7 +1287,7 @@ class TableModificationWorkflow:
             self.schema_name, "landuse_line", "track_type", "landuse_type"
         )
         self.table_modifer.rename_columns(
-            self.schema_name, "place_point", "visibility", "place_type"
+            self.schema_name, "landuse_point", "visibility", "subtype"
         )
 
         # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box

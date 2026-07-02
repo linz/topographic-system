@@ -144,13 +144,9 @@ Land_Layers,place_point,macronated,macronated,String,1
 Land_Layers,place_point,name,name,String,75
 Land_Layers,place_point,name_ascii,name_ascii,String,75
 Land_Layers,place_point,SHAPE,SHAPE,Point,0
-Land_Layers,place_point,status,status,String,25
 Land_Layers,place_point,substance,substance_extracted,String,11
 Land_Layers,place_point,t50_fid,t50_fid,BigInteger,8
-Land_Layers,place_point,visibility,visibility,String,11
 Land_Layers,place_point,compositn,composition,String,9
-Land_Layers,place_point,orientatn,orientation,Double,8
-Land_Layers,place_point,elevation,elevation,Integer,4
 Transport_Layers,railway_line,feature_type,type,String,50
 Transport_Layers,railway_line,macronated,macronated,String,1
 Transport_Layers,railway_line,name,name,String,75
@@ -190,6 +186,7 @@ Relief_Layers,relief_point,name,name,String,75
 Relief_Layers,relief_point,name_ascii,name_ascii,String,75
 Relief_Layers,relief_point,SHAPE,SHAPE,Point,0
 Relief_Layers,relief_point,t50_fid,t50_fid,BigInteger,8
+Relief_Layers,relief_point,orientatn,orientation,Double,8
 Buildings_Layers,residential_area,feature_type,type,String,50
 Buildings_Layers,residential_area,macronated,macronated,String,1
 Buildings_Layers,residential_area,name,name,String,75
@@ -333,3 +330,12 @@ Water_Layers,water_point,orientatn,orientation,Double,8
 Water_Layers,water_point,SHAPE,SHAPE,Point,0
 Water_Layers,water_point,t50_fid,t50_fid,BigInteger,8
 Water_Layers,water_point,temp,temperature_indicator,String,4
+Land_Layers,landuse_point,feature_type,type,String,50
+Land_Layers,landuse_point,macronated,macronated,String,1
+Land_Layers,landuse_point,name,name,String,75
+Land_Layers,landuse_point,name_ascii,name_ascii,String,75
+Land_Layers,landuse_point,SHAPE,SHAPE,Point,0
+Land_Layers,landuse_point,status,status,String,25
+Land_Layers,landuse_point,substance,substance_extracted,String,11
+Land_Layers,landuse_point,t50_fid,t50_fid,BigInteger,8
+Land_Layers,landuse_point,visibility,visibility,String,11
