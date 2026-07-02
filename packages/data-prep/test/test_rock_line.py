@@ -19,7 +19,7 @@ FAR_POLYGON = Polygon([(170, -45), (171, -45), (171, -44), (170, -44)])
 
 
 def run_rock_line(tmp_path: Path, coastline_line, island_polygon, water_polygon):
-    marine_gdf = gpd.GeoDataFrame({"feature_type": ["rock"], "geometry": [ROCK]}, crs=NZGD2000)
+    marine_gdf = gpd.GeoDataFrame({"type": ["rock"], "geometry": [ROCK]}, crs=NZGD2000)
     marine_path = tmp_path / "marine.parquet"
     marine_gdf.to_parquet(marine_path)
 
@@ -31,7 +31,7 @@ def run_rock_line(tmp_path: Path, coastline_line, island_polygon, water_polygon)
     island_path = tmp_path / "island.parquet"
     island_gdf.to_parquet(island_path)
 
-    water_gdf = gpd.GeoDataFrame({"feature_type": ["lake"], "geometry": [water_polygon]}, crs=NZGD2000)
+    water_gdf = gpd.GeoDataFrame({"type": ["lake"], "geometry": [water_polygon]}, crs=NZGD2000)
     water_path = tmp_path / "water.parquet"
     water_gdf.to_parquet(water_path)
 
