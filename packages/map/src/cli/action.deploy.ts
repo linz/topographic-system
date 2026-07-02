@@ -77,15 +77,14 @@ async function deployProject(
   if (meta.layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
 
   // QGIS may have duplicate layer sources, so get the unique sources
-  const uniqueSource = new Set(meta.layers.map((layer) => layer.source.replace('.parquet', '').replace('.geojson', '')));
+  const uniqueSource = new Set(
+    meta.layers.map((layer) => layer.source.replace('.parquet', '').replace('.geojson', '')),
+  );
 
   const datasetLinks = await Promise.all(
     [...uniqueSource].map((layer) =>
       q(async () => {
-        const collectionUrl = await getDataFromCatalog(
-          args.source,
-          layer,
-        );
+        const collectionUrl = await getDataFromCatalog(args.source, layer);
         const collection = await fsa.readJson<StacCollection>(collectionUrl);
         return { collection, url: collectionUrl };
       }),
