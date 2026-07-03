@@ -18,7 +18,7 @@ import "../common.tsp"; -> import "./common.tsp"; ->
 
 **D)** Review check
 
-**src\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed.
+**src\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed. THis now only contain widely common enums.
 
 **src\main.tsp** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
 
@@ -26,9 +26,9 @@ import "../common.tsp"; -> import "./common.tsp"; ->
 
 @jsonSchema("bridge_line") -> @jsonSchema("next\bridge_line")
 
-Check fields and related allow values. Enum typically in common.
+Check fields and related allow values. Enum typically in same schema file and lowercase..
 
-example -> use2?: Topo.BridgeUse2Enum
+example -> use2: use2
 
 ## Step 2
 

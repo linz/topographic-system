@@ -35,14 +35,7 @@
       "const": "bridge"
     },
     "use1": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/use1"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/use1"
     },
     "use2": {
       "anyOf": [
@@ -95,16 +88,28 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "use1",
+    "use2",
+    "construction_type",
+    "status",
+    "name",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
     "use1": {
       "type": "string",
-      "enum": ["cablecar", "farm", "foot traffic", "train", "vehicle"]
+      "enum": ["cablecar", "farm", "foot_traffic", "train", "vehicle"]
     },
     "use2": {
       "type": "string",
-      "enum": ["foot traffic", "train"]
+      "enum": ["foot_traffic", "train"]
     },
     "construction_type": {
       "type": "string",
@@ -123,7 +128,7 @@
         "private",
         "remains",
         "ruins",
-        "under construction"
+        "under_construction"
       ]
     },
     "BBox": {
