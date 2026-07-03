@@ -9,11 +9,11 @@ model bridge_line {
    ...TopographicFeature;
 
   type: "bridge";
-  use1?: use1 | null;
-  use2?: use2 | null;
-  construction_type?: construction_type | null;
-  status?: status | null;
-  name?: string | null;
+  use1: use1;
+  use2: use2 | null;
+  construction_type: construction_type | null;
+  status: status | null;
+  name: string | null;
 
   ...GeoParquet
 }
