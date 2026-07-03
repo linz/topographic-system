@@ -17,7 +17,8 @@ os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 project_path = sys.argv[1]
 file_output_path = sys.argv[2]
 project_layout = sys.argv[3]
-topo_map_sheet = sys.argv[4]
+# The name of the layer in the QGIS project that contains the topo map sheet polygons
+topo_map_sheet_name = sys.argv[4]
 export_format = sys.argv[5]
 dpi = int(sys.argv[6])
 sheet_code = sys.argv[7]
@@ -58,7 +59,7 @@ for layer in list(project.mapLayers().values()):
 
 map_crs = map_item.crs()
 
-topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet)[0]
+topo_sheet_layer = QgsProject.instance().mapLayersByName(topo_map_sheet_name)[0]
 
 for feature in topo_sheet_layer.getFeatures():
     feature_code = str(feature["sheet_code"])

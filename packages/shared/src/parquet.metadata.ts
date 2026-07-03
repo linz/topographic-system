@@ -1,8 +1,11 @@
+import { zstdDecompressSync } from 'node:zlib';
+
 import type { Epsg } from '@basemaps/geo';
 import { Bounds, Projection, ProjectionLoader } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import type { AsyncBuffer, ColumnChunk, FileMetaData } from 'hyparquet';
-import { parquetMetadataAsync } from 'hyparquet';
+import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet';
+import { DEFAULT_PARSERS } from 'hyparquet/src/convert.js';
 import type { MinMaxType } from 'hyparquet/src/types.js';
 import type { Extents } from 'stac-ts';
 
@@ -27,11 +30,11 @@ export interface ParquetStacMetadata {
 }
 
 export async function parquetToStac(assetFile: URL): Promise<ParquetStacMetadata> {
-  const meta = await readParquetFileMetadata(assetFile);
+  const meta = await readParquetMetadata(assetFile);
   return await mapParquetMetadataToStacStats(meta);
 }
 
-export async function readParquetFileMetadata(assetFile: URL): Promise<FileMetaData> {
+export async function readParquetMetadata(assetFile: URL): Promise<FileMetaData> {
   const source = fsa.source(assetFile);
   const headInfo = await source.head();
   const byteLength = headInfo.size;
@@ -56,7 +59,7 @@ interface BasicProjJson {
   bbox: number[];
 }
 
-async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
+export async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
   const geom = parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo');
   if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
   const geomMeta = JSON.parse(geom.value ?? '{}') as { columns: Record<string, BasicProjJson>; primary_column: string };
@@ -144,4 +147,65 @@ function aggregateStats(out: Partial<ColumnStats>, chunk: ColumnChunk): void {
   out.null_count = (out.null_count ?? 0) + Number(stats.null_count ?? 0);
   setMin(out, stats.min);
   setMax(out, stats.max);
+}
+
+/**
+ * // Prevent WKB's from being decoded as geometry objects,
+// as it takes a very long time for large geometries
+ */
+const ParserNoGeo: typeof DEFAULT_PARSERS = {
+  ...DEFAULT_PARSERS,
+  geometryFromBytes: (bytes) => bytes,
+  geographyFromBytes: (bytes) => bytes,
+};
+
+export interface ParquetReadOptions {
+  /**
+   * Should the WKB be decoded from the parquet
+   * @default: false
+   */
+  decodeGeometry: boolean;
+}
+
+export async function* readParquet<T>(
+  path: URL,
+  opts: ParquetReadOptions = { decodeGeometry: false },
+): AsyncGenerator<T> {
+  for await (const group of readParquetGroups(path, opts)) {
+    for (const row of group) yield row as T;
+  }
+}
+
+export async function* readParquetGroups<T>(
+  path: URL,
+  opts: ParquetReadOptions = { decodeGeometry: false },
+): AsyncGenerator<T[]> {
+  const source = fsa.source(path);
+  const head = await source.head();
+  if (head == null) throw new Error(`File not found: ${path.href}`);
+  const asyncBuffer = {
+    byteLength: head.size as number,
+    slice(start: number, end?: number) {
+      return source.fetch(start, end == null ? undefined : end - start);
+    },
+  };
+  const metadata = await parquetMetadataAsync(asyncBuffer);
+  const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
+
+  let rowStart = 0;
+  for (const group of metadata.row_groups) {
+    const rowEnd = rowStart + Number(group.num_rows);
+    const groupData = await parquetReadObjects({
+      file: asyncBuffer,
+      metadata,
+      compressors: { ZSTD },
+      rowStart,
+      rowEnd,
+      parsers: opts.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo,
+      geoparquet: opts.decodeGeometry,
+    });
+
+    yield groupData as T[];
+    rowStart = rowEnd;
+  }
 }
