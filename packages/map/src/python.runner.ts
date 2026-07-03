@@ -87,7 +87,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   // But we need the layer name for the qgis project
   const projectMeta = await getQgisProjectMeta(input);
   const mapSheetLayerName = getQgisMapSheetDataset(projectMeta.layers, options.mapSheetDataset);
-  if (mapSheetLayerName == null){
+  if (mapSheetLayerName == null) {
     throw new Error(`Unable to find map sheet layer for dataset: ${options.mapSheetDataset}`);
   }
 
