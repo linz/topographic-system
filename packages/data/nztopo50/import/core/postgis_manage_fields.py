@@ -9,6 +9,49 @@ DB_PARAMS = {
     "port": 5432,
 }
 
+TABLE_UNDERSCORE_COLUMNS = {
+	"airport": ["type"],
+	"bridge_line": ["type", "use1", "use2", "construction_type", "status"],
+	"building": ["type", "building_use", "status"],
+	"building_point": ["type", "building_use", "status"],
+	"coastline": ["type", "coastline_type"],
+	"contour": ["type", "definition", "designation", "formation"],
+	"descriptive_text": ["type"],
+	"fence_line": ["type"],
+	"ferry_line": ["type"],
+	"geographic_name": ["type"],
+	"island": ["type"],
+	"landcover": ["type", "subtype"],
+	"landcover_line": ["type"],
+	"landcover_point": ["type", "subtype"],
+	"landuse": ["type", "landuse_use", "subtype", "status", "substance_extracted"],
+	"landuse_line": ["type", "landuse_use", "subtype"],
+	"landuse_point": ["type", "status", "subtype", "substance_extracted"],
+	"marine": ["type", "composition"],
+	"utility_line": ["type", "utility_use", "support_type", "status", "visibility"],
+	"utility_point": ["type"],
+	"place_point": ["type", "composition", "description"],
+	"railway_line": ["type", "railway_use", "track_type", "vehicle_type", "status"],
+	"railway_point": ["type"],
+	"relief": ["type"],
+	"relief_line": ["type", "relief_use"],
+	"relief_point": ["type"],
+	"residential_area": ["type"],
+	"road_line": ["type", "hierarchy", "status", "surface", "width_indicator"],
+	"runway": ["type", "runway_use", "status", "surface"],
+	"structure": ["lid_type", "subtype", "species", "status", "stored_item"],
+	"structure_line": ["type", "structure_use", "species", "status", "material", "material_conveyed", "restrictions"],
+	"structure_point": ["type", "structure_use", "subtype", "status", "material", "restrictions", "stored_item", "wreck_of"],
+	"track_line": ["type", "track_use", "track_type", "status"],
+	"transport_point": ["type"],
+	"trig_point": ["type", "trig_type"],
+	"tunnel_line": ["type", "tunnel_use", "tunnel_use2", "subtype"],
+	"water": ["type", "water_use", "hierarchy", "perennial"],
+	"water_line": ["type"],
+	"water_point": ["type", "temperature_indicator"],
+	"vegetation_point": ["type"],
+}
+
 
 class ModifyTable:
     """DDL and DML utilities for managing PostGIS table schema and field values.
@@ -895,6 +938,49 @@ class ModifyTable:
                     f"Column '{column_name}' does not exist in table '{schema}.{table}'"
                 )
 
+    def update_spaces_with_underscores(self, schema_name):
+        """Replace spaces with underscores for configured table columns.
+
+        Uses ``TABLE_UNDERSCORE_COLUMNS`` to determine which table/column
+        combinations are updated.
+
+        Args:
+            schema_name: Schema containing target tables.
+        """
+        self.connect()
+
+        for table, columns in TABLE_UNDERSCORE_COLUMNS.items():
+            if not self.table_exists(schema_name, table):
+                print(f"Table '{schema_name}.{table}' does not exist")
+                continue
+
+            for column_name in columns:
+                if not self.column_exists(schema_name, table, column_name):
+                    print(
+                        f"Column '{column_name}' does not exist in table '{schema_name}.{table}'"
+                    )
+                    continue
+
+                update_query = f'''
+                    UPDATE "{schema_name}"."{table}"
+                    SET "{column_name}" = REPLACE("{column_name}", ' ', '_')
+                    WHERE "{column_name}" IS NOT NULL
+                        AND "{column_name}" LIKE '% %';
+                '''
+
+                with self.conn.cursor() as cur:
+                    try:
+                        cur.execute(update_query)
+                        self.conn.commit()
+                        print(
+                            f"Updated spaces to underscores in '{schema_name}.{table}.{column_name}'"
+                        )
+                    except Exception as e:
+                        self.conn.rollback()
+                        print(
+                            f"Error updating spaces in '{schema_name}.{table}.{column_name}': {e}. Query: {update_query}"
+                        )
+
     def road_lkp_updates(self, schema):
         """Update road_line fields from the lookups.road_lkp table.
 
@@ -1245,15 +1331,15 @@ class TableModificationWorkflow:
         #     f"{self.schema_name}.railway_line", "nzgb_id", "BIGINT"
         # )
         
-        self.table_modifer.add_column(
-            f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
-        )
-        self.table_modifer.add_column(
-            f"{self.schema_name}.railway_line", "route2", "VARCHAR(30)"
-        )
-        self.table_modifer.add_column(
-            f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.railway_line", "route", "VARCHAR(30)"
+        #)
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.railway_line", "route2", "VARCHAR(30)"
+        #)
+        #self.table_modifer.add_column(
+        #   f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
+        #)
 
         self.table_modifer.add_column(
             f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
@@ -1327,6 +1413,9 @@ class TableModificationWorkflow:
         self.table_modifer.add_metadata_columns(
             "alter", self.schema_name, self.add_full_metadata_fields
         )
+
+    def step_update_spaces_with_underscores(self):
+        self.table_modifer.update_spaces_with_underscores(self.schema_name)
 
     def step_primary_key(self):
         schema_tables = self.table_modifer.list_schema_tables(self.schema_name)
@@ -1417,6 +1506,7 @@ class TableModificationWorkflow:
             ("road_lkp_updates", self.step_road_lkp_updates),
             ("defaults", self.step_defaults),
             ("rename", self.step_rename),
+            ("update_spaces_with_underscores", self.step_update_spaces_with_underscores),
             ("carto_text_geom_update", self.step_carto_text_geom_update),
             ("recreate_table_srid", self.step_recreate_table_srid),
             ("primary_key", self.step_primary_key),

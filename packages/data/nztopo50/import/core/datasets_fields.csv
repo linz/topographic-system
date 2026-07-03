@@ -337,3 +337,4 @@ Water_Layers,water_point,orientatn,orientation,Double,8
 Water_Layers,water_point,SHAPE,SHAPE,Point,0
 Water_Layers,water_point,t50_fid,t50_fid,BigInteger,8
 Water_Layers,water_point,temp,temperature_indicator,String,4
+Water_Layers,water_point,height,height,Double,8
