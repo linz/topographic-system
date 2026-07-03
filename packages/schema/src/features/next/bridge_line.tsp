@@ -21,13 +21,13 @@ model bridge_line {
 enum use1 {
   Cablecar: "cablecar",
   Farm: "farm",
-  FootTraffic: "foot traffic",
+  FootTraffic: "foot_traffic",
   Train: "train",
   Vehicle: "vehicle",
 }
 
 enum use2 {
-  FootTraffic: "foot traffic",
+  FootTraffic: "foot_traffic",
   Train: "train",
 }
 
@@ -48,5 +48,5 @@ enum status {
   Private: "private",
   Remains: "remains",
   Ruins: "ruins",
-  UnderConstruction: "under construction",
+  UnderConstruction: "under_construction",
 }
