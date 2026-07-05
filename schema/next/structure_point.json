@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/structure_point",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUIDv7 of the feature"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was last updated"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "$ref": "#/$defs/structure_point_type"
+    },
+    "structure_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_use"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tank_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "uncovered"
+        },
+        {
+          "type": "string",
+          "const": "water"
+        },
+        {
+          "type": "string",
+          "const": "surge chamber"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_status"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "location": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_location"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "material": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_material"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "restrictions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_restrictions"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stored_item": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_point_stored_item"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "wreck_of": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/wreck_of"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "structure_use",
+    "tank_type",
+    "subtype",
+    "status",
+    "name",
+    "location",
+    "height",
+    "orientation",
+    "material",
+    "restrictions",
+    "stored_item",
+    "wreck_of",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "structure_point_type": {
+      "type": "string",
+      "enum": [
+        "beacon",
+        "bivouac",
+        "buoy",
+        "chimney",
+        "dredge",
+        "flare",
+        "floodgate",
+        "gate",
+        "ladder",
+        "mast",
+        "redoubt",
+        "shaft",
+        "siphon",
+        "stockyard",
+        "tank",
+        "tower",
+        "well",
+        "windmill",
+        "wreck"
+      ]
+    },
+    "structure_point_use": {
+      "type": "string",
+      "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"]
+    },
+    "structure_point_subtype": {
+      "type": "string",
+      "enum": ["lighthouse", "surge chamber", "uncovered", "water"]
+    },
+    "structure_point_status": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ]
+    },
+    "structure_point_location": {
+      "type": "string",
+      "enum": ["lake", "land", "sea"]
+    },
+    "structure_point_material": {
+      "type": "string",
+      "enum": ["concrete", "rock"]
+    },
+    "structure_point_restrictions": {
+      "type": "string",
+      "enum": ["locked"]
+    },
+    "structure_point_stored_item": {
+      "type": "string",
+      "enum": ["fuel", "water"]
+    },
+    "wreck_of": {
+      "type": "string",
+      "enum": ["plane", "ship"]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}
