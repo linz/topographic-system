@@ -36,7 +36,7 @@
     "structure_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_use"
+          "$ref": "#/$defs/structure_use"
         },
         {
           "type": "null"
@@ -65,7 +65,7 @@
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_subtype"
+          "$ref": "#/$defs/structure_subtype"
         },
         {
           "type": "null"
@@ -75,7 +75,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_status"
+          "$ref": "#/$defs/structure_status"
         },
         {
           "type": "null"
@@ -95,7 +95,16 @@
     "location": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_location"
+          "type": "string",
+          "const": "land"
+        },
+        {
+          "type": "string",
+          "const": "lake"
+        },
+        {
+          "type": "string",
+          "const": "sea"
         },
         {
           "type": "null"
@@ -125,7 +134,7 @@
     "material": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_material"
+          "$ref": "#/$defs/structure_material"
         },
         {
           "type": "null"
@@ -135,7 +144,7 @@
     "restrictions": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_restrictions"
+          "$ref": "#/$defs/structure_restrictions"
         },
         {
           "type": "null"
@@ -145,7 +154,7 @@
     "stored_item": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_point_stored_item"
+          "$ref": "#/$defs/structure_stored_item"
         },
         {
           "type": "null"
@@ -155,7 +164,12 @@
     "wreck_of": {
       "anyOf": [
         {
-          "$ref": "#/$defs/wreck_of"
+          "type": "string",
+          "const": "plane"
+        },
+        {
+          "type": "string",
+          "const": "ship"
         },
         {
           "type": "null"
@@ -219,15 +233,15 @@
         "wreck"
       ]
     },
-    "structure_point_use": {
+    "structure_use": {
       "type": "string",
       "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"]
     },
-    "structure_point_subtype": {
+    "structure_subtype": {
       "type": "string",
       "enum": ["lighthouse", "surge chamber", "uncovered", "water"]
     },
-    "structure_point_status": {
+    "structure_status": {
       "type": "string",
       "enum": [
         "closed",
@@ -243,25 +257,17 @@
         "under construction"
       ]
     },
-    "structure_point_location": {
-      "type": "string",
-      "enum": ["lake", "land", "sea"]
-    },
-    "structure_point_material": {
+    "structure_material": {
       "type": "string",
       "enum": ["concrete", "rock"]
     },
-    "structure_point_restrictions": {
+    "structure_restrictions": {
       "type": "string",
       "enum": ["locked"]
     },
-    "structure_point_stored_item": {
+    "structure_stored_item": {
       "type": "string",
       "enum": ["fuel", "water"]
-    },
-    "wreck_of": {
-      "type": "string",
-      "enum": ["plane", "ship"]
     },
     "BBox": {
       "type": "object",

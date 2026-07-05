@@ -9,8 +9,7 @@ model structure {
   ...TopographicFeature;
 
   type: structure_type;
-  lid_type: lid_type | null;
-  tank_type: string | null;
+  lid_type: "covered" | null;
   subtype: structure_subtype | null;
   species: structure_species | null;
   status: structure_status | null;
@@ -29,16 +28,21 @@ enum structure_type {
   Tank: "tank"
 }
 
-enum lid_type {
-  Covered: "covered"
-}
-
 enum structure_subtype {
   Lighthouse: "lighthouse",
   SurgeChamber: "surge chamber",
   Uncovered: "uncovered",
   Water: "water"
 }
+
+enum structure_use {
+  Disused: "disused",
+  Historic: "historic",
+  Jetty: "jetty",
+  PowerGeneration: "power generation",
+  TunnelVentilation: "tunnel ventilation"
+}
+
 
 enum structure_species {
   Mussels: "mussels",
@@ -62,4 +66,18 @@ enum structure_status {
 enum structure_stored_item {
   Fuel: "fuel",
   Water: "water"
+}
+
+enum structure_material {
+  Concrete: "concrete",
+  Rock: "rock"
+}
+
+enum structure_material_conveyed {
+  Coal: "coal",
+  Lime: "lime"
+}
+
+enum structure_restrictions {
+  Locked: "locked"
 }

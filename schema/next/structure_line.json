@@ -36,7 +36,7 @@
     "structure_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_use"
+          "$ref": "#/$defs/structure_use"
         },
         {
           "type": "null"
@@ -46,7 +46,7 @@
     "species": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_species"
+          "$ref": "#/$defs/structure_species"
         },
         {
           "type": "null"
@@ -56,7 +56,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_status"
+          "$ref": "#/$defs/structure_status"
         },
         {
           "type": "null"
@@ -76,7 +76,7 @@
     "material": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_material"
+          "$ref": "#/$defs/structure_material"
         },
         {
           "type": "null"
@@ -86,7 +86,7 @@
     "material_conveyed": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_material_conveyed"
+          "$ref": "#/$defs/structure_material_conveyed"
         },
         {
           "type": "null"
@@ -96,7 +96,7 @@
     "restrictions": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_line_restrictions"
+          "$ref": "#/$defs/structure_restrictions"
         },
         {
           "type": "null"
@@ -154,15 +154,15 @@
         "wharf_edge"
       ]
     },
-    "structure_line_use": {
+    "structure_use": {
       "type": "string",
       "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"]
     },
-    "structure_line_species": {
+    "structure_species": {
       "type": "string",
       "enum": ["mussels", "salmon"]
     },
-    "structure_line_status": {
+    "structure_status": {
       "type": "string",
       "enum": [
         "closed",
@@ -178,15 +178,15 @@
         "under construction"
       ]
     },
-    "structure_line_material": {
+    "structure_material": {
       "type": "string",
       "enum": ["concrete", "rock"]
     },
-    "structure_line_material_conveyed": {
+    "structure_material_conveyed": {
       "type": "string",
       "enum": ["coal", "lime"]
     },
-    "structure_line_restrictions": {
+    "structure_restrictions": {
       "type": "string",
       "enum": ["locked"]
     },

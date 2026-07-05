@@ -36,17 +36,8 @@
     "lid_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/lid_type"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "tank_type": {
-      "anyOf": [
-        {
-          "type": "string"
+          "type": "string",
+          "const": "covered"
         },
         {
           "type": "null"
@@ -121,7 +112,6 @@
     "t50_fid",
     "type",
     "lid_type",
-    "tank_type",
     "subtype",
     "species",
     "status",
@@ -134,10 +124,6 @@
     "structure_type": {
       "type": "string",
       "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
-    },
-    "lid_type": {
-      "type": "string",
-      "enum": ["covered"]
     },
     "structure_subtype": {
       "type": "string",
