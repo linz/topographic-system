@@ -98,17 +98,23 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.mount(fileURLToPath(new URL('.', output)));
 
   cmd.args.push(fileURLToPath(new URL('qgis_export.py', sourceLocation)));
-  cmd.args.push(fileURLToPath(input));
-  cmd.args.push(fileURLToPath(output));
-  cmd.args.push(options.layout);
-  cmd.args.push(mapSheetLayerName.name);
-  cmd.args.push(options.format);
-  cmd.args.push(options.dpi.toFixed());
-  cmd.args.push(sheetCode);
-  cmd.args.push(JSON.stringify(options.excludeLayers ?? []));
+  cmd.args.push(`--project=${fileURLToPath(input)}`);
+  cmd.args.push(`--output=${fileURLToPath(output)}`);
+  cmd.args.push(`--layout=${options.layout}`);
+  cmd.args.push(`--map-sheet-layer-name=${mapSheetLayerName.name}`);
+  cmd.args.push(`--format=${options.format}`);
+  cmd.args.push(`--dpi=${options.dpi.toFixed(0)}`);
+  cmd.args.push(`--sheet-code=${sheetCode}`);
+
+  if (options.excludeLayers) {
+    cmd.args.push(`--exclude-layers=${JSON.stringify(options.excludeLayers ?? [])}`);
+  }
 
   const res = await runAndLog(cmd);
-  logger.info({ sheetCode, output: res.stdout.trim(), duration: performance.now() - startTime }, 'Export:Done');
+  logger.info(
+    { sheetCode, output: res.stdout.trim(), err: res.stderr.trim(), duration: performance.now() - startTime },
+    'Export:Done',
+  );
   return pathToFileURL(res.stdout.trim());
 }
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/railway_line",
+  "$id": "next/structure",
   "type": "object",
   "properties": {
     "id": {
@@ -31,29 +31,43 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "railway"
+      "$ref": "#/$defs/structure_type"
     },
-    "railway_use": {
+    "lid_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_use"
+          "type": "string",
+          "const": "covered"
         },
         {
           "type": "null"
         }
       ]
     },
-    "track_type": {
-      "$ref": "#/$defs/track_type"
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
-    "vehicle_type": {
-      "$ref": "#/$defs/vehicle_type"
+    "species": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_species"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_status"
+          "$ref": "#/$defs/structure_status"
         },
         {
           "type": "null"
@@ -68,8 +82,17 @@
         {
           "type": "null"
         }
-      ],
-      "description": "The name of the railway line if known"
+      ]
+    },
+    "stored_item": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_stored_item"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -88,31 +111,47 @@
     "updated_at",
     "t50_fid",
     "type",
-    "railway_use",
-    "track_type",
-    "vehicle_type",
+    "lid_type",
+    "subtype",
+    "species",
     "status",
     "name",
+    "stored_item",
     "geometry"
   ],
-  "description": "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature",
   "additionalProperties": false,
   "$defs": {
-    "railway_use": {
+    "structure_type": {
       "type": "string",
-      "enum": ["siding"]
+      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
     },
-    "track_type": {
+    "structure_subtype": {
       "type": "string",
-      "enum": ["single", "multiple"]
+      "enum": ["lighthouse", "surge chamber", "uncovered", "water"]
     },
-    "vehicle_type": {
+    "structure_species": {
       "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
+      "enum": ["mussels", "salmon"]
     },
-    "railway_status": {
+    "structure_status": {
       "type": "string",
-      "enum": ["disused", "under construction"]
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ]
+    },
+    "structure_stored_item": {
+      "type": "string",
+      "enum": ["fuel", "water"]
     },
     "BBox": {
       "type": "object",

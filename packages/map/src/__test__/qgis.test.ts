@@ -22,9 +22,13 @@ describe('qgis', () => {
 
       assert.equal(meta.epsg.code, 2193);
       assert.deepEqual(meta.layers, [
-        { name: 'road_line 2 lane highway map', source: 'road_line.parquet' },
-        { name: 'water', source: 'water.parquet' },
-        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet' },
+        {
+          name: 'road_line 2 lane highway map',
+          source: 'road_line.parquet',
+          options: [{ key: 'subset', value: '&quot;lane_count&quot; &gt; 1' }],
+        },
+        { name: 'water', source: 'water.parquet', options: [] },
+        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', options: [] },
       ]);
     });
 
@@ -67,6 +71,26 @@ describe('qgis', () => {
         () => getQgisMapSheetDataset([layers[0]!, layers[2]!]),
         /No map sheet layer ending with "map_sheet.parquet" found/,
       );
+    });
+
+    it('should only select a map sheet layer with no query', () => {
+      const layersWithQuery = [
+        { name: 'layer1', source: 'data1.parquet' },
+        { name: 'layer2', source: 'my_map_sheet.parquet', options: [{ key: 'subset', value: 'some_query' }] },
+        { name: 'layer4', source: 'my_map_sheet.parquet' },
+      ];
+
+      assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer4');
+    });
+
+    it('should only select a map sheet layer with some options', () => {
+      const layersWithQuery = [
+        { name: 'layer1', source: 'data1.parquet' },
+        { name: 'layer2', source: 'my_map_sheet.parquet', options: [{ key: 'layername', value: 'some_layer' }] },
+        { name: 'layer4', source: 'my_map_sheet.parquet' },
+      ];
+
+      assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer2');
     });
   });
 });

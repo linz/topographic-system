@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/railway_line",
+  "$id": "next/water",
   "type": "object",
   "properties": {
     "id": {
@@ -31,29 +31,43 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "railway"
-    },
-    "railway_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_use"
+          "type": "string",
+          "const": "canal"
+        },
+        {
+          "type": "string",
+          "const": "lagoon"
+        },
+        {
+          "type": "string",
+          "const": "lake"
+        },
+        {
+          "type": "string",
+          "const": "pond"
+        },
+        {
+          "type": "string",
+          "const": "river"
+        }
+      ]
+    },
+    "water_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/water_use"
         },
         {
           "type": "null"
         }
       ]
     },
-    "track_type": {
-      "$ref": "#/$defs/track_type"
-    },
-    "vehicle_type": {
-      "$ref": "#/$defs/vehicle_type"
-    },
-    "status": {
+    "hierarchy": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_status"
+          "type": "string"
         },
         {
           "type": "null"
@@ -68,8 +82,60 @@
         {
           "type": "null"
         }
-      ],
-      "description": "The name of the railway line if known"
+      ]
+    },
+    "group_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nzgb_feat_id": {},
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "elevation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "perennial": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/water_perennial"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "temperature_indicator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/water_temperature_indicator"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -88,31 +154,41 @@
     "updated_at",
     "t50_fid",
     "type",
-    "railway_use",
-    "track_type",
-    "vehicle_type",
-    "status",
+    "water_use",
+    "hierarchy",
     "name",
+    "group_name",
+    "nzgb_feat_id",
+    "height",
+    "elevation",
+    "perennial",
+    "temperature_indicator",
     "geometry"
   ],
-  "description": "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature",
   "additionalProperties": false,
   "$defs": {
-    "railway_use": {
+    "water_use": {
       "type": "string",
-      "enum": ["siding"]
+      "enum": [
+        "evaporation",
+        "hydro-electric",
+        "ice skating",
+        "oil",
+        "oxidation",
+        "reservoir",
+        "settling",
+        "sewage",
+        "sewage treatment",
+        "sludge"
+      ]
     },
-    "track_type": {
+    "water_perennial": {
       "type": "string",
-      "enum": ["single", "multiple"]
+      "enum": ["dry", "seasonal"]
     },
-    "vehicle_type": {
+    "water_temperature_indicator": {
       "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
-    },
-    "railway_status": {
-      "type": "string",
-      "enum": ["disused", "under construction"]
+      "enum": ["cold", "hot"]
     },
     "BBox": {
       "type": "object",
