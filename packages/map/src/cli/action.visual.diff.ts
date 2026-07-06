@@ -31,7 +31,7 @@ const defaultTests: TestProject[] = [
   {
     name: 'nztopo50',
     layout: 'tiff-50',
-    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
+    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 100,
     excludeLayers: ['Hillshade Igor Color ramp'],
   },

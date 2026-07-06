@@ -220,6 +220,7 @@ export const PrepareCommand = command({
     logger.info({ project: args.project.href }, 'Prepare');
     const projectMeta = await getQgisProjectMeta(projectPath);
     const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
+    logger.info({ project: args.project.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
 
     const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
