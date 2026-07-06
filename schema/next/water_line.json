@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/railway_line",
+  "$id": "next/water_line",
   "type": "object",
   "properties": {
     "id": {
@@ -31,29 +31,25 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "railway"
-    },
-    "railway_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_use"
+          "type": "string",
+          "const": "canal"
         },
         {
-          "type": "null"
+          "type": "string",
+          "const": "drain"
+        },
+        {
+          "type": "string",
+          "const": "river"
         }
       ]
     },
-    "track_type": {
-      "$ref": "#/$defs/track_type"
-    },
-    "vehicle_type": {
-      "$ref": "#/$defs/vehicle_type"
-    },
-    "status": {
+    "hierarchy": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_status"
+          "type": "string"
         },
         {
           "type": "null"
@@ -68,8 +64,7 @@
         {
           "type": "null"
         }
-      ],
-      "description": "The name of the railway line if known"
+      ]
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -82,38 +77,9 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "railway_use",
-    "track_type",
-    "vehicle_type",
-    "status",
-    "name",
-    "geometry"
-  ],
-  "description": "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature",
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "hierarchy", "name", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "railway_use": {
-      "type": "string",
-      "enum": ["siding"]
-    },
-    "track_type": {
-      "type": "string",
-      "enum": ["single", "multiple"]
-    },
-    "vehicle_type": {
-      "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
-    },
-    "railway_status": {
-      "type": "string",
-      "enum": ["disused", "under construction"]
-    },
     "BBox": {
       "type": "object",
       "properties": {

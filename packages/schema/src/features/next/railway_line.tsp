@@ -24,7 +24,7 @@ using TypeSpec.JsonSchema;
 model railway_line {
   ...TopographicFeature;
   
-  feature_type: "railway";
+  type: "railway";
   railway_use: railway_use | null;
   track_type: track_type;
   vehicle_type: vehicle_type;
@@ -50,7 +50,7 @@ enum vehicle_type {
   Train: "train",
   Tram: "tram", 
   /**
-   * a decommissioned railway line with adapted motorised golf carts, or rail bicycles designed for tourist use
+   * A decommissioned railway line with adapted motorised golf carts, or rail bicycles designed for tourist use
    */
   RailCart: "rail cart",
   Cablecar: "cablecar"
