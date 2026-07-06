@@ -2795,7 +2795,7 @@
             null
           ]
         },
-        "temperature": {
+        "temperature_indicator": {
           "type": "string",
           "description": "",
           "maxLength": 3
