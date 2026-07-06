@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/railway_line",
+  "$id": "next/structure_line",
   "type": "object",
   "properties": {
     "id": {
@@ -31,29 +31,32 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "railway"
+      "$ref": "#/$defs/structure_line_type"
     },
-    "railway_use": {
+    "structure_use": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_use"
+          "$ref": "#/$defs/structure_use"
         },
         {
           "type": "null"
         }
       ]
     },
-    "track_type": {
-      "$ref": "#/$defs/track_type"
-    },
-    "vehicle_type": {
-      "$ref": "#/$defs/vehicle_type"
+    "species": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_species"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_status"
+          "$ref": "#/$defs/structure_status"
         },
         {
           "type": "null"
@@ -68,8 +71,37 @@
         {
           "type": "null"
         }
-      ],
-      "description": "The name of the railway line if known"
+      ]
+    },
+    "material": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_material"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "material_conveyed": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_material_conveyed"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "restrictions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_restrictions"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -88,31 +120,75 @@
     "updated_at",
     "t50_fid",
     "type",
-    "railway_use",
-    "track_type",
-    "vehicle_type",
+    "structure_use",
+    "species",
     "status",
     "name",
+    "material",
+    "material_conveyed",
+    "restrictions",
     "geometry"
   ],
-  "description": "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature",
   "additionalProperties": false,
   "$defs": {
-    "railway_use": {
+    "structure_line_type": {
       "type": "string",
-      "enum": ["siding"]
+      "enum": [
+        "boatramp",
+        "boom",
+        "breakwater",
+        "cableway_industrial",
+        "cableway_people",
+        "dam",
+        "flume",
+        "ladder",
+        "marine_farm",
+        "ski_lift",
+        "ski_tow",
+        "slipway",
+        "spillway_edge",
+        "walkwire",
+        "water_race",
+        "weir",
+        "wharf",
+        "wharf_edge"
+      ]
     },
-    "track_type": {
+    "structure_use": {
       "type": "string",
-      "enum": ["single", "multiple"]
+      "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"]
     },
-    "vehicle_type": {
+    "structure_species": {
       "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
+      "enum": ["mussels", "salmon"]
     },
-    "railway_status": {
+    "structure_status": {
       "type": "string",
-      "enum": ["disused", "under construction"]
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ]
+    },
+    "structure_material": {
+      "type": "string",
+      "enum": ["concrete", "rock"]
+    },
+    "structure_material_conveyed": {
+      "type": "string",
+      "enum": ["coal", "lime"]
+    },
+    "structure_restrictions": {
+      "type": "string",
+      "enum": ["locked"]
     },
     "BBox": {
       "type": "object",

@@ -20,6 +20,9 @@ interface QgisLayerDef {
    * @example "nztopo50_map_sheet.parquet"
    */
   source: string;
+
+  /** Optional extra QGIS option metadata */
+  options?: { key: string; value?: string }[];
 }
 /**
  * Load a QGS project and extract the layers names and their source and basic projection information
@@ -41,11 +44,22 @@ export function getQgisProjectMeta(path: URL): Promise<{ layers: QgisLayerDef[];
   return promise;
 }
 
+function parseQuery(query?: string): { key: string; value?: string } | undefined {
+  if (query == null) return undefined;
+
+  const eqIndex = query.indexOf('=');
+  if (eqIndex === -1) return { key: query, value: undefined };
+  const key = query.slice(0, eqIndex);
+  const value = query.slice(eqIndex + 1);
+
+  return { key, value };
+}
+
 async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef[]; epsg: Epsg }> {
   const lines = String(await fsa.read(path));
 
   /** Mapping of QGIS layer name to source file name */
-  const layers: { name: string; source: string }[] = [];
+  const layers: QgisLayerDef[] = [];
 
   const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
   const xml = parser.parse(lines);
@@ -62,14 +76,22 @@ async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef
     const dataSource = xml?.['layer-tree-layer'];
     if (dataSource == null) continue;
 
-    const source = dataSource['@_source']?.split('|').at(0);
+    const [source, ...query] = dataSource['@_source']?.split('|') ?? [undefined, undefined];
     if (source == null) continue;
     const parquetFile = basename(source) as string;
 
-    layers.push({ name: dataSource['@_name'] as string, source: parquetFile });
+    layers.push({
+      name: dataSource['@_name'] as string,
+      source: parquetFile,
+      options: query.map((m: string) => parseQuery(m)).filter(Boolean),
+    });
   }
 
   return { layers, epsg };
+}
+
+function hasQuery(layer: QgisLayerDef): boolean {
+  return (layer.options ?? []).find((f) => f.key === 'subset') != null;
 }
 
 /** Attempt to find a MapSheet metadata layer */
@@ -77,12 +99,12 @@ export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName
   if (mapSheetLayerName != null) {
     // add .parquet if there is no extension
     const searchName = mapSheetLayerName.includes('.') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
-    const layer = layers.find((f) => f.source === searchName);
+    const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
     if (layer) return layer;
     throw new Error(`Map sheet source layer not found: "${mapSheetLayerName}"`);
   }
   // Find the first layer that looks like a map_sheet configuration layer
-  const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet'));
+  const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet') && hasQuery(f) === false);
   if (mapSheet == null) throw new Error('No map sheet layer ending with "map_sheet.parquet" found');
   return mapSheet;
 }
