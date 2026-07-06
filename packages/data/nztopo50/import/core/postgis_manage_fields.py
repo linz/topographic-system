@@ -1263,6 +1263,14 @@ class TableModificationWorkflow:
             "store_item ='water'",
         )
 
+        self.table_modifer.update_column_with_default(
+            self.schema_name,
+            "structure_point",
+            "stored_item",
+            "'watre'",
+            "stored_item ='water'",
+        )
+
     def step_name(self):
         self.table_modifer.add_name_columns(self.schema_name)
         # self.table_modifer.add_collectionid_columns()
