@@ -75,7 +75,10 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(url: URL, options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false }): Promise<SourceAsset[]> {
+  async getAsset(
+    url: URL,
+    options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
+  ): Promise<SourceAsset[]> {
     const sourceStac = this.stac.get(url.href);
 
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
@@ -158,7 +161,9 @@ export class Downloader {
   }
 
   /** Get all assets, downloading them if they haven't been already */
-  async getAllAssets(options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false }): Promise<SourceAsset[]> {
+  async getAllAssets(
+    options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
+  ): Promise<SourceAsset[]> {
     const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
       this.getAsset(new URL(url), options),
     );
@@ -185,7 +190,11 @@ export class Downloader {
   }
 
   /** Download given asset extract it if tar file */
-  async downloadAsset(url: URL, asset: StacAsset | StacLink, options: SourceAssetDownloadOptions): Promise<SourceAsset> {
+  async downloadAsset(
+    url: URL,
+    asset: StacAsset | StacLink,
+    options: SourceAssetDownloadOptions,
+  ): Promise<SourceAsset> {
     const startTime = performance.now();
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
     const linkedPath = new URL(basename(url.pathname), this.target);
