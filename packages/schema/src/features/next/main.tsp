@@ -4,12 +4,11 @@ import "./landcover.tsp";
 import "./railway_line.tsp";
 import "./railway_point.tsp";
 import "./relief.tsp";
+import "./vegetation_point.tsp";
 import "./relief_point.tsp";
 import "./water.tsp";
 import "./water_point.tsp";
 import "./water_line.tsp";
-
-
 import "./structure.tsp";
 import "./structure_line.tsp";
 import "./structure_point.tsp";
