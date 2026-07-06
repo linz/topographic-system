@@ -865,7 +865,7 @@ class ModifyTable:
                     f"Dropped column '{drop_column_name}' from table '{schema}.{table}'"
                 )
 
-    def update_value_by_column(self, schema, table, column_name, from_column_name):
+    def update_value_by_column(self, schema, table, column_name, from_column_name, where_statement=None):
         """Set a column's value from another column or to NULL.
 
         Args:
@@ -880,9 +880,15 @@ class ModifyTable:
             if self.column_exists(schema, table, column_name):
                 process = True
                 if from_column_name.lower() == "null":
-                    update_query = f"UPDATE {schema}.{table} SET {column_name} = NULL;"
+                    update_query = f"UPDATE {schema}.{table} SET {column_name} = NULL"
+                    if where_statement:
+                        update_query += f" WHERE {where_statement}"
+                    update_query += ";"
                 elif self.column_exists(schema, table, from_column_name):
-                    update_query = f"UPDATE {schema}.{table} SET {column_name} = {from_column_name};"
+                    update_query = f"UPDATE {schema}.{table} SET {column_name} = {from_column_name}"
+                    if where_statement:
+                        update_query += f" WHERE {where_statement}"
+                    update_query += ";"
                 else:
                     print(
                         f"Column '{from_column_name}' does not exist in table '{schema}.{table}'"
@@ -1269,7 +1275,7 @@ class TableModificationWorkflow:
             f"{self.schema_name}.trig_point", "code", "VARCHAR(20)"
         )
         self.table_modifer.update_value_by_column(
-            self.schema_name, "trig_point", "code", "name"
+            self.schema_name, "trig_point", "code", "name", "code IS NULL"
         )
         self.table_modifer.update_value_by_column(
             self.schema_name, "trig_point", "name", "null"
