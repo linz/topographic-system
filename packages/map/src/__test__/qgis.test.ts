@@ -22,9 +22,9 @@ describe('qgis', () => {
 
       assert.equal(meta.epsg.code, 2193);
       assert.deepEqual(meta.layers, [
-        { name: 'road_line 2 lane highway map', source: 'road_line.parquet' },
-        { name: 'water', source: 'water.parquet' },
-        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet' },
+        { name: 'road_line 2 lane highway map', source: 'road_line.parquet', query: 'subset=&quot;lane_count&quot; &gt; 1' },
+        { name: 'water', source: 'water.parquet', query: undefined },
+        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', query: undefined },
       ]);
     });
 
@@ -77,6 +77,6 @@ describe('qgis', () => {
       ];
 
       assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer4');
-    }
+    });
   });
 });
