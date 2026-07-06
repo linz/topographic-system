@@ -20,6 +20,9 @@ interface QgisLayerDef {
    * @example "nztopo50_map_sheet.parquet"
    */
   source: string;
+
+  /** Optional extra QGIS query metadata */
+  query?: string;
 }
 /**
  * Load a QGS project and extract the layers names and their source and basic projection information
@@ -45,7 +48,7 @@ async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef
   const lines = String(await fsa.read(path));
 
   /** Mapping of QGIS layer name to source file name */
-  const layers: { name: string; source: string }[] = [];
+  const layers: QgisLayerDef[] = [];
 
   const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
   const xml = parser.parse(lines);
@@ -62,11 +65,11 @@ async function getQgisProjectMetaImpl(path: URL): Promise<{ layers: QgisLayerDef
     const dataSource = xml?.['layer-tree-layer'];
     if (dataSource == null) continue;
 
-    const source = dataSource['@_source']?.split('|').at(0);
+    const [source, query] = dataSource['@_source']?.split('|') ?? [undefined, undefined];
     if (source == null) continue;
     const parquetFile = basename(source) as string;
 
-    layers.push({ name: dataSource['@_name'] as string, source: parquetFile });
+    layers.push({ name: dataSource['@_name'] as string, source: parquetFile, query });
   }
 
   return { layers, epsg };
@@ -77,12 +80,12 @@ export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName
   if (mapSheetLayerName != null) {
     // add .parquet if there is no extension
     const searchName = mapSheetLayerName.includes('.') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
-    const layer = layers.find((f) => f.source === searchName);
+    const layer = layers.find((f) => f.source === searchName && f.query == null);
     if (layer) return layer;
     throw new Error(`Map sheet source layer not found: "${mapSheetLayerName}"`);
   }
   // Find the first layer that looks like a map_sheet configuration layer
-  const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet'));
+  const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet') && f.query == null);
   if (mapSheet == null) throw new Error('No map sheet layer ending with "map_sheet.parquet" found');
   return mapSheet;
 }

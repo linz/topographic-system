@@ -68,5 +68,15 @@ describe('qgis', () => {
         /No map sheet layer ending with "map_sheet.parquet" found/,
       );
     });
+
+    it('should only select a map sheet layer with no query', () => {
+      const layersWithQuery = [
+        { name: 'layer1', source: 'data1.parquet' },
+        { name: 'layer2', source: 'my_map_sheet.parquet', query: 'some_query' },
+        { name: 'layer4', source: 'my_map_sheet.parquet' },
+      ];
+
+      assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer4');
+    }
   });
 });
