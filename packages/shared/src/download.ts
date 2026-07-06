@@ -30,6 +30,13 @@ export interface SourceStac {
   assets: SourceAsset[];
 }
 
+export interface SourceAssetDownloadOptions {
+  /** If the file exists locally already use that instead of downloading */
+  skipIfExists: boolean;
+  /** If the asset has a canonical link use that instead of the href */
+  useCanonical: boolean;
+}
+
 /** STAC Link "rel" that should be downloaded */
 export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'project']);
 
@@ -68,17 +75,28 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(url: URL, skipIfExists: boolean = false): Promise<SourceAsset[]> {
+  async getAsset(url: URL, options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false }): Promise<SourceAsset[]> {
     const sourceStac = this.stac.get(url.href);
+
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
     if (sourceStac.assets.length > 0) return sourceStac.assets;
 
     const stac = sourceStac.json ?? (await fsa.readJson<StacItem | StacCollection>(url));
     sourceStac.json = stac;
 
+    if (options?.useCanonical) {
+      const canonical = stac.links.find((l) => l.rel === 'canonical');
+      if (canonical) {
+        const canonicalUrl = new URL(canonical.href, url);
+        this.addStac(canonicalUrl);
+        logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
+        return this.getAsset(canonicalUrl, options);
+      }
+    }
+
     const sourceAssets = [];
     for (const asset of Object.values(stac.assets ?? {})) {
-      const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, skipIfExists);
+      const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, options);
       sourceAssets.push(sourceAsset);
     }
     sourceStac.assets = sourceAssets;
@@ -140,9 +158,9 @@ export class Downloader {
   }
 
   /** Get all assets, downloading them if they haven't been already */
-  async getAllAssets(skipIfExists: boolean = false): Promise<SourceAsset[]> {
+  async getAllAssets(options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false }): Promise<SourceAsset[]> {
     const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
-      this.getAsset(new URL(url), skipIfExists),
+      this.getAsset(new URL(url), options),
     );
     return allAssets.flat();
   }
@@ -167,7 +185,7 @@ export class Downloader {
   }
 
   /** Download given asset extract it if tar file */
-  async downloadAsset(url: URL, asset: StacAsset | StacLink, skipIfExists: boolean): Promise<SourceAsset> {
+  async downloadAsset(url: URL, asset: StacAsset | StacLink, options: SourceAssetDownloadOptions): Promise<SourceAsset> {
     const startTime = performance.now();
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
     const linkedPath = new URL(basename(url.pathname), this.target);
@@ -176,7 +194,7 @@ export class Downloader {
     if (existing) {
       // Already linked and matches the hash
       if (existing.hash === asset['file:checksum']) return existing;
-      if (skipIfExists) return existing;
+      if (options.skipIfExists) return existing;
     }
 
     const cacheStat = await this.ensureAssetInCache(asset, url);
