@@ -91,7 +91,7 @@ export class Downloader {
       const canonical = stac.links.find((l) => l.rel === 'canonical');
       if (canonical) {
         const canonicalUrl = new URL(canonical.href, url);
-        this.addStac(canonicalUrl);
+        this.stac.set(url.href, this.stac.get(url.href) ?? { url, assets: [], json: undefined });
         logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
         return this.getAsset(canonicalUrl, options);
       }
