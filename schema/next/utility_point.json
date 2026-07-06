@@ -31,24 +31,7 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "gas_valve"
-        },
-        {
-          "type": "string",
-          "const": "geo_bore"
-        },
-        {
-          "type": "string",
-          "const": "pylon"
-        },
-        {
-          "type": "string",
-          "const": "substation"
-        }
-      ]
+      "$ref": "#/$defs/utility_point_type"
     },
     "name": {
       "anyOf": [
@@ -84,6 +67,10 @@
   "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "orientation", "geometry"],
   "additionalProperties": false,
   "$defs": {
+    "utility_point_type": {
+      "type": "string",
+      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
+    },
     "BBox": {
       "type": "object",
       "properties": {

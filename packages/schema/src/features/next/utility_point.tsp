@@ -8,10 +8,18 @@ using TypeSpec.JsonSchema;
 model utility_point {
   ...TopographicFeature;
 
-  type: "gas_valve" | "geo_bore" | "pylon" | "substation";
+  type: utility_point_type;
   name: string | null;
   orientation: float64 | null;
 
   ...GeoParquet
 }
 
+enum utility_point_type {
+  DryDock: "dry_dock",
+  FishFarm: "fish_farm",
+  MarineFarm: "marine_farm",
+  Reservoir: "reservoir",
+  Siphon: "siphon",
+  Tank: "tank"
+}
