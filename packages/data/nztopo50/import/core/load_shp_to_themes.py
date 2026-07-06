@@ -250,6 +250,10 @@ class Topo50DataLoader:
             if "use_2" in gdf.columns:
                 gdf = gdf.rename(columns={"use_2": "use2"})
 
+        if layer_name.lower() == "water":
+            if "temperature" in gdf.columns:
+                gdf = gdf.rename(columns={"temperature": "temperature_indicator"})
+
         if layer_name.lower() == "water_point":
             if "temp" in gdf.columns:
                 gdf = gdf.rename(columns={"temp": "temperature_indicator"})

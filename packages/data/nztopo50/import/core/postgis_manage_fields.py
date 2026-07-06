@@ -14,7 +14,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"bridge_line": ["type", "use1", "use2", "construction_type", "status"],
 	"building": ["type", "building_use", "status"],
 	"building_point": ["type", "building_use", "status"],
-	"coastline": ["type", "coastline_type"],
+	"coastline": ["type"],
 	"contour": ["type", "definition", "designation", "formation"],
 	"descriptive_text": ["type"],
 	"fence_line": ["type"],
@@ -46,7 +46,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"transport_point": ["type"],
 	"trig_point": ["type", "trig_type"],
 	"tunnel_line": ["type", "tunnel_use", "tunnel_use2", "subtype"],
-	"water": ["type", "water_use", "hierarchy", "perennial"],
+	"water": ["type", "water_use", "hierarchy", "perennial", "temperature_indicator"],
 	"water_line": ["type"],
 	"water_point": ["type", "temperature_indicator"],
 	"vegetation_point": ["type"],
@@ -1341,9 +1341,9 @@ class TableModificationWorkflow:
         #   f"{self.schema_name}.railway_line", "route3", "VARCHAR(30)"
         #)
 
-        self.table_modifer.add_column(
-            f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
+        #)
 
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
@@ -1394,6 +1394,7 @@ class TableModificationWorkflow:
             ],
             f"{self.schema_name}.structure_point": [("store_item", "stored_item")],
             f"{self.schema_name}.structure": [("store_item", "stored_item")],
+            f"{self.schema_name}.water": [("temperature", "temperature_indicator")],
         }
 
         for table_full, columns in rename_dict.items():
