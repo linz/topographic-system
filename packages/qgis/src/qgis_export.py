@@ -18,6 +18,7 @@ from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
+UUID_MAP_ITEM = "{e1f230ea-4c9e-4ea9-a1f3-413ace3829fa}"
 
 @dataclass
 class ExportArgs:
@@ -150,7 +151,7 @@ def main():
 
         map_item = None
         for item in layout.items():
-            if isinstance(item, QgsLayoutItemMap):
+            if isinstance(item, QgsLayoutItemMap) and item.uuid() == UUID_MAP_ITEM:
                 map_item = item
                 break
 
