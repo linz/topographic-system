@@ -1258,17 +1258,9 @@ class TableModificationWorkflow:
         self.table_modifer.update_column_with_default(
             self.schema_name,
             "structure_point",
-            "store_item",
+            "subtype",
             "'watre'",
-            "store_item ='water'",
-        )
-
-        self.table_modifer.update_column_with_default(
-            self.schema_name,
-            "structure_point",
-            "stored_item",
-            "'watre'",
-            "stored_item ='water'",
+            "subtype ='water'",
         )
 
     def step_name(self):
@@ -1419,15 +1411,63 @@ class TableModificationWorkflow:
                 )
 
     def step_structure_updates(self):
+        # bivouac - 2 steps
         self.table_modifer.update_value_by_column(
-            self.schema_name, "structure_point", "subtype", "material", "type = 'bivouac'"
+            self.schema_name, "structure_point", "subtype", "material", "type = 'bivouac' or type = 'tower'"
         )
 
         self.table_modifer.update_column_by_value(
-            self.schema_name, "structure_point", "subtype", "building", "type = 'bivouac'"
+            self.schema_name, "structure_point", "subtype", "building", "type = 'bivouac' and subtype is null"
         )
-        self.table_modifer.drop_column(self.schema_name, "structure_point", "material")
 
+        # beacon
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "type", "subtype", "subtype = 'lighthouse'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "location", "type = 'lighthouse' or type = 'beacon'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "structure_use", "type = 'shaft' or type = 'windmill'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "restrictions", "type = 'gate'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "stored_item", "type = 'tank'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure", "subtype", "stored_item", "type = 'tank'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "wreck_of", "type = 'wreck'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_line", "subtype", "material_conveyed", "type = 'cableway_industrial'"
+        )
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_line", "subtype", "restrictions", "type = 'cableway_people'"
+        )
+
+        # drop fields no longer required
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "material")
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "location")
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "structure_use")
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "restrictions")
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "stored_item")
+        self.table_modifer.drop_column(self.schema_name, "structure", "stored_item")
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "wreck_of")
+        self.table_modifer.drop_column(self.schema_name, "structure_line", "material")
+        self.table_modifer.drop_column(self.schema_name, "structure_line", "material_conveyed")        
+        self.table_modifer.drop_column(self.schema_name, "structure_line", "restrictions ")       
 
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(

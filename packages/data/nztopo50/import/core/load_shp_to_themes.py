@@ -242,7 +242,7 @@ class Topo50DataLoader:
             gdf = gdf.rename(columns={"type": "subtype"})
 
         if layer_name.lower() == "structure_line":
-            gdf = gdf.rename(columns={"wharf_use": "structure_use"})
+            gdf = gdf.rename(columns={"wharf_use": "subtype"})
 
         if layer_name.lower() == "bridge_line":
             if "use_1" in gdf.columns:
