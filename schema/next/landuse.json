@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landcover",
+  "$id": "next/landuse",
   "type": "object",
   "properties": {
     "id": {
@@ -31,12 +31,58 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landcover_type"
+      "$ref": "#/$defs/landuse_type"
+    },
+    "landuse_use": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "horse"
+        },
+        {
+          "type": "string",
+          "const": "vehicle"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "training"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/landuse_status"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "name": {
       "anyOf": [
         {
           "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "substance_extracted": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/substance_extracted"
         },
         {
           "type": "null"
@@ -54,12 +100,51 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "landcover_type": {
+    "landuse_type": {
       "type": "string",
-      "enum": ["ice", "moraine", "moraine_wall", "mud", "sand", "scree", "shingle", "swamp"]
+      "enum": [
+        "cemetery",
+        "golf_course",
+        "gravel_pit",
+        "landfill",
+        "mine",
+        "orchard",
+        "pumice_pit",
+        "quarry",
+        "racetrack",
+        "rifle_range",
+        "showground",
+        "sportsfield",
+        "vineyard"
+      ]
+    },
+    "landuse_status": {
+      "type": "string",
+      "enum": ["dangerous", "disused", "historic", "old"]
+    },
+    "substance_extracted": {
+      "type": "string",
+      "enum": [
+        "bentonite",
+        "clay",
+        "coal",
+        "gold",
+        "gravel",
+        "ironsand",
+        "lime",
+        "limestone",
+        "metal",
+        "quartz",
+        "scheelite",
+        "shingle",
+        "silica sand",
+        "silver",
+        "stone",
+        "zeolite"
+      ]
     },
     "BBox": {
       "type": "object",

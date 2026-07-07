@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landcover",
+  "$id": "next/landcover_point",
   "type": "object",
   "properties": {
     "id": {
@@ -31,12 +31,44 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landcover_type"
+      "$ref": "#/$defs/landcover_point_type"
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/landcover_point_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "name": {
       "anyOf": [
         {
           "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "elevation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
         },
         {
           "type": "null"
@@ -54,12 +86,27 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "name",
+    "orientation",
+    "elevation",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "landcover_type": {
+    "landcover_point_type": {
       "type": "string",
-      "enum": ["ice", "moraine", "moraine_wall", "mud", "sand", "scree", "shingle", "swamp"]
+      "enum": ["cemetery", "fumarole", "rock_outcrop", "swamp"]
+    },
+    "landcover_point_subtype": {
+      "type": "string",
+      "enum": ["small_rock_outcrop", "large_rock_outcrop", "large_boulder"]
     },
     "BBox": {
       "type": "object",
