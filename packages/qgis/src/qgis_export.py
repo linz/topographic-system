@@ -18,7 +18,7 @@ from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
-UUID_MAP_ITEM = "{e1f230ea-4c9e-4ea9-a1f3-413ace3829fa}"
+UUID_MAIN_MAP_ITEM = "{e1f230ea-4c9e-4ea9-a1f3-413ace3829fa}"
 
 
 @dataclass
@@ -152,9 +152,10 @@ def main():
 
         map_item = None
         for item in layout.items():
-            if isinstance(item, QgsLayoutItemMap) and item.uuid() == UUID_MAP_ITEM:
+            # Select the first map item by default.
+            # Overwrite it only if the UUID matches that of the main map item.
+            if isinstance(item, QgsLayoutItemMap) and (map_item is None or item.uuid() == UUID_MAIN_MAP_ITEM):
                 map_item = item
-                break
 
         if map_item is None:
             raise ValueError(f"No QgsLayoutItemMap found in layout '{args.project_layout}'.")
