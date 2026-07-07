@@ -1418,6 +1418,17 @@ class TableModificationWorkflow:
                     schema, table, old_column_name, new_column_name
                 )
 
+    def step_structure_updates(self):
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "structure_point", "subtype", "material", "type = 'bivouac'"
+        )
+
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "structure_point", "subtype", "building", "type = 'bivouac'"
+        )
+        self.table_modifer.drop_column(self.schema_name, "structure_point", "material")
+
+
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(
             self.schema_name, "nztopo50_map_sheet"
@@ -1521,6 +1532,7 @@ class TableModificationWorkflow:
             ("road_lkp_updates", self.step_road_lkp_updates),
             ("defaults", self.step_defaults),
             ("rename", self.step_rename),
+            ("structure_updates", self.step_structure_updates),
             ("update_spaces_with_underscores", self.step_update_spaces_with_underscores),
             ("carto_text_geom_update", self.step_carto_text_geom_update),
             ("recreate_table_srid", self.step_recreate_table_srid),
