@@ -337,3 +337,9 @@ Water_Layers,water_point,orientatn,orientation,Double,8
 Water_Layers,water_point,SHAPE,SHAPE,Point,0
 Water_Layers,water_point,t50_fid,t50_fid,BigInteger,8
 Water_Layers,water_point,temp,temperature_indicator,String,4
+Land_Layers,marine_point,feature_type,type,String,50
+Land_Layers,marine_point,macronated,macronated,String,1
+Land_Layers,marine_point,name,name,String,75
+Land_Layers,marine_point,name_ascii,name_ascii,String,75
+Land_Layers,marine_point,SHAPE,SHAPE,Point,0
+Land_Layers,marine_point,t50_fid,t50_fid,BigInteger,8

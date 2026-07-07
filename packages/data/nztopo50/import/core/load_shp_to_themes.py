@@ -345,7 +345,7 @@ class Topo50DataLoader:
         if "rway_use" in gdf.columns:
             gdf = gdf.rename(columns={"rway_use": "railway_use"})
         if "embkmt_use" in gdf.columns:
-            gdf = gdf.rename(columns={"embkmt_use": "relief_use"})
+            gdf = gdf.rename(columns={"embkmt_use": "subtype"})
         if "grp_ascii" in gdf.columns:
             gdf = gdf.rename(columns={"grp_ascii": "group_ascii"})
         if "grp_macron" in gdf.columns:
