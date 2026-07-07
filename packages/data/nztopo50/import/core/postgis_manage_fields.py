@@ -1254,14 +1254,6 @@ class TableModificationWorkflow:
             "type ='telephone'",
         )
 
-        # this fixes a typo in the tank points - may get fixed.
-        self.table_modifer.update_column_with_default(
-            self.schema_name,
-            "structure_point",
-            "subtype",
-            "'watre'",
-            "subtype ='water'",
-        )
 
     def step_name(self):
         self.table_modifer.add_name_columns(self.schema_name)
@@ -1457,6 +1449,11 @@ class TableModificationWorkflow:
             self.schema_name, "structure_line", "subtype", "restrictions", "type = 'cableway_people'"
         )
 
+        # this fixes a typo in the tank points - may get fixed.
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "structure_point", "subtype", "water", "subtype = 'watre'"
+        )
+
         # drop fields no longer required
         self.table_modifer.drop_column(self.schema_name, "structure_point", "material")
         self.table_modifer.drop_column(self.schema_name, "structure_point", "location")
@@ -1467,7 +1464,7 @@ class TableModificationWorkflow:
         self.table_modifer.drop_column(self.schema_name, "structure_point", "wreck_of")
         self.table_modifer.drop_column(self.schema_name, "structure_line", "material")
         self.table_modifer.drop_column(self.schema_name, "structure_line", "material_conveyed")        
-        self.table_modifer.drop_column(self.schema_name, "structure_line", "restrictions ")       
+        self.table_modifer.drop_column(self.schema_name, "structure_line", "restrictions")       
 
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(
