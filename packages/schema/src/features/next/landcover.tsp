@@ -8,10 +8,20 @@ using TypeSpec.JsonSchema;
 model landcover {
   ...TopographicFeature;
 
-
-  type: "ice" | "moraine" | "moraine_wall" | "mud" | "sand" | "scree" | "shingle" | "swamp";
+  type: landcover_type;
   name: string | null;
  
   ...GeoParquet
+}
+
+enum landcover_type {
+  Ice: "ice";
+  Moraine: "moraine";
+  MoraineWall: "moraine_wall";
+  Mud: "mud";
+  Sand: "sand";
+  Scree: "scree";
+  Shingle: "shingle";
+  Swamp: "swamp";
 }
 

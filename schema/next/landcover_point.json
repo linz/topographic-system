@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/landcover_point",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/rock_outcrop"
+    },
+    {
+      "$ref": "#/$defs/landcover_point_core_types"
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "rock_outcrop": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "UUIDv7 of the feature"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the feature was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the feature was last updated"
+        },
+        "t50_fid": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+        },
+        "type": {
+          "type": "string",
+          "const": "rock_outcrop"
+        },
+        "subtype": {
+          "$ref": "#/$defs/rock_outcrop_subtype"
+        },
+        "geometry": {
+          "description": "GeoParquet 1.1 covering geometry struct.",
+          "not": {
+            "type": "null"
+          }
+        },
+        "bbox": {
+          "$ref": "#/$defs/BBox",
+          "description": "GeoParquet 1.1 covering bbox struct."
+        }
+      },
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+    },
+    "landcover_point_core_types": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "UUIDv7 of the feature"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the feature was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the feature was last updated"
+        },
+        "t50_fid": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+        },
+        "type": {
+          "$ref": "#/$defs/landcover_point_core_type"
+        },
+        "subtype": {
+          "type": "null"
+        },
+        "geometry": {
+          "description": "GeoParquet 1.1 covering geometry struct.",
+          "not": {
+            "type": "null"
+          }
+        },
+        "bbox": {
+          "$ref": "#/$defs/BBox",
+          "description": "GeoParquet 1.1 covering bbox struct."
+        }
+      },
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+    },
+    "rock_outcrop_subtype": {
+      "type": "string",
+      "enum": ["small_rock_outcrop", "large_rock_outcrop", "large_boulder"]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    },
+    "landcover_point_core_type": {
+      "type": "string",
+      "enum": ["cemetery", "fumarole", "swamp"]
+    }
+  }
+}
