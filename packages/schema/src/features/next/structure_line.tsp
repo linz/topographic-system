@@ -10,13 +10,10 @@ model structure_line {
   ...TopographicFeature;
 
   type: structure_line_type;
-  structure_use: structure_use | null;
+  subtype: structure_subtype | null;
   species: structure_species | null;
   status: structure_status | null;
   name: string | null;
-  material: structure_material | null;
-  material_conveyed: structure_material_conveyed | null;
-  restrictions: structure_restrictions | null;
 
   ...GeoParquet
 }
