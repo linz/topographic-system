@@ -99,4 +99,102 @@ describe('Downloader - Canonical URLs', () => {
     const targetContent = await fsa.read(targetAssetPath);
     assert.strictEqual(targetContent.toString(), 'hello world');
   });
+
+  it('should detect circular canonical links and throw an error', async () => {
+    const targetUrl = new URL('memory://target-circular/');
+    const sourceCacheUrl = new URL('memory://source-cache-circular/');
+
+    const stacAUrl = new URL('memory://source-circular/stacA.json');
+    const stacBUrl = new URL('memory://source-circular/stacB.json');
+
+    const stacA = {
+      type: 'Collection',
+      id: 'stacA',
+      links: [{ rel: 'canonical', href: 'memory://source-circular/stacB.json' }],
+      assets: {},
+    };
+
+    const stacB = {
+      type: 'Collection',
+      id: 'stacB',
+      links: [{ rel: 'canonical', href: 'memory://source-circular/stacA.json' }],
+      assets: {},
+    };
+
+    await fsa.write(stacAUrl, JSON.stringify(stacA));
+    await fsa.write(stacBUrl, JSON.stringify(stacB));
+
+    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(1));
+    downloader.addStac(stacAUrl);
+
+    await assert.rejects(downloader.getAsset(stacAUrl, { skipIfExists: false, useCanonical: true }), (err: Error) => {
+      assert.ok(err.message.includes('Circular canonical link detected'));
+      return true;
+    });
+  });
+
+  it('should support multiple files pointing to the same canonical list without throwing or downloading twice', async (t) => {
+    const targetUrl = new URL('memory://target-same-canonical/');
+    const sourceCacheUrl = new URL('memory://source-cache-same-canonical/');
+
+    const stacAUrl = new URL('memory://source-same-canonical/stacA.json');
+    const stacBUrl = new URL('memory://source-same-canonical/stacB.json');
+    const canonicalUrl = new URL('memory://canonical-same-canonical/catalog.json');
+
+    const stacA = {
+      type: 'Collection',
+      id: 'stacA',
+      links: [{ rel: 'canonical', href: 'memory://canonical-same-canonical/catalog.json' }],
+      assets: {},
+    };
+
+    const stacB = {
+      type: 'Collection',
+      id: 'stacB',
+      links: [{ rel: 'canonical', href: 'memory://canonical-same-canonical/catalog.json' }],
+      assets: {},
+    };
+
+    const canonicalStac = {
+      type: 'Collection',
+      id: 'canonical',
+      links: [],
+      assets: {
+        data: {
+          href: './canonical-data.parquet',
+          'file:checksum': '1220b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9',
+          'file:size': 11,
+        },
+      },
+    };
+
+    await fsa.write(stacAUrl, JSON.stringify(stacA));
+    await fsa.write(stacBUrl, JSON.stringify(stacB));
+    await fsa.write(canonicalUrl, JSON.stringify(canonicalStac));
+
+    const fileContent = 'hello world';
+    const canonicalAssetUrl = new URL('memory://canonical-same-canonical/canonical-data.parquet');
+    await fsa.write(canonicalAssetUrl, fileContent);
+
+    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(2));
+    downloader.addStac(stacAUrl);
+    downloader.addStac(stacBUrl);
+
+    const spy = t.mock.method(fsa, 'readStream');
+
+    const assets = await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
+
+    // only one asset should be returned
+    assert.strictEqual(assets.length, 1);
+    assert.strictEqual(assets[0]!.url.href, canonicalAssetUrl.href);
+
+    assert.deepEqual(
+      spy.mock.calls.map((m) => m.arguments[0].href),
+      [
+        'memory://canonical-same-canonical/canonical-data.parquet',
+        // writes the parquet into the cache
+        'memory://source-cache-same-canonical/1220b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9_canonical-data.parquet',
+      ],
+    );
+  });
 });

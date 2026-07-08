@@ -82,7 +82,12 @@ export class Downloader {
   getAsset(
     url: URL,
     options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
+    visited?: Set<string>,
   ): Promise<SourceAsset[]> {
+    if (visited?.has(url.href)) {
+      throw new Error(`Circular canonical link detected: ${url.href}`);
+    }
+
     const sourceStac = this.stac.get(url.href);
 
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
@@ -100,7 +105,7 @@ export class Downloader {
           const canonicalUrl = new URL(canonical.href, url);
           this.stac.set(canonicalUrl.href, this.stac.get(canonicalUrl.href) ?? { url: canonicalUrl, assets: [] });
           logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
-          return this.getAsset(canonicalUrl, options);
+          return this.getAsset(canonicalUrl, options, new Set(visited ?? []).add(url.href));
         }
       }
 
@@ -177,7 +182,16 @@ export class Downloader {
     const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
       this.getAsset(new URL(url), options),
     );
-    return allAssets.flat().filter(Boolean) as SourceAsset[];
+
+    const output: SourceAsset[] = [];
+    const outputLinks = new Set<string>();
+    for (const source of allAssets.flat()) {
+      if (outputLinks.has(source.linked.href)) continue;
+      outputLinks.add(source.linked.href);
+
+      output.push(source);
+    }
+    return output;
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
@@ -214,6 +228,15 @@ export class Downloader {
       // Already linked and matches the hash
       if (existing.hash === asset['file:checksum']) return existing;
       if (options.skipIfExists) return existing;
+      logger.info(
+        {
+          project: url.href,
+          downloaded: this.target.href,
+          existingHash: existing.hash,
+          newHash: asset['file:checksum'],
+        },
+        'DownloadFile:Overwrite',
+      );
     }
 
     const cacheStat = await this.ensureAssetInCache(asset, url);
