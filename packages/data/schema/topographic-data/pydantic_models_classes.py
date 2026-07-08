@@ -19,596 +19,783 @@ class BaseTopoModel(BaseModel):
 
 
 class Airport(BaseTopoModel):
-    """Represents the boundary of an airport facility."""
+    """Generated model for Airport."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Any = Field(...)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Any = Field(...)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
+
+
+class AuditFields(BaseTopoModel):
+    """Capture / change-tracking columns shared by most features."""
+
+    created_at: Any = Field(..., description="Default at write time: today.")
+    updated_at: Any = Field(...)
 
 
 class BridgeLine(BaseTopoModel):
-    """Represents bridges crossing roads, railways, walkways or water features."""
+    """Generated model for BridgeLine."""
 
-    bridge_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    bridge_use2: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    construction_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    construction_type: Any = Field(...)
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    status: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
+    use1: Any = Field(...)
+    use2: Any = Field(...)
 
 
 class Building(BaseTopoModel):
-    """Represents the extent of a building. Captured from aerial imagery."""
+    """Generated model for Building."""
 
-    building_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    building_use: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class BuildingPoint(BaseTopoModel):
-    """Represents the location of a building."""
+    """Generated model for BuildingPoint."""
 
-    building_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    orientation: Optional[float] = Field(None)
-    status: Optional[str] = Field(None, max_length=25)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    building_use: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    orientation: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Coastline(BaseTopoModel):
-    """Represents the boundary between land and sea."""
+    """Generated model for Coastline."""
 
-    coastline_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    elevation: Any = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class Contour(BaseTopoModel):
-    """Represents elevation lines for terrain representation."""
+    """Generated model for Contour."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    definition: Optional[str] = Field(None)
-    designation: Optional[str] = Field(None)
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    formation: Optional[str] = Field(None)
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').")
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    definition: Optional[Any] = Field(None)
+    designation: Optional[Any] = Field(None)
+    elevation: Optional[Any] = Field(None)
+    formation: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class DescriptiveText(BaseTopoModel):
-    """Represents text annotations for labeling or descriptions."""
+    """Generated model for DescriptiveText."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    info_display: Optional[str] = Field(None, max_length=255)
-    size: Optional[float] = Field(None)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    info_display: Optional[Any] = Field(None)
+    nzgb_id: Optional[Any] = Field(None)
+    size: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class FenceLine(BaseTopoModel):
-    """"""
+    """Generated model for FenceLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class FerryCrossing(BaseTopoModel):
-    """Indicates ferry links to terminal locations."""
+    """Generated model for FerryCrossing."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
+
+
+class FerryLine(BaseTopoModel):
+    """Generated model for FerryLine."""
+
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class GeographicName(BaseTopoModel):
-    """Represents named geographic locations and features."""
+    """Generated model for GeographicName."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    desc_code: Optional[str] = Field(None, max_length=15)
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    size: Optional[float] = Field(None)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    desc_code: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    size: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Island(BaseTopoModel):
-    """Represents an island within a water body. Onshore and Offshore."""
+    """Generated model for Island."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    group_name: Optional[str] = Field(None, max_length=60)
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    group_name: Optional[Any] = Field(None)
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Landcover(BaseTopoModel):
-    """Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc."""
+    """Generated model for Landcover."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    subtype: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class LandcoverLine(BaseTopoModel):
-    """Represents linear of land cover features such as dredge tailings."""
+    """Generated model for LandcoverLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class LandcoverPoint(BaseTopoModel):
-    """Represents land cover feature locations suck as rock outcrops."""
+    """Generated model for LandcoverPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    display: Optional[str] = Field(None, max_length=50)
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    orientation: Optional[float] = Field(None)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    display: Optional[Any] = Field(None)
+    elevation: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    orientation: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Landuse(BaseTopoModel):
-    """Represents areas designated for specific uses such as mines, racetracks."""
+    """Generated model for Landuse."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    landuse_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    substance_extracted: Optional[str] = Field(None, max_length=11)
-    subtype: Optional[str] = Field(None, description="The subtype of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    landuse_use: Optional[Any] = Field(None)
+    name: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    substance_extracted: Optional[Any] = Field(None)
+    subtype: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
 class LanduseLine(BaseTopoModel):
-    """Represents linear of land use features suck as racetracks."""
+    """Generated model for LanduseLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    landuse_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    subtype: Optional[str] = Field(None, description="The subtype of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    landuse_use: Optional[Any] = Field(None)
+    name: Optional[Any] = Field(None)
+    subtype: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Marine(BaseTopoModel):
-    """Represents features in the marine environment such as mangrives, reef, rocks and shoals."""
+    """Generated model for Marine."""
 
-    composition: Optional[str] = Field(None, max_length=9)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    composition: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
-class NzTopo50MapSheet(BaseTopoModel):
-    """Represents the LINZ Topographic 1:50,000 map sheets."""
+class Nztopo50CartoText(BaseTopoModel):
+    """Generated model for Nztopo50CartoText."""
 
-    example_point_id: str = Field(..., description="The identifier for an example point.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    published_at: Any = Field(..., description="The date when the map sheet was published.")
-    published_version: str = Field(..., description="The published version of the map sheet.")
-    sheet_code: str = Field(..., max_length=21)
-    sheet_name: str = Field(..., max_length=50)
-    t50_fid: int = Field(..., description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the map sheet was last updated.")
-    x_origin: float = Field(..., description="The x-coordinate of the origin point.")
-    y_origin: float = Field(..., description="The y-coordinate of the origin point.")
+    bbox: Optional[Any] = Field(None)
+    chardistance: Optional[Any] = Field(None)
+    charplace: Optional[Any] = Field(None)
+    colour: Optional[Any] = Field(None)
+    example_point_id: Optional[Any] = Field(None, description="id (UUID) of the example feature.")
+    font: Optional[Any] = Field(None)
+    full_text: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    labelanchor: Optional[Any] = Field(None)
+    offset: Optional[Any] = Field(None)
+    placement: Optional[Any] = Field(None)
+    size: Optional[Any] = Field(None)
+    style: Optional[Any] = Field(None)
+    text_bend: Optional[Any] = Field(None)
+    text_char_spacing_distance: Optional[Any] = Field(None)
+    text_colour: Optional[Any] = Field(None)
+    text_font: Optional[Any] = Field(None)
+    text_height: Optional[Any] = Field(None)
+    text_orientation: Optional[Any] = Field(None)
+    text_placement: Optional[Any] = Field(None)
+    text_size_type: Optional[Any] = Field(None)
+    text_stretch_length: Optional[Any] = Field(None)
+    text_string: Optional[Any] = Field(None)
+    text_word_spacing_distance: Optional[Any] = Field(None)
+    textanchor: Optional[Any] = Field(None)
+
+
+class Nztopo50DmsGrid(BaseTopoModel):
+    """Generated model for Nztopo50DmsGrid."""
+
+    bbox: Optional[Any] = Field(None)
+    direction: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    value: Optional[Any] = Field(None)
+
+
+class Nztopo50Grid(BaseTopoModel):
+    """Generated model for Nztopo50Grid."""
+
+    bbox: Optional[Any] = Field(None)
+    direction: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    value: Optional[Any] = Field(None)
+
+
+class Nztopo50MapSheet(BaseTopoModel):
+    """Generated model for Nztopo50MapSheet."""
+
+    bbox: Optional[Any] = Field(None)
+    example_point_id: str = Field(..., description="topo_id (UUID) of the example feature.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    published_at: Any = Field(...)
+    published_version: str = Field(...)
+    sheet_code: str = Field(...)
+    sheet_name: str = Field(...)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
+    x_origin: float = Field(...)
+    y_origin: float = Field(...)
 
 
 class PlacePoint(BaseTopoModel):
-    """Represents a named place or locality."""
+    """Generated model for PlacePoint."""
 
-    composition: Optional[str] = Field(None, max_length=9)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    description: Optional[str] = Field(None, max_length=80)
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    orientation: Optional[float] = Field(None)
-    place_type: Optional[str] = Field(None, description="The type of the feature.", max_length=11)
-    status: Optional[str] = Field(None, max_length=25)
-    substance_extracted: Optional[str] = Field(None, max_length=11)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    composition: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    description: Optional[Any] = Field(None)
+    elevation: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    orientation: Optional[Any] = Field(None)
+    place_type: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    substance_extracted: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
+
+
+class ProductIdentity(BaseTopoModel):
+    """Generated model for ProductIdentity."""
+
+    id: str = Field(..., description="UUID for the feature.")
 
 
 class RailwayLine(BaseTopoModel):
-    """Represents railway tracks. Dual tracks may be represented as single entity."""
+    """All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. 
+Where a railway line is located close to a road, the line held in the data and shown on the printed map 
+may be offset from the road sufficient that the two symbols are recognisable at 1:50,000.
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    railway_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    route: Optional[str] = Field(None, max_length=30)
-    route2: Optional[str] = Field(None, max_length=30)
-    route3: Optional[str] = Field(None, max_length=30)
-    status: Optional[str] = Field(None, max_length=25)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    track_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
-    vehicle_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
+Multiple sidings may be held in the data and shown on the printed maps as a single feature"""
+
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(..., description="The name of the railway line if known")
+    railway_use: Any = Field(...)
+    status: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    track_type: Any = Field(...)
+    type: str = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
+    vehicle_type: Any = Field(...)
+
+
+class RailwayPoint(BaseTopoModel):
+    """Generated model for RailwayPoint."""
+
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class RailwayStation(BaseTopoModel):
-    """Location of a railway station."""
+    """Generated model for RailwayStation."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
+
+
+class Relief(BaseTopoModel):
+    """Generated model for Relief."""
+
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    height: Any = Field(...)
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class ReliefLine(BaseTopoModel):
-    """Represents terrain features such as cliffs."""
+    """Generated model for ReliefLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    relief_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    height: Optional[Any] = Field(None)
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    relief_use: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
 class ReliefPoint(BaseTopoModel):
-    """Represents terrain features such as peaks or saddles."""
+    """Generated model for ReliefPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    display: Optional[str] = Field(None, max_length=50)
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    display: Any = Field(...)
+    elevation: Any = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    height: Any = Field(...)
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    orientation: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class ResidentialArea(BaseTopoModel):
-    """Represents areas primarily used for housing."""
+    """Generated model for ResidentialArea."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class RoadLine(BaseTopoModel):
-    """Represents roads, including highways and streets."""
+    """Generated model for RoadLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    hierarchy: Optional[str] = Field(None, max_length=50)
-    highway_number: Optional[str] = Field(None, max_length=20)
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    lane_count: Optional[int] = Field(None)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    name_id: Optional[int] = Field(None)
-    rna_sufi: Optional[int] = Field(None)
-    road_access: Optional[str] = Field(None, max_length=5)
-    status: Optional[str] = Field(None, max_length=25)
-    surface: Optional[str] = Field(None, max_length=10)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
-    way_count: Optional[str] = Field(None, max_length=7)
-    width_indicator: Optional[str] = Field(None, max_length=5)
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    hierarchy: Optional[Any] = Field(None)
+    highway_number: Optional[Any] = Field(None)
+    id: str = Field(..., description="UUID for the feature.")
+    lane_count: Optional[Any] = Field(None)
+    name: Optional[Any] = Field(None)
+    name_id: Optional[Any] = Field(None)
+    rna_sufi: Optional[Any] = Field(None)
+    road_access: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    surface: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
+    way_count: Optional[Any] = Field(None)
+    width_indicator: Optional[Any] = Field(None)
 
 
 class Runway(BaseTopoModel):
-    """Represents airport runway areas."""
+    """Generated model for Runway."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    runway_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    status: Optional[str] = Field(None, max_length=25)
-    surface: Optional[str] = Field(None, max_length=10)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    runway_use: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    surface: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class Structure(BaseTopoModel):
-    """Represents man-made structures other than buildings (e.g., reservoir, dry_dock, fish_farm, marine_farm, siphon, tank)."""
+    """Generated model for Structure."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    lid_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=50)
-    species: Optional[str] = Field(None, max_length=14)
-    status: Optional[str] = Field(None, max_length=25)
-    stored_item: Optional[str] = Field(None, max_length=5)
-    subtype: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    lid_type: Any = Field(...)
+    name: Any = Field(...)
+    species: Any = Field(...)
+    status: Any = Field(...)
+    stored_item: Any = Field(...)
+    subtype: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class StructureLine(BaseTopoModel):
-    """Represents structural features such as  cableways, ladders, wharf, weirs etc."""
+    """Generated model for StructureLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    material: Optional[str] = Field(None, max_length=5)
-    material_conveyed: Optional[str] = Field(None, max_length=4)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    restrictions: Optional[str] = Field(None, max_length=6)
-    species: Optional[str] = Field(None, max_length=14)
-    status: Optional[str] = Field(None, max_length=25)
-    structure_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    material: Any = Field(...)
+    material_conveyed: Any = Field(...)
+    name: Any = Field(...)
+    restrictions: Any = Field(...)
+    species: Any = Field(...)
+    status: Any = Field(...)
+    structure_use: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class StructurePoint(BaseTopoModel):
-    """Represents small structures or structural features such as gates, masts tanks, windmills."""
+    """Generated model for StructurePoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    height: Optional[float] = Field(None, description="The height of the feature in metres")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    location: Optional[str] = Field(None, max_length=5)
-    material: Optional[str] = Field(None, max_length=8)
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    orientation: Optional[float] = Field(None)
-    restrictions: Optional[str] = Field(None, max_length=6)
-    status: Optional[str] = Field(None, max_length=25)
-    stored_item: Optional[str] = Field(None, max_length=5)
-    structure_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    subtype: Optional[str] = Field(None, description="The subtype of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
-    wreck_of: Optional[str] = Field(None, max_length=6)
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    height: Any = Field(...)
+    id: str = Field(..., description="UUIDv7 of the feature")
+    location: Any = Field(...)
+    material: Any = Field(...)
+    name: Any = Field(...)
+    orientation: Any = Field(...)
+    restrictions: Any = Field(...)
+    status: Any = Field(...)
+    stored_item: Any = Field(...)
+    structure_use: Any = Field(...)
+    subtype: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    tank_type: Any = Field(...)
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
+    wreck_of: Any = Field(...)
+
+
+class TopoIdentity(BaseTopoModel):
+    """Identity columns shared by every file in the dataset."""
+
+    id: str = Field(..., description="UUID for the feature.")
 
 
 class TrackLine(BaseTopoModel):
-    """Represents walking tracks, trails, or unsealed paths."""
+    """Generated model for TrackLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    track_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    track_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    track_type: Optional[Any] = Field(None)
+    track_use: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class TransportPoint(BaseTopoModel):
-    """Represents transport-related locations (e.g., bus stops, terminals)."""
+    """Generated model for TransportPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
 class TrigPoint(BaseTopoModel):
-    """Represents a geodetic survey control point."""
+    """Generated model for TrigPoint."""
 
-    code: Optional[str] = Field(None, max_length=20)
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    trig_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    code: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    elevation: Optional[Any] = Field(None)
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    trig_type: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class TunnelLine(BaseTopoModel):
-    """Represents tunnels for roads, railways, or utilities."""
+    """Generated model for TunnelLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    subtype: Optional[str] = Field(None, description="The subtype of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    tunnel_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    tunnel_use2: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    subtype: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    tunnel_use: Optional[Any] = Field(None)
+    tunnel_use2: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class UtilityLine(BaseTopoModel):
-    """Represents linear utility infrastructure such as  pipelines, power lines."""
+    """Generated model for UtilityLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    status: Optional[str] = Field(None, max_length=25)
-    support_type: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
-    utility_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
-    visibility: Optional[str] = Field(None, max_length=11)
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    name: Optional[Any] = Field(None)
+    status: Optional[Any] = Field(None)
+    support_type: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
+    utility_use: Optional[Any] = Field(None)
+    visibility: Optional[Any] = Field(None)
 
 
 class UtilityPoint(BaseTopoModel):
-    """Represents point utility infrastructure such as poles, towers."""
+    """Generated model for UtilityPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    orientation: Optional[float] = Field(None)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    orientation: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class Vegetation(BaseTopoModel):
-    """Represents areas of vegetation landcover such as trees, scrub, vineyards."""
+    """Generated model for Vegetation."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    species: Optional[str] = Field(None, max_length=14)
-    subtype: Optional[str] = Field(None, description="The type of the feature.", max_length=50)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    species: Optional[Any] = Field(None)
+    subtype: Optional[Any] = Field(None)
+    t50_fid: Optional[Any] = Field(None)
+    type: Any = Field(...)
+    updated_at: Any = Field(...)
 
 
 class VegetationLine(BaseTopoModel):
-    """Represents linear vegetation features such as shelter belts."""
+    """Generated model for VegetationLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None)
+    created_at: Any = Field(..., description="Default at write time: today.")
+    geometry: Any = Field(..., description="WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.")
+    id: str = Field(..., description="UUID for the feature.")
+    t50_fid: Optional[Any] = Field(None)
+    type: str = Field(...)
+    updated_at: Any = Field(...)
 
 
 class VegetationPoint(BaseTopoModel):
-    """Represents individual trees or notable groups of trees."""
+    """Generated model for VegetationPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    id: Optional[str] = Field(None, description="The unique identifier for the topographic feature.")
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class Water(BaseTopoModel):
-    """Represents water bodies such as  rivers, lakes."""
+    """Generated model for Water."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    elevation: Optional[int] = Field(None, description="The elevation above mean sea level.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    group_name: Optional[str] = Field(None, max_length=60)
-    height: Optional[float] = Field(None, description="The height of the feature in metres")
-    hierarchy: Optional[str] = Field(None, max_length=25)
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    nzgb_feat_id: Optional[float] = Field(None)
-    perennial: Optional[str] = Field(None, max_length=8)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    temperature: Optional[str] = Field(None, max_length=3)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
-    water_use: Optional[str] = Field(None, description="The use of the feature.", max_length=50)
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    elevation: Any = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    group_name: Any = Field(...)
+    height: Any = Field(...)
+    hierarchy: Any = Field(...)
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    nzgb_feat_id: Any = Field(...)
+    perennial: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    temperature_indicator: Any = Field(...)
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
+    water_use: Any = Field(...)
 
 
 class WaterLine(BaseTopoModel):
-    """Represents water features such as rivers, canals, drains."""
+    """Generated model for WaterLine."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    hierarchy: Optional[str] = Field(None, max_length=25)
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    hierarchy: Any = Field(...)
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")
 
 
 class WaterPoint(BaseTopoModel):
-    """Represents water-related features such as springs."""
+    """Generated model for WaterPoint."""
 
-    created_at: Any = Field(..., description="The date when the feature was created in the database.")
-    geometry: dict[str, Any] = Field(..., description="The geometry of the feature.")
-    height: Optional[float] = Field(None, description="The height of the feature in metres")
-    id: str = Field(..., description="The unique identifier for the topographic feature.")
-    name: Optional[str] = Field(None, description="The name of the feature.", max_length=75)
-    orientation: Optional[float] = Field(None)
-    t50_fid: Optional[int] = Field(None, description="The unique identifier for the feature in the source database.")
-    temperature_indicator: Optional[str] = Field(None, max_length=4)
-    type: str = Field(..., description="The specific type of feature being represented (e.g., 'bridge_line', 'building').", max_length=50)
-    updated_at: Any = Field(..., description="The date when the feature was last updated in the database.")
+    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+    created_at: str = Field(..., description="ISO Datetime of when the feature was created")
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    name: Any = Field(...)
+    orientation: Any = Field(...)
+    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+
+Will be null if the feature is new and has not been published in a Topo50 edition.")
+    temperature_indicator: Any = Field(...)
+    type: Any = Field(...)
+    updated_at: str = Field(..., description="ISO Datetime of when the feature was last updated")

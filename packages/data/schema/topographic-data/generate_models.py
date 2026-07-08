@@ -1,23 +1,28 @@
 """
 Generate Pydantic model classes from JSON schemas.
 
-This script reads the master JSON schema and generates explicit Pydantic model
-class definitions, writing them to pydantic_models_classes.py.
+This script reads per-layer JSON schema files and generates explicit Pydantic
+model class definitions, writing them to pydantic_models_classes.py.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
 # Constants
-SCHEMA_FILE = Path(__file__).resolve().parent / "master_json_schema" / "topographic_data_schema.json"
+DEFAULT_EXTERNAL_SCHEMA_DIR = Path("C:/Data/schema")
 OUTPUT_FILE = Path(__file__).resolve().parent / "pydantic_models_classes.py"
 GEOMETRY_TYPE_NAMES = {"point", "linestring", "polygon", "multilinestring"}
+
+
+def _resolve_schema_dir() -> Path:
+    """Resolve schema directory from env override or default location."""
+    configured_dir = os.getenv("TOPOGRAPHIC_SCHEMA_DIR")
+    return Path(configured_dir) if configured_dir else DEFAULT_EXTERNAL_SCHEMA_DIR
 
 
 def _to_class_name(name: str) -> str:
@@ -105,36 +110,79 @@ def _generate_model_class(class_name: str, schema: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _extract_model_schemas(schema: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    """Extract model schemas from the root schema."""
+def _schema_ref_to_def_name(ref: str) -> str | None:
+    prefix = "#/$defs/"
+    if not ref.startswith(prefix):
+        return None
+    return ref[len(prefix) :]
+
+
+def _extract_model_schemas(
+    schema: dict[str, Any], schema_file: Path
+) -> list[tuple[str, dict[str, Any]]]:
+    """Extract model schemas from object-only and combined JSON schemas."""
+
+    if schema.get("type") == "object" and "properties" in schema:
+        model_key = str(schema.get("title") or schema_file.stem.replace("_schema", ""))
+        return [(model_key, schema)]
+
     defs = schema.get("$defs", {})
     if not isinstance(defs, dict):
         return []
-    
+
+    feature_names: list[str] = []
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        for item in any_of:
+            if not isinstance(item, dict):
+                continue
+            ref = item.get("$ref")
+            if not isinstance(ref, str):
+                continue
+            def_name = _schema_ref_to_def_name(ref)
+            if def_name and def_name in defs:
+                feature_names.append(def_name)
+
+    if not feature_names:
+        feature_names = sorted(name for name, value in defs.items() if isinstance(value, dict))
+
     models = []
-    for def_name, def_schema in sorted(defs.items()):
+    for def_name in feature_names:
+        def_schema = defs.get(def_name)
         if not isinstance(def_schema, dict):
             continue
         if def_schema.get("type") != "object" or "properties" not in def_schema:
             continue
         models.append((def_name, def_schema))
-    
+
     return models
 
 
-def generate_models_file(schema_file: Path, output_file: Path) -> None:
-    """Generate pydantic_models_classes.py from JSON schema."""
-    
-    # Read schema
-    with open(schema_file, "r", encoding="utf-8-sig") as f:
-        schema = json.load(f)
-    
-    # Extract models
-    models = _extract_model_schemas(schema)
-    
+def _iter_schema_entries(schema_dir: Path) -> list[tuple[str, dict[str, Any], Path]]:
+    schema_files = sorted(schema_dir.glob("*_schema.json"))
+    if not schema_files:
+        schema_files = sorted(schema_dir.glob("*.json"))
+    if not schema_files:
+        schema_files = sorted(schema_dir.rglob("*.json"))
+
+    entries: list[tuple[str, dict[str, Any], Path]] = []
+    for schema_file in schema_files:
+        with schema_file.open("r", encoding="utf-8-sig") as f:
+            schema = json.load(f)
+
+        for schema_key, schema_fragment in _extract_model_schemas(schema, schema_file):
+            entries.append((schema_key, schema_fragment, schema_file))
+
+    return entries
+
+
+def generate_models_file(schema_dir: Path, output_file: Path) -> None:
+    """Generate pydantic_models_classes.py from JSON schema directory."""
+    models = _iter_schema_entries(schema_dir)
+
     if not models:
-        raise RuntimeError(f"No usable schemas found in {schema_file}")
-    
+        raise RuntimeError(f"No usable schemas found under {schema_dir}")
+
     # Generate file content
     lines = [
         '"""',
@@ -159,8 +207,8 @@ def generate_models_file(schema_file: Path, output_file: Path) -> None:
     ]
     
     # Generate model classes
-    for def_name, model_schema in models:
-        class_name = _to_class_name(def_name)
+    for model_key, model_schema, _ in models:
+        class_name = _to_class_name(model_key)
         model_code = _generate_model_class(class_name, model_schema)
         lines.append("")
         lines.append(model_code)
@@ -170,18 +218,20 @@ def generate_models_file(schema_file: Path, output_file: Path) -> None:
     content = "\n".join(lines)
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(content)
-    
+
     print(f"✓ Generated {len(models)} model classes")
     print(f"✓ Output written to {output_file}")
+    print(f"✓ Schema source directory: {schema_dir}")
     print(f"\nGenerated models:")
-    for def_name, _ in models:
-        class_name = _to_class_name(def_name)
-        print(f"  - {class_name}")
+    for model_key, _, schema_file in models:
+        class_name = _to_class_name(model_key)
+        print(f"  - {class_name} ({schema_file.name})")
 
 
 if __name__ == "__main__":
     try:
-        generate_models_file(SCHEMA_FILE, OUTPUT_FILE)
+        schema_directory = _resolve_schema_dir()
+        generate_models_file(schema_directory, OUTPUT_FILE)
         print("\n✓ Generation complete!")
     except Exception as e:
         print(f"✗ Error: {e}")

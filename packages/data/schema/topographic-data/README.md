@@ -5,7 +5,9 @@ See: readme_pydantic_validation.md for example of generic capabilities. AI gener
 Pydatnic Docs - https://docs.pydantic.dev/
 
 
-Under **master_json_schema** is the current topographic schema defined in json schema format.
+Primary schema source is **C:/Data/schema** with one JSON file per layer.
+
+If needed, set environment variable **TOPOGRAPHIC_SCHEMA_DIR** to override the schema path.
 
 This is used by the **pydantic_models.py** to create pydantic version models. Use the **generate_models.py** script to update the classes.
 

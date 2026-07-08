@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, create_model
 
-SCHEMA_DIR = Path(__file__).resolve().parent / "master_json_schema"
+DEFAULT_EXTERNAL_SCHEMA_DIR = Path("C:/Data/schema")
+SCHEMA_DIR = Path(os.getenv("TOPOGRAPHIC_SCHEMA_DIR", str(DEFAULT_EXTERNAL_SCHEMA_DIR)))
 GEOMETRY_TYPE_NAMES = {"point", "linestring", "polygon", "multilinestring"}
 
 
@@ -34,6 +36,16 @@ def _string_type(max_length: int | None) -> Any:
 
 
 def _resolve_field_type(field_schema: dict[str, Any]) -> Any:
+    any_of = field_schema.get("anyOf")
+    if isinstance(any_of, list):
+        non_null_types = [
+            item for item in any_of if isinstance(item, dict) and item.get("type") != "null"
+        ]
+        if len(non_null_types) == 1:
+            return _resolve_field_type(non_null_types[0])
+        if non_null_types:
+            return Any
+
     schema_type = str(field_schema.get("type", "")).lower()
 
     if schema_type == "string":
@@ -42,13 +54,19 @@ def _resolve_field_type(field_schema: dict[str, Any]) -> Any:
         return int
     elif schema_type == "number":
         return float
+    elif schema_type == "boolean":
+        return bool
+    elif schema_type == "array":
+        return list[Any]
+    elif schema_type == "object":
+        return dict[str, Any]
     elif schema_type == "date":
         return float
     elif schema_type in GEOMETRY_TYPE_NAMES:
         # Geometry fields use custom schema type names in source JSON schemas.
         return dict[str, Any]
 
-    raise ValueError(f"Unsupported schema type '{schema_type}'")
+    return Any
 
 
 def _build_model(schema: dict[str, Any], schema_file: Path) -> type[BaseTopoModel]:
@@ -142,6 +160,8 @@ def _iter_schema_entries(schema_dir: Path) -> list[tuple[str, dict[str, Any], Pa
     schema_files = sorted(schema_dir.glob("*_schema.json"))
     if not schema_files:
         schema_files = sorted(schema_dir.glob("*.json"))
+    if not schema_files:
+        schema_files = sorted(schema_dir.rglob("*.json"))
 
     entries: list[tuple[str, dict[str, Any], Path]] = []
     for schema_file in schema_files:
