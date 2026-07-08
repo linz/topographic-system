@@ -150,7 +150,7 @@ def main():
             raise ValueError(f"No layout found with name '{args.project_layout}'.")
 
         # Load map items
-        map_main = layout.itemById('map_main')
+        map_main = layout.itemById("map_main")
         if not isinstance(map_main, QgsLayoutItemMap):
             raise ValueError(f"No 'map_main' QgsLayoutItemMap item found in layout '{args.project_layout}'.")
 
