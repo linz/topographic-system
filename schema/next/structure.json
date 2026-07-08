@@ -33,6 +33,16 @@
     "type": {
       "$ref": "#/$defs/structure_type"
     },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "lid_type": {
       "anyOf": [
         {
@@ -44,10 +54,10 @@
         }
       ]
     },
-    "subtype": {
+    "tank_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_subtype"
+          "$ref": "#/$defs/structure_tank_type"
         },
         {
           "type": "null"
@@ -84,16 +94,6 @@
         }
       ]
     },
-    "stored_item": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_stored_item"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
@@ -111,12 +111,12 @@
     "updated_at",
     "t50_fid",
     "type",
-    "lid_type",
     "subtype",
+    "lid_type",
+    "tank_type",
     "species",
     "status",
     "name",
-    "stored_item",
     "geometry"
   ],
   "additionalProperties": false,
@@ -127,7 +127,30 @@
     },
     "structure_subtype": {
       "type": "string",
-      "enum": ["lighthouse", "surge chamber", "uncovered", "water"]
+      "enum": [
+        "building",
+        "coal",
+        "concrete",
+        "disused",
+        "fuel",
+        "historic",
+        "jetty",
+        "lighthouse",
+        "lime",
+        "locked",
+        "plane",
+        "power_generation",
+        "rock",
+        "ship",
+        "surge chamber",
+        "tunnel_ventilation",
+        "uncovered",
+        "water"
+      ]
+    },
+    "structure_tank_type": {
+      "type": "string",
+      "enum": ["uncovered", "water", "surge chamber"]
     },
     "structure_species": {
       "type": "string",
@@ -148,10 +171,6 @@
         "ruins",
         "under construction"
       ]
-    },
-    "structure_stored_item": {
-      "type": "string",
-      "enum": ["fuel", "water"]
     },
     "BBox": {
       "type": "object",
