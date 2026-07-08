@@ -24,7 +24,7 @@ enum place_type {
   HistoricSite: "historic_site",
   Mine: "mine",
   Monument: "monument",
-  PA: "pa",
+  Pa: "pa",
 }
 
 enum place_subtype {
