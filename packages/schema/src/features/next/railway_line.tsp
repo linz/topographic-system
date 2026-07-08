@@ -52,11 +52,11 @@ enum vehicle_type {
   /**
    * A decommissioned railway line with adapted motorised golf carts, or rail bicycles designed for tourist use
    */
-  RailCart: "rail cart",
+  RailCart: "rail_cart",
   Cablecar: "cablecar"
 }
 
 enum railway_status {
   Disused: "disused",
-  UnderConstruction: "under construction" 
+  UnderConstruction: "under_construction" 
 }

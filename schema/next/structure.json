@@ -142,7 +142,7 @@
         "power_generation",
         "rock",
         "ship",
-        "surge chamber",
+        "surge_chamber",
         "tunnel_ventilation",
         "uncovered",
         "water"
@@ -150,7 +150,7 @@
     },
     "structure_tank_type": {
       "type": "string",
-      "enum": ["uncovered", "water", "surge chamber"]
+      "enum": ["uncovered", "water", "surge_chamber"]
     },
     "structure_species": {
       "type": "string",
@@ -169,7 +169,7 @@
         "private",
         "remains",
         "ruins",
-        "under construction"
+        "under_construction"
       ]
     },
     "BBox": {

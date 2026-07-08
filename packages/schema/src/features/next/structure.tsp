@@ -43,7 +43,7 @@ enum structure_subtype {
   PowerGeneration: "power_generation",
   Rock: "rock",
   Ship: "ship",
-  SurgeChamber: "surge chamber",
+  SurgeChamber: "surge_chamber",
   TunnelVentilation: "tunnel_ventilation",
   Uncovered: "uncovered",
   Water: "water"
@@ -52,7 +52,7 @@ enum structure_subtype {
 enum structure_tank_type {
   Uncovered: "uncovered",
   Water: "water",
-  SurgeChamber: "surge chamber"
+  SurgeChamber: "surge_chamber"
 }
 
 enum structure_species {
@@ -71,7 +71,7 @@ enum structure_status {
   Private: "private",
   Remains: "remains",
   Ruins: "ruins",
-  UnderConstruction: "under construction"
+  UnderConstruction: "under_construction"
 }
 
 
