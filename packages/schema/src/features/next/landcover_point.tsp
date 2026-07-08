@@ -27,13 +27,13 @@ model landcover_point_core_types {
 }
 
 enum landcover_point_core_type {
-  Cemetery: "cemetery";
-  Fumarole: "fumarole";
-  Swamp: "swamp";
+  Cemetery: "cemetery",
+  Fumarole: "fumarole",
+  Swamp: "swamp"
 } 
 
 enum rock_outcrop_subtype {
-  SmallRockOutcrop: "small_rock_outcrop";
-  LargeRockOutcrop: "large_rock_outcrop";
-  LargeBoulder: "large_boulder";
+  SmallRockOutcrop: "small_rock_outcrop",
+  LargeRockOutcrop: "large_rock_outcrop",
+  LargeBoulder: "large_boulder"
 }
