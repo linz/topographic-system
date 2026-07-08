@@ -1202,7 +1202,7 @@ class TableModificationWorkflow:
             ],
             (self.schema_name, "road_line"): [("highway_number", "highway_numb")],
             (self.schema_name, "water"): [
-                ("water_use", "pond_use"),
+                ("subtype", "pond_use"),
             ],
         }
 
@@ -1474,7 +1474,27 @@ class TableModificationWorkflow:
         self.table_modifer.update_value_by_column(
             self.schema_name, "water", "subtype", "use1", "use1 = 'hydro-electric'"
         )
-        
+
+
+        self.add_column(f'"{self.schema_name}"."ferry_line"', "subtype", "VARCHAR(50)")
+        self.table_modifer.update_column_by_value(self.schema_name, "ferry_line", "subtype", "vehicle")
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "landuse_line", "type", "landuse_use", "landuse_use is not null"
+        )
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse_line", "type", "horse_track", "type = 'horse'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse_line", "type", "vehicle_track", "type = 'vehicle'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse_line", "type", "cycle_track", "type = 'cycle'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse_line", "type", "dog_track", "type = 'dog'")
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "landuse", "type", "landuse_use", "landuse_use is not null"
+        )
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse", "type", "horse_track", "type = 'horse'")
+      
+
+        self.table_modifer.drop_column(self.schema_name, "landuse_line", "landuse_use")
+        self.table_modifer.drop_column(self.schema_name, "landuse", "landuse_use")
 
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(
@@ -1580,6 +1600,7 @@ class TableModificationWorkflow:
             ("defaults", self.step_defaults),
             ("rename", self.step_rename),
             ("structure_updates", self.step_structure_updates),
+            ("use_to_subtype_updates", self.step_use_to_subtype_updates),  
             ("update_spaces_with_underscores", self.step_update_spaces_with_underscores),
             ("carto_text_geom_update", self.step_carto_text_geom_update),
             ("recreate_table_srid", self.step_recreate_table_srid),

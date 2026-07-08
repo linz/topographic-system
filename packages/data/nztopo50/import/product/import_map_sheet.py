@@ -57,8 +57,8 @@ class MapSheetImporter:
             "sheet_code": String(21),
             "sheet_name": String(50),
             "edition": String(30),
-            "x_origin": DOUBLE_PRECISION(),
-            "y_origin": DOUBLE_PRECISION(),
+            "origin_x": DOUBLE_PRECISION(),
+            "origin_y": DOUBLE_PRECISION(),
             "example_point_id": PG_UUID(as_uuid=True),
             "published_version": String(25),
             "published_at": Date(),
@@ -155,8 +155,8 @@ class MapSheetImporter:
 
         origins = gdf.geometry.apply(self.top_left_from_geometry)
         origins_df = origins.apply(pd.Series)
-        gdf["x_origin"] = pd.to_numeric(origins_df[0], errors="coerce").round(0).astype("Int32")
-        gdf["y_origin"] = pd.to_numeric(origins_df[1], errors="coerce").round(0).astype("Int32")
+        gdf["origin_x"] = pd.to_numeric(origins_df[0], errors="coerce").round(0).astype("Int32")
+        gdf["origin_y"] = pd.to_numeric(origins_df[1], errors="coerce").round(0).astype("Int32")
 
         if "example_point_id" not in gdf.columns:
             gdf["example_point_id"] = pd.NA

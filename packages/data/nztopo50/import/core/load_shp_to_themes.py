@@ -280,9 +280,13 @@ class Topo50DataLoader:
 
         if layer_name.lower() == "water":
             if "lake_use" in gdf.columns:
-                gdf = gdf.rename(columns={"lake_use": "water_use"})
+                gdf = gdf.rename(columns={"lake_use": "subtype"})
             if "gazfeatid" in gdf.columns:
                 gdf = gdf.rename(columns={"gazfeatid": "nzgb_feat_id"})
+
+        if layer_name.lower() == "runway":
+            if "runway_use" in gdf.columns:
+                gdf = gdf.rename(columns={"runway_use": "subtype"})
 
         if "compositn" in gdf.columns:
             gdf = gdf.rename(columns={"compositn": "composition"})
@@ -339,11 +343,11 @@ class Topo50DataLoader:
         if "support_ty" in gdf.columns:
             gdf = gdf.rename(columns={"support_ty": "support_type"})
         if "bldg_use" in gdf.columns:
-            gdf = gdf.rename(columns={"bldg_use": "building_use"})
+            gdf = gdf.rename(columns={"bldg_use": "substype"})
         if "pipe_use" in gdf.columns:
-            gdf = gdf.rename(columns={"pipe_use": "utility_use"})
+            gdf = gdf.rename(columns={"pipe_use": "subtype"})
         if "rway_use" in gdf.columns:
-            gdf = gdf.rename(columns={"rway_use": "railway_use"})
+            gdf = gdf.rename(columns={"rway_use": "subtype"})
         if "embkmt_use" in gdf.columns:
             gdf = gdf.rename(columns={"embkmt_use": "subtype"})
         if "grp_ascii" in gdf.columns:
