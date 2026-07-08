@@ -9,7 +9,7 @@ using TypeSpec.JsonSchema;
 model water_point {
   ...TopographicFeature;
 
-  type: "rock" | "soakhole" | "spring";
+  type: "soakhole" | "spring" | "waterfall";
   name: string | null;
   orientation: float64 | null;
   temperature_indicator: water_temperature_indicator | null;
