@@ -987,6 +987,10 @@ class ModifyTable:
                             f"Error updating spaces in '{schema_name}.{table}.{column_name}': {e}. Query: {update_query}"
                         )
 
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "water", "subtype", "hydro_electric", "subtype = 'hydro-electric'"
+        )
+
     def road_lkp_updates(self, schema):
         """Update road_line fields from the lookups.road_lkp table.
 
@@ -1465,6 +1469,12 @@ class TableModificationWorkflow:
         self.table_modifer.drop_column(self.schema_name, "structure_line", "material")
         self.table_modifer.drop_column(self.schema_name, "structure_line", "material_conveyed")        
         self.table_modifer.drop_column(self.schema_name, "structure_line", "restrictions")       
+
+    def step_use_to_subtype_updates(self):
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "water", "subtype", "use1", "use1 = 'hydro-electric'"
+        )
+        
 
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(
