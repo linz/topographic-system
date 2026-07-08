@@ -10,18 +10,13 @@ model structure_point {
   ...TopographicFeature;
 
   type: structure_point_type;
-  structure_use: structure_use | null;
-  tank_type: "uncovered" | "water" | "surge chamber" | null;
   subtype: structure_subtype | null;
+  tank_type: structure_tank_type | null;
   status: structure_status | null;
   name: string | null;
   location: "land" | "lake" | "sea" | null;
   height: float64 | null;
   orientation: float64 | null;
-  material: structure_material | null;
-  restrictions: structure_restrictions | null;
-  stored_item: structure_stored_item | null;
-  wreck_of: "plane" | "ship" | null;
 
   ...GeoParquet
 }

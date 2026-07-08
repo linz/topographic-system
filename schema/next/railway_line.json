@@ -108,11 +108,11 @@
     },
     "vehicle_type": {
       "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
+      "enum": ["train", "tram", "rail_cart", "cablecar"]
     },
     "railway_status": {
       "type": "string",
-      "enum": ["disused", "under construction"]
+      "enum": ["disused", "under_construction"]
     },
     "BBox": {
       "type": "object",

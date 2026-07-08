@@ -24,14 +24,14 @@ model water {
 
 enum water_use {
   Evaporation: "evaporation",
-  HydroElectric: "hydro-electric",
-  IceSkating: "ice skating",
+  HydroElectric: "hydro_electric",
+  IceSkating: "ice_skating",
   Oil: "oil",
   Oxidation: "oxidation",
   Reservoir: "reservoir",
   Settling: "settling",
   Sewage: "sewage",
-  SewageTreatment: "sewage treatment",
+  SewageTreatment: "sewage_treatment",
   Sludge: "sludge",
 }
 

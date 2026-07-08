@@ -171,14 +171,14 @@
       "type": "string",
       "enum": [
         "evaporation",
-        "hydro-electric",
-        "ice skating",
+        "hydro_electric",
+        "ice_skating",
         "oil",
         "oxidation",
         "reservoir",
         "settling",
         "sewage",
-        "sewage treatment",
+        "sewage_treatment",
         "sludge"
       ]
     },
