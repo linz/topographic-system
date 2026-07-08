@@ -26,6 +26,10 @@ export interface SourceStac {
   url: URL;
   /** Once the STAC document has been fetched the raw JSON of the stac */
   json?: StacItem | StacCollection;
+  /**
+   * Cache the reading of the JSON so that multiple calls to getAsset for the same stac don't re-read the file
+   */
+  future?: Promise<SourceAsset[]>;
   /** stac assets to download */
   assets: SourceAsset[];
 }
@@ -75,38 +79,41 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(
+  getAsset(
     url: URL,
     options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
   ): Promise<SourceAsset[]> {
     const sourceStac = this.stac.get(url.href);
 
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
-    if (sourceStac.assets.length > 0) return sourceStac.assets;
+    // If the stac is already been fetched and it has no assets, return null to avoid re-fetching
+    if (sourceStac.future != null) {
+      logger.trace({ url: url.href }, 'Downloader: Stac already being fetched');
+      return sourceStac.future;
+    }
 
-    const stac = sourceStac.json ?? (await fsa.readJson<StacItem | StacCollection>(url));
-    sourceStac.json = stac;
-
-    if (options?.useCanonical) {
-      const canonical = stac.links.find((l) => l.rel === 'canonical');
-      if (canonical) {
-        const canonicalUrl = new URL(canonical.href, url);
-        this.stac.set(
-          canonicalUrl.href,
-          this.stac.get(canonicalUrl.href) ?? { url: canonicalUrl, assets: [], json: undefined },
-        );
-        logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
-        return this.getAsset(canonicalUrl, options);
+    sourceStac.future = fsa.readJson<StacItem | StacCollection>(url).then(async (stac) => {
+      sourceStac.json = stac;
+      if (options?.useCanonical) {
+        const canonical = stac.links.find((l) => l.rel === 'canonical');
+        if (canonical) {
+          const canonicalUrl = new URL(canonical.href, url);
+          this.stac.set(canonicalUrl.href, this.stac.get(canonicalUrl.href) ?? { url: canonicalUrl, assets: [] });
+          logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
+          return this.getAsset(canonicalUrl, options);
+        }
       }
-    }
 
-    const sourceAssets = [];
-    for (const asset of Object.values(stac.assets ?? {})) {
-      const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, options);
-      sourceAssets.push(sourceAsset);
-    }
-    sourceStac.assets = sourceAssets;
-    return sourceAssets;
+      const sourceAssets = [];
+      for (const asset of Object.values(stac.assets ?? {})) {
+        const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, options);
+        sourceAssets.push(sourceAsset);
+      }
+      sourceStac.assets = sourceAssets;
+      return sourceAssets;
+    });
+
+    return sourceStac.future;
   }
 
   findAsset(f: (asset: SourceAsset) => boolean): SourceAsset | undefined {
@@ -170,7 +177,7 @@ export class Downloader {
     const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
       this.getAsset(new URL(url), options),
     );
-    return allAssets.flat();
+    return allAssets.flat().filter(Boolean) as SourceAsset[];
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
