@@ -37,7 +37,9 @@ enum structure_point_type {
   Gate: "gate",
   Ladder: "ladder",
   Mast: "mast",
+  RadarDome: "radar_dome",  
   Redoubt: "redoubt",
+  SatelliteStation: "satellite_station",
   Shaft: "shaft",
   Siphon: "siphon",
   Stockyard: "stockyard",
@@ -45,7 +47,7 @@ enum structure_point_type {
   Tower: "tower",
   Well: "well",
   Windmill: "windmill",
-  Wreck: "wreck"
+  Wreck: "wreck",
 }
 
 
