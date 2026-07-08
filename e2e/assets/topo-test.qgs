@@ -2446,7 +2446,7 @@ def my_form_open(dialog, layer, feature):
           </customproperties>
         </LayoutObject>
       </LayoutItem>
-      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" enableZRange="0" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="Map 1" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="61.9955,0,mm" positionLock="false" positionOnPage="61.9955,0,mm" referencePoint="0" size="235.005,210,mm" templateUuid="{058ffa2e-7e28-4e94-a293-1edb21b6fc1e}" type="65639" uuid="{058ffa2e-7e28-4e94-a293-1edb21b6fc1e}" visibility="1" zValue="1">
+      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" enableZRange="0" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="map_main" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="61.9955,0,mm" positionLock="false" positionOnPage="61.9955,0,mm" referencePoint="0" size="235.005,210,mm" templateUuid="{058ffa2e-7e28-4e94-a293-1edb21b6fc1e}" type="65639" uuid="{058ffa2e-7e28-4e94-a293-1edb21b6fc1e}" visibility="1" zValue="1">
         <FrameColor alpha="255" blue="0" green="0" red="0"/>
         <BackgroundColor alpha="255" blue="255" green="255" red="255"/>
         <LayoutObject>
