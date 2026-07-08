@@ -11,6 +11,7 @@ from qgis.core import (
     QgsFeature,
     QgsLayoutExporter,
     QgsLayoutItemMap,
+    QgsPrintLayout,
     QgsProject,
     QgsVectorLayer,
 )
@@ -137,43 +138,42 @@ def main():
         for font_file in glob.glob(os.path.join(project_dir, "*.otf")):
             QFontDatabase.addApplicationFont(font_file)
 
+        # Load project
         project = QgsProject.instance()
         success = project.read(args.project_path)
         if not success:
             raise ValueError(f"Failed to read project file: {args.project_path}")
 
+        # Load layout
         layout = project.layoutManager().layoutByName(args.project_layout)
-        if layout is None:
+        if not isinstance(layout, QgsPrintLayout):
             raise ValueError(f"No layout found with name '{args.project_layout}'.")
 
-        exporter = QgsLayoutExporter(layout)
+        # Load map items
+        map_main = layout.itemById("map_main")
+        if not isinstance(map_main, QgsLayoutItemMap):
+            raise ValueError(f"No 'map_main' QgsLayoutItemMap item found in layout '{args.project_layout}'.")
 
-        map_item = None
-        for item in layout.items():
-            if isinstance(item, QgsLayoutItemMap):
-                map_item = item
-                break
-
-        if map_item is None:
-            raise ValueError(f"No QgsLayoutItemMap found in layout '{args.project_layout}'.")
-
+        # Remove layers
         for layer in list(project.mapLayers().values()):
             if layer.name() in args.excluded_layers:
                 project.removeMapLayer(layer.id())
 
-        map_crs = map_item.crs()
-
+        # Find map sheet feature
         matching_layers = project.mapLayersByName(args.topo_map_sheet_name)
         if not matching_layers:
             raise ValueError(f"No layer found with name '{args.topo_map_sheet_name}'.")
         topo_sheet_layer = matching_layers[0]
-
         feature = find_sheet_feature(topo_sheet_layer, args.sheet_code)
 
+        # Set map item extents
         geom = feature.geometry()
-        geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_crs, project))
+        geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_main.crs(), project))
         bbox = geom.boundingBox()
-        map_item.setExtent(bbox)
+        map_main.setExtent(bbox)
+
+        # Generate outputs
+        exporter = QgsLayoutExporter(layout)
 
         export_result = None
         if args.export_format == "pdf":
