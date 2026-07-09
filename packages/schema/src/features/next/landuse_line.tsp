@@ -4,20 +4,15 @@ import "./landuse.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/landuse_point")
+@jsonSchema("next/landuse_line")
 @extension("additionalProperties", false)
-model landuse_point {
+model landuse_line {
   ...TopographicFeature;
+
   type: landuse_type;
   subtype: landuse_subtype | null;
-  status: landuse_status | null;
   name: string | null;
-  substance_extracted: substance_extracted | null;
 
   ...GeoParquet
 }
-
-
-
-
 

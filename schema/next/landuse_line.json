@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse_point",
+  "$id": "next/landuse_line",
   "type": "object",
   "properties": {
     "id": {
@@ -43,30 +43,10 @@
         }
       ]
     },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/landuse_status"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "name": {
       "anyOf": [
         {
           "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "substance_extracted": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/substance_extracted"
         },
         {
           "type": "null"
@@ -84,18 +64,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "subtype",
-    "status",
-    "name",
-    "substance_extracted",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "landuse_type": {
@@ -123,31 +92,6 @@
     "landuse_subtype": {
       "type": "string",
       "enum": ["training", "opencast", "underground"]
-    },
-    "landuse_status": {
-      "type": "string",
-      "enum": ["dangerous", "disused", "historic", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
     },
     "BBox": {
       "type": "object",
