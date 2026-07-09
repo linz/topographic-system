@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse",
+  "$id": "next/relief_line",
   "type": "object",
   "properties": {
     "id": {
@@ -31,38 +31,12 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landuse_type"
-    },
-    "landuse_use": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "horse"
-        },
-        {
-          "type": "string",
-          "const": "vehicle"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/relief_line_type"
     },
     "subtype": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "training"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/landuse_status"
+          "$ref": "#/$defs/relief_line_subtype"
         },
         {
           "type": "null"
@@ -79,10 +53,10 @@
         }
       ]
     },
-    "substance_extracted": {
+    "height": {
       "anyOf": [
         {
-          "$ref": "#/$defs/substance_extracted"
+          "type": "number"
         },
         {
           "type": "null"
@@ -100,63 +74,16 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "landuse_use",
-    "subtype",
-    "status",
-    "name",
-    "substance_extracted",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "height", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "landuse_type": {
+    "relief_line_type": {
       "type": "string",
-      "enum": [
-        "cemetery",
-        "golf_course",
-        "gravel_pit",
-        "landfill",
-        "mine",
-        "orchard",
-        "pumice_pit",
-        "quarry",
-        "racetrack",
-        "rifle_range",
-        "showground",
-        "sportsfield",
-        "vineyard"
-      ]
+      "enum": ["cliff_edge", "cutting_edge", "embankment", "rapid", "slip_edge", "waterfall", "waterfall_edge"]
     },
-    "landuse_status": {
+    "relief_line_subtype": {
       "type": "string",
-      "enum": ["dangerous", "disused", "historic", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
+      "enum": ["causeway", "stopbank"]
     },
     "BBox": {
       "type": "object",

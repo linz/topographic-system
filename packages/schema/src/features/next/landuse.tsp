@@ -8,11 +8,11 @@ using TypeSpec.JsonSchema;
 model landuse {
   ...TopographicFeature;
   type: landuse_type;
-  landuse_use?: "horse" | "vehicle" | null;
-  subtype?: "training" | null;
-  status?: landuse_status | null;
-  name?: string | null;
-  substance_extracted?: substance_extracted | null;
+  landuse_use: "horse" | "vehicle" | null;
+  subtype: "training" | null;
+  status: landuse_status | null;
+  name: string | null;
+  substance_extracted: substance_extracted | null;
 
   ...GeoParquet
 }
