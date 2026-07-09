@@ -9,6 +9,7 @@ model ferry_line {
   ...TopographicFeature;
 
   type: "ferry_crossing";
+  subtype: "vehicle" | "passenger" | "freight" |null;
 
   ...GeoParquet
 }
