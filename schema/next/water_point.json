@@ -34,15 +34,15 @@
       "anyOf": [
         {
           "type": "string",
-          "const": "rock"
-        },
-        {
-          "type": "string",
           "const": "soakhole"
         },
         {
           "type": "string",
           "const": "spring"
+        },
+        {
+          "type": "string",
+          "const": "waterfall"
         }
       ]
     },
