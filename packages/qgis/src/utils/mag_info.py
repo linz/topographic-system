@@ -4,7 +4,7 @@ from typing import TypedDict
 from PyQt6.QtCore import QDate
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY
 
-from packages.qgis.src.utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
+from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
