@@ -100,7 +100,19 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "landuse_use",
+    "subtype",
+    "status",
+    "name",
+    "substance_extracted",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
     "landuse_type": {

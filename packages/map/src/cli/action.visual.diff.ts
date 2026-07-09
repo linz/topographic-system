@@ -89,7 +89,7 @@ export const VisualDiffCommand = command({
         if (file.href.endsWith('catalog.json')) continue;
         downloader.addStac(file);
       }
-      await downloader.getAllAssets();
+      await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
     }
 
     for (const test of testProjects) {
@@ -106,7 +106,7 @@ export const VisualDiffCommand = command({
         downloader.addStacLinks(stac, DownloadRels, args.project);
 
         // Download all the assets, including the project file and source data for the project.
-        await downloader.getAllAssets(true);
+        await downloader.getAllAssets({ skipIfExists: true, useCanonical: true });
 
         // Get the downloaded project file path
         const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;

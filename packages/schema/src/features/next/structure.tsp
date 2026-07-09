@@ -9,12 +9,12 @@ model structure {
   ...TopographicFeature;
 
   type: structure_type;
-  lid_type: "covered" | null;
   subtype: structure_subtype | null;
+  lid_type: "covered" | null;
+  tank_type: structure_tank_type | null;
   species: structure_species | null;
   status: structure_status | null;
   name: string | null;
-  stored_item: structure_stored_item | null;
 
   ...GeoParquet
 }
@@ -29,20 +29,31 @@ enum structure_type {
 }
 
 enum structure_subtype {
+  Building: "building",
+  Coal: "coal",
+  Concrete: "concrete",
+  Disused: "disused",
+  Fuel: "fuel",
+  Historic: "historic",
+  Jetty: "jetty",
   Lighthouse: "lighthouse",
-  SurgeChamber: "surge chamber",
+  Lime: "lime",
+  Locked: "locked",
+  Plane: "plane",
+  PowerGeneration: "power_generation",
+  Rock: "rock",
+  Ship: "ship",
+  SurgeChamber: "surge_chamber",
+  TunnelVentilation: "tunnel_ventilation",
   Uncovered: "uncovered",
   Water: "water"
 }
 
-enum structure_use {
-  Disused: "disused",
-  Historic: "historic",
-  Jetty: "jetty",
-  PowerGeneration: "power generation",
-  TunnelVentilation: "tunnel ventilation"
+enum structure_tank_type {
+  Uncovered: "uncovered",
+  Water: "water",
+  SurgeChamber: "surge_chamber"
 }
-
 
 enum structure_species {
   Mussels: "mussels",
@@ -60,24 +71,8 @@ enum structure_status {
   Private: "private",
   Remains: "remains",
   Ruins: "ruins",
-  UnderConstruction: "under construction"
+  UnderConstruction: "under_construction"
 }
 
-enum structure_stored_item {
-  Fuel: "fuel",
-  Water: "water"
-}
 
-enum structure_material {
-  Concrete: "concrete",
-  Rock: "rock"
-}
 
-enum structure_material_conveyed {
-  Coal: "coal",
-  Lime: "lime"
-}
-
-enum structure_restrictions {
-  Locked: "locked"
-}

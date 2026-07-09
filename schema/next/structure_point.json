@@ -33,10 +33,10 @@
     "type": {
       "$ref": "#/$defs/structure_point_type"
     },
-    "structure_use": {
+    "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_use"
+          "$ref": "#/$defs/structure_subtype"
         },
         {
           "type": "null"
@@ -46,26 +46,7 @@
     "tank_type": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "uncovered"
-        },
-        {
-          "type": "string",
-          "const": "water"
-        },
-        {
-          "type": "string",
-          "const": "surge chamber"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "subtype": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_subtype"
+          "$ref": "#/$defs/structure_tank_type"
         },
         {
           "type": "null"
@@ -131,51 +112,6 @@
         }
       ]
     },
-    "material": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_material"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "restrictions": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_restrictions"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "stored_item": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_stored_item"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "wreck_of": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "plane"
-        },
-        {
-          "type": "string",
-          "const": "ship"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
@@ -193,18 +129,13 @@
     "updated_at",
     "t50_fid",
     "type",
-    "structure_use",
-    "tank_type",
     "subtype",
+    "tank_type",
     "status",
     "name",
     "location",
     "height",
     "orientation",
-    "material",
-    "restrictions",
-    "stored_item",
-    "wreck_of",
     "geometry"
   ],
   "additionalProperties": false,
@@ -235,13 +166,32 @@
         "wreck"
       ]
     },
-    "structure_use": {
-      "type": "string",
-      "enum": ["disused", "historic", "jetty", "power generation", "tunnel ventilation"]
-    },
     "structure_subtype": {
       "type": "string",
-      "enum": ["lighthouse", "surge chamber", "uncovered", "water"]
+      "enum": [
+        "building",
+        "coal",
+        "concrete",
+        "disused",
+        "fuel",
+        "historic",
+        "jetty",
+        "lighthouse",
+        "lime",
+        "locked",
+        "plane",
+        "power_generation",
+        "rock",
+        "ship",
+        "surge_chamber",
+        "tunnel_ventilation",
+        "uncovered",
+        "water"
+      ]
+    },
+    "structure_tank_type": {
+      "type": "string",
+      "enum": ["uncovered", "water", "surge_chamber"]
     },
     "structure_status": {
       "type": "string",
@@ -256,20 +206,8 @@
         "private",
         "remains",
         "ruins",
-        "under construction"
+        "under_construction"
       ]
-    },
-    "structure_material": {
-      "type": "string",
-      "enum": ["concrete", "rock"]
-    },
-    "structure_restrictions": {
-      "type": "string",
-      "enum": ["locked"]
-    },
-    "structure_stored_item": {
-      "type": "string",
-      "enum": ["fuel", "water"]
     },
     "BBox": {
       "type": "object",

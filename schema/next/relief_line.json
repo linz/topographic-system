@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/structure",
+  "$id": "next/relief_line",
   "type": "object",
   "properties": {
     "id": {
@@ -31,53 +31,12 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/structure_type"
+      "$ref": "#/$defs/relief_line_type"
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/structure_subtype"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "lid_type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "covered"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "tank_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_tank_type"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "species": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_species"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/structure_status"
+          "$ref": "#/$defs/relief_line_subtype"
         },
         {
           "type": "null"
@@ -88,6 +47,16 @@
       "anyOf": [
         {
           "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
         },
         {
           "type": "null"
@@ -105,72 +74,16 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "subtype",
-    "lid_type",
-    "tank_type",
-    "species",
-    "status",
-    "name",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "height", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "structure_type": {
+    "relief_line_type": {
       "type": "string",
-      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
+      "enum": ["cliff_edge", "cutting_edge", "embankment", "rapid", "slip_edge", "waterfall", "waterfall_edge"]
     },
-    "structure_subtype": {
+    "relief_line_subtype": {
       "type": "string",
-      "enum": [
-        "building",
-        "coal",
-        "concrete",
-        "disused",
-        "fuel",
-        "historic",
-        "jetty",
-        "lighthouse",
-        "lime",
-        "locked",
-        "plane",
-        "power_generation",
-        "rock",
-        "ship",
-        "surge_chamber",
-        "tunnel_ventilation",
-        "uncovered",
-        "water"
-      ]
-    },
-    "structure_tank_type": {
-      "type": "string",
-      "enum": ["uncovered", "water", "surge_chamber"]
-    },
-    "structure_species": {
-      "type": "string",
-      "enum": ["mussels", "salmon"]
-    },
-    "structure_status": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under_construction"
-      ]
+      "enum": ["causeway", "stopbank"]
     },
     "BBox": {
       "type": "object",
