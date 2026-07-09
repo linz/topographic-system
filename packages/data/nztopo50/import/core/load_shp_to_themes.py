@@ -288,6 +288,10 @@ class Topo50DataLoader:
             if "runway_use" in gdf.columns:
                 gdf = gdf.rename(columns={"runway_use": "subtype"})
 
+        if layer_name.lower() == "track_line":
+            if "track_use" in gdf.columns:
+                gdf = gdf.rename(columns={"track_use": "subtype"})
+
         if "compositn" in gdf.columns:
             gdf = gdf.rename(columns={"compositn": "composition"})
         if "descriptn" in gdf.columns:
@@ -343,7 +347,7 @@ class Topo50DataLoader:
         if "support_ty" in gdf.columns:
             gdf = gdf.rename(columns={"support_ty": "support_type"})
         if "bldg_use" in gdf.columns:
-            gdf = gdf.rename(columns={"bldg_use": "substype"})
+            gdf = gdf.rename(columns={"bldg_use": "subtype"})
         if "pipe_use" in gdf.columns:
             gdf = gdf.rename(columns={"pipe_use": "subtype"})
         if "rway_use" in gdf.columns:
@@ -416,6 +420,7 @@ class Topo50DataLoader:
                     gdf[col] = None
             # gdf["theme"] = theme
             gdf["feature_type"] = layer_info[2]
+            gdf["metadata"] = ""
 
             gdf = gdf.to_crs(epsg=2193)
             cols = [

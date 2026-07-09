@@ -12,8 +12,8 @@ DB_PARAMS = {
 TABLE_UNDERSCORE_COLUMNS = {
 	"airport": ["type"],
 	"bridge_line": ["type", "use1", "use2", "construction_type", "status"],
-	"building": ["type", "building_use", "status"],
-	"building_point": ["type", "building_use", "status"],
+	"building": ["type", "subtype", "status"],
+	"building_point": ["type", "subtype", "status"],
 	"coastline": ["type"],
 	"contour": ["type", "definition", "designation", "formation"],
 	"descriptive_text": ["type"],
@@ -24,29 +24,29 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"landcover": ["type", "subtype"],
 	"landcover_line": ["type"],
 	"landcover_point": ["type", "subtype"],
-	"landuse": ["type", "landuse_use", "subtype", "status", "substance_extracted"],
-	"landuse_line": ["type", "landuse_use", "subtype"],
+	"landuse": ["type", "subtype", "status", "substance_extracted"],
+	"landuse_line": ["type", "subtype"],
 	"landuse_point": ["type", "status", "subtype", "substance_extracted"],
 	"marine": ["type", "composition"],
-	"utility_line": ["type", "utility_use", "support_type", "status", "visibility"],
+	"utility_line": ["type", "subtype", "support_type", "status", "visibility"],
 	"utility_point": ["type"],
 	"place_point": ["type", "composition", "description"],
-	"railway_line": ["type", "railway_use", "track_type", "vehicle_type", "status"],
+	"railway_line": ["type", "subtype", "track_type", "vehicle_type", "status"],
 	"railway_point": ["type"],
 	"relief": ["type"],
-	"relief_line": ["type", "relief_use"],
+	"relief_line": ["type", "subtype"],
 	"relief_point": ["type"],
 	"residential_area": ["type"],
 	"road_line": ["type", "hierarchy", "status", "surface", "width_indicator"],
-	"runway": ["type", "runway_use", "status", "surface"],
-	"structure": ["lid_type", "subtype", "species", "status", "stored_item"],
-	"structure_line": ["type", "structure_use", "species", "status", "material", "material_conveyed", "restrictions"],
-	"structure_point": ["type", "structure_use", "subtype", "status", "material", "restrictions", "stored_item", "wreck_of"],
-	"track_line": ["type", "track_use", "track_type", "status"],
+	"runway": ["type", "subtype", "status", "surface"],
+	"structure": ["lid_type", "subtype", "species", "status"],
+	"structure_line": ["type", "subtype", "species", "status"],
+	"structure_point": ["type", "subtype", "status"],
+	"track_line": ["type", "subtype", "track_type", "status"],
 	"transport_point": ["type"],
 	"trig_point": ["type", "trig_type"],
 	"tunnel_line": ["type", "tunnel_use", "tunnel_use2", "subtype"],
-	"water": ["type", "water_use", "hierarchy", "perennial", "temperature_indicator"],
+	"water": ["type", "subtype", "hierarchy", "perennial", "temperature_indicator"],
 	"water_line": ["type"],
 	"water_point": ["type", "temperature_indicator"],
 	"vegetation_point": ["type"],
@@ -987,10 +987,6 @@ class ModifyTable:
                             f"Error updating spaces in '{schema_name}.{table}.{column_name}': {e}. Query: {update_query}"
                         )
 
-        self.table_modifer.update_column_by_value(
-            self.schema_name, "water", "subtype", "hydro_electric", "subtype = 'hydro-electric'"
-        )
-
     def road_lkp_updates(self, schema):
         """Update road_line fields from the lookups.road_lkp table.
 
@@ -1122,6 +1118,7 @@ class ModifyTable:
             "collection_id",
             "collection_name",
             "theme",
+            "metadata",
             "source",
             "source_date",
             "capture_method",
@@ -1458,6 +1455,11 @@ class TableModificationWorkflow:
             self.schema_name, "structure_point", "subtype", "water", "subtype = 'watre'"
         )
 
+        # fix for water subtype name
+        self.table_modifer.update_column_by_value(
+            self.schema_name, "water", "subtype", "hydro_electric", "subtype = 'hydro-electric'"
+        )
+
         # drop fields no longer required
         self.table_modifer.drop_column(self.schema_name, "structure_point", "material")
         self.table_modifer.drop_column(self.schema_name, "structure_point", "location")
@@ -1472,11 +1474,11 @@ class TableModificationWorkflow:
 
     def step_use_to_subtype_updates(self):
         self.table_modifer.update_value_by_column(
-            self.schema_name, "water", "subtype", "use1", "use1 = 'hydro-electric'"
+            self.schema_name, "water", "subtype", "water_use", "water_use = 'hydro-electric'"
         )
 
 
-        self.add_column(f'"{self.schema_name}"."ferry_line"', "subtype", "VARCHAR(50)")
+        self.table_modifer.add_column(f'"{self.schema_name}"."ferry_line"', "subtype", "VARCHAR(50)")
         self.table_modifer.update_column_by_value(self.schema_name, "ferry_line", "subtype", "vehicle")
 
         self.table_modifer.update_value_by_column(
@@ -1491,7 +1493,7 @@ class TableModificationWorkflow:
             self.schema_name, "landuse", "type", "landuse_use", "landuse_use is not null"
         )
         self.table_modifer.update_column_by_value(self.schema_name, "landuse", "type", "horse_track", "type = 'horse'")
-      
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse", "subtype", "old", "subtype = 'historic'")
 
         self.table_modifer.drop_column(self.schema_name, "landuse_line", "landuse_use")
         self.table_modifer.drop_column(self.schema_name, "landuse", "landuse_use")
