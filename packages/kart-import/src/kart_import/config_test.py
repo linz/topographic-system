@@ -1,7 +1,31 @@
 import pytest
 from pydantic import ValidationError
 
-from .config import FieldSpec, Source, ThemeDataset, get_dataset_name
+from .config import FieldSpec, Source, Theme, ThemeDataset, get_dataset_name, validate_theme_joins
+
+
+def _theme_with_join(join_columns):
+    return Theme.model_validate(
+        {
+            "name": "road_line",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "lookups": [
+                {
+                    "name": "road_lkp",
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
+                    "key": "t50_fid",
+                    "columns": ["width", "name_id"],
+                }
+            ],
+            "datasets": [
+                {
+                    "source": "kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k",
+                    "joins": [{"lookup": "road_lkp", "left_on": "t50_fid", "columns": join_columns}],
+                }
+            ],
+        }
+    )
 
 
 def test_string_source_is_coerced_to_url():
@@ -37,6 +61,106 @@ def test_non_koordinates_source_without_name_is_rejected():
 def test_get_dataset_name_rejects_non_koordinates_source():
     with pytest.raises(ValueError, match="set 'name:' explicitly"):
         get_dataset_name(Source(url="git@github.com:linz/topographic-source-data"))
+
+
+def test_lookup_and_join_parse():
+    theme = Theme.model_validate(
+        {
+            "name": "road_line",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "lookups": [
+                {
+                    "name": "road_lkp",
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
+                    "key": "t50_fid",
+                    "columns": ["width", "name_id"],
+                }
+            ],
+            "datasets": [
+                {
+                    "source": "kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k",
+                    "joins": [{"lookup": "road_lkp", "left_on": "t50_fid"}],
+                }
+            ],
+        }
+    )
+    assert theme.lookups[0].name == "road_lkp"
+    assert theme.lookups[0].key == "t50_fid"
+    assert theme.datasets[0].joins[0].lookup == "road_lkp"
+    assert theme.datasets[0].joins[0].left_on == "t50_fid"
+    assert theme.datasets[0].joins[0].columns is None  # default: all lookup columns
+
+
+def test_validate_theme_joins_accepts_known_columns():
+    validate_theme_joins(_theme_with_join(["width"]))  # subset of lookup columns -> ok
+    validate_theme_joins(_theme_with_join(None))  # None -> all columns -> ok
+
+
+def test_validate_theme_joins_rejects_unknown_column():
+    with pytest.raises(ValueError, match="unknown columns \\['nope'\\]"):
+        validate_theme_joins(_theme_with_join(["width", "nope"]))
+
+
+def test_validate_theme_joins_rejects_unknown_lookup():
+    theme = _theme_with_join(None)
+    theme.datasets[0].joins[0].lookup = "missing_lkp"
+    with pytest.raises(ValueError, match="unknown lookup 'missing_lkp'"):
+        validate_theme_joins(theme)
+
+
+def _theme_with_mapping(mapping, joins):
+    return Theme.model_validate(
+        {
+            "name": "road_line",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "lookups": [
+                {
+                    "name": "road_lkp",
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": "linz_road_cl"},
+                    "key": "t50_fid",
+                    "columns": ["width", "name_id"],
+                }
+            ],
+            "datasets": [
+                {
+                    "source": "kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k",
+                    "mapping": mapping,
+                    "joins": joins,
+                }
+            ],
+        }
+    )
+
+
+def test_validate_theme_joins_accepts_mapping_backed_by_join():
+    theme = _theme_with_mapping(
+        {"width_indicator": "$road_lkp.width"},
+        [{"lookup": "road_lkp", "left_on": "t50_fid"}],  # None columns -> brings all, incl. width
+    )
+    validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_rejects_mapping_with_no_join():
+    theme = _theme_with_mapping({"width_indicator": "$road_lkp.width"}, [])
+    with pytest.raises(ValueError, match="has no join on 'road_lkp'"):
+        validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_rejects_mapping_column_not_brought_in():
+    theme = _theme_with_mapping(
+        {"the_name": "$road_lkp.name_id"},
+        [{"lookup": "road_lkp", "left_on": "t50_fid", "columns": ["width"]}],  # name_id not joined
+    )
+    with pytest.raises(ValueError, match="does not bring in column 'name_id'"):
+        validate_theme_joins(theme)
+
+
+def test_validate_theme_joins_ignores_plain_dotted_source_column():
+    # A dotted ref whose prefix is not a lookup name is a plain source column, not a join ref.
+    theme = _theme_with_mapping({"x": "$some.other"}, [])
+    validate_theme_joins(theme)
 
 
 def test_field_spec_parses_scalar_shorthand():

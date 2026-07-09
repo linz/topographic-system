@@ -30,7 +30,7 @@
       ],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "feature_type": {
+    "type": {
       "type": "string",
       "const": "railway"
     },
@@ -87,7 +87,7 @@
     "created_at",
     "updated_at",
     "t50_fid",
-    "feature_type",
+    "type",
     "railway_use",
     "track_type",
     "vehicle_type",
@@ -108,11 +108,11 @@
     },
     "vehicle_type": {
       "type": "string",
-      "enum": ["train", "tram", "rail cart", "cablecar"]
+      "enum": ["train", "tram", "rail_cart", "cablecar"]
     },
     "railway_status": {
       "type": "string",
-      "enum": ["disused", "under construction"]
+      "enum": ["disused", "under_construction"]
     },
     "BBox": {
       "type": "object",

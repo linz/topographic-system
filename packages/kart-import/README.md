@@ -73,3 +73,39 @@ datasets:
       - fn: change_type_to_none
         releases: [64, 65] # omit `releases` to apply the fixup to every release
 ```
+
+## Left Join Example
+
+```yaml
+name: road_line_with_lookup
+target_repo: topographic-data-demo
+target_epsg: EPSG:4167
+
+lookups:
+  - name: road_width_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_road_cl # lookup dataset name in the repository
+    key: t50_fid # key column in the *lookup* dataset
+    columns:
+      - width # source column(s) to bring in from the lookup
+
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
+    name: road_line_with_lookup
+    mapping:
+      id: $t50_fid # target column `id` is based on source column `t50_fid`
+      feature_type: road # target column `feature_type` gets populated with literal value `road` for all rows
+      status: $ # plain `$` resolves to the source column of the same name (i.e. `status` in this case)
+      name: { source: $, default: 'unnamed road' } # use source value if present, default value if null
+      highway_number: # same as above but with a different notation style
+        source: $hway_num
+        default: 888
+      width_indicator: $road_width_lkp.width # populated from the lookup defined at the top of the file, using the `width` column from that lookup
+      width_indicator2:
+        source: $road_width_lkp.width
+        default: 'wide' # lookups also support defaults if the key value is not found in the lookup dataset
+    joins:
+      - lookup: road_width_lkp
+        left_on: t50_fid # key column in the *source* dataset to join on
+```

@@ -15,12 +15,12 @@ import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
+import { getQgisProjectMeta, getQgisMapSheetDataset } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
 interface TestProject {
   name: string; // Matches the project filename from the input project
-  mapSheetLayer: string;
   layout: string;
   sheetCodes: string[];
   dpi: number;
@@ -30,9 +30,8 @@ interface TestProject {
 const defaultTests: TestProject[] = [
   {
     name: 'nztopo50',
-    mapSheetLayer: 'nz_topo50_map_sheet',
     layout: 'tiff-50',
-    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BX32', 'BD36', 'BG39', 'CA11', 'BQ26'],
+    sheetCodes: ['BZ21ptBZ20', 'BQ31', 'BA31', 'BJ29', 'BD36', 'BG39', 'CA11', 'BQ26'],
     dpi: 100,
     excludeLayers: ['Hillshade Igor Color ramp'],
   },
@@ -90,7 +89,7 @@ export const VisualDiffCommand = command({
         if (file.href.endsWith('catalog.json')) continue;
         downloader.addStac(file);
       }
-      await downloader.getAllAssets();
+      await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
     }
 
     for (const test of testProjects) {
@@ -107,20 +106,23 @@ export const VisualDiffCommand = command({
         downloader.addStacLinks(stac, DownloadRels, args.project);
 
         // Download all the assets, including the project file and source data for the project.
-        await downloader.getAllAssets(true);
-
-        // Prepare test export options
-        const exportOptions: ExportOptions = {
-          mapSheetLayer: test.mapSheetLayer,
-          layout: test.layout,
-          dpi: test.dpi,
-          format: 'png',
-          excludeLayers: test.excludeLayers,
-        };
+        await downloader.getAllAssets({ skipIfExists: true, useCanonical: true });
 
         // Get the downloaded project file path
         const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
+
+        const projectMeta = await getQgisProjectMeta(projectPath);
+        const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers);
+
+        // Prepare test export options
+        const exportOptions: ExportOptions = {
+          layout: test.layout,
+          dpi: test.dpi,
+          mapSheetDataset: mapSheetLayer.source,
+          format: 'png',
+          excludeLayers: test.excludeLayers,
+        };
 
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>

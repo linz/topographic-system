@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" saveDateTime="2026-03-10T11:45:45" saveUser="blacha" saveUserFull="blacha" version="4.0.0-Norrköping">
+<qgis projectname="" saveDateTime="2026-07-02T10:11:23" saveUser="blacha" saveUserFull="blacha" version="4.0.3-Norrköping">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -40,7 +40,7 @@
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" expanded="1" id="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" legend_exp="" legend_split_behavior="0" name="topo50" patch_size="-1,-1" providerKey="ogr" source="./topo50.geojson">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" legend_exp="" legend_split_behavior="0" name="topo50" patch_size="-1,-1" providerKey="ogr" source="./nztopo50_map_sheet.parquet">
       <customproperties>
         <Option/>
       </customproperties>
@@ -596,21 +596,21 @@ def my_form_open(dialog, layer, feature):
       <previewExpression>"name"</previewExpression>
       <mapTip enabled="1"></mapTip>
     </maplayer>
-    <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Polygon" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="Polygon">
+    <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Polygon" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="MultiPolygon">
       <extent>
-        <xmin>1733400</xmin>
-        <ymin>5417400</ymin>
-        <xmax>1757400</xmax>
-        <ymax>5453400</ymax>
+        <xmin>1084000</xmin>
+        <ymin>4722000</ymin>
+        <xmax>2092000</xmax>
+        <ymax>6234000</ymax>
       </extent>
       <wgs84extent>
-        <xmin>174.58758343993358153</xmin>
-        <ymin>-41.38387236170520822</ymin>
-        <xmax>174.88234331252147058</xmax>
-        <ymax>-41.05542586824793716</ymax>
+        <xmin>166.15364831173556581</xmin>
+        <ymin>-47.65538130321538546</ymin>
+        <xmax>179.53009620829934079</xmax>
+        <ymax>-33.9080495995173834</ymax>
       </wgs84extent>
       <id>topo50_61dbc359_df80_4346_bc32_78fb96bd035a</id>
-      <datasource>./topo50.geojson</datasource>
+      <datasource>./nztopo50_map_sheet.parquet</datasource>
       <layername>topo50</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
@@ -683,7 +683,7 @@ def my_form_open(dialog, layer, feature):
         <Searchable>1</Searchable>
         <Private>0</Private>
       </flags>
-      <temporal accumulate="0" durationField="" durationUnit="min" enabled="0" endExpression="" endField="" fixedDuration="0" limitMode="0" mode="0" startExpression="" startField="">
+      <temporal accumulate="0" durationField="t50_fid" durationUnit="min" enabled="0" endExpression="" endField="" fixedDuration="0" limitMode="0" mode="0" startExpression="" startField="published_at">
         <fixedRange>
           <start></start>
           <end></end>
@@ -992,7 +992,7 @@ def my_form_open(dialog, layer, feature):
       </selection>
       <labeling type="simple">
         <settings calloutType="simple">
-          <text-style allowHtml="0" blendMode="0" capitalization="0" fieldName="name" fontFamily="Nimbus Sans Narrow" fontItalic="0" fontKerning="1" fontLetterSpacing="0" fontSize="32" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontSizeUnit="Point" fontStrikeout="0" fontUnderline="0" fontWeight="400" fontWordSpacing="0" forcedBold="0" forcedItalic="0" isExpression="0" legendString="Aa" multilineHeight="1" multilineHeightUnit="Percentage" namedStyle="Bold Oblique" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" stretchFactor="100" tabStopDistance="80" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" tabStopDistanceUnit="Point" textColor="221,5,192,255,hsv:0.85530555248260498,0.97508203983306885,0.86538493633270264,1" textOpacity="1" textOrientation="horizontal" useSubstitutions="0">
+          <text-style allowHtml="0" blendMode="0" capitalization="0" fieldName="sheet_name" fontFamily="Nimbus Sans Narrow" fontItalic="0" fontKerning="1" fontLetterSpacing="0" fontSize="32" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontSizeUnit="Point" fontStrikeout="0" fontUnderline="0" fontWeight="400" fontWordSpacing="0" forcedBold="0" forcedItalic="0" isExpression="0" legendString="Aa" multilineHeight="1" multilineHeightUnit="Percentage" namedStyle="Regular" previewBkgrdColor="255,255,255,255,rgb:1,1,1,1" stretchFactor="100" tabStopDistance="80" tabStopDistanceMapUnitScale="3x:0,0,0,0,0,0" tabStopDistanceUnit="Point" textColor="221,5,192,255,hsv:0.85530555248260498,0.97508203983306885,0.86538493633270264,1" textOpacity="1" textOrientation="horizontal" useSubstitutions="0">
             <families/>
             <text-buffer bufferBlendMode="0" bufferColor="250,250,250,255,rgb:0.9803922,0.9803922,0.9803922,1" bufferDraw="1" bufferJoinStyle="128" bufferNoFill="1" bufferOpacity="1" bufferSize="2" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSizeUnits="MM"/>
             <text-mask maskEnabled="0" maskJoinStyle="128" maskOpacity="1" maskSize="1.5" maskSize2="1.5" maskSizeMapUnitScale="3x:0,0,0,0,0,0" maskSizeUnits="MM" maskType="0" maskedSymbolLayers=""/>
@@ -1117,8 +1117,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"/>
-          <Option name="variableNames" type="invalid"/>
-          <Option name="variableValues" type="invalid"/>
+          <Option name="variableNames"/>
+          <Option name="variableValues"/>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -1130,7 +1130,7 @@ def my_form_open(dialog, layer, feature):
           <Option name="QgsGeometryGapCheck" type="Map">
             <Option name="allowedGapsBuffer" type="double" value="0"/>
             <Option name="allowedGapsEnabled" type="bool" value="false"/>
-            <Option name="allowedGapsLayer" type="invalid"/>
+            <Option name="allowedGapsLayer" type="QString" value=""/>
           </Option>
         </checkConfiguration>
       </geometryOptions>
@@ -1138,6 +1138,27 @@ def my_form_open(dialog, layer, feature):
       <referencedLayers/>
       <referencingLayers/>
       <fieldConfiguration>
+        <field configurationFlags="NoFlag" name="id">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="t50_fid">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="type">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
         <field configurationFlags="NoFlag" name="sheet_code">
           <editWidget type="TextEdit">
             <config>
@@ -1145,8 +1166,50 @@ def my_form_open(dialog, layer, feature):
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="NoFlag" name="name">
+        <field configurationFlags="NoFlag" name="sheet_name">
           <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="x_origin">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="y_origin">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="example_point_id">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="published_version">
+          <editWidget type="TextEdit">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="published_at">
+          <editWidget type="DateTime">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="NoFlag" name="updated_at">
+          <editWidget type="DateTime">
             <config>
               <Option/>
             </config>
@@ -1154,20 +1217,56 @@ def my_form_open(dialog, layer, feature):
         </field>
       </fieldConfiguration>
       <aliases>
-        <alias field="sheet_code" index="0" name=""/>
-        <alias field="name" index="1" name=""/>
+        <alias field="id" index="0" name=""/>
+        <alias field="t50_fid" index="1" name=""/>
+        <alias field="type" index="2" name=""/>
+        <alias field="sheet_code" index="3" name=""/>
+        <alias field="sheet_name" index="4" name=""/>
+        <alias field="x_origin" index="5" name=""/>
+        <alias field="y_origin" index="6" name=""/>
+        <alias field="example_point_id" index="7" name=""/>
+        <alias field="published_version" index="8" name=""/>
+        <alias field="published_at" index="9" name=""/>
+        <alias field="updated_at" index="10" name=""/>
       </aliases>
       <defaults>
+        <default applyOnUpdate="0" expression="" field="id"/>
+        <default applyOnUpdate="0" expression="" field="t50_fid"/>
+        <default applyOnUpdate="0" expression="" field="type"/>
         <default applyOnUpdate="0" expression="" field="sheet_code"/>
-        <default applyOnUpdate="0" expression="" field="name"/>
+        <default applyOnUpdate="0" expression="" field="sheet_name"/>
+        <default applyOnUpdate="0" expression="" field="x_origin"/>
+        <default applyOnUpdate="0" expression="" field="y_origin"/>
+        <default applyOnUpdate="0" expression="" field="example_point_id"/>
+        <default applyOnUpdate="0" expression="" field="published_version"/>
+        <default applyOnUpdate="0" expression="" field="published_at"/>
+        <default applyOnUpdate="0" expression="" field="updated_at"/>
       </defaults>
       <constraints>
+        <constraint constraints="0" exp_strength="0" field="id" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="t50_fid" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="type" notnull_strength="0" unique_strength="0"/>
         <constraint constraints="0" exp_strength="0" field="sheet_code" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="name" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="sheet_name" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="x_origin" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="y_origin" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="example_point_id" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="published_version" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="published_at" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="updated_at" notnull_strength="0" unique_strength="0"/>
       </constraints>
       <constraintExpressions>
+        <constraint desc="" exp="" field="id"/>
+        <constraint desc="" exp="" field="t50_fid"/>
+        <constraint desc="" exp="" field="type"/>
         <constraint desc="" exp="" field="sheet_code"/>
-        <constraint desc="" exp="" field="name"/>
+        <constraint desc="" exp="" field="sheet_name"/>
+        <constraint desc="" exp="" field="x_origin"/>
+        <constraint desc="" exp="" field="y_origin"/>
+        <constraint desc="" exp="" field="example_point_id"/>
+        <constraint desc="" exp="" field="published_version"/>
+        <constraint desc="" exp="" field="published_at"/>
+        <constraint desc="" exp="" field="updated_at"/>
       </constraintExpressions>
       <expressionfields/>
       <attributeactions>
@@ -1176,7 +1275,16 @@ def my_form_open(dialog, layer, feature):
       <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
         <columns>
           <column hidden="0" name="sheet_code" type="field" width="-1"/>
-          <column hidden="0" name="name" type="field" width="-1"/>
+          <column hidden="0" name="id" type="field" width="-1"/>
+          <column hidden="0" name="t50_fid" type="field" width="-1"/>
+          <column hidden="0" name="type" type="field" width="-1"/>
+          <column hidden="0" name="sheet_name" type="field" width="-1"/>
+          <column hidden="0" name="x_origin" type="field" width="-1"/>
+          <column hidden="0" name="y_origin" type="field" width="-1"/>
+          <column hidden="0" name="example_point_id" type="field" width="-1"/>
+          <column hidden="0" name="published_version" type="field" width="-1"/>
+          <column hidden="0" name="published_at" type="field" width="-1"/>
+          <column hidden="0" name="updated_at" type="field" width="-1"/>
           <column hidden="1" type="actions" width="-1"/>
         </columns>
       </attributetableconfig>
@@ -1209,16 +1317,46 @@ def my_form_open(dialog, layer, feature):
       <featformsuppress>0</featformsuppress>
       <editorlayout>generatedlayout</editorlayout>
       <editable>
+        <field editable="1" name="example_point_id"/>
+        <field editable="1" name="id"/>
         <field editable="1" name="name"/>
+        <field editable="1" name="published_at"/>
+        <field editable="1" name="published_version"/>
         <field editable="1" name="sheet_code"/>
+        <field editable="1" name="sheet_name"/>
+        <field editable="1" name="t50_fid"/>
+        <field editable="1" name="type"/>
+        <field editable="1" name="updated_at"/>
+        <field editable="1" name="x_origin"/>
+        <field editable="1" name="y_origin"/>
       </editable>
       <labelOnTop>
+        <field labelOnTop="0" name="example_point_id"/>
+        <field labelOnTop="0" name="id"/>
         <field labelOnTop="0" name="name"/>
+        <field labelOnTop="0" name="published_at"/>
+        <field labelOnTop="0" name="published_version"/>
         <field labelOnTop="0" name="sheet_code"/>
+        <field labelOnTop="0" name="sheet_name"/>
+        <field labelOnTop="0" name="t50_fid"/>
+        <field labelOnTop="0" name="type"/>
+        <field labelOnTop="0" name="updated_at"/>
+        <field labelOnTop="0" name="x_origin"/>
+        <field labelOnTop="0" name="y_origin"/>
       </labelOnTop>
       <reuseLastValuePolicy>
+        <field name="example_point_id" reuseLastValuePolicy="NotAllowed"/>
+        <field name="id" reuseLastValuePolicy="NotAllowed"/>
         <field name="name" reuseLastValuePolicy="NotAllowed"/>
+        <field name="published_at" reuseLastValuePolicy="NotAllowed"/>
+        <field name="published_version" reuseLastValuePolicy="NotAllowed"/>
         <field name="sheet_code" reuseLastValuePolicy="NotAllowed"/>
+        <field name="sheet_name" reuseLastValuePolicy="NotAllowed"/>
+        <field name="t50_fid" reuseLastValuePolicy="NotAllowed"/>
+        <field name="type" reuseLastValuePolicy="NotAllowed"/>
+        <field name="updated_at" reuseLastValuePolicy="NotAllowed"/>
+        <field name="x_origin" reuseLastValuePolicy="NotAllowed"/>
+        <field name="y_origin" reuseLastValuePolicy="NotAllowed"/>
       </reuseLastValuePolicy>
       <dataDefinedFieldProperties/>
       <widgets/>
@@ -1462,7 +1600,7 @@ def my_form_open(dialog, layer, feature):
         </LayoutItem>
         <GuideCollection visible="1"/>
       </PageCollection>
-      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" enableZRange="0" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="Map 1" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="0,0,mm" positionLock="false" positionOnPage="0,0,mm" referencePoint="0" size="210,297,mm" templateUuid="{af63459c-45b8-4d93-b175-b356d9ed5800}" type="65639" uuid="{af63459c-45b8-4d93-b175-b356d9ed5800}" visibility="1" zValue="1">
+      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" enableZRange="0" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="map_main" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="0,0,mm" positionLock="false" positionOnPage="0,0,mm" referencePoint="0" size="210,297,mm" templateUuid="{af63459c-45b8-4d93-b175-b356d9ed5800}" type="65639" uuid="{af63459c-45b8-4d93-b175-b356d9ed5800}" visibility="1" zValue="1">
         <FrameColor alpha="255" blue="0" green="0" red="0"/>
         <BackgroundColor alpha="255" blue="255" green="255" red="255"/>
         <LayoutObject>
@@ -1515,7 +1653,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales/>
-    <DefaultViewExtent xmax="1811825.80535140447318554" xmin="1689673.60568966018036008" ymax="5480682.83531143795698881" ymin="5395058.19259274285286665">
+    <DefaultViewExtent xmax="1797412.60252876789309084" xmin="1704086.80851229676045477" ymax="5480682.83531143795698881" ymin="5395058.19259274285286665">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["NZGD2000 / New Zealand Transverse Mercator 2000",BASEGEOGCRS["NZGD2000",DATUM["New Zealand Geodetic Datum 2000",ELLIPSOID["GRS 1980",6378137,298.257222101,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4167]],CONVERSION["New Zealand Transverse Mercator 2000",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",173,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",1600000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",10000000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["New Zealand - North Island, South Island, Stewart Island - onshore."],BBOX[-47.33,166.37,-34.1,178.63]],ID["EPSG",2193]]</wkt>
         <proj4>+proj=tmerc +lat_0=0 +lon_0=173 +k=0.9996 +x_0=1600000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
@@ -1529,7 +1667,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </DefaultViewExtent>
   </ProjectViewSettings>
-  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" colorModel="Rgb" iccProfileId="attachment:///QGIS3-rizfuw" projectStyleId="attachment:///zkPulr_styles.db">
+  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" colorModel="Rgb" iccProfileId="attachment:///QGIS3-rizfuw" projectStyleId="attachment:///bfUrlt_styles.db">
     <databases/>
   </ProjectStyleSettings>
   <ProjectTimeSettings cumulativeTemporalRange="0" frameRate="1" timeStep="1" timeStepUnit="h" totalMovieFrames="100"/>
@@ -1580,7 +1718,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" destinationLayerName="topo50" destinationLayerProvider="ogr" destinationLayerSource="./topo50.geojson">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="topo50_61dbc359_df80_4346_bc32_78fb96bd035a" destinationLayerName="topo50" destinationLayerProvider="ogr" destinationLayerSource="/home/blacha/git/linz/topographic-system/packages/map/assets/project/topo50.geojson">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>

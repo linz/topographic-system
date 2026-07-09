@@ -31,58 +31,43 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(project: QgsProject, topo_map_sheet: str, sheet_code: str) -> MagInfoRaw:
-    nz_topo50_map_sheet = project.mapLayersByName(topo_map_sheet)[0]
+def calculate_mag_info(feature: QgsFeature, source_crs: QgsCoordinateReferenceSystem) -> MagInfoRaw:
+    # date (rounded to july 1st)
+    published_at = feature.attribute("published_at")
+    if not isinstance(published_at, QDate):
+        raise TypeError("published_at is not a QDate")
 
-    features = list(nz_topo50_map_sheet.getFeatures())
+    date = datetime(published_at.toPyDate().year, month=7, day=1)
 
-    for feature in features:
-        if not isinstance(feature, QgsFeature):
-            raise TypeError("feature is not a QgsFeature")
+    # geometry (source crs)
+    geometry = feature.geometry()
+    bbox = geometry.boundingBox()
 
-        if feature.attribute("sheet_code") != sheet_code:
-            continue
+    # center (source crs)
+    center = bbox.center()
 
-        # date (rounded to july 1st)
-        published_at = feature.attribute("published_at")
-        if not isinstance(published_at, QDate):
-            raise TypeError("published_at is not a QDate")
+    # prepare transform
+    target_crs = QgsCoordinateReferenceSystem.fromEpsgId(TARGET_EPSG_CODE)
+    transform = QgsCoordinateTransform(source_crs, target_crs)
 
-        date = datetime(published_at.toPyDate().year, month=7, day=1)
+    # center (target crs)
+    center_transformed_point_xy = transform.transform(center)
+    center_transformed_point = _to_point(center_transformed_point_xy)
 
-        # geometry (source crs)
-        geometry = feature.geometry()
-        bbox = geometry.boundingBox()
+    # grid convergence
+    conv = source_crs.factors(center_transformed_point).meridianConvergence()
 
-        # center (source crs)
-        center = bbox.center()
+    # magnetic declination
+    decl = calculate_magnetic_declination(center_transformed_point, date)
 
-        # prepare transform
-        source_crs = nz_topo50_map_sheet.crs()
-        target_crs = QgsCoordinateReferenceSystem.fromEpsgId(TARGET_EPSG_CODE)
+    # rate of change
+    rate_years = calculate_rate_of_change(center_transformed_point, date)
 
-        transform = QgsCoordinateTransform(source_crs, target_crs, project)
+    # gm angle
+    gm_degrees = decl - conv
+    gm_mils = _degrees_to_mils(gm_degrees)
 
-        # center (target crs)
-        center_transformed_point_xy = transform.transform(center)
-        center_transformed_point = _to_point(center_transformed_point_xy)
-
-        # grid convergence
-        conv = source_crs.factors(center_transformed_point).meridianConvergence()
-
-        # magnetic declination
-        decl = calculate_magnetic_declination(center_transformed_point, date)
-
-        # rate of change
-        rate_years = calculate_rate_of_change(center_transformed_point, date)
-
-        # gm angle
-        gm_degrees = decl - conv
-        gm_mils = _degrees_to_mils(gm_degrees)
-
-        return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=date, gm_rate_years=rate_years)
-
-    raise RuntimeError(f"failed to find a feature for sheet_code: {sheet_code}")
+    return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=date, gm_rate_years=rate_years)
 
 
 def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:

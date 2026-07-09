@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/vegetation_point",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUIDv7 of the feature"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was last updated"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "tree"
+        },
+        {
+          "type": "string",
+          "const": "scattered_scrub"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

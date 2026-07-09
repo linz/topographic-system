@@ -11,5 +11,11 @@ export { getCanonical, stringToUrlFolder, Url, UrlArrayJsonFile, UrlFolder, UrlF
 export { createOtelSdk, getTracer, trace } from './otel/otel.ts';
 export { monitor } from './otel/instrument.ts';
 export { traceAndRun } from './otel/instrument.cli.ts';
-export { parquetToStac, readParquetFileMetadata } from './parquet.metadata.ts';
+export {
+  parquetToStac,
+  readParquetGroups,
+  readParquet,
+  parquetGeometryStats,
+  readParquetMetadata,
+} from './parquet.metadata.ts';
 export { concurrency, qFromArgs, qMap, qMapAll, worker } from './limit.ts';

@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/place_point",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUIDv7 of the feature"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the feature was last updated"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "$ref": "#/$defs/place_type"
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/place_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "elevation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "composition": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/place_composition"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "name",
+    "elevation",
+    "composition",
+    "description",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "place_type": {
+      "type": "string",
+      "enum": ["cave", "cemetery", "grave", "historic_site", "mine", "monument", "pa"]
+    },
+    "place_subtype": {
+      "type": "string",
+      "enum": ["opencast", "underground"]
+    },
+    "place_composition": {
+      "type": "string",
+      "enum": ["limestone", "pumice"]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

@@ -6,14 +6,14 @@ import { after, before, describe, it } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { logger, stringToUrlFolder, readParquetFileMetadata } from '@linzjs/topographic-system-shared';
+import { logger, stringToUrlFolder, readParquetMetadata } from '@linzjs/topographic-system-shared';
 import { $ } from 'zx';
 
 import { buildOgr2OgrArgs } from '../action.to.parquet.ts';
 
 /** Read the primary geometry column's EPSG code straight from the parquet `geo` metadata. */
 async function readParquetEpsg(parquetFile: URL): Promise<number> {
-  const meta = await readParquetFileMetadata(parquetFile);
+  const meta = await readParquetMetadata(parquetFile);
   const geo = meta.key_value_metadata?.find((f) => f.key === 'geo');
   assert.ok(geo?.value, 'parquet should carry `geo` metadata');
   const geomMeta = JSON.parse(geo.value) as {
