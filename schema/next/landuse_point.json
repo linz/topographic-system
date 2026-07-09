@@ -126,7 +126,7 @@
     },
     "landuse_status": {
       "type": "string",
-      "enum": ["dangerous", "disused", "historic", "old"]
+      "enum": ["dangerous", "disused", "old"]
     },
     "substance_extracted": {
       "type": "string",

@@ -45,7 +45,6 @@ enum landuse_subtype {
 enum landuse_status {
   Dangerous: "dangerous",
   Disused: "disused",
-  Historic: "historic",
   Old: "old",
 }
 
