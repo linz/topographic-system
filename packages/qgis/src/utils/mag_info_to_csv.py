@@ -7,7 +7,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from utils.mag_info import calculate_mag_info, render_mag_info
+from packages.qgis.src.utils.mag_info import calculate_mag_info, render_mag_info
 
 # from root: (topographic-system)
 # 1. npm run build && npm run bundle
@@ -17,13 +17,13 @@ from utils.mag_info import calculate_mag_info, render_mag_info
 
 parser = ArgumentParser()
 parser.add_argument("--qgis-project-path", required=True, type=str)
-parser.add_argument("--topo-map-sheet", default="nztopo50_map_sheet", type=str)
+parser.add_argument("--topo-map-sheet-name", default="nztopo50_map_sheet", type=str)
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
     qgis_project_path = args.qgis_project_path
-    topo_map_sheet = args.topo_map_sheet
+    topo_map_sheet_name = args.topo_map_sheet_name
 
     QgsApplication.setPrefixPath("/usr", True)
     qgs = QgsApplication([], False)
@@ -37,7 +37,10 @@ if __name__ == "__main__":
         if not project.read(qgis_project_path):
             raise ValueError(f"Failed to read QGIS project: {qgis_project_path}")
 
-        topo_sheet_layer = project.mapLayersByName(topo_map_sheet)[0]
+        matching_layers = project.mapLayersByName(topo_map_sheet_name)
+        if not matching_layers:
+            raise ValueError(f"No layer found with name '{topo_map_sheet_name}'.")
+        topo_sheet_layer = matching_layers[0]
 
         features = list(topo_sheet_layer.getFeatures())
         features_sorted = sorted(features, key=lambda f: f["sheet_code"])
@@ -54,7 +57,7 @@ if __name__ == "__main__":
                 sheet_code = feature.attribute("sheet_code")
 
                 # handle magnetic info
-                mag_info_raw = calculate_mag_info(project, topo_map_sheet, sheet_code)
+                mag_info_raw = calculate_mag_info(feature, topo_sheet_layer.crs())
                 mag_info_render = render_mag_info(mag_info_raw)
 
                 writer_conv.writerow(

@@ -2,9 +2,9 @@ from datetime import datetime
 from typing import TypedDict
 
 from PyQt6.QtCore import QDate
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY
 
-from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
+from packages.qgis.src.utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
 TARGET_EPSG_CODE = 4326  # WGS 84 (World Geodetic System 1984)
 
@@ -48,7 +48,7 @@ def calculate_mag_info(feature: QgsFeature, source_crs: QgsCoordinateReferenceSy
 
     # prepare transform
     target_crs = QgsCoordinateReferenceSystem.fromEpsgId(TARGET_EPSG_CODE)
-    transform = QgsCoordinateTransform(source_crs, target_crs)
+    transform = QgsCoordinateTransform(source_crs, target_crs, None)
 
     # center (target crs)
     center_transformed_point_xy = transform.transform(center)
