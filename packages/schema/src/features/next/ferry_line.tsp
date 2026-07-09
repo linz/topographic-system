@@ -10,6 +10,7 @@ model ferry_line {
 
   type: "ferry_crossing";
   subtype: "vehicle" | "passenger" | "freight" |null;
+  name: string | null;
 
   ...GeoParquet
 }
