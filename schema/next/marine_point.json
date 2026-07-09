@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/water_point",
+  "$id": "next/marine_point",
   "type": "object",
   "properties": {
     "id": {
@@ -31,45 +31,13 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "soakhole"
-        },
-        {
-          "type": "string",
-          "const": "spring"
-        },
-        {
-          "type": "string",
-          "const": "waterfall"
-        }
-      ]
+      "type": "string",
+      "const": "rock"
     },
     "name": {
       "anyOf": [
         {
           "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "orientation": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "temperature_indicator": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/water_temperature_indicator"
         },
         {
           "type": "null"
@@ -87,23 +55,9 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "name",
-    "orientation",
-    "temperature_indicator",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "water_temperature_indicator": {
-      "type": "string",
-      "enum": ["cold", "hot"]
-    },
     "BBox": {
       "type": "object",
       "properties": {
