@@ -175,7 +175,7 @@ def main():
         map_main.setExtent(bbox)
 
         # Handle magnetic info
-        mag_info_raw = calculate_mag_info(project, feature)
+        mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
         mag_info_render = render_mag_info(mag_info_raw)
 
         for key, value in mag_info_render.items():

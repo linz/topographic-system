@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 sheet_code = feature.attribute("sheet_code")
 
                 # handle magnetic info
-                mag_info_raw = calculate_mag_info(feature, topo_sheet_layer.crs())
+                mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
                 mag_info_render = render_mag_info(mag_info_raw)
 
                 writer_conv.writerow(

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import TypedDict
 
 from PyQt6.QtCore import QDate
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
 from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
 
@@ -31,7 +31,9 @@ def _degrees_to_mils(degrees: float) -> float:
     return degrees * 6400 / 360
 
 
-def calculate_mag_info(feature: QgsFeature, source_crs: QgsCoordinateReferenceSystem) -> MagInfoRaw:
+def calculate_mag_info(
+    project: QgsProject, feature: QgsFeature, source_crs: QgsCoordinateReferenceSystem
+) -> MagInfoRaw:
     # date (rounded to july 1st)
     published_at = feature.attribute("published_at")
     if not isinstance(published_at, QDate):
@@ -48,7 +50,7 @@ def calculate_mag_info(feature: QgsFeature, source_crs: QgsCoordinateReferenceSy
 
     # prepare transform
     target_crs = QgsCoordinateReferenceSystem.fromEpsgId(TARGET_EPSG_CODE)
-    transform = QgsCoordinateTransform(source_crs, target_crs, None)
+    transform = QgsCoordinateTransform(source_crs, target_crs, project)
 
     # center (target crs)
     center_transformed_point_xy = transform.transform(center)
