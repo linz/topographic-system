@@ -98,12 +98,13 @@ export const RockLineCommand = command({
     const latestCollectionUrl = new URL(`${rockLineName}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
-      if (
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === marineUrl.href) &&
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === coastlineUrl.href) &&
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === islandUrl.href) &&
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === waterUrl.href)
-      ) {
+
+      const derivedHrefs = [marineUrl.href, coastlineUrl.href, islandUrl.href, waterUrl.href];
+
+      const derivedUnchanged = derivedHrefs.every((derivedHref) => {
+        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === derivedHref);
+      });
+      if (derivedUnchanged) {
         logger.info('Latest output collections are already up to date with rock line sources, skipping processing');
         logger.info('RockLine: Skip');
         return;
