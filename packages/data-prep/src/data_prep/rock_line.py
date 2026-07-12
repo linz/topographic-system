@@ -63,7 +63,7 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     # generate new uuid
     new_uuid = []
     for geom in rock_line_clip_gdf.geometry:
-        new_uuid.append(str(uuid.uuid5(uuid.NAMESPACE_URL, geom.wkb_hex)))
+        new_uuid.append(str(uuid.uuid5(uuid.NAMESPACE_URL, f"rock_line/{geom.wkb_hex}")))
 
     rock_line_clip_gdf["id"] = new_uuid
 
