@@ -480,6 +480,7 @@ class ModifyTable:
                 ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
                 ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["metadata", "VARCHAR(1000) DEFAULT ''", "DEFAULT"],
                # ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
@@ -1201,6 +1202,7 @@ class TableModificationWorkflow:
             (self.schema_name, "water"): [
                 ("subtype", "pond_use"),
             ],
+            (self.schema_name, "bridge_line"): [("type", "use1")],
         }
 
         for (schema, table), columns in update_dict.items():
@@ -1353,6 +1355,10 @@ class TableModificationWorkflow:
         )
         self.table_modifer.add_column(
             f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
+        )
+
+        self.table_modifer.rename_columns(
+            self.schema_name, "bridge_line", "use2", "subtype"
         )
 
         self.table_modifer.rename_columns(

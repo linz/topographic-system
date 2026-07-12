@@ -420,8 +420,7 @@ class Topo50DataLoader:
                     gdf[col] = None
             # gdf["theme"] = theme
             gdf["feature_type"] = layer_info[2]
-            gdf["metadata"] = ""
-
+            
             gdf = gdf.to_crs(epsg=2193)
             cols = [
                 col
