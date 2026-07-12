@@ -9,6 +9,8 @@ model nztopo50_rock_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  /** UUID of the source `marine` rock polygon this boundary line was derived from. */
+  marine_id: string;
   type: "rock";
   name?: string | null;
   composition?: Topo.CompositionEnum | null;

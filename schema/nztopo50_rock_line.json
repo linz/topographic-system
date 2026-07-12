@@ -17,6 +17,10 @@
       "description": "Default at write time: today."
     },
     "t50_fid": {},
+    "marine_id": {
+      "type": "string",
+      "description": "UUID of the source `marine` rock polygon this boundary line was derived from."
+    },
     "type": {
       "type": "string",
       "const": "rock"
@@ -51,7 +55,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": ["id", "updated_at", "created_at", "marine_id", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "CompositionEnum": {

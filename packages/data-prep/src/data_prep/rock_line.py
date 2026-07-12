@@ -7,6 +7,7 @@ linework already drawn by the coastline, island and lake.
 
 import argparse
 import logging
+import uuid
 from pathlib import Path
 
 import geopandas as gpd
@@ -38,6 +39,8 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
     rock_gdf = read_and_project(marine_path, filters=[("type", "==", "rock")])
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
+    rock_line_gdf = rock_line_gdf.rename(columns={"id": "marine_id"})
+    rock_line_gdf = rock_line_gdf.assign(t50_fid=None)
 
     coastline_gdf = read_and_project(coastline_path)
 
@@ -56,6 +59,13 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
 
     rock_line_clip_gdf = gpd.overlay(rock_line_gdf, mask_buffer_gdf, how="difference")
     rock_line_clip_gdf = rock_line_clip_gdf.to_crs(NZGD2000)
+
+    # generate new uuid
+    new_uuid = []
+    for geom in rock_line_clip_gdf.geometry:
+        new_uuid.append(str(uuid.uuid5(uuid.NAMESPACE_URL, geom.wkb_hex)))
+
+    rock_line_clip_gdf["id"] = new_uuid
 
     write_parquet(rock_line_clip_gdf, output_path)
 
