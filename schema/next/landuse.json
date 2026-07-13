@@ -33,26 +33,10 @@
     "type": {
       "$ref": "#/$defs/landuse_type"
     },
-    "landuse_use": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "horse"
-        },
-        {
-          "type": "string",
-          "const": "vehicle"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "subtype": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "training"
+          "$ref": "#/$defs/landuse_subtype"
         },
         {
           "type": "null"
@@ -106,7 +90,6 @@
     "updated_at",
     "t50_fid",
     "type",
-    "landuse_use",
     "subtype",
     "status",
     "name",
@@ -119,8 +102,11 @@
       "type": "string",
       "enum": [
         "cemetery",
+        "cycle_track",
+        "dog_track",
         "golf_course",
         "gravel_pit",
+        "horse_track",
         "landfill",
         "mine",
         "orchard",
@@ -130,12 +116,17 @@
         "rifle_range",
         "showground",
         "sportsfield",
-        "vineyard"
+        "vineyard",
+        "vehicle_track"
       ]
+    },
+    "landuse_subtype": {
+      "type": "string",
+      "enum": ["training", "opencast", "underground"]
     },
     "landuse_status": {
       "type": "string",
-      "enum": ["dangerous", "disused", "historic", "old"]
+      "enum": ["dangerous", "disused", "old"]
     },
     "substance_extracted": {
       "type": "string",

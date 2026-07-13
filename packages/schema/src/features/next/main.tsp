@@ -4,6 +4,7 @@ import "./ferry_line.tsp";
 import "./landcover.tsp";
 import "./landcover_point.tsp";
 import "./landuse.tsp";
+import "./landuse_line.tsp";
 import "./landuse_point.tsp";
 import "./marine_point.tsp";
 import "./place_point.tsp";
