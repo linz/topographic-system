@@ -31,33 +31,12 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "canal"
-        },
-        {
-          "type": "string",
-          "const": "lagoon"
-        },
-        {
-          "type": "string",
-          "const": "lake"
-        },
-        {
-          "type": "string",
-          "const": "pond"
-        },
-        {
-          "type": "string",
-          "const": "river"
-        }
-      ]
+      "$ref": "#/$defs/water_type"
     },
-    "water_use": {
+    "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/water_use"
+          "$ref": "#/$defs/water_subtype"
         },
         {
           "type": "null"
@@ -154,7 +133,7 @@
     "updated_at",
     "t50_fid",
     "type",
-    "water_use",
+    "subtype",
     "hierarchy",
     "name",
     "group_name",
@@ -167,7 +146,11 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "water_use": {
+    "water_type": {
+      "type": "string",
+      "enum": ["canal", "drain", "lagoon", "lake", "pond", "river", "soakhole", "spring", "waterfall"]
+    },
+    "water_subtype": {
       "type": "string",
       "enum": [
         "evaporation",

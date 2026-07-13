@@ -16,13 +16,14 @@ model relief_line {
 }
 
 enum relief_line_type {
-  CliffEdge: "cliff_edge";
-  CuttingEdge: "cutting_edge";
-  Embankment: "embankment";
-  Rapid: "rapid";
-  SlipEdge: "slip_edge";
-  Waterfall: "waterfall";
-  WaterfallEdge: "waterfall_edge";
+  CliffEdge: "cliff_edge",
+  CuttingEdge: "cutting_edge",
+  Embankment: "embankment",
+  Rapid: "rapid",
+  SlipEdge: "slip_edge",
+  Waterfall: "waterfall",
+  WaterfallEdge: "waterfall_edge",
+  Seawall: "seawall",
 }
 
 enum relief_line_subtype {

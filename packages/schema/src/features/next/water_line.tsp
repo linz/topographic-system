@@ -1,5 +1,6 @@
 import "@typespec/json-schema";
 import "./common.tsp";
+import "./water.tsp";
 
 using TypeSpec.JsonSchema;
 
@@ -8,7 +9,7 @@ using TypeSpec.JsonSchema;
 model water_line {
   ...TopographicFeature;
   
-  type: "canal" | "drain" | "river";
+  type: water_type;
   hierarchy: string | null;
   name: string | null;
 

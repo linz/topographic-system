@@ -121,7 +121,7 @@
     },
     "place_composition": {
       "type": "string",
-      "enum": ["limestone", "pumice"]
+      "enum": ["limestone", "pumice", "coral"]
     },
     "BBox": {
       "type": "object",
