@@ -31,16 +31,19 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "bridge"
-    },
-    "use1": {
-      "$ref": "#/$defs/use1"
-    },
-    "use2": {
       "anyOf": [
         {
-          "$ref": "#/$defs/use2"
+          "$ref": "#/$defs/bridge_type"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/bridge_subtype"
         },
         {
           "type": "null"
@@ -94,8 +97,7 @@
     "updated_at",
     "t50_fid",
     "type",
-    "use1",
-    "use2",
+    "subtype",
     "construction_type",
     "status",
     "name",
@@ -103,11 +105,11 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "use1": {
+    "bridge_type": {
       "type": "string",
       "enum": ["cablecar", "farm", "foot_traffic", "train", "vehicle"]
     },
-    "use2": {
+    "bridge_subtype": {
       "type": "string",
       "enum": ["foot_traffic", "train"]
     },
