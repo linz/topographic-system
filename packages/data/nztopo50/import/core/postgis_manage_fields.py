@@ -30,7 +30,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"marine": ["type", "composition"],
 	"utility_line": ["type", "subtype", "support_type", "status", "visibility"],
 	"utility_point": ["type"],
-	"place_point": ["type", "composition", "description"],
+	"place_point": ["type", "composition"],
 	"railway_line": ["type", "subtype", "track_type", "vehicle_type", "status"],
 	"railway_point": ["type"],
 	"relief": ["type"],
