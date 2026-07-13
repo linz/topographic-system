@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "coastline_polygon",
+  "type": "object",
+  "properties": {
+    "id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "UUID for the feature."
+    },
+    "t50_fid": {},
+    "type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "coastline"
+        },
+        {
+          "type": "string",
+          "const": "island"
+        }
+      ]
+    },
+    "coastline_type": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "elevation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "group_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updated_at": {},
+    "created_at": {
+      "description": "Default at write time: today."
+    },
+    "geometry": {
+      "description": "WKB polygon geometry in NZGD2000 (EPSG:4167).",
+      "not": {
+        "type": "null"
+      }
+    }
+  },
+  "required": ["type", "geometry"],
+  "description": "Derived polygon Union of coastline and island",
+  "additionalProperties": false
+}

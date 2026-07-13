@@ -5,6 +5,7 @@ import "./features/bridge_line.tsp";
 import "./features/building.tsp";
 import "./features/building_point.tsp";
 import "./features/coastline.tsp";
+import "./features/coastline_polygon.tsp";
 import "./features/contour.tsp";
 import "./features/descriptive_text.tsp";
 import "./features/fence_line.tsp";
