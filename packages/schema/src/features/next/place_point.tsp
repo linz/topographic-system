@@ -7,6 +7,7 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model place_point {
   ...TopographicFeature;
+  
   type: place_type;
   subtype: place_subtype | null;
   name: string | null;
@@ -14,6 +15,7 @@ model place_point {
   composition: place_composition | null;
   description: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

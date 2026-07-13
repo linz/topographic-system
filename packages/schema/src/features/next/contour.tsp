@@ -3,13 +3,16 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/contour")
 @extension("additionalProperties", false)
-model railway_point {
+model contour {
   ...TopographicFeature;
 
-  type: "station";
-  name: string | null;
+  type: "contour";
+  elevation: int32 | null;
+  definition: string | null;
+  designation: "supplementary" | null;
+  formation: "depression" | null;
 
   ...TopographicMetadata;
   ...GeoParquet

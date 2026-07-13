@@ -12,6 +12,7 @@ model relief {
   name: string | null;
   height: float64 | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

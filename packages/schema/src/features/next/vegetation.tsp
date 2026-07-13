@@ -3,14 +3,15 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/vegetation")
 @extension("additionalProperties", false)
-model railway_point {
+model vegetation {
   ...TopographicFeature;
 
-  type: "station";
-  name: string | null;
-
+  type: "exotic" | "native" | "scattered_scrub" | "scrub";
+  subtype: Topo.SubTypeEnum | null;
+  species: Topo.SpeciesEnum | null;
+  
   ...TopographicMetadata;
   ...GeoParquet
 }

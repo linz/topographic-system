@@ -11,5 +11,6 @@ model marine_point {
   type: "rock";
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }

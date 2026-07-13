@@ -3,14 +3,16 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/runway")
 @extension("additionalProperties", false)
-model railway_point {
+model runway {
   ...TopographicFeature;
 
-  type: "station";
-  name: string | null;
-
+  type: "runway";
+  runway_use: Topo.RunwayUseEnum | null;
+  status: Topo.StatusEnum | null;
+  surface: Topo.SurfaceEnum | null;
+  
   ...TopographicMetadata;
   ...GeoParquet
 }

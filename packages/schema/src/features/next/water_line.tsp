@@ -12,6 +12,7 @@ model water_line {
   hierarchy: string | null;
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

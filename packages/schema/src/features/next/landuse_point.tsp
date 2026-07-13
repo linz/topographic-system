@@ -8,12 +8,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model landuse_point {
   ...TopographicFeature;
+  
   type: landuse_type;
   subtype: landuse_subtype | null;
   status: landuse_status | null;
   name: string | null;
   substance_extracted: substance_extracted | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

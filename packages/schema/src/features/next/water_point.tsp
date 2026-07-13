@@ -14,6 +14,7 @@ model water_point {
   orientation: float64 | null;
   temperature_indicator: water_temperature_indicator | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

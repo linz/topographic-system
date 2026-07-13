@@ -3,14 +3,17 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/trig_point")
 @extension("additionalProperties", false)
-model railway_point {
+model trig_point {
   ...TopographicFeature;
 
-  type: "station";
+  type: "trig";
+  trig_type: "beaconed" | null;
   name: string | null;
-
+  code: string | null;
+  elevation: int32 | null;
+  
   ...TopographicMetadata;
   ...GeoParquet
 }

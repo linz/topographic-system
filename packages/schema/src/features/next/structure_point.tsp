@@ -18,6 +18,7 @@ model structure_point {
   height: float64 | null;
   orientation: float64 | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

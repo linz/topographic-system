@@ -3,15 +3,15 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/marine")
 @extension("additionalProperties", false)
-model railway_point {
+model marine {
   ...TopographicFeature;
 
-  type: "station";
+  type: "mangrove" | "reef" | "rock" | "shoal";
   name: string | null;
-
+  composition: string | null;
+  
   ...TopographicMetadata;
   ...GeoParquet
 }
-

@@ -3,14 +3,17 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/track_line")
 @extension("additionalProperties", false)
-model railway_point {
+model track_line {
   ...TopographicFeature;
 
-  type: "station";
+  type: "track";
+  track_use: Topo.TrackUseEnum | null;
+  track_type: Topo.TrackTypeEnum | null;
+  status: Topo.StatusEnum | null;
   name: string | null;
-
+  
   ...TopographicMetadata;
   ...GeoParquet
 }

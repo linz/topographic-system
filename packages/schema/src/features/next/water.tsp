@@ -13,12 +13,12 @@ model water {
   hierarchy: string | null;
   name: string | null;
   group_name: string | null;
-  nzgb_feat_id: unknown /* int64; hyparquet returns BigInt */;
   height: float64 | null;
   elevation: int32 | null;
   perennial: water_perennial | null;
   temperature_indicator: water_temperature_indicator | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

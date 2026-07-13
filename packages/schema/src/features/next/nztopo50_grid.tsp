@@ -3,15 +3,12 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("next/railway_point")
+@jsonSchema("next/nztopo50_grid")
 @extension("additionalProperties", false)
-model railway_point {
-  ...TopographicFeature;
-
-  type: "station";
-  name: string | null;
-
+model nztopo50_grid {
+  ...Topo.ProductIdentity;
+  direction: Topo.DirectionEnum | null;
+  value: float64 | null;
   ...TopographicMetadata;
   ...GeoParquet
 }
-

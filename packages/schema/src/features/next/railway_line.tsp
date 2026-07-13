@@ -34,6 +34,7 @@ model railway_line {
    */
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 
