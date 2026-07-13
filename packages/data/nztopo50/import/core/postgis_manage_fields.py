@@ -282,6 +282,22 @@ class ModifyTable:
                     f"Error updating geometry field in '{schema}.{table}' with ST_SnapToGrid: {e}"
                 )
 
+    def run_sql(self, sql):
+        """Execute an arbitrary SQL statement.
+
+        Args:
+            sql: SQL string to execute.
+        """
+        self.connect()
+        with self.conn.cursor() as cur:
+            try:
+                cur.execute(sql)
+                self.conn.commit()
+                print(f"Executed SQL: {sql}")
+            except Exception as e:
+                self.conn.rollback()
+                print(f"Error executing SQL '{sql}': {e}")
+
     def update_column_with_default(
         self, schema, table, column_name, default_value, where_clause=None
     ):
@@ -1007,8 +1023,7 @@ class ModifyTable:
             update_query = f"""
                 UPDATE {schema}.road_line r
                 SET
-                    width_indicator = l.width_indicator,
-                    name_id = l.name_id
+                    width_indicator = l.width_indicator
                 FROM lookups.road_lkp l
                 WHERE r.t50_fid = l.t50_fid;
             """
@@ -1070,6 +1085,7 @@ class ModifyTable:
             "name",
             "group_name",
             "nzgb_feat_id",
+            "feat_id",
             "code",
             "info_display",
             "location",
@@ -1113,6 +1129,7 @@ class ModifyTable:
             "wreck_of",
             "shape_area",
             "rna_sufi",
+            "road_id",
             "route",
             "route2",
             "route3",
@@ -1319,9 +1336,9 @@ class TableModificationWorkflow:
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
         )
-        self.table_modifer.add_column(
-            f"{self.schema_name}.road_line", "name_id", "BIGINT"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.road_line", "name_id", "BIGINT"
+        #)
 
         # Note: NZGB ids called with name_id or feat_id so need an approach
 
@@ -1503,6 +1520,50 @@ class TableModificationWorkflow:
 
         self.table_modifer.drop_column(self.schema_name, "landuse_line", "landuse_use")
         self.table_modifer.drop_column(self.schema_name, "landuse", "landuse_use")
+
+        # add metadata
+        sql_statement = f"""
+        UPDATE {self.schema_name}.water
+        SET metadata = jsonb_build_object(
+            'datasources',
+            jsonb_build_array(
+                jsonb_build_object(
+                    'table_column', 'name',
+                    'source', 'NZGB Gazetteer',
+                    'source_key_name', 'feat_id',
+                    'source_key_value', feat_id,
+                    'source_table', 'nzgb_gaz',
+                    'source_column', 'name',
+                    'imported_at', NOW()
+                )
+            )
+        );
+        """
+
+        self.table_modifer.run_sql(sql_statement)
+        self.table_modifer.drop_column(self.schema_name, "water", "feat_id")
+
+        sql_statement = f"""
+        UPDATE {self.schema_name}.road_line
+        SET metadata = jsonb_build_object(
+            'datasources',
+            jsonb_build_array(
+                jsonb_build_object(
+                    'table_column', 'name',
+                    'source', 'LINZ AIMS',
+                    'source_key_name', 'road_id',
+                    'source_key_value', rna_sufi,
+                    'source_table', 'roads',
+                    'source_column', 'name',
+                    'imported_at', NOW()
+                )
+            )
+        );
+        """
+
+        self.table_modifer.run_sql(sql_statement)
+        self.table_modifer.drop_column(self.schema_name, "road_line", "rna_sufi")
+
 
     def step_carto_text_geom_update(self):
         self.table_modifer.geom_snap_update(

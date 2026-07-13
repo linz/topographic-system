@@ -193,7 +193,7 @@ Transport_Layers,road_line,lane_count,lane_count,Integer,4
 Transport_Layers,road_line,macronated,macronated,String,1
 Transport_Layers,road_line,name,name,String,75
 Transport_Layers,road_line,name_ascii,name_ascii,String,75
-Transport_Layers,road_line,rna_sufi,road_id,BigInteger,8
+Transport_Layers,road_line,rna_sufi,rna_sufi,BigInteger,8
 Transport_Layers,road_line,SHAPE,SHAPE,Polyline,0
 Transport_Layers,road_line,status,status,String,25
 Transport_Layers,road_line,surface,surface,String,10

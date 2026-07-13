@@ -308,9 +308,9 @@ class Topo50DataLoader:
                 gdf["lane_count"] = gdf["lane_count"].fillna(0)
                 gdf["lane_count"] = gdf["lane_count"].astype(int)
             if "lol_sufi" in gdf.columns:
-                gdf = gdf.rename(columns={"lol_sufi": "road_id"})
-                gdf["road_id"] = gdf["road_id"].fillna(0)
-                gdf["road_id"] = gdf["road_id"].astype(int)
+                gdf = gdf.rename(columns={"lol_sufi": "rna_sufi"})
+                gdf["rna_sufi"] = gdf["rna_sufi"].fillna(0)
+                gdf["rna_sufi"] = gdf["rna_sufi"].astype(int)
             if "RW_lane_c" in gdf.columns:
                 gdf.drop(columns=["RW_lane_c"], inplace=True)
             if "width" in gdf.columns:

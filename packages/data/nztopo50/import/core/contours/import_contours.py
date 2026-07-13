@@ -7,7 +7,8 @@ import uuid
 # Database connection parameters
 # postgresql+psycopg:// tells SQLAlchemy to use the installed psycopg v3 driver.
 db_params = "postgresql+psycopg://postgres:landinformation@localhost:5432/topo"
-path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\lds-nz-contours-topo-150k-GPKG-topnz\nz-contours-topo-150k_2d.gpkg"
+#path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\lds-nz-contours-topo-150k-GPKG-topnz\nz-contours-topo-150k_2d.gpkg"
+path = r"C:\Data\Topo50\lds-nz-contours-topo-150k-GPKG\nz-contours-topo-150k_2d.gpkg"
 layer = "nz_contours_topo_150k"
 schema = "release66"
 load_data = True
