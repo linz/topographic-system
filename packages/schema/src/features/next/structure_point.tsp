@@ -14,7 +14,6 @@ model structure_point {
   tank_type: structure_tank_type | null;
   status: structure_status | null;
   name: string | null;
-  location: "land" | "lake" | "sea" | null;
   height: float64 | null;
   orientation: float64 | null;
 

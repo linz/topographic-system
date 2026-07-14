@@ -79,7 +79,16 @@
   "$defs": {
     "relief_line_type": {
       "type": "string",
-      "enum": ["cliff_edge", "cutting_edge", "embankment", "rapid", "slip_edge", "waterfall", "waterfall_edge"]
+      "enum": [
+        "cliff_edge",
+        "cutting_edge",
+        "embankment",
+        "rapid",
+        "slip_edge",
+        "waterfall",
+        "waterfall_edge",
+        "seawall"
+      ]
     },
     "relief_line_subtype": {
       "type": "string",

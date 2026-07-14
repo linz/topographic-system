@@ -8,8 +8,8 @@ using TypeSpec.JsonSchema;
 model water {
   ...TopographicFeature;
 
-  type: "canal" | "lagoon" | "lake" | "pond" | "river";
-  water_use: water_use | null;
+  type: water_type;
+  subtype: water_subtype | null;
   hierarchy: string | null;
   name: string | null;
   group_name: string | null;
@@ -22,7 +22,20 @@ model water {
   ...GeoParquet
 }
 
-enum water_use {
+enum water_type {
+  Canal: "canal",
+  Drain: "drain",
+  Lagoon: "lagoon",
+  Lake: "lake",
+  Pond: "pond",
+  River: "river",
+  Soakhole: "soakhole",
+  Spring: "spring",
+  Waterfall: "waterfall",
+}
+
+
+enum water_subtype {
   Evaporation: "evaporation",
   HydroElectric: "hydro_electric",
   IceSkating: "ice_skating",
