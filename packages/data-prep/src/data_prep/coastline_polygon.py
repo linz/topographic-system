@@ -11,11 +11,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 import shapely
-from osgeo import ogr
 
 from data_prep.parquet_utils import write_parquet
-
-ogr.UseExceptions()
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +20,7 @@ NZTM2000 = 2193
 NZGD2000 = 4167
 
 # Round the coastline precision
-PRECISION_TOLERANCE = 0.01
+PRECISON_TOLERANCE = 0.1
 
 # Output properties for the merged coastline and island polygons.
 OUTPUT_COLUMNS = [
@@ -41,8 +38,8 @@ OUTPUT_COLUMNS = [
 
 # Interior reference points (NZTM2000, EPSG:2193) used to identify the named
 NAME_REFERENCE_POINTS = {
-    "North Island": (1_800_000, 5_815_000),
-    "South Island": (1_500_000, 5_180_000),
+    "Te Ika-a-Māui or North Island": (1_800_000, 5_815_000),
+    "Te Waipounamu or South Island": (1_500_000, 5_180_000),
     "Stewart Island": (1_215_000, 4_782_000),
 }
 
@@ -55,36 +52,16 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
     return gdf.to_crs(NZTM2000)
 
 
-def try_ogr_build_polygon(lines: list[ogr.Geometry], tolerance: float) -> ogr.Geometry | None:
-    """
-    Try OGR's BuildPolygonFromEdges — it handles snapping natively.
-    Returns a geometry or None on failure.
-    """
-    # Collect all lines into a GeometryCollection
-    gc = ogr.Geometry(ogr.wkbGeometryCollection)
-    for line in lines:
-        gc.AddGeometry(line)
-    try:
-        result = ogr.BuildPolygonFromEdges(gc, bBestEffort=True, bAutoClose=True, dfTolerance=tolerance)
-        if result is not None and not result.IsEmpty():
-            result.FlattenTo2D()
-            return result
-    except Exception as e:
-        print(f"  BuildPolygonFromEdges failed: {e}")
-        raise e
-    return None
+def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> gpd.GeoSeries:
+    """Convert coastline lines into land polygons."""
+    geoms = coastline_gdf.geometry
+    if tolerance > 0:
+        geoms = geoms.apply(lambda g: shapely.set_precision(g, grid_size=tolerance))
 
+    noded = shapely.unary_union(geoms.values)
 
-def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, precision_tol: float) -> gpd.GeoSeries:
-    """Convert coastline lines into land polygons using OGR BuildPolygonFromEdges."""
-    ogr_lines = [ogr.CreateGeometryFromWkb(geom.wkb) for geom in coastline_gdf.geometry.values]
-
-    ogr_polygon = try_ogr_build_polygon(ogr_lines, precision_tol)
-    if ogr_polygon is None:
-        raise ValueError("Coastline did not form any closed polygons; check for gaps in source linework.")
-
-    polygon = shapely.make_valid(shapely.from_wkb(bytes(ogr_polygon.ExportToWkb())))
-    polygons = shapely.get_parts(polygon)
+    edges = shapely.get_parts(noded)
+    polygons = shapely.get_parts(shapely.polygonize(edges))
 
     if len(polygons) == 0:
         raise ValueError("Coastline did not form any closed polygons; check for gaps in source linework.")
@@ -125,7 +102,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     island_gdf = read_and_project(island_path)
 
     # Convert the coastline lines into land polygons
-    land_gdf = gpd.GeoDataFrame(geometry=coastline_to_polygons(coastline_gdf, PRECISION_TOLERANCE))
+    land_gdf = gpd.GeoDataFrame(geometry=coastline_to_polygons(coastline_gdf, PRECISON_TOLERANCE))
     land_named_gdf = name_land_polygons(land_gdf)
     # Land polygons are derived from the coastline lines, so tag them as such.
     land_named_gdf["type"] = "coastline"

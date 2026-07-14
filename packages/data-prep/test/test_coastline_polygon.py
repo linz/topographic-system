@@ -78,5 +78,5 @@ def test_output_is_nzgd2000(tmp_path: Path):
 
 def test_open_coastline_raises(tmp_path: Path):
     open_line = LineString([(175.0, -39.0), (176.0, -39.0)])
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         run_coastline_polygon(tmp_path, [open_line], [OFFSHORE_ISLAND])
