@@ -1,6 +1,7 @@
 """
 Build the coastlines and islands polygon layer from source coastline lines and island polygons.
 """
+
 import argparse
 import logging
 import uuid
@@ -42,6 +43,7 @@ NAME_REFERENCE_POINTS = {
     "Stewart Island": (1_215_000, 4_782_000),
 }
 
+
 def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
     gdf = gpd.read_parquet(path, **read_kwargs)
     epsg = gdf.crs.to_epsg() if gdf.crs else None
@@ -51,8 +53,7 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
 
 
 def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, snap_tol_m: float) -> gpd.GeoSeries:
-    """Convert coastline lines into land polygons.
-    """
+    """Convert coastline lines into land polygons."""
     geoms = coastline_gdf.geometry
     if snap_tol_m > 0:
         geoms = geoms.apply(lambda g: shapely.set_precision(g, grid_size=snap_tol_m))
@@ -69,8 +70,7 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, snap_tol_m: float) ->
 
 
 def set_derived_identity(land_gdf: gpd.GeoDataFrame, produced_at: date) -> gpd.GeoDataFrame:
-    """Assign a uuid for id and produce-time timestamps to combined polygons.
-    """
+    """Assign a uuid for id and produce-time timestamps to combined polygons."""
     result = land_gdf.copy()
     result["id"] = [str(uuid.uuid4()) for _ in range(len(result))]
     result["t50_fid"] = None
@@ -80,8 +80,7 @@ def set_derived_identity(land_gdf: gpd.GeoDataFrame, produced_at: date) -> gpd.G
 
 
 def name_land_polygons(land_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Name each land polygon by the interior reference point it contains.
-    """
+    """Name each land polygon by the interior reference point it contains."""
     named = gpd.GeoDataFrame(
         {"name": pd.Series([None] * len(land_gdf), dtype="object")},
         geometry=land_gdf.geometry,
