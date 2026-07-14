@@ -23,7 +23,7 @@ NZTM2000 = 2193
 NZGD2000 = 4167
 
 # Round the coastline precision
-PRECISION_TOLERANCE = 0.1
+PRECISION_TOLERANCE = 0.01
 
 # Output properties for the merged coastline and island polygons.
 OUTPUT_COLUMNS = [
