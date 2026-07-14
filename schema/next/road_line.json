@@ -118,6 +118,17 @@
         }
       ]
     },
+    "road_access": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "mp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "rna_sufi": {},
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -144,6 +155,7 @@
     "surface",
     "way_count",
     "width_indicator",
+    "road_access",
     "rna_sufi",
     "geometry"
   ],
