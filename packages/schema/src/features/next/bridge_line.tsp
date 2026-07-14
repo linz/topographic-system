@@ -8,9 +8,8 @@ using TypeSpec.JsonSchema;
 model bridge_line {
    ...TopographicFeature;
 
-  type: "bridge";
-  use1: use1;
-  use2: use2 | null;
+  type: bridge_type | null;
+  subtype: bridge_subtype | null;
   construction_type: construction_type | null;
   status: status | null;
   name: string | null;
@@ -18,7 +17,7 @@ model bridge_line {
   ...GeoParquet
 }
 
-enum use1 {
+enum bridge_type {
   Cablecar: "cablecar",
   Farm: "farm",
   FootTraffic: "foot_traffic",
@@ -26,7 +25,7 @@ enum use1 {
   Vehicle: "vehicle",
 }
 
-enum use2 {
+enum bridge_subtype {
   FootTraffic: "foot_traffic",
   Train: "train",
 }
