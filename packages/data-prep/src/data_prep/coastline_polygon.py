@@ -99,6 +99,9 @@ def name_land_polygons(land_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     coastline_gdf = read_and_project(coastline_path)
+    island_gdf = read_and_project(island_path)
+
+    # Convert the coastline lines into land polygons
     land_gdf = gpd.GeoDataFrame(geometry=coastline_to_polygons(coastline_gdf, SNAP_TOL_M))
     land_named_gdf = name_land_polygons(land_gdf)
     # Land polygons are derived from the coastline lines, so tag them as such.
@@ -106,12 +109,11 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     # Give each land polygon a reproducible id and produce-time timestamps.
     land_named_gdf = set_derived_identity(land_named_gdf, date.today())
 
-    island_gdf = read_and_project(island_path)
+    # Exclude the island polygons that fall within the coastline polygons.
+    land_union = land_named_gdf.geometry.union_all()
+    island_gdf = island_gdf[~island_gdf.geometry.within(land_union)]
 
-    # Keep every property from both source schemas (coastline + island). Columns
-    # absent from a source are filled with null via reindex; island polygons
-    # carry their full attributes, coastline-derived land polygons gain the
-    # assigned name and type.
+    # Merge coastline and island polygons
     merged = pd.concat([land_named_gdf, island_gdf], ignore_index=True)
     coastlines_islands_gdf = gpd.GeoDataFrame(
         merged.reindex(columns=OUTPUT_COLUMNS),
