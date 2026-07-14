@@ -33,7 +33,6 @@ enum landuse_type {
   Showground: "showground",
   Sportsfield: "sportsfield",
   Vineyard: "vineyard",
-  Vehicle: "vehicle",
   Vehicletrack: "vehicle_track",
 }
 
