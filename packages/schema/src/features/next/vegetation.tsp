@@ -9,10 +9,14 @@ model vegetation {
   ...TopographicFeature;
 
   type: "exotic" | "native" | "scattered_scrub" | "scrub";
-  subtype: Topo.SubTypeEnum | null;
-  species: Topo.SpeciesEnum | null;
+  subtype: vegetation_subtype | null;
+  species: string | null;
   
   ...TopographicMetadata;
   ...GeoParquet
 }
 
+enum vegetation_subtype {
+  Coniferous: "coniferous",
+  NonConiferous: "non-coniferous",
+}

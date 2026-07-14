@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/marine_point",
+  "$id": "next/nztopo50_map_sheet",
   "type": "object",
   "properties": {
     "id": {
@@ -22,37 +22,34 @@
     },
     "type": {
       "type": "string",
-      "const": "rock"
+      "const": "nztopo50_map_sheet"
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "sheet_code": {
+      "type": "string"
     },
-    "metadata": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "sheet_name": {
+      "type": "string"
     },
-    "created_at": {
+    "origin_x": {
+      "type": "number"
+    },
+    "origin_y": {
+      "type": "number"
+    },
+    "example_point_id": {
       "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was created"
+      "description": "id (UUID) of the example feature."
+    },
+    "published_version": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
     },
     "updated_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was last updated"
+      "format": "date-time"
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -65,7 +62,20 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "t50_fid", "type", "name", "metadata", "created_at", "updated_at", "geometry"],
+  "required": [
+    "id",
+    "t50_fid",
+    "type",
+    "sheet_code",
+    "sheet_name",
+    "origin_x",
+    "origin_y",
+    "example_point_id",
+    "published_version",
+    "published_at",
+    "updated_at",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
     "BBox": {

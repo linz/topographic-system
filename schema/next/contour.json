@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse_point",
+  "$id": "next/contour",
   "type": "object",
   "properties": {
     "id": {
@@ -21,29 +21,22 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landuse_type"
+      "type": "string",
+      "const": "contour"
     },
-    "subtype": {
+    "elevation": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_subtype"
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
         },
         {
           "type": "null"
         }
       ]
     },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/landuse_status"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
+    "definition": {
       "anyOf": [
         {
           "type": "string"
@@ -53,10 +46,22 @@
         }
       ]
     },
-    "substance_extracted": {
+    "designation": {
       "anyOf": [
         {
-          "$ref": "#/$defs/substance_extracted"
+          "type": "string",
+          "const": "supplementary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "formation": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "depression"
         },
         {
           "type": "null"
@@ -98,10 +103,10 @@
     "id",
     "t50_fid",
     "type",
-    "subtype",
-    "status",
-    "name",
-    "substance_extracted",
+    "elevation",
+    "definition",
+    "designation",
+    "formation",
     "metadata",
     "created_at",
     "updated_at",
@@ -109,57 +114,6 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "landuse_type": {
-      "type": "string",
-      "enum": [
-        "cemetery",
-        "cycle_track",
-        "dog_track",
-        "golf_course",
-        "gravel_pit",
-        "horse_track",
-        "landfill",
-        "mine",
-        "orchard",
-        "pumice_pit",
-        "quarry",
-        "racetrack",
-        "rifle_range",
-        "showground",
-        "sportsfield",
-        "vineyard",
-        "vehicle_track"
-      ]
-    },
-    "landuse_subtype": {
-      "type": "string",
-      "enum": ["training", "opencast", "underground"]
-    },
-    "landuse_status": {
-      "type": "string",
-      "enum": ["dangerous", "disused", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
-    },
     "BBox": {
       "type": "object",
       "properties": {

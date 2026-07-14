@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse_point",
+  "$id": "next/tunnel_line",
   "type": "object",
   "properties": {
     "id": {
@@ -21,12 +21,33 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landuse_type"
+      "type": "string",
+      "const": "tunnel"
+    },
+    "tunnel_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/tunnel_use"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tunnel_use2": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/tunnel_use"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_subtype"
+          "$ref": "#/$defs/tunnel_subtype"
         },
         {
           "type": "null"
@@ -36,7 +57,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_status"
+          "$ref": "#/$defs/tunnel_status"
         },
         {
           "type": "null"
@@ -47,16 +68,6 @@
       "anyOf": [
         {
           "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "substance_extracted": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/substance_extracted"
         },
         {
           "type": "null"
@@ -98,10 +109,11 @@
     "id",
     "t50_fid",
     "type",
+    "tunnel_use",
+    "tunnel_use2",
     "subtype",
     "status",
     "name",
-    "substance_extracted",
     "metadata",
     "created_at",
     "updated_at",
@@ -109,56 +121,17 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "landuse_type": {
+    "tunnel_use": {
       "type": "string",
-      "enum": [
-        "cemetery",
-        "cycle_track",
-        "dog_track",
-        "golf_course",
-        "gravel_pit",
-        "horse_track",
-        "landfill",
-        "mine",
-        "orchard",
-        "pumice_pit",
-        "quarry",
-        "racetrack",
-        "rifle_range",
-        "showground",
-        "sportsfield",
-        "vineyard",
-        "vehicle_track"
-      ]
+      "enum": ["cablecar", "foot traffic", "livestock", "river", "train", "tram", "vehicle"]
     },
-    "landuse_subtype": {
+    "tunnel_subtype": {
       "type": "string",
-      "enum": ["training", "opencast", "underground"]
+      "enum": ["natural"]
     },
-    "landuse_status": {
+    "tunnel_status": {
       "type": "string",
-      "enum": ["dangerous", "disused", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
+      "enum": ["closed", "under construction"]
     },
     "BBox": {
       "type": "object",

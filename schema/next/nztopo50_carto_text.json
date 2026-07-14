@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/nztopo50_carto_text",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUIDv7 of the feature"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "example_point_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "id (UUID) of the example feature."
+    },
+    "full_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_bend": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_char_spacing_distance": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_colour": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_font": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_textfont"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_placement": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_size_type": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_stretch_length": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_string": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_word_spacing_distance": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "font": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_font"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "style": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_style"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "colour": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_colour"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "size": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "placement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_placement"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "offset": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "textanchor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_textanchor"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "labelanchor": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "charplace": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/carto_charplace"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "chardistance": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": [
+    "id",
+    "t50_fid",
+    "example_point_id",
+    "full_text",
+    "text_bend",
+    "text_char_spacing_distance",
+    "text_colour",
+    "text_font",
+    "text_height",
+    "text_orientation",
+    "text_placement",
+    "text_size_type",
+    "text_stretch_length",
+    "text_string",
+    "text_word_spacing_distance",
+    "font",
+    "style",
+    "colour",
+    "size",
+    "placement",
+    "offset",
+    "textanchor",
+    "labelanchor",
+    "charplace",
+    "chardistance",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "carto_textfont": {
+      "type": "string",
+      "enum": [
+        "ATTrium-Italic",
+        "ATTriumMou-Cond",
+        "ATTriumMou-CondBold",
+        "ATTriumMou-CondItalic",
+        "ATTriumMou-Italic",
+        "ATTriumMou-Regular",
+        "Courier Bold Oblique"
+      ]
+    },
+    "carto_font": {
+      "type": "string",
+      "enum": ["", "Nimbus Sans LINZ"]
+    },
+    "carto_style": {
+      "type": "string",
+      "enum": ["", "Italic", "Narrow", "Narrow Bold", "Narrow Italic", "Regular"]
+    },
+    "carto_colour": {
+      "type": "string",
+      "enum": ["", "black", "process_blue", "red"]
+    },
+    "carto_placement": {
+      "type": "string",
+      "enum": ["", "AL", "BL", "OL"]
+    },
+    "carto_textanchor": {
+      "type": "string",
+      "enum": ["", "centre", "left", "left ", "left 0.62", "right"]
+    },
+    "carto_charplace": {
+      "type": "string",
+      "enum": ["", "CharactersAtVertices", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

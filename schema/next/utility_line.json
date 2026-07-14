@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse_point",
+  "$id": "next/utility_line",
   "type": "object",
   "properties": {
     "id": {
@@ -21,12 +21,35 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landuse_type"
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "pipeline"
+        },
+        {
+          "type": "string",
+          "const": "powerline"
+        },
+        {
+          "type": "string",
+          "const": "telephone"
+        }
+      ]
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_subtype"
+          "$ref": "#/$defs/utility_subtype"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "support_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/utility_supporttype"
         },
         {
           "type": "null"
@@ -36,7 +59,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_status"
+          "type": "string"
         },
         {
           "type": "null"
@@ -53,10 +76,10 @@
         }
       ]
     },
-    "substance_extracted": {
+    "visibility": {
       "anyOf": [
         {
-          "$ref": "#/$defs/substance_extracted"
+          "$ref": "#/$defs/utility_visibility"
         },
         {
           "type": "null"
@@ -99,9 +122,10 @@
     "t50_fid",
     "type",
     "subtype",
+    "support_type",
     "status",
     "name",
-    "substance_extracted",
+    "visibility",
     "metadata",
     "created_at",
     "updated_at",
@@ -109,56 +133,17 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "landuse_type": {
+    "utility_subtype": {
       "type": "string",
-      "enum": [
-        "cemetery",
-        "cycle_track",
-        "dog_track",
-        "golf_course",
-        "gravel_pit",
-        "horse_track",
-        "landfill",
-        "mine",
-        "orchard",
-        "pumice_pit",
-        "quarry",
-        "racetrack",
-        "rifle_range",
-        "showground",
-        "sportsfield",
-        "vineyard",
-        "vehicle_track"
-      ]
+      "enum": ["ironsand", "sewage", "steam", "water"]
     },
-    "landuse_subtype": {
+    "utility_supporttype": {
       "type": "string",
-      "enum": ["training", "opencast", "underground"]
+      "enum": ["pole", "pylon"]
     },
-    "landuse_status": {
+    "utility_visibility": {
       "type": "string",
-      "enum": ["dangerous", "disused", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
+      "enum": ["underground"]
     },
     "BBox": {
       "type": "object",

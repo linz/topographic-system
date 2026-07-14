@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/marine_point",
+  "$id": "next/nztopo50_dms_grid",
   "type": "object",
   "properties": {
     "id": {
@@ -20,39 +20,25 @@
       ],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "type": {
-      "type": "string",
-      "const": "rock"
-    },
-    "name": {
+    "direction": {
       "anyOf": [
         {
-          "type": "string"
+          "$ref": "#/$defs/grid_direction"
         },
         {
           "type": "null"
         }
       ]
     },
-    "metadata": {
+    "value": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "number"
         },
         {
           "type": "null"
         }
       ]
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was created"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was last updated"
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -65,9 +51,13 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "t50_fid", "type", "name", "metadata", "created_at", "updated_at", "geometry"],
+  "required": ["id", "t50_fid", "direction", "value", "geometry"],
   "additionalProperties": false,
   "$defs": {
+    "grid_direction": {
+      "type": "string",
+      "enum": ["x", "y"]
+    },
     "BBox": {
       "type": "object",
       "properties": {

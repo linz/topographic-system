@@ -9,12 +9,28 @@ model track_line {
   ...TopographicFeature;
 
   type: "track";
-  track_use: Topo.TrackUseEnum | null;
-  track_type: Topo.TrackTypeEnum | null;
-  status: Topo.StatusEnum | null;
+  subtype: track_subtype | null;
+  track_type: track_type | null;
+  status: track_status | null;
   name: string | null;
   
   ...TopographicMetadata;
   ...GeoParquet
 }
 
+enum track_subtype {
+  CycleOnly: "cycle_only",
+  Foot: "foot",
+  Vehicle: "vehicle",
+}
+
+enum track_type {
+  Connector: "connector",
+  Multiple: "multiple",
+  Route: "route",
+  Single: "single",
+}
+
+enum track_status {
+  Closed: "closed",
+}

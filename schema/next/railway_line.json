@@ -7,16 +7,6 @@
       "type": "string",
       "description": "UUIDv7 of the feature"
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the feature was created"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the feature was last updated"
-    },
     "t50_fid": {
       "anyOf": [
         {
@@ -34,10 +24,10 @@
       "type": "string",
       "const": "railway"
     },
-    "railway_use": {
+    "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/railway_use"
+          "$ref": "#/$defs/railway_subtype"
         },
         {
           "type": "null"
@@ -45,10 +35,24 @@
       ]
     },
     "track_type": {
-      "$ref": "#/$defs/track_type"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/railway_track_type"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "vehicle_type": {
-      "$ref": "#/$defs/vehicle_type"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/railway_vehicle_type"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "status": {
       "anyOf": [
@@ -68,8 +72,27 @@
         {
           "type": "null"
         }
-      ],
-      "description": "The name of the railway line if known"
+      ]
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the metadata was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO Datetime of when the metadata was last updated"
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -84,35 +107,36 @@
   },
   "required": [
     "id",
-    "created_at",
-    "updated_at",
     "t50_fid",
     "type",
-    "railway_use",
+    "subtype",
     "track_type",
     "vehicle_type",
     "status",
     "name",
+    "metadata",
+    "created_at",
+    "updated_at",
     "geometry"
   ],
   "description": "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature",
   "additionalProperties": false,
   "$defs": {
-    "railway_use": {
+    "railway_subtype": {
       "type": "string",
       "enum": ["siding"]
     },
-    "track_type": {
+    "railway_track_type": {
       "type": "string",
       "enum": ["single", "multiple"]
     },
-    "vehicle_type": {
+    "railway_vehicle_type": {
       "type": "string",
       "enum": ["train", "tram", "rail_cart", "cablecar"]
     },
     "railway_status": {
       "type": "string",
-      "enum": ["disused", "under_construction"]
+      "enum": ["disused"]
     },
     "BBox": {
       "type": "object",

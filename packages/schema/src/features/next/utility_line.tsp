@@ -9,13 +9,29 @@ model utility_line {
   ...TopographicFeature;
 
   type: "pipeline" | "powerline" | "telephone";
-  utility_use: Topo.UtilityUseEnum | null;
-  support_type: Topo.SupportTypeEnum | null;
-  status: Topo.StatusEnum | null;
+  subtype: utility_subtype | null;
+  support_type: utility_supporttype | null;
+  status: string | null;
   name: string | null;
-  visibility: Topo.VisibilityEnum | null;
+  visibility: utility_visibility | null;
   
   ...TopographicMetadata;
   ...GeoParquet
 }
 
+enum utility_subtype {
+  Ironsand: "ironsand",
+  Sewage: "sewage",
+  Steam: "steam",
+  Water: "water",
+}
+
+
+enum utility_supporttype {
+  Pole: "pole",
+  Pylon: "pylon",
+}
+
+enum utility_visibility {
+  Underground: "underground",
+}

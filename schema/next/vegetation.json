@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/landuse_point",
+  "$id": "next/vegetation",
   "type": "object",
   "properties": {
     "id": {
@@ -21,42 +21,39 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "$ref": "#/$defs/landuse_type"
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "exotic"
+        },
+        {
+          "type": "string",
+          "const": "native"
+        },
+        {
+          "type": "string",
+          "const": "scattered_scrub"
+        },
+        {
+          "type": "string",
+          "const": "scrub"
+        }
+      ]
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/landuse_subtype"
+          "$ref": "#/$defs/vegetation_subtype"
         },
         {
           "type": "null"
         }
       ]
     },
-    "status": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/landuse_status"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "name": {
+    "species": {
       "anyOf": [
         {
           "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "substance_extracted": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/substance_extracted"
         },
         {
           "type": "null"
@@ -94,71 +91,12 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "t50_fid",
-    "type",
-    "subtype",
-    "status",
-    "name",
-    "substance_extracted",
-    "metadata",
-    "created_at",
-    "updated_at",
-    "geometry"
-  ],
+  "required": ["id", "t50_fid", "type", "subtype", "species", "metadata", "created_at", "updated_at", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "landuse_type": {
+    "vegetation_subtype": {
       "type": "string",
-      "enum": [
-        "cemetery",
-        "cycle_track",
-        "dog_track",
-        "golf_course",
-        "gravel_pit",
-        "horse_track",
-        "landfill",
-        "mine",
-        "orchard",
-        "pumice_pit",
-        "quarry",
-        "racetrack",
-        "rifle_range",
-        "showground",
-        "sportsfield",
-        "vineyard",
-        "vehicle_track"
-      ]
-    },
-    "landuse_subtype": {
-      "type": "string",
-      "enum": ["training", "opencast", "underground"]
-    },
-    "landuse_status": {
-      "type": "string",
-      "enum": ["dangerous", "disused", "old"]
-    },
-    "substance_extracted": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ]
+      "enum": ["coniferous", "non-coniferous"]
     },
     "BBox": {
       "type": "object",

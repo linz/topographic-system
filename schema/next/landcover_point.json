@@ -18,16 +18,6 @@
           "type": "string",
           "description": "UUIDv7 of the feature"
         },
-        "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was created"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was last updated"
-        },
         "t50_fid": {
           "anyOf": [
             {
@@ -48,6 +38,26 @@
         "subtype": {
           "$ref": "#/$defs/rock_outcrop_subtype"
         },
+        "metadata": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the metadata was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the metadata was last updated"
+        },
         "geometry": {
           "description": "GeoParquet 1.1 covering geometry struct.",
           "not": {
@@ -59,7 +69,7 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+      "required": ["id", "t50_fid", "type", "subtype", "metadata", "created_at", "updated_at", "geometry"]
     },
     "landcover_point_core_types": {
       "type": "object",
@@ -67,16 +77,6 @@
         "id": {
           "type": "string",
           "description": "UUIDv7 of the feature"
-        },
-        "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was created"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was last updated"
         },
         "t50_fid": {
           "anyOf": [
@@ -97,6 +97,26 @@
         "subtype": {
           "type": "null"
         },
+        "metadata": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the metadata was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO Datetime of when the metadata was last updated"
+        },
         "geometry": {
           "description": "GeoParquet 1.1 covering geometry struct.",
           "not": {
@@ -108,7 +128,7 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+      "required": ["id", "t50_fid", "type", "subtype", "metadata", "created_at", "updated_at", "geometry"]
     },
     "rock_outcrop_subtype": {
       "type": "string",

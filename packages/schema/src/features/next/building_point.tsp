@@ -1,5 +1,6 @@
 import "@typespec/json-schema";
 import "./common.tsp";
+import "./building.tsp";
 
 using TypeSpec.JsonSchema;
 
@@ -9,8 +10,8 @@ model building_point {
   ...TopographicFeature;
 
   type: "building";
-  building_use: string | null;
-  status: Topo.StatusEnum | null;
+  subtype: building_subtype | null;
+  status: building_status | null;
   name: string | null;
   orientation: float64 | null;
   
