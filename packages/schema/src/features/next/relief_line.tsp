@@ -25,6 +25,7 @@ enum relief_line_type {
   SlipEdge: "slip_edge",
   Waterfall: "waterfall",
   WaterfallEdge: "waterfall_edge",
+  Seawall: "seawall",
 }
 
 enum relief_line_subtype {

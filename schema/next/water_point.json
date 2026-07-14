@@ -31,20 +31,7 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "soakhole"
-        },
-        {
-          "type": "string",
-          "const": "spring"
-        },
-        {
-          "type": "string",
-          "const": "waterfall"
-        }
-      ]
+      "$ref": "#/$defs/water_type"
     },
     "name": {
       "anyOf": [
@@ -100,6 +87,10 @@
   ],
   "additionalProperties": false,
   "$defs": {
+    "water_type": {
+      "type": "string",
+      "enum": ["canal", "drain", "lagoon", "lake", "pond", "river", "soakhole", "spring", "waterfall"]
+    },
     "water_temperature_indicator": {
       "type": "string",
       "enum": ["cold", "hot"]

@@ -73,25 +73,6 @@
         }
       ]
     },
-    "location": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "land"
-        },
-        {
-          "type": "string",
-          "const": "lake"
-        },
-        {
-          "type": "string",
-          "const": "sea"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "height": {
       "anyOf": [
         {
@@ -133,7 +114,6 @@
     "tank_type",
     "status",
     "name",
-    "location",
     "height",
     "orientation",
     "geometry"
@@ -176,12 +156,15 @@
         "fuel",
         "historic",
         "jetty",
+        "lake",
+        "land",
         "lighthouse",
         "lime",
         "locked",
         "plane",
         "power_generation",
         "rock",
+        "sea",
         "ship",
         "surge_chamber",
         "tunnel_ventilation",

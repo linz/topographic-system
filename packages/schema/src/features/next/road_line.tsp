@@ -17,6 +17,7 @@ model road_line {
   surface: road_surface | null;
   way_count: "one_way" | null;
   width_indicator: "w" | null;
+  road_access: "mp" | null;
   rna_sufi: unknown /* int64; hyparquet returns BigInt */;
 
   ...TopographicMetadata;

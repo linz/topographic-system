@@ -37,4 +37,5 @@ enum place_subtype {
 enum place_composition {
   Limestone: "limestone",
   Pumice: "pumice",
+  Coral: "coral",
 }
