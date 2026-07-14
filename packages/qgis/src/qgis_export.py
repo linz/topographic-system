@@ -217,10 +217,14 @@ def main():
 
             if example_feature is None:
                 if example_layer is not None:
-                    raise RuntimeError(f"No feature with id = {example_point_id} found in trig_point or geographic_name.")
+                    raise RuntimeError(
+                        f"No feature with id = {example_point_id} found in trig_point or geographic_name."
+                    )
             else:
                 example_geom = example_feature.geometry()
-                example_geom.transform(QgsCoordinateTransform(example_layer.crs(), map_main.crs(), QgsProject.instance()))
+                example_geom.transform(
+                    QgsCoordinateTransform(example_layer.crs(), map_main.crs(), QgsProject.instance())
+                )
                 QgsExpressionContextUtils.setLayoutVariable(layout, "example_x", example_geom.asPoint().x())
                 QgsExpressionContextUtils.setLayoutVariable(layout, "example_y", example_geom.asPoint().y())
                 QgsExpressionContextUtils.setLayoutVariable(layout, "example_class", example_label)
