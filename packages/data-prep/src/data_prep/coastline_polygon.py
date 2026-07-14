@@ -62,8 +62,8 @@ def try_ogr_build_polygon(lines: list[ogr.Geometry], tolerance: float) -> ogr.Ge
     """
     # Collect all lines into a GeometryCollection
     gc = ogr.Geometry(ogr.wkbGeometryCollection)
-    for l in lines:
-        gc.AddGeometry(l)
+    for line in lines:
+        gc.AddGeometry(line)
     try:
         result = ogr.BuildPolygonFromEdges(gc, bBestEffort=True, bAutoClose=True, dfTolerance=tolerance)
         if result is not None and not result.IsEmpty():
