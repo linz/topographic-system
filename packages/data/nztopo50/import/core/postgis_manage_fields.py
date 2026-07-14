@@ -1023,7 +1023,8 @@ class ModifyTable:
             update_query = f"""
                 UPDATE {schema}.road_line r
                 SET
-                    width_indicator = l.width_indicator
+                    width_indicator = l.width_indicator,
+                    road_access = l.road_access
                 FROM lookups.road_lkp l
                 WHERE r.t50_fid = l.t50_fid;
             """
@@ -1335,6 +1336,9 @@ class TableModificationWorkflow:
         )
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
+        )
+        self.table_modifer.add_column(
+            f"{self.schema_name}.road_line", "road_access", "VARCHAR(5)"
         )
         #self.table_modifer.add_column(
         #    f"{self.schema_name}.road_line", "name_id", "BIGINT"
