@@ -13,6 +13,7 @@ import "./railway_point.tsp";
 import "./relief.tsp";
 import "./relief_point.tsp";
 import "./relief_line.tsp";
+import "./road_line.tsp";
 import "./structure.tsp";
 import "./structure_line.tsp";
 import "./structure_point.tsp";

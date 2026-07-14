@@ -31,6 +31,18 @@ model TopographicFeature {
   t50_fid: uint32 | null;
 }
 
+model ProductFeature {
+  /** UUIDv7 of the feature */
+  id: string;
+
+  /**
+   * Reference topo50 feature ID.
+   * 
+   * Will be null if the feature is new and has not been published in a Topo50 edition.
+   */
+  t50_fid: uint32 | null;
+}
+
 model TopographicMetadata {
   metadata: string | null;
   /** ISO Datetime of when the metadata was created  */

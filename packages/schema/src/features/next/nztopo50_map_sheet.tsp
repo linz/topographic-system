@@ -6,18 +6,19 @@ using TypeSpec.JsonSchema;
 @jsonSchema("next/nztopo50_map_sheet")
 @extension("additionalProperties", false)
 model nztopo50_map_sheet {
-  ...Topo.ProductIdentity;
-  t50_fid: unknown /* int64; hyparquet returns BigInt */;
+  ...ProductFeature;
+
   type: "nztopo50_map_sheet";
   sheet_code: string;
   sheet_name: string;
-  x_origin: float64;
-  y_origin: float64;
-  /** topo_id (UUID) of the example feature. */
+  origin_x: float64;
+  origin_y: float64;
+  /** id (UUID) of the example feature. */
   example_point_id: string;
   published_version: string;
-  published_at: {};
-  updated_at: {};
-  ...TopographicMetadata;
+  published_at: utcDateTime;
+  updated_at: utcDateTime;
+
   ...GeoParquet
 }
+
