@@ -202,7 +202,7 @@ def main():
                 layers = QgsProject.instance().mapLayersByName(layer_name)
                 if not layers:
                     continue
-                layer = layers[0]
+                example_layer = layers[0]
                 matches = layer.getFeatures(
                     QgsFeatureRequest().setFilterExpression(
                         QgsExpression.createFieldEqualityExpression("id", example_point_id)
@@ -211,12 +211,11 @@ def main():
                 match = next(matches, None)
                 matches.close()
                 if match is not None:
-                    example_layer = layer
                     example_feature = match
                     example_label = label_format.format(match[label_field])
                     break
 
-            if example_feature is None or example_layer is None:
+            if example_feature is None and example_layer is not None:
                 raise RuntimeError(f"No feature with id = {example_point_id} found in trig_point or geographic_name.")
 
             example_geom = example_feature.geometry()
