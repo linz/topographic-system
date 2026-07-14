@@ -206,6 +206,7 @@ def main():
                     )
                 )
                 match = next(matches, None)
+                matches.close()
                 if match is not None:
                     example_layer = layer
                     example_feature = match
