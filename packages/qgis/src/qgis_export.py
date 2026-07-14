@@ -199,7 +199,10 @@ def main():
             example_feature = None
             example_label = None
             for layer_name, (label_field, label_format) in example_label_formats.items():
-                layer = QgsProject.instance().mapLayersByName(layer_name)[0]
+                layers = QgsProject.instance().mapLayersByName(layer_name)
+                if not layers:
+                    continue
+                layer = layers[0]
                 matches = layer.getFeatures(
                     QgsFeatureRequest().setFilterExpression(
                         QgsExpression.createFieldEqualityExpression("id", example_point_id)
