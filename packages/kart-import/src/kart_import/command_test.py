@@ -30,10 +30,22 @@ def test_raises_called_process_error_on_failure(monkeypatch):
         run_command(["false"])
 
 
-def test_auth_error_raises_and_is_not_retried(monkeypatch):
-    run_mock = _mock_run(monkeypatch, 1, stderr="Unable to locate credentials")
+@pytest.mark.parametrize(
+    "stderr",
+    [
+        "Unable to locate credentials",  # AWS / SSO
+        "ExpiredToken: the security token has expired",
+        "Permission denied (publickey).",  # git / SSH
+        "fatal: Could not read from remote repository.",
+        "fatal: Authentication failed for 'https://...'",
+        "Host key verification failed.",
+    ],
+)
+def test_auth_failures_fail_fast_and_are_not_retried(monkeypatch, stderr):
+    """Auth failures raise AuthenticationError and not retried."""
+    run_mock = _mock_run(monkeypatch, 1, stderr=stderr)
     with pytest.raises(AuthenticationError):
-        run_command(["aws", "s3", "cp", "x", "y"], retries=3)
+        run_command(["some", "cmd"], retries=3)
     assert run_mock.call_count == 1
 
 

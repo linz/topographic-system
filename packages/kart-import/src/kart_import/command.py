@@ -8,18 +8,23 @@ from time import perf_counter
 logger = logging.getLogger("kart_import")
 
 AUTH_ERROR_MARKERS = (
+    # AWS / SSO credential failures (aws s3 …)
     "Token has expired and refresh failed",
     "Error when retrieving token from sso",
     "Unable to locate credentials",
     "ExpiredToken",
     "InvalidToken",
+    # git / SSH access failures (git|kart clone/pull/push to GitHub, koordinates)
+    "Permission denied (publickey)",
+    "Could not read from remote repository",
+    "fatal: Authentication failed",
+    "Host key verification failed",
 )
 
 
 class AuthenticationError(RuntimeError):
-    """Raised when an authentication failure is encountered."""
-
-    pass
+    """Raised when a command fails because credentials/access are expired or missing
+    (AWS/SSO, or git/SSH). Never retried, needs re-authenticating."""
 
 
 def run_command(
@@ -71,8 +76,7 @@ def run_command(
         # always fail on auth errors
         if any(marker in result.stderr for marker in AUTH_ERROR_MARKERS):
             logger.error(f"Authentication failure running [{' '.join(cmd)}]:\n{result.stderr}")
-            raise AuthenticationError(
-                "AWS credentials are expired or missing. Re-authenticate (e.g. `aws sso login`) and re-run.\n"
+            raise AuthenticationError("Authentication failed. Check `aws sso login` and git/kart SSH keys.\n"
                 f"Command: {' '.join(cmd)}\n{result.stderr.strip()}"
             )
 
