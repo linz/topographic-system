@@ -21,24 +21,10 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "direction": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/grid_direction"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/grid_direction"
     },
     "value": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "number"
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",

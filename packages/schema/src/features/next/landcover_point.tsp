@@ -1,11 +1,10 @@
- import "@typespec/json-schema";
+import "@typespec/json-schema";
 import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("next/landcover_point")
 @extension("additionalProperties", false)
-@jsonSchema("next/landcover_point")
 @oneOf
 union landcover_point {
   rock_outcrop: rock_outcrop,
@@ -14,8 +13,10 @@ union landcover_point {
 
 model rock_outcrop {
     ...TopographicFeature;
+
     type: "rock_outcrop";
     subtype: rock_outcrop_subtype;
+    
     ...TopographicMetadata;
     ...GeoParquet
 }

@@ -8,8 +8,8 @@ using TypeSpec.JsonSchema;
 model nztopo50_grid {
   ...ProductFeature;
   
-  direction: grid_direction | null;
-  value: float64 | null;
+  direction: grid_direction;
+  value: float64;
 
   ...GeoParquet
 }
