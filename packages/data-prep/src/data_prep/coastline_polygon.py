@@ -70,9 +70,12 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> 
 
 
 def set_derived_identity(land_gdf: gpd.GeoDataFrame, produced_at: date) -> gpd.GeoDataFrame:
-    """Assign a uuid for id and produce-time timestamps to combined polygons."""
+    """Assign a reproducible uuid for id and produce-time timestamps to combined polygons."""
     result = land_gdf.copy()
-    result["id"] = [str(uuid.uuid4()) for _ in range(len(result))]
+    # Derive a deterministic UUID5 from the name, or random if no name defined.
+    result["id"] = [
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, name) if name else uuid.uuid4()) for name in result["name"]
+    ]
     result["t50_fid"] = None
     result["created_at"] = produced_at
     result["updated_at"] = produced_at
