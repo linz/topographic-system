@@ -76,7 +76,8 @@ def run_command(
         # always fail on auth errors
         if any(marker in result.stderr for marker in AUTH_ERROR_MARKERS):
             logger.error(f"Authentication failure running [{' '.join(cmd)}]:\n{result.stderr}")
-            raise AuthenticationError("Authentication failed. Check `aws sso login` and git/kart SSH keys.\n"
+            raise AuthenticationError(
+                "Authentication failed. Check `aws sso login` and git/kart SSH keys.\n"
                 f"Command: {' '.join(cmd)}\n{result.stderr.strip()}"
             )
 
