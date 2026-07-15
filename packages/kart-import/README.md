@@ -47,7 +47,7 @@ bundle plus a per-commit JSON export to S3. For this to work you need:
 - **AWS credentials with write access to the bundle store.** The upload uses
   `aws s3 cp` against `GIT_BUNDLE_S3_URL` (default
   `s3://linz-topography-nonprod/source/`). Log in first so the AWS CLI has
-  writeable credentials., e.g.:
+  write-credentials, e.g.:
 
   ```shell
   aws sso login --profile <your-topography-nonprod-profile>
