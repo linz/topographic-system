@@ -73,9 +73,7 @@ def set_derived_identity(land_gdf: gpd.GeoDataFrame, produced_at: date) -> gpd.G
     """Assign a reproducible uuid for id and produce-time timestamps to combined polygons."""
     result = land_gdf.copy()
     # Derive a deterministic UUID5 from the name, or random if no name defined.
-    result["id"] = [
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, name) if name else uuid.uuid4()) for name in result["name"]
-    ]
+    result["id"] = [str(uuid.uuid5(uuid.NAMESPACE_DNS, name) if name else uuid.uuid4()) for name in result["name"]]
     result["t50_fid"] = None
     result["created_at"] = produced_at
     result["updated_at"] = produced_at
