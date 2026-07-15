@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TypedDict
 
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDateTime
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
 from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
@@ -36,10 +36,10 @@ def calculate_mag_info(
 ) -> MagInfoRaw:
     # date (rounded to july 1st)
     published_at = feature.attribute("published_at")
-    if not isinstance(published_at, QDate):
-        raise TypeError(f"published_at is not a QDate. Actual: {type(published_at)}")
+    if not isinstance(published_at, QDateTime):
+        raise TypeError(f"published_at is not a QDateTime. Actual type: {type(published_at)}")
 
-    date = datetime(published_at.toPyDate().year, month=7, day=1)
+    date = datetime(published_at.toPyDateTime().year, month=7, day=1)
 
     # geometry (source crs)
     geometry = feature.geometry()
