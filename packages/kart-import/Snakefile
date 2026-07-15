@@ -23,6 +23,11 @@ if "TRACEPARENT" not in os.environ:
     run_span_id = uuid.uuid4().hex[:16]
     os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 
+# Per-invocation run id (the trace id, whether generated above or inherited). Used to
+# scope log files so each run's logs live in their own directory and match the `TraceId`
+# embedded in every JSON log record. `ls -t logs/bundle/` finds the latest run.
+RUN_ID = os.environ["TRACEPARENT"].split("-")[1]
+
 
 # TARGETS
 ALL_IMPORTED = [f"data/output/{repo}/.imported" for repo in REPOS]
@@ -146,8 +151,14 @@ rule kart_repo:
 rule bundle:
     output:
         sentinel = "data/source/{dataset}/.bundle_created"
+    log:
+        # Per-dataset, per-run log so parallel jobs don't interleave, runs don't clobber
+        # each other, and failures are easy to isolate:
+        #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
+        # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
+        f"logs/bundle/{RUN_ID}/{{dataset}}.log"
     shell:
-        "uv run python -m kart_import.assets.bundle {wildcards.dataset}"
+        "uv run python -m kart_import.assets.bundle {wildcards.dataset} > {log} 2>&1"
 
 
 

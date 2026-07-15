@@ -32,6 +32,42 @@ These are created with the "bundle_all" assets.
 uv run snakemake --cores=4 bundle_all
 ```
 
+To (re)create the bundle for a single dataset, target its `.bundle_created`
+sentinel (there is no per-dataset named rule for bundling):
+
+```shell
+uv run snakemake --cores=4 data/source/nz_airport_polygons/.bundle_created --quiet | pjl
+```
+
+### Prerequisites for bundling
+
+Bundling clones each Kart repo, packs it into a git `.bundle`, and uploads the
+bundle plus a per-commit JSON export to S3. For this to work you need:
+
+- **AWS credentials with write access to the bundle store.** The upload uses
+  `aws s3 cp` against `GIT_BUNDLE_S3_URL` (default
+  `s3://linz-topography-nonprod/source/`). Log in first so the AWS CLI has
+  write-credentials, e.g.:
+
+  ```shell
+  aws sso login --profile <your-topography-nonprod-profile>
+  export AWS_PROFILE=<your-topography-nonprod-profile>
+  ```
+
+  To write somewhere else, override the target bucket/prefix:
+
+  ```shell
+  export GIT_BUNDLE_S3_URL=s3://my-bucket/source/
+  ```
+
+- **The `aws` CLI installed** and on `PATH` (the upload shells out to it).
+- **`kart` and `git` installed**, plus SSH access to
+  `kart@data.koordinates.com` so the source repositories can be cloned/pulled.
+
+The uploaded bundles are served read-only from CloudFront
+(`GIT_BUNDLE_URL`, default `https://d1jzh93b1t1cv.cloudfront.net/source/`),
+which is what the clone step reads from when `GIT_BUNDLE=true`.
+
 To turn bundle usage off
 
 ```shell
@@ -70,7 +106,7 @@ datasets:
       # entries apply in order, so later ones see the results of earlier ones.
       - { column: road_access, set: private, where: { status: closed } }
     fixups: # release-aware Python repairs registered in `kart_import.fixups.FIXUPS`
-      - fn: change_type_to_none
+      - fn: map_sheet_origin
         releases: [64, 65] # omit `releases` to apply the fixup to every release
 ```
 
