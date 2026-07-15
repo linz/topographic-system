@@ -37,7 +37,7 @@ def calculate_mag_info(
     # date (rounded to july 1st)
     published_at = feature.attribute("published_at")
     if not isinstance(published_at, QDate):
-        raise TypeError("published_at is not a QDate")
+        raise TypeError(f"published_at is not a QDate. Actual: {type(published_at)}")
 
     date = datetime(published_at.toPyDate().year, month=7, day=1)
 
