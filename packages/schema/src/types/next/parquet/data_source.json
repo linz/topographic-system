@@ -1,0 +1,54 @@
+{
+  "type": "message",
+  "name": "data_source",
+  "fields": [
+    {
+      "name": "table_column",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source_key_name",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source_key_value",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source_table",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source_column",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "source_updated_at",
+      "repetition": "REQUIRED",
+      "physical_type": "INT64",
+      "logical_type": "TIMESTAMP"
+    },
+    {
+      "name": "imported_at",
+      "repetition": "REQUIRED",
+      "physical_type": "INT64",
+      "logical_type": "TIMESTAMP"
+    }
+  ]
+}

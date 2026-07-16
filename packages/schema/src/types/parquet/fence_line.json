@@ -1,0 +1,68 @@
+{
+  "type": "message",
+  "name": "fence_line",
+  "fields": [
+    {
+      "name": "id",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "updated_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "created_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "t50_fid",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "type",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "geometry",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "bbox",
+      "repetition": "OPTIONAL",
+      "fields": [
+        {
+          "name": "xmin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "xmax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        }
+      ]
+    }
+  ]
+}

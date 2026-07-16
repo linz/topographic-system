@@ -1,0 +1,133 @@
+{
+  "type": "message",
+  "name": "road_line",
+  "fields": [
+    {
+      "name": "id",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "updated_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "created_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "t50_fid",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "type",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "hierarchy",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "status",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "name",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "highway_number",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "lane_count",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "surface",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "way_count",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "width_indicator",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "road_access",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "name_id",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "rna_sufi",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "geometry",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "bbox",
+      "repetition": "OPTIONAL",
+      "fields": [
+        {
+          "name": "xmin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "xmax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        }
+      ]
+    }
+  ]
+}

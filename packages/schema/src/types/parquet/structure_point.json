@@ -1,0 +1,138 @@
+{
+  "type": "message",
+  "name": "structure_point",
+  "fields": [
+    {
+      "name": "id",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "updated_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "created_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "t50_fid",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "type",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "structure_use",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "tank_type",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "subtype",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "status",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "name",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "location",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "height",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "orientation",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "material",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "restrictions",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "stored_item",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "wreck_of",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "geometry",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "bbox",
+      "repetition": "OPTIONAL",
+      "fields": [
+        {
+          "name": "xmin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "xmax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        }
+      ]
+    }
+  ]
+}

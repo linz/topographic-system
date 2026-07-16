@@ -1,0 +1,175 @@
+{
+  "type": "message",
+  "name": "nztopo50_carto_text",
+  "fields": [
+    {
+      "name": "id",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "t50_fid",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "example_point_id",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "full_text",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "text_bend",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_char_spacing_distance",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_colour",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_font",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "text_height",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "text_orientation",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "text_placement",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_size_type",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_stretch_length",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "text_string",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "text_word_spacing_distance",
+      "repetition": "OPTIONAL",
+      "physical_type": "INT32"
+    },
+    {
+      "name": "font",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "style",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "colour",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "size",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "placement",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "offset",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "textanchor",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "labelanchor",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "charplace",
+      "repetition": "OPTIONAL",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "chardistance",
+      "repetition": "OPTIONAL",
+      "physical_type": "DOUBLE"
+    },
+    {
+      "name": "geometry",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "bbox",
+      "repetition": "OPTIONAL",
+      "fields": [
+        {
+          "name": "xmin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymin",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "xmax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        },
+        {
+          "name": "ymax",
+          "repetition": "REQUIRED",
+          "physical_type": "FLOAT"
+        }
+      ]
+    }
+  ]
+}

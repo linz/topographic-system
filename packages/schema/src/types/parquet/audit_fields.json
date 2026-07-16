@@ -1,0 +1,18 @@
+{
+  "type": "message",
+  "name": "audit_fields",
+  "fields": [
+    {
+      "name": "updated_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    },
+    {
+      "name": "created_at",
+      "repetition": "REQUIRED",
+      "physical_type": "BYTE_ARRAY",
+      "logical_type": "STRING"
+    }
+  ]
+}

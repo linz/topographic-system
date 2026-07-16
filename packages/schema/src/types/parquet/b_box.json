@@ -1,0 +1,26 @@
+{
+  "type": "message",
+  "name": "b_box",
+  "fields": [
+    {
+      "name": "xmin",
+      "repetition": "REQUIRED",
+      "physical_type": "FLOAT"
+    },
+    {
+      "name": "ymin",
+      "repetition": "REQUIRED",
+      "physical_type": "FLOAT"
+    },
+    {
+      "name": "xmax",
+      "repetition": "REQUIRED",
+      "physical_type": "FLOAT"
+    },
+    {
+      "name": "ymax",
+      "repetition": "REQUIRED",
+      "physical_type": "FLOAT"
+    }
+  ]
+}
