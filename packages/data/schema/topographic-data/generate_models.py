@@ -102,6 +102,8 @@ def _schema_to_type_annotation(
     schema_type = str(schema_fragment.get("type", "")).lower()
 
     if schema_type == "string":
+        if schema_fragment.get("format") == "date-time":
+            return "datetime"
         return "str"
     if schema_type == "integer":
         return "int"
@@ -301,6 +303,7 @@ def generate_models_file(schema_dir: Path, output_file: Path) -> None:
         "",
         "from __future__ import annotations",
         "",
+        "from datetime import datetime",
         "from typing import Any, Optional, Union",
         "",
         "from pydantic import BaseModel, ConfigDict, Field",

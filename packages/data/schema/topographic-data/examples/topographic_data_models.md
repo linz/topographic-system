@@ -154,8 +154,8 @@ Generated model for Airport.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -186,8 +186,8 @@ Generated model for AirportDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## BBox
 
@@ -207,8 +207,8 @@ Generated model for BridgeLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | Optional[string] | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -242,8 +242,8 @@ Generated model for BridgeLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Building
 
@@ -252,8 +252,8 @@ Generated model for Building.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -286,8 +286,8 @@ Generated model for BuildingDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## BuildingPoint
 
@@ -296,8 +296,8 @@ Generated model for BuildingPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -331,8 +331,8 @@ Generated model for BuildingPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Coastline
 
@@ -341,8 +341,8 @@ Generated model for Coastline.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
@@ -373,8 +373,8 @@ Generated model for CoastlineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Contour
 
@@ -383,8 +383,8 @@ Generated model for Contour.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
@@ -418,8 +418,8 @@ Generated model for ContourDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## DataSource
 
@@ -433,8 +433,8 @@ Generated model for DataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## DescriptiveText
 
@@ -443,8 +443,8 @@ Generated model for DescriptiveText.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | info_display | Optional[string] | yes | required |  |  |  |
@@ -476,8 +476,8 @@ Generated model for DescriptiveTextDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## FenceLine
 
@@ -486,8 +486,8 @@ Generated model for FenceLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | metadata | Optional[list[FenceLineDataSource]] | yes | required |  |  |  |
@@ -517,8 +517,8 @@ Generated model for FenceLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## FerryLine
 
@@ -527,8 +527,8 @@ Generated model for FerryLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -560,8 +560,8 @@ Generated model for FerryLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## GeographicName
 
@@ -570,8 +570,8 @@ Generated model for GeographicName.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -604,8 +604,8 @@ Generated model for GeographicNameDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Island
 
@@ -614,8 +614,8 @@ Generated model for Island.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -647,8 +647,8 @@ Generated model for IslandDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Landcover
 
@@ -657,8 +657,8 @@ Generated model for Landcover.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -689,8 +689,8 @@ Generated model for LandcoverDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## LandcoverLine
 
@@ -699,8 +699,8 @@ Generated model for LandcoverLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | metadata | Optional[list[LandcoverLineDataSource]] | yes | required |  |  |  |
@@ -730,8 +730,8 @@ Generated model for LandcoverLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## LandcoverPointCoreTypes
 
@@ -740,8 +740,8 @@ Generated model for LandcoverPointCoreTypes.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | unknown | yes | required |  |  |  |
@@ -772,8 +772,8 @@ Generated model for LandcoverPointCoreTypesDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Landuse
 
@@ -782,8 +782,8 @@ Generated model for Landuse.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -817,8 +817,8 @@ Generated model for LanduseDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## LanduseLine
 
@@ -827,8 +827,8 @@ Generated model for LanduseLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -860,8 +860,8 @@ Generated model for LanduseLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## LandusePoint
 
@@ -870,8 +870,8 @@ Generated model for LandusePoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -905,8 +905,8 @@ Generated model for LandusePointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Marine
 
@@ -915,8 +915,8 @@ Generated model for Marine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -948,8 +948,8 @@ Generated model for MarineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## MarinePoint
 
@@ -958,8 +958,8 @@ Generated model for MarinePoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -990,8 +990,8 @@ Generated model for MarinePointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Nztopo50CartoText
 
@@ -1101,8 +1101,8 @@ Generated model for Nztopo50MapSheet.
 | origin_y | number | yes | required |  |  |  |
 | example_point_id | string | yes | required |  | id (UUID) of the example feature. |  |
 | published_version | string | yes | required |  |  |  |
-| published_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| published_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[Nztopo50MapSheetBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1124,8 +1124,8 @@ Generated model for PlacePoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1160,8 +1160,8 @@ Generated model for PlacePointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## RailwayLine
 
@@ -1174,8 +1174,8 @@ Multiple sidings may be held in the data and shown on the printed maps as a sing
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1210,8 +1210,8 @@ Generated model for RailwayLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## RailwayPoint
 
@@ -1220,8 +1220,8 @@ Generated model for RailwayPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1252,8 +1252,8 @@ Generated model for RailwayPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Relief
 
@@ -1262,8 +1262,8 @@ Generated model for Relief.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1295,8 +1295,8 @@ Generated model for ReliefDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## ReliefLine
 
@@ -1305,8 +1305,8 @@ Generated model for ReliefLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1339,8 +1339,8 @@ Generated model for ReliefLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## ReliefPoint
 
@@ -1349,8 +1349,8 @@ Generated model for ReliefPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1385,8 +1385,8 @@ Generated model for ReliefPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## ResidentialArea
 
@@ -1395,8 +1395,8 @@ Generated model for ResidentialArea.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1427,8 +1427,8 @@ Generated model for ResidentialAreaDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## RoadLine
 
@@ -1437,8 +1437,8 @@ Generated model for RoadLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | hierarchy | Optional[string] | yes | required |  |  |  |
@@ -1477,8 +1477,8 @@ Generated model for RoadLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## RockOutcrop
 
@@ -1487,8 +1487,8 @@ Generated model for RockOutcrop.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | string | yes | required |  |  |  |
@@ -1519,8 +1519,8 @@ Generated model for RockOutcropDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Runway
 
@@ -1529,8 +1529,8 @@ Generated model for Runway.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1563,8 +1563,8 @@ Generated model for RunwayDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Structure
 
@@ -1573,8 +1573,8 @@ Generated model for Structure.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1610,8 +1610,8 @@ Generated model for StructureDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## StructureLine
 
@@ -1620,8 +1620,8 @@ Generated model for StructureLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1655,8 +1655,8 @@ Generated model for StructureLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## StructurePoint
 
@@ -1665,8 +1665,8 @@ Generated model for StructurePoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1702,8 +1702,8 @@ Generated model for StructurePointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## TrackLine
 
@@ -1712,8 +1712,8 @@ Generated model for TrackLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1747,8 +1747,8 @@ Generated model for TrackLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## TransportPoint
 
@@ -1757,8 +1757,8 @@ Generated model for TransportPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1789,8 +1789,8 @@ Generated model for TransportPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## TrigPoint
 
@@ -1799,8 +1799,8 @@ Generated model for TrigPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | trig_type | Optional[string] | yes | required |  |  |  |
@@ -1834,8 +1834,8 @@ Generated model for TrigPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## TunnelLine
 
@@ -1844,8 +1844,8 @@ Generated model for TunnelLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | tunnel_use | Optional[string] | yes | required |  |  |  |
@@ -1880,8 +1880,8 @@ Generated model for TunnelLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## UtilityLine
 
@@ -1890,8 +1890,8 @@ Generated model for UtilityLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -1926,8 +1926,8 @@ Generated model for UtilityLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## UtilityPoint
 
@@ -1936,8 +1936,8 @@ Generated model for UtilityPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -1969,8 +1969,8 @@ Generated model for UtilityPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Vegetation
 
@@ -1979,8 +1979,8 @@ Generated model for Vegetation.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -2012,8 +2012,8 @@ Generated model for VegetationDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## VegetationLine
 
@@ -2022,8 +2022,8 @@ Generated model for VegetationLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | metadata | Optional[list[VegetationLineDataSource]] | yes | required |  |  |  |
@@ -2053,8 +2053,8 @@ Generated model for VegetationLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## VegetationPoint
 
@@ -2063,8 +2063,8 @@ Generated model for VegetationPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | metadata | Optional[list[VegetationPointDataSource]] | yes | required |  |  |  |
@@ -2094,8 +2094,8 @@ Generated model for VegetationPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## Water
 
@@ -2104,8 +2104,8 @@ Generated model for Water.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | subtype | Optional[string] | yes | required |  |  |  |
@@ -2143,8 +2143,8 @@ Generated model for WaterDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## WaterLine
 
@@ -2153,8 +2153,8 @@ Generated model for WaterLine.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | hierarchy | Optional[string] | yes | required |  |  |  |
@@ -2186,8 +2186,8 @@ Generated model for WaterLineDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
 
 ## WaterPoint
 
@@ -2196,8 +2196,8 @@ Generated model for WaterPoint.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  |  |  |
-| updated_at | string | yes | required |  |  |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
@@ -2230,5 +2230,5 @@ Generated model for WaterPointDataSource.
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
 | source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |

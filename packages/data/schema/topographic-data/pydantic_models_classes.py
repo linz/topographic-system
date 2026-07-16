@@ -6,6 +6,7 @@ Generated from JSON schemas with proper Field constraints and type hints.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,16 +37,16 @@ class AirportDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Airport(BaseTopoModel):
     __doc__ = "Generated model for Airport."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -72,16 +73,16 @@ class BridgeLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BridgeLine(BaseTopoModel):
     __doc__ = "Generated model for BridgeLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Optional[str] = Field(...)
     subtype: Optional[str] = Field(...)
@@ -111,16 +112,16 @@ class BuildingDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Building(BaseTopoModel):
     __doc__ = "Generated model for Building."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -149,16 +150,16 @@ class BuildingPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BuildingPoint(BaseTopoModel):
     __doc__ = "Generated model for BuildingPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -188,16 +189,16 @@ class CoastlineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Coastline(BaseTopoModel):
     __doc__ = "Generated model for Coastline."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     elevation: Optional[int] = Field(...)
@@ -224,16 +225,16 @@ class ContourDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Contour(BaseTopoModel):
     __doc__ = "Generated model for Contour."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     elevation: Optional[int] = Field(...)
@@ -263,16 +264,16 @@ class DescriptiveTextDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class DescriptiveText(BaseTopoModel):
     __doc__ = "Generated model for DescriptiveText."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     info_display: Optional[str] = Field(...)
@@ -300,16 +301,16 @@ class FenceLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class FenceLine(BaseTopoModel):
     __doc__ = "Generated model for FenceLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     metadata: Optional[list[FenceLineDataSource]] = Field(...)
@@ -335,16 +336,16 @@ class FerryLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class FerryLine(BaseTopoModel):
     __doc__ = "Generated model for FerryLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -372,16 +373,16 @@ class GeographicNameDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class GeographicName(BaseTopoModel):
     __doc__ = "Generated model for GeographicName."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -410,16 +411,16 @@ class IslandDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Island(BaseTopoModel):
     __doc__ = "Generated model for Island."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -447,16 +448,16 @@ class LandcoverDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Landcover(BaseTopoModel):
     __doc__ = "Generated model for Landcover."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -483,16 +484,16 @@ class LandcoverLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverLine(BaseTopoModel):
     __doc__ = "Generated model for LandcoverLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     metadata: Optional[list[LandcoverLineDataSource]] = Field(...)
@@ -518,8 +519,8 @@ class DataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverPointCoreTypesBBox(BaseTopoModel):
@@ -540,16 +541,16 @@ class LandcoverPointCoreTypesDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverPointCoreTypes(BaseTopoModel):
     __doc__ = "Generated model for LandcoverPointCoreTypes."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Any = Field(...)
@@ -576,16 +577,16 @@ class RockOutcropDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RockOutcrop(BaseTopoModel):
     __doc__ = "Generated model for RockOutcrop."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: str = Field(...)
@@ -612,16 +613,16 @@ class LanduseDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Landuse(BaseTopoModel):
     __doc__ = "Generated model for Landuse."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -651,16 +652,16 @@ class LanduseLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LanduseLine(BaseTopoModel):
     __doc__ = "Generated model for LanduseLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -688,16 +689,16 @@ class LandusePointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandusePoint(BaseTopoModel):
     __doc__ = "Generated model for LandusePoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -727,16 +728,16 @@ class MarineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Marine(BaseTopoModel):
     __doc__ = "Generated model for Marine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -764,16 +765,16 @@ class MarinePointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class MarinePoint(BaseTopoModel):
     __doc__ = "Generated model for MarinePoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -884,8 +885,8 @@ class Nztopo50MapSheet(BaseTopoModel):
     origin_y: float = Field(...)
     example_point_id: str = Field(..., description="id (UUID) of the example feature.")
     published_version: str = Field(...)
-    published_at: str = Field(...)
-    updated_at: str = Field(...)
+    published_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[Nztopo50MapSheetBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -908,16 +909,16 @@ class PlacePointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class PlacePoint(BaseTopoModel):
     __doc__ = "Generated model for PlacePoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -948,16 +949,16 @@ class RailwayLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RailwayLine(BaseTopoModel):
     __doc__ = "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature"
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -988,16 +989,16 @@ class RailwayPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RailwayPoint(BaseTopoModel):
     __doc__ = "Generated model for RailwayPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1024,16 +1025,16 @@ class ReliefDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Relief(BaseTopoModel):
     __doc__ = "Generated model for Relief."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1061,16 +1062,16 @@ class ReliefLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefLine(BaseTopoModel):
     __doc__ = "Generated model for ReliefLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1099,16 +1100,16 @@ class ReliefPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefPoint(BaseTopoModel):
     __doc__ = "Generated model for ReliefPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1139,16 +1140,16 @@ class ResidentialAreaDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ResidentialArea(BaseTopoModel):
     __doc__ = "Generated model for ResidentialArea."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1175,16 +1176,16 @@ class RoadLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RoadLine(BaseTopoModel):
     __doc__ = "Generated model for RoadLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     hierarchy: Optional[str] = Field(...)
@@ -1219,16 +1220,16 @@ class RunwayDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Runway(BaseTopoModel):
     __doc__ = "Generated model for Runway."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1257,16 +1258,16 @@ class StructureDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Structure(BaseTopoModel):
     __doc__ = "Generated model for Structure."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1298,16 +1299,16 @@ class StructureLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructureLine(BaseTopoModel):
     __doc__ = "Generated model for StructureLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1337,16 +1338,16 @@ class StructurePointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructurePoint(BaseTopoModel):
     __doc__ = "Generated model for StructurePoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1378,16 +1379,16 @@ class TrackLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrackLine(BaseTopoModel):
     __doc__ = "Generated model for TrackLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1417,16 +1418,16 @@ class TransportPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TransportPoint(BaseTopoModel):
     __doc__ = "Generated model for TransportPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1453,16 +1454,16 @@ class TrigPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrigPoint(BaseTopoModel):
     __doc__ = "Generated model for TrigPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     trig_type: Optional[str] = Field(...)
@@ -1492,16 +1493,16 @@ class TunnelLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TunnelLine(BaseTopoModel):
     __doc__ = "Generated model for TunnelLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     tunnel_use: Optional[str] = Field(...)
@@ -1532,16 +1533,16 @@ class UtilityLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class UtilityLine(BaseTopoModel):
     __doc__ = "Generated model for UtilityLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1572,16 +1573,16 @@ class UtilityPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class UtilityPoint(BaseTopoModel):
     __doc__ = "Generated model for UtilityPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)
@@ -1609,16 +1610,16 @@ class VegetationDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Vegetation(BaseTopoModel):
     __doc__ = "Generated model for Vegetation."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1646,16 +1647,16 @@ class VegetationLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class VegetationLine(BaseTopoModel):
     __doc__ = "Generated model for VegetationLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     metadata: Optional[list[VegetationLineDataSource]] = Field(...)
@@ -1681,16 +1682,16 @@ class VegetationPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class VegetationPoint(BaseTopoModel):
     __doc__ = "Generated model for VegetationPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     metadata: Optional[list[VegetationPointDataSource]] = Field(...)
@@ -1716,16 +1717,16 @@ class WaterDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Water(BaseTopoModel):
     __doc__ = "Generated model for Water."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     subtype: Optional[str] = Field(...)
@@ -1759,16 +1760,16 @@ class WaterLineDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class WaterLine(BaseTopoModel):
     __doc__ = "Generated model for WaterLine."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     hierarchy: Optional[str] = Field(...)
@@ -1796,16 +1797,16 @@ class WaterPointDataSource(BaseTopoModel):
     source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
     source_table: str = Field(..., description="Name of the table in source that contains the linked data")
     source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
+    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class WaterPoint(BaseTopoModel):
     __doc__ = "Generated model for WaterPoint."
 
     id: str = Field(..., description="UUIDv7 of the feature")
-    created_at: str = Field(...)
-    updated_at: str = Field(...)
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: str = Field(...)
     name: Optional[str] = Field(...)

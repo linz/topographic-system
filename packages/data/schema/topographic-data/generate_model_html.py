@@ -76,6 +76,8 @@ def _schema_fragment_type_to_text(schema_fragment: dict[str, Any]) -> str:
 
     if schema_type == "object":
         return "object"
+    if schema_type == "string" and schema_fragment.get("format") == "date-time":
+        return "datetime"
     if schema_type:
         return schema_type
 
