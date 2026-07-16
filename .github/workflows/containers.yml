@@ -17,7 +17,7 @@ jobs:
       environment: ${{ steps.matrix.outputs.environment }}
     steps:
       - id: matrix
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const manifest = JSON.parse(`${{ inputs.manifest }}`);
@@ -100,7 +100,7 @@ jobs:
 
       - name: Generate Tags
         id: tags
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
