@@ -1,9 +1,12 @@
 # Topographic Data Models
 
-Total models: 41
+Total models: 50
 
 ## Models
 
+- [AuditFields](#auditfields)
+- [ProductIdentity](#productidentity)
+- [TopoIdentity](#topoidentity)
 - [airport](#airport)
 - [bridge_line](#bridge_line)
 - [building](#building)
@@ -13,6 +16,7 @@ Total models: 41
 - [descriptive_text](#descriptive_text)
 - [fence_line](#fence_line)
 - [ferry_crossing](#ferry_crossing)
+- [ferry_line](#ferry_line)
 - [geographic_name](#geographic_name)
 - [island](#island)
 - [landcover](#landcover)
@@ -21,10 +25,15 @@ Total models: 41
 - [landuse](#landuse)
 - [landuse_line](#landuse_line)
 - [marine](#marine)
-- [nz_topo50_map_sheet](#nz_topo50_map_sheet)
+- [nztopo50_carto_text](#nztopo50_carto_text)
+- [nztopo50_dms_grid](#nztopo50_dms_grid)
+- [nztopo50_grid](#nztopo50_grid)
+- [nztopo50_map_sheet](#nztopo50_map_sheet)
 - [place_point](#place_point)
 - [railway_line](#railway_line)
+- [railway_point](#railway_point)
 - [railway_station](#railway_station)
+- [relief](#relief)
 - [relief_line](#relief_line)
 - [relief_point](#relief_point)
 - [residential_area](#residential_area)
@@ -46,117 +55,149 @@ Total models: 41
 - [water_line](#water_line)
 - [water_point](#water_point)
 
-## airport
+## AuditFields
 
-Represents the boundary of an airport facility.
+Capture / change-tracking columns shared by most features.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+
+## ProductIdentity
+
+Generated model for ProductIdentity.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+
+## TopoIdentity
+
+Identity columns shared by every file in the dataset.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+
+## airport
+
+Generated model for airport.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | yes | required |  |  |  |
 
 ## bridge_line
 
-Represents bridges crossing roads, railways, walkways or water features.
+Generated model for bridge_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| bridge_use | string | no | None |  | The use of the feature. |  |
-| bridge_use2 | string | no | None |  | The use of the feature. |  |
-| construction_type | string | no | None |  | The type of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| use1 | unknown | yes | required |  |  |  |
+| use2 | unknown | yes | required |  |  |  |
+| construction_type | unknown | yes | required |  |  |  |
+| status | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## building
 
-Represents the extent of a building. Captured from aerial imagery.
+Generated model for building.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| building_use | string | no | None |  | The use of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| building_use | string | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## building_point
 
-Represents the location of a building.
+Generated model for building_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| building_use | string | no | None |  | The use of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| building_use | string | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
 | orientation | number | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## coastline
 
-Represents the boundary between land and sea.
+Generated model for coastline.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| coastline_type | string | no | None |  | The type of the feature. |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| elevation | integer | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## contour
 
-Represents elevation lines for terrain representation.
+Generated model for contour.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=32 |
-| type | string | yes | required |  | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | integer | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| elevation | integer | no | None |  |  |  |
 | definition | string | no | None |  |  |  |
-| designation | string | no | None |  |  |  |
-| formation | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=multilinestring |
+| designation | unknown | no | None |  |  |  |
+| formation | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## descriptive_text
 
-Represents text annotations for labeling or descriptions.
+Generated model for descriptive_text.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| nzgb_id | unknown | no | None |  |  |  |
 | info_display | string | no | None |  |  |  |
 | size | number | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## fence_line
 
@@ -164,562 +205,703 @@ Generated model for fence_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## ferry_crossing
 
-Indicates ferry links to terminal locations.
+Generated model for ferry_crossing.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
+
+## ferry_line
+
+Generated model for ferry_line.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## geographic_name
 
-Represents named geographic locations and features.
+Generated model for geographic_name.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
 | desc_code | string | no | None |  |  |  |
 | size | number | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## island
 
-Represents an island within a water body. Onshore and Offshore.
+Generated model for island.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
 | group_name | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## landcover
 
-Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc.
+Generated model for landcover.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| subtype | string | no | None |  | The type of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## landcover_line
 
-Represents linear of land cover features such as dredge tailings.
+Generated model for landcover_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## landcover_point
 
-Represents land cover feature locations suck as rock outcrops.
+Generated model for landcover_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| display | string | no | None |  |  |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
+| elevation | integer | no | None |  |  |  |
+| display | unknown | no | None |  |  |  |
 | orientation | number | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## landuse
 
-Represents areas designated for specific uses such as mines, racetracks.
+Generated model for landuse.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| landuse_use | string | no | None |  | The use of the feature. |  |
-| subtype | string | no | None |  | The subtype of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| substance_extracted | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| landuse_use | unknown | no | None |  |  |  |
+| subtype | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| substance_extracted | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## landuse_line
 
-Represents linear of land use features suck as racetracks.
+Generated model for landuse_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| landuse_use | string | no | None |  | The use of the feature. |  |
-| subtype | string | no | None |  | The subtype of the feature. |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| landuse_use | unknown | no | None |  |  |  |
+| subtype | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## marine
 
-Represents features in the marine environment such as mangrives, reef, rocks and shoals.
+Generated model for marine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| composition | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
+| composition | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
-## nz_topo50_map_sheet
+## nztopo50_carto_text
 
-Represents the LINZ Topographic 1:50,000 map sheets.
+Generated model for nztopo50_carto_text.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | yes | required |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| sheet_code | string | yes | required | 21 |  |  |
-| sheet_name | string | yes | required | 50 |  |  |
-| x_origin | number | yes | required |  | The x-coordinate of the origin point. |  |
-| y_origin | number | yes | required |  | The y-coordinate of the origin point. |  |
-| example_point_id | string | yes | required |  | The identifier for an example point. |  |
-| published_version | string | yes | required |  | The published version of the map sheet. |  |
-| published_at | number | yes | required |  | The date when the map sheet was published. |  |
-| updated_at | number | yes | required |  | The date when the map sheet was last updated. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| example_point_id | string | no | None |  | id (UUID) of the example feature. |  |
+| full_text | string | no | None |  |  |  |
+| text_bend | integer | no | None |  |  |  |
+| text_char_spacing_distance | integer | no | None |  |  |  |
+| text_colour | integer | no | None |  |  |  |
+| text_font | unknown | no | None |  |  |  |
+| text_height | number | no | None |  |  |  |
+| text_orientation | number | no | None |  |  |  |
+| text_placement | integer | no | None |  |  |  |
+| text_size_type | integer | no | None |  |  |  |
+| text_stretch_length | integer | no | None |  |  |  |
+| text_string | string | no | None |  |  |  |
+| text_word_spacing_distance | integer | no | None |  |  |  |
+| font | unknown | no | None |  |  |  |
+| style | unknown | no | None |  |  |  |
+| colour | unknown | no | None |  |  |  |
+| size | number | no | None |  |  |  |
+| placement | unknown | no | None |  |  |  |
+| offset | number | no | None |  |  |  |
+| textanchor | unknown | no | None |  |  |  |
+| labelanchor | number | no | None |  |  |  |
+| charplace | unknown | no | None |  |  |  |
+| chardistance | number | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
+
+## nztopo50_dms_grid
+
+Generated model for nztopo50_dms_grid.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+| direction | unknown | no | None |  |  |  |
+| value | number | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
+
+## nztopo50_grid
+
+Generated model for nztopo50_grid.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+| direction | unknown | no | None |  |  |  |
+| value | number | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
+
+## nztopo50_map_sheet
+
+Generated model for nztopo50_map_sheet.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUID for the feature. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| sheet_code | string | yes | required |  |  |  |
+| sheet_name | string | yes | required |  |  |  |
+| x_origin | number | yes | required |  |  |  |
+| y_origin | number | yes | required |  |  |  |
+| example_point_id | string | yes | required |  | topo_id (UUID) of the example feature. |  |
+| published_version | string | yes | required |  |  |  |
+| published_at | object | yes | required |  |  |  |
+| updated_at | object | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## place_point
 
-Represents a named place or locality.
+Generated model for place_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| place_type | string | no | None |  | The type of the feature. |  |
-| status | string | no | None |  |  |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| composition | string | no | None |  |  |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| place_type | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| elevation | integer | no | None |  |  |  |
+| composition | unknown | no | None |  |  |  |
 | description | string | no | None |  |  |  |
 | orientation | number | no | None |  |  |  |
-| substance_extracted | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| substance_extracted | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## railway_line
 
-Represents railway tracks. Dual tracks may be represented as single entity.
+All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. 
+Where a railway line is located close to a road, the line held in the data and shown on the printed map 
+may be offset from the road sufficient that the two symbols are recognisable at 1:50,000.
+
+Multiple sidings may be held in the data and shown on the printed maps as a single feature
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| railway_use | string | no | None |  | The use of the feature. |  |
-| track_type | string | no | None |  | The type of the feature. |  |
-| vehicle_type | string | no | None |  | The type of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| route | string | no | None |  |  |  |
-| route2 | string | no | None |  |  |  |
-| route3 | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| railway_use | unknown | yes | required |  |  |  |
+| track_type | unknown | yes | required |  |  |  |
+| vehicle_type | unknown | yes | required |  |  |  |
+| status | unknown | yes | required |  |  |  |
+| name | string | yes | required |  | The name of the railway line if known |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## railway_point
+
+Generated model for railway_point.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## railway_station
 
-Location of a railway station.
+Generated model for railway_station.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
+
+## relief
+
+Generated model for relief.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| height | number | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## relief_line
 
-Represents terrain features such as cliffs.
+Generated model for relief_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| relief_use | string | no | None |  | The use of the feature. |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| relief_use | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| height | number | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## relief_point
 
-Represents terrain features such as peaks or saddles.
+Generated model for relief_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| display | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| display | unknown | yes | required |  |  |  |
+| elevation | integer | yes | required |  |  |  |
+| height | number | yes | required |  |  |  |
+| orientation | number | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## residential_area
 
-Represents areas primarily used for housing.
+Generated model for residential_area.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## road_line
 
-Represents roads, including highways and streets.
+Generated model for road_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
 | hierarchy | string | no | None |  |  |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
 | highway_number | string | no | None |  |  |  |
-| lane_count | integer | no | None |  |  | precision=32 |
-| surface | string | no | None |  |  |  |
-| way_count | string | no | None |  |  |  |
+| lane_count | integer | no | None |  |  |  |
+| surface | unknown | no | None |  |  |  |
+| way_count | unknown | no | None |  |  |  |
 | width_indicator | string | no | None |  |  |  |
-| road_access | string | no | None |  |  |  |
-| name_id | integer | no | None |  |  | precision=64 |
-| rna_sufi | integer | no | None |  |  | precision=64 |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| road_access | unknown | no | None |  |  |  |
+| name_id | unknown | no | None |  |  |  |
+| rna_sufi | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## runway
 
-Represents airport runway areas.
+Generated model for runway.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| runway_use | string | no | None |  | The use of the feature. |  |
-| status | string | no | None |  |  |  |
-| surface | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| runway_use | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| surface | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## structure
 
-Represents man-made structures other than buildings (e.g., reservoir, dry_dock, fish_farm, marine_farm, siphon, tank).
+Generated model for structure.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| lid_type | string | no | None |  | The type of the feature. |  |
-| subtype | string | no | None |  | The type of the feature. |  |
-| species | string | no | None |  |  |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| stored_item | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| lid_type | string | yes | required |  |  |  |
+| subtype | unknown | yes | required |  |  |  |
+| species | unknown | yes | required |  |  |  |
+| status | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| stored_item | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## structure_line
 
-Represents structural features such as  cableways, ladders, wharf, weirs etc.
+Generated model for structure_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| structure_use | string | no | None |  | The use of the feature. |  |
-| species | string | no | None |  |  |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| material | string | no | None |  |  |  |
-| material_conveyed | string | no | None |  |  |  |
-| restrictions | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| structure_use | unknown | yes | required |  |  |  |
+| species | unknown | yes | required |  |  |  |
+| status | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| material | unknown | yes | required |  |  |  |
+| material_conveyed | unknown | yes | required |  |  |  |
+| restrictions | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## structure_point
 
-Represents small structures or structural features such as gates, masts tanks, windmills.
+Generated model for structure_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| structure_use | string | no | None |  | The use of the feature. |  |
-| subtype | string | no | None |  | The subtype of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| location | string | no | None |  |  |  |
-| height | number | no | None |  | The height of the feature in metres |  |
-| orientation | number | no | None |  |  |  |
-| material | string | no | None |  |  |  |
-| restrictions | string | no | None |  |  |  |
-| stored_item | string | no | None |  |  |  |
-| wreck_of | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| structure_use | unknown | yes | required |  |  |  |
+| tank_type | unknown | yes | required |  |  |  |
+| subtype | unknown | yes | required |  |  |  |
+| status | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| location | unknown | yes | required |  |  |  |
+| height | number | yes | required |  |  |  |
+| orientation | number | yes | required |  |  |  |
+| material | unknown | yes | required |  |  |  |
+| restrictions | unknown | yes | required |  |  |  |
+| stored_item | unknown | yes | required |  |  |  |
+| wreck_of | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## track_line
 
-Represents walking tracks, trails, or unsealed paths.
+Generated model for track_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| track_use | string | no | None |  | The use of the feature. |  |
-| track_type | string | no | None |  | The type of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| track_use | unknown | no | None |  |  |  |
+| track_type | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## transport_point
 
-Represents transport-related locations (e.g., bus stops, terminals).
+Generated model for transport_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## trig_point
 
-Represents a geodetic survey control point.
+Generated model for trig_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| trig_type | string | no | None |  | The type of the feature. |  |
-| name | string | no | None |  | The name of the feature. |  |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| trig_type | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
 | code | string | no | None |  |  |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| elevation | integer | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## tunnel_line
 
-Represents tunnels for roads, railways, or utilities.
+Generated model for tunnel_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| tunnel_use | string | no | None |  | The use of the feature. |  |
-| tunnel_use2 | string | no | None |  | The use of the feature. |  |
-| subtype | string | no | None |  | The subtype of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| tunnel_use | unknown | no | None |  |  |  |
+| tunnel_use2 | unknown | no | None |  |  |  |
+| subtype | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## utility_line
 
-Represents linear utility infrastructure such as  pipelines, power lines.
+Generated model for utility_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| utility_use | string | no | None |  | The use of the feature. |  |
-| support_type | string | no | None |  | The type of the feature. |  |
-| status | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| visibility | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| utility_use | unknown | no | None |  |  |  |
+| support_type | unknown | no | None |  |  |  |
+| status | unknown | no | None |  |  |  |
+| name | string | no | None |  |  |  |
+| visibility | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## utility_point
 
-Represents point utility infrastructure such as poles, towers.
+Generated model for utility_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| orientation | number | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| orientation | number | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## vegetation
 
-Represents areas of vegetation landcover such as trees, scrub, vineyards.
+Generated model for vegetation.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| subtype | string | no | None |  | The type of the feature. |  |
-| species | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | unknown | yes | required |  |  |  |
+| subtype | unknown | no | None |  |  |  |
+| species | unknown | no | None |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## vegetation_line
 
-Represents linear vegetation features such as shelter belts.
+Generated model for vegetation_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUID for the feature. |  |
+| updated_at | object | yes | required |  |  |  |
+| created_at | object | yes | required |  | Default at write time: today. |  |
+| t50_fid | unknown | no | None |  |  |  |
+| type | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
+| bbox | unknown | no | None |  |  |  |
 
 ## vegetation_point
 
-Represents individual trees or notable groups of trees.
+Generated model for vegetation_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | no | None |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## water
 
-Represents water bodies such as  rivers, lakes.
+Generated model for water.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| water_use | string | no | None |  | The use of the feature. |  |
-| hierarchy | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| group_name | string | no | None |  |  |  |
-| nzgb_feat_id | number | no | None |  |  |  |
-| height | number | no | None |  | The height of the feature in metres |  |
-| elevation | integer | no | None |  | The elevation above mean sea level. | precision=32 |
-| perennial | string | no | None |  |  |  |
-| temperature | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=polygon |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| water_use | unknown | yes | required |  |  |  |
+| hierarchy | string | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| group_name | string | yes | required |  |  |  |
+| nzgb_feat_id | unknown | yes | required |  |  |  |
+| height | number | yes | required |  |  |  |
+| elevation | integer | yes | required |  |  |  |
+| perennial | unknown | yes | required |  |  |  |
+| temperature_indicator | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## water_line
 
-Represents water features such as rivers, canals, drains.
+Generated model for water_line.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| hierarchy | string | no | None |  |  |  |
-| name | string | no | None |  | The name of the feature. |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=linestring |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| hierarchy | string | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## water_point
 
-Represents water-related features such as springs.
+Generated model for water_point.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | The unique identifier for the topographic feature. |  |
-| t50_fid | integer | no | None |  | The unique identifier for the feature in the source database. | precision=64 |
-| type | string | yes | required | 50 | The specific type of feature being represented (e.g., 'bridge_line', 'building'). |  |
-| name | string | no | None |  | The name of the feature. |  |
-| height | number | no | None |  | The height of the feature in metres |  |
-| orientation | number | no | None |  |  |  |
-| temperature_indicator | string | no | None |  |  |  |
-| updated_at | number | yes | required |  | The date when the feature was last updated in the database. |  |
-| created_at | number | yes | required |  | The date when the feature was created in the database. |  |
-| geometry | object | yes | required |  | The geometry of the feature. | geometry_type=point |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
+| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
+| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | unknown | yes | required |  |  |  |
+| name | string | yes | required |  |  |  |
+| orientation | number | yes | required |  |  |  |
+| temperature_indicator | unknown | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |

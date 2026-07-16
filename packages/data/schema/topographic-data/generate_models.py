@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 # Constants
-DEFAULT_EXTERNAL_SCHEMA_DIR = Path("C:/Data/schema")
+DEFAULT_EXTERNAL_SCHEMA_DIR = Path("C:/Data/toposource/schema_model")
 OUTPUT_FILE = Path(__file__).resolve().parent / "pydantic_models_classes.py"
 GEOMETRY_TYPE_NAMES = {"point", "linestring", "polygon", "multilinestring"}
 
