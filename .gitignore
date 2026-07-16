@@ -3,6 +3,7 @@ tmp/
 tsconfig.tsbuildinfo
 .venv/
 .ruff_cache/
+.mypy_cache/
 __pycache__/
 dist/
 build/
@@ -12,3 +13,6 @@ topographic_system_data_prep.egg-info/
 .idea/
 target/
 .tmp_*
+.snakemake/
+.cache/
+.vscode/

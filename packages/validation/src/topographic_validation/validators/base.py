@@ -280,8 +280,8 @@ class AbstractTopologyValidator(ABC):
         intersecting_features = gpd.sjoin(self.gdf, self.gdf2, how="inner")
         intersecting_features.columns = [col.replace("_left", "") for col in intersecting_features.columns]
         columns: list[str] = [self.pkey, self.geom_column]
-        if self.pkey != "topo_id":
-            columns.append("topo_id")
+        if self.pkey != "id":
+            columns.append("id")
         if "name" in intersecting_features.columns:
             columns.append("name")
 
@@ -312,7 +312,7 @@ class AbstractTopologyValidator(ABC):
         intersecting_features = gpd.sjoin(self.gdf, self.gdf2, how="left", predicate=predicate)
         non_intersecting_features = intersecting_features[intersecting_features["index_right"].isna()]
         non_intersecting_features.columns = [col.replace("_left", "") for col in non_intersecting_features.columns]
-        wanted = [self.pkey, self.geom_column, "topo_id", "name"]
+        wanted = [self.pkey, self.geom_column, "id", "name"]
         columns = list(dict.fromkeys(col for col in wanted if col in non_intersecting_features.columns))
 
         non_intersecting_features = non_intersecting_features[columns]

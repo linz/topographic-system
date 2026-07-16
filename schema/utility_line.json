@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "utility_line",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "t50_fid": {},
+    "type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "pipeline"
+        },
+        {
+          "type": "string",
+          "const": "powerline"
+        },
+        {
+          "type": "string",
+          "const": "telephone"
+        }
+      ]
+    },
+    "utility_use": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UtilityUseEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "support_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SupportTypeEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "visibility": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VisibilityEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "UtilityUseEnum": {
+      "type": "string",
+      "enum": ["ironsand", "sewage", "steam", "water"],
+      "description": "Auto-derived from observed values of `infrastructure_use`."
+    },
+    "SupportTypeEnum": {
+      "type": "string",
+      "enum": ["pole", "pylon"],
+      "description": "Auto-derived from observed values of `support_type`."
+    },
+    "StatusEnum": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under construction"
+      ],
+      "description": "Auto-derived from observed values of `status`."
+    },
+    "VisibilityEnum": {
+      "type": "string",
+      "enum": ["underground"],
+      "description": "Auto-derived from observed values of `visibility`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

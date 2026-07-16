@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fsa } from '@chunkd/fs';
 import {
   CliId,
+  getCanonical,
   logger,
   registerFileSystem,
   Url,
@@ -43,6 +44,12 @@ export const IceContourArgs = {
     description: 'Where temporary files are stored, generally in /tmp/...',
     defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `topo-system-${CliId}`)),
   }),
+  cache: option({
+    type: UrlFolder,
+    long: 'cache',
+    description: 'Optional local cache for storing versioned map assets',
+    defaultValue: () => fsa.toUrl('./.cache'),
+  }),
 };
 
 const iceContourName = 'nztopo50_ice_contour';
@@ -56,21 +63,21 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
-    const downloader = new Downloader(args.tempLocation, q);
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
 
-    // TODO use canonical
-    const contourCollection = await fsa.readJson<StacCollection>(args.contour);
+    const contourUrl = await getCanonical(args.contour);
+    const contourCollection = await fsa.readJson<StacCollection>(contourUrl);
 
     const contourParquetAsset = contourCollection.assets?.['parquet'];
     if (contourParquetAsset == null) {
-      throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
+      throw new Error(`Contour collection must have a parquet asset: ${contourUrl.toString()}`);
     }
 
-    // TODO use canonical
-    const landcoverCollection = await fsa.readJson<StacCollection>(args.landcover);
+    const landcoverUrl = await getCanonical(args.landcover);
+    const landcoverCollection = await fsa.readJson<StacCollection>(landcoverUrl);
     const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
     if (landcoverParquetAsset == null) {
-      throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
+      throw new Error(`Landcover collection must have a parquet asset: ${landcoverUrl.toString()}`);
     }
 
     const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
@@ -88,10 +95,10 @@ export const IceContourCommand = command({
       }
     }
 
-    downloader.addStac(args.contour);
-    downloader.addStac(args.landcover);
-    const contourAsset = await downloader.getAsset(args.contour);
-    const landcoverAsset = await downloader.getAsset(args.landcover);
+    downloader.addStac(contourUrl);
+    downloader.addStac(landcoverUrl);
+    const contourAsset = await downloader.getAsset(contourUrl);
+    const landcoverAsset = await downloader.getAsset(landcoverUrl);
     const contourtPath = contourAsset[0]?.linked;
     const landcoverPath = landcoverAsset[0]?.linked;
     if (contourtPath == null || landcoverPath == null) {

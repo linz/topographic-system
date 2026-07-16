@@ -1,11 +1,12 @@
+import logging
 from pathlib import Path
-
-from dagster import AssetExecutionContext
 
 from ..command import run_command
 
+logger = logging.getLogger("kart_import")
 
-def git_to_kart(context: AssetExecutionContext, target_dir: Path):
+
+def git_to_kart(target_dir: Path):
     """Attempt to convert a git folder to a kart folder,
 
     This can be removed once the next version of kart allows KART_ALLOW_GIT=1
@@ -20,7 +21,7 @@ def git_to_kart(context: AssetExecutionContext, target_dir: Path):
     git_folder.rename(kart_folder)
     git_folder.write_text("gitdir: .kart\n")
 
-    run_command(context, ["git", "config", "-f", ".kart/config", "kart.repostructure.version", "3"], cwd=target_dir)
+    run_command(["git", "config", "-f", ".kart/config", "kart.repostructure.version", "3"], cwd=target_dir)
 
 
 def is_kart(target_dir: Path):
@@ -28,8 +29,8 @@ def is_kart(target_dir: Path):
     return (target_dir / ".kart").exists()
 
 
-def get_kart_dataset_id(context: AssetExecutionContext, target_dir: Path):
-    kart_dataset_id = run_command(context, ["kart", "data", "ls"], cwd=str(target_dir)).strip()
+def get_kart_dataset_id(target_dir: Path):
+    kart_dataset_id = run_command(["kart", "data", "ls"], cwd=str(target_dir)).strip()
     if "\n" in kart_dataset_id:
         raise Exception(f"Invalid dataset id: '{target_dir}'")
     return kart_dataset_id

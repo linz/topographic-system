@@ -1,20 +1,20 @@
+import logging
 import os
 from dataclasses import dataclass
-
-from dagster import AssetExecutionContext, AssetKey, AssetsDefinition, asset
 
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
-    Release,
-    get_dataset_name,
-    get_datasets,
     get_releases,
+    get_source_entry,
 )
 from ..git.kart import get_kart_dataset_id, is_kart
 from ..git.release import get_release_commit
+from ..log import log_context
 from ..thread import run_in_thread_pool
+
+logger = logging.getLogger("kart_import")
 
 
 @dataclass
@@ -22,17 +22,17 @@ class CommitData:
     commit: str
     commit_time: str
     releases: list[int]
-    first_release_id: int
 
 
-def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, releases: list[Release]):
-    dataset_name = get_dataset_name(dataset_source)
+def export_dataset_releases(dataset_name: str):
+    td = get_source_entry(dataset_name)
+
+    releases = get_releases()
 
     repo_dir = SOURCE_DIR / dataset_name
     if not is_kart(repo_dir):
         raise Exception(f"Kart repo not found: {repo_dir}")
-
-    kart_dataset_id = get_kart_dataset_id(ctx, repo_dir)
+    kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
 
@@ -46,57 +46,104 @@ def _export_dataset_release(ctx: AssetExecutionContext, dataset_source: str, rel
                 commit=commit,
                 commit_time=commit_time,
                 releases=[],
-                first_release_id=release.id,
             )
         commit_to_releases[commit].releases.append(release.id)
 
     def process_export_release(info: CommitData):
-        first_release_id = info.first_release_id
+        target_commit = WORKING_EXPORTS_DIR / dataset_name
+        target_commit.mkdir(parents=True, exist_ok=True)
 
-        output_dir = WORKING_EXPORTS_DIR / f"release_{first_release_id}"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_file = output_dir / f"{dataset_name}.json"
+        target_commit_file = target_commit / f"{info.commit_time[:10]}_{info.commit}.json"
 
-        if output_file.exists() or output_file.is_symlink():
-            output_file.unlink()
+        if not target_commit_file.exists():
+            logger.info(
+                f"Exporting {dataset_name} to GeoJSON",
+                extra={"commit": info.commit, "releases": info.releases, "file": str(target_commit_file)},
+            )
 
-        ctx.log.info(
-            f"Exporting {dataset_name} for release {first_release_id} (commit {info.commit}) to GeoJSON: {output_file} - {info.commit_time}"
-        )
+            cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(target_commit_file)]
+            run_command(cmd, cwd=str(repo_dir))
 
-        cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(output_file)]
-        run_command(ctx, cmd, cwd=str(repo_dir))
-
-        for release_id in info.releases[1:]:
+        for release_id in info.releases:
             release_output_dir = WORKING_EXPORTS_DIR / f"release_{release_id}"
             release_output_dir.mkdir(parents=True, exist_ok=True)
             release_output_file = release_output_dir / f"{dataset_name}.json"
 
-            if release_output_file.exists() or release_output_file.is_symlink():
+            if release_output_file.exists():
                 release_output_file.unlink()
-            os.symlink(os.path.relpath(output_file, release_output_dir), release_output_file)
+            os.symlink(os.path.relpath(target_commit_file, release_output_dir), release_output_file)
+            logger.info("link", extra={"release": release_id, "commit": commit, "commit_time": info.commit_time[0:10]})
 
     run_in_thread_pool(
-        context=ctx,
         func=process_export_release,
         items=list(commit_to_releases.values()),
         thread_count=4,
-        description=f"Exporting {dataset_name} unique commits in parallel",
     )
 
     representative_dir = WORKING_EXPORTS_DIR / f"release_{releases[-1].id}"
     return str(representative_dir / f"{dataset_name}.json")
 
 
-def make_dataset_releases_asset(dataset_source: str, releases: list[Release]) -> AssetsDefinition:
-    dataset_name = get_dataset_name(dataset_source)
+def export_lookup(lookup_name: str) -> str:
+    """Export a lookup source once per commit across releases.
 
-    @asset(name=f"release_{dataset_name}", group_name="releases", deps=[AssetKey(f"clone_{dataset_name}")])
-    def _releases_asset(context: AssetExecutionContext):
-        return _export_dataset_release(context, dataset_source, releases)
+    Lookups are reference/attribute tables joined into datasets.
+    Like datasets, each release resolves to the lookup commit as-of its cutoff.
+    Releases sharing a commit share one export file (named by commit).
+    Releases predating the lookup's first commit resolve to nothing and are simply not enriched.
+    """
+    lookup = get_source_entry(lookup_name)
 
-    return _releases_asset
+    repo_dir = SOURCE_DIR / lookup_name
+    if not is_kart(repo_dir):
+        raise FileNotFoundError(f"lookup {lookup_name!r} is not a cloned kart repo (no .kart dir under {repo_dir})")
+    kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
+
+    commits: dict[str, str] = {}
+    for release in get_releases():
+        res = get_release_commit(repo_dir, release.until)
+        if res is not None:
+            commit, commit_time = res
+            commits.setdefault(commit, commit_time)
+
+    output_dir = WORKING_EXPORTS_DIR / "lookup" / lookup_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for commit, commit_time in commits.items():
+        output_file = output_dir / f"{commit}.json"
+        if output_file.exists():
+            continue
+        logger.info(
+            f"Exporting lookup {lookup_name} to GeoJSON",
+            extra={"commit": commit, "commit_time": commit_time[:10], "file": str(output_file)},
+        )
+        cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
+        run_command(cmd, cwd=str(repo_dir))
+
+    # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
+    referenced = {f"{commit}.json" for commit in commits}
+    for stale in output_dir.glob("*.json"):
+        if stale.name not in referenced:
+            logger.info("pruning stale lookup export", extra={"lookup": lookup_name, "file": stale.name})
+            stale.unlink()
+
+    logger.info("export_lookup", extra={"lookup": lookup_name, "commits": len(commits)})
+    return str(output_dir)
 
 
-selected_releases = get_releases()
-release_assets = [make_dataset_releases_asset(t, selected_releases) for t in get_datasets()]
+if __name__ == "__main__":
+    import sys
+
+    args = sys.argv[1:]
+    if args and args[0] == "--lookup":
+        if len(args) < 2:
+            print("Usage: python -m kart_import.assets.export --lookup <lookup_name>")
+            sys.exit(1)
+        with log_context(action="export_lookup", lookup=args[1]):
+            export_lookup(args[1])
+    elif args:
+        with log_context(action="export", dataset=args[0]):
+            export_dataset_releases(args[0])
+    else:
+        print("Usage: python -m kart_import.assets.export <dataset_name> | --lookup <lookup_name>")
+        sys.exit(1)

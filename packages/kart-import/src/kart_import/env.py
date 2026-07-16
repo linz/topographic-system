@@ -1,6 +1,21 @@
 import os
 
 
+def env_transform_format() -> str:
+    """Output format for the working/transform intermediates.
+
+    KART_TRANSFORM_FORMAT=parquet|geojson (default parquet). GeoParquet is far
+    faster/smaller; set geojson for local dev when you want human-readable
+    intermediates:
+
+        export KART_TRANSFORM_FORMAT=geojson
+    """
+    fmt = os.getenv("KART_TRANSFORM_FORMAT", "parquet").lower()
+    if fmt not in ("parquet", "geojson"):
+        raise ValueError(f"KART_TRANSFORM_FORMAT must be 'parquet' or 'geojson', got {fmt!r}")
+    return fmt
+
+
 def env_themes() -> set[str] | None:
     """
     Limit the number of themes to be processed and loaded based off a comma seperated env var

@@ -99,6 +99,7 @@ class ValidateDatasetController:
                 summary_report=self.summary_report,
                 export_validation_data=self.settings.export_validation_data,
                 table=table,
+                export_layername=table,
                 where_condition=where_condition,
                 message=message,
             )
@@ -123,6 +124,7 @@ class ValidateDatasetController:
                 summary_report=self.summary_report,
                 export_validation_data=self.settings.export_validation_data,
                 table=table,
+                export_layername=table,
                 where_condition=where_condition,
                 message=message,
             )

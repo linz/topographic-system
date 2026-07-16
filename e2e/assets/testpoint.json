@@ -6,7 +6,6 @@
     "topo_id": {
       "type": "string"
     },
-    "fid": {},
     "created_date": {},
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null",
@@ -18,7 +17,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "geometry"],
+  "required": ["topo_id", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {

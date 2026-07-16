@@ -6,9 +6,12 @@ import { fsa, FsMemory } from '@chunkd/fs';
 import {
   readFileWithRetry,
   truncateDiffLines,
+  sumFeatureCounts,
   MaxDiffLines,
+  MaxFeatureCount,
   MaxGeoJsonLength,
   buildMarkdownSummary,
+  buildTooLargeSummary,
 } from '../action.diff.ts';
 
 describe('readWithRetry', () => {
@@ -80,6 +83,20 @@ describe('readWithRetry', () => {
   });
 });
 
+describe('sumFeatureCounts', () => {
+  it('should return 0 for an empty object', () => {
+    assert.equal(sumFeatureCounts({}), 0);
+  });
+
+  it('should sum per-dataset counts', () => {
+    assert.equal(sumFeatureCounts({ roads: 4, rivers: 1, buildings: 7 }), 12);
+  });
+
+  it('should ignore non-numeric values', () => {
+    assert.equal(sumFeatureCounts({ roads: 4, bogus: undefined as unknown as number }), 4);
+  });
+});
+
 describe('truncateDiffLines', () => {
   it('should return the original text when under limits', () => {
     const diff = 'line1\nline2\nline3';
@@ -147,9 +164,24 @@ function makeGeoJson(featureCount: number, padding = 0): string {
   return JSON.stringify({ type: 'FeatureCollection', features });
 }
 
+// Build matching feature-count and geojson maps from a { dataset: featureCount } spec, so the
+// counts buildMarkdownSummary reads line up with the geojson it embeds.
+function datasetFixture(
+  spec: Record<string, number>,
+  padding = 0,
+): { counts: Record<string, number>; geojson: Record<string, string> } {
+  const counts: Record<string, number> = {};
+  const geojson: Record<string, string> = {};
+  for (const [name, n] of Object.entries(spec)) {
+    counts[name] = n;
+    geojson[name] = makeGeoJson(n, padding);
+  }
+  return { counts, geojson };
+}
+
 describe('buildMarkdownSummary', () => {
   it('should return a valid summary for minimal input', () => {
-    const result = buildMarkdownSummary(0, '', '', {});
+    const result = buildMarkdownSummary({}, '', '', {});
     assert.equal(result.includes('# Changes Summary'), true);
     assert.equal(result.includes('**Total Features Changed**: 0'), true);
     assert.equal(result.includes('**Datasets Affected**: 0'), true);
@@ -157,84 +189,98 @@ describe('buildMarkdownSummary', () => {
 
   it('should truncate git diff to max lines', () => {
     const diff = Array.from({ length: 100 }, (_, i) => `line ${i}`).join('\n');
-    const result = buildMarkdownSummary(0, '', diff, {});
+    const result = buildMarkdownSummary({}, '', diff, {});
     assert.equal(result.includes(`... truncated (showing ${MaxDiffLines} of 100 lines)`), true);
   });
 
   it('should truncate text diff to max lines', () => {
     const diff = Array.from({ length: 100 }, (_, i) => `line ${i}`).join('\n');
-    const result = buildMarkdownSummary(0, diff, '', {});
+    const result = buildMarkdownSummary({}, diff, '', {});
     assert.equal(result.includes(`... truncated (showing ${MaxDiffLines} of 100 lines)`), true);
   });
 
   it('should not show truncation notice when diffs are within limits', () => {
     const shortDiff = 'line1\nline2\nline3';
-    const result = buildMarkdownSummary(0, shortDiff, shortDiff, {});
+    const result = buildMarkdownSummary({}, shortDiff, shortDiff, {});
     assert.equal(result.includes('truncated'), false);
   });
 
   it('should include geojson and per-dataset sections when under size limit', () => {
-    const datasets = { 'my-layer': makeGeoJson(2) };
-    const result = buildMarkdownSummary(2, '', '', datasets);
+    const { counts, geojson } = datasetFixture({ 'my-layer': 2 });
+    const result = buildMarkdownSummary(counts, '', '', geojson);
     assert.equal(result.includes('## Feature Changes Preview'), true);
     assert.equal(result.includes('```geojson'), true);
     assert.equal(result.includes('**my-layer**: 2 features changed'), true);
   });
 
   it('should show too-large message and hide per-dataset sections when geojson exceeds limit', () => {
-    const datasets = { 'big-layer': makeGeoJson(50, 1000) };
-    const combined = JSON.stringify(
-      {
-        type: 'FeatureCollection',
-        features: JSON.parse(datasets['big-layer']).features,
-      },
-      null,
-      2,
-    );
+    const bigLayer = makeGeoJson(50, 1000);
+    const combined = JSON.stringify({ type: 'FeatureCollection', features: JSON.parse(bigLayer).features }, null, 2);
     // Confirm the test data actually exceeds the limit
     assert(combined.length > MaxGeoJsonLength, 'Test data should exceed MaxGeoJsonLength');
 
-    const result = buildMarkdownSummary(50, '', '', datasets);
+    const result = buildMarkdownSummary({ 'big-layer': 50 }, '', '', { 'big-layer': bigLayer });
     assert.equal(result.includes('GeoJSON too large to display'), true);
     assert.equal(result.includes('Changes by Dataset'), false);
   });
 
   it('should skip datasets with zero features', () => {
-    const datasets = {
-      'empty-layer': makeGeoJson(0),
-      'real-layer': makeGeoJson(3),
-    };
-    const result = buildMarkdownSummary(3, '', '', datasets);
+    const { counts, geojson } = datasetFixture({ 'empty-layer': 0, 'real-layer': 3 });
+    const result = buildMarkdownSummary(counts, '', '', geojson);
     assert.equal(result.includes('**empty-layer**'), false);
     assert.equal(result.includes('**real-layer**: 3 features changed'), true);
+    assert.equal(result.includes('**Datasets Affected**: 1'), true);
   });
 
   it('should show correct counts in header', () => {
-    const datasets = { layer1: makeGeoJson(2), layer2: makeGeoJson(3) };
-    const result = buildMarkdownSummary(5, '', '', datasets);
+    const { counts, geojson } = datasetFixture({ layer1: 2, layer2: 3 });
+    const result = buildMarkdownSummary(counts, '', '', geojson);
     assert.equal(result.includes('**Total Features Changed**: 5'), true);
     assert.equal(result.includes('**Datasets Affected**: 2'), true);
   });
 
   it('should report correct git diff total line count', () => {
     const diff = Array.from({ length: 100 }, (_, i) => `line ${i}`).join('\n');
-    const result = buildMarkdownSummary(0, '', diff, {});
+    const result = buildMarkdownSummary({}, '', diff, {});
     assert.equal(result.includes('**Git Diff Lines**: 100'), true);
   });
 
   it('should not include geojson section when there are no features', () => {
-    const result = buildMarkdownSummary(0, 'some diff', 'some git diff', {});
+    const result = buildMarkdownSummary({}, 'some diff', 'some git diff', {});
     assert.equal(result.includes('Feature Changes Preview'), false);
     assert.equal(result.includes('```geojson'), false);
   });
 
+  it('should stay under the GitHub comment size limit at the embed boundary', () => {
+    // GitHub rejects PR comment bodies over 65536 chars (MAX_COMMENT_SIZE in the shared GithubApi).
+    // MaxGeoJsonLength must be low enough that even the largest summary fits even if the full summary renders.
+    const GithubCommentLimit = 65_536;
+
+    const geojson: Record<string, string> = {};
+    for (let i = 0; i < 1000; i++) {
+      const candidate = { ...geojson, [`layer-${i}`]: makeGeoJson(5, 200) };
+      const combined = JSON.stringify(
+        { type: 'FeatureCollection', features: Object.values(candidate).flatMap((s) => JSON.parse(s).features) },
+        null,
+        2,
+      );
+      if (combined.length > MaxGeoJsonLength) break;
+      geojson[`layer-${i}`] = makeGeoJson(5, 200);
+    }
+    const counts = Object.fromEntries(Object.keys(geojson).map((k) => [k, 5]));
+
+    const hugeDiff = Array.from({ length: 200 }, (_, n) => 'x'.repeat(300) + n).join('\n');
+    const result = buildMarkdownSummary(counts, hugeDiff, hugeDiff, geojson);
+
+    assert(
+      result.length < GithubCommentLimit,
+      `summary length ${result.length} should be under GitHub's ${GithubCommentLimit} limit`,
+    );
+  });
+
   it('should show each layer with only its own changed feature count', () => {
-    const datasets = {
-      roads: makeGeoJson(4),
-      rivers: makeGeoJson(1),
-      buildings: makeGeoJson(7),
-    };
-    const result = buildMarkdownSummary(12, '', '', datasets);
+    const { counts, geojson } = datasetFixture({ roads: 4, rivers: 1, buildings: 7 });
+    const result = buildMarkdownSummary(counts, '', '', geojson);
 
     assert.equal(result.includes('**Total Features Changed**: 12'), true);
     assert.equal(result.includes('**Datasets Affected**: 3'), true);
@@ -242,5 +288,45 @@ describe('buildMarkdownSummary', () => {
     assert.equal(result.includes('**roads**: 4 features changed'), true);
     assert.equal(result.includes('**rivers**: 1 features changed'), true);
     assert.equal(result.includes('**buildings**: 7 features changed'), true);
+  });
+});
+
+describe('buildTooLargeSummary', () => {
+  it('should report the total and per-dataset counts', () => {
+    const result = buildTooLargeSummary({ roads: 4, rivers: 1, buildings: 7 });
+    assert.equal(result.includes('**Total Features Changed**: 12'), true);
+    assert.equal(result.includes('**Datasets Affected**: 3'), true);
+    assert.equal(result.includes(`Too many features changed (${MaxFeatureCount} limit)`), true);
+    assert.equal(result.includes('### Changes by Dataset'), true);
+    assert.equal(result.includes('- **roads**: 4 features changed'), true);
+    assert.equal(result.includes('- **rivers**: 1 features changed'), true);
+  });
+
+  it('should sort datasets by descending count', () => {
+    const result = buildTooLargeSummary({ rivers: 1, buildings: 7, roads: 4 });
+    const order = ['buildings', 'roads', 'rivers'].map((d) => result.indexOf(`**${d}**`));
+    assert.deepEqual(
+      order,
+      [...order].sort((a, b) => a - b),
+    );
+  });
+
+  it('should exclude datasets with zero changes', () => {
+    const result = buildTooLargeSummary({ roads: 5, empty: 0 });
+    assert.equal(result.includes('**Datasets Affected**: 1'), true);
+    assert.equal(result.includes('**empty**'), false);
+  });
+
+  it('should omit the per-dataset section when there are no changes', () => {
+    const result = buildTooLargeSummary({});
+    assert.equal(result.includes('**Total Features Changed**: 0'), true);
+    assert.equal(result.includes('**Datasets Affected**: 0'), true);
+    assert.equal(result.includes('### Changes by Dataset'), false);
+  });
+
+  it('should not emit empty diff code blocks', () => {
+    const result = buildTooLargeSummary({ roads: 5 });
+    assert.equal(result.includes('## Kart Diff'), false);
+    assert.equal(result.includes('## Git Diff'), false);
   });
 });

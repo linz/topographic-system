@@ -1,17 +1,14 @@
-import { lstat, readlink, symlink, unlink } from 'node:fs/promises';
-import { basename, dirname, extname, relative, resolve } from 'node:path';
+import { mkdir, symlink } from 'node:fs/promises';
+import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { WriteOptions } from '@chunkd/fs';
 import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
-import { qMapAll } from '@linzjs/topographic-system-shared';
-import { logger } from '@linzjs/topographic-system-shared';
+import { logger, qMapAll } from '@linzjs/topographic-system-shared';
 import { type LimitFunction } from 'p-limit';
-import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
-import tar from 'tar';
-
-import { sha256base58 } from './fs.util.ts';
+import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
+import * as tar from 'tar';
 
 export interface SourceAsset {
   /** downloaded URL */
@@ -27,12 +24,21 @@ export interface SourceAsset {
 export interface SourceStac {
   /** Source stac file location */
   url: URL;
-
+  /** Once the STAC document has been fetched the raw JSON of the stac */
+  json?: StacItem | StacCollection;
+  /**
+   * Cache the reading of the JSON so that multiple calls to getAsset for the same stac don't re-read the file
+   */
+  future?: Promise<SourceAsset[]>;
   /** stac assets to download */
   assets: SourceAsset[];
+}
 
-  /** Optional project download link if available */
-  project?: URL;
+export interface SourceAssetDownloadOptions {
+  /** If the file exists locally already use that instead of downloading */
+  skipIfExists: boolean;
+  /** If the asset has a canonical link use that instead of the href */
+  useCanonical: boolean;
 }
 
 /** STAC Link "rel" that should be downloaded */
@@ -41,29 +47,27 @@ export const DownloadRels = new Set(['dataset', 'source', 'derived_from', 'proje
 export class Downloader {
   q: LimitFunction;
   /** Cache of stac links that have been resolved to avoid duplicate downloads */
-  stacs: Map<string, SourceStac> = new Map();
-  /** Cache of downloaded assets by linked output path */
-  cache: Map<string, SourceAsset> = new Map();
+  stac: Map<string, SourceStac> = new Map();
+  /** Previously written items */
+  linkCache: Map<string, SourceAsset> = new Map();
   /** Local target location */
   target: URL;
-  /** Skip if linked path already exists */
-  skip: boolean;
+  /** Cache asset files into the source cache */
+  sourceCache: URL;
 
-  constructor(target: URL, q: LimitFunction, skip = false) {
+  constructor(target: URL, sourceCache: URL, q: LimitFunction) {
     this.q = q;
-    this.stacs = new Map<string, SourceStac>();
-    this.cache = new Map<string, SourceAsset>();
     this.target = target;
-    this.skip = skip;
+    this.sourceCache = sourceCache;
   }
 
   /** Add an asset URL to the download list */
   addStac(url: URL): URL {
-    if (!this.stacs.has(url.href)) {
+    if (!this.stac.has(url.href)) {
       logger.debug({ url: url.href }, 'Downloader: Add asset');
-      this.stacs.set(url.href, { url, assets: [] });
+      this.stac.set(url.href, { url, assets: [], json: undefined });
     } else {
-      logger.debug({ url: url.href }, 'Downloader: Asset already added');
+      logger.trace({ url: url.href }, 'Downloader: Asset already added');
     }
     return url;
   }
@@ -75,128 +79,207 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  async getAsset(url: URL): Promise<SourceAsset[]> {
-    const sourceStac = this.stacs.get(url.href);
-    if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
-    if (sourceStac.assets.length > 0) return sourceStac.assets;
+  getAsset(
+    url: URL,
+    options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
+    visited?: Set<string>,
+  ): Promise<SourceAsset[]> {
+    if (visited?.has(url.href)) {
+      throw new Error(`Circular canonical link detected: ${url.href}`);
+    }
 
-    const stac = await fsa.readJson<StacItem | StacCollection>(url);
-    const sourceAssets = [];
-    for (const [key, asset] of Object.entries(stac.assets ?? {})) {
-      const sourceAsset = await this.downloadAsset(new URL(asset.href, url));
-      sourceAssets.push(sourceAsset);
-      if (key === 'project') {
-        sourceStac.project = sourceAsset.linked;
+    const sourceStac = this.stac.get(url.href);
+
+    if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
+    // If the stac is already been fetched and it has no assets, return null to avoid re-fetching
+    if (sourceStac.future != null) {
+      logger.trace({ url: url.href }, 'Downloader: Stac already being fetched');
+      return sourceStac.future;
+    }
+
+    sourceStac.future = fsa.readJson<StacItem | StacCollection>(url).then(async (stac) => {
+      sourceStac.json = stac;
+      if (options?.useCanonical) {
+        const canonical = stac.links.find((l) => l.rel === 'canonical');
+        if (canonical) {
+          const canonicalUrl = new URL(canonical.href, url);
+          this.stac.set(canonicalUrl.href, this.stac.get(canonicalUrl.href) ?? { url: canonicalUrl, assets: [] });
+          logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
+          return this.getAsset(canonicalUrl, options, new Set(visited ?? []).add(url.href));
+        }
+      }
+
+      const sourceAssets = [];
+      for (const asset of Object.values(stac.assets ?? {})) {
+        const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, options);
+        sourceAssets.push(sourceAsset);
+      }
+      sourceStac.assets = sourceAssets;
+      return sourceAssets;
+    });
+
+    return sourceStac.future;
+  }
+
+  findAsset(f: (asset: SourceAsset) => boolean): SourceAsset | undefined {
+    for (const stac of this.stac.values()) {
+      const asset = stac.assets.find(f);
+      if (asset) return asset;
+    }
+    return undefined;
+  }
+
+  /**
+   * Fetch a asset and store it in a persistent local cache based off its file:checksum
+   */
+  async ensureAssetInCache(
+    asset: StacLink | StacAsset,
+    url: URL,
+  ): Promise<{ url: URL; size: number; hash: string; hit?: boolean }> {
+    const checksum = asset['file:checksum'] as string | undefined;
+    const fileSize = asset['file:size'] as number | undefined;
+
+    if (checksum == null) throw new Error(`Asset has no "file:checksum" ${url.href}`);
+
+    const cacheKey = new URL(`${checksum}_${basename(asset.href)}`, this.sourceCache);
+    const exists = await fsa.head(cacheKey).catch(() => null);
+
+    if (exists) {
+      if (exists.size !== fileSize) {
+        logger.warn({ cacheKey: cacheKey.href, localSize: exists.size, expectedSize: fileSize }, 'Cache:Invalid');
+        await fsa.delete(cacheKey);
+      } else {
+        return { url: cacheKey, size: exists.size as number, hash: asset['file:checksum'] as string, hit: true };
       }
     }
-    sourceStac.assets = sourceAssets;
-    return sourceAssets;
+
+    const fileHash = new HashTransform('sha256');
+    const stream = fsa.readStream(url).pipe(fileHash);
+    const meta: WriteOptions = {};
+    if (url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
+    await fsa.write(cacheKey, stream, meta);
+
+    const head = await fsa.head(cacheKey);
+    // validate file was downloaded correctly
+    if (head?.size !== fileSize) {
+      await fsa.delete(cacheKey);
+      throw new Error(`Failed to download file: ${url.href} size mismatch ${head?.size} vs ${fileSize}`);
+    }
+
+    const targetHash = fileHash.multihash;
+    if (targetHash !== checksum) {
+      await fsa.delete(cacheKey);
+      throw new Error(`Failed to download file: ${url.href} checksum mismatch ${targetHash}`);
+    }
+
+    return { url: cacheKey, size: head?.size as number, hash: targetHash };
   }
 
   /** Get all assets, downloading them if they haven't been already */
-  async getAllAssets(): Promise<SourceAsset[]> {
-    const allAssets = await qMapAll(this.q, Array.from(this.stacs.keys()), (url) => this.getAsset(new URL(url)));
-    return allAssets.flat();
+  async getAllAssets(
+    options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
+  ): Promise<SourceAsset[]> {
+    const allAssets = await qMapAll(this.q, Array.from(this.stac.keys()), (url) =>
+      this.getAsset(new URL(url), options),
+    );
+
+    const output: SourceAsset[] = [];
+    const outputLinks = new Set<string>();
+    for (const source of allAssets.flat()) {
+      if (outputLinks.has(source.linked.href)) continue;
+      outputLinks.add(source.linked.href);
+
+      output.push(source);
+    }
+    return output;
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
-  async ensureLinkedPath(targetFile: URL, linkedPath: URL): Promise<URL> {
+  async ensureLinkedPath(sourceUrl: URL, linkedUrl: URL): Promise<URL> {
     // Symlinks are only supported on the local filesystem
-    if (targetFile.protocol !== 'file:' || linkedPath.protocol !== 'file:') return targetFile;
-    const targetFsPath = fileURLToPath(targetFile);
-    const linkedFsPath = fileURLToPath(linkedPath);
-    const nextLinkTarget = relative(dirname(linkedFsPath), targetFsPath);
-
-    try {
-      const existing = await lstat(linkedFsPath);
-      if (existing.isSymbolicLink()) {
-        const currentLinkTarget = await readlink(linkedFsPath);
-        const currentResolved = resolve(dirname(linkedFsPath), currentLinkTarget);
-        if (currentResolved === targetFsPath) return linkedPath;
-      }
-      await unlink(linkedFsPath);
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    if (sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
+      await fsa.write(linkedUrl, fsa.readStream(sourceUrl));
+      return linkedUrl;
     }
-
-    await symlink(nextLinkTarget, linkedFsPath);
-    return linkedPath;
+    const [sourceExists, targetExists] = await Promise.all([fsa.exists(sourceUrl), fsa.exists(linkedUrl)]);
+    if (!sourceExists) throw new Error(`Source file does not exist: ${sourceUrl.href}`);
+    if (targetExists) {
+      await fsa.delete(linkedUrl);
+    } else {
+      // ensure target folder exists
+      await mkdir(this.target, { recursive: true });
+    }
+    await symlink(sourceUrl, linkedUrl);
+    return linkedUrl;
   }
 
   /** Download given asset extract it if tar file */
-  async downloadAsset(url: URL): Promise<SourceAsset> {
+  async downloadAsset(
+    url: URL,
+    asset: StacAsset | StacLink,
+    options: SourceAssetDownloadOptions,
+  ): Promise<SourceAsset> {
     const startTime = performance.now();
     logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
-    try {
-      const hashedFilename = sha256base58(Buffer.from(url.href)) + extname(url.href);
-      const downloadFile = new URL(hashedFilename, this.target);
-      const linkedPath = new URL(basename(url.pathname), this.target);
+    const linkedPath = new URL(basename(url.pathname), this.target);
 
-      const existing = this.cache.get(linkedPath.href);
-      if (this.skip && existing != null) {
-        logger.info(
-          { project: url.href, linked: linkedPath.href },
-          'DownloadFile: Skip download, linked asset already handled',
-        );
-        return { ...existing, url };
-      }
-
-      const stats = await fsa.head(url);
-      if (stats == null) throw new Error(`Unable to access file at url: ${url.href}`);
-
-      const fileHash = new HashTransform('sha256');
-      const stream = fsa.readStream(url).pipe(fileHash);
-      const meta: WriteOptions = {};
-      if (url.href.endsWith('.parquet')) meta.contentType = 'application/vnd.apache.parquet';
-      await fsa.write(downloadFile, stream, meta);
-
-      const head = await fsa.head(downloadFile);
-      // validate file was downloaded correctly
-      if (head == null || head.size == null || head.size !== stats?.size) {
-        throw new Error(`Failed to download file: ${downloadFile.href}`);
-      }
-
-      // Update asset with downloaded file info
-      const digest = fileHash.multihash;
-      const sourceAsset: SourceAsset = {
-        url,
-        linked: linkedPath,
-        size: head.size,
-        hash: digest,
-      };
-
+    const existing = this.linkCache.get(linkedPath.href);
+    if (existing) {
+      // Already linked and matches the hash
+      if (existing.hash === asset['file:checksum']) return existing;
+      if (options.skipIfExists) return existing;
       logger.info(
         {
-          destination: downloadFile.href,
-          ...sourceAsset,
-          duration: performance.now() - startTime,
+          project: url.href,
+          downloaded: this.target.href,
+          existingHash: existing.hash,
+          newHash: asset['file:checksum'],
         },
-        'DownloadFile:Done',
+        'DownloadFile:Overwrite',
       );
-
-      // Extract tar files if needed
-      if (downloadFile.pathname.endsWith('.tar')) {
-        const startExtractTime = performance.now();
-        await tar.extract({
-          file: fileURLToPath(downloadFile),
-          cwd: fileURLToPath(this.target),
-        });
-        logger.info(
-          {
-            destination: downloadFile.href,
-            ...sourceAsset,
-            duration: performance.now() - startExtractTime,
-          },
-          'DownloadFile:Extract:Done',
-        );
-      }
-      await this.ensureLinkedPath(downloadFile, linkedPath);
-      this.cache.set(linkedPath.href, sourceAsset);
-      return sourceAsset;
-    } catch (error) {
-      logger.error({ project: url.href }, 'DownloadFile: Error');
-      throw error;
     }
+
+    const cacheStat = await this.ensureAssetInCache(asset, url);
+
+    const sourceAsset: SourceAsset = {
+      url,
+      linked: linkedPath,
+      size: cacheStat.size,
+      hash: cacheStat.hash,
+    };
+
+    if (cacheStat.url.pathname.endsWith('.tar') || cacheStat.url.pathname.endsWith('.tar.zst')) {
+      const startExtractTime = performance.now();
+      await tar.extract({
+        file: fileURLToPath(cacheStat.url),
+        cwd: fileURLToPath(this.target),
+      });
+      logger.info(
+        {
+          destination: cacheStat.url.href,
+          ...sourceAsset,
+          duration: performance.now() - startExtractTime,
+        },
+        'DownloadFile:Extract:Done',
+      );
+    } else {
+      await this.ensureLinkedPath(cacheStat.url, linkedPath);
+    }
+
+    logger.info(
+      {
+        destination: cacheStat.url.href,
+        ...sourceAsset,
+        cacheHit: cacheStat.hit,
+        overwrite: existing?.hash, // A file existed but was overwritten
+        duration: performance.now() - startTime,
+      },
+      'DownloadFile:Done',
+    );
+
+    this.linkCache.set(linkedPath.href, sourceAsset);
+
+    return sourceAsset;
   }
 }
 

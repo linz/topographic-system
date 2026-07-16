@@ -1,12 +1,8 @@
-import { zstdDecompressSync } from 'zlib';
-
 import { fsa } from '@chunkd/fs';
-import { concurrency, logger, qFromArgs, qMapAll, Url } from '@linzjs/topographic-system-shared';
-import type { SchemaObject } from 'ajv/dist/2020.js';
+import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
+import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
-import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet';
-import { DEFAULT_PARSERS } from 'hyparquet/src/convert.js';
 import yaml from 'js-yaml';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
@@ -17,13 +13,92 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
 
-// Prevent WKB's from being decoded as geometry objects,
-// as it takes a very long time for large geometries
-const ParserNoGeo: typeof DEFAULT_PARSERS = {
-  ...DEFAULT_PARSERS,
-  geometryFromBytes: (bytes) => bytes,
-  geographyFromBytes: (bytes) => bytes,
-};
+export const MaxErrorSamples = 5;
+const MaxSampleLength = 80;
+export interface ErrorAggregate {
+  count: number;
+  samples: string[];
+}
+
+// AJV keywords that only wrap nested branch errors; on their own they add no
+// actionable detail (e.g. "must match a schema in anyOf").
+const WrapperKeywords = new Set(['anyOf', 'oneOf', 'allOf', 'not', 'if']);
+
+/**
+ * Reduce the errors AJV reports for a single record to the actionable ones.
+ *
+ * With `allErrors`, a single bad value under a nullable enum (`anyOf: [enum, null]`)
+ * produces three errors: the failed enum branch, the failed `null` branch, and the
+ * `anyOf` wrapper. This drops the wrapper keywords, and where a property has more
+ * than one remaining error it drops the `type: null` alternative, leaving just the
+ * specific failure (e.g. the enum mismatch).
+ */
+export function collapseErrors(errors: ErrorObject[]): ErrorObject[] {
+  const leaves = errors.filter((e) => !WrapperKeywords.has(e.keyword));
+
+  const byPath = new Map<string, ErrorObject[]>();
+  for (const e of leaves) {
+    const list = byPath.get(e.instancePath) ?? [];
+    list.push(e);
+    byPath.set(e.instancePath, list);
+  }
+
+  const result: ErrorObject[] = [];
+  for (const list of byPath.values()) {
+    if (list.length <= 1) {
+      result.push(...list);
+      continue;
+    }
+    const specific = list.filter((e) => !(e.keyword === 'type' && e.params?.['type'] === 'null'));
+    result.push(...(specific.length > 0 ? specific : list));
+  }
+  return result;
+}
+
+function formatSample(value: unknown): string {
+  const str =
+    typeof value === 'string'
+      ? value
+      : value == null || typeof value !== 'object'
+        ? String(value)
+        : JSON.stringify(value);
+  return str.length > MaxSampleLength ? `${str.slice(0, MaxSampleLength)}…` : str;
+}
+
+/**
+ * Pick a representative example for an error, or `undefined` when the error
+ * message already carries the detail (e.g. a named missing property).
+ */
+export function errorSample(er: ErrorObject): string | undefined {
+  const params = er.params as Record<string, unknown> | undefined;
+  // The offending column name is the useful detail, not the whole record.
+  if (typeof params?.['additionalProperty'] === 'string') return params['additionalProperty'];
+  // "must have required property 'x'" already names the property.
+  if (typeof params?.['missingProperty'] === 'string') return undefined;
+  // For value-level failures (enum, type, pattern, ...) show the bad value itself.
+  if (er.data == null || typeof er.data !== 'object') return formatSample(er.data);
+  return undefined;
+}
+
+/**
+ * Fold one record's (collapsed) errors into a running per-file summary, keeping
+ * a count and a bounded set of distinct example values per distinct error.
+ */
+export function summariseErrors(errors: ErrorObject[], summary: Map<string, ErrorAggregate>): void {
+  for (const er of collapseErrors(errors)) {
+    const key = `${er.instancePath}:${er.message}`;
+    let agg = summary.get(key);
+    if (agg == null) {
+      agg = { count: 0, samples: [] };
+      summary.set(key, agg);
+    }
+    agg.count++;
+    if (agg.samples.length < MaxErrorSamples) {
+      const sample = errorSample(er);
+      if (sample != null && !agg.samples.includes(sample)) agg.samples.push(sample);
+    }
+  }
+}
 
 export const ValidateSchemaCommand = command({
   name: 'validate-schema',
@@ -45,59 +120,31 @@ export const ValidateSchemaCommand = command({
   },
   async handler(args) {
     const q = qFromArgs(args);
-    const ajv = new Ajv.default({ strict: true, allErrors: true });
+    const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
 
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);
     await qMapAll(q, args.paths, async (path) => {
-      const source = fsa.source(path);
-      const head = await fsa.head(path);
-      if (head == null) throw new Error('Missing file: ' + path.href);
-      const asyncBuffer = {
-        byteLength: head.size as number,
-        slice(start: number, end?: number) {
-          return source.fetch(start, end == null ? undefined : end - start);
-        },
-      };
-      const metadata = await parquetMetadataAsync(asyncBuffer);
-      const startTime = performance.now();
-      const ZSTD = (input: Uint8Array): Uint8Array => zstdDecompressSync(input);
+      const errorSummary = new Map<string, ErrorAggregate>();
 
+      const startTime = performance.now();
       logger.info({ file: path.href, schema: args.schema.href }, 'ValidateSchema: Started');
-      let rowStart = 0;
       let valid = 0;
       let invalid = 0;
-      for (const group of metadata.row_groups) {
-        const rowEnd = rowStart + Number(group.num_rows);
-        const groupData = await parquetReadObjects({
-          file: asyncBuffer,
-          metadata,
-          compressors: { ZSTD },
-          rowStart,
-          rowEnd,
-          parsers: args.decodeGeometry ? DEFAULT_PARSERS : ParserNoGeo,
-          geoparquet: args.decodeGeometry,
-        });
-
-        const errorSummary = new Map<string, number>();
-
-        for (const record of groupData) {
+      for await (const group of readParquetGroups(path, { decodeGeometry: args.decodeGeometry })) {
+        for (const record of group) {
           const ret = validate(record);
           if (ret) {
             valid++;
           } else {
             invalid++;
-            for (const er of validate.errors ?? []) {
-              const key = `${er.instancePath}:${er.message}`;
-              errorSummary.set(key, (errorSummary.get(key) ?? 0) + 1);
-            }
+            summariseErrors(validate.errors ?? [], errorSummary);
           }
         }
-        rowStart = rowEnd;
+      }
 
-        for (const [error, count] of errorSummary) {
-          logger.error({ file: path.href, error, count }, 'ValidateSchema:ErrorSummary');
-        }
+      for (const [error, { count, samples }] of errorSummary) {
+        logger.error({ file: path.href, error, count, samples }, 'ValidateSchema:ErrorSummary');
       }
 
       let logOption = invalid > 0 ? ('error' as const) : ('info' as const);

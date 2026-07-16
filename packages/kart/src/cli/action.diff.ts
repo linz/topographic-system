@@ -1,4 +1,3 @@
-import type { UUID } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -11,33 +10,21 @@ import { command, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
 type GeoJson = { type: string; features: unknown[] };
-type DiffOutput = {
-  [kartFormat: string]: {
-    [dataset: string]: {
-      feature: Array<{
-        [changeType in '+' | '++' | '-' | '--']?: {
-          topo_id: UUID | null;
-          t50_fid: number | null;
-          feature_type?: string | null;
-          name?: string | null;
-          theme?: string | null;
-          source?: string | null;
-          source_date?: string | null;
-          capture_method?: string | null;
-          change_type?: string | null;
-          update_date?: string | null;
-          create_date?: string | null;
-          version?: number | null;
-          geom: string;
-          [key: string]: unknown;
-        };
-      }>;
-    };
-  };
-};
+/**
+ * Max characters of GeoJSON to embed in the summary. The summary is posted as a GitHub PR comment,
+ * which the API rejects over 65536 characters (see MAX_COMMENT_SIZE in the shared GithubApi). This
+ * is kept well under that so the combined preview, the per-dataset section, and the diff snippets
+ * all fit together with margin to spare.
+ */
 export const MaxGeoJsonLength = 25_000;
 export const MaxDiffLines = 30;
 export const MaxDiffLineLength = 120;
+/**
+ * Above this many changed features, skip reading the diff into memory entirely. This guards against
+ * ERR_STRING_TOO_LONG (kart can emit diffs larger than V8's ~512MB max string length); the GitHub
+ * comment size is handled separately by {@link MaxGeoJsonLength}.
+ */
+export const MaxFeatureCount = 1_000;
 
 interface GitContext {
   /** Repository context path to operate on eg "repo" */
@@ -49,12 +36,60 @@ interface GitContext {
   output: URL;
 }
 
-async function getTextDiff(ctx: GitContext): Promise<string> {
+/** Canonical filenames for the diff artifacts written under {@link GitContext.output}. */
+const TextDiffName = 'kart_diff.txt';
+const HtmlDiffName = 'kart_diff.html';
+const GeojsonDiffName = 'kart_diff.geojson';
+const GitDiffName = 'git_diff.txt';
+
+/** Run kart to write the text diff artifact to disk, returning its location. */
+async function writeTextDiff(ctx: GitContext): Promise<URL> {
+  mkdirSync(ctx.output, { recursive: true });
+  const location = new URL(TextDiffName, ctx.output);
+  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(location)}"`;
+  return location;
+}
+
+/** Run kart to write the html diff artifact to disk, returning its location. */
+async function writeHtmlDiff(ctx: GitContext): Promise<URL> {
+  mkdirSync(ctx.output, { recursive: true });
+  const location = new URL(HtmlDiffName, ctx.output);
+  // Output to `-` (stdout) disables opening a browser when running locally.
+  // Piping stdout directly to file (`>`) avoids `kart` adding pagination.
+  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output - > "${fileURLToPath(location)}"`;
+  return location;
+}
+
+/** Run kart to write the geojson diff artifact to disk, returning its location. */
+async function writeGeojsonDiff(ctx: GitContext): Promise<URL> {
+  mkdirSync(ctx.output, { recursive: true });
+  const location = new URL(GeojsonDiffName, ctx.output);
+  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${fileURLToPath(location)}"`;
+  return location;
+}
+
+/**
+ * Run git (not kart) to write the underlying git diff to disk, returning its location. Temporarily
+ * moves the kart index aside so git reports the raw object changes. Written via redirect (not stdout
+ * capture) so an oversized diff can't crash with ERR_STRING_TOO_LONG.
+ */
+async function writeGitDiff(ctx: GitContext): Promise<URL> {
+  mkdirSync(ctx.output, { recursive: true });
+  const location = new URL(GitDiffName, ctx.output);
+  const tempIndexPath = fileURLToPath(new URL('.kart/no.index', ctx.repo));
+  const indexPath = fileURLToPath(new URL('.kart/index', ctx.repo));
+  await $`mv ${indexPath} ${tempIndexPath}`;
   try {
-    mkdirSync(ctx.output, { recursive: true });
-    const textDiffLocation = new URL('kart_diff.txt', ctx.output);
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o text --output "${fileURLToPath(textDiffLocation)}"`;
-    const fileContent = await readFileWithRetry(textDiffLocation);
+    await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange} > "${fileURLToPath(location)}"`;
+  } finally {
+    await $`mv ${tempIndexPath} ${indexPath}`;
+  }
+  return location;
+}
+
+async function readTextDiff(ctx: GitContext): Promise<string> {
+  try {
+    const fileContent = await readFileWithRetry(new URL(TextDiffName, ctx.output));
     const textDiff = fileContent.toString('utf-8');
     logger.info({ textDiffLines: textDiff.split('\n').length }, 'Diff:TextDiffSaved');
     return textDiff;
@@ -64,49 +99,59 @@ async function getTextDiff(ctx: GitContext): Promise<string> {
   }
 }
 
-async function getFeatureCount(ctx: GitContext): Promise<number> {
+type FeatureCountOutput = Record<string, number>;
+
+export function sumFeatureCounts(output: FeatureCountOutput): number {
+  return Object.values(output).reduce((total, count) => total + (typeof count === 'number' ? count : 0), 0);
+}
+
+async function getFeatureCount(ctx: GitContext): Promise<FeatureCountOutput> {
   try {
-    const countOutput = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o json`;
-    const featureCount = countOutput.stdout.trim();
-    if (featureCount == null) {
+    const countOutput = await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o json --only-feature-count exact`;
+    const stdout = countOutput.stdout.trim();
+    if (stdout === '') {
       logger.warn('Diff:FeatureCount:EmptyOutput');
-      return 0;
+      return {};
     }
-    let totalFeaturesChanged = 0;
-    let changes: DiffOutput;
+    let changes: FeatureCountOutput;
     try {
-      changes = JSON.parse(featureCount) as DiffOutput;
+      changes = JSON.parse(stdout) as FeatureCountOutput;
     } catch (e) {
-      logger.error({ error: e, featureCount }, 'Diff:FeatureCount:JSONParseError');
-      return 0;
+      logger.error({ error: e, stdout }, 'Diff:FeatureCount:JSONParseError');
+      return {};
     }
-    for (const formatKey of Object.keys(changes)) {
-      const dataset = changes[formatKey];
-      if (dataset == null) continue;
-      for (const datasetKey of Object.keys(dataset)) {
-        if (dataset[datasetKey] == null) continue;
-        totalFeaturesChanged += dataset[datasetKey]?.feature?.length ?? 0;
-      }
-    }
-    logger.info({ ...ctx, totalFeaturesChanged }, 'Diff:FeatureCount');
-    return totalFeaturesChanged;
+    logger.info({ ...ctx, totalFeaturesChanged: sumFeatureCounts(changes) }, 'Diff:FeatureCount');
+    return changes;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:Feature count failed');
     throw error;
   }
 }
 
-async function createHtmlDiff(ctx: GitContext): Promise<URL> {
+/**
+ * Generate all raw diff files on disk (text, html, geojson, git) without reading them back into
+ * memory. Always run so the artifacts are downloadable even when there is no summary to post (no
+ * features changed, or the diff is too large to load into a JS string).
+ */
+async function writeDiffArtifacts(ctx: GitContext): Promise<void> {
+  await writeTextDiff(ctx);
+  await writeHtmlDiff(ctx);
+  await writeGeojsonDiff(ctx);
+  await writeGitDiff(ctx);
+  logger.info({ output: ctx.output }, 'Diff:ArtifactsWritten');
+}
+
+/**
+ * Read the already-written html artifact, unescape kart's hex sequences, and rewrite it in place.
+ * FIXME: This is required as of kart version 16. Check future versions if it was fixed upstream.
+ **/
+async function fixHtmlDiff(ctx: GitContext): Promise<void> {
   try {
-    const htmlDiffLocation = new URL('kart_diff.html', ctx.output);
-    // Output to `-` (stdout) disables opening a browser when running locally.
-    // Piping stdout directly to file (`>`) avoids `kart` adding pagination.
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o html --output - > "${fileURLToPath(htmlDiffLocation)}"`;
+    const htmlDiffLocation = new URL(HtmlDiffName, ctx.output);
     const content = await readFileWithRetry(htmlDiffLocation);
     const fixedContent = content.toString('utf-8').replace(/\\x2f/g, '/').replace(/\\x3c/g, '<').replace(/\\x3e/g, '>');
     await fsa.write(htmlDiffLocation, fixedContent);
     logger.info({ htmlDiffLines: fixedContent.split('\n').length }, 'Diff:HtmlDiffSaved');
-    return htmlDiffLocation;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:HtmlDiffFailed');
     throw error;
@@ -124,46 +169,40 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
   return undefined;
 }
 
-async function createGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
+async function readGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
   try {
-    const geojsonDiffLocation = new URL('kart_diff.geojson', ctx.output);
-    await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${fileURLToPath(geojsonDiffLocation)}"`;
+    const geojsonDiffLocation = new URL(GeojsonDiffName, ctx.output);
     const stat = await fsa.head(geojsonDiffLocation);
-    const featureChangesPerDataset: Record<string, string> = {};
+    const geojsonByDataset: Record<string, string> = {};
 
     if (stat && stat.isDirectory) {
       const files = await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }));
       for (const file of files) {
         const jsonFile = await readGeojsonFile(file);
         if (jsonFile) {
-          featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
+          geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
         }
       }
     } else if (stat) {
       const jsonFile = await readGeojsonFile(geojsonDiffLocation);
       if (jsonFile) {
-        featureChangesPerDataset[jsonFile.datasetName] = jsonFile.fileString;
+        geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
       }
     }
     logger.info({ geojsonDiffLocation }, 'Diff:GeoJsonDiffLoaded');
-    return featureChangesPerDataset;
+    return geojsonByDataset;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:GeoJsonDiffFailed');
     throw error;
   }
 }
 
-async function getGitDiff(ctx: GitContext): Promise<string> {
+async function readGitDiff(ctx: GitContext): Promise<string> {
   try {
-    const tempIndexPath = fileURLToPath(new URL('.kart/no.index', ctx.repo));
-    const indexPath = fileURLToPath(new URL('.kart/index', ctx.repo));
-    await $`mv ${indexPath} ${tempIndexPath}`;
-    const gitDiffOutput = await $`git ${gitContext(ctx.repo)} diff --no-color ${ctx.diffRange}`;
-    await $`mv ${tempIndexPath} ${indexPath}`;
-
-    await fsa.write(new URL('git_diff.txt', ctx.output), gitDiffOutput.stdout.trim());
-    logger.info({ gitDiffLines: gitDiffOutput.stdout.trim().split('\n').length }, 'Diff:GitDiffSaved');
-    return gitDiffOutput.stdout;
+    const fileContent = await readFileWithRetry(new URL(GitDiffName, ctx.output));
+    const gitDiff = fileContent.toString('utf-8');
+    logger.info({ gitDiffLines: gitDiff.split('\n').length }, 'Diff:GitDiffSaved');
+    return gitDiff;
   } catch (error) {
     logger.error({ error, ...ctx }, 'Diff:GitDiffFailed');
     throw error;
@@ -237,15 +276,30 @@ export const DiffCommand = command({
     logger.info(ctx, 'Diff:UsingRange');
 
     try {
-      const featureCount = await getFeatureCount(ctx);
-      const textDiff = await getTextDiff(ctx);
-      await createHtmlDiff(ctx);
+      const featureCounts = await getFeatureCount(ctx);
+      const featureCount = sumFeatureCounts(featureCounts);
 
-      const featureChangesPerDataset = await createGeojsonDiff(ctx);
+      if (featureCount > MaxFeatureCount) {
+        logger.warn({ featureCount, maxFeatureCount: MaxFeatureCount }, 'Diff:TooLargeToPreview');
+        await fsa.write(args.summaryFile, buildTooLargeSummary(featureCounts));
+        logger.info('Diff:CommandCompleted');
+        return;
+      }
 
-      const gitDiff = await getGitDiff(ctx);
+      await writeDiffArtifacts(ctx);
 
-      const summaryMd = buildMarkdownSummary(featureCount, textDiff, gitDiff, featureChangesPerDataset);
+      if (featureCount === 0) {
+        logger.info({ ...ctx }, 'Diff:NoFeatureChanges');
+        return;
+      }
+
+      const textDiff = await readTextDiff(ctx);
+      await fixHtmlDiff(ctx);
+
+      const geojsonByDataset = await readGeojsonDiff(ctx);
+      const gitDiff = await readGitDiff(ctx);
+
+      const summaryMd = buildMarkdownSummary(featureCounts, textDiff, gitDiff, geojsonByDataset);
       logger.info('Diff:SummaryBuilt');
       await fsa.write(args.summaryFile, summaryMd);
       logger.info('Diff:CommandCompleted');
@@ -273,59 +327,95 @@ export function truncateDiffLines(
   return { text, truncated: truncatedLineCount, totalLines };
 }
 
+/**
+ * Build a minimal summary for diffs too large to load into memory. The full diff is not read, so we
+ * surface only the per-dataset counts (cheaply obtained from `--only-feature-count`) and point at
+ * the workflow artifacts for the detail.
+ */
+export function buildTooLargeSummary(featureCounts: FeatureCountOutput): string {
+  const total = sumFeatureCounts(featureCounts);
+  const datasets = Object.entries(featureCounts)
+    .filter(([, count]) => count > 0)
+    .sort(([, a], [, b]) => b - a);
+
+  let summary = `# Changes Summary\n\n`;
+  summary += `**Total Features Changed**: ${total}\n`;
+  summary += `**Datasets Affected**: ${datasets.length}\n\n`;
+  summary += `## Feature Changes Preview\n`;
+  summary += `*Too many features changed (${MaxFeatureCount} limit) to preview. `;
+  summary += `Check workflow artifacts for the full diff.*\n\n`;
+  if (datasets.length > 0) {
+    summary += `### Changes by Dataset\n\n`;
+    for (const [dataset, count] of datasets) {
+      summary += `- **${dataset}**: ${count} features changed\n`;
+    }
+    summary += '\n';
+  }
+  return summary;
+}
+
 export function buildMarkdownSummary(
-  featureCount: number,
+  featureCounts: FeatureCountOutput,
   textDiff: string,
   gitDiff: string,
-  featureChangesPerDataset: Record<string, string>,
+  geojsonByDataset: Record<string, string>,
 ): string {
-  const allFeatures = Object.values(featureChangesPerDataset)
-    .map((geojsonStr) => {
-      const geojson = JSON.parse(geojsonStr) as GeoJson;
-      return geojson.features;
-    })
-    .flat();
-
-  const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
   const gitDiffInfo = truncateDiffLines(gitDiff, MaxDiffLines, MaxDiffLineLength);
   const textDiffInfo = truncateDiffLines(textDiff, MaxDiffLines, MaxDiffLineLength);
 
+  const total = sumFeatureCounts(featureCounts);
+  const datasets = Object.entries(featureCounts)
+    .filter(([, count]) => count > 0)
+    .sort(([, a], [, b]) => b - a);
+
   let summary = `# Changes Summary\n\n`;
-  summary += `**Total Features Changed**: ${featureCount}\n`;
-  summary += `**Datasets Affected**: ${Object.keys(featureChangesPerDataset).length}\n`;
+  summary += `**Total Features Changed**: ${total}\n`;
+  summary += `**Datasets Affected**: ${datasets.length}\n`;
   summary += `**Git Diff Lines**: ${gitDiffInfo.totalLines}\n\n`;
 
-  // Only include GeoJSON if we have features, it's not too large, and under character limit
-  const geojsonLength = allChangesGeoJson.length;
+  const allFeatures = Object.values(geojsonByDataset)
+    .map((geojsonStr) => (JSON.parse(geojsonStr) as GeoJson).features)
+    .flat();
+
+  const allChangesGeoJson = JSON.stringify({ type: 'FeatureCollection', features: allFeatures }, null, 2);
+
+  // Only embed GeoJSON if it is under the character limit (keeps the comment within GitHub's size cap)
+  const canEmbedGeojson = allChangesGeoJson.length <= MaxGeoJsonLength;
   if (allFeatures.length > 0) {
     summary += `## Feature Changes Preview\n`;
-    if (geojsonLength <= MaxGeoJsonLength) {
+    if (canEmbedGeojson) {
       summary += '```geojson\n';
       summary += `${allChangesGeoJson}\n`;
       summary += '```\n\n';
     } else {
-      summary += `*GeoJSON too large to display (${geojsonLength} characters > ${MaxGeoJsonLength} limit). `;
+      summary += `*GeoJSON too large to display (${allChangesGeoJson.length} characters > ${MaxGeoJsonLength} limit). `;
       summary += `Check workflow artifacts for full GeoJSON data.*\n\n`;
     }
   }
 
-  if (Object.keys(featureChangesPerDataset).length > 0 && geojsonLength <= MaxGeoJsonLength) {
+  if (datasets.length > 0 && canEmbedGeojson) {
     summary += `### Changes by Dataset\n\n`;
-    for (const [dataset, geojsonStr] of Object.entries(featureChangesPerDataset)) {
-      const geojson = JSON.parse(geojsonStr) as GeoJson;
-      const featureCount = geojson.features.length;
-      if (featureCount > 0) {
-        summary += `<details>\n<summary>**${dataset}**: ${featureCount} features changed</summary>\n\n`;
+    for (const [dataset, count] of datasets) {
+      summary += `<details>\n<summary>**${dataset}**: ${count} features changed</summary>\n\n`;
+      const geojsonStr = geojsonByDataset[dataset];
+      if (geojsonStr) {
         summary += '```geojson\n';
         summary += `${geojsonStr}\n`;
         summary += '```\n';
-        summary += `</details>\n\n`;
       }
+      summary += `</details>\n\n`;
     }
     summary += '\n';
   }
 
-  summary += `## Kart Diff\n\n`;
+  return summary + buildDiffSections(total, textDiffInfo, gitDiffInfo);
+}
+
+type DiffInfo = ReturnType<typeof truncateDiffLines>;
+
+/** Render the collapsible Kart Diff and Git Diff sections shared by every summary. */
+function buildDiffSections(featureCount: number, textDiffInfo: DiffInfo, gitDiffInfo: DiffInfo): string {
+  let summary = `## Kart Diff\n\n`;
   summary += `<details>\n`;
   summary += `<summary>Kart Diff (${featureCount} features)</summary>\n\n`;
   summary += '```diff\n';

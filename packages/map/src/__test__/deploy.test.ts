@@ -2,12 +2,11 @@ import assert from 'node:assert';
 import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
-import { StacUpdater, StacPushCommand, StacBasic } from '@linzjs/topographic-system-stac';
-import type { StacCollection, StacItem } from 'stac-ts';
-import type { GeoJSONMultiPolygon } from 'stac-ts';
+import { StacPushCommand } from '@linzjs/topographic-system-stac';
+import type { GeoJSONMultiPolygon, StacCollection, StacItem } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
-import { pyRunner } from '../python.runner.ts';
+import { writeBaseLayers } from './util.ts';
 
 describe('action.deploy', () => {
   const mem = new FsMemory();
@@ -17,32 +16,15 @@ describe('action.deploy', () => {
     fsa.register('memory://', mem);
   });
 
-  it('should deploy a qgs file', async (t) => {
-    await fsa.write(fsa.toUrl('memory://source/topo50maps/topo50.qgs'), '<xml ?>');
+  it('should deploy a qgs file', async () => {
+    const rootCatalog = new URL('memory://source/catalog.json');
 
-    const waterUrl = fsa.toUrl('memory://source/water/latest/collection.json');
-    const waterChathams = fsa.toUrl('memory://source/water-chat/latest/collection.json');
-
-    await StacUpdater.readWriteJson<StacCollection>(waterUrl, () => {
-      const col = StacBasic.collection();
-      col.extent.spatial.bbox = [[166.0, -47.5, 179.0, -34.0]];
-      col.assets = { parquet: { href: './water.parquet' } };
-      return col;
-    });
-    await StacUpdater.readWriteJson<StacCollection>(waterChathams, () => {
-      const col = StacBasic.collection();
-      col.extent.spatial.bbox = [[-177.3, -44.7, -175.5, -43.3]];
-      col.assets = { parquet: { href: './water-chat.parquet' } };
-      return col;
-    });
-
-    await StacUpdater.collections(new URL('memory://source/catalog.json'), [waterUrl, waterChathams], true);
-
-    t.mock.method(pyRunner, 'listSourceLayers', () => ['water', 'water-chat']);
+    await writeBaseLayers(rootCatalog);
 
     const targetDeploy = new URL('memory://target/deploy/');
     await DeployCommand.handler({
       concurrency,
+      extras: [],
       project: [new URL('memory://source/topo50maps/topo50.qgs')],
       target: targetDeploy,
       source: new URL('memory://source/catalog.json'),
@@ -81,8 +63,9 @@ describe('action.deploy', () => {
     const datasets = latest.item.links.filter((f) => f.rel === 'dataset').map((m) => m.href);
     // Water datasets are in another host so should have absolute urls
     assert.deepEqual(datasets, [
-      'memory://source/water/latest/collection.json',
-      'memory://source/water-chat/latest/collection.json',
+      'memory://source/data/road_line/latest/collection.json',
+      'memory://source/data/water/latest/collection.json',
+      'memory://source/data/nztopo50_map_sheet/latest/collection.json',
     ]);
 
     assert.deepEqual(latest.collection.extent.spatial.bbox, [

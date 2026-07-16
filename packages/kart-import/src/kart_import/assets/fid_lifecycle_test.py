@@ -1,0 +1,33 @@
+from pathlib import Path
+
+from .. import config
+from ..config import Source, ThemeDataset
+from . import fid_lifecycle
+
+
+def test_resolve_dataset_id_prefers_explicit_source_dataset(monkeypatch):
+    """A multi-dataset repo must use the configured dataset id, never auto-detect."""
+    td = ThemeDataset(
+        name="lamps_linz_road_cl",
+        source=Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl"),
+    )
+    monkeypatch.setitem(config.DATASET_MAP, td.name, td)
+
+    def _boom(_repo_dir):
+        raise AssertionError("get_kart_dataset_id must not be called when source.dataset is set")
+
+    monkeypatch.setattr(fid_lifecycle, "get_kart_dataset_id", _boom)
+
+    assert fid_lifecycle.resolve_dataset_id(td.name, Path("/tmp/repo")) == "linz_road_cl"
+
+
+def test_resolve_dataset_id_falls_back_to_autodetect(monkeypatch):
+    """A single-dataset koordinates repo has no explicit dataset; auto-detect it."""
+    td = ThemeDataset(
+        name="nz_airport_polygons",
+        source=Source(url="kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"),
+    )
+    monkeypatch.setitem(config.DATASET_MAP, td.name, td)
+    monkeypatch.setattr(fid_lifecycle, "get_kart_dataset_id", lambda _repo_dir: "nz-airport-polygons-topo-150k")
+
+    assert fid_lifecycle.resolve_dataset_id(td.name, Path("/tmp/repo")) == "nz-airport-polygons-topo-150k"

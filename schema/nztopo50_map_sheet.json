@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nztopo50_map_sheet",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    },
+    "t50_fid": {},
+    "type": {
+      "type": "string",
+      "const": "nztopo50_map_sheet"
+    },
+    "sheet_code": {
+      "type": "string"
+    },
+    "sheet_name": {
+      "type": "string"
+    },
+    "x_origin": {
+      "type": "number"
+    },
+    "y_origin": {
+      "type": "number"
+    },
+    "example_point_id": {
+      "type": "string",
+      "description": "topo_id (UUID) of the example feature."
+    },
+    "published_version": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "sheet_code",
+    "sheet_name",
+    "x_origin",
+    "y_origin",
+    "example_point_id",
+    "published_version",
+    "published_at",
+    "updated_at",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

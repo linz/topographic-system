@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nztopo50_carto_text",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    },
+    "example_point_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "id (UUID) of the example feature."
+    },
+    "full_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_bend": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_char_spacing_distance": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_colour": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_font": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextFontEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_placement": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_size_type": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_stretch_length": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_string": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text_word_spacing_distance": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "font": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FontEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "style": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StyleEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "colour": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ColourEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "size": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "placement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PlacementEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "offset": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "textanchor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextanchorEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "labelanchor": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "charplace": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CharplaceEnum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "chardistance": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["id", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "TextFontEnum": {
+      "type": "string",
+      "enum": [
+        "ATTrium-Italic",
+        "ATTriumMou-Cond",
+        "ATTriumMou-CondBold",
+        "ATTriumMou-CondItalic",
+        "ATTriumMou-Italic",
+        "ATTriumMou-Regular",
+        "Courier Bold Oblique"
+      ],
+      "description": "Auto-derived from observed values of `text_font`."
+    },
+    "FontEnum": {
+      "type": "string",
+      "enum": ["", "Nimbus Sans LINZ"],
+      "description": "Auto-derived from observed values of `font`."
+    },
+    "StyleEnum": {
+      "type": "string",
+      "enum": ["", "Italic", "Narrow", "Narrow Bold", "Narrow Italic", "Regular"],
+      "description": "Auto-derived from observed values of `style`."
+    },
+    "ColourEnum": {
+      "type": "string",
+      "enum": ["", "black", "process_blue", "red"],
+      "description": "Auto-derived from observed values of `colour`."
+    },
+    "PlacementEnum": {
+      "type": "string",
+      "enum": ["", "AL", "BL", "OL"],
+      "description": "Auto-derived from observed values of `placement`."
+    },
+    "TextanchorEnum": {
+      "type": "string",
+      "enum": ["", "centre", "left", "left ", "left 0.62", "right"],
+      "description": "Auto-derived from observed values of `textanchor`."
+    },
+    "CharplaceEnum": {
+      "type": "string",
+      "enum": ["", "CharactersAtVertices", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"],
+      "description": "Auto-derived from observed values of `charplace`."
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

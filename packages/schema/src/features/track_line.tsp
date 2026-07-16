@@ -9,7 +9,7 @@ model track_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "track" | null;
+  type: "track";
   track_use?: Topo.TrackUseEnum | null;
   track_type?: Topo.TrackTypeEnum | null;
   status?: Topo.StatusEnum | null;
@@ -19,3 +19,4 @@ model track_line {
   geometry: unknown;
   bbox?: Topo.BBox;
 }
+
