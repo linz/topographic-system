@@ -16,4 +16,6 @@ target/
 .tmp_*
 .snakemake/
 .cache/
+.uv/
+.uv-python/
 .vscode/
