@@ -22,7 +22,8 @@ def kart_import_theme(theme_name: str):
 
     repo_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Initializing Kart repo", extra={"target": str(repo_dir)})
-    run_command(["kart", "init", "."], cwd=str(repo_dir))
+    # -b master so the bundle's branch matches what kart_import_repo fetches
+    run_command(["kart", "init", "-b", "master", "."], cwd=str(repo_dir))
 
     for release in releases:
         # Set commit date using standard Git environment variables

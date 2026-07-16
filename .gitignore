@@ -4,6 +4,7 @@ tsconfig.tsbuildinfo
 .venv/
 .ruff_cache/
 .mypy_cache/
+.pytest_cache/
 __pycache__/
 dist/
 build/
@@ -15,4 +16,6 @@ target/
 .tmp_*
 .snakemake/
 .cache/
+.uv/
+.uv-python/
 .vscode/
