@@ -14,7 +14,7 @@ It is intended as a layer-by-layer companion to DATA_PROCESSING_WORKFLOW.md.
 1. Source files are discovered in gpkg mode by default.
 2. Files are mapped to logical layer_name via layers_info.csv (shp_name and kart_layer_name keys).
 3. A union of all source fields is computed per logical layer; missing fields are added as NULL.
-4. feature_type is added from mapping type.
+4. feature_type and theme are added from feature_type and theme mapping.
 5. Data is reprojected to EPSG:2193.
 6. Column order is normalized (geometry last).
 7. Common short-name fixes are applied when present:

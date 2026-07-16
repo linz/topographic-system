@@ -38,7 +38,7 @@ Current run configuration in `run()`:
 2. Resolve output layer from mapping.
 3. Skip contour in this loader path (contours are managed by contours/import_contours.py).
 4. Add any missing common fields as NULL.
-5. Add feature_type from mapping type.
+5. Add feature_type and theme from type and theme.
 6. Reproject to EPSG:2193.
 7. Reorder columns so geometry is last.
 
