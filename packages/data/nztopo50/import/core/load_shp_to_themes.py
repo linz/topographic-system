@@ -410,7 +410,7 @@ class Topo50DataLoader:
                 )
                 continue
 
-            theme = layer_info[1]
+            # theme = layer_info[1]
             dataset = layer_info[4]
             if layer_name not in processed_layer:
                 processed_layer.append(layer_name)
@@ -418,7 +418,7 @@ class Topo50DataLoader:
             for col in common_columns:
                 if col not in gdf.columns:
                     gdf[col] = None
-            gdf["theme"] = theme
+            # gdf["theme"] = theme
             gdf["feature_type"] = layer_info[2]
             
             gdf = gdf.to_crs(epsg=2193)
