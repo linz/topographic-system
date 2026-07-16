@@ -5,7 +5,8 @@ requires-python = ">=3.12"
 
 dependencies = [
     "pyarrow",
-    "geopandas"
+    "geopandas",
+    "topographic-system-kart-import"
 ]
 
 [dependency-groups]
@@ -16,3 +17,6 @@ dev = [
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+topographic-system-kart-import = { workspace = true }

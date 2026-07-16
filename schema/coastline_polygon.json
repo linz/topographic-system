@@ -4,14 +4,7 @@
   "type": "object",
   "properties": {
     "id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
+      "type": "string",
       "description": "UUID for the feature."
     },
     "t50_fid": {},
@@ -69,8 +62,13 @@
         }
       ]
     },
-    "updated_at": {},
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "created_at": {
+      "type": "string",
+      "format": "date-time",
       "description": "Default at write time: today."
     },
     "geometry": {
@@ -80,7 +78,7 @@
       }
     }
   },
-  "required": ["type", "geometry"],
+  "required": ["id", "type", "updated_at", "created_at", "geometry"],
   "description": "Derived polygon Union of coastline and island",
   "additionalProperties": false
 }
