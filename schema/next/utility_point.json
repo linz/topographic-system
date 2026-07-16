@@ -7,6 +7,14 @@
       "type": "string",
       "description": "UUIDv7 of the feature"
     },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "t50_fid": {
       "anyOf": [
         {
@@ -46,22 +54,15 @@
     "metadata": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DataSource"
+          }
         },
         {
           "type": "null"
         }
       ]
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was created"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO Datetime of when the metadata was last updated"
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -74,12 +75,71 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "t50_fid", "type", "name", "orientation", "metadata", "created_at", "updated_at", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "orientation", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "utility_point_type": {
       "type": "string",
       "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
+    },
+    "DataSource": {
+      "type": "object",
+      "properties": {
+        "table_column": {
+          "type": "string",
+          "description": "Name of the column in this table where the linked data gets copied to"
+        },
+        "source": {
+          "$ref": "#/$defs/metadata_source",
+          "description": "Registered source for linked data"
+        },
+        "source_key_name": {
+          "type": "string",
+          "description": "Name of the key column in source to use for linking"
+        },
+        "source_key_value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Value of the key column in source to use for linking."
+        },
+        "source_table": {
+          "type": "string",
+          "description": "Name of the table in source that contains the linked data"
+        },
+        "source_column": {
+          "type": "string",
+          "description": "Name of the column in the source where the linked data gets copied from"
+        },
+        "source_updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the source was last updated"
+        },
+        "imported_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this linked data was last imported"
+        }
+      },
+      "required": [
+        "table_column",
+        "source",
+        "source_key_name",
+        "source_key_value",
+        "source_table",
+        "source_column",
+        "source_updated_at",
+        "imported_at"
+      ],
+      "additionalProperties": false
     },
     "BBox": {
       "type": "object",
@@ -98,7 +158,12 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
+    },
+    "metadata_source": {
+      "type": "string",
+      "enum": ["nzgb_gazetteer", "linz_aims"]
     }
   }
 }
