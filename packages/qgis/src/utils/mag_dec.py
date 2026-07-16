@@ -8,8 +8,8 @@ MODEL_PATH = "/usr/qgis/models"
 
 # expects a lat-lon pair in WGS84 (EPSG:4326)
 def calculate_magnetic_declination(point: QgsPoint, date: datetime) -> float:
-    lat = point.y()  # y axis, vertical axis, north/south, latitude
-    lon = point.x()  # x axis, horizontal axis, east/west, longitude
+    lat = point.y()  # y axis, vertical axis, north/south
+    lon = point.x()  # x axis, horizontal axis, east/west
 
     scope = QgsExpressionContextScope()
     scope.setVariable("model_name", MODEL_NAME)
