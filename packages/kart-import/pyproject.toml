@@ -1,8 +1,13 @@
 [project]
 name = "topographic-system-kart-import"
 version = "0.1.0"
-description = ""
+description = "Package to import topographic data from kart repositories (LINZ Data Service), apply transformations and load into a new harmonized repository, including historic versions."
 readme = "README.md"
+authors = [
+    { name = "Blayne Chard", email = "bchard@linz.govt.nz" },
+    { name = "Tobias Schmidt", email = "tschmidt@linz.govt.nz" },
+]
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "dask-geopandas>=0.5.0",
     "geopandas>=1.1.3",

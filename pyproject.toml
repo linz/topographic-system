@@ -10,7 +10,7 @@ authors = [
     { name = "Tāwera Manaena", email = "tmanaena@linz.govt.nz" },
 ]
 
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "topographic-system-qgis",
     "topographic-system-validation",
