@@ -78,6 +78,12 @@ def _schema_fragment_type_to_text(schema_fragment: dict[str, Any]) -> str:
         return "object"
     if schema_type == "string" and schema_fragment.get("format") == "date-time":
         return "datetime"
+    const_value = schema_fragment.get("const")
+    if const_value is not None:
+        return schema_type or "str"
+    enum_values = schema_fragment.get("enum")
+    if isinstance(enum_values, list):
+        return schema_type or "str"
     if schema_type:
         return schema_type
 
@@ -104,6 +110,36 @@ def _load_models_by_title(module: Any) -> dict[str, type[BaseModel]]:
         raise RuntimeError("No Pydantic model classes found in the loaded module")
 
     return collected
+
+
+def _extract_enum_values(property_schema: dict[str, Any]) -> list | None:
+    """Extract enum/const values from a property schema, handling Optional[Literal[...]] anyOf wrapping."""
+    # Direct enum
+    enum_values = property_schema.get("enum")
+    if isinstance(enum_values, list):
+        return enum_values
+
+    # Direct const
+    const_value = property_schema.get("const")
+    if const_value is not None:
+        return [const_value]
+
+    # Pydantic emits Optional[Literal[...]] as anyOf: [{"enum": [...]} / {"const": ...}, {"type": "null"}]
+    any_of = property_schema.get("anyOf")
+    if isinstance(any_of, list):
+        for item in any_of:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("type", "")).lower() == "null":
+                continue
+            item_enum = item.get("enum")
+            if isinstance(item_enum, list):
+                return item_enum
+            item_const = item.get("const")
+            if item_const is not None:
+                return [item_const]
+
+    return None
 
 
 def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[str, str]]]:
@@ -136,6 +172,10 @@ def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[st
             if key in property_schema:
                 value = property_schema[key]
                 extra_parts.append(f"{key}={value}")
+
+        enum_values = _extract_enum_values(property_schema)
+        if enum_values:
+            extra_parts.append("enum: " + ", ".join(repr(v) for v in enum_values))
 
         rows.append(
             {

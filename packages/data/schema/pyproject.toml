@@ -1,8 +1,8 @@
 [project]
 name = "topographic-data-schema"
 version = "0.1.0"
-description = "Schema definition"
-readme = "README.md"
+description = "Schema definition and validation"
+readme = "topographic-data/README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0",
@@ -13,3 +13,7 @@ dependencies = [
     "graphviz",
     "matplotlib",
 ]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"

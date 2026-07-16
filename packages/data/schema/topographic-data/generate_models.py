@@ -99,6 +99,15 @@ def _schema_to_type_annotation(
             return _wrap_optional(base_type)
         return base_type
 
+    const_value = schema_fragment.get("const")
+    if const_value is not None:
+        return f"Literal[{repr(const_value)}]"
+
+    enum_values = schema_fragment.get("enum")
+    if isinstance(enum_values, list) and enum_values:
+        literals = ", ".join(repr(v) for v in enum_values)
+        return f"Literal[{literals}]"
+
     schema_type = str(schema_fragment.get("type", "")).lower()
 
     if schema_type == "string":
@@ -304,7 +313,7 @@ def generate_models_file(schema_dir: Path, output_file: Path) -> None:
         "from __future__ import annotations",
         "",
         "from datetime import datetime",
-        "from typing import Any, Optional, Union",
+        "from typing import Any, Literal, Optional, Union",
         "",
         "from pydantic import BaseModel, ConfigDict, Field",
         "",

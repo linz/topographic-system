@@ -157,7 +157,7 @@ Generated model for Airport.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'airport' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[AirportDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -181,7 +181,7 @@ Generated model for AirportDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -210,10 +210,10 @@ Generated model for BridgeLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | Optional[string] | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| construction_type | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | Optional[string] | yes | required |  |  | enum: 'cablecar', 'farm', 'foot_traffic', 'train', 'vehicle' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'foot_traffic', 'train' |
+| construction_type | Optional[string] | yes | required |  |  | enum: 'suspension', 'swing', 'trestle' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[BridgeLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -237,7 +237,7 @@ Generated model for BridgeLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -255,9 +255,9 @@ Generated model for Building.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'building' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
+| status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[BuildingDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -281,7 +281,7 @@ Generated model for BuildingDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -299,9 +299,9 @@ Generated model for BuildingPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'building' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
+| status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[BuildingPointDataSource]] | yes | required |  |  |  |
@@ -326,7 +326,7 @@ Generated model for BuildingPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -344,7 +344,7 @@ Generated model for Coastline.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'coastline' |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | metadata | Optional[list[CoastlineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -368,7 +368,7 @@ Generated model for CoastlineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -386,11 +386,11 @@ Generated model for Contour.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'contour' |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | definition | Optional[string] | yes | required |  |  |  |
-| designation | Optional[string] | yes | required |  |  |  |
-| formation | Optional[string] | yes | required |  |  |  |
+| designation | Optional[string] | yes | required |  |  | enum: 'supplementary' |
+| formation | Optional[string] | yes | required |  |  | enum: 'depression' |
 | metadata | Optional[list[ContourDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ContourBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -413,7 +413,7 @@ Generated model for ContourDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -428,7 +428,7 @@ Generated model for DataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -446,7 +446,7 @@ Generated model for DescriptiveText.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'descriptive_text' |
 | info_display | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[DescriptiveTextDataSource]] | yes | required |  |  |  |
@@ -471,7 +471,7 @@ Generated model for DescriptiveTextDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -489,7 +489,7 @@ Generated model for FenceLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'fence' |
 | metadata | Optional[list[FenceLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[FenceLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -512,7 +512,7 @@ Generated model for FenceLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -530,8 +530,8 @@ Generated model for FerryLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'ferry_crossing' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'vehicle' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[FerryLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -555,7 +555,7 @@ Generated model for FerryLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -573,7 +573,7 @@ Generated model for GeographicName.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'geographic_name' |
 | name | Optional[string] | yes | required |  |  |  |
 | desc_code | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
@@ -599,7 +599,7 @@ Generated model for GeographicNameDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -617,7 +617,7 @@ Generated model for Island.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'island' |
 | name | Optional[string] | yes | required |  |  |  |
 | group_name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[IslandDataSource]] | yes | required |  |  |  |
@@ -642,7 +642,7 @@ Generated model for IslandDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -660,7 +660,7 @@ Generated model for Landcover.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'ice', 'moraine', 'moraine_wall', 'mud', 'sand', 'scree', 'shingle', 'swamp' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[LandcoverDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -684,7 +684,7 @@ Generated model for LandcoverDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -702,7 +702,7 @@ Generated model for LandcoverLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'dredge_tailing' |
 | metadata | Optional[list[LandcoverLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandcoverLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -725,7 +725,7 @@ Generated model for LandcoverLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -743,7 +743,7 @@ Generated model for LandcoverPointCoreTypes.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cemetery', 'fumarole', 'swamp' |
 | subtype | unknown | yes | required |  |  |  |
 | metadata | Optional[list[LandcoverPointCoreTypesDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -767,7 +767,7 @@ Generated model for LandcoverPointCoreTypesDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -785,11 +785,11 @@ Generated model for Landuse.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cemetery', 'cycle_track', 'dog_track', 'golf_course', 'gravel_pit', 'horse_track', 'landfill', 'mine', 'orchard', 'pumice_pit', 'quarry', 'racetrack', 'rifle_range', 'showground', 'sportsfield', 'vineyard', 'vehicle_track' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
+| status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
-| substance_extracted | Optional[string] | yes | required |  |  |  |
+| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LanduseDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LanduseBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -812,7 +812,7 @@ Generated model for LanduseDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -830,8 +830,8 @@ Generated model for LanduseLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cemetery', 'cycle_track', 'dog_track', 'golf_course', 'gravel_pit', 'horse_track', 'landfill', 'mine', 'orchard', 'pumice_pit', 'quarry', 'racetrack', 'rifle_range', 'showground', 'sportsfield', 'vineyard', 'vehicle_track' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[LanduseLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -855,7 +855,7 @@ Generated model for LanduseLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -873,11 +873,11 @@ Generated model for LandusePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cemetery', 'cycle_track', 'dog_track', 'golf_course', 'gravel_pit', 'horse_track', 'landfill', 'mine', 'orchard', 'pumice_pit', 'quarry', 'racetrack', 'rifle_range', 'showground', 'sportsfield', 'vineyard', 'vehicle_track' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
+| status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
-| substance_extracted | Optional[string] | yes | required |  |  |  |
+| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LandusePointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandusePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -900,7 +900,7 @@ Generated model for LandusePointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -918,7 +918,7 @@ Generated model for Marine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'mangrove' |
 | name | Optional[string] | yes | required |  |  |  |
 | composition | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[MarineDataSource]] | yes | required |  |  |  |
@@ -943,7 +943,7 @@ Generated model for MarineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -961,7 +961,7 @@ Generated model for MarinePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'rock' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[MarinePointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -985,7 +985,7 @@ Generated model for MarinePointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1006,7 +1006,7 @@ Generated model for Nztopo50CartoText.
 | text_bend | Optional[integer] | yes | required |  |  |  |
 | text_char_spacing_distance | Optional[integer] | yes | required |  |  |  |
 | text_colour | Optional[integer] | yes | required |  |  |  |
-| text_font | Optional[string] | yes | required |  |  |  |
+| text_font | Optional[string] | yes | required |  |  | enum: 'ATTrium-Italic', 'ATTriumMou-Cond', 'ATTriumMou-CondBold', 'ATTriumMou-CondItalic', 'ATTriumMou-Italic', 'ATTriumMou-Regular', 'Courier Bold Oblique' |
 | text_height | Optional[number] | yes | required |  |  |  |
 | text_orientation | Optional[number] | yes | required |  |  |  |
 | text_placement | Optional[integer] | yes | required |  |  |  |
@@ -1014,15 +1014,15 @@ Generated model for Nztopo50CartoText.
 | text_stretch_length | Optional[integer] | yes | required |  |  |  |
 | text_string | Optional[string] | yes | required |  |  |  |
 | text_word_spacing_distance | Optional[integer] | yes | required |  |  |  |
-| font | Optional[string] | yes | required |  |  |  |
-| style | Optional[string] | yes | required |  |  |  |
-| colour | Optional[string] | yes | required |  |  |  |
+| font | Optional[string] | yes | required |  |  | enum: '', 'Nimbus Sans LINZ' |
+| style | Optional[string] | yes | required |  |  | enum: '', 'Italic', 'Narrow', 'Narrow Bold', 'Narrow Italic', 'Regular' |
+| colour | Optional[string] | yes | required |  |  | enum: '', 'black', 'process_blue', 'red' |
 | size | Optional[number] | yes | required |  |  |  |
-| placement | Optional[string] | yes | required |  |  |  |
+| placement | Optional[string] | yes | required |  |  | enum: '', 'AL', 'BL', 'OL' |
 | offset | Optional[number] | yes | required |  |  |  |
-| textanchor | Optional[string] | yes | required |  |  |  |
+| textanchor | Optional[string] | yes | required |  |  | enum: '', 'centre', 'left', 'left ', 'left 0.62', 'right' |
 | labelanchor | Optional[number] | yes | required |  |  |  |
-| charplace | Optional[string] | yes | required |  |  |  |
+| charplace | Optional[string] | yes | required |  |  | enum: '', 'CharactersAtVertices', 'StretchCharacterSpacingToFit', 'StretchWordSpacingToFit' |
 | chardistance | Optional[number] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[Nztopo50CartoTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1046,7 +1046,7 @@ Generated model for Nztopo50DmsGrid.
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| direction | string | yes | required |  |  |  |
+| direction | string | yes | required |  |  | enum: 'x', 'y' |
 | value | number | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[Nztopo50DmsGridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1070,7 +1070,7 @@ Generated model for Nztopo50Grid.
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| direction | string | yes | required |  |  |  |
+| direction | string | yes | required |  |  | enum: 'x', 'y' |
 | value | number | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[Nztopo50GridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1094,7 +1094,7 @@ Generated model for Nztopo50MapSheet.
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'nztopo50_map_sheet' |
 | sheet_code | string | yes | required |  |  |  |
 | sheet_name | string | yes | required |  |  |  |
 | origin_x | number | yes | required |  |  |  |
@@ -1127,11 +1127,11 @@ Generated model for PlacePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cave', 'cemetery', 'grave', 'historic_site', 'mine', 'monument', 'pa' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'opencast', 'underground' |
 | name | Optional[string] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
-| composition | Optional[string] | yes | required |  |  |  |
+| composition | Optional[string] | yes | required |  |  | enum: 'limestone', 'pumice', 'coral' |
 | description | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[PlacePointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1155,7 +1155,7 @@ Generated model for PlacePointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1177,11 +1177,11 @@ Multiple sidings may be held in the data and shown on the printed maps as a sing
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| track_type | Optional[string] | yes | required |  |  |  |
-| vehicle_type | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'railway' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'siding' |
+| track_type | Optional[string] | yes | required |  |  | enum: 'single', 'multiple' |
+| vehicle_type | Optional[string] | yes | required |  |  | enum: 'train', 'tram', 'rail_cart', 'cablecar' |
+| status | Optional[string] | yes | required |  |  | enum: 'disused' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[RailwayLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1205,7 +1205,7 @@ Generated model for RailwayLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1223,7 +1223,7 @@ Generated model for RailwayPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'station' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[RailwayPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1247,7 +1247,7 @@ Generated model for RailwayPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1265,7 +1265,7 @@ Generated model for Relief.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[ReliefDataSource]] | yes | required |  |  |  |
@@ -1290,7 +1290,7 @@ Generated model for ReliefDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1308,8 +1308,8 @@ Generated model for ReliefLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'cliff_edge', 'cutting_edge', 'embankment', 'rapid', 'slip_edge', 'waterfall', 'waterfall_edge', 'seawall' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'causeway', 'stopbank' |
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[ReliefLineDataSource]] | yes | required |  |  |  |
@@ -1334,7 +1334,7 @@ Generated model for ReliefLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1352,9 +1352,9 @@ Generated model for ReliefPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'height', 'saddle', 'sinkhole', 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
-| display | Optional[string] | yes | required |  |  |  |
+| display | Optional[string] | yes | required |  |  | enum: '0', '1', '2', '3' |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
@@ -1380,7 +1380,7 @@ Generated model for ReliefPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1398,7 +1398,7 @@ Generated model for ResidentialArea.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'residential_area' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[ResidentialAreaDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1422,7 +1422,7 @@ Generated model for ResidentialAreaDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1440,16 +1440,16 @@ Generated model for RoadLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'road' |
 | hierarchy | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  | enum: 'under_construction', 'closed' |
 | name | Optional[string] | yes | required |  |  |  |
 | highway_number | Optional[string] | yes | required |  |  |  |
 | lane_count | Optional[integer] | yes | required |  |  |  |
-| surface | Optional[string] | yes | required |  |  |  |
-| way_count | Optional[string] | yes | required |  |  |  |
-| width_indicator | Optional[string] | yes | required |  |  |  |
-| road_access | Optional[string] | yes | required |  |  |  |
+| surface | Optional[string] | yes | required |  |  | enum: 'metalled', 'unmetalled', 'sealed' |
+| way_count | Optional[string] | yes | required |  |  | enum: 'one_way' |
+| width_indicator | Optional[string] | yes | required |  |  | enum: 'w' |
+| road_access | Optional[string] | yes | required |  |  | enum: 'mp' |
 | metadata | Optional[list[RoadLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RoadLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1472,7 +1472,7 @@ Generated model for RoadLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1490,8 +1490,8 @@ Generated model for RockOutcrop.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'rock_outcrop' |
+| subtype | string | yes | required |  |  | enum: 'small_rock_outcrop', 'large_rock_outcrop', 'large_boulder' |
 | metadata | Optional[list[RockOutcropDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RockOutcropBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1514,7 +1514,7 @@ Generated model for RockOutcropDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1532,10 +1532,10 @@ Generated model for Runway.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
-| surface | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'runway' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'aerodrome', 'airport', 'airstrip' |
+| status | Optional[string] | yes | required |  |  | enum: 'disused' |
+| surface | Optional[string] | yes | required |  |  | enum: 'grass', 'sealed' |
 | metadata | Optional[list[RunwayDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RunwayBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1558,7 +1558,7 @@ Generated model for RunwayDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1576,12 +1576,12 @@ Generated model for Structure.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| lid_type | Optional[string] | yes | required |  |  |  |
-| tank_type | Optional[string] | yes | required |  |  |  |
-| species | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'dry_dock', 'fish_farm', 'marine_farm', 'reservoir', 'siphon', 'tank' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'building', 'coal', 'concrete', 'disused', 'fuel', 'historic', 'jetty', 'lake', 'land', 'lighthouse', 'lime', 'locked', 'plane', 'power_generation', 'rock', 'sea', 'ship', 'surge_chamber', 'tunnel_ventilation', 'uncovered', 'water' |
+| lid_type | Optional[string] | yes | required |  |  | enum: 'covered' |
+| tank_type | Optional[string] | yes | required |  |  | enum: 'uncovered', 'water', 'surge_chamber' |
+| species | Optional[string] | yes | required |  |  | enum: 'mussels', 'salmon' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[StructureDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1605,7 +1605,7 @@ Generated model for StructureDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1623,10 +1623,10 @@ Generated model for StructureLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| species | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'boatramp', 'boom', 'breakwater', 'cableway_industrial', 'cableway_people', 'dam', 'flume', 'ladder', 'marine_farm', 'ski_lift', 'ski_tow', 'slipway', 'spillway_edge', 'walkwire', 'water_race', 'weir', 'wharf', 'wharf_edge' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'building', 'coal', 'concrete', 'disused', 'fuel', 'historic', 'jetty', 'lake', 'land', 'lighthouse', 'lime', 'locked', 'plane', 'power_generation', 'rock', 'sea', 'ship', 'surge_chamber', 'tunnel_ventilation', 'uncovered', 'water' |
+| species | Optional[string] | yes | required |  |  | enum: 'mussels', 'salmon' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[StructureLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1650,7 +1650,7 @@ Generated model for StructureLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1668,10 +1668,10 @@ Generated model for StructurePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| tank_type | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'beacon', 'bivouac', 'buoy', 'chimney', 'dredge', 'flare', 'floodgate', 'gate', 'ladder', 'mast', 'radar_dome', 'redoubt', 'satellite_station', 'shaft', 'siphon', 'stockyard', 'tank', 'tower', 'well', 'windmill', 'wreck' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'building', 'coal', 'concrete', 'disused', 'fuel', 'historic', 'jetty', 'lake', 'land', 'lighthouse', 'lime', 'locked', 'plane', 'power_generation', 'rock', 'sea', 'ship', 'surge_chamber', 'tunnel_ventilation', 'uncovered', 'water' |
+| tank_type | Optional[string] | yes | required |  |  | enum: 'uncovered', 'water', 'surge_chamber' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
@@ -1697,7 +1697,7 @@ Generated model for StructurePointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1715,10 +1715,10 @@ Generated model for TrackLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| track_type | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'track' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'cycle_only', 'foot', 'vehicle' |
+| track_type | Optional[string] | yes | required |  |  | enum: 'connector', 'multiple', 'route', 'single' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TrackLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1742,7 +1742,7 @@ Generated model for TrackLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1760,7 +1760,7 @@ Generated model for TransportPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'ford' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TransportPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1784,7 +1784,7 @@ Generated model for TransportPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1802,8 +1802,8 @@ Generated model for TrigPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| trig_type | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'trig' |
+| trig_type | Optional[string] | yes | required |  |  | enum: 'beaconed' |
 | name | Optional[string] | yes | required |  |  |  |
 | code | Optional[string] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
@@ -1829,7 +1829,7 @@ Generated model for TrigPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1847,11 +1847,11 @@ Generated model for TunnelLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| tunnel_use | Optional[string] | yes | required |  |  |  |
-| tunnel_use2 | Optional[string] | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| status | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'tunnel' |
+| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'natural' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'under construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TunnelLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1875,7 +1875,7 @@ Generated model for TunnelLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1893,12 +1893,12 @@ Generated model for UtilityLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
-| support_type | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'pipeline' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'ironsand', 'sewage', 'steam', 'water' |
+| support_type | Optional[string] | yes | required |  |  | enum: 'pole', 'pylon' |
 | status | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
-| visibility | Optional[string] | yes | required |  |  |  |
+| visibility | Optional[string] | yes | required |  |  | enum: 'underground' |
 | metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -1921,7 +1921,7 @@ Generated model for UtilityLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1939,7 +1939,7 @@ Generated model for UtilityPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'dry_dock', 'fish_farm', 'marine_farm', 'reservoir', 'siphon', 'tank' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[UtilityPointDataSource]] | yes | required |  |  |  |
@@ -1964,7 +1964,7 @@ Generated model for UtilityPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -1982,8 +1982,8 @@ Generated model for Vegetation.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'exotic' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'coniferous', 'non-coniferous' |
 | species | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[VegetationDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -2007,7 +2007,7 @@ Generated model for VegetationDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -2025,7 +2025,7 @@ Generated model for VegetationLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'shelter_belt' |
 | metadata | Optional[list[VegetationLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[VegetationLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -2048,7 +2048,7 @@ Generated model for VegetationLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -2066,7 +2066,7 @@ Generated model for VegetationPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'tree' |
 | metadata | Optional[list[VegetationPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[VegetationPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -2089,7 +2089,7 @@ Generated model for VegetationPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -2107,15 +2107,15 @@ Generated model for Water.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| subtype | Optional[string] | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'evaporation', 'hydro_electric', 'ice_skating', 'oil', 'oxidation', 'reservoir', 'settling', 'sewage', 'sewage_treatment', 'sludge' |
 | hierarchy | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
 | group_name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
-| perennial | Optional[string] | yes | required |  |  |  |
-| temperature_indicator | Optional[string] | yes | required |  |  |  |
+| perennial | Optional[string] | yes | required |  |  | enum: 'dry', 'seasonal' |
+| temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[WaterBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -2138,7 +2138,7 @@ Generated model for WaterDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -2156,7 +2156,7 @@ Generated model for WaterLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
 | hierarchy | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[WaterLineDataSource]] | yes | required |  |  |  |
@@ -2181,7 +2181,7 @@ Generated model for WaterLineDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
@@ -2199,10 +2199,10 @@ Generated model for WaterPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| temperature_indicator | Optional[string] | yes | required |  |  |  |
+| temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[WaterPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
@@ -2225,7 +2225,7 @@ Generated model for WaterPointDataSource.
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data |  |
+| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
 | source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
 | source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
 | source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
