@@ -1,478 +1,1169 @@
 # Topographic Data Models
 
-Total models: 50
+Total models: 142
 
 ## Models
 
-- [AuditFields](#auditfields)
-- [ProductIdentity](#productidentity)
-- [TopoIdentity](#topoidentity)
-- [airport](#airport)
-- [bridge_line](#bridge_line)
-- [building](#building)
-- [building_point](#building_point)
-- [coastline](#coastline)
-- [contour](#contour)
-- [descriptive_text](#descriptive_text)
-- [fence_line](#fence_line)
-- [ferry_crossing](#ferry_crossing)
-- [ferry_line](#ferry_line)
-- [geographic_name](#geographic_name)
-- [island](#island)
-- [landcover](#landcover)
-- [landcover_line](#landcover_line)
-- [landcover_point](#landcover_point)
-- [landuse](#landuse)
-- [landuse_line](#landuse_line)
-- [marine](#marine)
-- [nztopo50_carto_text](#nztopo50_carto_text)
-- [nztopo50_dms_grid](#nztopo50_dms_grid)
-- [nztopo50_grid](#nztopo50_grid)
-- [nztopo50_map_sheet](#nztopo50_map_sheet)
-- [place_point](#place_point)
-- [railway_line](#railway_line)
-- [railway_point](#railway_point)
-- [railway_station](#railway_station)
-- [relief](#relief)
-- [relief_line](#relief_line)
-- [relief_point](#relief_point)
-- [residential_area](#residential_area)
-- [road_line](#road_line)
-- [runway](#runway)
-- [structure](#structure)
-- [structure_line](#structure_line)
-- [structure_point](#structure_point)
-- [track_line](#track_line)
-- [transport_point](#transport_point)
-- [trig_point](#trig_point)
-- [tunnel_line](#tunnel_line)
-- [utility_line](#utility_line)
-- [utility_point](#utility_point)
-- [vegetation](#vegetation)
-- [vegetation_line](#vegetation_line)
-- [vegetation_point](#vegetation_point)
-- [water](#water)
-- [water_line](#water_line)
-- [water_point](#water_point)
+- [Airport](#airport)
+- [AirportBBox](#airportbbox)
+- [AirportDataSource](#airportdatasource)
+- [BBox](#bbox)
+- [BridgeLine](#bridgeline)
+- [BridgeLineBBox](#bridgelinebbox)
+- [BridgeLineDataSource](#bridgelinedatasource)
+- [Building](#building)
+- [BuildingBBox](#buildingbbox)
+- [BuildingDataSource](#buildingdatasource)
+- [BuildingPoint](#buildingpoint)
+- [BuildingPointBBox](#buildingpointbbox)
+- [BuildingPointDataSource](#buildingpointdatasource)
+- [Coastline](#coastline)
+- [CoastlineBBox](#coastlinebbox)
+- [CoastlineDataSource](#coastlinedatasource)
+- [Contour](#contour)
+- [ContourBBox](#contourbbox)
+- [ContourDataSource](#contourdatasource)
+- [DataSource](#datasource)
+- [DescriptiveText](#descriptivetext)
+- [DescriptiveTextBBox](#descriptivetextbbox)
+- [DescriptiveTextDataSource](#descriptivetextdatasource)
+- [FenceLine](#fenceline)
+- [FenceLineBBox](#fencelinebbox)
+- [FenceLineDataSource](#fencelinedatasource)
+- [FerryLine](#ferryline)
+- [FerryLineBBox](#ferrylinebbox)
+- [FerryLineDataSource](#ferrylinedatasource)
+- [GeographicName](#geographicname)
+- [GeographicNameBBox](#geographicnamebbox)
+- [GeographicNameDataSource](#geographicnamedatasource)
+- [Island](#island)
+- [IslandBBox](#islandbbox)
+- [IslandDataSource](#islanddatasource)
+- [Landcover](#landcover)
+- [LandcoverBBox](#landcoverbbox)
+- [LandcoverDataSource](#landcoverdatasource)
+- [LandcoverLine](#landcoverline)
+- [LandcoverLineBBox](#landcoverlinebbox)
+- [LandcoverLineDataSource](#landcoverlinedatasource)
+- [LandcoverPointCoreTypes](#landcoverpointcoretypes)
+- [LandcoverPointCoreTypesBBox](#landcoverpointcoretypesbbox)
+- [LandcoverPointCoreTypesDataSource](#landcoverpointcoretypesdatasource)
+- [Landuse](#landuse)
+- [LanduseBBox](#landusebbox)
+- [LanduseDataSource](#landusedatasource)
+- [LanduseLine](#landuseline)
+- [LanduseLineBBox](#landuselinebbox)
+- [LanduseLineDataSource](#landuselinedatasource)
+- [LandusePoint](#landusepoint)
+- [LandusePointBBox](#landusepointbbox)
+- [LandusePointDataSource](#landusepointdatasource)
+- [Marine](#marine)
+- [MarineBBox](#marinebbox)
+- [MarineDataSource](#marinedatasource)
+- [MarinePoint](#marinepoint)
+- [MarinePointBBox](#marinepointbbox)
+- [MarinePointDataSource](#marinepointdatasource)
+- [Nztopo50CartoText](#nztopo50cartotext)
+- [Nztopo50CartoTextBBox](#nztopo50cartotextbbox)
+- [Nztopo50DmsGrid](#nztopo50dmsgrid)
+- [Nztopo50DmsGridBBox](#nztopo50dmsgridbbox)
+- [Nztopo50Grid](#nztopo50grid)
+- [Nztopo50GridBBox](#nztopo50gridbbox)
+- [Nztopo50MapSheet](#nztopo50mapsheet)
+- [Nztopo50MapSheetBBox](#nztopo50mapsheetbbox)
+- [PlacePoint](#placepoint)
+- [PlacePointBBox](#placepointbbox)
+- [PlacePointDataSource](#placepointdatasource)
+- [RailwayLine](#railwayline)
+- [RailwayLineBBox](#railwaylinebbox)
+- [RailwayLineDataSource](#railwaylinedatasource)
+- [RailwayPoint](#railwaypoint)
+- [RailwayPointBBox](#railwaypointbbox)
+- [RailwayPointDataSource](#railwaypointdatasource)
+- [Relief](#relief)
+- [ReliefBBox](#reliefbbox)
+- [ReliefDataSource](#reliefdatasource)
+- [ReliefLine](#reliefline)
+- [ReliefLineBBox](#relieflinebbox)
+- [ReliefLineDataSource](#relieflinedatasource)
+- [ReliefPoint](#reliefpoint)
+- [ReliefPointBBox](#reliefpointbbox)
+- [ReliefPointDataSource](#reliefpointdatasource)
+- [ResidentialArea](#residentialarea)
+- [ResidentialAreaBBox](#residentialareabbox)
+- [ResidentialAreaDataSource](#residentialareadatasource)
+- [RoadLine](#roadline)
+- [RoadLineBBox](#roadlinebbox)
+- [RoadLineDataSource](#roadlinedatasource)
+- [RockOutcrop](#rockoutcrop)
+- [RockOutcropBBox](#rockoutcropbbox)
+- [RockOutcropDataSource](#rockoutcropdatasource)
+- [Runway](#runway)
+- [RunwayBBox](#runwaybbox)
+- [RunwayDataSource](#runwaydatasource)
+- [Structure](#structure)
+- [StructureBBox](#structurebbox)
+- [StructureDataSource](#structuredatasource)
+- [StructureLine](#structureline)
+- [StructureLineBBox](#structurelinebbox)
+- [StructureLineDataSource](#structurelinedatasource)
+- [StructurePoint](#structurepoint)
+- [StructurePointBBox](#structurepointbbox)
+- [StructurePointDataSource](#structurepointdatasource)
+- [TrackLine](#trackline)
+- [TrackLineBBox](#tracklinebbox)
+- [TrackLineDataSource](#tracklinedatasource)
+- [TransportPoint](#transportpoint)
+- [TransportPointBBox](#transportpointbbox)
+- [TransportPointDataSource](#transportpointdatasource)
+- [TrigPoint](#trigpoint)
+- [TrigPointBBox](#trigpointbbox)
+- [TrigPointDataSource](#trigpointdatasource)
+- [TunnelLine](#tunnelline)
+- [TunnelLineBBox](#tunnellinebbox)
+- [TunnelLineDataSource](#tunnellinedatasource)
+- [UtilityLine](#utilityline)
+- [UtilityLineBBox](#utilitylinebbox)
+- [UtilityLineDataSource](#utilitylinedatasource)
+- [UtilityPoint](#utilitypoint)
+- [UtilityPointBBox](#utilitypointbbox)
+- [UtilityPointDataSource](#utilitypointdatasource)
+- [Vegetation](#vegetation)
+- [VegetationBBox](#vegetationbbox)
+- [VegetationDataSource](#vegetationdatasource)
+- [VegetationLine](#vegetationline)
+- [VegetationLineBBox](#vegetationlinebbox)
+- [VegetationLineDataSource](#vegetationlinedatasource)
+- [VegetationPoint](#vegetationpoint)
+- [VegetationPointBBox](#vegetationpointbbox)
+- [VegetationPointDataSource](#vegetationpointdatasource)
+- [Water](#water)
+- [WaterBBox](#waterbbox)
+- [WaterDataSource](#waterdatasource)
+- [WaterLine](#waterline)
+- [WaterLineBBox](#waterlinebbox)
+- [WaterLineDataSource](#waterlinedatasource)
+- [WaterPoint](#waterpoint)
+- [WaterPointBBox](#waterpointbbox)
+- [WaterPointDataSource](#waterpointdatasource)
 
-## AuditFields
+## Airport
 
-Capture / change-tracking columns shared by most features.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-
-## ProductIdentity
-
-Generated model for ProductIdentity.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-
-## TopoIdentity
-
-Identity columns shared by every file in the dataset.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-
-## airport
-
-Generated model for airport.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | yes | required |  |  |  |
-
-## bridge_line
-
-Generated model for bridge_line.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
-| use1 | unknown | yes | required |  |  |  |
-| use2 | unknown | yes | required |  |  |  |
-| construction_type | unknown | yes | required |  |  |  |
-| status | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## building
-
-Generated model for building.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| building_use | string | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## building_point
-
-Generated model for building_point.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| building_use | string | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| orientation | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## coastline
-
-Generated model for coastline.
+Generated model for Airport.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| elevation | integer | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[AirportDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[AirportBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## contour
+## AirportBBox
 
-Generated model for contour.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | integer | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| elevation | integer | no | None |  |  |  |
-| definition | string | no | None |  |  |  |
-| designation | unknown | no | None |  |  |  |
-| formation | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## descriptive_text
-
-Generated model for descriptive_text.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| nzgb_id | unknown | no | None |  |  |  |
-| info_display | string | no | None |  |  |  |
-| size | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## fence_line
+## AirportDataSource
 
-Generated model for fence_line.
+Generated model for AirportDataSource.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
 
-## ferry_crossing
+## BBox
 
-Generated model for ferry_crossing.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## ferry_line
+## BridgeLine
 
-Generated model for ferry_line.
+Generated model for BridgeLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | Optional[string] | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| construction_type | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[BridgeLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BridgeLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## geographic_name
+## BridgeLineBBox
 
-Generated model for geographic_name.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| desc_code | string | no | None |  |  |  |
-| size | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## island
-
-Generated model for island.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | string | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| group_name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## landcover
+## BridgeLineDataSource
 
-Generated model for landcover.
+Generated model for BridgeLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Building
+
+Generated model for Building.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[BuildingDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BuildingBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## landcover_line
+## BuildingBBox
 
-Generated model for landcover_line.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## BuildingDataSource
+
+Generated model for BuildingDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## BuildingPoint
+
+Generated model for BuildingPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| orientation | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[BuildingPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[BuildingPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## landcover_point
+## BuildingPointBBox
 
-Generated model for landcover_point.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| elevation | integer | no | None |  |  |  |
-| display | unknown | no | None |  |  |  |
-| orientation | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## landuse
-
-Generated model for landuse.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| landuse_use | unknown | no | None |  |  |  |
-| subtype | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| substance_extracted | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## landuse_line
+## BuildingPointDataSource
 
-Generated model for landuse_line.
+Generated model for BuildingPointDataSource.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Coastline
+
+Generated model for Coastline.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| landuse_use | unknown | no | None |  |  |  |
-| subtype | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| metadata | Optional[list[CoastlineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[CoastlineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## marine
+## CoastlineBBox
 
-Generated model for marine.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| composition | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## nztopo50_carto_text
-
-Generated model for nztopo50_carto_text.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| example_point_id | string | no | None |  | id (UUID) of the example feature. |  |
-| full_text | string | no | None |  |  |  |
-| text_bend | integer | no | None |  |  |  |
-| text_char_spacing_distance | integer | no | None |  |  |  |
-| text_colour | integer | no | None |  |  |  |
-| text_font | unknown | no | None |  |  |  |
-| text_height | number | no | None |  |  |  |
-| text_orientation | number | no | None |  |  |  |
-| text_placement | integer | no | None |  |  |  |
-| text_size_type | integer | no | None |  |  |  |
-| text_stretch_length | integer | no | None |  |  |  |
-| text_string | string | no | None |  |  |  |
-| text_word_spacing_distance | integer | no | None |  |  |  |
-| font | unknown | no | None |  |  |  |
-| style | unknown | no | None |  |  |  |
-| colour | unknown | no | None |  |  |  |
-| size | number | no | None |  |  |  |
-| placement | unknown | no | None |  |  |  |
-| offset | number | no | None |  |  |  |
-| textanchor | unknown | no | None |  |  |  |
-| labelanchor | number | no | None |  |  |  |
-| charplace | unknown | no | None |  |  |  |
-| chardistance | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## nztopo50_dms_grid
+## CoastlineDataSource
 
-Generated model for nztopo50_dms_grid.
+Generated model for CoastlineDataSource.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| direction | unknown | no | None |  |  |  |
-| value | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
 
-## nztopo50_grid
+## Contour
 
-Generated model for nztopo50_grid.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| direction | unknown | no | None |  |  |  |
-| value | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## nztopo50_map_sheet
-
-Generated model for nztopo50_map_sheet.
+Generated model for Contour.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| definition | Optional[string] | yes | required |  |  |  |
+| designation | Optional[string] | yes | required |  |  |  |
+| formation | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[ContourDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[ContourBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## ContourBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## ContourDataSource
+
+Generated model for ContourDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## DataSource
+
+Generated model for DataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## DescriptiveText
+
+Generated model for DescriptiveText.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| info_display | Optional[string] | yes | required |  |  |  |
+| size | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[DescriptiveTextDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[DescriptiveTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## DescriptiveTextBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## DescriptiveTextDataSource
+
+Generated model for DescriptiveTextDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## FenceLine
+
+Generated model for FenceLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| metadata | Optional[list[FenceLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[FenceLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## FenceLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## FenceLineDataSource
+
+Generated model for FenceLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## FerryLine
+
+Generated model for FerryLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[FerryLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[FerryLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## FerryLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## FerryLineDataSource
+
+Generated model for FerryLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## GeographicName
+
+Generated model for GeographicName.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| desc_code | Optional[string] | yes | required |  |  |  |
+| size | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[GeographicNameDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[GeographicNameBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## GeographicNameBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## GeographicNameDataSource
+
+Generated model for GeographicNameDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Island
+
+Generated model for Island.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| group_name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[IslandDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[IslandBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## IslandBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## IslandDataSource
+
+Generated model for IslandDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Landcover
+
+Generated model for Landcover.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[LandcoverDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LandcoverBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LandcoverBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LandcoverDataSource
+
+Generated model for LandcoverDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## LandcoverLine
+
+Generated model for LandcoverLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| metadata | Optional[list[LandcoverLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LandcoverLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LandcoverLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LandcoverLineDataSource
+
+Generated model for LandcoverLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## LandcoverPointCoreTypes
+
+Generated model for LandcoverPointCoreTypes.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | unknown | yes | required |  |  |  |
+| metadata | Optional[list[LandcoverPointCoreTypesDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LandcoverPointCoreTypesBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LandcoverPointCoreTypesBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LandcoverPointCoreTypesDataSource
+
+Generated model for LandcoverPointCoreTypesDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Landuse
+
+Generated model for Landuse.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| substance_extracted | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[LanduseDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LanduseBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LanduseBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LanduseDataSource
+
+Generated model for LanduseDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## LanduseLine
+
+Generated model for LanduseLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[LanduseLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LanduseLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LanduseLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LanduseLineDataSource
+
+Generated model for LanduseLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## LandusePoint
+
+Generated model for LandusePoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| substance_extracted | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[LandusePointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[LandusePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## LandusePointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## LandusePointDataSource
+
+Generated model for LandusePointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Marine
+
+Generated model for Marine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| composition | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[MarineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[MarineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## MarineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## MarineDataSource
+
+Generated model for MarineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## MarinePoint
+
+Generated model for MarinePoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[MarinePointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[MarinePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## MarinePointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## MarinePointDataSource
+
+Generated model for MarinePointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Nztopo50CartoText
+
+Generated model for Nztopo50CartoText.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| example_point_id | Optional[string] | yes | required |  | id (UUID) of the example feature. |  |
+| full_text | Optional[string] | yes | required |  |  |  |
+| text_bend | Optional[integer] | yes | required |  |  |  |
+| text_char_spacing_distance | Optional[integer] | yes | required |  |  |  |
+| text_colour | Optional[integer] | yes | required |  |  |  |
+| text_font | Optional[string] | yes | required |  |  |  |
+| text_height | Optional[number] | yes | required |  |  |  |
+| text_orientation | Optional[number] | yes | required |  |  |  |
+| text_placement | Optional[integer] | yes | required |  |  |  |
+| text_size_type | Optional[integer] | yes | required |  |  |  |
+| text_stretch_length | Optional[integer] | yes | required |  |  |  |
+| text_string | Optional[string] | yes | required |  |  |  |
+| text_word_spacing_distance | Optional[integer] | yes | required |  |  |  |
+| font | Optional[string] | yes | required |  |  |  |
+| style | Optional[string] | yes | required |  |  |  |
+| colour | Optional[string] | yes | required |  |  |  |
+| size | Optional[number] | yes | required |  |  |  |
+| placement | Optional[string] | yes | required |  |  |  |
+| offset | Optional[number] | yes | required |  |  |  |
+| textanchor | Optional[string] | yes | required |  |  |  |
+| labelanchor | Optional[number] | yes | required |  |  |  |
+| charplace | Optional[string] | yes | required |  |  |  |
+| chardistance | Optional[number] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[Nztopo50CartoTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## Nztopo50CartoTextBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## Nztopo50DmsGrid
+
+Generated model for Nztopo50DmsGrid.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| direction | string | yes | required |  |  |  |
+| value | number | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[Nztopo50DmsGridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## Nztopo50DmsGridBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## Nztopo50Grid
+
+Generated model for Nztopo50Grid.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| direction | string | yes | required |  |  |  |
+| value | number | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[Nztopo50GridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## Nztopo50GridBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## Nztopo50MapSheet
+
+Generated model for Nztopo50MapSheet.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
 | sheet_code | string | yes | required |  |  |  |
 | sheet_name | string | yes | required |  |  |  |
-| x_origin | number | yes | required |  |  |  |
-| y_origin | number | yes | required |  |  |  |
-| example_point_id | string | yes | required |  | topo_id (UUID) of the example feature. |  |
+| origin_x | number | yes | required |  |  |  |
+| origin_y | number | yes | required |  |  |  |
+| example_point_id | string | yes | required |  | id (UUID) of the example feature. |  |
 | published_version | string | yes | required |  |  |  |
-| published_at | object | yes | required |  |  |  |
-| updated_at | object | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| published_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[Nztopo50MapSheetBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## place_point
+## Nztopo50MapSheetBBox
 
-Generated model for place_point.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| place_type | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| elevation | integer | no | None |  |  |  |
-| composition | unknown | no | None |  |  |  |
-| description | string | no | None |  |  |  |
-| orientation | number | no | None |  |  |  |
-| substance_extracted | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## railway_line
+## PlacePoint
+
+Generated model for PlacePoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| composition | Optional[string] | yes | required |  |  |  |
+| description | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[PlacePointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[PlacePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## PlacePointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## PlacePointDataSource
+
+Generated model for PlacePointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## RailwayLine
 
 All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. 
 Where a railway line is located close to a road, the line held in the data and shown on the printed map 
@@ -483,425 +1174,1061 @@ Multiple sidings may be held in the data and shown on the printed maps as a sing
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| railway_use | unknown | yes | required |  |  |  |
-| track_type | unknown | yes | required |  |  |  |
-| vehicle_type | unknown | yes | required |  |  |  |
-| status | unknown | yes | required |  |  |  |
-| name | string | yes | required |  | The name of the railway line if known |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| track_type | Optional[string] | yes | required |  |  |  |
+| vehicle_type | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[RailwayLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[RailwayLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## railway_point
+## RailwayLineBBox
 
-Generated model for railway_point.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## RailwayLineDataSource
+
+Generated model for RailwayLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## RailwayPoint
+
+Generated model for RailwayPoint.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[RailwayPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[RailwayPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## railway_station
+## RailwayPointBBox
 
-Generated model for railway_station.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## RailwayPointDataSource
+
+Generated model for RailwayPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Relief
+
+Generated model for Relief.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[ReliefDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[ReliefBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## relief
+## ReliefBBox
 
-Generated model for relief.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## ReliefDataSource
+
+Generated model for ReliefDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## ReliefLine
+
+Generated model for ReliefLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| height | number | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## relief_line
-
-Generated model for relief_line.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| relief_use | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| height | number | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## relief_point
-
-Generated model for relief_point.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| display | unknown | yes | required |  |  |  |
-| elevation | integer | yes | required |  |  |  |
-| height | number | yes | required |  |  |  |
-| orientation | number | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## residential_area
-
-Generated model for residential_area.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[ReliefLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[ReliefLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## road_line
+## ReliefLineBBox
 
-Generated model for road_line.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## ReliefLineDataSource
+
+Generated model for ReliefLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## ReliefPoint
+
+Generated model for ReliefPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| hierarchy | string | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| highway_number | string | no | None |  |  |  |
-| lane_count | integer | no | None |  |  |  |
-| surface | unknown | no | None |  |  |  |
-| way_count | unknown | no | None |  |  |  |
-| width_indicator | string | no | None |  |  |  |
-| road_access | unknown | no | None |  |  |  |
-| name_id | unknown | no | None |  |  |  |
-| rna_sufi | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| display | Optional[string] | yes | required |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
+| orientation | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[ReliefPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[ReliefPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## runway
+## ReliefPointBBox
 
-Generated model for runway.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## ReliefPointDataSource
+
+Generated model for ReliefPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## ResidentialArea
+
+Generated model for ResidentialArea.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| runway_use | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| surface | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[ResidentialAreaDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[ResidentialAreaBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## structure
+## ResidentialAreaBBox
 
-Generated model for structure.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## ResidentialAreaDataSource
+
+Generated model for ResidentialAreaDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## RoadLine
+
+Generated model for RoadLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| lid_type | string | yes | required |  |  |  |
-| subtype | unknown | yes | required |  |  |  |
-| species | unknown | yes | required |  |  |  |
-| status | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| stored_item | unknown | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## structure_line
-
-Generated model for structure_line.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| structure_use | unknown | yes | required |  |  |  |
-| species | unknown | yes | required |  |  |  |
-| status | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| material | unknown | yes | required |  |  |  |
-| material_conveyed | unknown | yes | required |  |  |  |
-| restrictions | unknown | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## structure_point
-
-Generated model for structure_point.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| structure_use | unknown | yes | required |  |  |  |
-| tank_type | unknown | yes | required |  |  |  |
-| subtype | unknown | yes | required |  |  |  |
-| status | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| location | unknown | yes | required |  |  |  |
-| height | number | yes | required |  |  |  |
-| orientation | number | yes | required |  |  |  |
-| material | unknown | yes | required |  |  |  |
-| restrictions | unknown | yes | required |  |  |  |
-| stored_item | unknown | yes | required |  |  |  |
-| wreck_of | unknown | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## track_line
-
-Generated model for track_line.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| track_use | unknown | no | None |  |  |  |
-| track_type | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| hierarchy | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| highway_number | Optional[string] | yes | required |  |  |  |
+| lane_count | Optional[integer] | yes | required |  |  |  |
+| surface | Optional[string] | yes | required |  |  |  |
+| way_count | Optional[string] | yes | required |  |  |  |
+| width_indicator | Optional[string] | yes | required |  |  |  |
+| road_access | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[RoadLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[RoadLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## transport_point
+## RoadLineBBox
 
-Generated model for transport_point.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## trig_point
-
-Generated model for trig_point.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## RoadLineDataSource
+
+Generated model for RoadLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## RockOutcrop
+
+Generated model for RockOutcrop.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| trig_type | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| code | string | no | None |  |  |  |
-| elevation | integer | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| subtype | string | yes | required |  |  |  |
+| metadata | Optional[list[RockOutcropDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[RockOutcropBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## tunnel_line
+## RockOutcropBBox
 
-Generated model for tunnel_line.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## RockOutcropDataSource
+
+Generated model for RockOutcropDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Runway
+
+Generated model for Runway.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| tunnel_use | unknown | no | None |  |  |  |
-| tunnel_use2 | unknown | no | None |  |  |  |
-| subtype | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| surface | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[RunwayDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[RunwayBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## utility_line
+## RunwayBBox
 
-Generated model for utility_line.
+GeoParquet 1.1 covering bbox struct.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| utility_use | unknown | no | None |  |  |  |
-| support_type | unknown | no | None |  |  |  |
-| status | unknown | no | None |  |  |  |
-| name | string | no | None |  |  |  |
-| visibility | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
 
-## utility_point
+## RunwayDataSource
 
-Generated model for utility_point.
+Generated model for RunwayDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Structure
+
+Generated model for Structure.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| orientation | number | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## vegetation
-
-Generated model for vegetation.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
-| type | unknown | yes | required |  |  |  |
-| subtype | unknown | no | None |  |  |  |
-| species | unknown | no | None |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
-
-## vegetation_line
-
-Generated model for vegetation_line.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| id | string | yes | required |  | UUID for the feature. |  |
-| updated_at | object | yes | required |  |  |  |
-| created_at | object | yes | required |  | Default at write time: today. |  |
-| t50_fid | unknown | no | None |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  |  |
-| geometry | unknown | yes | required |  | WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. |  |
-| bbox | unknown | no | None |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| lid_type | Optional[string] | yes | required |  |  |  |
+| tank_type | Optional[string] | yes | required |  |  |  |
+| species | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[StructureDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[StructureBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## vegetation_point
+## StructureBBox
 
-Generated model for vegetation_point.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## StructureDataSource
+
+Generated model for StructureDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## StructureLine
+
+Generated model for StructureLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| species | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[StructureLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[StructureLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## water
+## StructureLineBBox
 
-Generated model for water.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## StructureLineDataSource
+
+Generated model for StructureLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## StructurePoint
+
+Generated model for StructurePoint.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| water_use | unknown | yes | required |  |  |  |
-| hierarchy | string | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| group_name | string | yes | required |  |  |  |
-| nzgb_feat_id | unknown | yes | required |  |  |  |
-| height | number | yes | required |  |  |  |
-| elevation | integer | yes | required |  |  |  |
-| perennial | unknown | yes | required |  |  |  |
-| temperature_indicator | unknown | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| tank_type | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
+| orientation | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[StructurePointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[StructurePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## water_line
+## StructurePointBBox
 
-Generated model for water_line.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## StructurePointDataSource
+
+Generated model for StructurePointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## TrackLine
+
+Generated model for TrackLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| hierarchy | string | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| track_type | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[TrackLineDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[TrackLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## water_point
+## TrackLineBBox
 
-Generated model for water_point.
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## TrackLineDataSource
+
+Generated model for TrackLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## TransportPoint
+
+Generated model for TransportPoint.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
 | id | string | yes | required |  | UUIDv7 of the feature |  |
-| created_at | string | yes | required |  | ISO Datetime of when the feature was created |  |
-| updated_at | string | yes | required |  | ISO Datetime of when the feature was last updated |  |
-| t50_fid | integer | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | unknown | yes | required |  |  |  |
-| name | string | yes | required |  |  |  |
-| orientation | number | yes | required |  |  |  |
-| temperature_indicator | unknown | yes | required |  |  |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[TransportPointDataSource]] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | unknown | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[TransportPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## TransportPointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## TransportPointDataSource
+
+Generated model for TransportPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## TrigPoint
+
+Generated model for TrigPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| trig_type | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| code | Optional[string] | yes | required |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| metadata | Optional[list[TrigPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[TrigPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## TrigPointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## TrigPointDataSource
+
+Generated model for TrigPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## TunnelLine
+
+Generated model for TunnelLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| tunnel_use | Optional[string] | yes | required |  |  |  |
+| tunnel_use2 | Optional[string] | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[TunnelLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[TunnelLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## TunnelLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## TunnelLineDataSource
+
+Generated model for TunnelLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## UtilityLine
+
+Generated model for UtilityLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| support_type | Optional[string] | yes | required |  |  |  |
+| status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| visibility | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## UtilityLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## UtilityLineDataSource
+
+Generated model for UtilityLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## UtilityPoint
+
+Generated model for UtilityPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| orientation | Optional[number] | yes | required |  |  |  |
+| metadata | Optional[list[UtilityPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[UtilityPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## UtilityPointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## UtilityPointDataSource
+
+Generated model for UtilityPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Vegetation
+
+Generated model for Vegetation.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| species | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[VegetationDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[VegetationBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## VegetationBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## VegetationDataSource
+
+Generated model for VegetationDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## VegetationLine
+
+Generated model for VegetationLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| metadata | Optional[list[VegetationLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[VegetationLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## VegetationLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## VegetationLineDataSource
+
+Generated model for VegetationLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## VegetationPoint
+
+Generated model for VegetationPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| metadata | Optional[list[VegetationPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[VegetationPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## VegetationPointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## VegetationPointDataSource
+
+Generated model for VegetationPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## Water
+
+Generated model for Water.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| subtype | Optional[string] | yes | required |  |  |  |
+| hierarchy | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| group_name | Optional[string] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| perennial | Optional[string] | yes | required |  |  |  |
+| temperature_indicator | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[WaterDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[WaterBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## WaterBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## WaterDataSource
+
+Generated model for WaterDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## WaterLine
+
+Generated model for WaterLine.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| hierarchy | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[WaterLineDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[WaterLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## WaterLineBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## WaterLineDataSource
+
+Generated model for WaterLineDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |
+
+## WaterPoint
+
+Generated model for WaterPoint.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | string | yes | required |  |  |  |
+| updated_at | string | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| orientation | Optional[number] | yes | required |  |  |  |
+| temperature_indicator | Optional[string] | yes | required |  |  |  |
+| metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[WaterPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## WaterPointBBox
+
+GeoParquet 1.1 covering bbox struct.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| xmin | number | yes | required |  |  |  |
+| ymin | number | yes | required |  |  |  |
+| xmax | number | yes | required |  |  |  |
+| ymax | number | yes | required |  |  |  |
+
+## WaterPointDataSource
+
+Generated model for WaterPointDataSource.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
+| source | string | yes | required |  | Registered source for linked data |  |
+| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
+| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
+| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
+| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
+| source_updated_at | string | yes | required |  | Timestamp when the source was last updated |  |
+| imported_at | string | yes | required |  | Timestamp when this linked data was last imported |  |

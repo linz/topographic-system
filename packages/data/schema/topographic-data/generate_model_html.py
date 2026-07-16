@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import html
 import importlib.util
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -10,35 +11,97 @@ from pydantic import BaseModel
 
 
 def _load_pydantic_models_module(models_file: Path):
-    # Read file with UTF-8 BOM handling
+    # Read file with UTF-8 BOM handling.
     content = models_file.read_text(encoding="utf-8-sig")
-    
+
     spec = importlib.util.spec_from_file_location("pydantic_models", models_file)
     if spec is None or spec.loader is None:
-      raise RuntimeError(f"Unable to load module from {models_file}")
+        raise RuntimeError(f"Unable to load module from {models_file}")
 
     module = importlib.util.module_from_spec(spec)
-    
-    # Execute module with content that has BOM removed
-    exec(compile(content, str(models_file), 'exec'), module.__dict__)
+    # Register module so Pydantic can resolve forward refs via __module__ lookups.
+    sys.modules[spec.name] = module
+
+    # Execute module with content that has BOM removed.
+    exec(compile(content, str(models_file), "exec"), module.__dict__)
     return module
 
 
-def _json_type_to_text(property_schema: dict[str, Any]) -> str:
-    if "type" in property_schema:
-        return str(property_schema["type"])
+def _rebuild_models(models_by_title: dict[str, type[BaseModel]], module: Any) -> None:
+    """Rebuild models to resolve postponed annotations/forward refs."""
+    types_namespace = dict(module.__dict__)
+    for model_class in models_by_title.values():
+        model_class.model_rebuild(force=True, _types_namespace=types_namespace)
 
-    any_of = property_schema.get("anyOf")
+
+def _json_type_to_text(property_schema: dict[str, Any]) -> str:
+    return _schema_fragment_type_to_text(property_schema)
+
+
+def _schema_ref_to_name(ref: str) -> str:
+    return ref.rsplit("/", 1)[-1] if "/" in ref else ref
+
+
+def _schema_fragment_type_to_text(schema_fragment: dict[str, Any]) -> str:
+    ref = schema_fragment.get("$ref")
+    if isinstance(ref, str):
+        return _schema_ref_to_name(ref)
+
+    any_of = schema_fragment.get("anyOf")
     if isinstance(any_of, list):
-        types: list[str] = []
+        has_null = False
+        variants: list[str] = []
         for item in any_of:
-            item_type = item.get("type") if isinstance(item, dict) else None
-            if item_type and item_type != "null":
-                types.append(str(item_type))
-        if types:
-            return " | ".join(types)
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("type", "")).lower() == "null":
+                has_null = True
+                continue
+            type_text = _schema_fragment_type_to_text(item)
+            if type_text not in variants:
+                variants.append(type_text)
+
+        if not variants:
+            return "Optional[Any]" if has_null else "unknown"
+
+        combined = variants[0] if len(variants) == 1 else " | ".join(variants)
+        return f"Optional[{combined}]" if has_null else combined
+
+    schema_type = str(schema_fragment.get("type", "")).lower()
+    if schema_type == "array":
+        items = schema_fragment.get("items")
+        if isinstance(items, dict):
+            return f"list[{_schema_fragment_type_to_text(items)}]"
+        return "list[Any]"
+
+    if schema_type == "object":
+        return "object"
+    if schema_type:
+        return schema_type
 
     return "unknown"
+
+
+def _load_models_by_title(module: Any) -> dict[str, type[BaseModel]]:
+    models_by_title = getattr(module, "MODELS_BY_TITLE", None)
+    if isinstance(models_by_title, dict):
+        return models_by_title
+
+    # Fallback for generated class modules that don't export MODELS_BY_TITLE.
+    collected: dict[str, type[BaseModel]] = {}
+    for attr_name, attr_value in module.__dict__.items():
+        if not isinstance(attr_value, type):
+            continue
+        if not issubclass(attr_value, BaseModel):
+            continue
+        if attr_value is BaseModel or attr_name == "BaseTopoModel":
+            continue
+        collected[attr_name] = attr_value
+
+    if not collected:
+        raise RuntimeError("No Pydantic model classes found in the loaded module")
+
+    return collected
 
 
 def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[str, str]]]:
@@ -94,13 +157,13 @@ def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
     for field_row in field_rows:
         rows.append(
             "<tr>"
-        f"<td>{html.escape(field_row['field'])}</td>"
-        f"<td>{html.escape(field_row['type'])}</td>"
-        f"<td>{html.escape(field_row['required'])}</td>"
-        f"<td>{html.escape(field_row['default'])}</td>"
-        f"<td>{html.escape(field_row['max_length'])}</td>"
-        f"<td>{html.escape(field_row['description'])}</td>"
-        f"<td>{html.escape(field_row['extra'])}</td>"
+            f"<td>{html.escape(field_row['field'])}</td>"
+            f"<td>{html.escape(field_row['type'])}</td>"
+            f"<td>{html.escape(field_row['required'])}</td>"
+            f"<td>{html.escape(field_row['default'])}</td>"
+            f"<td>{html.escape(field_row['max_length'])}</td>"
+            f"<td>{html.escape(field_row['description'])}</td>"
+            f"<td>{html.escape(field_row['extra'])}</td>"
             "</tr>"
         )
 
@@ -168,10 +231,8 @@ def _render_model_markdown_section(model_name: str, model_class: type[BaseModel]
 
 def build_html(models_file: Path, output_file: Path) -> None:
     module = _load_pydantic_models_module(models_file)
-
-    models_by_title = getattr(module, "MODELS_BY_TITLE", None)
-    if not isinstance(models_by_title, dict):
-        raise RuntimeError("MODELS_BY_TITLE was not found in the loaded module")
+    models_by_title = _load_models_by_title(module)
+    _rebuild_models(models_by_title, module)
 
     model_items = sorted(models_by_title.items(), key=lambda item: item[0])
     toc_items = [
@@ -302,45 +363,43 @@ def build_html(models_file: Path, output_file: Path) -> None:
 
 
 def build_markdown(models_file: Path, output_file: Path) -> None:
-  module = _load_pydantic_models_module(models_file)
+    module = _load_pydantic_models_module(models_file)
+    models_by_title = _load_models_by_title(module)
+    _rebuild_models(models_by_title, module)
 
-  models_by_title = getattr(module, "MODELS_BY_TITLE", None)
-  if not isinstance(models_by_title, dict):
-    raise RuntimeError("MODELS_BY_TITLE was not found in the loaded module")
-
-  model_items = sorted(models_by_title.items(), key=lambda item: item[0])
-  toc_items = [f"- [{name}](#{name.lower()})" for name, _ in model_items]
-  sections = [
-    _render_model_markdown_section(name, model_class)
-    for name, model_class in model_items
-  ]
-
-  page = "\n".join(
-    [
-      "# Topographic Data Models",
-      "",
-      f"Total models: {len(model_items)}",
-      "",
-      "## Models",
-      "",
-      *toc_items,
-      "",
-      *sections,
+    model_items = sorted(models_by_title.items(), key=lambda item: item[0])
+    toc_items = [f"- [{name}](#{name.lower()})" for name, _ in model_items]
+    sections = [
+        _render_model_markdown_section(name, model_class)
+        for name, model_class in model_items
     ]
-  ).rstrip() + "\n"
 
-  output_file.write_text(page, encoding="utf-8")
+    page = "\n".join(
+        [
+            "# Topographic Data Models",
+            "",
+            f"Total models: {len(model_items)}",
+            "",
+            "## Models",
+            "",
+            *toc_items,
+            "",
+            *sections,
+        ]
+    ).rstrip() + "\n"
+
+    output_file.write_text(page, encoding="utf-8")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-      description="Generate HTML and Markdown reference documents from generated topographic data models."
+        description="Generate HTML and Markdown reference documents from generated topographic data models."
     )
     parser.add_argument(
         "--models-file",
         type=Path,
-        default=Path(__file__).resolve().parent / "pydantic_models.py",
-        help="Path to the pydantic_models.py file",
+        default=Path(__file__).resolve().parent / "pydantic_models_classes.py",
+        help="Path to a Pydantic models module (for example pydantic_models_classes.py)",
     )
     parser.add_argument(
         "--output",
@@ -349,10 +408,10 @@ def main() -> None:
         help="Output HTML file path",
     )
     parser.add_argument(
-      "--markdown-output",
-      type=Path,
-      default=Path(__file__).resolve().parent / "examples" / "topographic_data_models.md",
-      help="Output Markdown file path",
+        "--markdown-output",
+        type=Path,
+        default=Path(__file__).resolve().parent / "examples" / "topographic_data_models.md",
+        help="Output Markdown file path",
     )
 
     args = parser.parse_args()

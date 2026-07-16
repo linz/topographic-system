@@ -6,7 +6,7 @@ Generated from JSON schemas with proper Field constraints and type hints.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,895 +18,1799 @@ class BaseTopoModel(BaseModel):
 
 
 
+class AirportBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class AirportDataSource(BaseTopoModel):
+    __doc__ = "Generated model for AirportDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+
+
 class Airport(BaseTopoModel):
-    """Generated model for Airport."""
+    __doc__ = "Generated model for Airport."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[AirportDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[AirportBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class BridgeLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class BridgeLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for BridgeLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BridgeLine(BaseTopoModel):
-    """Generated model for BridgeLine."""
+    __doc__ = "Generated model for BridgeLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    construction_type: Any = Field(...)
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Optional[str] = Field(...)
+    subtype: Optional[str] = Field(...)
+    construction_type: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[BridgeLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[BridgeLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class BuildingBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class BuildingDataSource(BaseTopoModel):
+    __doc__ = "Generated model for BuildingDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Building(BaseTopoModel):
-    """Generated model for Building."""
+    __doc__ = "Generated model for Building."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[BuildingDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[BuildingBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class BuildingPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class BuildingPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for BuildingPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BuildingPoint(BaseTopoModel):
-    """Generated model for BuildingPoint."""
+    __doc__ = "Generated model for BuildingPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    orientation: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    orientation: Optional[float] = Field(...)
+    metadata: Optional[list[BuildingPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[BuildingPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class CoastlineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class CoastlineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for CoastlineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Coastline(BaseTopoModel):
-    """Generated model for Coastline."""
+    __doc__ = "Generated model for Coastline."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    elevation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    elevation: Optional[int] = Field(...)
+    metadata: Optional[list[CoastlineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[CoastlineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class ContourBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class ContourDataSource(BaseTopoModel):
+    __doc__ = "Generated model for ContourDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Contour(BaseTopoModel):
-    """Generated model for Contour."""
+    __doc__ = "Generated model for Contour."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    definition: Any = Field(...)
-    designation: Any = Field(...)
-    elevation: Any = Field(...)
-    formation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    elevation: Optional[int] = Field(...)
+    definition: Optional[str] = Field(...)
+    designation: Optional[str] = Field(...)
+    formation: Optional[str] = Field(...)
+    metadata: Optional[list[ContourDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[ContourBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class DescriptiveTextBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class DescriptiveTextDataSource(BaseTopoModel):
+    __doc__ = "Generated model for DescriptiveTextDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class DescriptiveText(BaseTopoModel):
-    """Generated model for DescriptiveText."""
+    __doc__ = "Generated model for DescriptiveText."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    info_display: Any = Field(...)
-    metadata: Any = Field(...)
-    size: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    info_display: Optional[str] = Field(...)
+    size: Optional[float] = Field(...)
+    metadata: Optional[list[DescriptiveTextDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[DescriptiveTextBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class FenceLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class FenceLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for FenceLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class FenceLine(BaseTopoModel):
-    """Generated model for FenceLine."""
+    __doc__ = "Generated model for FenceLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    metadata: Optional[list[FenceLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[FenceLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class FerryLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class FerryLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for FerryLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class FerryLine(BaseTopoModel):
-    """Generated model for FerryLine."""
+    __doc__ = "Generated model for FerryLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[FerryLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[FerryLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class GeographicNameBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class GeographicNameDataSource(BaseTopoModel):
+    __doc__ = "Generated model for GeographicNameDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class GeographicName(BaseTopoModel):
-    """Generated model for GeographicName."""
+    __doc__ = "Generated model for GeographicName."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    desc_code: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    size: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    desc_code: Optional[str] = Field(...)
+    size: Optional[float] = Field(...)
+    metadata: Optional[list[GeographicNameDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[GeographicNameBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class IslandBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class IslandDataSource(BaseTopoModel):
+    __doc__ = "Generated model for IslandDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Island(BaseTopoModel):
-    """Generated model for Island."""
+    __doc__ = "Generated model for Island."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    group_name: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    group_name: Optional[str] = Field(...)
+    metadata: Optional[list[IslandDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[IslandBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class LandcoverBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LandcoverDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LandcoverDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Landcover(BaseTopoModel):
-    """Generated model for Landcover."""
+    __doc__ = "Generated model for Landcover."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[LandcoverDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LandcoverBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class LandcoverLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LandcoverLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LandcoverLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverLine(BaseTopoModel):
-    """Generated model for LandcoverLine."""
+    __doc__ = "Generated model for LandcoverLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    metadata: Optional[list[LandcoverLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LandcoverLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
 
 class BBox(BaseTopoModel):
-    """GeoParquet 1.1 covering bbox struct."""
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
 
-    xmax: float = Field(...)
     xmin: float = Field(...)
-    ymax: float = Field(...)
     ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class DataSource(BaseTopoModel):
-    """Generated model for DataSource."""
+    __doc__ = "Generated model for DataSource."
 
-    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
-    source: Any = Field(..., description="Registered source for linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Any = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
     table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
+
+
+class LandcoverPointCoreTypesBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LandcoverPointCoreTypesDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LandcoverPointCoreTypesDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverPointCoreTypes(BaseTopoModel):
-    """Generated model for LandcoverPointCoreTypes."""
+    __doc__ = "Generated model for LandcoverPointCoreTypes."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Any = Field(...)
+    metadata: Optional[list[LandcoverPointCoreTypesDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LandcoverPointCoreTypesBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class RockOutcropBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class RockOutcropDataSource(BaseTopoModel):
+    __doc__ = "Generated model for RockOutcropDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RockOutcrop(BaseTopoModel):
-    """Generated model for RockOutcrop."""
+    __doc__ = "Generated model for RockOutcrop."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: str = Field(...)
+    metadata: Optional[list[RockOutcropDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[RockOutcropBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class LanduseBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LanduseDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LanduseDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Landuse(BaseTopoModel):
-    """Generated model for Landuse."""
+    __doc__ = "Generated model for Landuse."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    substance_extracted: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    substance_extracted: Optional[str] = Field(...)
+    metadata: Optional[list[LanduseDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LanduseBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class LanduseLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LanduseLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LanduseLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LanduseLine(BaseTopoModel):
-    """Generated model for LanduseLine."""
+    __doc__ = "Generated model for LanduseLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[LanduseLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LanduseLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class LandusePointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class LandusePointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for LandusePointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandusePoint(BaseTopoModel):
-    """Generated model for LandusePoint."""
+    __doc__ = "Generated model for LandusePoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    substance_extracted: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    substance_extracted: Optional[str] = Field(...)
+    metadata: Optional[list[LandusePointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[LandusePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class MarineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class MarineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for MarineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Marine(BaseTopoModel):
-    """Generated model for Marine."""
+    __doc__ = "Generated model for Marine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    composition: Any = Field(...)
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    composition: Optional[str] = Field(...)
+    metadata: Optional[list[MarineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[MarineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class MarinePointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class MarinePointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for MarinePointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class MarinePoint(BaseTopoModel):
-    """Generated model for MarinePoint."""
+    __doc__ = "Generated model for MarinePoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[MarinePointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[MarinePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class Nztopo50CartoTextBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class Nztopo50CartoText(BaseTopoModel):
-    """Generated model for Nztopo50CartoText."""
+    __doc__ = "Generated model for Nztopo50CartoText."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    chardistance: Any = Field(...)
-    charplace: Any = Field(...)
-    colour: Any = Field(...)
-    example_point_id: Any = Field(..., description="id (UUID) of the example feature.")
-    font: Any = Field(...)
-    full_text: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    labelanchor: Any = Field(...)
-    offset: Any = Field(...)
-    placement: Any = Field(...)
-    size: Any = Field(...)
-    style: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    example_point_id: Optional[str] = Field(..., description="id (UUID) of the example feature.")
+    full_text: Optional[str] = Field(...)
+    text_bend: Optional[int] = Field(...)
+    text_char_spacing_distance: Optional[int] = Field(...)
+    text_colour: Optional[int] = Field(...)
+    text_font: Optional[str] = Field(...)
+    text_height: Optional[float] = Field(...)
+    text_orientation: Optional[float] = Field(...)
+    text_placement: Optional[int] = Field(...)
+    text_size_type: Optional[int] = Field(...)
+    text_stretch_length: Optional[int] = Field(...)
+    text_string: Optional[str] = Field(...)
+    text_word_spacing_distance: Optional[int] = Field(...)
+    font: Optional[str] = Field(...)
+    style: Optional[str] = Field(...)
+    colour: Optional[str] = Field(...)
+    size: Optional[float] = Field(...)
+    placement: Optional[str] = Field(...)
+    offset: Optional[float] = Field(...)
+    textanchor: Optional[str] = Field(...)
+    labelanchor: Optional[float] = Field(...)
+    charplace: Optional[str] = Field(...)
+    chardistance: Optional[float] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50CartoTextBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    text_bend: Any = Field(...)
-    text_char_spacing_distance: Any = Field(...)
-    text_colour: Any = Field(...)
-    text_font: Any = Field(...)
-    text_height: Any = Field(...)
-    text_orientation: Any = Field(...)
-    text_placement: Any = Field(...)
-    text_size_type: Any = Field(...)
-    text_stretch_length: Any = Field(...)
-    text_string: Any = Field(...)
-    text_word_spacing_distance: Any = Field(...)
-    textanchor: Any = Field(...)
+
+class Nztopo50DmsGridBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class Nztopo50DmsGrid(BaseTopoModel):
-    """Generated model for Nztopo50DmsGrid."""
+    __doc__ = "Generated model for Nztopo50DmsGrid."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    direction: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    direction: str = Field(...)
     value: float = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50DmsGridBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class Nztopo50GridBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class Nztopo50Grid(BaseTopoModel):
-    """Generated model for Nztopo50Grid."""
+    __doc__ = "Generated model for Nztopo50Grid."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    direction: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    direction: str = Field(...)
     value: float = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50GridBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class Nztopo50MapSheetBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class Nztopo50MapSheet(BaseTopoModel):
-    """Generated model for Nztopo50MapSheet."""
+    __doc__ = "Generated model for Nztopo50MapSheet."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    example_point_id: str = Field(..., description="id (UUID) of the example feature.")
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    origin_x: float = Field(...)
-    origin_y: float = Field(...)
-    published_at: str = Field(...)
-    published_version: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
     sheet_code: str = Field(...)
     sheet_name: str = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    origin_x: float = Field(...)
+    origin_y: float = Field(...)
+    example_point_id: str = Field(..., description="id (UUID) of the example feature.")
+    published_version: str = Field(...)
+    published_at: str = Field(...)
     updated_at: str = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50MapSheetBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class PlacePointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class PlacePointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for PlacePointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class PlacePoint(BaseTopoModel):
-    """Generated model for PlacePoint."""
+    __doc__ = "Generated model for PlacePoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    composition: Any = Field(...)
-    created_at: str = Field(...)
-    description: Any = Field(...)
-    elevation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    elevation: Optional[int] = Field(...)
+    composition: Optional[str] = Field(...)
+    description: Optional[str] = Field(...)
+    metadata: Optional[list[PlacePointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[PlacePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class RailwayLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class RailwayLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for RailwayLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RailwayLine(BaseTopoModel):
-    """All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. 
-Where a railway line is located close to a road, the line held in the data and shown on the printed map 
-may be offset from the road sufficient that the two symbols are recognisable at 1:50,000.
+    __doc__ = "All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. \nWhere a railway line is located close to a road, the line held in the data and shown on the printed map \nmay be offset from the road sufficient that the two symbols are recognisable at 1:50,000.\n\nMultiple sidings may be held in the data and shown on the printed maps as a single feature"
 
-Multiple sidings may be held in the data and shown on the printed maps as a single feature"""
-
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    track_type: Any = Field(...)
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
-    vehicle_type: Any = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    track_type: Optional[str] = Field(...)
+    vehicle_type: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[RailwayLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[RailwayLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class RailwayPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class RailwayPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for RailwayPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RailwayPoint(BaseTopoModel):
-    """Generated model for RailwayPoint."""
+    __doc__ = "Generated model for RailwayPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[RailwayPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[RailwayPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class ReliefBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class ReliefDataSource(BaseTopoModel):
+    __doc__ = "Generated model for ReliefDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Relief(BaseTopoModel):
-    """Generated model for Relief."""
+    __doc__ = "Generated model for Relief."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    height: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    height: Optional[float] = Field(...)
+    metadata: Optional[list[ReliefDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[ReliefBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class ReliefLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class ReliefLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for ReliefLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefLine(BaseTopoModel):
-    """Generated model for ReliefLine."""
+    __doc__ = "Generated model for ReliefLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    height: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    height: Optional[float] = Field(...)
+    metadata: Optional[list[ReliefLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[ReliefLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class ReliefPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class ReliefPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for ReliefPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefPoint(BaseTopoModel):
-    """Generated model for ReliefPoint."""
+    __doc__ = "Generated model for ReliefPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    display: Any = Field(...)
-    elevation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    height: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    orientation: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    display: Optional[str] = Field(...)
+    elevation: Optional[int] = Field(...)
+    height: Optional[float] = Field(...)
+    orientation: Optional[float] = Field(...)
+    metadata: Optional[list[ReliefPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[ReliefPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class ResidentialAreaBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class ResidentialAreaDataSource(BaseTopoModel):
+    __doc__ = "Generated model for ResidentialAreaDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ResidentialArea(BaseTopoModel):
-    """Generated model for ResidentialArea."""
+    __doc__ = "Generated model for ResidentialArea."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[ResidentialAreaDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[ResidentialAreaBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class RoadLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class RoadLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for RoadLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RoadLine(BaseTopoModel):
-    """Generated model for RoadLine."""
+    __doc__ = "Generated model for RoadLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    hierarchy: Any = Field(...)
-    highway_number: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    lane_count: Any = Field(...)
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    road_access: Any = Field(...)
-    status: Any = Field(...)
-    surface: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
-    way_count: Any = Field(...)
-    width_indicator: Any = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    hierarchy: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    highway_number: Optional[str] = Field(...)
+    lane_count: Optional[int] = Field(...)
+    surface: Optional[str] = Field(...)
+    way_count: Optional[str] = Field(...)
+    width_indicator: Optional[str] = Field(...)
+    road_access: Optional[str] = Field(...)
+    metadata: Optional[list[RoadLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[RoadLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class RunwayBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class RunwayDataSource(BaseTopoModel):
+    __doc__ = "Generated model for RunwayDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Runway(BaseTopoModel):
-    """Generated model for Runway."""
+    __doc__ = "Generated model for Runway."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    surface: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    surface: Optional[str] = Field(...)
+    metadata: Optional[list[RunwayDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[RunwayBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class StructureBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class StructureDataSource(BaseTopoModel):
+    __doc__ = "Generated model for StructureDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Structure(BaseTopoModel):
-    """Generated model for Structure."""
+    __doc__ = "Generated model for Structure."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    lid_type: Any = Field(...)
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    species: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    tank_type: Any = Field(...)
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    lid_type: Optional[str] = Field(...)
+    tank_type: Optional[str] = Field(...)
+    species: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[StructureDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[StructureBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class StructureLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class StructureLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for StructureLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructureLine(BaseTopoModel):
-    """Generated model for StructureLine."""
+    __doc__ = "Generated model for StructureLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    species: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    species: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[StructureLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[StructureLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class StructurePointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class StructurePointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for StructurePointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructurePoint(BaseTopoModel):
-    """Generated model for StructurePoint."""
+    __doc__ = "Generated model for StructurePoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    height: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    orientation: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    tank_type: Any = Field(...)
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    tank_type: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    height: Optional[float] = Field(...)
+    orientation: Optional[float] = Field(...)
+    metadata: Optional[list[StructurePointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[StructurePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class TrackLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class TrackLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for TrackLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrackLine(BaseTopoModel):
-    """Generated model for TrackLine."""
+    __doc__ = "Generated model for TrackLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    track_type: Any = Field(...)
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    track_type: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[TrackLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[TrackLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class TransportPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class TransportPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for TransportPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TransportPoint(BaseTopoModel):
-    """Generated model for TransportPoint."""
+    __doc__ = "Generated model for TransportPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[TransportPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[TransportPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class TrigPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class TrigPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for TrigPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrigPoint(BaseTopoModel):
-    """Generated model for TrigPoint."""
+    __doc__ = "Generated model for TrigPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    code: Any = Field(...)
-    created_at: str = Field(...)
-    elevation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    trig_type: Any = Field(...)
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    trig_type: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    code: Optional[str] = Field(...)
+    elevation: Optional[int] = Field(...)
+    metadata: Optional[list[TrigPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[TrigPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class TunnelLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class TunnelLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for TunnelLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TunnelLine(BaseTopoModel):
-    """Generated model for TunnelLine."""
+    __doc__ = "Generated model for TunnelLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    tunnel_use: Any = Field(...)
-    tunnel_use2: Any = Field(...)
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    tunnel_use: Optional[str] = Field(...)
+    tunnel_use2: Optional[str] = Field(...)
+    subtype: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[TunnelLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[TunnelLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class UtilityLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class UtilityLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for UtilityLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class UtilityLine(BaseTopoModel):
-    """Generated model for UtilityLine."""
+    __doc__ = "Generated model for UtilityLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    status: Any = Field(...)
-    subtype: Any = Field(...)
-    support_type: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
-    visibility: Any = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    support_type: Optional[str] = Field(...)
+    status: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    visibility: Optional[str] = Field(...)
+    metadata: Optional[list[UtilityLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[UtilityLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class UtilityPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class UtilityPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for UtilityPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class UtilityPoint(BaseTopoModel):
-    """Generated model for UtilityPoint."""
+    __doc__ = "Generated model for UtilityPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    orientation: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    orientation: Optional[float] = Field(...)
+    metadata: Optional[list[UtilityPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[UtilityPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class VegetationBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class VegetationDataSource(BaseTopoModel):
+    __doc__ = "Generated model for VegetationDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Vegetation(BaseTopoModel):
-    """Generated model for Vegetation."""
+    __doc__ = "Generated model for Vegetation."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    species: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    species: Optional[str] = Field(...)
+    metadata: Optional[list[VegetationDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[VegetationBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class VegetationLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class VegetationLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for VegetationLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class VegetationLine(BaseTopoModel):
-    """Generated model for VegetationLine."""
+    __doc__ = "Generated model for VegetationLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: str = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    metadata: Optional[list[VegetationLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[VegetationLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class VegetationPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class VegetationPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for VegetationPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class VegetationPoint(BaseTopoModel):
-    """Generated model for VegetationPoint."""
+    __doc__ = "Generated model for VegetationPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    metadata: Optional[list[VegetationPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[VegetationPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class WaterBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class WaterDataSource(BaseTopoModel):
+    __doc__ = "Generated model for WaterDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Water(BaseTopoModel):
-    """Generated model for Water."""
+    __doc__ = "Generated model for Water."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    elevation: Any = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    group_name: Any = Field(...)
-    height: Any = Field(...)
-    hierarchy: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    perennial: Any = Field(...)
-    subtype: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    temperature_indicator: Any = Field(...)
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    subtype: Optional[str] = Field(...)
+    hierarchy: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    group_name: Optional[str] = Field(...)
+    height: Optional[float] = Field(...)
+    elevation: Optional[int] = Field(...)
+    perennial: Optional[str] = Field(...)
+    temperature_indicator: Optional[str] = Field(...)
+    metadata: Optional[list[WaterDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[WaterBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class WaterLineBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class WaterLineDataSource(BaseTopoModel):
+    __doc__ = "Generated model for WaterLineDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class WaterLine(BaseTopoModel):
-    """Generated model for WaterLine."""
+    __doc__ = "Generated model for WaterLine."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
-    hierarchy: Any = Field(...)
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    hierarchy: Optional[str] = Field(...)
+    name: Optional[str] = Field(...)
+    metadata: Optional[list[WaterLineDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[WaterLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class WaterPointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class WaterPointDataSource(BaseTopoModel):
+    __doc__ = "Generated model for WaterPointDataSource."
+
+    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
+    source: str = Field(..., description="Registered source for linked data")
+    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
+    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
+    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
+    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
+    source_updated_at: str = Field(..., description="Timestamp when the source was last updated")
+    imported_at: str = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class WaterPoint(BaseTopoModel):
-    """Generated model for WaterPoint."""
+    __doc__ = "Generated model for WaterPoint."
 
-    bbox: Optional[Any] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
-    created_at: str = Field(...)
-    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     id: str = Field(..., description="UUIDv7 of the feature")
-    metadata: Any = Field(...)
-    name: Any = Field(...)
-    orientation: Any = Field(...)
-    t50_fid: Any = Field(..., description="Reference topo50 feature ID.
-
-Will be null if the feature is new and has not been published in a Topo50 edition.")
-    temperature_indicator: Any = Field(...)
-    type: Any = Field(...)
+    created_at: str = Field(...)
     updated_at: str = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: str = Field(...)
+    name: Optional[str] = Field(...)
+    orientation: Optional[float] = Field(...)
+    temperature_indicator: Optional[str] = Field(...)
+    metadata: Optional[list[WaterPointDataSource]] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[WaterPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
