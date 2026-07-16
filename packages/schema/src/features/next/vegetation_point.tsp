@@ -10,6 +10,7 @@ model vegetation_point {
 
   type: "tree" | "scattered_scrub";
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

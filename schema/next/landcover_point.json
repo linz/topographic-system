@@ -20,13 +20,11 @@
         },
         "created_at": {
           "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was created"
+          "format": "date-time"
         },
         "updated_at": {
           "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was last updated"
+          "format": "date-time"
         },
         "t50_fid": {
           "anyOf": [
@@ -48,6 +46,19 @@
         "subtype": {
           "$ref": "#/$defs/rock_outcrop_subtype"
         },
+        "metadata": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DataSource"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "geometry": {
           "description": "GeoParquet 1.1 covering geometry struct.",
           "not": {
@@ -59,7 +70,7 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "metadata", "geometry"]
     },
     "landcover_point_core_types": {
       "type": "object",
@@ -70,13 +81,11 @@
         },
         "created_at": {
           "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was created"
+          "format": "date-time"
         },
         "updated_at": {
           "type": "string",
-          "format": "date-time",
-          "description": "ISO Datetime of when the feature was last updated"
+          "format": "date-time"
         },
         "t50_fid": {
           "anyOf": [
@@ -97,6 +106,19 @@
         "subtype": {
           "type": "null"
         },
+        "metadata": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DataSource"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "geometry": {
           "description": "GeoParquet 1.1 covering geometry struct.",
           "not": {
@@ -108,11 +130,70 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "geometry"]
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "metadata", "geometry"]
     },
     "rock_outcrop_subtype": {
       "type": "string",
       "enum": ["small_rock_outcrop", "large_rock_outcrop", "large_boulder"]
+    },
+    "DataSource": {
+      "type": "object",
+      "properties": {
+        "table_column": {
+          "type": "string",
+          "description": "Name of the column in this table where the linked data gets copied to"
+        },
+        "source": {
+          "$ref": "#/$defs/metadata_source",
+          "description": "Registered source for linked data"
+        },
+        "source_key_name": {
+          "type": "string",
+          "description": "Name of the key column in source to use for linking"
+        },
+        "source_key_value": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Value of the key column in source to use for linking."
+        },
+        "source_table": {
+          "type": "string",
+          "description": "Name of the table in source that contains the linked data"
+        },
+        "source_column": {
+          "type": "string",
+          "description": "Name of the column in the source where the linked data gets copied from"
+        },
+        "source_updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the source was last updated"
+        },
+        "imported_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this linked data was last imported"
+        }
+      },
+      "required": [
+        "table_column",
+        "source",
+        "source_key_name",
+        "source_key_value",
+        "source_table",
+        "source_column",
+        "source_updated_at",
+        "imported_at"
+      ],
+      "additionalProperties": false
     },
     "BBox": {
       "type": "object",
@@ -131,11 +212,16 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     },
     "landcover_point_core_type": {
       "type": "string",
       "enum": ["cemetery", "fumarole", "swamp"]
+    },
+    "metadata_source": {
+      "type": "string",
+      "enum": ["nzgb_gazetteer", "linz_aims"]
     }
   }
 }

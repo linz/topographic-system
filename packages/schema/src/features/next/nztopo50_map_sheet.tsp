@@ -21,3 +21,4 @@ model nztopo50_map_sheet {
 
   ...GeoParquet
 }
+

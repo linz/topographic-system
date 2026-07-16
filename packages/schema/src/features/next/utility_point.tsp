@@ -12,6 +12,7 @@ model utility_point {
   name: string | null;
   orientation: float64 | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

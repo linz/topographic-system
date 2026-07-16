@@ -7,11 +7,13 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model relief_line {
   ...TopographicFeature;
+
   type: relief_line_type;
   subtype: relief_line_subtype | null;
   name: string | null;
   height: float64 | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

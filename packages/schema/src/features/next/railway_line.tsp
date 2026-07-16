@@ -25,28 +25,26 @@ model railway_line {
   ...TopographicFeature;
   
   type: "railway";
-  railway_use: railway_use | null;
-  track_type: track_type;
-  vehicle_type: vehicle_type;
+  subtype: railway_subtype | null;
+  track_type: railway_track_type | null;
+  vehicle_type: railway_vehicle_type | null;
   status: railway_status | null;
-  /**
-   * The name of the railway line if known
-   */
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 
-enum railway_use {
+enum railway_subtype {
   Siding: "siding"
 }
 
-enum track_type {
+enum railway_track_type {
   Single: "single",
   Multiple: "multiple"
 }
 
-enum vehicle_type {
+enum railway_vehicle_type {
   Train: "train",
   Tram: "tram", 
   /**
@@ -58,5 +56,4 @@ enum vehicle_type {
 
 enum railway_status {
   Disused: "disused",
-  UnderConstruction: "under_construction" 
 }

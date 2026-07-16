@@ -6,7 +6,7 @@ using TypeSpec.JsonSchema;
 @jsonSchema("next/bridge_line")
 @extension("additionalProperties", false)
 model bridge_line {
-   ...TopographicFeature;
+  ...TopographicFeature;
 
   type: bridge_type | null;
   subtype: bridge_subtype | null;
@@ -14,6 +14,7 @@ model bridge_line {
   status: status | null;
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 

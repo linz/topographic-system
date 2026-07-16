@@ -15,6 +15,7 @@ model structure_line {
   status: structure_status | null;
   name: string | null;
 
+  ...TopographicMetadata;
   ...GeoParquet
 }
 
