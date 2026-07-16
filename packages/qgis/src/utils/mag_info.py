@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TypedDict
 
-from PyQt6.QtCore import QDateTime
+from PyQt6.QtCore import QDate, QDateTime
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
 from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
@@ -36,10 +36,15 @@ def calculate_mag_info(
 ) -> MagInfoRaw:
     # date (rounded to july 1st)
     published_at = feature.attribute("published_at")
-    if not isinstance(published_at, QDateTime):
-        raise TypeError(f"published_at is not a QDateTime. Actual type: {type(published_at)}")
 
-    date = datetime(published_at.toPyDateTime().year, month=7, day=1)
+    if isinstance(published_at, QDate):
+        date = published_at.toPyDate()
+    elif isinstance(published_at, QDateTime):
+        date = published_at.toPyDateTime()
+    else:
+        raise TypeError(f"published_at is not a QDate or QDateTime. Actual type: {type(published_at)}")
+
+    date_rounded = datetime(date.year, month=7, day=1)
 
     # geometry (source crs)
     geometry = feature.geometry()
@@ -60,16 +65,16 @@ def calculate_mag_info(
     conv = source_crs.factors(center_transformed_point).meridianConvergence()
 
     # magnetic declination
-    decl = calculate_magnetic_declination(center_transformed_point, date)
+    decl = calculate_magnetic_declination(center_transformed_point, date_rounded)
 
     # rate of change
-    rate_years = calculate_rate_of_change(center_transformed_point, date)
+    rate_years = calculate_rate_of_change(center_transformed_point, date_rounded)
 
     # gm angle
     gm_degrees = decl - conv
     gm_mils = _degrees_to_mils(gm_degrees)
 
-    return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=date, gm_rate_years=rate_years)
+    return MagInfoRaw(gm_degrees=gm_degrees, gm_mils=gm_mils, gm_date=date_rounded, gm_rate_years=rate_years)
 
 
 def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
