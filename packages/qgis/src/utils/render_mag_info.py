@@ -11,15 +11,14 @@ def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
     # gm_mils
     gm_mils_raw = _degrees_to_mils(gm_degrees_rounded)
     gm_mils_rounded = round(gm_mils_raw)
-    gm_mils_int = int(gm_mils_rounded)
-    gm_mils_str = f"{gm_mils_int}"
+    gm_mils_str = str(gm_mils_rounded)
 
     # gm_year
-    gm_year_str = f"{mag_info['gm_date'].year}"
+    gm_year_str = str(mag_info['gm_date'].year)
 
     # gm_rate_years
     gm_rate_years_rounded = round(mag_info["gm_rate_years"])
-    gm_rate_years_str = f"{gm_rate_years_rounded}"
+    gm_rate_years_str = str(gm_rate_years_rounded)
 
     return MagInfoRender(
         gm_degrees=gm_degrees_str, gm_mils=gm_mils_str, gm_year=gm_year_str, gm_rate_years=gm_rate_years_str
