@@ -14,7 +14,7 @@ kart import postgresql://postgres:landinformation@localhost/topo/release66 --rep
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id fence_line 
 kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id ferry_crossing 
+kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id ferry_line 
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id geographic_name 
 kart push origin dataload-release66
@@ -40,7 +40,7 @@ kart import postgresql://postgres:landinformation@localhost/topo/release66 --rep
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id railway_line 
 kart push origin dataload-release66
-kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id railway_station 
+kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id railway_point 
 kart push origin dataload-release66
 kart import postgresql://postgres:landinformation@localhost/topo/release66 --replace-existing --primary-key id relief_line 
 kart push origin dataload-release66
