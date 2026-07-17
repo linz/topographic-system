@@ -21,23 +21,28 @@ def test_render_mag_info():
     input = MagInfoRaw(gm_degrees=-1.0, gm_date=date, gm_rate_years=rate_years)
     output = render_mag_info(input)
     assert output["gm_degrees"] == "-1"
+    assert output["gm_mils"] == "-18"
 
     # round to -0.5, preserve sign, replace "0.5" with "½"
     input = MagInfoRaw(gm_degrees=-0.3, gm_date=date, gm_rate_years=rate_years)
     output = render_mag_info(input)
     assert output["gm_degrees"] == "-½"
+    assert output["gm_mils"] == "-9"
 
     # remove ".0"
     input = MagInfoRaw(gm_degrees=0.0, gm_date=date, gm_rate_years=rate_years)
     output = render_mag_info(input)
     assert output["gm_degrees"] == "0"
+    assert output["gm_mils"] == "0"
 
     # round to 0.5, replace "0.5" with "½"
     input = MagInfoRaw(gm_degrees=0.7, gm_date=date, gm_rate_years=rate_years)
     output = render_mag_info(input)
     assert output["gm_degrees"] == "½"
+    assert output["gm_mils"] == "9"
 
     # remove ".0"
     input = MagInfoRaw(gm_degrees=1.0, gm_date=date, gm_rate_years=rate_years)
     output = render_mag_info(input)
     assert output["gm_degrees"] == "1"
+    assert output["gm_mils"] == "18"
