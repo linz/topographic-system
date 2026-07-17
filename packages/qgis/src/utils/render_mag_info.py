@@ -14,7 +14,7 @@ def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
     gm_mils_str = str(gm_mils_rounded)
 
     # gm_year
-    gm_year_str = str(mag_info['gm_date'].year)
+    gm_year_str = str(mag_info["gm_date"].year)
 
     # gm_rate_years
     gm_rate_years_rounded = round(mag_info["gm_rate_years"])
