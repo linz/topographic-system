@@ -748,8 +748,6 @@ class ModifyTable:
         """
         self.connect()
         table_list = [
-            "utility_point",
-            "utility_line",
             "structure",
             "ferry_line",
         ]
