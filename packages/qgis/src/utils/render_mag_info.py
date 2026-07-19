@@ -4,9 +4,12 @@ from utils.types_mag_info import MagInfoRaw, MagInfoRender
 def render_mag_info(mag_info: MagInfoRaw) -> MagInfoRender:
     # gm_degrees
     gm_degrees_rounded = round(mag_info["gm_degrees"] * 2) / 2  # nearest 0.5
-    gm_degrees_str = (
-        str(gm_degrees_rounded).replace(".0", "").replace(".5", "½").replace("-0½", "-½").replace("0½", "½")
-    )
+    gm_degrees_str = str(gm_degrees_rounded).replace(".0", "").replace(".5", "½")
+
+    if gm_degrees_str == "0½":
+        gm_degrees_str = "½"
+    elif gm_degrees_str == "-0½":
+        gm_degrees_str = "-½"
 
     # gm_mils
     gm_mils_raw = _degrees_to_mils(gm_degrees_rounded)
