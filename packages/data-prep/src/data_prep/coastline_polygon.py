@@ -6,7 +6,7 @@ import argparse
 import hashlib
 import logging
 import uuid
-from datetime import UTC, date, datetime, time
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -104,7 +104,7 @@ def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: date, pr
     result = land_gdf.copy()
     if result["name"].isna().any():
         raise ValueError("Cannot derive a reproducible id: one or more land polygons have no name.")
-    timestamp_ms = int(datetime.combine(source_created_at, time.min, tzinfo=UTC).timestamp() * 1000)
+    timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     # Derive a reproducible UUIDv7 from the source timestamp and the name.
     result["id"] = [str(reproducible_uuid7(timestamp_ms, name)) for name in result["name"]]
     result["t50_fid"] = None
