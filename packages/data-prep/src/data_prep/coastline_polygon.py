@@ -3,14 +3,15 @@ Build the coastlines and islands polygon layer from source coastline lines and i
 """
 
 import argparse
+import hashlib
 import logging
+import uuid
 from datetime import UTC, date, datetime, time
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 import shapely
-from kart_import.uuid7 import reproducable_uuid7_text
 
 from data_prep.parquet_utils import write_parquet
 
@@ -52,6 +53,21 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
     return gdf.to_crs(NZTM2000)
 
 
+# Reuse the reproducible UUIDv7 generation from kart-import, we could potentially move this to a shared library if we need it in more places.
+def reproducible_uuid7(timestamp_ms: int, text: str) -> uuid.UUID:
+    """Generate a reproducible UUIDv7 from a millisecond timestamp and text.
+
+    The timestamp fills the leading 48 bits; the remaining bits come from the
+    SHA-256 hash of ``text`` so the same inputs always produce the same id.
+    """
+    uuid_bytes = bytearray(16)
+    uuid_bytes[0:6] = timestamp_ms.to_bytes(6, byteorder="big")
+    uuid_bytes[6:16] = hashlib.sha256(text.encode("utf-8")).digest()[0:10]
+    uuid_bytes[6] = (uuid_bytes[6] & 0x0F) | 0x70  # version 7
+    uuid_bytes[8] = (uuid_bytes[8] & 0x3F) | 0x80  # variant 10
+    return uuid.UUID(bytes=bytes(uuid_bytes))
+
+
 def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> gpd.GeoSeries:
     """Convert coastline lines into land polygons."""
     geoms = coastline_gdf.geometry
@@ -90,7 +106,7 @@ def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: date, pr
         raise ValueError("Cannot derive a reproducible id: one or more land polygons have no name.")
     timestamp_ms = int(datetime.combine(source_created_at, time.min, tzinfo=UTC).timestamp() * 1000)
     # Derive a reproducible UUIDv7 from the source timestamp and the name.
-    result["id"] = [str(reproducable_uuid7_text(timestamp_ms, name)) for name in result["name"]]
+    result["id"] = [str(reproducible_uuid7(timestamp_ms, name)) for name in result["name"]]
     result["t50_fid"] = None
     result["created_at"] = source_created_at
     result["updated_at"] = produced_at

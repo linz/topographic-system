@@ -1419,7 +1419,6 @@ source = { editable = "packages/data-prep" }
 dependencies = [
     { name = "geopandas" },
     { name = "pyarrow" },
-    { name = "topographic-system-kart-import" },
 ]
 
 [package.dev-dependencies]
@@ -1432,7 +1431,6 @@ dev = [
 requires-dist = [
     { name = "geopandas" },
     { name = "pyarrow" },
-    { name = "topographic-system-kart-import", editable = "packages/kart-import" },
 ]
 
 [package.metadata.requires-dev]
