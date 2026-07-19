@@ -496,7 +496,7 @@ class ModifyTable:
                 ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
                 ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-                ["metadata", "VARCHAR(1000) DEFAULT ''", "DEFAULT"],
+                ["metadata", "VARCHAR(1000)", ""],
                # ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
