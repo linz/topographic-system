@@ -132,7 +132,7 @@
     },
     "tunnel_status": {
       "type": "string",
-      "enum": ["closed", "under construction"]
+      "enum": ["closed", "under_construction"]
     },
     "DataSource": {
       "type": "object",

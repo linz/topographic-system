@@ -35,5 +35,5 @@ enum tunnel_use {
 
 enum tunnel_status {
   Closed: "closed",
-  UnderConstruction: "under construction",
+  UnderConstruction: "under_construction",
 }
