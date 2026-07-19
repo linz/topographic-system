@@ -1259,9 +1259,9 @@ class TableModificationWorkflow:
             self.schema_name, "road_line", "way_count", "'one way'", "way_count ='1'"
         )
 
-        self.table_modifer.update_column_with_default(
-            self.schema_name, "road_line", "road_access", "'mp'", "road_access ='m'"
-        )
+        #self.table_modifer.update_column_with_default(
+        #    self.schema_name, "road_line", "road_access", "'mp'", "road_access ='m'"
+        #)
 
         self.table_modifer.update_column_with_default(
             self.schema_name,

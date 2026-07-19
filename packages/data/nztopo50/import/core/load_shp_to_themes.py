@@ -428,7 +428,7 @@ class Topo50DataLoader:
                 if col in gdf.columns and col != gdf.geometry.name
             ]
             cols += [c for c in ["feature_type"] if c in gdf.columns]
-            # cols += [c for c in ["theme"] if c in gdf.columns]
+            cols += [c for c in ["theme"] if c in gdf.columns]
 
             cols.append(gdf.geometry.name)
             gdf = gdf[cols]
