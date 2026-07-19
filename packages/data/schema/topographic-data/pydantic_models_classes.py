@@ -51,6 +51,7 @@ class Airport(BaseTopoModel):
     type: Literal['airport'] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[AirportDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[AirportBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -90,6 +91,7 @@ class BridgeLine(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[BridgeLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BridgeLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -128,6 +130,7 @@ class Building(BaseTopoModel):
     status: Optional[Literal['derelict', 'historic', 'private']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[BuildingDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BuildingBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -167,6 +170,7 @@ class BuildingPoint(BaseTopoModel):
     name: Optional[str] = Field(...)
     orientation: Optional[float] = Field(...)
     metadata: Optional[list[BuildingPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BuildingPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -203,6 +207,7 @@ class Coastline(BaseTopoModel):
     type: Union[Literal['coastline'], Literal['water_confluence'], Literal['wharf']] = Field(...)
     elevation: Optional[int] = Field(...)
     metadata: Optional[list[CoastlineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[CoastlineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -242,6 +247,7 @@ class Contour(BaseTopoModel):
     designation: Optional[Literal['supplementary']] = Field(...)
     formation: Optional[Literal['depression']] = Field(...)
     metadata: Optional[list[ContourDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ContourBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -279,6 +285,7 @@ class DescriptiveText(BaseTopoModel):
     info_display: Optional[str] = Field(...)
     size: Optional[float] = Field(...)
     metadata: Optional[list[DescriptiveTextDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[DescriptiveTextBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -314,6 +321,7 @@ class FenceLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['fence'] = Field(...)
     metadata: Optional[list[FenceLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[FenceLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -351,6 +359,7 @@ class FerryLine(BaseTopoModel):
     subtype: Optional[Union[Literal['vehicle'], Literal['passenger'], Literal['freight']]] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[FerryLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[FerryLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -389,6 +398,7 @@ class GeographicName(BaseTopoModel):
     desc_code: Optional[str] = Field(...)
     size: Optional[float] = Field(...)
     metadata: Optional[list[GeographicNameDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[GeographicNameBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -426,6 +436,7 @@ class Island(BaseTopoModel):
     name: Optional[str] = Field(...)
     group_name: Optional[str] = Field(...)
     metadata: Optional[list[IslandDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[IslandBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -462,6 +473,7 @@ class Landcover(BaseTopoModel):
     type: Literal['ice', 'moraine', 'moraine_wall', 'mud', 'sand', 'scree', 'shingle', 'swamp'] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[LandcoverDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -497,6 +509,7 @@ class LandcoverLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['dredge_tailing'] = Field(...)
     metadata: Optional[list[LandcoverLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -555,6 +568,7 @@ class LandcoverPointCoreTypes(BaseTopoModel):
     type: Literal['cemetery', 'fumarole', 'swamp'] = Field(...)
     subtype: Any = Field(...)
     metadata: Optional[list[LandcoverPointCoreTypesDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverPointCoreTypesBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -591,6 +605,7 @@ class RockOutcrop(BaseTopoModel):
     type: Literal['rock_outcrop'] = Field(...)
     subtype: Literal['small_rock_outcrop', 'large_rock_outcrop', 'large_boulder'] = Field(...)
     metadata: Optional[list[RockOutcropDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RockOutcropBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -630,6 +645,7 @@ class Landuse(BaseTopoModel):
     name: Optional[str] = Field(...)
     substance_extracted: Optional[Literal['bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite']] = Field(...)
     metadata: Optional[list[LanduseDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LanduseBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -667,6 +683,7 @@ class LanduseLine(BaseTopoModel):
     subtype: Optional[Literal['training', 'opencast', 'underground']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[LanduseLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LanduseLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -706,6 +723,7 @@ class LandusePoint(BaseTopoModel):
     name: Optional[str] = Field(...)
     substance_extracted: Optional[Literal['bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite']] = Field(...)
     metadata: Optional[list[LandusePointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandusePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -743,6 +761,7 @@ class Marine(BaseTopoModel):
     name: Optional[str] = Field(...)
     composition: Optional[str] = Field(...)
     metadata: Optional[list[MarineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[MarineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -779,6 +798,7 @@ class MarinePoint(BaseTopoModel):
     type: Literal['rock'] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[MarinePointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[MarinePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -927,6 +947,7 @@ class PlacePoint(BaseTopoModel):
     composition: Optional[Literal['limestone', 'pumice', 'coral']] = Field(...)
     description: Optional[str] = Field(...)
     metadata: Optional[list[PlacePointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[PlacePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -967,6 +988,7 @@ class RailwayLine(BaseTopoModel):
     status: Optional[Literal['disused']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[RailwayLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RailwayLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1003,6 +1025,7 @@ class RailwayPoint(BaseTopoModel):
     type: Literal['station'] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[RailwayPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RailwayPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1040,6 +1063,7 @@ class Relief(BaseTopoModel):
     name: Optional[str] = Field(...)
     height: Optional[float] = Field(...)
     metadata: Optional[list[ReliefDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1078,6 +1102,7 @@ class ReliefLine(BaseTopoModel):
     name: Optional[str] = Field(...)
     height: Optional[float] = Field(...)
     metadata: Optional[list[ReliefLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1118,6 +1143,7 @@ class ReliefPoint(BaseTopoModel):
     height: Optional[float] = Field(...)
     orientation: Optional[float] = Field(...)
     metadata: Optional[list[ReliefPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1154,6 +1180,7 @@ class ResidentialArea(BaseTopoModel):
     type: Literal['residential_area'] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[ResidentialAreaDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ResidentialAreaBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1198,6 +1225,7 @@ class RoadLine(BaseTopoModel):
     width_indicator: Optional[Literal['w']] = Field(...)
     road_access: Optional[Literal['mp']] = Field(...)
     metadata: Optional[list[RoadLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RoadLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1236,6 +1264,7 @@ class Runway(BaseTopoModel):
     status: Optional[Literal['disused']] = Field(...)
     surface: Optional[Literal['grass', 'sealed']] = Field(...)
     metadata: Optional[list[RunwayDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RunwayBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1277,6 +1306,7 @@ class Structure(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[StructureDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructureBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1316,6 +1346,7 @@ class StructureLine(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[StructureLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructureLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1357,6 +1388,7 @@ class StructurePoint(BaseTopoModel):
     height: Optional[float] = Field(...)
     orientation: Optional[float] = Field(...)
     metadata: Optional[list[StructurePointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructurePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1396,6 +1428,7 @@ class TrackLine(BaseTopoModel):
     status: Optional[Literal['closed']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[TrackLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TrackLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1432,6 +1465,7 @@ class TransportPoint(BaseTopoModel):
     type: Union[Literal['ford'], Literal['helipad']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[TransportPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TransportPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1471,6 +1505,7 @@ class TrigPoint(BaseTopoModel):
     code: Optional[str] = Field(...)
     elevation: Optional[int] = Field(...)
     metadata: Optional[list[TrigPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TrigPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1505,12 +1540,13 @@ class TunnelLine(BaseTopoModel):
     updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['tunnel'] = Field(...)
-    tunnel_use: Optional[Literal['cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle']] = Field(...)
-    tunnel_use2: Optional[Literal['cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle']] = Field(...)
+    tunnel_use: Optional[Literal['cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle']] = Field(...)
+    tunnel_use2: Optional[Literal['cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle']] = Field(...)
     subtype: Optional[Literal['natural']] = Field(...)
     status: Optional[Literal['closed', 'under construction']] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[TunnelLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TunnelLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1548,9 +1584,9 @@ class UtilityLine(BaseTopoModel):
     subtype: Optional[Literal['ironsand', 'sewage', 'steam', 'water']] = Field(...)
     support_type: Optional[Literal['pole', 'pylon']] = Field(...)
     status: Optional[str] = Field(...)
-    name: Optional[str] = Field(...)
     visibility: Optional[Literal['underground']] = Field(...)
     metadata: Optional[list[UtilityLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[UtilityLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1585,9 +1621,9 @@ class UtilityPoint(BaseTopoModel):
     updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['dry_dock', 'fish_farm', 'marine_farm', 'reservoir', 'siphon', 'tank'] = Field(...)
-    name: Optional[str] = Field(...)
     orientation: Optional[float] = Field(...)
     metadata: Optional[list[UtilityPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[UtilityPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1625,6 +1661,7 @@ class Vegetation(BaseTopoModel):
     subtype: Optional[Literal['coniferous', 'non-coniferous']] = Field(...)
     species: Optional[str] = Field(...)
     metadata: Optional[list[VegetationDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1660,6 +1697,7 @@ class VegetationLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['shelter_belt'] = Field(...)
     metadata: Optional[list[VegetationLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1695,6 +1733,7 @@ class VegetationPoint(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Union[Literal['tree'], Literal['scattered_scrub']] = Field(...)
     metadata: Optional[list[VegetationPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1738,6 +1777,7 @@ class Water(BaseTopoModel):
     perennial: Optional[Literal['dry', 'seasonal']] = Field(...)
     temperature_indicator: Optional[Literal['cold', 'hot']] = Field(...)
     metadata: Optional[list[WaterDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1775,6 +1815,7 @@ class WaterLine(BaseTopoModel):
     hierarchy: Optional[str] = Field(...)
     name: Optional[str] = Field(...)
     metadata: Optional[list[WaterLineDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1813,5 +1854,6 @@ class WaterPoint(BaseTopoModel):
     orientation: Optional[float] = Field(...)
     temperature_indicator: Optional[Literal['cold', 'hot']] = Field(...)
     metadata: Optional[list[WaterPointDataSource]] = Field(...)
+    theme: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")

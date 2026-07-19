@@ -160,6 +160,7 @@ Generated model for Airport.
 | type | string | yes | required |  |  | enum: 'airport' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[AirportDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[AirportBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -216,6 +217,7 @@ Generated model for BridgeLine.
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[BridgeLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[BridgeLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -260,6 +262,7 @@ Generated model for Building.
 | status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[BuildingDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[BuildingBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -305,6 +308,7 @@ Generated model for BuildingPoint.
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[BuildingPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[BuildingPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -347,6 +351,7 @@ Generated model for Coastline.
 | type | string | yes | required |  |  | enum: 'coastline' |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | metadata | Optional[list[CoastlineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[CoastlineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -392,6 +397,7 @@ Generated model for Contour.
 | designation | Optional[string] | yes | required |  |  | enum: 'supplementary' |
 | formation | Optional[string] | yes | required |  |  | enum: 'depression' |
 | metadata | Optional[list[ContourDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ContourBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -450,6 +456,7 @@ Generated model for DescriptiveText.
 | info_display | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[DescriptiveTextDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[DescriptiveTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -491,6 +498,7 @@ Generated model for FenceLine.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'fence' |
 | metadata | Optional[list[FenceLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[FenceLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -534,6 +542,7 @@ Generated model for FerryLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'vehicle' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[FerryLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[FerryLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -578,6 +587,7 @@ Generated model for GeographicName.
 | desc_code | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[GeographicNameDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[GeographicNameBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -621,6 +631,7 @@ Generated model for Island.
 | name | Optional[string] | yes | required |  |  |  |
 | group_name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[IslandDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[IslandBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -663,6 +674,7 @@ Generated model for Landcover.
 | type | string | yes | required |  |  | enum: 'ice', 'moraine', 'moraine_wall', 'mud', 'sand', 'scree', 'shingle', 'swamp' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[LandcoverDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandcoverBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -704,6 +716,7 @@ Generated model for LandcoverLine.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'dredge_tailing' |
 | metadata | Optional[list[LandcoverLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandcoverLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -746,6 +759,7 @@ Generated model for LandcoverPointCoreTypes.
 | type | string | yes | required |  |  | enum: 'cemetery', 'fumarole', 'swamp' |
 | subtype | unknown | yes | required |  |  |  |
 | metadata | Optional[list[LandcoverPointCoreTypesDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandcoverPointCoreTypesBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -791,6 +805,7 @@ Generated model for Landuse.
 | name | Optional[string] | yes | required |  |  |  |
 | substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LanduseDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LanduseBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -834,6 +849,7 @@ Generated model for LanduseLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[LanduseLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LanduseLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -879,6 +895,7 @@ Generated model for LandusePoint.
 | name | Optional[string] | yes | required |  |  |  |
 | substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LandusePointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[LandusePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -922,6 +939,7 @@ Generated model for Marine.
 | name | Optional[string] | yes | required |  |  |  |
 | composition | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[MarineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[MarineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -964,6 +982,7 @@ Generated model for MarinePoint.
 | type | string | yes | required |  |  | enum: 'rock' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[MarinePointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[MarinePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1134,6 +1153,7 @@ Generated model for PlacePoint.
 | composition | Optional[string] | yes | required |  |  | enum: 'limestone', 'pumice', 'coral' |
 | description | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[PlacePointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[PlacePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1184,6 +1204,7 @@ Multiple sidings may be held in the data and shown on the printed maps as a sing
 | status | Optional[string] | yes | required |  |  | enum: 'disused' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[RailwayLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RailwayLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1226,6 +1247,7 @@ Generated model for RailwayPoint.
 | type | string | yes | required |  |  | enum: 'station' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[RailwayPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RailwayPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1269,6 +1291,7 @@ Generated model for Relief.
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[ReliefDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ReliefBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1313,6 +1336,7 @@ Generated model for ReliefLine.
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[ReliefLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ReliefLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1359,6 +1383,7 @@ Generated model for ReliefPoint.
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[ReliefPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ReliefPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1401,6 +1426,7 @@ Generated model for ResidentialArea.
 | type | string | yes | required |  |  | enum: 'residential_area' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[ResidentialAreaDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[ResidentialAreaBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1451,6 +1477,7 @@ Generated model for RoadLine.
 | width_indicator | Optional[string] | yes | required |  |  | enum: 'w' |
 | road_access | Optional[string] | yes | required |  |  | enum: 'mp' |
 | metadata | Optional[list[RoadLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RoadLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1493,6 +1520,7 @@ Generated model for RockOutcrop.
 | type | string | yes | required |  |  | enum: 'rock_outcrop' |
 | subtype | string | yes | required |  |  | enum: 'small_rock_outcrop', 'large_rock_outcrop', 'large_boulder' |
 | metadata | Optional[list[RockOutcropDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RockOutcropBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1537,6 +1565,7 @@ Generated model for Runway.
 | status | Optional[string] | yes | required |  |  | enum: 'disused' |
 | surface | Optional[string] | yes | required |  |  | enum: 'grass', 'sealed' |
 | metadata | Optional[list[RunwayDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[RunwayBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1584,6 +1613,7 @@ Generated model for Structure.
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[StructureDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[StructureBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1629,6 +1659,7 @@ Generated model for StructureLine.
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[StructureLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[StructureLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1676,6 +1707,7 @@ Generated model for StructurePoint.
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[StructurePointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[StructurePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1721,6 +1753,7 @@ Generated model for TrackLine.
 | status | Optional[string] | yes | required |  |  | enum: 'closed' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TrackLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[TrackLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1763,6 +1796,7 @@ Generated model for TransportPoint.
 | type | string | yes | required |  |  | enum: 'ford' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TransportPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[TransportPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1808,6 +1842,7 @@ Generated model for TrigPoint.
 | code | Optional[string] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | metadata | Optional[list[TrigPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[TrigPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1848,12 +1883,13 @@ Generated model for TunnelLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'tunnel' |
-| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
-| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'natural' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'under construction' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TunnelLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[TunnelLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1897,9 +1933,9 @@ Generated model for UtilityLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'ironsand', 'sewage', 'steam', 'water' |
 | support_type | Optional[string] | yes | required |  |  | enum: 'pole', 'pylon' |
 | status | Optional[string] | yes | required |  |  |  |
-| name | Optional[string] | yes | required |  |  |  |
 | visibility | Optional[string] | yes | required |  |  | enum: 'underground' |
 | metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1940,9 +1976,9 @@ Generated model for UtilityPoint.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'dry_dock', 'fish_farm', 'marine_farm', 'reservoir', 'siphon', 'tank' |
-| name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[UtilityPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[UtilityPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1986,6 +2022,7 @@ Generated model for Vegetation.
 | subtype | Optional[string] | yes | required |  |  | enum: 'coniferous', 'non-coniferous' |
 | species | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[VegetationDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[VegetationBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2027,6 +2064,7 @@ Generated model for VegetationLine.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'shelter_belt' |
 | metadata | Optional[list[VegetationLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[VegetationLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2068,6 +2106,7 @@ Generated model for VegetationPoint.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'tree' |
 | metadata | Optional[list[VegetationPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[VegetationPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2117,6 +2156,7 @@ Generated model for Water.
 | perennial | Optional[string] | yes | required |  |  | enum: 'dry', 'seasonal' |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[WaterBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2160,6 +2200,7 @@ Generated model for WaterLine.
 | hierarchy | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[WaterLineDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[WaterLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2204,6 +2245,7 @@ Generated model for WaterPoint.
 | orientation | Optional[number] | yes | required |  |  |  |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
+| theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[WaterPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
