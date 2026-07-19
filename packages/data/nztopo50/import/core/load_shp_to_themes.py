@@ -232,7 +232,7 @@ class Topo50DataLoader:
             if "use2" in gdf.columns:
                 gdf = gdf.rename(columns={"use2": "tunnel_use2"})
             if "type" in gdf.columns:
-                gdf = gdf.rename(columns={"type": "subtype"})
+                gdf = gdf.rename(columns={"type": "construction_type"})
 
         if layer_name.lower() == "structure":
             gdf = gdf.rename(columns={"type": "subtype"})

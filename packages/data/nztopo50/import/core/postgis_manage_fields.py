@@ -45,7 +45,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"track_line": ["type", "subtype", "track_type", "status"],
 	"transport_point": ["type"],
 	"trig_point": ["type", "trig_type"],
-	"tunnel_line": ["type", "tunnel_use", "tunnel_use2", "subtype"],
+	"tunnel_line": ["type", "construction_type", "subtype"],
 	"water": ["type", "subtype", "hierarchy", "perennial", "temperature_indicator"],
 	"water_line": ["type"],
 	"water_point": ["type", "temperature_indicator"],
@@ -1071,6 +1071,7 @@ class ModifyTable:
             "landcover_type",
             "landuse_type",
             "tunnel_type",
+            "construction_type",
             "vehicle_type",
             "structure_type",
             "trig_type",
@@ -1251,6 +1252,24 @@ class TableModificationWorkflow:
             "tunnel_use2 ='vehicle'",
         )
 
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "tunnel_line", "type", "tunnel_use"
+        )
+        self.table_modifer.rename_columns(
+            self.schema_name, "tunnel_line", "tunnel_use2", "subtype"
+        )
+        self.table_modifer.drop_column(self.schema_name, "tunnel_line", "tunnel_use")
+
+
+        self.table_modifer.update_value_by_column(
+            self.schema_name, "place_point", "name", "description", "type = 'historic_site'"
+        )
+        self.table_modifer.drop_column(self.schema_name, "place_point", "description")
+
+        self.table_modifer.rename_columns(
+            self.schema_name, "place_point", "composition", "subtype"
+        )
+
         self.table_modifer.update_column_with_default(
             self.schema_name, "trig_point", "trig_type", "'beaconed'"
         )
@@ -1296,9 +1315,10 @@ class TableModificationWorkflow:
         self.table_modifer.update_value_by_column(
             self.schema_name, "vegetation", "subtype", "species"
         )
-        self.table_modifer.update_value_by_column(
-            self.schema_name, "vegetation", "species", "null"
-        )
+        #self.table_modifer.update_value_by_column(
+        #    self.schema_name, "vegetation", "species", "null"
+        #)
+        self.table_modifer.drop_column(self.schema_name, "vegetation", "species")
 
         self.table_modifer.add_column(
             f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
