@@ -257,7 +257,7 @@ export type SubstanceExtracted =
   | 'quartz'
   | 'scheelite'
   | 'shingle'
-  | 'silica sand'
+  | 'silica_sand'
   | 'silver'
   | 'stone'
   | 'zeolite';
@@ -268,11 +268,11 @@ export type TrackSubtype = 'cycle_only' | 'foot' | 'vehicle';
 
 export type TrackType = 'connector' | 'multiple' | 'route' | 'single';
 
-export type TunnelStatus = 'closed' | 'under construction';
+export type TunnelStatus = 'closed' | 'under_construction';
 
 export type TunnelSubtype = 'natural';
 
-export type TunnelUse = 'cablecar' | 'foot traffic' | 'livestock' | 'river' | 'train' | 'tram' | 'vehicle';
+export type TunnelUse = 'cablecar' | 'foot_traffic' | 'livestock' | 'river' | 'train' | 'tram' | 'vehicle';
 
 export type UtilityPointType = 'dry_dock' | 'fish_farm' | 'marine_farm' | 'reservoir' | 'siphon' | 'tank';
 
