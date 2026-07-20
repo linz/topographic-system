@@ -1,5 +1,6 @@
 import { emitFile, resolvePath } from '@typespec/compiler';
-import type { Model, Type } from '@typespec/compiler';
+import type { Model, Program, Type } from '@typespec/compiler';
+import { isJsonSchemaDeclaration } from '@typespec/json-schema';
 
 import { toSnakeCase, unwrapNullableType } from './utils.ts';
 
@@ -115,8 +116,11 @@ function getParquetFields(model: Model): ParquetField[] {
   return fields;
 }
 
-export async function emitParquetSchema(program: any, outputDir: string, models: Map<string, Model>) {
+export async function emitParquetSchema(program: Program, outputDir: string, models: Map<string, Model>) {
   for (const [name, model] of models.entries()) {
+    if (!isJsonSchemaDeclaration(program, model)) {
+      continue;
+    }
     const tableName = toSnakeCase(name);
     const schema = {
       type: 'message',
