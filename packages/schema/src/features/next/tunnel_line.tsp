@@ -25,7 +25,7 @@ enum tunnel_subtype {
 
 enum tunnel_use {
   Cablecar: "cablecar",
-  FootTraffic: "foot traffic",
+  FootTraffic: "foot_traffic",
   Livestock: "livestock",
   River: "river",
   Train: "train",
@@ -35,5 +35,5 @@ enum tunnel_use {
 
 enum tunnel_status {
   Closed: "closed",
-  UnderConstruction: "under construction",
+  UnderConstruction: "under_construction",
 }

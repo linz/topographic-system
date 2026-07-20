@@ -124,7 +124,7 @@
   "$defs": {
     "tunnel_use": {
       "type": "string",
-      "enum": ["cablecar", "foot traffic", "livestock", "river", "train", "tram", "vehicle"]
+      "enum": ["cablecar", "foot_traffic", "livestock", "river", "train", "tram", "vehicle"]
     },
     "tunnel_subtype": {
       "type": "string",
@@ -132,7 +132,7 @@
     },
     "tunnel_status": {
       "type": "string",
-      "enum": ["closed", "under construction"]
+      "enum": ["closed", "under_construction"]
     },
     "DataSource": {
       "type": "object",

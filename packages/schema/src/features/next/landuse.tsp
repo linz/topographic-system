@@ -63,7 +63,7 @@ enum substance_extracted {
   Quartz: "quartz",
   Scheelite: "scheelite",
   Shingle: "shingle",
-  SilicaSand: "silica sand",
+  SilicaSand: "silica_sand",
   Silver: "silver",
   Stone: "stone",
   Zeolite: "zeolite",
