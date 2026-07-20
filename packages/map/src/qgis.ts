@@ -94,6 +94,21 @@ function hasQuery(layer: QgisLayerDef): boolean {
   return (layer.options ?? []).find((f) => f.key === 'subset') != null;
 }
 
+/** Attempt to find the carto text layer */
+export function getQgisCartoTextLayer(layers: QgisLayerDef[], cartoTextLayerName?: string): QgisLayerDef {
+  if (cartoTextLayerName != null) {
+    // add .parquet if there is no extension
+    const searchName = cartoTextLayerName.includes('.') ? cartoTextLayerName : `${cartoTextLayerName}.parquet`;
+    const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
+    if (layer) return layer;
+    throw new Error(`Carto text source layer not found: "${cartoTextLayerName}"`);
+  }
+  // Find the first layer that looks like a carto text layer
+  const layer = layers.find((f) => f.source.endsWith('carto_text.parquet') && hasQuery(f) === false);
+  if (layer == null) throw new Error('No carto text layer ending with "carto_text.parquet" found');
+  return layer;
+}
+
 /** Attempt to find a MapSheet metadata layer */
 export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
   if (mapSheetLayerName != null) {
