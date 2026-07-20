@@ -406,6 +406,25 @@ export interface Coastline {
   bbox?: BBox;
 }
 
+/**
+ * Derived polygon Union of coastline and island
+ */
+export interface CoastlinePolygon {
+  /** UUID for the feature. */
+  id: string;
+  updated_at: Record<string, unknown>;
+  /** Default at write time: today. */
+  created_at: Record<string, unknown>;
+  t50_fid?: unknown;
+  type: 'coastline' | 'island';
+  coastline_type?: string | null;
+  elevation?: number | null;
+  name?: string | null;
+  group_name?: string | null;
+  /** WKB polygon geometry in NZGD2000 (EPSG:4167). */
+  geometry: unknown;
+}
+
 export interface Contour {
   /** UUID for the feature. */
   id: string;
