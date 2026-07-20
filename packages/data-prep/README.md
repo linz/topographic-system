@@ -72,3 +72,15 @@ uv run src/data_prep/rock_line.py \
 | `--output`    | Path to write the output GeoParquet                            |
 
 Inputs must be in NZGD2000(EPSG:4167). Buffering of linework done in NZTM2000(EPSG:2193) and the result is reprojected back to NZGD2000 before writing.
+
+## Output format
+
+Output files are written as GeoParquet (schema version 1.1.0) with zstd compression and covering bounding boxes. See `parquet_utils.py` for details.
+
+## Tests
+
+```sh
+uv run pytest
+```
+
+Test fixtures are in `test/` as parquet files.
