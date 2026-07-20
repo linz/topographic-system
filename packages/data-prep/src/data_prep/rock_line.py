@@ -7,12 +7,12 @@ linework already drawn by the coastline, island and lake.
 
 import argparse
 import logging
-import uuid
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 
+from data_prep.identity import earliest_created_at, reproducible_uuid7
 from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
@@ -60,12 +60,12 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     rock_line_clip_gdf = gpd.overlay(rock_line_gdf, mask_buffer_gdf, how="difference")
     rock_line_clip_gdf = rock_line_clip_gdf.to_crs(NZGD2000)
 
-    # generate new uuid
-    new_uuid = []
-    for geom in rock_line_clip_gdf.geometry:
-        new_uuid.append(str(uuid.uuid5(uuid.NAMESPACE_URL, f"rock_line/{geom.wkb_hex}")))
-
-    rock_line_clip_gdf["id"] = new_uuid
+    # Derive a reproducible UUIDv7 from the source timestamp and the geometry.
+    source_created_at = earliest_created_at(rock_gdf)
+    timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
+    rock_line_clip_gdf["id"] = [
+        str(reproducible_uuid7(timestamp_ms, f"rock_line/{geom.wkb_hex}")) for geom in rock_line_clip_gdf.geometry
+    ]
 
     write_parquet(rock_line_clip_gdf, output_path)
 

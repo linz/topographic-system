@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -19,7 +20,9 @@ FAR_POLYGON = Polygon([(170, -45), (171, -45), (171, -44), (170, -44)])
 
 
 def run_rock_line(tmp_path: Path, coastline_line, island_polygon, water_polygon):
-    marine_gdf = gpd.GeoDataFrame({"type": ["rock"], "geometry": [ROCK]}, crs=NZGD2000)
+    marine_gdf = gpd.GeoDataFrame(
+        {"type": ["rock"], "created_at": [date(2020, 1, 1)], "geometry": [ROCK]}, crs=NZGD2000
+    )
     marine_path = tmp_path / "marine.parquet"
     marine_gdf.to_parquet(marine_path)
 
