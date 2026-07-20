@@ -41,6 +41,16 @@
         }
       ]
     },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "orientation": {
       "anyOf": [
         {
@@ -92,6 +102,7 @@
     "t50_fid",
     "type",
     "name",
+    "height",
     "orientation",
     "temperature_indicator",
     "metadata",

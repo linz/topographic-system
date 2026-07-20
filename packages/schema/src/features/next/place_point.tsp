@@ -11,7 +11,6 @@ model place_point {
   type: place_type;
   subtype: place_subtype | null;
   name: string | null;
-  elevation: int32 | null;
   composition: place_composition | null;
   description: string | null;
 
