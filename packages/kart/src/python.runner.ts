@@ -27,5 +27,4 @@ export async function rockLine(marine: URL, coastline: URL, island: URL, water: 
   const res =
     await $`uv run --directory /packages/data-prep src/data_prep/rock_line.py --marine ${marine.pathname} --coastline ${coastline.pathname} --island ${island.pathname} --water ${water.pathname} --output ${output.pathname}`;
   logger.debug('rock_line.py ' + res.stdout);
-
 }
