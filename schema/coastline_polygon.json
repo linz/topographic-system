@@ -7,6 +7,15 @@
       "type": "string",
       "description": "UUID for the feature."
     },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
     "t50_fid": {},
     "type": {
       "anyOf": [
@@ -62,15 +71,6 @@
         }
       ]
     },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Default at write time: today."
-    },
     "geometry": {
       "description": "WKB polygon geometry in NZGD2000 (EPSG:4167).",
       "not": {
@@ -78,7 +78,7 @@
       }
     }
   },
-  "required": ["id", "type", "updated_at", "created_at", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "description": "Derived polygon Union of coastline and island",
   "additionalProperties": false
 }
