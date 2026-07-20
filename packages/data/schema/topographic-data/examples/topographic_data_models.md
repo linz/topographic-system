@@ -303,7 +303,7 @@ Generated model for BuildingPoint.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'building' |
-| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'shelter', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
 | status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
@@ -1883,10 +1883,10 @@ Generated model for TunnelLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'tunnel' |
-| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
-| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'natural' |
-| status | Optional[string] | yes | required |  |  | enum: 'closed', 'under construction' |
+| status | Optional[string] | yes | required |  |  | enum: 'under_construction', 'closed' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[TunnelLineDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
@@ -1936,6 +1936,7 @@ Generated model for UtilityLine.
 | visibility | Optional[string] | yes | required |  |  | enum: 'underground' |
 | metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | no | None |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -2243,6 +2244,7 @@ Generated model for WaterPoint.
 | type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
+| height | Optional[number] | no | None |  |  |  |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
