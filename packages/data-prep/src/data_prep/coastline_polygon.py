@@ -140,7 +140,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     source_created_at = earliest_created_at(coastline_gdf)
 
     # Convert the coastline lines into land polygons
-    land_gdf = gpd.GeoDataFrame(geometry=coastline_to_polygons(coastline_gdf, PRECISON_TOLERANCE))
+    land_gdf = gpd.GeoDataFrame(geometry=coastline_to_polygons(coastline_gdf, PRECISION_TOLERANCE))
     land_named_gdf = name_land_polygons(land_gdf)
     # Land polygons are derived from the coastline lines, so tag them as such.
     land_named_gdf["type"] = "coastline"
