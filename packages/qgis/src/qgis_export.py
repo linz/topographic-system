@@ -147,6 +147,22 @@ def find_feature_by_field(layer: QgsVectorLayer, field: str, value: str) -> QgsF
     return match
 
 
+def find_example_point(project: QgsProject, example_point_id: str) -> tuple[QgsVectorLayer, QgsFeature, str]:
+    """The id references a feature in either the trig_point or geographic_name layer."""
+    example_label_formats = {
+        "trig_point": "▲ {}",
+        "geographic_name": "<i>· {}</i>",
+    }
+    for layer_name, label_format in example_label_formats.items():
+        layers = project.mapLayersByName(layer_name)
+        if not layers:
+            continue
+        match = find_feature_by_field(layers[0], "id", example_point_id)
+        if match is not None:
+            return layers[0], match, label_format
+    raise RuntimeError(f"No feature with id = {example_point_id} found in trig_point or geographic_name.")
+
+
 def set_example_grid_reference(
     layout: QgsPrintLayout,
     feature: QgsFeature,
@@ -160,25 +176,7 @@ def set_example_grid_reference(
     example_point_id = feature["example_point_id"]
 
     # example_point_id references a feature in trig_point or geographic_name
-    example_label_formats = {
-        "trig_point": "▲ {}",
-        "geographic_name": "<i>· {}</i>",
-    }
-    example_layer = None
-    example_feature = None
-    example_format = None
-    for layer_name, label_format in example_label_formats.items():
-        layers = project.mapLayersByName(layer_name)
-        if not layers:
-            continue
-        match = find_feature_by_field(layers[0], "id", example_point_id)
-        if match is not None:
-            example_layer = layers[0]
-            example_feature = match
-            example_format = label_format
-            break
-    if example_feature is None:
-        raise RuntimeError(f"No feature with id = {example_point_id} found in trig_point or geographic_name.")
+    example_layer, example_feature, example_format = find_example_point(project, example_point_id)
 
     # The rendered label text comes from the carto text layer
     carto_text_layers = project.mapLayersByName(carto_text_layer_name)

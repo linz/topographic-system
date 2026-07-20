@@ -91,10 +91,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
     throw new Error(`Unable to find map sheet layer for dataset: ${options.mapSheetDataset}`);
   }
 
-  const cartoTextLayerName = getQgisCartoTextLayer(projectMeta.layers);
-  if (cartoTextLayerName == null) {
-    throw new Error(`Unable to find carto text layer for dataset: ${options.mapSheetDataset}`);
-  }
+  const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
 
   const cmd = Python3.create(BaseCommandOptions);
 
@@ -107,7 +104,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(`--output=${fileURLToPath(output)}`);
   cmd.args.push(`--layout=${options.layout}`);
   cmd.args.push(`--map-sheet-layer-name=${mapSheetLayerName.name}`);
-  cmd.args.push(`--carto-text-layer-name=${cartoTextLayerName.name}`);
+  cmd.args.push(`--carto-text-layer-name=${cartoTextLayer.name}`);
   cmd.args.push(`--format=${options.format}`);
   cmd.args.push(`--dpi=${options.dpi.toFixed(0)}`);
   cmd.args.push(`--sheet-code=${sheetCode}`);

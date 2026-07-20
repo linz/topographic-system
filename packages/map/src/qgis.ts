@@ -94,32 +94,33 @@ function hasQuery(layer: QgisLayerDef): boolean {
   return (layer.options ?? []).find((f) => f.key === 'subset') != null;
 }
 
-/** Attempt to find the carto text layer */
-export function getQgisCartoTextLayer(layers: QgisLayerDef[], cartoTextLayerName?: string): QgisLayerDef {
-  if (cartoTextLayerName != null) {
+/**
+ * Find a layer in the project.
+ *
+ * When `explicitName` is provided the layer whose source matches it exactly is returned
+ * otherwise the first layer whose source ends with `suffix` is used.
+ *
+ * @param label human readable name used in error messages, e.g. "Map sheet"
+ */
+function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, explicitName?: string): QgisLayerDef {
+  if (explicitName != null) {
     // add .parquet if there is no extension
-    const searchName = cartoTextLayerName.includes('.') ? cartoTextLayerName : `${cartoTextLayerName}.parquet`;
+    const searchName = explicitName.includes('.') ? explicitName : `${explicitName}.parquet`;
     const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
     if (layer) return layer;
-    throw new Error(`Carto text source layer not found: "${cartoTextLayerName}"`);
+    throw new Error(`${label} source layer not found: "${explicitName}"`);
   }
-  // Find the first layer that looks like a carto text layer
-  const layer = layers.find((f) => f.source.endsWith('carto_text.parquet') && hasQuery(f) === false);
-  if (layer == null) throw new Error('No carto text layer ending with "carto_text.parquet" found');
+  const layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
+  if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
   return layer;
+}
+
+/** Attempt to find the carto text layer */
+export function getQgisCartoTextLayer(layers: QgisLayerDef[], cartoTextLayerName?: string): QgisLayerDef {
+  return findQgisLayer(layers, 'carto_text.parquet', 'Carto text', cartoTextLayerName);
 }
 
 /** Attempt to find a MapSheet metadata layer */
 export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
-  if (mapSheetLayerName != null) {
-    // add .parquet if there is no extension
-    const searchName = mapSheetLayerName.includes('.') ? mapSheetLayerName : `${mapSheetLayerName}.parquet`;
-    const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
-    if (layer) return layer;
-    throw new Error(`Map sheet source layer not found: "${mapSheetLayerName}"`);
-  }
-  // Find the first layer that looks like a map_sheet configuration layer
-  const mapSheet = layers.find((f) => f.source.endsWith('map_sheet.parquet') && hasQuery(f) === false);
-  if (mapSheet == null) throw new Error('No map sheet layer ending with "map_sheet.parquet" found');
-  return mapSheet;
+  return findQgisLayer(layers, 'map_sheet.parquet', 'Map sheet', mapSheetLayerName);
 }
