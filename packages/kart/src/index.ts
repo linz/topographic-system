@@ -4,6 +4,7 @@ import { subcommands } from 'cmd-ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 import { CloneCommand } from './cli/action.clone.ts';
+import { CoastlinePolygonCommand } from './cli/action.coastline.polygon.ts';
 import { DiffCommand } from './cli/action.diff.ts';
 import { ExportCommand } from './cli/action.export.ts';
 import { FlowCommand } from './cli/action.flow.ts';
@@ -25,6 +26,7 @@ const cmds = {
   validate: ValidateCommand,
   version: VersionCommand,
   'ice-contour': IceContourCommand,
+  'coastline-polygon': CoastlinePolygonCommand,
   'stac-push': StacPushCommand,
   'validate-schema': ValidateSchemaCommand,
   'lint-qgis': LintQgisProjectCommand,
