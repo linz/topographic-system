@@ -47,6 +47,7 @@ jobs:
 
   visual-diff:
     needs: build-container
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     uses: ./.github/workflows/visual-diff.yml
     with:
       environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
