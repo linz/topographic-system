@@ -169,7 +169,7 @@ def bundle_dataset(dataset_name: str):
     s3_url = env_bundle_s3_url()
 
     logger.info(f"Uploading bundle to {s3_url}...")
-    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"], retries=NETWORK_RETRIES)
+    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"])
 
     kart_dataset_id = td.source.dataset or get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
@@ -189,7 +189,7 @@ def bundle_dataset(dataset_name: str):
         if "No such dataset" in out:
             return False
         run_command(["gzip", "-f", "-9", json_export])
-        run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key], retries=NETWORK_RETRIES)
+        run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key])
         return True
 
     all_commits = run_command(
