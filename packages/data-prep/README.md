@@ -50,6 +50,29 @@ uv run src/data_prep/coastline_polygon.py \
 | `--island`    | Path to input island GeoParquet (polygons) |
 | `--output`    | Path to write the output GeoParquet        |
 
+### Rock Line
+
+Extract rock boundary lines that don't coincide coastlines, island shorelines and lake shorelines. Produces a cartographic layer for symbolising rock outlines without duplicating linework already drawn by the coastline, island and lake.
+
+```sh
+uv run src/data_prep/rock_line.py \
+  --marine marine.parquet \
+  --coastline coastline.parquet \
+  --island island.parquet \
+  --water water.parquet \
+  --output output.parquet
+```
+
+| Argument      | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| `--marine`    | Path to input marine GeoParquet (filtered to `type == "rock"`) |
+| `--coastline` | Path to input coastline GeoParquet                             |
+| `--island`    | Path to input island GeoParquet                                |
+| `--water`     | Path to input water GeoParquet (filtered to `type == "lake"`)  |
+| `--output`    | Path to write the output GeoParquet                            |
+
+Inputs must be in NZGD2000(EPSG:4167). Buffering of linework done in NZTM2000(EPSG:2193) and the result is reprojected back to NZGD2000 before writing.
+
 ## Output format
 
 Output files are written as GeoParquet (schema version 1.1.0) with zstd compression and covering bounding boxes. See `parquet_utils.py` for details.
