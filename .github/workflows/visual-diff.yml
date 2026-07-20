@@ -46,12 +46,12 @@ jobs:
           node --version
           node /app/index.cjs version
 
-      - name: AWS Configure
-        uses: aws-actions/configure-aws-credentials@v6.2.1
-        with:
-          aws-region: ap-southeast-2
-          mask-aws-account-id: true
-          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
+      # - name: AWS Configure
+      #   uses: aws-actions/configure-aws-credentials@v6.2.1
+      #   with:
+      #     aws-region: ap-southeast-2
+      #     mask-aws-account-id: true
+      #     role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
 
       - name: Produce mapsheets
         run: |
