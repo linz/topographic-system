@@ -496,7 +496,7 @@ class ModifyTable:
                 ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
                 ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
                 ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-                ["metadata", "VARCHAR(1000)", ""],
+                ["metadata", "VARCHAR(1000) DEFAULT NULL", "DEFAULT"],
                # ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
         if include_source_fields:
@@ -815,7 +815,7 @@ class ModifyTable:
         """
         self.connect()
         with self.conn.cursor() as cur:
-            if self.column_exists(schema, table, old_column_name):
+            if self.column_exists(schema, table, old_column_name) and not self.column_exists(schema, table, new_column_name):
                 rename_query = f"ALTER TABLE {schema}.{table} RENAME COLUMN {old_column_name} TO {new_column_name};"
                 cur.execute(rename_query)
                 self.conn.commit()
@@ -824,7 +824,7 @@ class ModifyTable:
                 )
             else:
                 print(
-                    f"Column '{old_column_name}' does not exist in table '{schema}.{table}'"
+                    f"Column '{old_column_name}' does not exist or column '{new_column_name}' already exists in table '{schema}.{table}'"
                 )
 
     def set_base_column_and_drop_column(
@@ -1062,7 +1062,6 @@ class ModifyTable:
             "tunnel_use",
             "tunnel_use2",
             "track_use",
-            "construction_type",
             "water_use",
             "lid_type",
             "support_type",
@@ -1320,9 +1319,9 @@ class TableModificationWorkflow:
         #)
         self.table_modifer.drop_column(self.schema_name, "vegetation", "species")
 
-        self.table_modifer.add_column(
-            f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.landcover", "subtype", "VARCHAR(50)"
+        #)
 
 
         self.table_modifer.add_column(
@@ -1536,7 +1535,9 @@ class TableModificationWorkflow:
             self.schema_name, "landuse", "type", "landuse_use", "landuse_use is not null"
         )
         self.table_modifer.update_column_by_value(self.schema_name, "landuse", "type", "horse_track", "type = 'horse'")
-        self.table_modifer.update_column_by_value(self.schema_name, "landuse", "subtype", "old", "subtype = 'historic'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse", "type", "vehicle_track", "type = 'vehicle'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse", "status", "old", "status = 'historic'")
+        self.table_modifer.update_column_by_value(self.schema_name, "landuse_point", "status", "old", "status = 'historic'")
 
         self.table_modifer.drop_column(self.schema_name, "landuse_line", "landuse_use")
         self.table_modifer.drop_column(self.schema_name, "landuse", "landuse_use")
