@@ -1,3 +1,5 @@
+import subprocess
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -12,6 +14,15 @@ SHA_NEW = "c" * 40  # newer remote SHA
 DATASET = "test_dataset"
 S3_URL = "s3://test-bucket/source/"
 MODULE = "kart_import.assets.bundle"
+
+
+def _seed_clone_dir(cmd) -> bool:
+    """Mirror `git clone` creating its destination dir, so downstream steps (sentinel,
+    bundle create) behave as in a real run. Returns True if it handled the command."""
+    if cmd[:2] == ["git", "clone"]:
+        Path(cmd[3]).mkdir(parents=True, exist_ok=True)
+        return True
+    return False
 
 
 def _mock_urlopen(monkeypatch, payload: bytes):
@@ -58,6 +69,8 @@ def env(tmp_path, monkeypatch):
     state = SimpleNamespace(remote_sha=SHA, s3_result="", commits="")
 
     def run_command(cmd, cwd=None, **kwargs):
+        if _seed_clone_dir(cmd):
+            return ""
         if "ls-remote" in cmd:
             return f"{state.remote_sha}\tHEAD\n"
         if "rev-parse" in cmd:
@@ -122,23 +135,109 @@ def test_stale_downloads_and_clones_when_no_local_repo(env):
     env.download_and_clone_from_bundle.assert_called_once_with(env.bundle_path, DATASET, env.target_dir)
 
 
-def test_stale_still_seeds_when_local_repo_exists(env):
-    """Even with a local repo present, the stale path still calls the seed helper."""
+def test_stale_with_local_repo_pulls_not_seeds(env):
+    """With a local repo present, a stale bundle refreshes via delta pull rather than
+    re-seeding (which would fail to clone into a non-empty dir)."""
     env.fetch_bundle_head.return_value = SHA_OLD
     env.state.remote_sha = SHA_NEW
     (env.target_dir / ".kart").mkdir(parents=True)
 
     bundle_dataset(DATASET)
 
+    env.download_and_clone_from_bundle.assert_not_called()
+    assert ["kart", "pull"] in _cmds(env)
+
+
+def _raise_on_pull(stderr: str):
+    """A run_command side-effect that raises on `kart pull` and returns sane defaults else."""
+
+    def rc(cmd, cwd=None, **kwargs):
+        if _seed_clone_dir(cmd):
+            return ""
+        if cmd[:2] == ["kart", "pull"]:
+            raise subprocess.CalledProcessError(20, cmd, output="", stderr=stderr)
+        if "ls-remote" in cmd:
+            return f"{SHA_NEW}\tHEAD\n"
+        if "rev-parse" in cmd:
+            return f"{SHA_NEW}\n"
+        return ""
+
+    return rc
+
+
+def test_pull_unrelated_history_falls_back_to_fresh_clone(env):
+    """A repointed source makes `kart pull` fail with 'aren't related'; bundle should discard
+    the local clone and fresh-clone instead of failing."""
+    (env.target_dir / ".kart").mkdir(parents=True)
+    env.run_command.side_effect = _raise_on_pull("Error: Commits aaa and bbb aren't related.")
+
+    bundle_dataset(DATASET)
+
+    cmds = _cmds(env)
+    assert ["kart", "pull"] in cmds  # attempted the delta pull
+    assert any(cmd[:2] == ["git", "clone"] for cmd in cmds)  # then fell back to a fresh clone
+
+
+def test_pull_divergence_triggers_fresh_clone(env, monkeypatch):
+    """A successful pull that still leaves HEAD diverged from the source tip (split-brain)
+    must fresh-clone, so the bundle isn't built from a stale HEAD."""
+    source_ref = "origin/master"
+    local_head, source_tip = "a" * 8, "b" * 8  # HEAD != tip -> diverged
+    (env.target_dir / ".kart").mkdir(parents=True)
+    monkeypatch.setattr(f"{MODULE}.source_ref", lambda _dir: source_ref)
+
+    def rc(cmd, cwd=None, **kwargs):
+        if _seed_clone_dir(cmd):
+            return ""
+        if cmd[:2] == ["kart", "pull"]:
+            return ""  # pull "succeeds"
+        if cmd[:2] == ["git", "rev-parse"]:  # cmd[-1] is "HEAD" or the source ref
+            return f"{source_tip}\n" if cmd[-1] == source_ref else f"{local_head}\n"
+        return ""
+
+    env.run_command.side_effect = rc
+
+    bundle_dataset(DATASET)
+
+    cmds = _cmds(env)
+    assert ["kart", "pull"] in cmds  # attempted the delta pull
+    clone_indexes = [i for i, cmd in enumerate(cmds) if cmd[:2] == ["git", "clone"]]
+    assert clone_indexes, "expected a fresh clone after divergence"
+    assert cmds.index(["kart", "pull"]) < clone_indexes[0]  # divergence detected post-pull -> fresh-cloned
+
+
+def test_pull_other_error_reraises(env):
+    """A non-history pull failure (e.g. network) must propagate, not trigger a full re-clone."""
+    (env.target_dir / ".kart").mkdir(parents=True)
+    env.run_command.side_effect = _raise_on_pull("Error: could not resolve host github.com")
+
+    with pytest.raises(subprocess.CalledProcessError):
+        bundle_dataset(DATASET)
+
+    assert not any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
+
+
+def test_seed_then_unrelated_falls_back_to_fresh_clone(env):
+    """No local repo + stale bundle: seed succeeds but the seeded history is unrelated to the
+    source, so the delta pull fails 'aren't related' leads to fresh clone."""
+    env.fetch_bundle_head.return_value = SHA_OLD
+    env.state.remote_sha = SHA_NEW
+    env.download_and_clone_from_bundle.side_effect = lambda _b, _n, target: (target / ".git").mkdir(parents=True)
+    env.run_command.side_effect = _raise_on_pull("Error: Commits aaa and bbb aren't related.")
+
+    bundle_dataset(DATASET)
+
     env.download_and_clone_from_bundle.assert_called_once()
+    assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
 
 
-def test_no_bundle_kart_clones_when_no_local_repo(env):
+def test_no_bundle_git_clones_when_no_local_repo(env):
     env.target_dir.mkdir()
 
     bundle_dataset(DATASET)
 
-    assert any(cmd[:2] == ["kart", "clone"] for cmd in _cmds(env))
+    assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
+    assert not any(cmd[:2] == ["kart", "clone"] for cmd in _cmds(env))
 
 
 @pytest.mark.parametrize("should_pull,expect_pull", [(True, True), (False, False)])
@@ -149,8 +248,8 @@ def test_no_bundle_pull_behavior_with_local_repo(env, should_pull, expect_pull):
     bundle_dataset(DATASET)
 
     cmds = _cmds(env)
-    assert (["git", "pull"] in cmds) is expect_pull
-    assert not any(cmd[:2] == ["kart", "clone"] for cmd in cmds)
+    assert (["kart", "pull"] in cmds) is expect_pull
+    assert not any(cmd[:2] == ["git", "clone"] for cmd in cmds)
 
 
 def test_creates_bundle_and_uploads_to_s3(env):
@@ -162,6 +261,56 @@ def test_creates_bundle_and_uploads_to_s3(env):
     bundle_path = str(env.bundle_path)
     assert any("bundle" in cmd and "create" in cmd for cmd in cmds)
     assert any(cmd[:3] == ["aws", "s3", "cp"] and bundle_path in cmd for cmd in cmds)
+    assert (env.target_dir / ".bundle_created").exists()
+
+
+def test_multi_dataset_source_uses_configured_dataset_id(env, monkeypatch):
+    """A multi-dataset source repo (e.g. topographic-source-data) must export the configured source.dataset."""
+    monkeypatch.setattr(
+        f"{MODULE}.DATASET_MAP",
+        {
+            DATASET: MagicMock(
+                source=Source(url="git@github.com:linz/topographic-source-data", dataset="linz_map_sheet")
+            )
+        },
+    )
+    # auto-detect would raise on a multi-dataset repo; ensure it's never consulted.
+    monkeypatch.setattr(f"{MODULE}.get_kart_dataset_id", MagicMock(side_effect=AssertionError("must not auto-detect")))
+    commit_sha = "d" * 40
+    env.state.commits = commit_sha
+    env.state.s3_result = ""  # force an export
+    env.run_in_thread_pool.side_effect = _inline_pool
+    env.target_dir.mkdir()
+
+    bundle_dataset(DATASET)
+
+    assert any(cmd[:2] == ["kart", "export"] and "linz_map_sheet" in cmd for cmd in _cmds(env))
+
+
+def test_export_skips_commits_without_the_dataset(env, monkeypatch):
+    """`git log --all` includes commits from before the dataset existed (multi-dataset repos);
+    a 'No such dataset' export must be skipped, not fail the bundle."""
+    commit_sha = "e" * 40
+    env.state.commits = commit_sha
+
+    def rc(cmd, cwd=None, **kwargs):
+        if cmd[:2] == ["kart", "export"]:
+            # kart exits non-zero; run_command returns stderr because allow_error matches.
+            return "Error: No such dataset: linz_map_sheet\n"
+        if cmd[:3] == ["aws", "s3", "ls"]:
+            return ""  # not yet in S3  attempt export
+        if "--pretty=format:%H" in cmd:
+            return commit_sha
+        return ""
+
+    env.run_command.side_effect = rc
+    env.run_in_thread_pool.side_effect = _inline_pool
+    (env.target_dir / ".kart").mkdir(parents=True)  # existing repo -> pull path (no fresh clone)
+
+    bundle_dataset(DATASET)  # must not raise
+
+    cmds = _cmds(env)
+    assert not any(cmd[0] == "gzip" for cmd in cmds)  # skipped before gzip/upload
     assert (env.target_dir / ".bundle_created").exists()
 
 
