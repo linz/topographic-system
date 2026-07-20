@@ -47,6 +47,7 @@ enum building_subtype {
   SaltWorks: "salt_works",
   School: "school",
   ShingleWorks: "shingle_works",
+  Shelter: "shelter",
   Silo: "silo",
   StampingBattery: "stamping_battery",
   Substation: "substation",

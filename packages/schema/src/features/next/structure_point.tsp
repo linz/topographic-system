@@ -31,6 +31,7 @@ enum structure_point_type {
   Floodgate: "floodgate",
   Gate: "gate",
   Ladder: "ladder",
+  Lighthouse: "lighthouse",
   Mast: "mast",
   RadarDome: "radar_dome",  
   Redoubt: "redoubt",
