@@ -23,7 +23,6 @@ jobs:
   produce-mapsheets:
     runs-on: ubuntu-latest
 
-    environment: ${{ inputs.environment }}
     container:
       image: ghcr.io/linz/topographic-system/map:${{ inputs.map_version }}
     permissions:
@@ -45,13 +44,6 @@ jobs:
         run: |
           node --version
           node /app/index.cjs version
-
-      - name: AWS Configure
-        uses: aws-actions/configure-aws-credentials@v6.2.1
-        with:
-          aws-region: ap-southeast-2
-          mask-aws-account-id: true
-          role-to-assume: ${{ secrets.AWS_ROLE_SCREENSHOT }}
 
       - name: Produce mapsheets
         run: |

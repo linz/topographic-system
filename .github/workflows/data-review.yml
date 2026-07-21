@@ -72,8 +72,8 @@ jobs:
           node /app/index.cjs version
 
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_ROLE_ARN != '' }}
-        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v4
+        if: ${{ env.AWS_ROLE_ARN != '' && startsWith(inputs.output, 's3://') }}
+        uses: aws-actions/configure-aws-credentials@v6.2.1
         with:
           aws-region: ap-southeast-2
           mask-aws-account-id: true
