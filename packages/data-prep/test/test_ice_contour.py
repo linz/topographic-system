@@ -16,7 +16,7 @@ def result(tmp_path: Path):
         {
             "type": ["contour"],
             "id": [1],
-            "update_date": [date(2024, 1, 1)],
+            "updated_at": [date(2024, 1, 1)],
             "version": [3],
             "geometry": [poly1],
         },
@@ -26,7 +26,7 @@ def result(tmp_path: Path):
         {
             "type": ["ice"],
             "id": [10],
-            "update_date": [date(2025, 6, 15)],
+            "updated_at": [date(2025, 6, 15)],
             "version": [1],
             "geometry": [poly2],
         },
@@ -49,7 +49,7 @@ def test_output_has_expected_columns(result):
     assert "id" in result.columns
     assert "landcover_id" in result.columns
     assert "landcover_type" in result.columns
-    assert "update_date" in result.columns
+    assert "updated_at" in result.columns
     assert "version" in result.columns
 
 
@@ -63,7 +63,7 @@ def test_landcover_id(result):
 
 
 def test_update_date_takes_landcover(result):
-    assert result.iloc[0]["update_date"] == date(2025, 6, 15)
+    assert result.iloc[0]["updated_at"] == date(2025, 6, 15)
 
 
 def test_version_takes_landcover(result):

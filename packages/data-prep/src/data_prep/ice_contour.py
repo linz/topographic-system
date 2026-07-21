@@ -72,7 +72,7 @@ def read_nzgd2000(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    contour_gdf = read_nzgd2000(contour_path).drop(columns=["update_date", "version"])
+    contour_gdf = read_nzgd2000(contour_path).drop(columns=["updated_at", "version"])
 
     landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])["primary_column"]
     _landcover_gdf = read_nzgd2000(
@@ -81,7 +81,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
         columns=[
             "id",
             "type",
-            "update_date",
+            "updated_at",
             "version",
             landcover_geom_col,
         ],
