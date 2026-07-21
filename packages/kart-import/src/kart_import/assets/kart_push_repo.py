@@ -14,6 +14,7 @@ from kart_import.log import log_context
 
 from ..command import run_command
 from ..config import OUTPUT_DIR, get_releases, get_repo_remote
+from ..env import env_push_force, env_push_to_master
 
 logger = logging.getLogger("kart_import")
 
@@ -55,8 +56,8 @@ if __name__ == "__main__":
     import sys
 
     args = sys.argv[1:]
-    to_master = "--master" in args
-    force = "--force" in args
+    to_master = "--master" in args or env_push_to_master()
+    force = "--force" in args or env_push_force()
     positional = [a for a in args if not a.startswith("-")]
     if not positional:
         print("Usage: python -m kart_import.assets.kart_push_repo <repo_name> [--master] [--force]")

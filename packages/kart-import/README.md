@@ -74,6 +74,57 @@ To turn bundle usage off
 export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | pjl
 ```
 
+## Push
+
+Once a target repo has been built (`data/output/<repo>` exists with an
+`.imported` sentinel), it can be pushed to its GitHub remote.
+The push goes to a release-named branch (`feat/release<N>`, where `N` is the latest
+configured release, or `import` when no releases are configured). The branch
+carries the entire import history, ready to open a PR into `master`.
+
+Push a single repo, or every repo, via snakemake:
+
+```shell
+uv run snakemake --cores=4 push_topographic-data --quiet | pjl
+uv run snakemake --cores=4 push_all --quiet | pjl
+```
+
+A successful push writes a `data/output/<repo>/.pushed` sentinel (`<url> <ref>`).
+
+### Push to master / force push
+
+To push to `master` instead of the release branch, or to force-push, set the env
+flags (this is the only way through the snakemake rules, which take no arguments):
+
+```shell
+# force-push the release branch
+KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic-data --quiet | pjl
+# push to master, force (destructive full reload)
+KART_PUSH_MASTER=true KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic-data --quiet | pjl
+```
+
+The module can also be invoked directly with equivalent CLI flags (`--master`,
+`--force`); a flag is enabled if either its CLI flag or its env var is set:
+
+```shell
+uv run python -m kart_import.assets.kart_push_repo topographic-data --master --force
+```
+
+### Remote configuration
+
+Each target repo's GitHub remote URL is defined in `config/repos.yml`, keyed by
+the `target_repo` field used in the theme configs:
+
+```yaml
+repos:
+  topographic-data: git@github.com:linz/topographic-data
+  topographic-contour-data: git@github.com:linz/topographic-contour-data
+```
+
+Pushing requires SSH access to these GitHub repositories. The push step
+re-points the built repo's `origin` remote at the configured URL before pushing,
+so any pre-existing `origin` is replaced.
+
 # Example YAML Configuration Files
 
 ```yaml

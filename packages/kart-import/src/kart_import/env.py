@@ -49,6 +49,24 @@ def env_use_bundle() -> bool:
     return os.getenv("GIT_BUNDLE", "true").lower() == "true"
 
 
+def env_push_to_master() -> bool:
+    """
+    Push the built target repo to `master` instead of a release-named branch.
+
+    KART_PUSH_MASTER=true
+    """
+    return os.getenv("KART_PUSH_MASTER", "false").lower() == "true"
+
+
+def env_push_force() -> bool:
+    """
+    Force-push the built target repo (combine with KART_PUSH_MASTER for a destructive full reload).
+
+    KART_PUSH_FORCE=true
+    """
+    return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
+
+
 def env_bundle_url(dataset_name: str) -> str:
     """
     Location to git bundles stored for easy access
