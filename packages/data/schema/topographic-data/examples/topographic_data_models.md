@@ -258,7 +258,7 @@ Generated model for Building.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'building' |
-| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'shelter', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
 | status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[BuildingDataSource]] | yes | required |  |  |  |
@@ -803,7 +803,7 @@ Generated model for Landuse.
 | subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
 | status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
-| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
+| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LanduseDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -893,7 +893,7 @@ Generated model for LandusePoint.
 | subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
 | status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
-| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica sand', 'silver', 'stone', 'zeolite' |
+| substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite' |
 | metadata | Optional[list[LandusePointDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
@@ -1149,7 +1149,6 @@ Generated model for PlacePoint.
 | type | string | yes | required |  |  | enum: 'cave', 'cemetery', 'grave', 'historic_site', 'mine', 'monument', 'pa' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'opencast', 'underground' |
 | name | Optional[string] | yes | required |  |  |  |
-| elevation | Optional[integer] | yes | required |  |  |  |
 | composition | Optional[string] | yes | required |  |  | enum: 'limestone', 'pumice', 'coral' |
 | description | Optional[string] | yes | required |  |  |  |
 | metadata | Optional[list[PlacePointDataSource]] | yes | required |  |  |  |
@@ -1378,7 +1377,6 @@ Generated model for ReliefPoint.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'height', 'saddle', 'sinkhole', 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
-| display | Optional[string] | yes | required |  |  | enum: '0', '1', '2', '3' |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
@@ -1699,7 +1697,7 @@ Generated model for StructurePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  | enum: 'beacon', 'bivouac', 'buoy', 'chimney', 'dredge', 'flare', 'floodgate', 'gate', 'ladder', 'mast', 'radar_dome', 'redoubt', 'satellite_station', 'shaft', 'siphon', 'stockyard', 'tank', 'tower', 'well', 'windmill', 'wreck' |
+| type | string | yes | required |  |  | enum: 'beacon', 'bivouac', 'buoy', 'chimney', 'dredge', 'flare', 'floodgate', 'gate', 'ladder', 'lighthouse', 'mast', 'radar_dome', 'redoubt', 'satellite_station', 'shaft', 'siphon', 'stockyard', 'tank', 'tower', 'well', 'windmill', 'wreck' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'building', 'coal', 'concrete', 'disused', 'fuel', 'historic', 'jetty', 'lake', 'land', 'lighthouse', 'lime', 'locked', 'plane', 'power_generation', 'rock', 'sea', 'ship', 'surge_chamber', 'tunnel_ventilation', 'uncovered', 'water' |
 | tank_type | Optional[string] | yes | required |  |  | enum: 'uncovered', 'water', 'surge_chamber' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
@@ -1933,10 +1931,10 @@ Generated model for UtilityLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'ironsand', 'sewage', 'steam', 'water' |
 | support_type | Optional[string] | yes | required |  |  | enum: 'pole', 'pylon' |
 | status | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
 | visibility | Optional[string] | yes | required |  |  | enum: 'underground' |
 | metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
-| name | Optional[string] | no | None |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
 | bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
@@ -1976,7 +1974,8 @@ Generated model for UtilityPoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  | enum: 'dry_dock', 'fish_farm', 'marine_farm', 'reservoir', 'siphon', 'tank' |
+| type | string | yes | required |  |  | enum: 'gas_valve', 'geo_bore', 'pylon' |
+| name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | metadata | Optional[list[UtilityPointDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
@@ -2243,8 +2242,8 @@ Generated model for WaterPoint.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
+| height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| height | Optional[number] | no | None |  |  |  |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
 | metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
 | theme | Optional[string] | yes | required |  |  |  |
