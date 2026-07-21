@@ -1555,6 +1555,7 @@ class TableModificationWorkflow:
                     'source_key_value', feat_id,
                     'source_table', 'nzgb_gaz',
                     'source_column', 'name',
+                    'source_updated_at', NOW(),
                     'imported_at', NOW()
                 )
             )
@@ -1576,6 +1577,7 @@ class TableModificationWorkflow:
                     'source_key_value', rna_sufi,
                     'source_table', 'roads',
                     'source_column', 'name',
+                    'source_updated_at', NOW(),
                     'imported_at', NOW()
                 )
             )
