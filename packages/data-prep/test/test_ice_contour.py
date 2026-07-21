@@ -3,7 +3,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import pytest
-from data_prep.ice_contour import run
+from data_prep.ice_contour import NZGD2000, run
 from shapely.geometry import Polygon
 
 
@@ -20,7 +20,7 @@ def result(tmp_path: Path):
             "version": [3],
             "geometry": [poly1],
         },
-        crs="EPSG:4167",
+        crs=NZGD2000,
     )
 
     landcover_gdf = gpd.GeoDataFrame(
@@ -31,7 +31,7 @@ def result(tmp_path: Path):
             "version": [1],
             "geometry": [poly2],
         },
-        crs="EPSG:4167",
+        crs=NZGD2000,
     )
 
     contour_path = tmp_path / "contour.parquet"
