@@ -280,6 +280,25 @@ def load_config(file_name: str) -> Theme:
         return Theme(**data)
 
 
+def build_releases(raw_releases: list, base_releases: set[str] | None) -> list[Release]:
+    """Releases (optionally scoped to ``base_releases``) with correct ``until`` cutoffs.
+
+    A release's ``until`` is derived from the NEXT release's date, so it must be computed against
+    the full schedule before filtering: subsetting first would drop the neighbour needed to cap the
+    selected release, leaving it at the ``Release.until`` default (``now()``), which resolves to the
+    source's latest commit rather than the release's historical snapshot.
+    """
+    all_releases: list[Release] = []
+    for entry in raw_releases:
+        for key, timestamp in entry.items():
+            date = datetime.fromisoformat(str(timestamp))
+            if all_releases:
+                all_releases[-1].until = date - timedelta(days=14)
+            all_releases.append(Release(id=int(key), date=date))
+
+    return [r for r in all_releases if not base_releases or str(r.id) in base_releases]
+
+
 def get_releases() -> list[Release]:
     return ALL_RELEASES
 
@@ -411,16 +430,7 @@ def load_from_yaml():
     with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
 
-        for entry in raw.get("releases", []):
-            for key, timestamp in entry.items():
-                if base_releases and str(key) not in base_releases:
-                    continue
-
-                date = datetime.fromisoformat(str(timestamp))
-                if ALL_RELEASES:
-                    day_before = date - timedelta(days=14)
-                    ALL_RELEASES[-1].until = day_before
-                ALL_RELEASES.append(Release(id=int(key), date=date))
+        ALL_RELEASES.extend(build_releases(raw.get("releases", []), base_releases))
 
     logger.info(
         "config-loaded",

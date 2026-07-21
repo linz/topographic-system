@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
+
 import pytest
 from pydantic import ValidationError
 
-from .config import FieldSpec, Source, Theme, ThemeDataset, get_dataset_name, validate_theme_joins
+from .config import FieldSpec, Source, Theme, ThemeDataset, build_releases, get_dataset_name, validate_theme_joins
 
 
 def _theme_with_join(join_columns):
@@ -261,3 +263,30 @@ def test_correction_set_without_where_is_rejected():
 def test_correction_replace_with_where_is_rejected():
     with pytest.raises(ValidationError, match="must not use 'where'"):
         _with_corrections([{"column": "c", "replace": {"a": "b"}, "where": {"c": "a"}}])
+
+
+RAW_RELEASES = [
+    {44: "2018-11-01"},
+    {45: "2018-12-26"},
+    {46: "2019-02-01"},
+]
+
+
+def test_build_releases_caps_until_from_next_release():
+    releases = build_releases(RAW_RELEASES, None)
+    ids = {r.id: r for r in releases}
+    # Each release's cutoff is the next release's date minus 14 days.
+    assert ids[44].until == datetime.fromisoformat("2018-12-26") - timedelta(days=14)
+    assert ids[45].until == datetime.fromisoformat("2019-02-01") - timedelta(days=14)
+
+
+def test_build_releases_scoped_keeps_historical_until():
+    # Regression: scoping to a single non-latest release must still derive its `until` from the
+    # next release in the full schedule, not fall back to the `now()` default (which would resolve
+    # to the source's latest commit and break lifecycle/export snapshot alignment).
+    scoped = build_releases(RAW_RELEASES, {"45"})
+    full = build_releases(RAW_RELEASES, None)
+
+    assert [r.id for r in scoped] == [45]
+    assert scoped[0].until == next(r for r in full if r.id == 45).until
+    assert scoped[0].until == datetime.fromisoformat("2019-02-01") - timedelta(days=14)

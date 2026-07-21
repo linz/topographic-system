@@ -80,7 +80,7 @@
   "$defs": {
     "utility_point_type": {
       "type": "string",
-      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
+      "enum": ["gas_valve", "geo_bore", "pylon"]
     },
     "DataSource": {
       "type": "object",

@@ -12,6 +12,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
+from data_prep.identity import earliest_created_at, reproducible_uuid7
 from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
@@ -36,15 +37,17 @@ def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
-    rock_gdf = read_and_project(marine_path, filters=[("feature_type", "==", "rock")])
+    rock_gdf = read_and_project(marine_path, filters=[("type", "==", "rock")])
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
+    rock_line_gdf = rock_line_gdf.rename(columns={"id": "marine_id"})
+    rock_line_gdf = rock_line_gdf.assign(t50_fid=None)
 
     coastline_gdf = read_and_project(coastline_path)
 
     island_gdf = read_and_project(island_path)
     island_line_gdf = island_gdf.assign(geometry=island_gdf.geometry.boundary)
 
-    lake_gdf = read_and_project(water_path, filters=[("feature_type", "==", "lake")])
+    lake_gdf = read_and_project(water_path, filters=[("type", "==", "lake")])
     lake_line_gdf = lake_gdf.assign(geometry=lake_gdf.geometry.boundary)
 
     mask_gdf = gpd.GeoDataFrame(
@@ -56,6 +59,13 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
 
     rock_line_clip_gdf = gpd.overlay(rock_line_gdf, mask_buffer_gdf, how="difference")
     rock_line_clip_gdf = rock_line_clip_gdf.to_crs(NZGD2000)
+
+    # Derive a reproducible UUIDv7 from the source timestamp and the geometry.
+    source_created_at = earliest_created_at(rock_gdf)
+    timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
+    rock_line_clip_gdf["id"] = [
+        str(reproducible_uuid7(timestamp_ms, f"rock_line/{geom.wkb_hex}")) for geom in rock_line_clip_gdf.geometry
+    ]
 
     write_parquet(rock_line_clip_gdf, output_path)
 

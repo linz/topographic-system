@@ -10,6 +10,7 @@
 - [PR Comment cli](#pr-comment-cli)
 - [Validate cli](#validate-cli)
 - [Contour with Landcover cli](#contour-with-landcover-cli)
+- [Coastline Polygon cli](#coastline-polygon-cli)
 - [Version cli](#version-cli)
 - [Sample GitHub Actions Workflow](#sample-github-actions-workflow)
 
@@ -167,6 +168,14 @@ Enrich contour data with landcover information to create ice contour. Requires p
 
 ```
 docker run -it --rm -v /tmp/docker:/tmp kart ice-contour --contour ./contour.parquet --landcover ./landcover.parquet --output ./output.parquet
+```
+
+## Coastline Polygon cli
+
+Build the coastlines and islands polygon layer: convert the coastline lines into land polygons, drop island polygons that fall within the main land, and merge with the other island polygons. Requires the `coastline` and `island` STAC collections (local path or s3) and an output directory.
+
+```
+docker run -it --rm -v /tmp/docker:/tmp kart coastline-polygon --coastline ./coastline/collection.json --island ./island/collection.json --output ./output/
 ```
 
 ## Version cli

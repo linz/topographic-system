@@ -17,10 +17,7 @@ model utility_point {
 }
 
 enum utility_point_type {
-  DryDock: "dry_dock",
-  FishFarm: "fish_farm",
-  MarineFarm: "marine_farm",
-  Reservoir: "reservoir",
-  Siphon: "siphon",
-  Tank: "tank"
+  GasValve: "gas_valve",
+  GeoBore: "geo_bore",
+  Pylon: "pylon"
 }
