@@ -41,16 +41,6 @@
         }
       ]
     },
-    "display": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/display_enum"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "elevation": {
       "anyOf": [
         {
@@ -114,7 +104,6 @@
     "t50_fid",
     "type",
     "name",
-    "display",
     "elevation",
     "height",
     "orientation",
@@ -126,11 +115,6 @@
     "relief_point_type": {
       "type": "string",
       "enum": ["height", "saddle", "sinkhole", "waterfall"]
-    },
-    "display_enum": {
-      "type": "string",
-      "enum": ["0", "1", "2", "3"],
-      "description": "This enum will be redone in another work item - keeping as is for now"
     },
     "DataSource": {
       "type": "object",
