@@ -21,6 +21,7 @@ CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
 CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
+CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
@@ -316,6 +317,19 @@ def get_theme_by_name(theme_name: str) -> Theme:
 
 def get_kart_repos() -> list[str]:
     return list(ALL_KART_REPOS)
+
+
+def get_repo_remote(repo_name: str) -> str:
+    """GitHub remote URL for a target repo, from ``config/repos.yml``."""
+    if not CONFIG_DIR_REPOS.exists():
+        raise FileNotFoundError(f"Missing repo mapping file {CONFIG_DIR_REPOS}")
+    with open(CONFIG_DIR_REPOS) as f:
+        data = yaml.safe_load(f) or {}
+    remotes = data.get("repos", data)
+    url = remotes.get(repo_name)
+    if not url:
+        raise KeyError(f"No remote URL defined for repo {repo_name!r} in {CONFIG_DIR_REPOS}")
+    return url
 
 
 def get_dataset_by_name(dataset_name: str) -> ThemeDataset:
