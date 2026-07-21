@@ -1,4 +1,6 @@
 import logging
+import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -12,14 +14,16 @@ from ..config import (
 )
 from ..env import env_bundle_s3_url, env_bundle_url
 from ..git.bundle import download_and_clone_from_bundle
-from ..git.kart import get_kart_dataset_id
+from ..git.kart import get_kart_dataset_id, is_kart, source_ref
 from ..log import log_context
 from ..thread import run_in_thread_pool
 
 logger = logging.getLogger("kart_import")
 
+NETWORK_RETRIES = 3
+
 """
-Take datasets from the linz data service, bundle them into a git .bundle
+Take datasets from LINZ Data Service, bundle them into a git .bundle
 then store them into AWS S3 for fast access
 """
 
@@ -76,6 +80,46 @@ def fetch_bundle_head(dataset_name: str) -> str | None:
     raise Exception(f"No HEAD found in bundle refs for {dataset_name}")
 
 
+# Error markers meaning the local clone and the source no longer share history, e.g. a
+# dataset was force-pushed, so a seeded/old clone is unrelated to the current source
+# and can never be pulled onto it.
+_UNRELATED_HISTORY_MARKERS = ("aren't related", "unrelated histories", "refusing to merge unrelated")
+
+
+def _fresh_clone(target_dir: Path, dataset_source: str) -> None:
+    """Clone `dataset_source` fresh into `target_dir`, removing any existing directory first."""
+    if target_dir.exists():
+        logger.info("Removing existing source dir before fresh clone", extra={"target": str(target_dir)})
+        shutil.rmtree(target_dir)
+    run_command(["git", "clone", dataset_source, str(target_dir), "--no-checkout"], retries=NETWORK_RETRIES)
+
+
+def _pull_or_fresh_clone(target_dir: Path, dataset_source: str) -> None:
+    """Delta-pull an existing clone from `dataset_source`; if the histories are unrelated, discard the local clone
+    and fresh-clone instead of failing."""
+    run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
+    logger.info("Attempting 'kart pull'.")
+    try:
+        # `kart pull` handles both .git and .kart layouts while plain `git pull` struggles with kart.
+        run_command(["kart", "pull"], cwd=str(target_dir), retries=NETWORK_RETRIES)
+    except subprocess.CalledProcessError as e:
+        err = f"{e.stderr or ''}{e.output or ''}"
+        if any(marker in err for marker in _UNRELATED_HISTORY_MARKERS):
+            logger.warning(f"unrelated history for {target_dir.name}. Discarding local clone and fresh-cloning.")
+            _fresh_clone(target_dir, dataset_source)
+            return
+        raise
+
+    # If HEAD no longer matches the source tip, discard and fresh-clone so the bundle is clean.
+    head = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir), check_error=False).strip()
+    tip = run_command(["git", "rev-parse", source_ref(target_dir)], cwd=str(target_dir), check_error=False).strip()
+    if head and tip and head != tip:
+        logger.warning(
+            f"{target_dir.name}: local branch ({head[:8]}) diverged from source tip ({tip[:8]}); fresh-cloning."
+        )
+        _fresh_clone(target_dir, dataset_source)
+
+
 def bundle_dataset(dataset_name: str):
     td = DATASET_MAP.get(dataset_name)
     if not td:
@@ -89,27 +133,33 @@ def bundle_dataset(dataset_name: str):
 
     bundle_head_sha = fetch_bundle_head(dataset_name)
 
-    # Skip bundle creation if the current bundle and remote are the same hash
+    # Skip bundle if the published bundle already matches the source HEAD.
     if bundle_head_sha:
-        ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"]).strip()
+        ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"], retries=NETWORK_RETRIES).strip()
         source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
         logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head_sha})
-
         if source_head_sha == bundle_head_sha:
             logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
             sentinel.touch()
             return
-        else:
-            logger.info(f"Bundle is stale ({bundle_head_sha=}, {source_head_sha=}). Seeding from existing bundle.")
-            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
 
-    if (target_dir / ".git").exists() or (target_dir / ".kart").exists():
+    if is_kart(target_dir):
         if should_pull(target_dir):
-            run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
-            logger.info("Attempting 'git pull'.")
-            run_command(["git", "pull"], cwd=str(target_dir))
+            _pull_or_fresh_clone(target_dir, dataset_source)
     else:
-        run_command(["kart", "clone", dataset_source, str(target_dir), "--no-checkout"])
+        # No local clone present. Seed from the published bundle, then pull. Fall back to a full fresh clone.
+        seeded = False
+        if bundle_head_sha:
+            logger.info(f"Bundle is stale; seeding {dataset_name} from it before pulling the delta.")
+            try:
+                download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
+                seeded = True
+            except (urllib.error.URLError, subprocess.CalledProcessError, OSError) as e:
+                logger.warning(f"Seed-from-bundle failed for {dataset_name}; fresh-cloning instead ({e}).")
+        if seeded:
+            _pull_or_fresh_clone(target_dir, dataset_source)
+        else:
+            _fresh_clone(target_dir, dataset_source)
 
     run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_target), "--all"])
 
@@ -121,7 +171,7 @@ def bundle_dataset(dataset_name: str):
     logger.info(f"Uploading bundle to {s3_url}...")
     run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"])
 
-    kart_dataset_id = get_kart_dataset_id(target_dir)
+    kart_dataset_id = td.source.dataset or get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
     per_commit_dir.mkdir(parents=True, exist_ok=True)
 
@@ -131,10 +181,13 @@ def bundle_dataset(dataset_name: str):
         if result.strip():
             return False
         json_export = str(per_commit_dir / f"{sha}.json")
-        run_command(
+        out = run_command(
             ["kart", "export", "--overwrite", "--ref", sha, kart_dataset_id, json_export],
             cwd=str(target_dir),
+            allow_error="No such dataset",
         )
+        if "No such dataset" in out:
+            return False
         run_command(["gzip", "-f", "-9", json_export])
         run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key])
         return True
@@ -162,5 +215,13 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python -m kart_import.assets.bundle <dataset_name>")
         sys.exit(1)
-    with log_context(action="bundle", dataset=sys.argv[1]):
-        bundle_dataset(sys.argv[1])
+    dataset = sys.argv[1]
+    with log_context(action="bundle", dataset=dataset):
+        try:
+            bundle_dataset(dataset)
+        except Exception:
+            # Emit the traceback through the JSON logger so it lands in the structured
+            # log stream. Snakemake captures a failing job's raw stderr but doesn't
+            # inline it in its main log, so an uncaught traceback would be lost.
+            logger.exception(f"bundle failed for {dataset}")
+            sys.exit(1)
