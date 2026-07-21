@@ -3,7 +3,17 @@ from datetime import datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
-from .config import FieldSpec, Source, Theme, ThemeDataset, build_releases, get_dataset_name, validate_theme_joins
+from . import config
+from .config import (
+    FieldSpec,
+    Source,
+    Theme,
+    ThemeDataset,
+    build_releases,
+    get_dataset_name,
+    get_repo_remote,
+    validate_theme_joins,
+)
 
 
 def _theme_with_join(join_columns):
@@ -290,3 +300,36 @@ def test_build_releases_scoped_keeps_historical_until():
     assert [r.id for r in scoped] == [45]
     assert scoped[0].until == next(r for r in full if r.id == 45).until
     assert scoped[0].until == datetime.fromisoformat("2019-02-01") - timedelta(days=14)
+
+
+REPO = "topographic-data"
+URL = "git@github.com:linz/topographic-data"
+
+
+def _write_repos(monkeypatch, tmp_path, content: str):
+    repos_file = tmp_path / "repos.yml"
+    repos_file.write_text(content)
+    monkeypatch.setattr(config, "CONFIG_DIR_REPOS", repos_file)
+
+
+def test_get_repo_remote_from_repos_key(monkeypatch, tmp_path):
+    _write_repos(monkeypatch, tmp_path, f"repos:\n  {REPO}: {URL}\n")
+    assert get_repo_remote(REPO) == URL
+
+
+def test_get_repo_remote_missing_file_raises(monkeypatch, tmp_path):
+    monkeypatch.setattr(config, "CONFIG_DIR_REPOS", tmp_path / "does-not-exist.yml")
+    with pytest.raises(FileNotFoundError, match="Missing repo mapping file"):
+        get_repo_remote(REPO)
+
+
+def test_get_repo_remote_unknown_repo_raises(monkeypatch, tmp_path):
+    _write_repos(monkeypatch, tmp_path, f"repos:\n  {REPO}: {URL}\n")
+    with pytest.raises(KeyError, match="No remote URL defined for repo 'other-repo'"):
+        get_repo_remote("other-repo")
+
+
+def test_get_repo_remote_empty_file_raises(monkeypatch, tmp_path):
+    _write_repos(monkeypatch, tmp_path, "")
+    with pytest.raises(KeyError, match="No remote URL defined"):
+        get_repo_remote(REPO)
