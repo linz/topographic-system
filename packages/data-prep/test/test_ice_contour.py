@@ -20,6 +20,7 @@ def result(tmp_path: Path):
             "version": [3],
             "geometry": [poly1],
         },
+        crs="EPSG:4167",
     )
 
     landcover_gdf = gpd.GeoDataFrame(
@@ -30,6 +31,7 @@ def result(tmp_path: Path):
             "version": [1],
             "geometry": [poly2],
         },
+        crs="EPSG:4167",
     )
 
     contour_path = tmp_path / "contour.parquet"
