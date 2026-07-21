@@ -5,4 +5,3 @@ repos:
   topographic-product-data: git@github.com:linz/topographic-product-data
   topographic-contour-data: git@github.com:linz/topographic-contour-data
   topographic-test-data: git@github.com:linz/topographic-test-data
-  topographic-data-dev: git@github.com:linz/topographic-data-amcmenamin
