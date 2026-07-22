@@ -19,4 +19,3 @@ export {
   readParquetMetadata,
 } from './parquet.metadata.ts';
 export { concurrency, qFromArgs, qMap, qMapAll, worker } from './limit.ts';
-export { ParquetField } from './parquet.schema.ts';
