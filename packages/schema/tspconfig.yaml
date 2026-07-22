@@ -5,6 +5,3 @@ options:
   '@typespec/json-schema':
     emitter-output-dir: '{project-root}/../../schema'
     file-type: 'json'
-  '@linzjs/typespec-emitter':
-    typescript-output-file: '{project-root}/src/types/types.ts'
-    parquet-output-dir: '{project-root}/src/types/parquet/'

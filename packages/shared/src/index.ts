@@ -21,3 +21,4 @@ export type { ParquetStacMetadata } from './parquet.metadata.ts';
 export { concurrency, qFromArgs, qMap, qMapAll, worker } from './limit.ts';
 export { StacExtensions } from './stac.extensions.ts';
 export type { StacExtensionUrl, StacFileV2_1_0, StacProjectionV2_0_0, StacTableV1_3_0 } from './stac.extensions.ts';
+export { ParquetField } from './parquet.schema.ts';
