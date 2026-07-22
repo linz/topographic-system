@@ -10,6 +10,9 @@ Output schema: ice_contour.yaml
 import argparse
 import json
 import logging
+import os
+import sys
+from dataclasses import dataclass
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
@@ -95,13 +98,46 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     write_parquet(overlay_gdf, overlay_path)
 
 
+@dataclass
+class IceContourArgs:
+    contour_path: Path
+    landcover_path: Path
+    output_path: Path
+
+
+def parse_args() -> IceContourArgs:
+    parser = argparse.ArgumentParser(description="Overlay contour with landcover to produce ice contour")
+    parser.add_argument("--contour", type=str, dest="contour_path", required=True, help="Path to contour parquet")
+    parser.add_argument("--landcover", type=str, dest="landcover_path", required=True, help="Path to landcover parquet")
+    parser.add_argument("--output", type=str, dest="output_path", required=True, help="Path to output parquet")
+
+    parsed = parser.parse_args()
+
+    # Validate input parquet files
+    for label, path in (("contour", parsed.contour_path), ("landcover", parsed.landcover_path)):
+        if not os.path.isfile(path):
+            sys.stderr.write(f"Error: {label} parquet file does not exist: {path}\n")
+            sys.exit(1)
+
+    # Ensure output directory exists
+    output_path = Path(parsed.output_path)
+    if not os.path.isdir(output_path.parent):
+        try:
+            os.makedirs(output_path.parent, exist_ok=True)
+        except Exception as e:
+            sys.stderr.write(f"Error: Output directory could not be created: {output_path.parent}. Details: {e}\n")
+            sys.exit(1)
+
+    return IceContourArgs(
+        contour_path=Path(parsed.contour_path),
+        landcover_path=Path(parsed.landcover_path),
+        output_path=output_path,
+    )
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-    parser = argparse.ArgumentParser(description="Overlay contour with landcover to produce ice contour")
-    parser.add_argument("--contour", required=True, help="Path to contour parquet")
-    parser.add_argument("--landcover", required=True, help="Path to landcover parquet")
-    parser.add_argument("--output", required=True, help="Path to output parquet")
-    args = parser.parse_args()
+    args = parse_args()
 
-    run(Path(args.contour), Path(args.landcover), Path(args.output))
+    run(args.contour_path, args.landcover_path, args.output_path)

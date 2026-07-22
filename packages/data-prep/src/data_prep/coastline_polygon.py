@@ -4,6 +4,9 @@ Build the coastlines and islands polygon layer from source coastline lines and i
 
 import argparse
 import logging
+import os
+import sys
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -136,15 +139,52 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     write_parquet(coastlines_islands_gdf, output_path)
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+@dataclass
+class CoastlinePolygonArgs:
+    coastline_path: Path
+    island_path: Path
+    output_path: Path
 
+
+def parse_args() -> CoastlinePolygonArgs:
     parser = argparse.ArgumentParser(
         description="Build the coastlines and islands polygon layer from coastline lines and island polygons"
     )
-    parser.add_argument("--coastline", required=True, help="Path to coastline parquet (lines)")
-    parser.add_argument("--island", required=True, help="Path to island parquet (polygons)")
-    parser.add_argument("--output", required=True, help="Path to output parquet")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--coastline", type=str, dest="coastline_path", required=True, help="Path to coastline parquet (lines)"
+    )
+    parser.add_argument(
+        "--island", type=str, dest="island_path", required=True, help="Path to island parquet (polygons)"
+    )
+    parser.add_argument("--output", type=str, dest="output_path", required=True, help="Path to output parquet")
 
-    run(Path(args.coastline), Path(args.island), Path(args.output))
+    parsed = parser.parse_args()
+
+    # Validate input parquet files
+    for label, path in (("coastline", parsed.coastline_path), ("island", parsed.island_path)):
+        if not os.path.isfile(path):
+            sys.stderr.write(f"Error: {label} parquet file does not exist: {path}\n")
+            sys.exit(1)
+
+    # Ensure output directory exists
+    output_path = Path(parsed.output_path)
+    if not os.path.isdir(output_path.parent):
+        try:
+            os.makedirs(output_path.parent, exist_ok=True)
+        except Exception as e:
+            sys.stderr.write(f"Error: Output directory could not be created: {output_path.parent}. Details: {e}\n")
+            sys.exit(1)
+
+    return CoastlinePolygonArgs(
+        coastline_path=Path(parsed.coastline_path),
+        island_path=Path(parsed.island_path),
+        output_path=output_path,
+    )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+    args = parse_args()
+
+    run(args.coastline_path, args.island_path, args.output_path)
