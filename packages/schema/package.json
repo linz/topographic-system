@@ -9,10 +9,7 @@
   "exports": {
     ".": {
       "typespec": "./src/main.tsp",
-      "default": "./src/types/types.ts"
-    },
-    "./next": {
-      "default": "./src/types/next.ts"
+      "default": "./src/types/index.ts"
     }
   },
   "engines": {
@@ -24,9 +21,8 @@
   "devDependencies": {
     "@linzjs/typespec-emitter": "^0.1.0",
     "@types/node": "^24.10.0",
-    "@typespec/compiler": "^1.11.0"
-  },
-  "dependencies": {
+    "@typespec/compiler": "^1.11.0",
     "@typespec/json-schema": "^1.11.0"
-  }
+  },
+  "dependencies": {}
 }

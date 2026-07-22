@@ -4,45 +4,44 @@ import { isJsonSchemaDeclaration } from '@typespec/json-schema';
 
 import { toSnakeCase, unwrapNullableType } from './utils.ts';
 
-interface ParquetField {
+export interface ParquetField {
   name: string;
-  repetition: 'REQUIRED' | 'OPTIONAL' | 'REPEATED';
-  physical_type?: string;
+  repetition_type: 'REQUIRED' | 'OPTIONAL' | 'REPEATED';
+  type?: string;
   logical_type?: string;
   fields?: ParquetField[];
 }
-
-function mapTypeSpecToParquet(type: Type): { physical_type?: string; logical_type?: string } {
+function mapTypeSpecToParquet(type: Type): { type?: string; logical_type?: string } {
   switch (type.kind) {
     case 'Scalar':
       switch (type.name) {
         case 'boolean':
-          return { physical_type: 'BOOLEAN' };
+          return { type: 'BOOLEAN' };
         case 'int32':
-          return { physical_type: 'INT32' };
+          return { type: 'INT32' };
         case 'int64':
-          return { physical_type: 'INT64' };
+          return { type: 'INT64' };
         case 'float32':
-          return { physical_type: 'FLOAT' };
+          return { type: 'FLOAT' };
         case 'float64':
-          return { physical_type: 'DOUBLE' };
+          return { type: 'DOUBLE' };
         case 'string':
-          return { physical_type: 'BYTE_ARRAY', logical_type: 'STRING' };
+          return { type: 'BYTE_ARRAY', logical_type: 'STRING' };
         case 'bytes':
-          return { physical_type: 'BYTE_ARRAY' };
+          return { type: 'BYTE_ARRAY' };
         case 'plainDate':
-          return { physical_type: 'INT32', logical_type: 'DATE' };
+          return { type: 'INT32', logical_type: 'DATE' };
         case 'utcDateTime':
         case 'offsetDateTime':
-          return { physical_type: 'INT64', logical_type: 'TIMESTAMP' };
+          return { type: 'INT64', logical_type: 'TIMESTAMP' };
         case 'decimal':
-          return { physical_type: 'BYTE_ARRAY', logical_type: 'DECIMAL' };
+          return { type: 'BYTE_ARRAY', logical_type: 'DECIMAL' };
       }
       break;
     case 'Enum':
-      return { physical_type: 'BYTE_ARRAY', logical_type: 'STRING' };
+      return { type: 'BYTE_ARRAY', logical_type: 'STRING' };
   }
-  return { physical_type: 'BYTE_ARRAY', logical_type: 'STRING' }; // fallback
+  return { type: 'BYTE_ARRAY', logical_type: 'STRING' }; // fallback
 }
 
 function getParquetFields(model: Model): ParquetField[] {
@@ -63,7 +62,7 @@ function getParquetFields(model: Model): ParquetField[] {
 
       const itemField: ParquetField = {
         name: 'element',
-        repetition: arrayItemUnwrapped.optional ? 'OPTIONAL' : 'REQUIRED',
+        repetition_type: arrayItemUnwrapped.optional ? 'OPTIONAL' : 'REQUIRED',
       };
 
       if (
@@ -75,18 +74,18 @@ function getParquetFields(model: Model): ParquetField[] {
         itemField.fields = getParquetFields(arrayItemType);
       } else {
         const mapped = mapTypeSpecToParquet(arrayItemType);
-        if (mapped.physical_type) itemField.physical_type = mapped.physical_type;
+        if (mapped.type) itemField.type = mapped.type;
         if (mapped.logical_type) itemField.logical_type = mapped.logical_type;
       }
 
       fields.push({
         name: fieldName,
-        repetition,
+        repetition_type: repetition,
         logical_type: 'LIST',
         fields: [
           {
             name: 'list',
-            repetition: 'REPEATED',
+            repetition_type: 'REPEATED',
             fields: [itemField],
           },
         ],
@@ -99,16 +98,16 @@ function getParquetFields(model: Model): ParquetField[] {
     ) {
       fields.push({
         name: fieldName,
-        repetition,
+        repetition_type: repetition,
         fields: getParquetFields(targetType),
       });
     } else {
       const mapped = mapTypeSpecToParquet(targetType);
       const field: ParquetField = {
         name: fieldName,
-        repetition,
+        repetition_type: repetition,
       };
-      if (mapped.physical_type) field.physical_type = mapped.physical_type;
+      if (mapped.type) field.type = mapped.type;
       if (mapped.logical_type) field.logical_type = mapped.logical_type;
       fields.push(field);
     }
