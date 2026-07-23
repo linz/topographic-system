@@ -1,0 +1,62 @@
+name: structure
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-dry-dock-polygons-topo-150k
+    name: nz_dry_dock_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: dry_dock
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-fish-farm-polygons-topo-150k
+    name: nz_fish_farm_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: fish_farm
+      species: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-marine-farm-polygons-topo-150k
+    name: nz_marine_farm_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: marine_farm
+      species: $
+  - source: kart@data.koordinates.com:linz/cook-islands-reservoir-polygons-topo-125k-zone4
+    name: cook_islands_reservoir_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: reservoir
+      lid_type: $
+  - source: kart@data.koordinates.com:linz/nz-reservoir-polygons-topo-150k
+    name: nz_reservoir_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: reservoir
+      lid_type: $
+  - source: kart@data.koordinates.com:linz/nz-siphon-polygons-topo-150k
+    name: nz_siphon_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: siphon
+      status: $
+  - source: kart@data.koordinates.com:linz/cook-islands-tank-polygons-topo-125k-zone4
+    name: cook_islands_tank_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-tank-polygons-topo-150k
+    name: nz_tank_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-polygons-ant-150k
+    name: nz_ross_dependency_tank_polygons_ant_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $

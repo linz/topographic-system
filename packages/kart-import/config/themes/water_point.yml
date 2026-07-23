@@ -2,31 +2,151 @@ name: water_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
+  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone3
+    name: cook_islands_rock_points_topo_125k_zone3
     mapping:
-      feature_type: rock
+      t50_fid: $
+      type: rock
       name: $
-  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
+  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone4
+    name: cook_islands_rock_points_topo_125k_zone4
     mapping:
-      feature_type: rock
+      t50_fid: $
+      type: rock
       name: $
-  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
+  - source: kart@data.koordinates.com:linz/niue-rock-points-topo-150k
+    name: niue_rock_points_topo_150k
     mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
-    mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
-    mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
-    mapping:
-      feature_type: rock
+      t50_fid: $
+      type: rock
       name: $
   - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
+    name: nz_rock_points_topo_150k
     mapping:
-      feature_type: rock
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
+    name: nz_antipodes_island_rock_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
+    name: nz_auckland_island_rock_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
+    name: nz_bounty_islands_rock_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_rock_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
+    name: nz_chatham_island_rock_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
+    name: nz_kermadec_is_rock_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-points-ant-150k
+    name: nz_ross_dependency_rock_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-rock-points-topo-125k
+    name: tokelau_rock_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-soakhole-points-topo-125k-zone4
+    name: cook_islands_soakhole_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: soakhole
+  - source: kart@data.koordinates.com:linz/nz-soakhole-points-topo-150k
+    name: nz_soakhole_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: soakhole
+      orientation: $orientatn
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-soakhole-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_soakhole_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: soakhole
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-soakhole-points-topo-150k
+    name: nz_chatham_island_soakhole_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: soakhole
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-soakhole-points-topo-125k
+    name: nz_kermadec_is_soakhole_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: soakhole
+  - source: kart@data.koordinates.com:linz/nz-spring-points-topo-150k
+    name: nz_spring_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: spring
+      name: $
+      temperature_indicator: $temp
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-spring-points-topo-125k
+    name: nz_kermadec_is_spring_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: spring
+      name: $
+      temperature_indicator: $temp
+  - source: kart@data.koordinates.com:linz/cook-islands-waterfall-points-topo-125k-zone4
+    name: cook_islands_waterfall_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: waterfall
+      height: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-waterfall-points-topo-150k
+    name: nz_waterfall_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      height: $
+      name: $
+      orientation: $orientatn
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-waterfall-points-topo-125k
+    name: nz_antipodes_island_waterfall_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      height: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-waterfall-points-topo-150k
+    name: nz_auckland_island_waterfall_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      height: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-waterfall-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_waterfall_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      height: $
       name: $

@@ -1,0 +1,121 @@
+name: vegetation
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-exotic-polygons-topo-150k
+    name: nz_exotic_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: exotic
+      subtype: $species
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-exotic-polygons-topo-150k
+    name: nz_chatham_island_exotic_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: exotic
+      subtype: $species
+  - source: kart@data.koordinates.com:linz/cook-islands-native-polygons-topo-125k-zone3
+    name: cook_islands_native_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/cook-islands-native-polygons-topo-125k-zone4
+    name: cook_islands_native_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/niue-native-polygons-topo-150k
+    name: niue_native_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/nz-native-polygons-topo-150k
+    name: nz_native_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-native-polygons-topo-150k
+    name: nz_auckland_island_native_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-native-polygons-topo-150k
+    name: nz_chatham_island_native_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-native-polygons-topo-125k
+    name: nz_kermadec_is_native_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-native-polygons-topo-125k
+    name: nz_snares_island_tini_heke_native_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/tokelau-native-polygons-topo-125k
+    name: tokelau_native_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: native
+  - source: kart@data.koordinates.com:linz/cook-islands-scattered-scrub-polygons-topo-125k-zone4
+    name: cook_islands_scattered_scrub_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: scattered_scrub
+  - source: kart@data.koordinates.com:linz/nz-scattered-scrub-polygons-topo-150k
+    name: nz_scattered_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scattered_scrub
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-scattered-scrub-polygons-topo-150k
+    name: nz_chatham_island_scattered_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scattered_scrub
+  - source: kart@data.koordinates.com:linz/cook-islands-scrub-polygons-topo-125k-zone3
+    name: cook_islands_scrub_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/cook-islands-scrub-polygons-topo-125k-zone4
+    name: cook_islands_scrub_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/niue-scrub-polygons-topo-150k
+    name: niue_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/nz-scrub-polygons-topo-150k
+    name: nz_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-scrub-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-scrub-polygons-topo-150k
+    name: nz_chatham_island_scrub_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-scrub-polygons-topo-125k
+    name: nz_kermadec_is_scrub_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-scrub-polygons-topo-125k
+    name: nz_snares_island_tini_heke_scrub_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: scrub
+  - source: kart@data.koordinates.com:linz/tokelau-scrub-polygons-topo-125k
+    name: tokelau_scrub_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: scrub

@@ -1,0 +1,88 @@
+name: island
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone3
+    name: cook_islands_island_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone4
+    name: cook_islands_island_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/niue-island-polygons-topo-150k
+    name: niue_island_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-island-polygons-topo-150k
+    name: nz_island_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-polygons-topo-125k
+    name: nz_antipodes_island_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-island-polygons-topo-150k
+    name: nz_auckland_island_island_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-island-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_island_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-island-polygons-topo-150k
+    name: nz_chatham_island_island_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-island-polygons-topo-125k
+    name: nz_kermadec_is_island_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-island-polygons-ant-150k
+    name: nz_ross_dependency_island_polygons_ant_150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: null
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-island-polygons-topo-125k
+    name: nz_snares_island_tini_heke_island_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+  - source: kart@data.koordinates.com:linz/tokelau-island-polygons-topo-125k
+    name: tokelau_island_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name

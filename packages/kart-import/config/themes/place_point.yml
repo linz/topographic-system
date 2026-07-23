@@ -1,0 +1,191 @@
+name: place_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-cave-points-topo-125k-zone4
+    name: cook_islands_cave_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: cave
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-cave-points-topo-150k
+    name: niue_cave_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: cave
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-cave-points-topo-150k
+    name: nz_cave_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: cave
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-cave-points-ant-150k
+    name: nz_ross_dependency_cave_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: cave
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-cemetery-points-topo-125k-zone3
+    name: cook_islands_cemetery_points_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-cemetery-points-topo-125k-zone4
+    name: cook_islands_cemetery_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-cemetery-points-topo-150k
+    name: nz_cemetery_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-cemetery-points-topo-150k
+    name: nz_auckland_island_cemetery_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-points-topo-150k
+    name: nz_chatham_island_cemetery_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-cemetery-points-topo-125k
+    name: tokelau_cemetery_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-grave-points-topo-150k
+    name: niue_grave_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: grave
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-grave-points-topo-150k
+    name: nz_grave_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: grave
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-grave-points-topo-150k
+    name: nz_chatham_island_grave_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: grave
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-historic-site-points-topo-125k-zone4
+    name: cook_islands_historic_site_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/niue-historic-site-points-topo-150k
+    name: niue_historic_site_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/nz-historic-site-points-topo-150k
+    name: nz_historic_site_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
+    name: nz_auckland_island_historic_site_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-historic-site-points-ant-150k
+    name: nz_ross_dependency_historic_site_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: historic_site
+      description: $descriptn
+  - source: kart@data.koordinates.com:linz/nz-mine-points-topo-150k
+    name: nz_mine_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: mine
+      name: $
+      status: $
+      substance_extracted: $substance
+      place_type: $visibility
+  - source: kart@data.koordinates.com:linz/cook-islands-monument-points-topo-125k-zone4
+    name: cook_islands_monument_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: monument
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-monument-points-topo-150k
+    name: nz_monument_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: monument
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-monument-points-topo-150k
+    name: nz_chatham_island_monument_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: monument
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-monument-points-topo-125k
+    name: tokelau_monument_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: monument
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-pa-points-topo-150k
+    name: nz_pa_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: pa
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-radar-dome-points-topo-150k
+    name: nz_radar_dome_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: radar_dome
+  - source: kart@data.koordinates.com:linz/nz-saddle-points-topo-150k
+    name: nz_saddle_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: saddle
+      elevation: $
+      name: $
+      orientation: $orientatn
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-saddle-points-ant-150k
+    name: nz_ross_dependency_saddle_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: saddle
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-satellite-station-points-topo-150k
+    name: nz_satellite_station_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: satellite_station
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-satellite-station-points-topo-150k
+    name: nz_chatham_island_satellite_station_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: satellite_station

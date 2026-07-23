@@ -1,0 +1,28 @@
+name: trig_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+# The topo trig `name` field actually holds the geodetic 4-letter CODE (e.g. A0DC).
+# `code` is taken straight from it; the real human `name` is looked up from the
+# NZ Geodetic Marks layer (LDS 50787) on geodetic_code == that code.
+# (NZGB Place Names (LDS 51681) has better names but no key to trig points — it would
+#  need a spatial nearest join, unsupported by the attribute-join engine — future work.)
+lookups:
+  - name: geodetic_marks
+    source:
+      url: kart@data.koordinates.com:linz/nz-geodetic-marks
+    key: geodetic_code
+    columns:
+      - current_mark_name
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-trig-points-topo-150k
+    name: nz_trig_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: trig
+      trig_type: beaconed
+      code: $name
+      elevation: $elevation
+      name: $geodetic_marks.current_mark_name
+    joins:
+      - lookup: geodetic_marks
+        left_on: name

@@ -1,0 +1,170 @@
+name: water
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-canal-polygons-topo-150k
+    name: nz_canal_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: canal
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-lagoon-polygons-topo-125k-zone3
+    name: cook_islands_lagoon_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: lagoon
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-lagoon-polygons-topo-125k-zone4
+    name: cook_islands_lagoon_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: lagoon
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-lagoon-polygons-topo-150k
+    name: nz_lagoon_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: lagoon
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-lagoon-polygons-topo-150k
+    name: nz_chatham_island_lagoon_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: lagoon
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-lagoon-polygons-topo-125k
+    name: tokelau_lagoon_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: lagoon
+      elevation: $
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-lake-polygons-topo-125k-zone3
+    name: cook_islands_lake_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/cook-islands-lake-polygons-topo-125k-zone4
+    name: cook_islands_lake_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-lake-polygons-topo-150k-2
+    name: nz_lake_polygons_topo_150k_2
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-lake-polygons-topo-150k
+    name: nz_auckland_island_lake_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-lake-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_lake_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-lake-polygons-topo-150k
+    name: nz_chatham_island_lake_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-lake-polygons-topo-125k
+    name: nz_kermadec_is_lake_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-lake-polygons-ant-150k
+    name: nz_ross_dependency_lake_polygons_ant_150k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-glacial-lake-polygons-ant-150k
+    name: nz_ross_dependency_glacial_lake_polygons_ant_150k
+    mapping:
+      t50_fid: $
+      type: lake
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-lake-polygons-topo-125k
+    name: nz_snares_island_tini_heke_lake_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: lake
+      elevation: $
+      group_name: $grp_name
+      water_use: $lake_use
+      name: $
+      perennial: $
+  - source: kart@data.koordinates.com:linz/cook-islands-pond-polygons-topo-125k-zone4
+    name: cook_islands_pond_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: pond
+      name: $
+      water_use: $pond_use
+  - source: kart@data.koordinates.com:linz/nz-pond-polygons-topo-150k
+    name: nz_pond_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: pond
+      name: $
+      water_use: $pond_use
+  - source: kart@data.koordinates.com:linz/cook-islands-river-polygons-topo-125k-zone4
+    name: cook_islands_river_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-river-polygons-topo-150k
+    name: nz_river_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-polygons-topo-150k
+    name: nz_chatham_island_river_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: river

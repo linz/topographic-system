@@ -1,0 +1,84 @@
+name: relief_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-height-points-topo-125k-zone4
+    name: cook_islands_height_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-height-points-topo-150k
+    name: nz_height_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-height-points-topo-125k
+    name: nz_antipodes_island_height_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-height-points-topo-150k
+    name: nz_auckland_island_height_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-height-points-topo-125k
+    name: nz_bounty_islands_height_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-height-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_height_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-height-points-topo-150k
+    name: nz_chatham_island_height_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-height-points-topo-125k
+    name: nz_kermadec_is_height_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-height-points-ant-150k
+    name: nz_ross_dependency_height_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-height-points-topo-125k
+    name: nz_snares_island_tini_heke_height_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: height
+      elevation: $
+  - source: kart@data.koordinates.com:linz/cook-islands-sinkhole-points-topo-125k-zone4
+    name: cook_islands_sinkhole_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: sinkhole
+  - source: kart@data.koordinates.com:linz/nz-sinkhole-points-topo-150k-2
+    name: nz_sinkhole_points_topo_150k_2
+    mapping:
+      t50_fid: $
+      type: sinkhole
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-sinkhole-points-topo-125k
+    name: nz_antipodes_island_sinkhole_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: sinkhole
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-sinkhole-points-ant-150k
+    name: nz_ross_dependency_sinkhole_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: sinkhole

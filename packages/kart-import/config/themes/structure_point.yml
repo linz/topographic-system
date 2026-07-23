@@ -1,0 +1,283 @@
+name: structure_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-150k-zone3
+    name: cook_islands_beacon_points_topo_150k_zone3
+    mapping:
+      t50_fid: $
+      type: beacon
+      location: $
+      name: $
+      status: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-125k-zone4
+    name: cook_islands_beacon_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: beacon
+      location: $
+      name: $
+      status: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-beacon-points-topo-150k
+    name: nz_beacon_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: beacon
+      location: $
+      name: $
+      status: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-beacon-points-topo-150k
+    name: nz_chatham_island_beacon_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: beacon
+      location: $
+      name: $
+      status: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-beacon-points-ant-150k
+    name: nz_ross_dependency_beacon_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: beacon
+      location: $
+      name: $
+      status: $
+      subtype: $type
+  - source: kart@data.koordinates.com:linz/nz-bivouac-points-topo-150k
+    name: nz_bivouac_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: bivouac
+      material: $materials
+      name: $
+      orientation: $orientatn
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-buoy-points-topo-150k
+    name: nz_buoy_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: buoy
+  - source: kart@data.koordinates.com:linz/nz-chimney-points-topo-150k
+    name: nz_chimney_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: chimney
+  - source: kart@data.koordinates.com:linz/nz-dredge-points-topo-150k
+    name: nz_dredge_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: dredge
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-flare-points-topo-150k
+    name: nz_flare_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: flare
+  - source: kart@data.koordinates.com:linz/nz-floodgate-points-topo-150k
+    name: nz_floodgate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: floodgate
+      orientation: $orientatn
+  - source: kart@data.koordinates.com:linz/nz-gate-points-topo-150k
+    name: nz_gate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: gate
+      name: $
+      orientation: $orientatn
+      restrictions: $restrictns
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-gate-points-topo-150k
+    name: nz_chatham_island_gate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: gate
+      name: $
+      restrictions: $restrictns
+  - source: kart@data.koordinates.com:linz/nz-ladder-points-topo-150k
+    name: nz_ladder_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: ladder
+      material: $materials
+  - source: kart@data.koordinates.com:linz/cook-islands-mast-points-topo-125k-zone4
+    name: cook_islands_mast_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/niue-mast-points-topo-150k
+    name: niue_mast_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/nz-mast-points-topo-150k
+    name: nz_mast_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-mast-points-topo-150k
+    name: nz_chatham_island_mast_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-mast-points-ant-150k
+    name: nz_ross_dependency_mast_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/tokelau-mast-points-topo-125k
+    name: tokelau_mast_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: mast
+      height: $
+  - source: kart@data.koordinates.com:linz/nz-redoubt-points-topo-150k
+    name: nz_redoubt_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: redoubt
+      name: $
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-shaft-points-topo-150k
+    name: nz_shaft_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: shaft
+      structure_use: $shaft_use
+  - source: kart@data.koordinates.com:linz/nz-siphon-points-topo-150k
+    name: nz_siphon_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: siphon
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-stockyard-points-topo-150k
+    name: nz_stockyard_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: stockyard
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-stockyard-points-topo-150k
+    name: nz_chatham_island_stockyard_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: stockyard
+  - source: kart@data.koordinates.com:linz/cook-islands-tank-points-topo-125k-zone4
+    name: cook_islands_tank_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/niue-tank-points-topo-150k
+    name: niue_tank_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-tank-points-topo-150k
+    name: nz_tank_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-tank-points-topo-150k
+    name: nz_chatham_island_tank_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-points-ant-150k
+    name: nz_ross_dependency_tank_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: tank
+      stored_item: $store_item
+      tank_type: $
+  - source: kart@data.koordinates.com:linz/nz-tower-points-topo-150k
+    name: nz_tower_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tower
+      material: $
+  - source: kart@data.koordinates.com:linz/niue-well-points-topo-150k
+    name: niue_well_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: well
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-well-points-topo-150k
+    name: nz_well_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: well
+      status: $
+  - source: kart@data.koordinates.com:linz/tokelau-well-points-topo-125k
+    name: tokelau_well_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: well
+      status: $
+  - source: kart@data.koordinates.com:linz/nz-windmill-points-topo-150k
+    name: nz_windmill_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: windmill
+      structure_use: $use
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
+    name: nz_chatham_island_windmill_points_topo_1250k
+    mapping:
+      t50_fid: $
+      type: windmill
+      structure_use: $use
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-windmill-points-ant-150k
+    name: nz_ross_dependency_windmill_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: windmill
+      structure_use: $use
+  - source: kart@data.koordinates.com:linz/niue-wreck-points-topo-150k
+    name: niue_wreck_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: wreck
+      name: $
+      wreck_of: $
+  - source: kart@data.koordinates.com:linz/nz-wreck-points-topo-150k
+    name: nz_wreck_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: wreck
+      name: $
+      wreck_of: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
+    name: nz_auckland_island_wreck_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: wreck
+      name: $
+      wreck_of: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-wreck-points-topo-150k
+    name: nz_chatham_island_wreck_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: wreck
+      name: $
+      wreck_of: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
+    name: nz_kermadec_is_wreck_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: wreck
+      name: $
+      wreck_of: $

@@ -1,0 +1,210 @@
+name: structure_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-boatramp-centrelines-topo-125k-zone4
+    name: cook_islands_boatramp_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: boatramp
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-boatramp-centrelines-topo-150k
+    name: niue_boatramp_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: boatramp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-boatramp-centrelines-topo-150k
+    name: nz_boatramp_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: boatramp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-boatramp-centrelines-topo-150k
+    name: nz_chatham_island_boatramp_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: boatramp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-boom-centrelines-topo-150k
+    name: nz_boom_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: boom
+  - source: kart@data.koordinates.com:linz/cook-islands-breakwater-centrelines-topo-125k-zone4
+    name: cook_islands_breakwater_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: breakwater
+  - source: kart@data.koordinates.com:linz/nz-breakwater-centrelines-topo-150k
+    name: nz_breakwater_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: breakwater
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-breakwater-centrelines-topo-150k
+    name: nz_chatham_island_breakwater_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: breakwater
+  - source: kart@data.koordinates.com:linz/tokelau-breakwater-centrelines-topo-125k
+    name: tokelau_breakwater_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: breakwater
+  - source: kart@data.koordinates.com:linz/nz-cableway-industrial-centrelines-topo-150k
+    name: nz_cableway_industrial_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: cableway_industrial
+      material_conveyed: $mtlconveyd
+  - source: kart@data.koordinates.com:linz/nz-cableway-people-centrelines-topo-150k
+    name: nz_cableway_people_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: cableway_people
+      restrictions: $restrictns
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
+    name: nz_kermadec_is_cableway_people_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: cableway_people
+      restrictions: $restrictns
+  - source: kart@data.koordinates.com:linz/nz-dam-centrelines-topo-150k
+    name: nz_dam_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: dam
+      status: $dam_status
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-dam-centrelines-topo-150k
+    name: nz_chatham_island_dam_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: dam
+      status: $dam_status
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-flume-centrelines-topo-150k
+    name: nz_flume_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: flume
+  - source: kart@data.koordinates.com:linz/nz-ladder-centrelines-topo-150k
+    name: nz_ladder_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ladder
+      material: $materials
+  - source: kart@data.koordinates.com:linz/nz-marine-farm-centrelines-topo-150k
+    name: nz_marine_farm_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: marine_farm
+      species: $
+  - source: kart@data.koordinates.com:linz/nz-ski-lift-centrelines-topo-150k
+    name: nz_ski_lift_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ski_lift
+  - source: kart@data.koordinates.com:linz/nz-ski-tow-centrelines-topo-150k
+    name: nz_ski_tow_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ski_tow
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-ski-tow-centrelines-ant-150k
+    name: nz_ross_dependency_ski_tow_centrelines_ant_150k
+    mapping:
+      t50_fid: $
+      type: ski_tow
+  - source: kart@data.koordinates.com:linz/nz-slipway-centrelines-topo-150k
+    name: nz_slipway_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: slipway
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-spillway-edges-topo-150k
+    name: nz_spillway_edges_topo_150k
+    mapping:
+      t50_fid: $
+      type: spillway_edge
+  - source: kart@data.koordinates.com:linz/nz-weir-centrelines-topo-150k
+    name: nz_weir_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: weir
+  - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone3
+    name: cook_islands_wharf_centrelines_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: wharf
+      name: $
+      status: $
+      structure_use: $wharf_use
+  - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone4
+    name: cook_islands_wharf_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: wharf
+      name: $
+      status: $
+      structure_use: $wharf_use
+  - source: kart@data.koordinates.com:linz/nz-wharf-centrelines-topo-150k
+    name: nz_wharf_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: wharf
+      name: $
+      status: $
+      structure_use: $wharf_use
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-wharf-centrelines-topo-150k
+    name: nz_chatham_island_wharf_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: wharf
+      name: $
+      status: $
+      structure_use: $wharf_use
+  - source: kart@data.koordinates.com:linz/tokelau-wharf-centrelines-topo-125k
+    name: tokelau_wharf_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: wharf
+      name: $
+      status: $
+      structure_use: $wharf_use
+  - source: kart@data.koordinates.com:linz/cook-islands-wharf-edges-topo-125k-zone4
+    name: cook_islands_wharf_edges_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: wharf_edge
+  - source: kart@data.koordinates.com:linz/niue-wharf-edges-topo-150k
+    name: niue_wharf_edges_topo_150k
+    mapping:
+      t50_fid: $
+      type: wharf_edge
+  - source: kart@data.koordinates.com:linz/nz-wharf-edges-topo-150k
+    name: nz_wharf_edges_topo_150k
+    mapping:
+      t50_fid: $
+      type: wharf_edge
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-wharf-edges-ant-150k
+    name: nz_ross_dependency_wharf_edges_ant_150k
+    mapping:
+      t50_fid: $
+      type: wharf_edge
+  - source: kart@data.koordinates.com:linz/tokelau-wharf-edges-topo-125k
+    name: tokelau_wharf_edges_topo_125k
+    mapping:
+      t50_fid: $
+      type: wharf_edge
+  - source: kart@data.koordinates.com:linz/nz-walkwire-centrelines-topo-150k
+    name: nz_walkwire_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: walkwire
+  - source: kart@data.koordinates.com:linz/nz-water-race-centrelines-topo-150k
+    name: nz_water_race_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: water_race
+      name: $
+      status: $

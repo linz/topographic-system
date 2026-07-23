@@ -1,0 +1,30 @@
+name: nztopo50_map_sheet
+target_repo: topographic-product-data
+target_epsg: EPSG:2193 # NZTM — map sheets are a projected-grid product (matches the product guide)
+# Source is the LAMPS map-sheet export held in the topographic-source-data kart repo
+# (not an LDS layer). linz_map_sheet columns: t50_fid, sheet_code, sheet_name, edition,
+# ex_name, ex_class.
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_map_sheet
+    name: linz_map_sheet
+    mapping:
+      t50_fid: $
+      type: nztopo50_map_sheet
+      sheet_code: $sheet_code
+      sheet_name: $sheet_name
+      published_version: $edition # refined to just the version by the fixup
+      x_origin: { fixup: true } # filled by map_sheet_origin (SW corner, NZTM2000)
+      y_origin: { fixup: true } # filled by map_sheet_origin (SW corner, NZTM2000)
+      published_at: { fixup: true } # filled by map_sheet_origin (parsed from edition year)
+      example_point_id: { fixup: true } # filled by resolve_example_point_id fixup
+      # transient helpers (consumed + dropped by the fixup; not in the schema):
+      example_name: { source: $ex_name, fixup: true }
+      example_class: { source: $ex_class, fixup: true }
+    fixups:
+      # Derives x_origin/y_origin (NZTM SW corner) + published_at/published_version from edition.
+      - fn: map_sheet_origin
+      # Resolves example_point_id from trig_point.code / geographic_name.name → their id.
+      # NOTE: requires trig_point + geographic_name to be transformed first for this release.
+      - fn: resolve_example_point_id

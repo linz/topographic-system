@@ -1,0 +1,20 @@
+name: landuse_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-racetrack-centrelines-topo-150k
+    name: nz_racetrack_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: racetrack
+      name: $
+      subtype: $track_type
+      landuse_use: $track_use
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-racetrack-centrelines-topo-150k
+    name: nz_chatham_island_racetrack_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: racetrack
+      name: $
+      subtype: $track_type
+      landuse_use: $track_use
