@@ -12,6 +12,7 @@ model vegetation {
   subtype: vegetation_subtype | null;
   species: string | null;
   
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -20,3 +21,4 @@ enum vegetation_subtype {
   Coniferous: "coniferous",
   NonConiferous: "non-coniferous",
 }
+

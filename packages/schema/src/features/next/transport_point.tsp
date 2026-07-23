@@ -11,7 +11,9 @@ model transport_point {
   type: "ford" | "helipad";
   name: string | null;
   
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

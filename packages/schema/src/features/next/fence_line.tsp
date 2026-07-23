@@ -10,7 +10,9 @@ model fence_line {
   
   type: "fence";
 
+  theme: "structures";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

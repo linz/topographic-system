@@ -14,6 +14,7 @@ model place_point {
   composition: place_composition | null;
   description: string | null;
 
+  theme: "landuse";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -38,3 +39,4 @@ enum place_composition {
   Pumice: "pumice",
   Coral: "coral",
 }
+

@@ -13,6 +13,7 @@ model relief_line {
   name: string | null;
   height: float64 | null;
 
+  theme: "relief";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -32,3 +33,4 @@ enum relief_line_subtype {
   Causeway: "causeway",
   Stopbank: "stopbank",
 }
+

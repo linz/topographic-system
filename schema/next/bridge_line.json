@@ -78,6 +78,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -112,6 +116,7 @@
     "construction_type",
     "status",
     "name",
+    "theme",
     "metadata",
     "geometry"
   ],

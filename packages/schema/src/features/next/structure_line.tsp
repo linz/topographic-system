@@ -15,6 +15,7 @@ model structure_line {
   status: structure_status | null;
   name: string | null;
 
+  theme: "structures";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -39,6 +40,7 @@ enum structure_line_type {
   Wharf: "wharf",
   WharfEdge: "wharf_edge"
 }
+
 
 
 

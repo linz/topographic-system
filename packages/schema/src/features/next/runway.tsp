@@ -13,6 +13,7 @@ model runway {
   status: runway_status | null;
   surface: runway_surface | null;
   
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -31,3 +32,4 @@ enum runway_surface {
   Grass: "grass",
   Sealed: "sealed",
 }
+

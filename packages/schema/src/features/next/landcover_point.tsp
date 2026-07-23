@@ -17,6 +17,7 @@ model rock_outcrop {
     type: "rock_outcrop";
     subtype: rock_outcrop_subtype;
     
+    theme: "landcover";
     ...TopographicMetadata;
     ...GeoParquet
 }
@@ -27,6 +28,7 @@ model landcover_point_core_types {
   type: landcover_point_core_type;
   subtype: null;
   
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -42,3 +44,4 @@ enum rock_outcrop_subtype {
   LargeRockOutcrop: "large_rock_outcrop",
   LargeBoulder: "large_boulder"
 }
+

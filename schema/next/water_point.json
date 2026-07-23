@@ -71,6 +71,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -105,6 +109,7 @@
     "height",
     "orientation",
     "temperature_indicator",
+    "theme",
     "metadata",
     "geometry"
   ],

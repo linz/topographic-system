@@ -91,6 +91,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "structures"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -127,6 +131,7 @@
     "name",
     "height",
     "orientation",
+    "theme",
     "metadata",
     "geometry"
   ],

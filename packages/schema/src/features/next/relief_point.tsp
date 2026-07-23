@@ -14,6 +14,7 @@ model relief_point {
   height: float64 | null;
   orientation: float64 | null;
 
+  theme: "relief";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -24,4 +25,5 @@ enum relief_point_type {
   Sinkhole: "sinkhole",
   Waterfall: "waterfall"
 }
+
 

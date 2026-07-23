@@ -14,6 +14,7 @@ model landuse {
   name: string | null;
   substance_extracted: substance_extracted | null;
 
+  theme: "landuse";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -68,3 +69,4 @@ enum substance_extracted {
   Stone: "stone",
   Zeolite: "zeolite",
 }
+

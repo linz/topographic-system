@@ -68,6 +68,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -92,7 +96,18 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "species", "metadata", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "species",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
     "vegetation_subtype": {

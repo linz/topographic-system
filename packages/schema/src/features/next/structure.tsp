@@ -16,6 +16,7 @@ model structure {
   status: structure_status | null;
   name: string | null;
 
+  theme: "structures";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -77,6 +78,7 @@ enum structure_status {
   Ruins: "ruins",
   UnderConstruction: "under_construction"
 }
+
 
 
 

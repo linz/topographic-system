@@ -15,6 +15,7 @@ model tunnel_line {
   status: tunnel_status | null;
   name: string | null;
   
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -37,3 +38,4 @@ enum tunnel_status {
   Closed: "closed",
   UnderConstruction: "under_construction",
 }
+

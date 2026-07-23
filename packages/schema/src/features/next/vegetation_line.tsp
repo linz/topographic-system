@@ -10,7 +10,9 @@ model vegetation_line {
 
   type: "shelter_belt";
   
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 
