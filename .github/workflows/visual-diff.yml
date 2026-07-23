@@ -73,7 +73,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: AWS Configure
-        uses: aws-actions/configure-aws-credentials@v6.2.1
+        uses: aws-actions/configure-aws-credentials@6.2.2
         with:
           aws-region: ap-southeast-2
           mask-aws-account-id: true
