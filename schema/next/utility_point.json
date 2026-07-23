@@ -31,16 +31,6 @@
     "type": {
       "$ref": "#/$defs/utility_point_type"
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "orientation": {
       "anyOf": [
         {
@@ -75,7 +65,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "orientation", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "orientation", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "utility_point_type": {

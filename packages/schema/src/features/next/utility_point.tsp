@@ -9,7 +9,6 @@ model utility_point {
   ...TopographicFeature;
 
   type: utility_point_type;
-  name: string | null;
   orientation: float64 | null;
 
   ...TopographicMetadata;
