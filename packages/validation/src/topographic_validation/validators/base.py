@@ -342,6 +342,7 @@ class AbstractTopologyValidator(ABC):
         gdf["notes"] = ""
 
         if self.export_parquet:
+            print(f"Exporting {validation_type} validation results to Parquet...")
             export_file = os.path.join(
                 self.output_dir,
                 f"{self.layername}_{validation_type}{extended_name}.parquet",
@@ -354,6 +355,7 @@ class AbstractTopologyValidator(ABC):
                 row_group_size=50000,
             )
         if self.export_gpkg:
+            print(f"Exporting {validation_type} validation results to GPKG...")
             export_file = os.path.join(self.output_dir, f"topology_{validation_type}.gpkg")
             layer_name = f"{self.layername}_{validation_type}{extended_name}"
             gdf.to_file(f"{export_file}", layer=layer_name, driver="GPKG", append=True)
