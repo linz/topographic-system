@@ -115,6 +115,26 @@ def test_literal_default_is_checked(schema_folder):
     assert any("'kind: 'commercial''" in p for p in problems)
 
 
+def test_missing_required_column_is_reported(schema_folder):
+    # `type` is required but neither mapped nor pipeline-managed -> flagged.
+    (schema_folder / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["id", "type", "name"]}))
+    problems = check_theme(_theme({"name": "$"}))
+    assert any("missing required column 'type'" in p for p in problems)
+
+
+def test_pipeline_managed_required_column_is_not_reported(schema_folder):
+    # `id` is required but supplied by the pipeline, so it must never be flagged as missing.
+    (schema_folder / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["id", "type"]}))
+    problems = check_theme(_theme({"type": "airport"}))
+    assert not any("missing required column 'id'" in p for p in problems)
+
+
+def test_fixup_column_satisfies_required(schema_folder):
+    # A `fixup: true` column has no checkable value but the column IS present at output.
+    (schema_folder / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["type"]}))
+    assert check_theme(_theme({"type": {"source": "$t", "fixup": True}})) == []
+
+
 def test_missing_schema_is_reported(schema_folder):
     theme = _theme({"type": "airport"})
     theme.name = "no_such_theme"

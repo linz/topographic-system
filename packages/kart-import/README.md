@@ -128,9 +128,20 @@ so any pre-existing `origin` is replaced.
 ## Config schema check
 
 On load, each theme's `mapping` is statically checked against `schema/<theme>.json` as a
-cheap, early guard for authoring mistakes (unknown target column, a literal that violates a
-`const`/`enum`/`type`, or a `null` into a non-nullable field). It does not replace the
-GeoParquet data validation run in CI. Columns tagged `fixup: true` are skipped.
+cheap, early guard for authoring mistakes:
+
+1. **unknown target column**: a mapping key that is not a schema property.
+2. **bad literal constant**: a literal value that violates the property's `const`/`enum`/`type`.
+3. **null into a non-nullable field**: `col: null` where the schema forbids null.
+4. **missing required column**: a schema `required` property that is neither mapped nor
+   supplied by the pipeline, so the output row would omit it.
+
+It does not replace the GeoParquet data validation run in CI. Columns tagged `fixup: true`
+are skipped for the value checks (2/3) but still count as _present_ for the required check (4).
+
+Some columns are populated by the pipeline rather than a mapping and so are always treated as
+present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
+(`kart export`), and `bbox` (`to-parquet`). Any other required column must be mapped explicitly.
 
 Controlled by env vars:
 

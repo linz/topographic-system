@@ -9,9 +9,11 @@ Rules:
 2. **bad literal constant**: a literal mapping value (e.g. ``type: rock``) that does not
    satisfy the property's ``const`` / ``enum`` / ``type``.
 3. **null into a non-nullable field** — ``col: null`` where the schema forbids null.
+4. **missing required column**: a schema ``required`` property that is neither mapped by the
+   theme nor supplied by the pipeline (``PIPELINE_MANAGED``), so the output row would omit it.
 
-A mapping value tagged ``fixup: true`` is skipped as its final value will be determined
-by a dataset fixup and only knowable at runtime.
+A mapping value tagged ``fixup: true`` is skipped for value checks (rules 2/3) as its final
+value is only knowable at runtime, but the column still counts as *present* for rule 4.
 
 Schema set selection:
   ``KART_SCHEMA_SET`` = ``current`` (default,``schema/``) or ``next`` (``schema/next/``).
@@ -40,8 +42,12 @@ logger = logging.getLogger("kart_import")
 # packages/kart-import/src/kart_import/schema_check.py -> repo root is five parents up.
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
-# Columns supplied by the pipeline itself, not by a theme mapping.
-PIPELINE_MANAGED = frozenset({"id", "created_at", "updated_at", "metadata", "geometry", "bbox"})
+# Columns supplied by the pipeline itself, not by a theme mapping. These cols are expected to be
+# absent from the mapping yet still satisfy a schema ``required`` entry.
+#   id / created_at / updated_at  -> transform.normalize_fields / normalize_field_lifecyle
+#   geometry                      -> kart export `-lco GEOMETRY_NAME=geometry`
+#   bbox                          -> to-parquet ogr2ogr `-lco COVERING_BBOX_NAME=bbox`
+PIPELINE_MANAGED = frozenset({"id", "created_at", "updated_at", "geometry", "bbox"})
 
 
 class SchemaCheckError(Exception):
@@ -82,10 +88,25 @@ def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
 
     doc = _load_schema(str(sp))
     props: dict[str, Any] = doc.get("properties", {})
+    required: list[str] = doc.get("required", [])
+    defs = doc.get("$defs", {})
+    validators = {name: Draft202012Validator({**subschema, "$defs": defs}) for name, subschema in props.items()}
     problems: list[str] = []
 
     for dataset in theme.datasets:
-        for target, spec in dataset.field_specs().items():
+        specs = dataset.field_specs()
+
+        # Rule 4: every required column must be mapped (even a `fixup`/all-null column counts as
+        # present) or supplied by the pipeline; otherwise the emitted row would omit it.
+        provided = set(specs) | PIPELINE_MANAGED
+        for col in required:
+            if col not in provided:
+                problems.append(
+                    f"{theme.name}/{dataset.name}: missing required column '{col}' "
+                    f"(required by schema {theme.name}.json, but not mapped nor pipeline-managed)"
+                )
+
+        for target, spec in specs.items():
             if spec.fixup:
                 continue
             if target not in props:
@@ -94,7 +115,7 @@ def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
                     f"(not a property of schema {theme.name}.json)"
                 )
                 continue
-            validator = Draft202012Validator({**props[target], "$defs": doc.get("$defs", {})})
+            validator = validators[target]
             # The source is checkable unless it's a `$`-ref (runtime value). An explicit
             # `null` source (`col: null`) IS checked, against nullability.
             to_check: list[Any] = []
