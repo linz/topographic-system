@@ -8,6 +8,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .env import env_releases, env_themes, env_transform_format
+from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
 
@@ -104,6 +105,8 @@ class FieldSpec(BaseModel):
     """Column reference (``$`` / ``$col``), a literal constant, or ``None`` for an all-NULL column."""
     default: Any = None
     """Value substituted when the resolved source is NULL/NaN."""
+    fixup: bool = False
+    """This column's final value is modified by a dataset fixup, skip static schema check."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":
@@ -437,6 +440,10 @@ def load_from_yaml():
             LOOKUP_TO_THEME_MAP[lookup.name] = theme
 
         validate_theme_joins(theme)
+        check_theme_or_warn(theme)
+
+    for repo_name in ALL_KART_REPOS:
+        get_repo_remote(repo_name)
 
     if not CONFIG_DIR_RELEASE.exists():
         raise FileNotFoundError(CONFIG_DIR_RELEASE)

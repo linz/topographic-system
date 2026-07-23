@@ -125,6 +125,22 @@ Pushing requires SSH access to these GitHub repositories. The push step
 re-points the built repo's `origin` remote at the configured URL before pushing,
 so any pre-existing `origin` is replaced.
 
+## Config schema check
+
+On load, each theme's `mapping` is statically checked against `schema/<theme>.json` as a
+cheap, early guard for authoring mistakes (unknown target column, a literal that violates a
+`const`/`enum`/`type`, or a `null` into a non-nullable field). It does not replace the 
+GeoParquet data validation run in CI. Columns tagged `fixup: true` are skipped.
+
+Controlled by env vars:
+
+```shell
+# warn (default): log problems and continue | strict: raise | off: skip
+export KART_SCHEMA_CHECK=strict            # e.g. in CI or a pre-commit hook
+export KART_SCHEMA_SET=next                 # check against schema/next/ instead of schema/
+export KART_SCHEMA_DIR=/path/to/schema      # override the schema root (folder must exist)
+```
+
 # Example YAML Configuration Files
 
 ```yaml
@@ -145,6 +161,11 @@ datasets:
         default: 888
       way_count: $
       road_access: $
+      # `fixup: true`: this column is modified by a dataset fixup (listed under `fixups:` below),
+      # so the static schema check skips it.
+      # Use for a placeholder the fixup fills, or a transient input column it consumes and drops:
+      origin_x: { fixup: true }
+      example_name: { source: $source_name, fixup: true }
     # NOTE: Fictional examples for illustrative purposes :-)
     corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
       # keys are matched on their raw YAML value, so the key's type must match the column's:
