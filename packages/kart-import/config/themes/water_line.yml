@@ -1,0 +1,73 @@
+name: water_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-canal-centrelines-topo-150k
+    name: nz_canal_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: canal
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-drain-centrelines-topo-125k-zone4
+    name: cook_islands_drain_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: drain
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-drain-centrelines-topo-150k
+    name: nz_drain_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: drain
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-drain-centrelines-topo-150k
+    name: nz_chatham_island_drain_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: drain
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone3
+    name: cook_islands_river_centrelines_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone4
+    name: cook_islands_river_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-river-centrelines-topo-150k
+    name: nz_river_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
+    name: nz_antipodes_island_river_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-river-centrelines-topo-150k
+    name: nz_auckland_island_river_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-river-centrelines-topo-150k
+    name: nz_campbell_island_motu_ihupuku_river_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-centrelines-topo-150k
+    name: nz_chatham_island_river_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-river-centrelines-topo-125k
+    name: nz_kermadec_is_river_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: river
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-river-centrelines-topo-125k
+    name: nz_snares_island_tini_heke_river_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: river

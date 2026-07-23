@@ -1,0 +1,32 @@
+# Test fixture: testmapsheet is the built nztopo50_map_sheet product, relabelled.
+#
+# It sources the ALREADY-BUILT map sheet from topographic-product-data (dataset
+# nztopo50_map_sheet) and just passes the final fields through, overriding `type`. So the
+# heavy work (x/y origin, published_*, example_point_id resolution) is inherited — no fixups,
+# no cross-theme example wiring.
+#
+# ⚠ Build with KART_DROP_NULL_FID=true: the product keeps a few null-t50_fid sheets (e.g. the
+# composite index sheets) which this t50_fid-keyed pipeline drops (fixture ends up ~1 sheet
+# fewer than the product).
+# ⚠ Ordering dependency (not enforced by Snakemake — different source repo): rebuild
+# testmapsheet AFTER nztopo50_map_sheet is rebuilt & pushed to topographic-product-data,
+# or the fixture goes stale.
+name: testmapsheet
+target_repo: topographic-test-data
+target_epsg: EPSG:2193 # NZTM — already the map sheet's CRS upstream
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-product-data
+      dataset: nztopo50_map_sheet
+    name: testmapsheet
+    mapping:
+      type: testmapsheet # the only real change vs the product layer
+      t50_fid: $
+      sheet_code: $
+      sheet_name: $
+      x_origin: $
+      y_origin: $
+      example_point_id: $ # already resolved upstream → valid string
+      published_version: $
+      published_at: $
+    # no fixups: map_sheet_origin + resolve_example_point_id already applied upstream.

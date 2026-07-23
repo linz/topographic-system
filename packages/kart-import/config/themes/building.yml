@@ -1,0 +1,60 @@
+name: building
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-building-polygons-topo-125k-zone3
+    name: cook_islands_building_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/cook-islands-building-polygons-topo-150k-zone4
+    name: cook_islands_building_polygons_topo_150k_zone4
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/niue-building-polygons-topo-150k
+    name: niue_building_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/nz-building-polygons-topo-150k
+    name: nz_building_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-building-polygons-topo-150k
+    name: nz_chatham_island_building_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-polygons-topo-125k
+    name: nz_kermadec_is_building_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/tokelau-building-polygons-topo-125k
+    name: tokelau_building_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: building
+      building_use: $bldg_use
+      status: $status
+      name: $name

@@ -1,0 +1,16 @@
+# Test-data re-creation (BM e2e). The source clone is kept only for pipeline plumbing;
+# the actual features are generated programmatically by the `generate_test_features` fixup
+# (shapes in kart_import.fixups._TEST_FEATURE_SPECS) so the fixture geometries can be
+# changed in one place rather than in the topographic-test-data source.
+name: testline
+target_repo: topographic-test-data
+target_epsg: EPSG:4326
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-test-data
+      dataset: testline
+    name: testline
+    mapping:
+      type: testline
+    fixups:
+      - fn: generate_test_features

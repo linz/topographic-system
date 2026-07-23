@@ -1,0 +1,14 @@
+name: railway_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-railway-centrelines-topo-150k
+    name: nz_railway_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: railway
+      railway_use: $rway_use
+      track_type: $track_type
+      vehicle_type: $veh_type
+      status: $status
+      name: $name

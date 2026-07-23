@@ -1,0 +1,43 @@
+name: nztopo50_carto_text
+target_repo: topographic-product-data
+target_epsg: EPSG:2193
+# Cartographic text (map labels). Raw source is linz_carto_text in the
+# topographic-source-data kart repo. The text_* fields are direct renames; the 10
+# QGIS styling fields (font/style/colour/size/placement/offset/textanchor/labelanchor/
+# charplace/chardistance) are derived by the `carto_text_style` fixup from a
+# deterministic rule table (config/lookups/carto_text_style.csv, extracted from the
+# product guide). example_point_id needs the trig_point/geographic_name lookup (see below).
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_carto_text
+    name: linz_carto_text
+    mapping:
+      full_text: $
+      text_bend: $
+      text_font: $
+      text_string: $text_strin
+      text_char_spacing_distance: $t_c_s_d
+      text_colour: $text_colou
+      text_height: $text_heigh
+      text_orientation: $text_orien
+      text_placement: $text_place
+      text_size_type: $txt_size_t
+      text_stretch_length: $txt_s_l
+      text_word_spacing_distance: $t_w_s_d
+      # Derived by the carto_text_style fixup:
+      font: null
+      style: null
+      colour: null
+      size: null
+      placement: null
+      offset: null
+      textanchor: null
+      labelanchor: null
+      charplace: null
+      chardistance: null
+      # PLACEHOLDER — resolved from trig_point.code / geographic_name.name of the sheet's
+      # example feature (445 rows only); needs those themes' ids. See NEEDS_WORK.md.
+      example_point_id: null
+    fixups:
+      - fn: carto_text_style

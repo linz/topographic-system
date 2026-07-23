@@ -1,0 +1,108 @@
+name: geographic_name
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone3
+    name: cook_islands_geographic_names_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone4
+    name: cook_islands_geographic_names_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/niue-geographic-names-topo-150k
+    name: niue_geographic_names_topo_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-geographic-names-topo-150k
+    name: nz_geographic_names_topo_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-geographic-names-topo-125k
+    name: nz_antipodes_island_geographic_names_topo_125k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-geographic-names-topo-150k
+    name: nz_auckland_island_geographic_names_topo_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
+    name: nz_bounty_islands_geographic_names_topo_125k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
+    name: nz_campbell_island_motu_ihupuku_geographic_names_topo_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-geographic-names-topo-150k
+    name: nz_chatham_island_geographic_names_topo_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-geographic-names-topo-125k
+    name: nz_kermadec_is_geographic_names_topo_125k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-geographic-names-ant-150k
+    name: nz_ross_dependency_geographic_names_ant_150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-geographic-names-topo-125k
+    name: nz_snares_island_tini_heke_geographic_names_topo_125k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+  - source: kart@data.koordinates.com:linz/tokelau-geographic-names-topo-125k
+    name: tokelau_geographic_names_topo_125k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size

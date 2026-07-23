@@ -1,0 +1,11 @@
+name: relief
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-waterfall-polygons-topo-150k
+    name: nz_waterfall_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      name: $name
+      height: $height

@@ -1,0 +1,135 @@
+name: marine
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-mangrove-polygons-topo-150k
+    name: nz_mangrove_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: mangrove
+  - source: kart@data.koordinates.com:linz/cook-islands-reef-polygons-topo-125k-zone3
+    name: cook_islands_reef_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-reef-polygons-topo-125k-zone4
+    name: cook_islands_reef_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-reef-polygons-topo-150k
+    name: niue_reef_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-reef-polygons-topo-150k
+    name: nz_reef_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-reef-polygons-topo-150k
+    name: nz_chatham_island_reef_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-reef-polygons-topo-125k
+    name: tokelau_reef_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: reef
+      composition: $compositn
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-rock-polygons-topo-150k
+    name: nz_rock_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-polygons-topo-125k
+    name: nz_antipodes_island_rock_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-polygons-topo-150k
+    name: nz_auckland_island_rock_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-polygons-topo-125k
+    name: nz_bounty_islands_rock_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_rock_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-polygons-topo-150k
+    name: nz_chatham_island_rock_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-polygons-topo-125k
+    name: nz_kermadec_is_rock_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-rock-polygons-topo-125k
+    name: nz_snares_island_tini_heke_rock_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-shoal-polygons-topo-125k-zone3
+    name: cook_islands_shoal_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-shoal-polygons-topo-125k-zone4
+    name: cook_islands_shoal_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-shoal-polygons-topo-150k
+    name: nz_shoal_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-shoal-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_shoal_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-shoal-polygons-topo-125k
+    name: nz_kermadec_is_shoal_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-shoal-polygons-topo-125k
+    name: tokelau_shoal_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: shoal
+      name: $

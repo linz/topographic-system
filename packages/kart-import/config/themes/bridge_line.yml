@@ -1,0 +1,44 @@
+name: bridge_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-bridge-centrelines-topo-125k-zone4
+    name: cook_islands_bridge_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: bridge
+      bridge_use: $use_1
+      bridge_use2: $use_2
+      construction_type: $constr_typ
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/nz-bridge-centrelines-topo-150k
+    name: nz_bridge_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: bridge
+      bridge_use: $use_1
+      bridge_use2: $use_2
+      construction_type: $constr_typ
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-bridge-centrelines-topo-150k
+    name: nz_chatham_island_bridge_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: bridge
+      bridge_use: $use_1
+      bridge_use2: $use_2
+      construction_type: $constr_typ
+      status: $status
+      name: $name
+  - source: kart@data.koordinates.com:linz/tokelau-bridge-centrelines-topo-125k
+    name: tokelau_bridge_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: bridge
+      bridge_use: $use_1
+      bridge_use2: $use_2
+      construction_type: $constr_typ
+      status: $status
+      name: $name

@@ -1,0 +1,39 @@
+name: vegetation_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone3
+    name: cook_islands_tree_points_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone4
+    name: cook_islands_tree_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/niue-tree-points-topo-150k
+    name: niue_tree_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/nz-tree-points-topo-150k
+    name: nz_tree_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-tree-points-topo-150k
+    name: nz_chatham_island_tree_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-tree-points-topo-125k
+    name: nz_kermadec_is_tree_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: tree
+  - source: kart@data.koordinates.com:linz/tokelau-tree-points-topo-125k
+    name: tokelau_tree_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: tree

@@ -1,0 +1,91 @@
+name: landcover_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-fumarole-points-topo-150k
+    name: nz_fumarole_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: fumarole
+  - source: kart@data.koordinates.com:linz/nz-rock-outcrop-points-topo-150k
+    name: nz_rock_outcrop_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+      orientation: $orientatn
+    corrections: &id001
+      - column: subtype
+        replace:
+          0: large_boulder
+          1: large_boulder
+          2: small_rock_outcrop
+          3: large_rock_outcrop
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-outcrop-points-topo-125k
+    name: nz_antipodes_island_rock_outcrop_points_topo_125k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+    corrections: *id001
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-outcrop-points-topo-150k
+    name: nz_auckland_island_rock_outcrop_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+    corrections: *id001
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-outcrop-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_rock_outcrop_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+    corrections: *id001
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-outcrop-points-ant-150k
+    name: nz_ross_dependency_rock_outcrop_points_ant_150k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+    corrections: *id001
+  - source: kart@data.koordinates.com:linz/cook-islands-swamp-points-topo-125k-zone3
+    name: cook_islands_swamp_points_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: swamp
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-swamp-points-topo-125k-zone4
+    name: cook_islands_swamp_points_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: swamp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-swamp-points-topo-150k
+    name: nz_swamp_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: swamp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-points-topo-150k
+    name: nz_auckland_island_swamp_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: swamp
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-swamp-points-topo-150k
+    name: nz_chatham_island_swamp_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: swamp
+      name: $

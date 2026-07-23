@@ -1,0 +1,83 @@
+name: road_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+# Enrichment lookup: NZ road extra attributes exported to the topographic-source-data
+# kart repo (linz_road_cl), joined on t50_fid. Supplies road_access / width_indicator /
+# name_id, which are not in the LDS road-centrelines layer.
+lookups:
+  - name: road_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_road_cl
+    key: t50_fid
+    columns:
+      - road_acces
+      - width
+      - name_id
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
+    name: nz_road_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: road
+      name: $name
+      status: $status
+      surface: $surface
+      lane_count: $lane_count
+      rna_sufi: $rna_sufi
+      highway_number: $hway_num
+      way_count: $way_count
+      hierarchy: null
+      road_access: $road_lkp.road_acces
+      width_indicator: $road_lkp.width
+      name_id: $road_lkp.name_id
+    joins:
+      - lookup: road_lkp
+        left_on: t50_fid
+    corrections:
+      - column: way_count
+        replace:
+          '1': one_way
+      - column: road_access
+        replace:
+          m: mp
+  - source: kart@data.koordinates.com:linz/cook-islands-road-centrelines-topo-125k-zone3
+    name: cook_islands_road_centrelines_topo_125k_zone3
+    mapping: &regional
+      t50_fid: $
+      type: road
+      name: $name
+      status: $status
+      surface: $surface
+      lane_count: $lane_count
+      rna_sufi: null
+      highway_number: $hway_num
+      way_count: $way_count
+      hierarchy: null
+      road_access: null
+      width_indicator: null
+      name_id: null
+    corrections: &waycount
+      - column: way_count
+        replace:
+          '1': one way
+  - source: kart@data.koordinates.com:linz/cook-islands-road-centrelines-topo-125k-zone4
+    name: cook_islands_road_centrelines_topo_125k_zone4
+    mapping: *regional
+    corrections: *waycount
+  - source: kart@data.koordinates.com:linz/niue-road-centrelines-topo-150k
+    name: niue_road_centrelines_topo_150k
+    mapping: *regional
+    corrections: *waycount
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-road-centrelines-topo-150k
+    name: nz_chatham_island_road_centrelines_topo_150k
+    mapping: *regional
+    corrections: *waycount
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-road-centrelines-ant-150k
+    name: nz_ross_dependency_road_centrelines_ant_150k
+    mapping: *regional
+    corrections: *waycount
+  - source: kart@data.koordinates.com:linz/tokelau-road-centrelines-topo-125k
+    name: tokelau_road_centrelines_topo_125k
+    mapping: *regional
+    corrections: *waycount
