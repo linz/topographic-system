@@ -19,7 +19,7 @@
     "t50_fid": {},
     "type": {
       "type": "string",
-      "const": "contour"
+      "const": "contour_ice"
     },
     "elevation": {
       "anyOf": [
@@ -63,13 +63,13 @@
         }
       ]
     },
+    "contour_id": {
+      "type": "string",
+      "description": "UUID for the intersecting contour feature."
+    },
     "landcover_id": {
       "type": "string",
       "description": "UUID for the intersecting landcover feature."
-    },
-    "landcover_type": {
-      "type": "string",
-      "const": "ice"
     },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
@@ -81,7 +81,7 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "landcover_id", "landcover_type", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "contour_id", "landcover_id", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "DesignationEnum": {

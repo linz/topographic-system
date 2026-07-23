@@ -11,13 +11,14 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count, get_context
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 import pyarrow.parquet as pq
 
+from data_prep.identity import reproducible_uuid7
 from data_prep.parquet_utils import write_parquet
 
 logger = logging.getLogger(__name__)
@@ -69,23 +70,28 @@ def read_nzgd2000(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
     return gdf
 
 
+def primary_geom_column(path: Path) -> str:
+    return json.loads(pq.read_schema(path).metadata[b"geo"])["primary_column"]
+
+
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
-    contour_gdf = read_nzgd2000(contour_path).drop(columns=["updated_at", "version"])
+    contour_gdf = read_nzgd2000(
+        contour_path,
+        columns=["topo_id", "elevation", "definition", "designation", "formation", primary_geom_column(contour_path)],
+    ).rename(columns={"topo_id": "contour_id"})
 
-    landcover_geom_col = json.loads(pq.read_schema(landcover_path).metadata[b"geo"])["primary_column"]
     _landcover_gdf = read_nzgd2000(
         landcover_path,
         filters=[("type", "==", "ice")],
         columns=[
             "id",
-            "type",
+            "created_at",
             "updated_at",
-            "version",
-            landcover_geom_col,
+            primary_geom_column(landcover_path),
         ],
-    ).rename(columns={"id": "landcover_id", "type": "landcover_type"})
+    ).rename(columns={"id": "landcover_id"})
 
     n_workers = cpu_count()
     n_chunks = 100
@@ -93,7 +99,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     _contour_chunks = split_gdf(contour_gdf, n_chunks)
     del contour_gdf
 
-    with Pool(n_workers, maxtasksperchild=1) as pool:
+    with get_context("fork").Pool(n_workers, maxtasksperchild=1) as pool:
         results = [
             r for r in pool.imap_unordered(process_chunk, range(len(_contour_chunks))) if r is not None and not r.empty
         ]
@@ -103,6 +109,14 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
     overlay_gdf = gpd.GeoDataFrame(pd.concat(results, ignore_index=True))
     overlay_gdf = overlay_gdf.set_crs(epsg=NZGD2000)
+    overlay_gdf["id"] = [
+        str(reproducible_uuid7(int(pd.Timestamp(created_at).timestamp() * 1000), f"{contour_id}|{landcover_id}"))
+        for contour_id, landcover_id, created_at in zip(
+            overlay_gdf["contour_id"], overlay_gdf["landcover_id"], overlay_gdf["created_at"], strict=True
+        )
+    ]
+    overlay_gdf = overlay_gdf.assign(t50_fid=None)
+    overlay_gdf = overlay_gdf.assign(type="contour_ice")
 
     write_parquet(overlay_gdf, overlay_path)
 

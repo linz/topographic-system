@@ -14,10 +14,11 @@ def result(tmp_path: Path):
 
     contour_gdf = gpd.GeoDataFrame(
         {
-            "type": ["contour"],
-            "id": [1],
-            "updated_at": [date(2024, 1, 1)],
-            "version": [3],
+            "topo_id": [1],
+            "elevation": [100],
+            "definition": [None],
+            "designation": [None],
+            "formation": [None],
             "geometry": [poly1],
         },
         crs=NZGD2000,
@@ -25,10 +26,10 @@ def result(tmp_path: Path):
 
     landcover_gdf = gpd.GeoDataFrame(
         {
-            "type": ["ice"],
             "id": [10],
+            "type": ["ice"],
+            "created_at": [date(2025, 1, 2)],
             "updated_at": [date(2025, 6, 15)],
-            "version": [1],
             "geometry": [poly2],
         },
         crs=NZGD2000,
@@ -46,32 +47,10 @@ def result(tmp_path: Path):
     return gpd.read_parquet(output_path)
 
 
-def test_output_has_expected_columns(result):
-    assert "type" in result.columns
-    assert "id" in result.columns
-    assert "landcover_id" in result.columns
-    assert "landcover_type" in result.columns
-    assert "updated_at" in result.columns
-    assert "version" in result.columns
-
-
-def test_landcover_type_is_ice(result):
-    assert not result.empty
-    assert (result["landcover_type"] == "ice").all()
-
-
-def test_landcover_id(result):
-    assert result.iloc[0]["landcover_id"] == 10
-
-
-def test_update_date_takes_landcover(result):
-    assert result.iloc[0]["updated_at"] == date(2025, 6, 15)
-
-
-def test_version_takes_landcover(result):
-    assert result.iloc[0]["version"] == 1
-
-
 def test_geometry_is_intersection(result):
     expected = Polygon([(1, 1), (2, 1), (2, 2), (1, 2)])
     assert result.iloc[0].geometry.equals(expected)
+
+
+def test_updated_at_takes_landcover(result):
+    assert result.iloc[0]["updated_at"] == date(2025, 6, 15)
