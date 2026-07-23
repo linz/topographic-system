@@ -4,17 +4,25 @@
   "private": true,
   "type": "module",
   "tspMain": "src/main.tsp",
+  "main": "src/types/types.ts",
+  "types": "src/types/types.ts",
+  "exports": {
+    ".": {
+      "typespec": "./src/main.tsp",
+      "default": "./src/types/index.ts"
+    }
+  },
   "engines": {
     "node": "^24.5.0"
   },
   "scripts": {
-    "bundle": "tsp compile . && tsp compile src/next.tsp --config tspconfig.next.yaml && (cd ../../schema && oxfmt .)"
+    "bundle": "tsp compile . && tsp compile src/next.tsp --config tspconfig.next.yaml && (cd ../../schema && oxfmt .) && oxfmt src"
   },
   "devDependencies": {
+    "@linzjs/typespec-emitter": "^0.1.0",
     "@types/node": "^24.10.0",
-    "@typespec/compiler": "^1.11.0"
-  },
-  "dependencies": {
+    "@typespec/compiler": "^1.11.0",
     "@typespec/json-schema": "^1.11.0"
-  }
+  },
+  "dependencies": {}
 }
