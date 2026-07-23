@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/topographic-system-validation-v0.3.0...topographic-system-validation-v0.4.0) (2026-07-23)
+
+
+### Features
+
+* BM1747 updated validation config due to schema changes ([#214](https://github.com/linz/topographic-system/issues/214)) ([3dc64fa](https://github.com/linz/topographic-system/commit/3dc64fad72aa50f0034c07bbd92f01abf294df3b))
+* test case for `feature_not_contains_layers` BM-1596 ([#111](https://github.com/linz/topographic-system/issues/111)) ([eb99930](https://github.com/linz/topographic-system/commit/eb999305fef4bcd11e3302a5e741756e5b5d68d5))
+* test cases for `line_not_touches_feature_layers` BM-1595 ([#110](https://github.com/linz/topographic-system/issues/110)) ([5af890b](https://github.com/linz/topographic-system/commit/5af890b8df49be42537a14def845e8e9207e0da9))
+* test data for `line_not_on_feature_layers` BM-1594 ([#107](https://github.com/linz/topographic-system/issues/107)) ([d839a2c](https://github.com/linz/topographic-system/commit/d839a2c0d1db883560b3346172d388e5d17ddb26))
+* update schema 0.2 BM-1743 ([#209](https://github.com/linz/topographic-system/issues/209)) ([c7c1775](https://github.com/linz/topographic-system/commit/c7c1775d65e7c4615b34747761dd6b9e840e10a9))
+
+
+### Bug Fixes
+
+* added layername to null setup BM-1774 ([#223](https://github.com/linz/topographic-system/issues/223)) ([f050203](https://github.com/linz/topographic-system/commit/f05020317f401130937a05eefe2715e08ef4fb8e))
+* validation check dependencies BM-1748 ([#217](https://github.com/linz/topographic-system/issues/217)) ([2e68176](https://github.com/linz/topographic-system/commit/2e6817689d242b5bf3d2b2f90330fdb77b32e5f3))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/topographic-system-validation-v0.2.0...topographic-system-validation-v0.3.0) (2026-04-01)
 
 
