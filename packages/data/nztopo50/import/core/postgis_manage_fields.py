@@ -46,7 +46,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"transport_point": ["type"],
 	"trig_point": ["type", "trig_type"],
 	"tunnel_line": ["type", "construction_type", "subtype"],
-	"water": ["type", "subtype", "hierarchy", "perennial", "temperature_indicator"],
+	"water": ["type", "subtype", "perennial", "temperature_indicator"],
 	"water_line": ["type"],
 	"water_point": ["type", "temperature_indicator"],
 	"vegetation_point": ["type"],
@@ -1349,6 +1349,7 @@ class TableModificationWorkflow:
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(50)"
         )
+
         self.table_modifer.add_column(
             f"{self.schema_name}.road_line", "width_indicator", "VARCHAR(5)"
         )
@@ -1382,16 +1383,13 @@ class TableModificationWorkflow:
         #    f"{self.schema_name}.coastline", "coastline_type", "VARCHAR(50)"
         #)
 
-        self.table_modifer.add_column(
-            f"{self.schema_name}.road_line", "hierarchy", "VARCHAR(25)"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
+        #)
 
-        self.table_modifer.add_column(
-            f"{self.schema_name}.water_line", "hierarchy", "VARCHAR(25)"
-        )
-        self.table_modifer.add_column(
-            f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
-        )
+        #self.table_modifer.add_column(
+        #    f"{self.schema_name}.water", "hierarchy", "VARCHAR(25)"
+        #)
 
         self.table_modifer.rename_columns(
             self.schema_name, "bridge_line", "use2", "subtype"
