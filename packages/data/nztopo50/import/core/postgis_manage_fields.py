@@ -1418,6 +1418,9 @@ class TableModificationWorkflow:
             self.schema_name, "landuse_point", "visibility", "subtype"
         )
 
+        self.table_modifer.drop_column(self.schema_name, "utility_line", "name")
+
+
         # offshore (1) or inland island (0) - added manually using sea_coastline poly shapefile create from coastline and box
         # self.table_modifer.add_column(f"{self.schema_name}.island", "location", "INTEGER")
 
