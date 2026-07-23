@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def env_transform_format() -> str:
@@ -38,6 +39,49 @@ def env_releases() -> set[str] | None:
     if base_releases is None:
         return None
     return set(t.strip() for t in base_releases.lower().split(","))
+
+
+def env_schema_set() -> str:
+    """Which schema set the static schema check validates a theme's mapping against.
+
+    KART_SCHEMA_SET=current|next (default current):
+    ``current`` -> ``schema/`` ; ``next`` -> ``schema/next/``.
+
+        export KART_SCHEMA_SET=next
+    """
+    return os.getenv("KART_SCHEMA_SET", "current")
+
+
+def env_schema_dir_override() -> str | None:
+    """Override the root of the ``current`` schema set (``next`` is its ``next/`` child).
+
+    KART_SCHEMA_DIR=/path/to/schema (default: the repo's ``schema/`` dir). Returns None
+    when unset, i.e. use the default. A set-but-missing path is an operator config error
+    (it would otherwise silently make every theme report "no schema" and disable the check),
+    so it is rejected here.
+
+        export KART_SCHEMA_DIR=/tmp/schemas
+    """
+    base = os.getenv("KART_SCHEMA_DIR")
+    if base is not None and not Path(base).is_dir():
+        raise FileNotFoundError(f"KART_SCHEMA_DIR is set but not a directory: {base!r}")
+    return base
+
+
+def env_schema_check_mode() -> str:
+    """Behaviour of the static theme schema check run at config-load time.
+
+    KART_SCHEMA_CHECK=warn|strict|off (default warn):
+    ``warn`` logs problems and continues
+    ``strict`` raises
+    ``off`` skips the check entirely
+
+        export KART_SCHEMA_CHECK=strict
+    """
+    mode = os.getenv("KART_SCHEMA_CHECK", "warn").lower()
+    if mode not in ("warn", "strict", "off"):
+        raise ValueError(f"KART_SCHEMA_CHECK must be 'warn', 'strict' or 'off', got {mode!r}")
+    return mode
 
 
 def env_use_bundle() -> bool:

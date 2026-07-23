@@ -125,6 +125,33 @@ Pushing requires SSH access to these GitHub repositories. The push step
 re-points the built repo's `origin` remote at the configured URL before pushing,
 so any pre-existing `origin` is replaced.
 
+## Config schema check
+
+On load, each theme's `mapping` is statically checked against `schema/<theme>.json` as a
+cheap, early guard for authoring mistakes:
+
+1. **unknown target column**: a mapping key that is not a schema property.
+2. **bad literal constant**: a literal value that violates the property's `const`/`enum`/`type`.
+3. **null into a non-nullable field**: `col: null` where the schema forbids null.
+4. **missing required column**: a schema `required` property that is neither mapped nor
+   supplied by the pipeline, so the output row would omit it.
+
+It does not replace the GeoParquet data validation run in CI. Columns tagged `fixup: true`
+are skipped for the value checks (2/3) but still count as _present_ for the required check (4).
+
+Some columns are populated by the pipeline rather than a mapping and so are always treated as
+present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
+(`kart export`), and `bbox` (`to-parquet`). Any other required column must be mapped explicitly.
+
+Controlled by env vars:
+
+```shell
+# warn (default): log problems and continue | strict: raise | off: skip
+export KART_SCHEMA_CHECK=strict            # e.g. in CI or a pre-commit hook
+export KART_SCHEMA_SET=next                 # check against schema/next/ instead of schema/
+export KART_SCHEMA_DIR=/path/to/schema      # override the schema root (folder must exist)
+```
+
 # Example YAML Configuration Files
 
 ```yaml
@@ -145,6 +172,11 @@ datasets:
         default: 888
       way_count: $
       road_access: $
+      # `fixup: true`: this column is modified by a dataset fixup (listed under `fixups:` below),
+      # so the static schema check skips it.
+      # Use for a placeholder the fixup fills, or a transient input column it consumes and drops:
+      origin_x: { fixup: true }
+      example_name: { source: $source_name, fixup: true }
     # NOTE: Fictional examples for illustrative purposes :-)
     corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
       # keys are matched on their raw YAML value, so the key's type must match the column's:
