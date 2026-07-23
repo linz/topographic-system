@@ -10,7 +10,6 @@ model water_line {
   ...TopographicFeature;
   
   type: water_type;
-  hierarchy: string | null;
   name: string | null;
 
   ...TopographicMetadata;
