@@ -43,7 +43,7 @@ OUTPUT_COLUMNS = [
 NAME_REFERENCE_POINTS = {
     "Te Ika-a-Māui or North Island": (1_800_000, 5_815_000),
     "Te Waipounamu or South Island": (1_500_000, 5_180_000),
-    "Stewart Island": (1_215_000, 4_782_000),
+    "Stewart Island/Rakiura": (1_215_000, 4_782_000),
 }
 
 
