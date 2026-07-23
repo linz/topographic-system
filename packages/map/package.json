@@ -16,7 +16,7 @@
     "@linzjs/docker-command": "^8.0.0",
     "@linzjs/topographic-system-shared": "^0.8.0",
     "@linzjs/topographic-system-stac": "^0.7.0",
-    "@opentelemetry/sdk-node": "^0.213.0",
+    "@opentelemetry/sdk-node": "^0.221.0",
     "cmd-ts": "^0.14.3",
     "pngjs": "^7.0.0",
     "sharp": "^0.34.5",
