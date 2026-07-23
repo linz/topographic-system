@@ -10,7 +10,6 @@ model water {
 
   type: water_type;
   subtype: water_subtype | null;
-  hierarchy: string | null;
   name: string | null;
   group_name: string | null;
   height: float64 | null;
