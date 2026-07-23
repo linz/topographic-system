@@ -62,6 +62,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "buildings"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -95,6 +99,7 @@
     "subtype",
     "status",
     "name",
+    "theme",
     "metadata",
     "geometry"
   ],

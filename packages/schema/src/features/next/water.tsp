@@ -18,6 +18,7 @@ model water {
   perennial: water_perennial | null;
   temperature_indicator: water_temperature_indicator | null;
 
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -57,3 +58,4 @@ enum water_temperature_indicator {
   Cold: "cold",
   Hot: "hot",
 }
+

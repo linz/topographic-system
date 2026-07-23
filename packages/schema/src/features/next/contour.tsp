@@ -14,7 +14,9 @@ model contour {
   designation: "supplementary" | null;
   formation: "depression" | null;
 
+  theme: "relief";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

@@ -14,6 +14,7 @@ model track_line {
   status: track_status | null;
   name: string | null;
   
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -34,3 +35,4 @@ enum track_type {
 enum track_status {
   Closed: "closed",
 }
+

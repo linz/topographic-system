@@ -13,7 +13,9 @@ model landuse_line {
   subtype: landuse_subtype | null;
   name: string | null;
 
+  theme: "landuse";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

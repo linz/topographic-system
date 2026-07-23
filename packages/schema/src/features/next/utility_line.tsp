@@ -15,6 +15,7 @@ model utility_line {
   name: string | null;
   visibility: utility_visibility | null;
   
+  theme: "utility";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -35,3 +36,4 @@ enum utility_supporttype {
 enum utility_visibility {
   Underground: "underground",
 }
+

@@ -14,6 +14,7 @@ model bridge_line {
   status: status | null;
   name: string | null;
 
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -50,3 +51,4 @@ enum status {
   Ruins: "ruins",
   UnderConstruction: "under_construction",
 }
+

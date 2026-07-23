@@ -19,6 +19,7 @@ model road_line {
   width_indicator: "w" | null;
   road_access: "mp" | null;
 
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -33,3 +34,4 @@ enum road_surface {
   Unmetalled: "unmetalled",
   Sealed: "sealed",
 }
+

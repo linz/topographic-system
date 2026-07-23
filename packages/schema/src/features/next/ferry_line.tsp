@@ -12,7 +12,9 @@ model ferry_line {
   subtype: "vehicle" | "passenger" | "freight" | null;
   name: string | null;
 
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

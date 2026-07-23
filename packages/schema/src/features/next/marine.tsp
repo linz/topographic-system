@@ -12,6 +12,8 @@ model marine {
   name: string | null;
   composition: string | null;
   
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
+

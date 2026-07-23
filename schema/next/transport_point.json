@@ -50,6 +50,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -74,7 +78,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "DataSource": {

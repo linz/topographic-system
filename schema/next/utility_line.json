@@ -94,6 +94,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "utility"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -129,6 +133,7 @@
     "status",
     "name",
     "visibility",
+    "theme",
     "metadata",
     "geometry"
   ],

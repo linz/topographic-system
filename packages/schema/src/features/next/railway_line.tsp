@@ -31,6 +31,7 @@ model railway_line {
   status: railway_status | null;
   name: string | null;
 
+  theme: "transport";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -57,3 +58,4 @@ enum railway_vehicle_type {
 enum railway_status {
   Disused: "disused",
 }
+

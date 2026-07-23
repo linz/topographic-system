@@ -17,6 +17,7 @@ model structure_point {
   height: float64 | null;
   orientation: float64 | null;
 
+  theme: "structures";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -45,5 +46,6 @@ enum structure_point_type {
   Windmill: "windmill",
   Wreck: "wreck",
 }
+
 
 

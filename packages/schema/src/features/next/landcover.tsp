@@ -11,6 +11,7 @@ model landcover {
   type: landcover_type;
   name: string | null;
  
+  theme: "landcover";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -25,4 +26,5 @@ enum landcover_type {
   Shingle: "shingle",
   Swamp: "swamp"
 }
+
 

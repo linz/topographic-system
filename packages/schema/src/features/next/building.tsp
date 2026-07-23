@@ -13,6 +13,7 @@ model building {
   status: building_status | null;
   name: string | null;
   
+  theme: "buildings";
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -62,3 +63,4 @@ enum building_status {
   Historic: "historic",
   Private: "private",
 }
+

@@ -113,6 +113,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -151,6 +155,7 @@
     "elevation",
     "perennial",
     "temperature_indicator",
+    "theme",
     "metadata",
     "geometry"
   ],

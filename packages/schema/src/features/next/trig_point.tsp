@@ -14,7 +14,9 @@ model trig_point {
   code: string | null;
   elevation: int32 | null;
   
+  theme: "relief";
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 
