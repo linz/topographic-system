@@ -22,7 +22,7 @@ SCHEMA = {
         "elevation": {"type": "number"},
         "note": {},
     },
-    "$defs": {"kind": {"type": "string", "enum": ["civil", "military"]}},
+    "$defs": {"kind": {"type": "string", "enum": ["testing", "other_test"]}},
 }
 
 
@@ -60,7 +60,7 @@ def test_schema_dir_rejects_unknown_set(monkeypatch, tmp_path):
 
 
 def test_valid_mapping_has_no_problems(schema_folder):
-    theme = _theme({"type": "airport", "name": "$", "kind": "civil", "elevation": "$elev"})
+    theme = _theme({"type": "airport", "name": "$", "kind": "testing", "elevation": "$elev"})
     assert check_theme(theme) == []
 
 
@@ -75,9 +75,9 @@ def test_const_violation_is_reported(schema_folder):
 
 
 def test_enum_violation_reports_allowed_values(schema_folder):
-    problems = check_theme(_theme({"kind": "civilian"}))
+    problems = check_theme(_theme({"kind": "test"}))
     assert len(problems) == 1
-    assert "allowed: ['civil', 'military']" in problems[0]
+    assert "['testing', 'other_test']" in problems[0]
 
 
 def test_source_ref_is_not_checked(schema_folder):

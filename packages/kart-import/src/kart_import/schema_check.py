@@ -31,6 +31,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from jsonschema import Draft202012Validator
+
 from .env import env_schema_check_mode, env_schema_dir_override, env_schema_set
 
 logger = logging.getLogger("kart_import")
@@ -67,71 +69,6 @@ def _load_schema(path_str: str) -> dict[str, Any]:
         return json.load(f)
 
 
-def _resolve(prop: dict[str, Any], doc: dict[str, Any]) -> list[dict[str, Any]]:
-    """Flatten a property schema to its leaf branches, following local ``$ref`` and
-    ``anyOf`` / ``oneOf``. Unhandled composites (e.g. ``allOf``) are returned as-is, which
-    is the safe direction: an unrecognised branch is treated as unconstrained."""
-    ref = prop.get("$ref")
-    if ref:
-        if not ref.startswith("#/$defs/"):
-            return [prop]  # external/unknown ref — don't guess, treat as unconstrained
-        target = doc.get("$defs", {}).get(ref.split("/")[-1])
-        return _resolve(target, doc) if target is not None else [prop]
-    for key in ("anyOf", "oneOf"):
-        if key in prop:
-            branches: list[dict[str, Any]] = []
-            for sub in prop[key]:
-                branches.extend(_resolve(sub, doc))
-            return branches
-    return [prop]
-
-
-def _null_ok(branch: dict[str, Any]) -> bool:
-    if branch.get("type") == "null":
-        return True
-    if "const" in branch:
-        return branch["const"] is None
-    if "enum" in branch:
-        return None in branch["enum"]
-    return "type" not in branch  # {} or a type-less branch accepts null
-
-
-def _value_ok(value: Any, branch: dict[str, Any]) -> bool:
-    if "const" in branch:
-        return value == branch["const"]
-    if "enum" in branch:
-        return value in branch["enum"]
-    t = branch.get("type")
-    if t is None:
-        return True  # unconstrained
-    if t == "null":
-        return value is None
-    if t == "string":
-        return isinstance(value, str)
-    if t == "boolean":
-        return isinstance(value, bool)
-    if t == "integer":
-        return isinstance(value, int) and not isinstance(value, bool)
-    if t == "number":
-        return isinstance(value, (int, float)) and not isinstance(value, bool)
-    return True
-
-
-def _literal_ok(value: Any, branches: list[dict[str, Any]]) -> bool:
-    check = _null_ok if value is None else lambda b: _value_ok(value, b)
-    return any(check(b) for b in branches)
-
-
-def _allowed(branches: list[dict[str, Any]]) -> list[Any] | None:
-    """The enumerated values a property accepts, for a friendlier error message."""
-    for b in branches:
-        if "const" in b:
-            return [b["const"]]
-        if "enum" in b:
-            return b["enum"]
-    return None
-
-
 def _is_source_ref(value: Any) -> bool:
     """A ``$`` / ``$col`` reference to a source column — runtime value, not checkable here."""
     return isinstance(value, str) and value.startswith("$")
@@ -157,7 +94,7 @@ def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
                     f"(not a property of schema {theme.name}.json)"
                 )
                 continue
-            branches = _resolve(props[target], doc)
+            validator = Draft202012Validator({**props[target], "$defs": doc.get("$defs", {})})
             # The source is checkable unless it's a `$`-ref (runtime value). An explicit
             # `null` source (`col: null`) IS checked, against nullability.
             to_check: list[Any] = []
@@ -168,10 +105,9 @@ def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
             if spec.default is not None and not _is_source_ref(spec.default):
                 to_check.append(spec.default)
             for value in to_check:
-                if not _literal_ok(value, branches):
-                    allowed = _allowed(branches)
-                    hint = f" allowed: {allowed}" if allowed else ""
-                    problems.append(f"{theme.name}/{dataset.name}: '{target}: {value!r}' does not satisfy schema{hint}")
+                errors = list(validator.iter_errors(value))
+                if errors:
+                    problems.append(f"{theme.name}/{dataset.name}: '{target}: {value!r}' — {errors[0].message}")
     return problems
 
 
