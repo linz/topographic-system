@@ -129,7 +129,7 @@ so any pre-existing `origin` is replaced.
 
 On load, each theme's `mapping` is statically checked against `schema/<theme>.json` as a
 cheap, early guard for authoring mistakes (unknown target column, a literal that violates a
-`const`/`enum`/`type`, or a `null` into a non-nullable field). It does not replace the 
+`const`/`enum`/`type`, or a `null` into a non-nullable field). It does not replace the
 GeoParquet data validation run in CI. Columns tagged `fixup: true` are skipped.
 
 Controlled by env vars:
