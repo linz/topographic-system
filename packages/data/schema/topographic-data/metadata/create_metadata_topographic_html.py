@@ -217,7 +217,7 @@ def create_html_file(table_dictionary, html_output_folder):
             model_filename = os.path.basename(model_src)
             model_dest = os.path.join(model_images_folder, model_filename)
             shutil.copy2(model_src, model_dest)
-            html_content += f'<div><h4>Model Schema</h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="max-width: 800px; height: 500px;"></div>\n'
+            html_content += f'<div><h4>Model Schema</h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="max-width: 350px; height: 250px;"></div>\n'
         html_content += "</div>\n"
 
         features = tables.get("features", {})
@@ -328,13 +328,13 @@ def create_html_file(table_dictionary, html_output_folder):
             if category_name == "Buildings_and_Structures":
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 500px;"></div>\n'
             elif category_name == "Administrative_and_Reference":
-                index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 200px;"></div>\n'
+                index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 100px;"></div>\n'
             elif category_name == "Land_Cover_and_Land_Use":
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 700px;"></div>\n'
-            elif category_name == "Terrain":
+            elif category_name == "Relief_and_Terrain":
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 250px;"></div>\n'
             elif category_name == "Transport_and_Infrastructure":
-                index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 700px;"></div>\n'
+                index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 600px;"></div>\n'
             elif category_name == "Water_and_Marine":
                 index_html_content += f'<div><h4>{category_name.replace("_", " ").title()} Layers -> Themes -> Feature Types </h4><img src="images/model/{model_filename}" alt="Model for {category_name}" style="width: auto; height: 400px;"></div>\n'
             else:

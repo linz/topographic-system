@@ -28,8 +28,8 @@ model/metadata_source/layer_descriptions.csv - manually created and maintained. 
 
 model/metadata_source/metadata_info.json - created via code - create_metadata_info.py
 
-model/metadata_source/model-diagrams
-model/metadata_source/model-themes
+model/metadata_source/model-diagrams - created from create_model_diagrams.py
+model/metadata_source/model-themes - created from create_category_diagram.py
 
 model/metadata_sourcecatalog.db - came from topo data dictionary github. Used to get descriptions of feature_types from orginal layer names.
 
