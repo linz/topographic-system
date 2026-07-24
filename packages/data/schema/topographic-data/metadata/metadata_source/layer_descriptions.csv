@@ -4,10 +4,10 @@ bridge_line,Transport and Infrastructure,"Represents bridges crossing roads, rai
 building,Buildings & Structures,Represents the extent of a building. Captured from aerial imagery.
 building_point,Buildings & Structures,Represents the location of a building.
 coastline,Water & Marine,Represents the boundary between land and sea.
-collections,Administrative & Reference,Represents grouped features that may have several identities such as river names or functional areas.
-contour,Terrain,Represents elevation lines for terrain representation.
+contour,Relief & Terrain,Represents elevation lines for terrain representation.
 descriptive_text,Administrative & Reference,Represents text annotations for labeling or descriptions.
-ferry_crossing,Transport and Infrastructure,Indicates ferry links to terminal locations.
+fence_line,Land Cover & Land Use,Indicates fence lines across landscape.
+ferry_line,Transport and Infrastructure,Indicates ferry links to terminal locations.
 geographic_name,Administrative & Reference,Represents named geographic locations and features.
 island,Land Cover & Land Use,Represents an island within a water body. Onshore and Offshore.
 landcover,Land Cover & Land Use,"Represents surface cover types such asice, moraine, sand. Vegetation layer managed forests etc."
@@ -15,16 +15,16 @@ landcover_line,Land Cover & Land Use,Represents linear of land cover features su
 landcover_point,Land Cover & Land Use,Represents land cover feature locations suck as rock outcrops.
 landuse,Land Cover & Land Use,"Represents areas designated for specific uses such as mines, racetracks."
 landuse_line,Land Cover & Land Use,Represents linear of land use features suck as racetracks.
+landuse_point,Land Cover & Land Use,Represents cave locations.
 marine,Water & Marine,"Represents features in the marine environment such as mangrives, reef, rocks and shoals."
+marine_point,Water & Marine,"Represents features in the marine environment such as mangrives, reef, rocks and shoals."
 nz_topo50_map_sheet,Administrative & Reference,"Represents the LINZ Topographic 1:50,000 map sheets."
-physical_infrastructure_line,Buildings & Structures,"Represents linear infrastructure such as  pipelines, power lines."
-physical_infrastructure_point,Buildings & Structures,"Represents point infrastructure such as poles, towers."
 place_point,Land Cover & Land Use,Represents a named place or locality.
 railway_line,Transport and Infrastructure,Represents railway tracks. Dual tracks may be represented as single entity.
 railway_station,Transport and Infrastructure,Location of a railway station.
-relief,Terrain,Represents waterfall areas.
-relief_line,Terrain,"Represents terrain features such as cliffs, edges of rapids and waterfalls."
-relief_point,Terrain,Represents terrain features such as peaks or saddles.
+relief,Relief & Terrain,Represents waterfall areas.
+relief_line,Relief & Terrain,"Represents terrain features such as cliffs, edges of rapids and waterfalls."
+relief_point,Relief & Terrain,Represents terrain features such as peaks or saddles.
 residential_area,Land Cover & Land Use,Represents areas primarily used for housing.
 road_line,Transport and Infrastructure,"Represents roads, including highways and streets."
 runway,Transport and Infrastructure,Represents airport runway areas.
@@ -33,11 +33,13 @@ structure_line,Buildings & Structures,"Represents structural features such as  c
 structure_point,Buildings & Structures,"Represents small structures or structural features such as gates, masts tanks, windmills."
 track_line,Transport and Infrastructure,"Represents walking tracks, trails, or unsealed paths."
 transport_point,Transport and Infrastructure,"Represents transport-related locations (e.g., bus stops, terminals)."
-tree_point,Land Cover & Land Use,Represents individual trees or notable groups of trees.
 trig_point,Buildings & Structures,Represents a geodetic survey control point.
 tunnel_line,Transport and Infrastructure,"Represents tunnels for roads, railways, or utilities."
+utility_line,Buildings & Structures,"Represents linear infrastructure such as  pipelines, power lines."
+utility_point,Buildings & Structures,"Represents point infrastructure such as poles, towers."
 vegetation,Land Cover & Land Use,"Represents areas of vegetation landcover such as trees, scrub, vineyards."
 vegetation_line,Land Cover & Land Use,Represents linear vegetation features such as shelter belts.
+vegetation_point,Land Cover & Land Use,Represents individual trees or notable groups of trees.
 water,Water & Marine,"Represents water bodies such as  rivers, lakes."
 water_line,Water & Marine,"Represents water features such as rivers, canals, drains."
 water_point,Water & Marine,Represents water-related features such as springs.
