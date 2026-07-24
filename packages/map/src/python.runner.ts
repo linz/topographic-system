@@ -7,7 +7,7 @@ import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-co
 import { Command } from '@linzjs/docker-command';
 import { logger, trace } from '@linzjs/topographic-system-shared';
 
-import { getQgisMapSheetDataset, getQgisProjectMeta } from './qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from './qgis.ts';
 import type { ExportOptions } from './stac.ts';
 
 export const BaseCommandOptions = {
@@ -91,6 +91,8 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
     throw new Error(`Unable to find map sheet layer for dataset: ${options.mapSheetDataset}`);
   }
 
+  const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
+
   const cmd = Python3.create(BaseCommandOptions);
 
   cmd.mount(fileURLToPath(sourceLocation));
@@ -102,6 +104,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(`--output=${fileURLToPath(output)}`);
   cmd.args.push(`--layout=${options.layout}`);
   cmd.args.push(`--map-sheet-layer-name=${mapSheetLayerName.name}`);
+  cmd.args.push(`--carto-text-layer-name=${cartoTextLayer.name}`);
   cmd.args.push(`--format=${options.format}`);
   cmd.args.push(`--dpi=${options.dpi.toFixed(0)}`);
   cmd.args.push(`--sheet-code=${sheetCode}`);
