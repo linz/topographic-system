@@ -29,6 +29,7 @@ describe('qgis', () => {
         },
         { name: 'water', source: 'water.parquet', options: [] },
         { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', options: [] },
+        { name: 'CartoTextLayer', source: 'nztopo50_carto_text.parquet', options: [] },
       ]);
     });
 

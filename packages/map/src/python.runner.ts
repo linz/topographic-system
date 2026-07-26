@@ -91,7 +91,7 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
     throw new Error(`Unable to find map sheet layer for dataset: ${options.mapSheetDataset}`);
   }
 
-  const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
+  const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, options.cartoTextDataset);
 
   const cmd = Python3.create(BaseCommandOptions);
 

@@ -13,6 +13,14 @@ export interface ExportOptions {
    * @example "nztopo50_map_sheet.parquet"
    */
   mapSheetDataset: string;
+  /**
+   * carto text dataset name used for export
+   *
+   * This is the dataset name of the dataset as it appears in the stac item json.
+   *
+   * @example "nztopo50_carto_text.parquet"
+   */
+  cartoTextDataset: string;
   /** Creation Format  */
   format: ExportFormat;
   /** Creation dpi */

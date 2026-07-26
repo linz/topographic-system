@@ -66,6 +66,7 @@ describe('action.deploy', () => {
       'memory://source/data/road_line/latest/collection.json',
       'memory://source/data/water/latest/collection.json',
       'memory://source/data/nztopo50_map_sheet/latest/collection.json',
+      'memory://source/data/nztopo50_carto_text/latest/collection.json',
     ]);
 
     assert.deepEqual(latest.collection.extent.spatial.bbox, [
