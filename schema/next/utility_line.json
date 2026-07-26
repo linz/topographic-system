@@ -74,16 +74,6 @@
         }
       ]
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "visibility": {
       "anyOf": [
         {
@@ -127,7 +117,6 @@
     "subtype",
     "support_type",
     "status",
-    "name",
     "visibility",
     "metadata",
     "geometry"

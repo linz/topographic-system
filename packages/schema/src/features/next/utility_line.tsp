@@ -12,7 +12,6 @@ model utility_line {
   subtype: utility_subtype | null;
   support_type: utility_supporttype | null;
   status: string | null;
-  name: string | null;
   visibility: utility_visibility | null;
   
   ...TopographicMetadata;
