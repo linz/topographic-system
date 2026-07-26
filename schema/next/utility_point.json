@@ -31,16 +31,6 @@
     "type": {
       "$ref": "#/$defs/utility_point_type"
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "orientation": {
       "anyOf": [
         {
