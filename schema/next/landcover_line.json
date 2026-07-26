@@ -34,7 +34,7 @@
     },
     "theme": {
       "type": "string",
-      "const": "landuse"
+      "const": "landcover"
     },
     "metadata": {
       "anyOf": [
