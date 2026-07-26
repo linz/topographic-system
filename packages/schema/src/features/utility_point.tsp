@@ -12,9 +12,10 @@ model utility_point {
   type: "gas_valve" | "geo_bore" | "pylon";
   name?: string | null;
   orientation?: float64 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

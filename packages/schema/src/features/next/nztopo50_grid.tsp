@@ -7,11 +7,9 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model nztopo50_grid {
   ...ProductFeature;
-  
   direction: grid_direction;
   value: float64;
-
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum grid_direction {

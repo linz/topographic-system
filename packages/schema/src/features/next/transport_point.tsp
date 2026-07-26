@@ -7,13 +7,9 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model transport_point {
   ...TopographicFeature;
-
   type: "ford" | "helipad";
   name: string | null;
-  
   theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-
-

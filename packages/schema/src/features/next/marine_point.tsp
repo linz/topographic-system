@@ -7,12 +7,9 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model marine_point {
   ...TopographicFeature;
-
   type: "rock";
   name: string | null;
-
   theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

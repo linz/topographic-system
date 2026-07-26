@@ -15,9 +15,10 @@ model tunnel_line {
   subtype?: Topo.TunnelSubTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-
