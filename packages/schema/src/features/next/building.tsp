@@ -13,7 +13,7 @@ model building {
   status: building_status | null;
   name: string | null;
   
-  theme: "buildings";
+  theme: Theme.Buildings;
   ...TopographicMetadata;
   ...GeoParquet
 }

@@ -31,7 +31,7 @@ model railway_line {
   status: railway_status | null;
   name: string | null;
 
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

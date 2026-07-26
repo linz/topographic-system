@@ -14,7 +14,7 @@ model utility_line {
   status: string | null;
   visibility: utility_visibility | null;
   
-  theme: "utility";
+  theme: Theme.Utility;
   ...TopographicMetadata;
   ...GeoParquet
 }

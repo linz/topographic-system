@@ -15,7 +15,7 @@ model tunnel_line {
   status: tunnel_status | null;
   name: string | null;
   
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

@@ -13,7 +13,7 @@ model geographic_name {
   desc_code: string | null;
   size: float64 | null;
   
-  theme: "annotation";
+  theme: Theme.Annotation;
   ...TopographicMetadata;
   ...GeoParquet
 }

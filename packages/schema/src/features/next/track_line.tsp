@@ -14,7 +14,7 @@ model track_line {
   status: track_status | null;
   name: string | null;
   
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

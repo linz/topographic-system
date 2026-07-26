@@ -12,7 +12,7 @@ model vegetation {
   subtype: vegetation_subtype | null;
   species: string | null;
   
-  theme: "landcover";
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }

@@ -14,7 +14,7 @@ model place_point {
   composition: place_composition | null;
   description: string | null;
 
-  theme: "landuse";
+  theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet
 }

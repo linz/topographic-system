@@ -15,7 +15,7 @@ model building_point {
   name: string | null;
   orientation: float64 | null;
   
-  theme: "buildings";
+  theme: Theme.Buildings;
   ...TopographicMetadata;
   ...GeoParquet
 }

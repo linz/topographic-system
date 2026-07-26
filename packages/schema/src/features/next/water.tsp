@@ -18,7 +18,7 @@ model water {
   perennial: water_perennial | null;
   temperature_indicator: water_temperature_indicator | null;
 
-  theme: "landcover";
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }

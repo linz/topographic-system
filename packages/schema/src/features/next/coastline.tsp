@@ -11,7 +11,7 @@ model coastline {
   type: "coastline" | "water_confluence" | "wharf";
   elevation: int32 | null;
 
-  theme: "landcover";
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }

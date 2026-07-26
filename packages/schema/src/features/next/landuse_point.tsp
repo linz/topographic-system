@@ -15,7 +15,7 @@ model landuse_point {
   name: string | null;
   substance_extracted: substance_extracted | null;
 
-  theme: "landuse";
+  theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet
 }

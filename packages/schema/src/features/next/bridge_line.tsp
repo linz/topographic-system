@@ -14,7 +14,7 @@ model bridge_line {
   status: status | null;
   name: string | null;
 
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

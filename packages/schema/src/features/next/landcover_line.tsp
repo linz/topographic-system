@@ -10,7 +10,7 @@ model landcover_line {
 
   type: "dredge_tailing";
   
-  theme: "landuse";
+  theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet
 }

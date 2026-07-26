@@ -11,7 +11,7 @@ model utility_point {
   type: utility_point_type;
   orientation: float64 | null;
 
-  theme: "utility";
+  theme: Theme.Utility;
   ...TopographicMetadata;
   ...GeoParquet
 }

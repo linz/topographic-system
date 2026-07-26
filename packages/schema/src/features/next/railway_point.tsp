@@ -11,7 +11,7 @@ model railway_point {
   type: "station";
   name: string | null;
 
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

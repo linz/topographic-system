@@ -11,7 +11,7 @@ model landcover {
   type: landcover_type;
   name: string | null;
  
-  theme: "landcover";
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }

@@ -17,7 +17,7 @@ model rock_outcrop {
     type: "rock_outcrop";
     subtype: rock_outcrop_subtype;
     
-    theme: "landcover";
+    theme: Theme.Landcover;
     ...TopographicMetadata;
     ...GeoParquet
 }
@@ -28,7 +28,7 @@ model landcover_point_core_types {
   type: landcover_point_core_type;
   subtype: null;
   
-  theme: "landcover";
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }

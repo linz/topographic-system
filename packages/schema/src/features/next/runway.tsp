@@ -13,7 +13,7 @@ model runway {
   status: runway_status | null;
   surface: runway_surface | null;
   
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }

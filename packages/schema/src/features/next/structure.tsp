@@ -16,7 +16,7 @@ model structure {
   status: structure_status | null;
   name: string | null;
 
-  theme: "structures";
+  theme: Theme.Structures;
   ...TopographicMetadata;
   ...GeoParquet
 }

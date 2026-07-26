@@ -19,7 +19,7 @@ model road_line {
   width_indicator: "w" | null;
   road_access: "mp" | null;
 
-  theme: "transport";
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }
