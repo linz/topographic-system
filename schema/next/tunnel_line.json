@@ -82,6 +82,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -117,6 +121,7 @@
     "subtype",
     "status",
     "name",
+    "theme",
     "metadata",
     "geometry"
   ],

@@ -11,7 +11,9 @@ model residential_area {
   type: "residential_area";
   name: string | null;
 
+  theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

@@ -72,6 +72,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -106,6 +110,7 @@
     "track_type",
     "status",
     "name",
+    "theme",
     "metadata",
     "geometry"
   ],

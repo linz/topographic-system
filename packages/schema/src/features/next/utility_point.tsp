@@ -11,6 +11,7 @@ model utility_point {
   type: utility_point_type;
   orientation: float64 | null;
 
+  theme: Theme.Utility;
   ...TopographicMetadata;
   ...GeoParquet
 }
@@ -20,3 +21,4 @@ enum utility_point_type {
   GeoBore: "geo_bore",
   Pylon: "pylon"
 }
+

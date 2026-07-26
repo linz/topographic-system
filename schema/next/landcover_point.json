@@ -46,6 +46,10 @@
         "subtype": {
           "$ref": "#/$defs/rock_outcrop_subtype"
         },
+        "theme": {
+          "type": "string",
+          "const": "landcover"
+        },
         "metadata": {
           "anyOf": [
             {
@@ -70,7 +74,7 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "metadata", "geometry"]
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "theme", "metadata", "geometry"]
     },
     "landcover_point_core_types": {
       "type": "object",
@@ -106,6 +110,10 @@
         "subtype": {
           "type": "null"
         },
+        "theme": {
+          "type": "string",
+          "const": "landcover"
+        },
         "metadata": {
           "anyOf": [
             {
@@ -130,7 +138,7 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "metadata", "geometry"]
+      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "theme", "metadata", "geometry"]
     },
     "rock_outcrop_subtype": {
       "type": "string",

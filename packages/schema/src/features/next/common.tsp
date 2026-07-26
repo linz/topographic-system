@@ -65,3 +65,15 @@ enum metadata_source  {
   NZGBGazetteer: "nzgb_gazetteer",
   LINZAIMS: "linz_aims",
 }
+
+enum Theme {
+  Annotation: "annotation",
+  Buildings: "buildings",
+  Landcover: "landcover",
+  Landuse: "landuse",
+  MapSheets: "mapsheets",
+  Relief: "relief",
+  Structures: "structures",
+  Transport: "transport",
+  Utility: "utility",
+}

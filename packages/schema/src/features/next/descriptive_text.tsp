@@ -12,7 +12,9 @@ model descriptive_text {
   info_display: string | null;
   size: float64 | null;
   
+  theme: Theme.Annotation;
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

@@ -127,6 +127,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -166,6 +170,7 @@
     "way_count",
     "width_indicator",
     "road_access",
+    "theme",
     "metadata",
     "geometry"
   ],

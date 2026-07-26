@@ -11,6 +11,8 @@ model airport {
   type: "airport";
   name: string | null;
 
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet
 }
+

@@ -72,6 +72,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "buildings"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -106,6 +110,7 @@
     "status",
     "name",
     "orientation",
+    "theme",
     "metadata",
     "geometry"
   ],
