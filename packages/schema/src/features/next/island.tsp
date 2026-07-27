@@ -12,7 +12,9 @@ model island {
   name: string | null;
   group_name: string | null;
   
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

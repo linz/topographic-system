@@ -62,6 +62,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "annotation"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -95,6 +99,7 @@
     "name",
     "desc_code",
     "size",
+    "theme",
     "metadata",
     "geometry"
   ],

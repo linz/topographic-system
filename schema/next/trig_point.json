@@ -75,6 +75,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "relief"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -109,6 +113,7 @@
     "name",
     "code",
     "elevation",
+    "theme",
     "metadata",
     "geometry"
   ],

@@ -12,7 +12,9 @@ model water_line {
   type: water_type;
   name: string | null;
 
+  theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet
 }
+
 

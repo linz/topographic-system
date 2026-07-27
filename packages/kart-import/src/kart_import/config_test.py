@@ -333,3 +333,9 @@ def test_get_repo_remote_empty_file_raises(monkeypatch, tmp_path):
     _write_repos(monkeypatch, tmp_path, "")
     with pytest.raises(KeyError, match="No remote URL defined"):
         get_repo_remote(REPO)
+
+
+def test_get_repo_remote_empty_value_raises(monkeypatch, tmp_path):
+    _write_repos(monkeypatch, tmp_path, f'repos:\n  {REPO}: ""\n')
+    with pytest.raises(KeyError, match="No remote URL defined"):
+        get_repo_remote(REPO)

@@ -74,16 +74,6 @@
         }
       ]
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "visibility": {
       "anyOf": [
         {
@@ -93,6 +83,10 @@
           "type": "null"
         }
       ]
+    },
+    "theme": {
+      "type": "string",
+      "const": "utility"
     },
     "metadata": {
       "anyOf": [
@@ -127,8 +121,8 @@
     "subtype",
     "support_type",
     "status",
-    "name",
     "visibility",
+    "theme",
     "metadata",
     "geometry"
   ],
