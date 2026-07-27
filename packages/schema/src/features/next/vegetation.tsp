@@ -9,7 +9,6 @@ model vegetation {
   ...TopographicFeature;
   type: "exotic" | "native" | "scattered_scrub" | "scrub";
   subtype: vegetation_subtype | null;
-  species: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
