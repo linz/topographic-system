@@ -8,8 +8,8 @@ using TypeSpec.JsonSchema;
 model marine {
   ...TopographicFeature;
   type: "mangrove" | "reef" | "rock" | "shoal";
+  subtype: composition_subtype | null;
   name: string | null;
-  composition: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
