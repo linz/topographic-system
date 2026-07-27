@@ -7,15 +7,13 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model building {
   ...TopographicFeature;
-
   type: "building";
   subtype: building_subtype | null;
   status: building_status | null;
   name: string | null;
-  
   theme: Theme.Buildings;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum building_subtype {
@@ -55,7 +53,7 @@ enum building_subtype {
   SurfClub: "surf_club",
   University: "university",
   VisitorCentre: "visitor_centre",
-  WaterTreatmentPlant: "water_treatment_plant"
+  WaterTreatmentPlant: "water_treatment_plant",
 }
 
 enum building_status {
@@ -63,4 +61,3 @@ enum building_status {
   Historic: "historic",
   Private: "private",
 }
-

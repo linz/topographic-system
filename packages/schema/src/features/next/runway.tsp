@@ -7,15 +7,13 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model runway {
   ...TopographicFeature;
-
   type: "runway";
   subtype: runway_subtype | null;
   status: runway_status | null;
   surface: runway_surface | null;
-  
   theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum runway_subtype {
@@ -32,4 +30,3 @@ enum runway_surface {
   Grass: "grass",
   Sealed: "sealed",
 }
-

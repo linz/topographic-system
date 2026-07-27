@@ -7,16 +7,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model place_point {
   ...TopographicFeature;
-  
   type: place_type;
   subtype: place_subtype | null;
   name: string | null;
   composition: place_composition | null;
   description: string | null;
-
   theme: Theme.Landuse;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum place_type {
@@ -39,4 +37,3 @@ enum place_composition {
   Pumice: "pumice",
   Coral: "coral",
 }
-

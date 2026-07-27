@@ -10,6 +10,7 @@ model nztopo50_carto_text {
 
   /** id (UUID) of the example feature. */
   example_point_id: string | null;
+
   full_text: string | null;
   text_bend: int32 | null;
   text_char_spacing_distance: int32 | null;
@@ -32,14 +33,13 @@ model nztopo50_carto_text {
   labelanchor: float64 | null;
   charplace: carto_charplace | null;
   chardistance: float64 | null;
-
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 /* the empty string is temporarily while new fields getting updated */
 
 enum carto_font {
-    _: "",
+  _: "",
   NimbusSansLinz: "Nimbus Sans LINZ",
 }
 
@@ -70,7 +70,7 @@ enum carto_textanchor {
   _: "",
   Centre: "centre",
   Left: "left",
-  LeftWithSpace: "left ",  // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
+  LeftWithSpace: "left ", // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
   Left062: "left 0.62",
   Right: "right",
 }

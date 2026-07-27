@@ -7,7 +7,6 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model road_line {
   ...TopographicFeature;
-
   type: "road";
   hierarchy: string | null;
   status: road_status | null;
@@ -18,15 +17,14 @@ model road_line {
   way_count: "one_way" | null;
   width_indicator: "w" | null;
   road_access: "mp" | null;
-
   theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum road_status {
   UnderConstruction: "under_construction",
-  Closed: "closed"
+  Closed: "closed",
 }
 
 enum road_surface {
@@ -34,4 +32,3 @@ enum road_surface {
   Unmetalled: "unmetalled",
   Sealed: "sealed",
 }
-

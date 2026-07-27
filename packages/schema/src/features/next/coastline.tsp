@@ -7,13 +7,9 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model coastline {
   ...TopographicFeature;
-  
   type: "coastline" | "water_confluence" | "wharf";
   elevation: int32 | null;
-
   theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-
-

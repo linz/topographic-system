@@ -7,7 +7,6 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model water {
   ...TopographicFeature;
-
   type: water_type;
   subtype: water_subtype | null;
   name: string | null;
@@ -16,10 +15,9 @@ model water {
   elevation: int32 | null;
   perennial: water_perennial | null;
   temperature_indicator: water_temperature_indicator | null;
-
   theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum water_type {
@@ -33,7 +31,6 @@ enum water_type {
   Spring: "spring",
   Waterfall: "waterfall",
 }
-
 
 enum water_subtype {
   Evaporation: "evaporation",
@@ -57,4 +54,3 @@ enum water_temperature_indicator {
   Cold: "cold",
   Hot: "hot",
 }
-

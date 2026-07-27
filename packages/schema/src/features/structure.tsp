@@ -9,7 +9,13 @@ model structure {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "dry_dock" | "fish_farm" | "marine_farm" | "reservoir" | "siphon" | "tank";
+  type:
+    | "dry_dock"
+    | "fish_farm"
+    | "marine_farm"
+    | "reservoir"
+    | "siphon"
+    | "tank";
   lid_type?: Topo.LidTypeEnum | null;
   tank_type?: string | null;
   subtype?: Topo.StructureSubTypeEnum | null;
@@ -17,9 +23,10 @@ model structure {
   status?: Topo.StatusEnum | null;
   name?: string | null;
   stored_item?: Topo.StoredItemEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

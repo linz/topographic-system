@@ -45,5 +45,3 @@ import "./vegetation_point.tsp";
 import "./water.tsp";
 import "./water_line.tsp";
 import "./water_point.tsp";
-
-

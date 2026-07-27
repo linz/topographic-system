@@ -14,12 +14,16 @@ model nztopo50_ice_contour {
   definition?: string | null;
   designation?: Topo.DesignationEnum | null;
   formation?: Topo.FormationEnum | null;
+
   /** UUID for the intersecting contour feature. */
   contour_id: string;
+
   /** UUID for the intersecting landcover feature. */
   landcover_id: string;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }

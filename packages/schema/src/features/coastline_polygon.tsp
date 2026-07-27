@@ -17,6 +17,7 @@ model coastline_polygon {
   elevation?: int32 | null;
   name?: string | null;
   group_name?: string | null;
+
   /** WKB polygon geometry in NZGD2000 (EPSG:4167). */
   @extension("not", #{ type: "null" })
   geometry: unknown;
