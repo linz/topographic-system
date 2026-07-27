@@ -40,6 +40,12 @@ Run **Next**
 
 Assuming running from topographic-system folder
 
+format tsp files...
+
+> npx tsp format "src/**/*.tsp" 
+
+compile...
+
 > npx tsp compile ./packages/schema/src/next.tsp --config ./packages/schema/tspconfig.next.yaml
 
 Run Main - this is **when full release** is required
@@ -50,7 +56,8 @@ If this does not run in your environment try
 
 > npx tsp compile .
 
-depending on where you run this from, and how your tsp is installed; You may need to npx tsp compile ./packages/schema/src/
+depending on where you run this from, and how your tsp is installed; You may need to 
+> npx tsp compile ./packages/schema/src/
 or just tsp compile . (dot for current folder) should be enough.
 
 ## JSON format
