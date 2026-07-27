@@ -7,12 +7,11 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model landcover {
   ...TopographicFeature;
-
   type: landcover_type;
   name: string | null;
- 
+  theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum landcover_type {
@@ -23,6 +22,5 @@ enum landcover_type {
   Sand: "sand",
   Scree: "scree",
   Shingle: "shingle",
-  Swamp: "swamp"
+  Swamp: "swamp",
 }
-

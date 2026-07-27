@@ -41,6 +41,16 @@
         }
       ]
     },
+    "height": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "orientation": {
       "anyOf": [
         {
@@ -60,6 +70,10 @@
           "type": "null"
         }
       ]
+    },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
     },
     "metadata": {
       "anyOf": [
@@ -92,8 +106,10 @@
     "t50_fid",
     "type",
     "name",
+    "height",
     "orientation",
     "temperature_indicator",
+    "theme",
     "metadata",
     "geometry"
   ],

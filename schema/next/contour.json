@@ -76,6 +76,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "relief"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -110,6 +114,7 @@
     "definition",
     "designation",
     "formation",
+    "theme",
     "metadata",
     "geometry"
   ],

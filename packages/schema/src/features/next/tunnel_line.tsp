@@ -7,16 +7,15 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model tunnel_line {
   ...TopographicFeature;
-
   type: "tunnel";
   tunnel_use: tunnel_use | null;
   tunnel_use2: tunnel_use | null;
   subtype: tunnel_subtype | null;
   status: tunnel_status | null;
   name: string | null;
-  
+  theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum tunnel_subtype {
@@ -25,7 +24,7 @@ enum tunnel_subtype {
 
 enum tunnel_use {
   Cablecar: "cablecar",
-  FootTraffic: "foot traffic",
+  FootTraffic: "foot_traffic",
   Livestock: "livestock",
   River: "river",
   Train: "train",
@@ -35,5 +34,5 @@ enum tunnel_use {
 
 enum tunnel_status {
   Closed: "closed",
-  UnderConstruction: "under construction",
+  UnderConstruction: "under_construction",
 }

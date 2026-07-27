@@ -147,6 +147,16 @@ rule kart_repo:
         "uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
+# 6. PUSH (push a built target repo to its GitHub remote - a release-named branch by default)
+rule push:
+    input:
+        imported = "data/output/{repo}/.imported"
+    output:
+        pushed = "data/output/{repo}/.pushed"
+    shell:
+        "uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
+
+
 # 7. UTILITY BUNDLE RULE
 rule bundle:
     output:
@@ -207,3 +217,15 @@ for repo in REPOS:
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+    workflow.rule(name=f"push_{safe_repo_name}")(
+        workflow.input(f"data/output/{repo}/.pushed")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+workflow.rule(name="push_all")(
+    workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)

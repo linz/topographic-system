@@ -51,18 +51,6 @@
         }
       ]
     },
-    "elevation": {
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": -2147483648,
-          "maximum": 2147483647
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "composition": {
       "anyOf": [
         {
@@ -82,6 +70,10 @@
           "type": "null"
         }
       ]
+    },
+    "theme": {
+      "type": "string",
+      "const": "landuse"
     },
     "metadata": {
       "anyOf": [
@@ -115,9 +107,9 @@
     "type",
     "subtype",
     "name",
-    "elevation",
     "composition",
     "description",
+    "theme",
     "metadata",
     "geometry"
   ],

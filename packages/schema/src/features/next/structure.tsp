@@ -7,7 +7,6 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model structure {
   ...TopographicFeature;
-
   type: structure_type;
   subtype: structure_subtype | null;
   lid_type: "covered" | null;
@@ -15,9 +14,9 @@ model structure {
   species: structure_species | null;
   status: structure_status | null;
   name: string | null;
-
+  theme: Theme.Structures;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum structure_type {
@@ -26,7 +25,7 @@ enum structure_type {
   MarineFarm: "marine_farm",
   Reservoir: "reservoir",
   Siphon: "siphon",
-  Tank: "tank"
+  Tank: "tank",
 }
 
 enum structure_subtype {
@@ -45,23 +44,23 @@ enum structure_subtype {
   Plane: "plane",
   PowerGeneration: "power_generation",
   Rock: "rock",
-  Sea: "sea", 
+  Sea: "sea",
   Ship: "ship",
   SurgeChamber: "surge_chamber",
   TunnelVentilation: "tunnel_ventilation",
   Uncovered: "uncovered",
-  Water: "water"
+  Water: "water",
 }
 
 enum structure_tank_type {
   Uncovered: "uncovered",
   Water: "water",
-  SurgeChamber: "surge_chamber"
+  SurgeChamber: "surge_chamber",
 }
 
 enum structure_species {
   Mussels: "mussels",
-  Salmon: "salmon"
+  Salmon: "salmon",
 }
 
 enum structure_status {
@@ -75,8 +74,5 @@ enum structure_status {
   Private: "private",
   Remains: "remains",
   Ruins: "ruins",
-  UnderConstruction: "under_construction"
+  UnderConstruction: "under_construction",
 }
-
-
-

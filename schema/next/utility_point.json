@@ -31,16 +31,6 @@
     "type": {
       "$ref": "#/$defs/utility_point_type"
     },
-    "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "orientation": {
       "anyOf": [
         {
@@ -50,6 +40,10 @@
           "type": "null"
         }
       ]
+    },
+    "theme": {
+      "type": "string",
+      "const": "utility"
     },
     "metadata": {
       "anyOf": [
@@ -75,12 +69,12 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "orientation", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "orientation", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "utility_point_type": {
       "type": "string",
-      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
+      "enum": ["gas_valve", "geo_bore", "pylon"]
     },
     "DataSource": {
       "type": "object",

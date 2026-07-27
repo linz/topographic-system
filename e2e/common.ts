@@ -54,6 +54,7 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],
         ['-e', 'XDG_CACHE_HOME=/source/.cache'],
+        ['-e', 'UV_PYTHON_INSTALL_DIR=/source/.uv-python'],
         '--entrypoint=/bin/sh',
         '--workdir=/source/packages/kart-import/',
       ].flat(),

@@ -13,9 +13,10 @@ model landuse_line {
   landuse_use?: Topo.LanduseUseEnum | null;
   subtype?: Topo.LanduseSubTypeEnum | null;
   name?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

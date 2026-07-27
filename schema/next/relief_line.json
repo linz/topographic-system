@@ -61,6 +61,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "relief"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -94,6 +98,7 @@
     "subtype",
     "name",
     "height",
+    "theme",
     "metadata",
     "geometry"
   ],

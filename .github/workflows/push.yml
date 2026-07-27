@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
 
@@ -24,17 +24,22 @@ jobs:
         uses: ./.github/actions/python-ci
         background: true
 
+      # Remove existing schema files to ensure no dangling json schemas.
+      - run: rm -fv schema/*.json schema/next/*.json
+
       - run: npm ci
+
       - run: npm run build
+
+      - run: npm run bundle
 
       - run: npm run check
         id: check
         background: true
+
       - run: npm run test
         id: test
         background: true
-
-      - run: npm run bundle
 
       - wait: [check, test, python-ci]
       - run: git diff --exit-code
@@ -47,6 +52,7 @@ jobs:
 
   visual-diff:
     needs: build-container
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     uses: ./.github/workflows/visual-diff.yml
     with:
       environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
@@ -74,7 +80,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
 
@@ -94,7 +100,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
 

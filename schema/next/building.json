@@ -62,6 +62,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "buildings"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -95,6 +99,7 @@
     "subtype",
     "status",
     "name",
+    "theme",
     "metadata",
     "geometry"
   ],
@@ -132,6 +137,7 @@
         "salt_works",
         "school",
         "shingle_works",
+        "shelter",
         "silo",
         "stamping_battery",
         "substation",

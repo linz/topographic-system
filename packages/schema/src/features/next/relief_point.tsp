@@ -7,29 +7,19 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model relief_point {
   ...TopographicFeature;
-
   type: relief_point_type;
   name: string | null;
-  display: display_enum | null;
   elevation: int32 | null;
   height: float64 | null;
   orientation: float64 | null;
-
+  theme: Theme.Relief;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum relief_point_type {
   Height: "height",
   Saddle: "saddle",
   Sinkhole: "sinkhole",
-  Waterfall: "waterfall"
-}
-
-/** This enum will be redone in another work item - keeping as is for now */
-enum display_enum {
-  _0: "0",
-  _1: "1",
-  _2: "2",
-  _3: "3",
+  Waterfall: "waterfall",
 }

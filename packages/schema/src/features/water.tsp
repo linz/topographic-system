@@ -19,9 +19,10 @@ model water {
   elevation?: int32 | null;
   perennial?: Topo.PerennialEnum | null;
   temperature?: Topo.TemperatureEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

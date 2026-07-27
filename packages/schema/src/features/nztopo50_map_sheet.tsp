@@ -13,13 +13,17 @@ model nztopo50_map_sheet {
   sheet_name: string;
   x_origin: float64;
   y_origin: float64;
+
   /** topo_id (UUID) of the example feature. */
   example_point_id: string;
+
   published_version: string;
   published_at: {};
   updated_at: {};
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }

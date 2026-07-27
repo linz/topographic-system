@@ -7,12 +7,10 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model island {
   ...TopographicFeature;
-
   type: "island";
   name: string | null;
   group_name: string | null;
-  
+  theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

@@ -7,10 +7,8 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model landcover_line {
   ...TopographicFeature;
-
   type: "dredge_tailing";
-  
+  theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

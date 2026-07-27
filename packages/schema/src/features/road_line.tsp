@@ -21,9 +21,10 @@ model road_line {
   road_access?: Topo.RoadAccessEnum | null;
   name_id?: unknown /* int64; hyparquet returns BigInt */;
   rna_sufi?: unknown /* int64; hyparquet returns BigInt */;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

@@ -7,15 +7,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model landuse {
   ...TopographicFeature;
-  
   type: landuse_type;
   subtype: landuse_subtype | null;
   status: landuse_status | null;
   name: string | null;
   substance_extracted: substance_extracted | null;
-
+  theme: Theme.Landuse;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum landuse_type {
@@ -63,7 +62,7 @@ enum substance_extracted {
   Quartz: "quartz",
   Scheelite: "scheelite",
   Shingle: "shingle",
-  SilicaSand: "silica sand",
+  SilicaSand: "silica_sand",
   Silver: "silver",
   Stone: "stone",
   Zeolite: "zeolite",

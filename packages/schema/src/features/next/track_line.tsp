@@ -7,15 +7,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model track_line {
   ...TopographicFeature;
-
   type: "track";
   subtype: track_subtype | null;
   track_type: track_type | null;
   status: track_status | null;
   name: string | null;
-  
+  theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum track_subtype {

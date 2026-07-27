@@ -35,10 +35,6 @@ def test_raises_called_process_error_on_failure(monkeypatch):
     [
         "Unable to locate credentials",  # AWS / SSO
         "ExpiredToken: the security token has expired",
-        "Permission denied (publickey).",  # git / SSH
-        "fatal: Could not read from remote repository.",
-        "fatal: Authentication failed for 'https://...'",
-        "Host key verification failed.",
     ],
 )
 def test_auth_failures_fail_fast_and_are_not_retried(monkeypatch, stderr):

@@ -7,12 +7,10 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model relief {
   ...TopographicFeature;
-
   type: "waterfall" | "rapid";
   name: string | null;
   height: float64 | null;
-
+  theme: Theme.Relief;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

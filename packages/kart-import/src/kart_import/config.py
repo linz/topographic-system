@@ -8,6 +8,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .env import env_releases, env_themes, env_transform_format
+from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
 
@@ -21,6 +22,7 @@ CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
 CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
+CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
@@ -103,6 +105,8 @@ class FieldSpec(BaseModel):
     """Column reference (``$`` / ``$col``), a literal constant, or ``None`` for an all-NULL column."""
     default: Any = None
     """Value substituted when the resolved source is NULL/NaN."""
+    fixup: bool = False
+    """This column's final value is modified by a dataset fixup, skip static schema check."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":
@@ -280,6 +284,25 @@ def load_config(file_name: str) -> Theme:
         return Theme(**data)
 
 
+def build_releases(raw_releases: list, base_releases: set[str] | None) -> list[Release]:
+    """Releases (optionally scoped to ``base_releases``) with correct ``until`` cutoffs.
+
+    A release's ``until`` is derived from the NEXT release's date, so it must be computed against
+    the full schedule before filtering: subsetting first would drop the neighbour needed to cap the
+    selected release, leaving it at the ``Release.until`` default (``now()``), which resolves to the
+    source's latest commit rather than the release's historical snapshot.
+    """
+    all_releases: list[Release] = []
+    for entry in raw_releases:
+        for key, timestamp in entry.items():
+            date = datetime.fromisoformat(str(timestamp))
+            if all_releases:
+                all_releases[-1].until = date - timedelta(days=14)
+            all_releases.append(Release(id=int(key), date=date))
+
+    return [r for r in all_releases if not base_releases or str(r.id) in base_releases]
+
+
 def get_releases() -> list[Release]:
     return ALL_RELEASES
 
@@ -297,6 +320,19 @@ def get_theme_by_name(theme_name: str) -> Theme:
 
 def get_kart_repos() -> list[str]:
     return list(ALL_KART_REPOS)
+
+
+def get_repo_remote(repo_name: str) -> str:
+    """GitHub remote URL for a target repo, from ``config/repos.yml``."""
+    if not CONFIG_DIR_REPOS.exists():
+        raise FileNotFoundError(f"Missing repo mapping file {CONFIG_DIR_REPOS}")
+    with open(CONFIG_DIR_REPOS) as f:
+        data = yaml.safe_load(f) or {}
+    remotes = data.get("repos", data)
+    url = remotes.get(repo_name)
+    if not url:
+        raise KeyError(f"No remote URL defined for repo {repo_name!r} in {CONFIG_DIR_REPOS}")
+    return url
 
 
 def get_dataset_by_name(dataset_name: str) -> ThemeDataset:
@@ -404,6 +440,10 @@ def load_from_yaml():
             LOOKUP_TO_THEME_MAP[lookup.name] = theme
 
         validate_theme_joins(theme)
+        check_theme_or_warn(theme)
+
+    for repo_name in ALL_KART_REPOS:
+        get_repo_remote(repo_name)
 
     if not CONFIG_DIR_RELEASE.exists():
         raise FileNotFoundError(CONFIG_DIR_RELEASE)
@@ -411,16 +451,7 @@ def load_from_yaml():
     with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
 
-        for entry in raw.get("releases", []):
-            for key, timestamp in entry.items():
-                if base_releases and str(key) not in base_releases:
-                    continue
-
-                date = datetime.fromisoformat(str(timestamp))
-                if ALL_RELEASES:
-                    day_before = date - timedelta(days=14)
-                    ALL_RELEASES[-1].until = day_before
-                ALL_RELEASES.append(Release(id=int(key), date=date))
+        ALL_RELEASES.extend(build_releases(raw.get("releases", []), base_releases))
 
     logger.info(
         "config-loaded",

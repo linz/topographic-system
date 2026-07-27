@@ -41,16 +41,6 @@
         }
       ]
     },
-    "hierarchy": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "name": {
       "anyOf": [
         {
@@ -113,6 +103,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -144,13 +138,13 @@
     "t50_fid",
     "type",
     "subtype",
-    "hierarchy",
     "name",
     "group_name",
     "height",
     "elevation",
     "perennial",
     "temperature_indicator",
+    "theme",
     "metadata",
     "geometry"
   ],

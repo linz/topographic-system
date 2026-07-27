@@ -11,9 +11,10 @@ model residential_area {
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
   type: "residential_area";
   name?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

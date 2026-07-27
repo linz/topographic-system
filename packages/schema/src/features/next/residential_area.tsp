@@ -7,11 +7,9 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model residential_area {
   ...TopographicFeature;
-
   type: "residential_area";
   name: string | null;
-
+  theme: Theme.Landuse;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

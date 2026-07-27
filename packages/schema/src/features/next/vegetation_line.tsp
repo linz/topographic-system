@@ -7,10 +7,8 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model vegetation_line {
   ...TopographicFeature;
-
   type: "shelter_belt";
-  
+  theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

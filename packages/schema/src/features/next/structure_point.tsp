@@ -1,6 +1,6 @@
 import "@typespec/json-schema";
 import "./common.tsp";
-import "./structure.tsp"; 
+import "./structure.tsp";
 
 using TypeSpec.JsonSchema;
 
@@ -8,7 +8,6 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model structure_point {
   ...TopographicFeature;
-
   type: structure_point_type;
   subtype: structure_subtype | null;
   tank_type: structure_tank_type | null;
@@ -16,9 +15,9 @@ model structure_point {
   name: string | null;
   height: float64 | null;
   orientation: float64 | null;
-
+  theme: Theme.Structures;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum structure_point_type {
@@ -31,8 +30,9 @@ enum structure_point_type {
   Floodgate: "floodgate",
   Gate: "gate",
   Ladder: "ladder",
+  Lighthouse: "lighthouse",
   Mast: "mast",
-  RadarDome: "radar_dome",  
+  RadarDome: "radar_dome",
   Redoubt: "redoubt",
   SatelliteStation: "satellite_station",
   Shaft: "shaft",
@@ -44,5 +44,3 @@ enum structure_point_type {
   Windmill: "windmill",
   Wreck: "wreck",
 }
-
-

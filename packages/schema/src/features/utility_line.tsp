@@ -15,9 +15,10 @@ model utility_line {
   status?: Topo.StatusEnum | null;
   name?: string | null;
   visibility?: Topo.VisibilityEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

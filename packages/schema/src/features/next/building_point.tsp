@@ -8,14 +8,12 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model building_point {
   ...TopographicFeature;
-
   type: "building";
   subtype: building_subtype | null;
   status: building_status | null;
   name: string | null;
   orientation: float64 | null;
-  
+  theme: Theme.Buildings;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

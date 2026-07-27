@@ -8,12 +8,10 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model landuse_line {
   ...TopographicFeature;
-
   type: landuse_type;
   subtype: landuse_subtype | null;
   name: string | null;
-
+  theme: Theme.Landuse;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-

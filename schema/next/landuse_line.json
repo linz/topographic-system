@@ -51,6 +51,10 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landuse"
+    },
     "metadata": {
       "anyOf": [
         {
@@ -75,7 +79,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "landuse_type": {

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from qgis.core import (
     QgsApplication,
     QgsCoordinateTransform,
+    QgsExpressionContextUtils,
     QgsFeature,
     QgsLayoutExporter,
     QgsLayoutItemMap,
@@ -16,6 +17,8 @@ from qgis.core import (
     QgsVectorLayer,
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
+from utils.calculate_mag_info import calculate_mag_info
+from utils.render_mag_info import render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
 
@@ -171,6 +174,13 @@ def main():
         geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_main.crs(), project))
         bbox = geom.boundingBox()
         map_main.setExtent(bbox)
+
+        # Handle magnetic info
+        mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
+        mag_info_render = render_mag_info(mag_info_raw)
+
+        for key, value in mag_info_render.items():
+            QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
 
         # Generate outputs
         exporter = QgsLayoutExporter(layout)

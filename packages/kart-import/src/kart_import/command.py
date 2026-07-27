@@ -14,11 +14,7 @@ AUTH_ERROR_MARKERS = (
     "Unable to locate credentials",
     "ExpiredToken",
     "InvalidToken",
-    # git / SSH access failures (git|kart clone/pull/push to GitHub, koordinates)
-    "Permission denied (publickey)",
-    "Could not read from remote repository",
-    "fatal: Authentication failed",
-    "Host key verification failed",
+    # git / SSH access failures are vague and can incorrectly present as auth errors - removed.
 )
 
 
