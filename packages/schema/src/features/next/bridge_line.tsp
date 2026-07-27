@@ -7,16 +7,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model bridge_line {
   ...TopographicFeature;
-
   type: bridge_type | null;
   subtype: bridge_subtype | null;
   construction_type: construction_type | null;
   status: status | null;
   name: string | null;
-
   theme: Theme.Transport;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum bridge_type {
@@ -51,4 +49,3 @@ enum status {
   Ruins: "ruins",
   UnderConstruction: "under_construction",
 }
-

@@ -14,9 +14,10 @@ model track_line {
   track_type?: Topo.TrackTypeEnum | null;
   status?: Topo.StatusEnum | null;
   name?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

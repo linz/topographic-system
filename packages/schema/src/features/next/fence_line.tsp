@@ -7,12 +7,8 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model fence_line {
   ...TopographicFeature;
-  
   type: "fence";
-
   theme: Theme.Structures;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
-
-

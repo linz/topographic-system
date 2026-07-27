@@ -14,9 +14,10 @@ model landcover_point {
   elevation?: int32 | null;
   display?: Topo.DisplayEnum | null;
   orientation?: float64 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

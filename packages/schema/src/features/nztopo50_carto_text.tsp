@@ -7,8 +7,10 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model nztopo50_carto_text {
   ...Topo.ProductIdentity;
+
   /** id (UUID) of the example feature. */
   example_point_id?: string | null;
+
   full_text?: string | null;
   text_bend?: int32 | null;
   text_char_spacing_distance?: int32 | null;
@@ -31,8 +33,10 @@ model nztopo50_carto_text {
   labelanchor?: float64 | null;
   charplace?: Topo.CharplaceEnum | null;
   chardistance?: float64 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }

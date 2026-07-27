@@ -12,36 +12,31 @@ union landcover_point {
 }
 
 model rock_outcrop {
-    ...TopographicFeature;
-
-    type: "rock_outcrop";
-    subtype: rock_outcrop_subtype;
-    
-    theme: Theme.Landcover;
-    ...TopographicMetadata;
-    ...GeoParquet
+  ...TopographicFeature;
+  type: "rock_outcrop";
+  subtype: rock_outcrop_subtype;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
 }
 
 model landcover_point_core_types {
   ...TopographicFeature;
-
   type: landcover_point_core_type;
   subtype: null;
-  
   theme: Theme.Landcover;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum landcover_point_core_type {
   Cemetery: "cemetery",
   Fumarole: "fumarole",
-  Swamp: "swamp"
-} 
+  Swamp: "swamp",
+}
 
 enum rock_outcrop_subtype {
   SmallRockOutcrop: "small_rock_outcrop",
   LargeRockOutcrop: "large_rock_outcrop",
-  LargeBoulder: "large_boulder"
+  LargeBoulder: "large_boulder",
 }
-

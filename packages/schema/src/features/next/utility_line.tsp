@@ -7,16 +7,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model utility_line {
   ...TopographicFeature;
-
   type: "pipeline" | "powerline" | "telephone";
   subtype: utility_subtype | null;
   support_type: utility_supporttype | null;
   status: string | null;
   visibility: utility_visibility | null;
-  
   theme: Theme.Utility;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum utility_subtype {
@@ -26,7 +24,6 @@ enum utility_subtype {
   Water: "water",
 }
 
-
 enum utility_supporttype {
   Pole: "pole",
   Pylon: "pylon",
@@ -35,4 +32,3 @@ enum utility_supporttype {
 enum utility_visibility {
   Underground: "underground",
 }
-

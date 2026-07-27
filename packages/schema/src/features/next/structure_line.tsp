@@ -8,16 +8,14 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model structure_line {
   ...TopographicFeature;
-
   type: structure_line_type;
   subtype: structure_subtype | null;
   species: structure_species | null;
   status: structure_status | null;
   name: string | null;
-
   theme: Theme.Structures;
   ...TopographicMetadata;
-  ...GeoParquet
+  ...GeoParquet;
 }
 
 enum structure_line_type {
@@ -38,11 +36,5 @@ enum structure_line_type {
   WaterRace: "water_race",
   Weir: "weir",
   Wharf: "wharf",
-  WharfEdge: "wharf_edge"
+  WharfEdge: "wharf_edge",
 }
-
-
-
-
-
-

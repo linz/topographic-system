@@ -12,9 +12,10 @@ model water_line {
   type: "canal" | "drain" | "river";
   hierarchy?: string | null;
   name?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

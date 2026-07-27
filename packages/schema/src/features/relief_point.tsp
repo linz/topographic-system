@@ -13,9 +13,10 @@ model relief_point {
   name?: string | null;
   display?: Topo.DisplayEnum | null;
   elevation?: int32 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

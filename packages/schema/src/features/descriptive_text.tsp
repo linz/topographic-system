@@ -13,9 +13,10 @@ model descriptive_text {
   nzgb_id?: unknown /* int64; hyparquet returns BigInt */;
   info_display?: string | null;
   size?: float64 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-
