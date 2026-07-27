@@ -41,16 +41,6 @@
         }
       ]
     },
-    "hierarchy": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "name": {
       "anyOf": [
         {
@@ -148,7 +138,6 @@
     "t50_fid",
     "type",
     "subtype",
-    "hierarchy",
     "name",
     "group_name",
     "height",

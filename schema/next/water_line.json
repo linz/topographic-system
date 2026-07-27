@@ -31,16 +31,6 @@
     "type": {
       "$ref": "#/$defs/water_type"
     },
-    "hierarchy": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "name": {
       "anyOf": [
         {
@@ -79,18 +69,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "hierarchy",
-    "name",
-    "theme",
-    "metadata",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "water_type": {
