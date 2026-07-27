@@ -1269,6 +1269,15 @@ class TableModificationWorkflow:
             self.schema_name, "place_point", "composition", "subtype"
         )
 
+        self.table_modifer.rename_columns(
+                    self.schema_name, "marine", "composition", "subtype"
+        )
+
+        self.table_modifer.add_column(
+            f"{self.schema_name}.marine_point", "subtype", "VARCHAR(50)"
+        )
+
+
         self.table_modifer.update_column_with_default(
             self.schema_name, "trig_point", "trig_type", "'beaconed'"
         )
