@@ -1277,6 +1277,12 @@ class TableModificationWorkflow:
             f"{self.schema_name}.marine_point", "subtype", "VARCHAR(50)"
         )
 
+        self.table_modifer.update_column_with_default(
+            self.schema_name, "marine", "subtype", "'rock'"
+        )
+        self.table_modifer.update_column_with_default(
+            self.schema_name, "marine_point", "subtype", "'rock'"
+        )
 
         self.table_modifer.update_column_with_default(
             self.schema_name, "trig_point", "trig_type", "'beaconed'"
