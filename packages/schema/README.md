@@ -42,7 +42,7 @@ Assuming running from topographic-system folder
 
 format tsp files...
 
-> npx tsp format "src/**/*.tsp" 
+> npx tsp format "src/\*_/_.tsp"
 
 compile...
 
@@ -56,9 +56,10 @@ If this does not run in your environment try
 
 > npx tsp compile .
 
-depending on where you run this from, and how your tsp is installed; You may need to 
+depending on where you run this from, and how your tsp is installed; You may need to
+
 > npx tsp compile ./packages/schema/src/
-or just tsp compile . (dot for current folder) should be enough.
+> or just tsp compile . (dot for current folder) should be enough.
 
 ## JSON format
 
