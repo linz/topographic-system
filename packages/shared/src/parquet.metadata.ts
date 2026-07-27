@@ -132,7 +132,7 @@ function jsonType(m: MinMaxType | undefined): string | number | boolean | null {
 function setMin(out: Partial<ColumnStats>, m: MinMaxType | undefined) {
   const val = jsonType(m);
   if (val == null) return;
-  if (out.min == null || out.min < val) out.min = val;
+  if (out.min == null || out.min > val) out.min = val;
 }
 
 function setMax(out: Partial<ColumnStats>, m: MinMaxType | undefined) {
