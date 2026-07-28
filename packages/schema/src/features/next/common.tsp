@@ -77,6 +77,13 @@ enum metadata_source {
   LINZAIMS: "linz_aims",
 }
 
+enum composition_subtype {
+  Coral: "coral",
+  Limestone: "limestone",
+  Pumice: "pumice",
+  Rock: "rock",
+}
+
 enum Theme {
   Annotation: "annotation",
   Buildings: "buildings",

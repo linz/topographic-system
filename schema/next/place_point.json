@@ -34,7 +34,7 @@
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/place_subtype"
+          "$ref": "#/$defs/composition_subtype"
         },
         {
           "type": "null"
@@ -42,26 +42,6 @@
       ]
     },
     "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "composition": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/place_composition"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "description": {
       "anyOf": [
         {
           "type": "string"
@@ -99,33 +79,16 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "subtype",
-    "name",
-    "composition",
-    "description",
-    "theme",
-    "metadata",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "place_type": {
       "type": "string",
-      "enum": ["cave", "cemetery", "grave", "historic_site", "mine", "monument", "pa"]
+      "enum": ["cave", "grave", "historic_site", "monument", "pa"]
     },
-    "place_subtype": {
+    "composition_subtype": {
       "type": "string",
-      "enum": ["opencast", "underground"]
-    },
-    "place_composition": {
-      "type": "string",
-      "enum": ["limestone", "pumice", "coral"]
+      "enum": ["coral", "limestone", "pumice", "rock"]
     },
     "DataSource": {
       "type": "object",

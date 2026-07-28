@@ -48,17 +48,17 @@
         }
       ]
     },
-    "name": {
+    "subtype": {
       "anyOf": [
         {
-          "type": "string"
+          "$ref": "#/$defs/composition_subtype"
         },
         {
           "type": "null"
         }
       ]
     },
-    "composition": {
+    "name": {
       "anyOf": [
         {
           "type": "string"
@@ -96,20 +96,13 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": [
-    "id",
-    "created_at",
-    "updated_at",
-    "t50_fid",
-    "type",
-    "name",
-    "composition",
-    "theme",
-    "metadata",
-    "geometry"
-  ],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
+    "composition_subtype": {
+      "type": "string",
+      "enum": ["coral", "limestone", "pumice", "rock"]
+    },
     "DataSource": {
       "type": "object",
       "properties": {
