@@ -201,6 +201,12 @@ def validate_gpkg(gpkg_path: Path) -> None:
             continue
 
         print(f">> {layer_name}  ->  {class_name}  [{geom_type}]")
+# temp debugging: only process certain layers
+        #process_layers = ["road_line", "water", "water_line"]
+        #if layer_name not in process_layers:
+        #    print(f"  [SKIP] Layer '{layer_name}' is not in the list of layers to process.")
+        #    skipped.append(layer_name)
+        #    continue
         valid, errors, error_records = validate_layer(gpkg_path, layer_name, model_class)
         total_valid += valid
         total_errors += errors
