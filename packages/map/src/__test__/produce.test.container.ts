@@ -69,12 +69,16 @@ describe('QGIS Process', () => {
     const qgisProject = new URL('../../assets/project/beehive.qgs', import.meta.url);
     const qgisData = new URL('../../assets/project/beehive.geojson', import.meta.url);
     const topo50Data = new URL('../../assets/project/nztopo50_map_sheet.parquet', import.meta.url);
+    const cartoTextData = new URL('../../assets/project/nztopo50_carto_text.parquet', import.meta.url);
+    const trigPointData = new URL('../../assets/project/trig_point.parquet', import.meta.url);
     const fonts = new URL('../../assets/fonts/', import.meta.url);
 
     await fsa.write(new URL('source/project/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
 
     await writeLatestAsset('beehive.geojson', qgisData);
     await writeLatestAsset('nztopo50_map_sheet.parquet', topo50Data);
+    await writeLatestAsset('nztopo50_carto_text.parquet', cartoTextData);
+    await writeLatestAsset('trig_point.parquet', trigPointData);
 
     await it('deploy', async () => {
       // Deploy the QGIS project into local files

@@ -15,7 +15,7 @@ import { command, option, optional } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
-import { getQgisProjectMeta, getQgisMapSheetDataset } from '../qgis.ts';
+import { getQgisProjectMeta, getQgisMapSheetDataset, getQgisCartoTextLayer } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
@@ -114,12 +114,14 @@ export const VisualDiffCommand = command({
 
         const projectMeta = await getQgisProjectMeta(projectPath);
         const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers);
+        const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
 
         // Prepare test export options
         const exportOptions: ExportOptions = {
           layout: test.layout,
           dpi: test.dpi,
           mapSheetDataset: mapSheetLayer.source,
+          cartoTextDataset: cartoTextLayer.source,
           format: 'png',
           excludeLayers: test.excludeLayers,
         };

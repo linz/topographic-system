@@ -8,10 +8,8 @@ using TypeSpec.JsonSchema;
 model place_point {
   ...TopographicFeature;
   type: place_type;
-  subtype: place_subtype | null;
+  subtype: composition_subtype | null;
   name: string | null;
-  composition: place_composition | null;
-  description: string | null;
   theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet;
@@ -19,21 +17,8 @@ model place_point {
 
 enum place_type {
   Cave: "cave",
-  Cemetery: "cemetery",
   Grave: "grave",
   HistoricSite: "historic_site",
-  Mine: "mine",
   Monument: "monument",
   Pa: "pa",
-}
-
-enum place_subtype {
-  Opencast: "opencast",
-  Underground: "underground",
-}
-
-enum place_composition {
-  Limestone: "limestone",
-  Pumice: "pumice",
-  Coral: "coral",
 }

@@ -18,6 +18,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 from utils.calculate_mag_info import calculate_mag_info
+from utils.example_grid_reference import set_example_grid_reference
 from utils.render_mag_info import render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
@@ -33,6 +34,7 @@ class ExportArgs:
     dpi: int
     sheet_code: str
     excluded_layers: set
+    carto_text_layer_name: str
 
 
 def parse_excluded_layer_names(excluded_layer_names: str) -> set:
@@ -67,6 +69,13 @@ def parse_args() -> ExportArgs:
         dest="topo_map_sheet_name",
         required=True,
         help="Name of the layer that contains sheet polygons.",
+    )
+    parser.add_argument(
+        "--carto-text-layer-name",
+        type=str,
+        dest="carto_text_layer_name",
+        required=True,
+        help="Name of the carto text layer that supplies example point labels.",
     )
     parser.add_argument(
         "--format",
@@ -114,6 +123,7 @@ def parse_args() -> ExportArgs:
         dpi=parsed.dpi,
         sheet_code=parsed.sheet_code,
         excluded_layers=excluded_layers,
+        carto_text_layer_name=parsed.carto_text_layer_name,
     )
 
 
@@ -181,6 +191,10 @@ def main():
 
         for key, value in mag_info_render.items():
             QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
+
+        QgsExpressionContextUtils.setLayoutVariable(layout, "sheet_code", args.sheet_code)
+
+        set_example_grid_reference(layout, feature, map_main, project, args.carto_text_layer_name)
 
         # Generate outputs
         exporter = QgsLayoutExporter(layout)

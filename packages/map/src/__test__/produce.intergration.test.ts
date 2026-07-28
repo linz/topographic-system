@@ -81,6 +81,7 @@ describe('deploy -> produce-cover -> produce', () => {
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
       layout: 'tiff-50',
       mapSheetDataset: undefined,
+      cartoTextDataset: undefined,
       source: new URL('memory://source/catalog.json'),
       dpi: 300,
       output: targetProduce,
@@ -104,6 +105,7 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
       layout: 'tiff-50',
       mapSheetDataset: 'nztopo50_map_sheet.parquet',
+      cartoTextDataset: 'nztopo50_carto_text.parquet',
       dpi: 300,
       format: 'pdf',
     });
@@ -183,6 +185,12 @@ describe('deploy -> produce-cover -> produce', () => {
       type: 'application/json',
       title: 'Topographic nztopo50_map_sheet',
     });
-    assert.equal(dateLinks.length, 3);
+    assert.deepEqual(dateLinks[3], {
+      rel: 'source',
+      href: 'memory://source/data/nztopo50_carto_text/year=2026/date=2026-06-01T14-32-00.123Z/collection.json',
+      type: 'application/json',
+      title: 'Topographic nztopo50_carto_text',
+    });
+    assert.equal(dateLinks.length, 4);
   });
 });
