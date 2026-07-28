@@ -15,12 +15,9 @@ import pandas as pd
 import shapely
 
 from data_prep.identity import earliest_created_at, reproducible_uuid7
-from data_prep.parquet_utils import write_parquet
+from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
-
-NZTM2000 = 2193
-NZGD2000 = 4167
 
 # Round the coastline precision
 PRECISION_TOLERANCE = 0.1
@@ -45,14 +42,6 @@ NAME_REFERENCE_POINTS = {
     "Te Waipounamu or South Island": (1_500_000, 5_180_000),
     "Stewart Island/Rakiura": (1_215_000, 4_782_000),
 }
-
-
-def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
-    gdf = gpd.read_parquet(path, **read_kwargs)
-    epsg = gdf.crs.to_epsg() if gdf.crs else None
-    if epsg != NZGD2000:
-        raise ValueError(f"{path} must be NZGD2000 (EPSG:{NZGD2000}), got EPSG:{epsg}")
-    return gdf.to_crs(NZTM2000)
 
 
 def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> gpd.GeoSeries:
