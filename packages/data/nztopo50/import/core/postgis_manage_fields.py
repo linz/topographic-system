@@ -37,7 +37,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"relief_line": ["type", "subtype"],
 	"relief_point": ["type"],
 	"residential_area": ["type"],
-	"road_line": ["type", "hierarchy", "status", "surface", "width_indicator"],
+	"road_line": ["type", "hierarchy", "status", "surface", "way_count", "width_indicator"],
 	"runway": ["type", "subtype", "status", "surface"],
 	"structure": ["lid_type", "subtype", "species", "status"],
 	"structure_line": ["type", "subtype", "species", "status"],
@@ -1289,7 +1289,7 @@ class TableModificationWorkflow:
         )
 
         self.table_modifer.update_column_with_default(
-            self.schema_name, "road_line", "way_count", "'one way'", "way_count ='1'"
+            self.schema_name, "road_line", "way_count", "'one_way'", "way_count ='1'"
         )
 
         #self.table_modifer.update_column_with_default(
@@ -1579,6 +1579,7 @@ class TableModificationWorkflow:
         """
 
         #self.table_modifer.run_sql(sql_statement)
+
         self.table_modifer.drop_column(self.schema_name, "water", "feat_id")
 
         sql_statement = f"""
@@ -1601,6 +1602,7 @@ class TableModificationWorkflow:
         """
 
         #self.table_modifer.run_sql(sql_statement)
+
         self.table_modifer.drop_column(self.schema_name, "water_line", "feat_id")
 
         sql_statement = f"""
