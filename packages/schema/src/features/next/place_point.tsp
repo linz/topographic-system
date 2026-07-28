@@ -22,5 +22,3 @@ enum place_type {
   Monument: "monument",
   Pa: "pa",
 }
-
-
