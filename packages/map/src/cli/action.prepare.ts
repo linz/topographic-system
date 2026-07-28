@@ -21,7 +21,7 @@ import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater }
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { cache, tempLocation } from './shared.args.ts';
@@ -149,6 +149,11 @@ const ProduceArgs = {
     long: 'map-sheet-dataset',
     description: 'Map sheet dataset name to use for export',
   }),
+  cartoTextDataset: option({
+    type: optional(string),
+    long: 'carto-text-dataset',
+    description: 'Carto text dataset name to use for export',
+  }),
   source: option({
     type: optional(Url),
     long: 'source',
@@ -222,6 +227,9 @@ export const PrepareCommand = command({
     const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
     logger.info({ project: args.project.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
 
+    const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset);
+    logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
+
     const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
 
@@ -233,6 +241,7 @@ export const PrepareCommand = command({
     const exportOptions: ExportOptions = {
       layout: args.layout,
       mapSheetDataset: mapSheetLayer.source,
+      cartoTextDataset: cartoTextLayer.source,
       dpi: args.dpi,
       format: args.format,
     };
