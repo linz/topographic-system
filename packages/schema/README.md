@@ -42,7 +42,11 @@ Assuming running from topographic-system folder
 
 format tsp files...
 
-> npx tsp format "src/\*_/_.tsp"
+> `npx tsp format "packages/schema/src/**/*.tsp"`
+
+or single file
+
+> `npx tsp format "packages/schema/src/**/place_point.tsp"`
 
 compile...
 
