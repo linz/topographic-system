@@ -32,7 +32,6 @@ enum tunnel_type {
   Vehicle: "vehicle",
 }
 
-
 enum tunnel_status {
   Closed: "closed",
   Historic: "historic",
