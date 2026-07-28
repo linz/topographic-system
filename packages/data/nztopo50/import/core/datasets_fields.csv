@@ -364,7 +364,7 @@ Water_Layers,water,temperatur,temperature,String,3
 Water_Layers,water,lake_use,subtype,String,50
 Water_Layers,water,theme,theme,String,15
 Water_Layers,water_line,feature_type,type,String,50
-Water_Layers,water_line,gazfeatid,gazfeatid,BigInteger,8
+Water_Layers,water_line,gazfeatid,feat_id,BigInteger,8
 Water_Layers,water_line,macronated,macronated,String,1
 Water_Layers,water_line,name,name,String,75
 Water_Layers,water_line,name_ascii,name_ascii,String,75

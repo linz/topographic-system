@@ -284,6 +284,10 @@ class Topo50DataLoader:
             if "gazfeatid" in gdf.columns:
                 gdf = gdf.rename(columns={"gazfeatid": "feat_id"})
 
+        if layer_name.lower() == "water_line":
+            if "gazfeatid" in gdf.columns:
+                gdf = gdf.rename(columns={"gazfeatid": "feat_id"})
+
         if layer_name.lower() == "runway":
             if "runway_use" in gdf.columns:
                 gdf = gdf.rename(columns={"runway_use": "subtype"})

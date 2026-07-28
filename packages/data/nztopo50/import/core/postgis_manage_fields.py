@@ -1578,8 +1578,30 @@ class TableModificationWorkflow:
         );
         """
 
-        self.table_modifer.run_sql(sql_statement)
+        #self.table_modifer.run_sql(sql_statement)
         self.table_modifer.drop_column(self.schema_name, "water", "feat_id")
+
+        sql_statement = f"""
+        UPDATE {self.schema_name}.water_line
+        SET metadata = jsonb_build_object(
+            'metadata',
+            jsonb_build_array(
+                jsonb_build_object(
+                    'table_column', 'name',
+                    'source', 'NZGB Gazetteer',
+                    'source_key_name', 'feat_id',
+                    'source_key_value', feat_id,
+                    'source_table', 'nzgb_gaz',
+                    'source_column', 'name',
+                    'source_updated_at', NOW(),
+                    'imported_at', NOW()
+                )
+            )
+        );
+        """
+
+        #self.table_modifer.run_sql(sql_statement)
+        self.table_modifer.drop_column(self.schema_name, "water_line", "feat_id")
 
         sql_statement = f"""
         UPDATE {self.schema_name}.road_line
@@ -1600,6 +1622,23 @@ class TableModificationWorkflow:
         );
         """
 
+        sql_statement = f"""
+        UPDATE {self.schema_name}.road_line
+        SET metadata = jsonb_build_object(
+            jsonb_build_array(
+                jsonb_build_object(
+                    'table_column', 'name',
+                    'source', 'LINZ AIMS',
+                    'source_key_name', 'road_id',
+                    'source_key_value', rna_sufi,
+                    'source_table', 'roads',
+                    'source_column', 'name',
+                    'source_updated_at', NOW(),
+                    'imported_at', NOW()
+                )
+            )
+        );
+        """
         self.table_modifer.run_sql(sql_statement)
         self.table_modifer.drop_column(self.schema_name, "road_line", "rna_sufi")
 
