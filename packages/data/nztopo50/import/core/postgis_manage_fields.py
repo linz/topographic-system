@@ -41,7 +41,7 @@ TABLE_UNDERSCORE_COLUMNS = {
 	"runway": ["type", "subtype", "status", "surface"],
 	"structure": ["lid_type", "subtype", "species", "status"],
 	"structure_line": ["type", "subtype", "species", "status"],
-	"structure_point": ["type", "subtype", "status"],
+	"structure_point": ["type", "subtype", "status", "tank_type"],
 	"track_line": ["type", "subtype", "track_type", "status"],
 	"transport_point": ["type"],
 	"trig_point": ["type", "trig_type"],
@@ -1562,7 +1562,7 @@ class TableModificationWorkflow:
         sql_statement = f"""
         UPDATE {self.schema_name}.water
         SET metadata = jsonb_build_object(
-            'datasources',
+            'metadata',
             jsonb_build_array(
                 jsonb_build_object(
                     'table_column', 'name',
@@ -1584,7 +1584,7 @@ class TableModificationWorkflow:
         sql_statement = f"""
         UPDATE {self.schema_name}.road_line
         SET metadata = jsonb_build_object(
-            'datasources',
+            'metadata',
             jsonb_build_array(
                 jsonb_build_object(
                     'table_column', 'name',
