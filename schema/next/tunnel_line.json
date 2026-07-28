@@ -29,33 +29,23 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
-      "type": "string",
-      "const": "tunnel"
-    },
-    "tunnel_use": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/tunnel_use"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "tunnel_use2": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/tunnel_use"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/tunnel_type"
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/tunnel_subtype"
+          "type": "string",
+          "const": "livestock"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "construction_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/tunnel_construction_type"
         },
         {
           "type": "null"
@@ -116,9 +106,8 @@
     "updated_at",
     "t50_fid",
     "type",
-    "tunnel_use",
-    "tunnel_use2",
     "subtype",
+    "construction_type",
     "status",
     "name",
     "theme",
@@ -127,17 +116,17 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "tunnel_use": {
+    "tunnel_type": {
       "type": "string",
       "enum": ["cablecar", "foot_traffic", "livestock", "river", "train", "tram", "vehicle"]
     },
-    "tunnel_subtype": {
+    "tunnel_construction_type": {
       "type": "string",
-      "enum": ["natural"]
+      "enum": ["natural", "manmade"]
     },
     "tunnel_status": {
       "type": "string",
-      "enum": ["closed", "under_construction"]
+      "enum": ["closed", "historic", "disused", "derelict", "under_construction"]
     },
     "DataSource": {
       "type": "object",
