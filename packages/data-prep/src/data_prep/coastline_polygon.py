@@ -20,7 +20,7 @@ from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 logger = logging.getLogger(__name__)
 
 # Round the coastline precision
-PRECISION_TOLERANCE = 0.1
+PRECISION_TOLERANCE = 0.001
 
 # Output properties for the merged coastline and island polygons.
 OUTPUT_COLUMNS = [

@@ -16,7 +16,7 @@ import geopandas as gpd
 import pandas as pd
 
 from data_prep.identity import earliest_created_at, reproducible_uuid7
-from data_prep.parquet_utils import write_parquet
+from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +26,6 @@ logger = logging.getLogger(__name__)
 # Even though Chathams/Kermadecs sit outside NZTM2000, it gives us a smaller error of about 0.009m
 # As we are working out if rock line sits on a shoreline rather than a measurement, that sub-cm distortion is acceptable
 LINE_TOL_M = 1.0
-NZTM2000 = 2193
-NZGD2000 = 4167
-
-
-def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
-    gdf = gpd.read_parquet(path, **read_kwargs)
-    epsg = gdf.crs.to_epsg() if gdf.crs else None
-    if epsg != NZGD2000:
-        raise ValueError(f"{path} must be NZGD2000 (EPSG:{NZGD2000}), got EPSG:{epsg}")
-
-    return gdf.to_crs(NZTM2000)
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:

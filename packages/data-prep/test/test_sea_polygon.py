@@ -2,12 +2,10 @@ from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
-import pytest
-from data_prep.sea_polygon import NZGD2000, SLICE_ZOOM, run, tile_bounds, tile_quadkey, tile_range
+from data_prep.sea_polygon import NZGD2000, SLICE_ZOOM, run
 from shapely.geometry import box
 
-# A land polygon over New Zealand, in NZGD2000 (lon/lat) so no reprojection is
-# needed to build the fixture. Small enough that it does not fill a whole tile.
+# A land polygon over New Zealand
 LAND_POLYGON = box(174.7, -41.4, 174.9, -41.2)
 
 
@@ -25,7 +23,7 @@ def run_sea_polygon(tmp_path: Path, land_polygons, zoom: int = SLICE_ZOOM) -> gp
     return gpd.read_parquet(output_path)
 
 
-def test_produces_moana_polygons(tmp_path: Path):
+def test_produces_sea_polygons(tmp_path: Path):
     result = run_sea_polygon(tmp_path, [LAND_POLYGON])
     assert not result.empty
     assert (result["type"] == "moana").all()
@@ -65,21 +63,7 @@ def test_higher_zoom_produces_more_tiles(tmp_path: Path):
     assert len(fine) > len(coarse)
 
 
-def test_tile_bounds_cover_world():
-    # The single tile at zoom 0 spans the whole Web Mercator extent.
-    minx, miny, maxx, maxy = tile_bounds(0, 0, 0)
-    assert minx == pytest.approx(-maxx)
-    assert miny == pytest.approx(-maxy)
-    assert maxx == pytest.approx(20037508.342789244)
-
-
-def test_tile_quadkey_known_value():
-    # Bing Maps reference: tile (3, 5) at zoom 3 has quadkey "213".
-    assert tile_quadkey(3, 5, 3) == "213"
-
-
-def test_tile_range_covers_bounds():
-    tiles = list(tile_range((-1_000_000, -1_000_000, 1_000_000, 1_000_000), 3))
-    # The area straddles the Web Mercator origin, so it spans the middle tiles.
-    assert (3, 3) in tiles
-    assert (4, 4) in tiles
+def test_quadkeys_are_unique(tmp_path: Path):
+    result = run_sea_polygon(tmp_path, [LAND_POLYGON])
+    assert result["quadkey"].notna().all()
+    assert result["quadkey"].is_unique

@@ -2,9 +2,9 @@
 Build the sea (moana) polygons for the water layer from the derived land polygons.
 
 The land polygons (produced by ``coastline_polygon.py``) are inverted to produce
-the sea. To avoid a single large polygon, the sea is sliced by Web Mercator
-quadkey tiles at a fixed zoom level: each tile contributes one ``type = moana``
-water feature clipped to that tile's extent.
+the sea. To avoid a single large polygon, the sea is sliced by the Web Mercator
+quadkey grid (WebMercatorQuad) at a fixed zoom level: each tile contributes one
+``type = moana`` water feature clipped to that tile's extent.
 """
 
 import argparse
@@ -16,21 +16,22 @@ from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
+import morecantile
 import pandas as pd
 import shapely
+from pyproj import CRS
 
 from data_prep.identity import earliest_created_at, reproducible_uuid7
-from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
+from data_prep.parquet_utils import NZGD2000, WEB_MERCATOR, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
 
-WEB_MERCATOR = 3857
+# WebMercatorQuad tile matrix set (EPSG:3857) provides the Web Mercator quadkey
+# grid used to slice the sea into tile-sized extents.
+TILE_MATRIX_SET = morecantile.tms.get("WebMercatorQuad")
 
-# Web Mercator zoom level used to slice the sea into tile-sized extents.
+# Web Mercator quadkey zoom level used to slice the sea into tile-sized extents.
 SLICE_ZOOM = 7
-
-# Half the Web Mercator world extent in metres (EPSG:3857 spans +/- this value).
-WEB_MERCATOR_HALF = 20037508.3427892
 
 # Output properties for the sea polygons written into the water layer.
 OUTPUT_COLUMNS = [
@@ -43,70 +44,32 @@ OUTPUT_COLUMNS = [
 ]
 
 
-def tile_bounds(x: int, y: int, zoom: int) -> tuple[float, float, float, float]:
-    """Return the (minx, miny, maxx, maxy) Web Mercator bounds of a tile.
-
-    Tile ``x`` increases eastward from the western edge; tile ``y`` increases
-    southward from the northern edge (slippy-map / quadkey convention).
-    """
-    tile_size = 2 * WEB_MERCATOR_HALF / (2**zoom)
-    minx = -WEB_MERCATOR_HALF + x * tile_size
-    maxy = WEB_MERCATOR_HALF - y * tile_size
-    return minx, maxy - tile_size, minx + tile_size, maxy
-
-
-def tile_range(bounds: tuple[float, float, float, float], zoom: int):
-    """Yield the (x, y) tiles at ``zoom`` that cover a Web Mercator bounding box."""
-    minx, miny, maxx, maxy = bounds
-    n = 2**zoom
-    tile_size = 2 * WEB_MERCATOR_HALF / n
-
-    def clamp(value: int) -> int:
-        return max(0, min(value, n - 1))
-
-    x_start = clamp(int((minx + WEB_MERCATOR_HALF) // tile_size))
-    x_end = clamp(int((maxx + WEB_MERCATOR_HALF) // tile_size))
-    y_start = clamp(int((WEB_MERCATOR_HALF - maxy) // tile_size))
-    y_end = clamp(int((WEB_MERCATOR_HALF - miny) // tile_size))
-
-    for x in range(x_start, x_end + 1):
-        for y in range(y_start, y_end + 1):
-            yield x, y
-
-
-def tile_quadkey(x: int, y: int, zoom: int) -> str:
-    """Return the Web Mercator quadkey string for a tile."""
-    digits = []
-    for i in range(zoom, 0, -1):
-        digit = 0
-        mask = 1 << (i - 1)
-        if x & mask:
-            digit += 1
-        if y & mask:
-            digit += 2
-        digits.append(str(digit))
-    return "".join(digits)
-
-
 def land_to_sea_tiles(land_gdf: gpd.GeoDataFrame, zoom: int) -> gpd.GeoDataFrame:
     """Invert the land polygons into per-tile sea polygons.
 
-    Each Web Mercator tile overlapping the land extent yields one sea polygon
-    (the tile with the land subtracted). Tiles fully covered by land are dropped.
+    Each Web Mercator quadkey tile overlapping the land extent yields one sea
+    polygon (the tile with the land subtracted). Tiles fully covered by land are
+    dropped.
     """
     web_gdf = land_gdf.to_crs(WEB_MERCATOR)
     land_union = web_gdf.geometry.union_all()
 
+    minx, miny, maxx, maxy = land_gdf.total_bounds
+    geographic_crs = CRS.from_epsg(NZGD2000)
+
+    tiles = list(TILE_MATRIX_SET.tiles(minx, miny, maxx, maxy, zooms=[zoom], geographic_crs=geographic_crs))
+
     xs: list[int] = []
     ys: list[int] = []
     geometries: list[shapely.Geometry] = []
-    for x, y in tile_range(tuple(web_gdf.total_bounds), zoom):
-        tile = shapely.box(*tile_bounds(x, y, zoom))
-        sea = tile.difference(land_union) if tile.intersects(land_union) else tile
+    for tile in tiles:
+        bounds = TILE_MATRIX_SET.xy_bounds(tile)
+        tile_geom = shapely.box(bounds.left, bounds.bottom, bounds.right, bounds.top)
+        sea = tile_geom.difference(land_union) if tile_geom.intersects(land_union) else tile_geom
         if sea.is_empty:
             continue
-        xs.append(x)
-        ys.append(y)
+        xs.append(tile.x)
+        ys.append(tile.y)
         geometries.append(sea)
 
     sea_gdf = gpd.GeoDataFrame({"x": xs, "y": ys}, geometry=geometries, crs=WEB_MERCATOR)
@@ -125,7 +88,10 @@ def set_derived_identity(
     """
     result = sea_gdf.copy()
 
-    result["quadkey"] = [tile_quadkey(x, y, zoom) for x, y in zip(result["x"], result["y"], strict=True)]
+    result["quadkey"] = [
+        TILE_MATRIX_SET.quadkey(morecantile.Tile(x, y, zoom))
+        for x, y in zip(result["x"], result["y"], strict=True)
+    ]
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     result["id"] = [str(reproducible_uuid7(timestamp_ms, quadkey)) for quadkey in result["quadkey"]]
     result["type"] = "moana"

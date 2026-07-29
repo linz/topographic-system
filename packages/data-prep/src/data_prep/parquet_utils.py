@@ -7,6 +7,7 @@ import geopandas as gpd
 # New Zealand coordinate reference systems used across the data-prep scripts.
 NZGD2000 = 4167  # geographic (lon/lat) CRS used for stored/interchange data
 NZTM2000 = 2193  # projected (metre) CRS used for metric operations
+WEB_MERCATOR = 3857  # Web Mercator CRS underlying the WebMercatorQuad quadkey grid
 
 
 def read_and_project(path: Path, target_crs: int | None = NZTM2000, **read_kwargs) -> gpd.GeoDataFrame:
