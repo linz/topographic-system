@@ -1641,6 +1641,17 @@ class TableModificationWorkflow:
             )
         );
         """
+        sql_statement = f"""
+        UPDATE {self.schema_name}.road_line
+            SET metadata = ARRAY[
+                'source=LINZ AIMS',
+                'table_column=name',
+                'source_key_name=road_id',
+                'source_key_value=' || rna_sufi,
+                'source_table=roads',
+                'source_column=name'
+            ];
+            """
         self.table_modifer.run_sql(sql_statement)
         self.table_modifer.drop_column(self.schema_name, "road_line", "rna_sufi")
 
