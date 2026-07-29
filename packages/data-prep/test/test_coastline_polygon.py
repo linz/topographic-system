@@ -2,10 +2,11 @@ from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
+import pandas as pd
 import pytest
-from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, run
+from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, earliest_created_at, run
 from data_prep.parquet_utils import NZGD2000, NZTM2000
-from shapely.geometry import LineString, box
+from shapely.geometry import LineString, Point, box
 
 
 def _to_nzgd2000(geom):
@@ -85,3 +86,32 @@ def test_open_coastline_raises(tmp_path: Path):
     open_line = LineString([(175.0, -39.0), (176.0, -39.0)])
     with pytest.raises(ValueError):
         run_coastline_polygon(tmp_path, [open_line], [OFFSHORE_ISLAND])
+
+
+def _gdf_with_created_at(created_at):
+    return gpd.GeoDataFrame(
+        {"created_at": created_at, "geometry": [Point(0, 0)] * len(created_at)},
+        crs=NZGD2000,
+    )
+
+
+def test_earliest_created_at_returns_min():
+    gdf = _gdf_with_created_at([date(2020, 5, 1), date(2018, 3, 2), date(2022, 12, 31)])
+    assert earliest_created_at(gdf) == date(2018, 3, 2)
+
+
+def test_earliest_created_at_missing_column_raises():
+    gdf = gpd.GeoDataFrame({"geometry": [Point(0, 0)]}, crs=NZGD2000)
+    with pytest.raises(ValueError):
+        earliest_created_at(gdf)
+
+
+def test_earliest_created_at_all_missing_values_raises():
+    gdf = _gdf_with_created_at([None, pd.NaT])
+    with pytest.raises(ValueError):
+        earliest_created_at(gdf)
+
+
+def test_earliest_created_at_ignores_unparseable_values():
+    gdf = _gdf_with_created_at(["not-a-date", date(2019, 7, 4)])
+    assert earliest_created_at(gdf) == date(2019, 7, 4)
