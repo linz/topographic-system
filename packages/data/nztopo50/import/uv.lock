@@ -82,6 +82,15 @@ wheels = [
 ]
 
 [[package]]
+name = "fastjsonschema"
+version = "2.22.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/98/474719c58eddaf77fa443b063693e76d49db32bbe851bcbaf58d2700119f/fastjsonschema-2.22.1.tar.gz", hash = "sha256:0b83d1ce8d7845b959dcb20e1a5c3c8883b6541d9c52ab02cce5166b75ec805f", size = 382291, upload-time = "2026-07-27T13:31:08.515Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/e1/62cc96341f01bdff2ba967441939178fcd1900d11ce7e6554d9954a5d7ec/fastjsonschema-2.22.1-py3-none-any.whl", hash = "sha256:cf377ff5c9a6f4f3125fb35f75a2c5767bd824ffbcf62c209a93cd48d1453999", size = 26239, upload-time = "2026-07-27T13:31:03.251Z" },
+]
+
+[[package]]
 name = "geoalchemy2"
 version = "0.20.0"
 source = { registry = "https://pypi.org/simple" }
@@ -738,6 +747,7 @@ name = "topographic-system-data-import"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "fastjsonschema" },
     { name = "geoalchemy2" },
     { name = "geopandas" },
     { name = "numpy" },
@@ -764,6 +774,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "fastjsonschema", specifier = ">=2.22.1" },
     { name = "geoalchemy2", specifier = ">=0.19.0" },
     { name = "geopandas" },
     { name = "numpy", specifier = ">=2.4.4" },
