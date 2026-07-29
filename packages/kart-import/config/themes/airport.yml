@@ -7,7 +7,7 @@ datasets:
   #    The `t50_fid` field will need to be backfilled or the import process modified
   #    for this dataset to load without error.
   #  - source: kart@data.koordinates.com:linz/cook-islands-airport-polygons-topo-125k-zone4
-  #    name: cook_islands_airport_polygons_topo_125k_zone4
+  #    name: cook_islands_airport_polygons
   #    mapping:
   #      t50_fid: $
   #      type: airport
@@ -15,7 +15,6 @@ datasets:
   #      theme: transport
   #      metadata: null
   - source: kart@data.koordinates.com:linz/niue-airport-polygons-topo-150k
-    name: niue_airport_polygons_topo_150k
     mapping:
       t50_fid: auto_pk # FIXME: has no t50_fid, needs lookup table and data
       type: airport
@@ -23,7 +22,6 @@ datasets:
       theme: transport
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
-    name: nz_airport_polygons_topo_150k
     mapping:
       t50_fid: $
       type: airport
@@ -31,7 +29,6 @@ datasets:
       theme: transport
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k
-    name: nz_chatham_island_airport_polygons_topo_150k
     mapping:
       t50_fid: $
       type: airport
