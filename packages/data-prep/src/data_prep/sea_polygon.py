@@ -51,6 +51,8 @@ def land_to_sea_tiles(land_gdf: gpd.GeoDataFrame, zoom: int) -> gpd.GeoDataFrame
     polygon (the tile with the land subtracted). Tiles fully covered by land are
     dropped.
     """
+    land_crs = land_gdf.crs
+    assert land_crs is not None, "land polygons must have a CRS"
     web_gdf = land_gdf.to_crs(WEB_MERCATOR)
     land_union = web_gdf.geometry.union_all()
 
@@ -73,7 +75,7 @@ def land_to_sea_tiles(land_gdf: gpd.GeoDataFrame, zoom: int) -> gpd.GeoDataFrame
         geometries.append(sea)
 
     sea_gdf = gpd.GeoDataFrame({"x": xs, "y": ys}, geometry=geometries, crs=WEB_MERCATOR)
-    return sea_gdf.to_crs(land_gdf.crs)
+    return sea_gdf.to_crs(land_crs)
 
 
 def set_derived_identity(
@@ -89,8 +91,7 @@ def set_derived_identity(
     result = sea_gdf.copy()
 
     result["quadkey"] = [
-        TILE_MATRIX_SET.quadkey(morecantile.Tile(x, y, zoom))
-        for x, y in zip(result["x"], result["y"], strict=True)
+        TILE_MATRIX_SET.quadkey(morecantile.Tile(x, y, zoom)) for x, y in zip(result["x"], result["y"], strict=True)
     ]
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     result["id"] = [str(reproducible_uuid7(timestamp_ms, quadkey)) for quadkey in result["quadkey"]]

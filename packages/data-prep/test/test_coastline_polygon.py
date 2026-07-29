@@ -2,7 +2,8 @@ from pathlib import Path
 
 import geopandas as gpd
 import pytest
-from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, NZGD2000, NZTM2000, run
+from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, run
+from data_prep.parquet_utils import NZGD2000, NZTM2000
 from shapely.geometry import LineString, box
 
 
