@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -12,7 +13,10 @@ def _to_nzgd2000(geom):
 
 
 def run_coastline_polygon(tmp_path: Path, coastline_lines, island_polygons, island_names=None) -> gpd.GeoDataFrame:
-    coastline_gdf = gpd.GeoDataFrame({"geometry": coastline_lines}, crs=NZGD2000)
+    coastline_gdf = gpd.GeoDataFrame(
+        {"created_at": [date(2020, 1, 1)] * len(coastline_lines), "geometry": coastline_lines},
+        crs=NZGD2000,
+    )
     coastline_path = tmp_path / "coastline.parquet"
     coastline_gdf.to_parquet(coastline_path)
 
