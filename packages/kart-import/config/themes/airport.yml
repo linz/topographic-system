@@ -2,18 +2,22 @@ name: airport
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  - source: kart@data.koordinates.com:linz/cook-islands-airport-polygons-topo-125k-zone4
-    name: cook_islands_airport_polygons_topo_125k_zone4
-    mapping:
-      t50_fid: $
-      type: airport
-      name: $
-      theme: transport
-      metadata: null
+  # FIXME: The Cook Islands airport polygons dataset only gained the
+  #    `t50_fid` field after release 30 (the first release processed here).
+  #    The `t50_fid` field will need to be backfilled or the import process modified
+  #    for this dataset to load without error.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-airport-polygons-topo-125k-zone4
+  #    name: cook_islands_airport_polygons_topo_125k_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: airport
+  #      name: $
+  #      theme: transport
+  #      metadata: null
   - source: kart@data.koordinates.com:linz/niue-airport-polygons-topo-150k
     name: niue_airport_polygons_topo_150k
     mapping:
-      t50_fid: $
+      t50_fid: auto_pk # FIXME: has no t50_fid, needs lookup table and data
       type: airport
       name: $
       theme: transport
