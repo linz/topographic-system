@@ -58,40 +58,67 @@ def _td(mapping: dict) -> ThemeDataset:
 
 def test_literal_non_string_is_passed_through():
     """Regression: `version: 1` used to crash on int.startswith."""
-    out = normalize_fields(_gdf([{}, {}]), _td({"version": 1, "feature_type": "road"}))
+    out = normalize_fields(_gdf([{}, {}]), _td({"version": 1, "feature_type": "road"}), 1)
     assert out["version"].tolist() == [1, 1]
     assert out["feature_type"].tolist() == ["road", "road"]
 
 
 def test_column_references():
     gdf = _gdf([{"name": "a", "hway_num": "SH1"}])
-    out = normalize_fields(gdf, _td({"name": "$", "highway_number": "$hway_num"}))
+    out = normalize_fields(gdf, _td({"name": "$", "highway_number": "$hway_num"}), 1)
     assert out["name"].tolist() == ["a"]
     assert out["highway_number"].tolist() == ["SH1"]
 
 
 def test_none_source_creates_null_column():
-    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": None}))
+    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": None}), 1)
     assert out["topo_id"].tolist() == [None, None]
 
 
 def test_none_source_with_default_fills_every_row():
-    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": {"default": "X"}}))
+    out = normalize_fields(_gdf([{"name": "a"}, {"name": "b"}]), _td({"topo_id": {"default": "X"}}), 1)
     assert out["topo_id"].tolist() == ["X", "X"]
 
 
 def test_default_fills_nulls_in_column():
     gdf = _gdf([{"name": "a"}, {"name": None}])
-    out = normalize_fields(gdf, _td({"name": {"source": "$", "default": "Unknown"}}))
+    out = normalize_fields(gdf, _td({"name": {"source": "$", "default": "Unknown"}}), 1)
     assert out["name"].tolist() == ["a", "Unknown"]
 
 
 def test_absent_column_raises_even_with_default():
     """`default` only fills NULLs in an existing column; an absent column is an error."""
     with pytest.raises(Exception, match="Source column not found"):
-        normalize_fields(_gdf([{}]), _td({"name": {"source": "$missing", "default": "Unknown"}}))
+        normalize_fields(_gdf([{}]), _td({"name": {"source": "$missing", "default": "Unknown"}}), 1)
 
 
 def test_missing_column_without_default_raises():
     with pytest.raises(Exception, match="Source column not found"):
-        normalize_fields(_gdf([{}]), _td({"name": "$missing"}))
+        normalize_fields(_gdf([{}]), _td({"name": "$missing"}), 1)
+
+
+def _since_td() -> ThemeDataset:
+    return _td({"orientation": {"source": "$orientatn", "since_release": 49}})
+
+
+def test_since_release_nulls_absent_column_in_earlier_release():
+    out = normalize_fields(_gdf([{}, {}]), _since_td(), 48)
+    assert out["orientation"].tolist() == [None, None]
+
+
+def test_since_release_still_raises_from_that_release_on():
+    """A typo'd name must not silently become an all-NULL column once the source has it."""
+    with pytest.raises(Exception, match="Source column not found"):
+        normalize_fields(_gdf([{}]), _since_td(), 49)
+
+
+def test_since_release_maps_present_column_in_earlier_release():
+    """Presence wins over the release gate, so a boundary set too late loses no data."""
+    out = normalize_fields(_gdf([{"orientatn": 90.0}]), _since_td(), 30)
+    assert out["orientation"].tolist() == [90.0]
+
+
+def test_since_release_honours_default_for_earlier_release():
+    spec = {"orientation": {"source": "$orientatn", "since_release": 49, "default": 0}}
+    out = normalize_fields(_gdf([{}]), _td(spec), 48)
+    assert out["orientation"].tolist() == [0]
