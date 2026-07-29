@@ -18,8 +18,10 @@ interface FeatureAirport {
     created_at: string;
     updated_at: string;
     t50_fid: number;
-    feature_type: 'airport';
+    type: 'airport';
     name?: string;
+    theme: 'transport';
+    metadata: any;
   };
   geometry: unknown;
 }
@@ -78,7 +80,7 @@ describe('kart.import', async () => {
     assert.equal(ciAirport?.properties.created_at, '2015-09-06T20:22:04Z');
     assert.equal(ciAirport?.properties.updated_at, '2015-09-06T20:22:04Z');
     assert.equal(ciAirport?.properties.t50_fid, 5454276);
-    assert.equal(ciAirport?.properties.feature_type, 'airport');
+    assert.equal(ciAirport?.properties.type, 'airport');
     state.hasTheme = true;
   });
 
