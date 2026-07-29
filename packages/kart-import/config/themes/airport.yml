@@ -16,7 +16,7 @@ datasets:
   #      metadata: null
   - source: kart@data.koordinates.com:linz/niue-airport-polygons-topo-150k
     mapping:
-      t50_fid: auto_pk # FIXME: has no t50_fid, needs lookup table and data
+      t50_fid: null # FIXME: needs lookup
       type: airport
       name: $
       theme: transport
