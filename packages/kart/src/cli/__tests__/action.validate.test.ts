@@ -310,7 +310,7 @@ describe('action.validate', () => {
         'db-path': new URL('files.parquet', testDbPath),
         'config-file': testConfigPath,
         'output-dir': new URL('output/', testDbPath),
-        'area-crs': 4326,
+        'area-crs': 4167,
         'export-parquet': false,
         'export-parquet-by-geometry': false,
         'no-export-gpkg': false,
@@ -330,7 +330,7 @@ describe('action.validate', () => {
       assert.ok(result.includes('--mode'));
       assert.ok(result.includes('generic'));
       assert.ok(result.includes('--area-crs'));
-      assert.ok(result.includes('4326'));
+      assert.ok(result.includes('4167'));
     });
 
     it('should throw error when no parquet files found', async () => {

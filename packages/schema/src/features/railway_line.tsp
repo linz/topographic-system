@@ -9,7 +9,7 @@ model railway_line {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  feature_type?: "railway" | null;
+  type: "railway";
   railway_use?: Topo.RailwayUseEnum | null;
   track_type?: Topo.TrackTypeEnum | null;
   vehicle_type?: Topo.VehicleTypeEnum | null;
@@ -19,8 +19,10 @@ model railway_line {
   route?: string | null;
   route2?: string | null;
   route3?: string | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "utility_point",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUID for the feature."
+    },
+    "updated_at": {
+      "type": "object",
+      "properties": {}
+    },
+    "created_at": {
+      "type": "object",
+      "properties": {},
+      "description": "Default at write time: today."
+    },
+    "t50_fid": {},
+    "type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "gas_valve"
+        },
+        {
+          "type": "string",
+          "const": "geo_bore"
+        },
+        {
+          "type": "string",
+          "const": "pylon"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

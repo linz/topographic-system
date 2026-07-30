@@ -1,12 +1,26 @@
 import type { StacItem } from 'stac-ts';
 
-import { type ExportFormat } from './cli/action.produce.cover.ts';
+import { type ExportFormat } from './cli/action.prepare.ts';
 
 export interface ExportOptions {
   /** layout name used for export, must exist in the QGIS project */
   layout: string;
-  /** map sheet layer name used for export */
-  mapSheetLayer: string;
+  /**
+   * map sheet dataset name used for export
+   *
+   * This is the dataset name of the dataset as it appears in the stac item json
+   *
+   * @example "nztopo50_map_sheet.parquet"
+   */
+  mapSheetDataset: string;
+  /**
+   * carto text dataset name used for export
+   *
+   * This is the dataset name of the dataset as it appears in the stac item json.
+   *
+   * @example "nztopo50_carto_text.parquet"
+   */
+  cartoTextDataset: string;
   /** Creation Format  */
   format: ExportFormat;
   /** Creation dpi */

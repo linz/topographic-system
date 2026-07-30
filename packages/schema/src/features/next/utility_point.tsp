@@ -1,0 +1,21 @@
+import "@typespec/json-schema";
+import "./common.tsp";
+
+using TypeSpec.JsonSchema;
+
+@jsonSchema("next/utility_point")
+@extension("additionalProperties", false)
+model utility_point {
+  ...TopographicFeature;
+  type: utility_point_type;
+  orientation: float64 | null;
+  theme: Theme.Utility;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
+
+enum utility_point_type {
+  GasValve: "gas_valve",
+  GeoBore: "geo_bore",
+  Pylon: "pylon",
+}

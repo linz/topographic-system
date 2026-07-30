@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "testpolygon",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string"
+    },
+    "updated_date": {},
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": ["topo_id", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

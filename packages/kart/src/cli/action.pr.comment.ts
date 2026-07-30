@@ -28,7 +28,16 @@ export const CommentCommand = command({
 
   async handler(args) {
     logger.info({ pr: args.pr, repo: args.repo, bodyFile: args.bodyFile.href }, 'PRComment:Start');
+
+    if (!(await fsa.exists(args.bodyFile))) {
+      logger.info({ bodyFile: args.bodyFile.href }, 'PRComment:Skipped:NoSummary');
+      return;
+    }
     const summaryMd = (await fsa.read(args.bodyFile)).toString('utf-8');
+    if (summaryMd.trim() === '') {
+      logger.info({ bodyFile: args.bodyFile.href }, 'PRComment:Skipped:EmptySummary');
+      return;
+    }
 
     const repoName = args.repo ?? (await GithubApi.findRepo());
     const prNumber = args.pr ?? (await GithubApi.findPullRequest());

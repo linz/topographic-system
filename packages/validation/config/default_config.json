@@ -25,7 +25,7 @@
       "intersection_table": "road_line",
       "layername": "shelterbelt-crossing-roads",
       "message": "Shelterbelt line features must not cross road line features",
-      "where": "feature_type = 'shelter_belt'"
+      "where": "type = 'shelter_belt'"
     }
   ],
   "line_not_on_feature_layers": [
@@ -178,109 +178,67 @@
       "message": "Runway features must have a surface attribute"
     },
     {
-      "table": "physical_infrastructure_point",
+      "table": "utility_point",
       "column": "orientation",
-      "where": "feature_type = 'pylon'",
+      "where": "type = 'pylon'",
       "message": "Physical infrastructure point features must have an orientation attribute for type pylon"
     },
     {
-      "table": "physical_infrastructure_line",
+      "table": "utility_line",
       "column": "support_type",
-      "where": "feature_type = 'powerline'",
+      "where": "type = 'powerline'",
       "message": "Physical infrastructure line features must have a support_type attribute for type powerline"
     },
     {
       "table": "landuse",
-      "column": "landuse_type",
-      "where": "feature_type = 'mine'",
-      "message": "Landuse features must have a landuse_type attribute for type mine"
+      "column": "subtype",
+      "where": "type = 'mine'",
+      "message": "Landuse features must have a landuse type attribute for type mine"
     },
     {
       "table": "water_point",
       "column": "orientation",
-      "where": "(feature_type = 'waterfall' OR feature_type = 'soakhole')",
+      "where": "(type = 'waterfall' OR type = 'soakhole')",
       "message": "Water point features must have an orientation attribute for types waterfall and soakhole"
     },
     {
       "table": "water_point",
       "column": "height",
-      "where": "feature_type = 'waterfall'",
+      "where": "type = 'waterfall'",
       "message": "Water point features must have a height attribute for type waterfall"
     },
     {
       "table": "water_point",
       "column": "temperature_indicator",
-      "where": "feature_type = 'spring'",
+      "where": "type = 'spring'",
       "message": "Water point features must have a temperature_indicator attribute for type spring"
     },
     {
-      "table": "water_line",
+      "table": "relief_line",
       "column": "height",
-      "where": "(feature_type = 'waterfall' OR feature_type = 'waterfall_edge')",
-      "message": "Water line features must have a height attribute for types waterfall and waterfall_edge"
+      "where": "(type = 'waterfall' OR type = 'waterfall_edge')",
+      "message": "Relief line features must have a height attribute for types waterfall and waterfall_edge"
     },
     {
       "table": "water",
       "column": "height",
-      "where": "(feature_type = 'lagoon' OR feature_type = 'lake')",
+      "where": "(type = 'lagoon' OR type = 'lake')",
       "message": "Water features must have a height attribute for types lagoon and lake"
     },
     {
-      "table": "water",
+      "table": "relief",
       "column": "height",
-      "where": "feature_type = 'waterfall'",
+      "where": "type = 'waterfall'",
       "message": "Waterfall features must have a height attribute for type waterfall"
     }
   ],
   "query_rules": [
     {
       "table": "vegetation",
-      "column": "species",
-      "where": "feature_type = 'exotic'",
-      "rule": "species IN ('coniferous', 'non-coniferous')",
-      "message": "Exotic vegetation must have species as coniferous or non-coniferous"
-    }
-  ],
-  "not_null_all": [
-    {
-      "table": "all_spatial_tables",
-      "column": "topo_id",
-      "message": "topo_id identity must have a topo_id UUID"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "source",
-      "message": "source metadata must have a description of the data source"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "source_date",
-      "message": "source_date metadata must have a date for the data source"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "capture_method",
-      "message": "capture_method metadata must have a description of the capture method"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "change_type",
-      "message": "change_type metadata must have a description of the change type"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "update_date",
-      "message": "update_date metadata must have a date for the update"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "create_date",
-      "message": "create_date metadata must have a date for the creation"
-    },
-    {
-      "table": "all_spatial_tables",
-      "column": "version",
-      "message": "version metadata must have a version number"
+      "column": "subtype",
+      "where": "type = 'exotic'",
+      "rule": "subtype IN ('coniferous', 'non-coniferous')",
+      "message": "Exotic vegetation must have subtype as coniferous or non-coniferous"
     }
   ]
 }

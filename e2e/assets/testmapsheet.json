@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "testmapsheet",
+  "type": "object",
+  "properties": {
+    "topo_id": {
+      "type": "string"
+    },
+    "auto_int_pk": {},
+    "edition": {},
+    "feature_type": {},
+    "revised": {},
+    "sheet_code": {},
+    "sheet_name": {},
+    "t50_fid": {},
+    "capture_method": {},
+    "change_type": {},
+    "update_date": {},
+    "create_date": {},
+    "version": {},
+    "geometry": {
+      "description": "WKB geometry. Validation only checks presence + non-null",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
+    }
+  },
+  "required": [],
+  "additionalProperties": true,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
+}

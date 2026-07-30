@@ -1,4 +1,6 @@
+import datetime
 import os
+from abc import ABC, abstractmethod
 
 import geopandas as gpd  # type: ignore
 from geopandas.sindex import SpatialIndex  # type: ignore
@@ -85,17 +87,13 @@ class AbstractTopologyValidator(ABC):
         else:
             return "noname", "noname"
 
-    def get_feature_types(
-        self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int
-    ) -> tuple[str, str]:
+    def get_feature_types(self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int) -> tuple[str, str]:
         if hasattr(gdf, "feature_type"):
             return gdf.feature_type.iloc[idx1], gdf.feature_type.iloc[idx2]
         else:
             return "nofeaturetype", "nofeaturetype"
 
-    def get_keys(
-        self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int
-    ) -> tuple[int | str, int | str]:
+    def get_keys(self, gdf: gpd.GeoDataFrame, idx1: int, idx2: int) -> tuple[int | str, int | str]:
         return gdf[self.pkey].iloc[idx1], gdf[self.pkey].iloc[idx2]
 
     def get_valid_geometries(self, geometries: list[dict]) -> list[dict]:
@@ -196,9 +194,7 @@ class AbstractTopologyValidator(ABC):
                 if not intersection_geom.is_empty:
                     original_names = self.get_names(self.gdf, idx1, idx2)
                     original_keys = self.get_keys(self.gdf, idx1, idx2)
-                    original_feature_types = self.get_feature_types(
-                        self.gdf, idx1, idx2
-                    )
+                    original_feature_types = self.get_feature_types(self.gdf, idx1, idx2)
                     if intersection_geom.geom_type in ["Point", "MultiPoint"]:
                         intersection_geometries_point.append(
                             {
@@ -284,12 +280,10 @@ class AbstractTopologyValidator(ABC):
         starttime = datetime.datetime.now()
 
         intersecting_features = gpd.sjoin(self.gdf, self.gdf2, how="inner")
-        intersecting_features.columns = [
-            col.replace("_left", "") for col in intersecting_features.columns
-        ]
+        intersecting_features.columns = [col.replace("_left", "") for col in intersecting_features.columns]
         columns: list[str] = [self.pkey, self.geom_column]
-        if self.pkey != "topo_id":
-            columns.append("topo_id")
+        if self.pkey != "id":
+            columns.append("id")
         if "name" in intersecting_features.columns:
             columns.append("name")
 
@@ -298,7 +292,7 @@ class AbstractTopologyValidator(ABC):
             self.update_summary_report("feature_in_layers")
 
         endtime = datetime.datetime.now()
-        print("Time taken for spatial index query:", endtime - starttime)
+        print("Time taken for spatial index query:", endtime - starttime, flush=True)
 
         return intersecting_features
 
@@ -317,21 +311,11 @@ class AbstractTopologyValidator(ABC):
                 buffer_distance
             )  # TODO: Should this be in 2193? Note that gdf2 is being mutated here.
 
-        intersecting_features = gpd.sjoin(
-            self.gdf, self.gdf2, how="left", predicate=predicate
-        )
-        non_intersecting_features = intersecting_features[
-            intersecting_features["index_right"].isna()
-        ]
-        non_intersecting_features.columns = [
-            col.replace("_left", "") for col in non_intersecting_features.columns
-        ]
-        wanted = [self.pkey, self.geom_column, "topo_id", "name"]
-        columns = list(
-            dict.fromkeys(
-                col for col in wanted if col in non_intersecting_features.columns
-            )
-        )
+        intersecting_features = gpd.sjoin(self.gdf, self.gdf2, how="left", predicate=predicate)
+        non_intersecting_features = intersecting_features[intersecting_features["index_right"].isna()]
+        non_intersecting_features.columns = [col.replace("_left", "") for col in non_intersecting_features.columns]
+        wanted = [self.pkey, self.geom_column, "id", "name"]
+        columns = list(dict.fromkeys(col for col in wanted if col in non_intersecting_features.columns))
 
         non_intersecting_features = non_intersecting_features[columns]
 
@@ -349,7 +333,7 @@ class AbstractTopologyValidator(ABC):
         if self.export_validation_data is False:
             return
         if gdf.empty:
-            print(f"No validation errors found for {self.table}.")
+            print(f"No validation errors found for {self.table}.", flush=True)
             return
         if len(extended_name) > 0:
             extended_name = f"_{extended_name}"
@@ -372,9 +356,7 @@ class AbstractTopologyValidator(ABC):
                 row_group_size=50000,
             )
         if self.export_gpkg:
-            export_file = os.path.join(
-                self.output_dir, f"topology_{validation_type}.gpkg"
-            )
+            export_file = os.path.join(self.output_dir, f"topology_{validation_type}.gpkg")
             layer_name = f"{self.layername}_{validation_type}{extended_name}"
             gdf.to_file(f"{export_file}", layer=layer_name, driver="GPKG", append=True)
 
@@ -389,15 +371,9 @@ class AbstractTopologyValidator(ABC):
             return
         # Combine all intersection geometries into a single list
         intersection_geometries = self.get_valid_geometries(intersection_geometries)
-        intersection_geometries_point = self.get_valid_geometries(
-            intersection_geometries_point
-        )
-        intersection_geometries_line = self.get_valid_geometries(
-            intersection_geometries_line
-        )
-        intersection_geometries_multipolygon = self.get_valid_geometries(
-            intersection_geometries_multipolygon
-        )
+        intersection_geometries_point = self.get_valid_geometries(intersection_geometries_point)
+        intersection_geometries_line = self.get_valid_geometries(intersection_geometries_line)
+        intersection_geometries_multipolygon = self.get_valid_geometries(intersection_geometries_multipolygon)
 
         validation_date = datetime.datetime.now().strftime("%Y-%m-%d")
         all_intersection_geometries: list[dict] = []
@@ -411,22 +387,18 @@ class AbstractTopologyValidator(ABC):
         if intersection_geometries_multipolygon:
             all_intersection_geometries += intersection_geometries_multipolygon
         if len(all_intersection_geometries) == 0:
-            print("No topology errors found")
+            print("No topology errors found", flush=True)
             return
 
         if self.export_parquet:
-            intersections_gdf = gpd.GeoDataFrame(
-                all_intersection_geometries, crs=self.gdf.crs
-            )
+            intersections_gdf = gpd.GeoDataFrame(all_intersection_geometries, crs=self.gdf.crs)
             intersections_gdf["warning"] = self.message
             intersections_gdf["open"] = True
             intersections_gdf["val_date"] = validation_date
             intersections_gdf["notes"] = ""
 
             intersections_gdf.to_parquet(
-                os.path.join(
-                    self.output_dir, f"{self.layername}_topology_self_intersect.parquet"
-                ),
+                os.path.join(self.output_dir, f"{self.layername}_topology_self_intersect.parquet"),
                 engine="pyarrow",
                 compression="zstd",
                 write_covering_bbox=True,
@@ -435,9 +407,7 @@ class AbstractTopologyValidator(ABC):
 
         if self.export_gpkg or self.export_parquet_by_geometry_type:
             if len(intersection_geometries) > 0:
-                intersections_gdf = gpd.GeoDataFrame(
-                    intersection_geometries, geometry="geometry", crs=self.gdf.crs
-                )
+                intersections_gdf = gpd.GeoDataFrame(intersection_geometries, geometry="geometry", crs=self.gdf.crs)
                 projected_gdf = intersections_gdf.to_crs(epsg=self.area_crs)
                 intersections_gdf["warning"] = self.message
                 intersections_gdf["open"] = True
@@ -463,9 +433,7 @@ class AbstractTopologyValidator(ABC):
                     )
 
             if len(intersection_geometries_point) > 0:
-                intersections_gdf = gpd.GeoDataFrame(
-                    intersection_geometries_point, crs=self.gdf.crs
-                )
+                intersections_gdf = gpd.GeoDataFrame(intersection_geometries_point, crs=self.gdf.crs)
                 intersections_gdf["warning"] = self.message
                 intersections_gdf["open"] = True
                 intersections_gdf["val_date"] = validation_date
@@ -490,9 +458,7 @@ class AbstractTopologyValidator(ABC):
                     )
 
             if len(intersection_geometries_line) > 0:
-                intersections_gdf = gpd.GeoDataFrame(
-                    intersection_geometries_line, crs=self.gdf.crs
-                )
+                intersections_gdf = gpd.GeoDataFrame(intersection_geometries_line, crs=self.gdf.crs)
                 intersections_gdf["warning"] = self.message
                 intersections_gdf["open"] = True
                 intersections_gdf["val_date"] = validation_date
@@ -518,9 +484,7 @@ class AbstractTopologyValidator(ABC):
 
             # Save multipolygon intersections if any
             if len(intersection_geometries_multipolygon) > 0:
-                intersections_gdf = gpd.GeoDataFrame(
-                    intersection_geometries_multipolygon, crs=self.gdf.crs
-                )
+                intersections_gdf = gpd.GeoDataFrame(intersection_geometries_multipolygon, crs=self.gdf.crs)
                 intersections_gdf["warning"] = self.message
                 intersections_gdf["open"] = True
                 intersections_gdf["val_date"] = validation_date
@@ -556,7 +520,7 @@ class AbstractTopologyValidator(ABC):
             intersection_geometries_multipolygon,
             geomtypes,
         ) = self.find_self_intersecting()
-        print("Unique intersection geometry types:", list(set(geomtypes)))
+        print("Unique intersection geometry types:", list(set(geomtypes)), flush=True)
 
         if has_validation_errors:
             self.update_summary_report("self_intersect_layers")
@@ -566,7 +530,7 @@ class AbstractTopologyValidator(ABC):
             intersection_geometries_line,
             intersection_geometries_multipolygon,
         )
-        print("Time taken for read_datasets:", datetime.datetime.now() - starttime)
+        print("Time taken for read_datasets:", datetime.datetime.now() - starttime, flush=True)
 
     def run_layer_intersections(
         self,
@@ -583,45 +547,28 @@ class AbstractTopologyValidator(ABC):
             gdf = self.find_intersections_features_between_layers()
             val_type = "intersect"
         else:
-            gdf = self.find_not_intersections_features_between_layers(
-                predicate=predicate, buffer_lines=buffer_lines
-            )
+            gdf = self.find_not_intersections_features_between_layers(predicate=predicate, buffer_lines=buffer_lines)
             val_type = "not_intersect"
 
         if not gdf.empty:
             self.update_summary_report(rule_name)
-        self.save_gdf(
-            gdf, validation_type=val_type, extended_name=self.table2.replace(".", "_")
-        )
-        print(
-            "Time taken to process layer intersections:",
-            datetime.datetime.now() - starttime,
-        )
+        self.save_gdf(gdf, validation_type=val_type, extended_name=self.table2.replace(".", "_"))
+        print("Time taken to process layer intersections:", datetime.datetime.now() - starttime, flush=True)
 
-    def run_null_column_checks(
-        self, rule_name: str = "", column_name: str = ""
-    ) -> None:
+    def run_null_column_checks(self, rule_name: str = "", column_name: str = "") -> None:
         starttime = datetime.datetime.now()
 
         self.read_dataset_by_rule(rule_is_null=True, rule=column_name)
         if not self.gdf.empty:
             self.update_summary_report(rule_name)
         self.save_gdf(self.gdf, validation_type="null", extended_name=column_name)
-        print(
-            "Time taken for process null column check:",
-            datetime.datetime.now() - starttime,
-        )
+        print("Time taken for process null column check:", datetime.datetime.now() - starttime, flush=True)
 
-    def run_query_rule_checks(
-        self, rule_name: str, rule: str, column_name: str
-    ) -> None:
+    def run_query_rule_checks(self, rule_name: str, rule: str, column_name: str) -> None:
         starttime = datetime.datetime.now()
 
         self.read_dataset_by_rule(rule_is_null=False, rule=rule)
         if not self.gdf.empty:
             self.update_summary_report(rule_name)
         self.save_gdf(self.gdf, validation_type="query", extended_name=column_name)
-        print(
-            "Time taken for process query rule check:",
-            datetime.datetime.now() - starttime,
-        )
+        print("Time taken for process query rule check:", datetime.datetime.now() - starttime, flush=True)

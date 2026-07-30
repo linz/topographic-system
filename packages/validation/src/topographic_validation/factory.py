@@ -70,10 +70,7 @@ class TopologyValidatorFactory:
                 self.settings.output_dir,
                 self.settings.area_crs,
             )
-        elif (
-            self.settings.db_path.endswith(".parquet")
-            or "parquet" in self.settings.db_path
-        ):
+        elif self.settings.db_path.endswith(".parquet") or "parquet" in self.settings.db_path:
             return ParquetTopologyValidator(
                 summary_report,
                 export_validation_data,

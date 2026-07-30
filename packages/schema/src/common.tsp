@@ -9,21 +9,6 @@ using TypeSpec.JsonSchema;
  */
 namespace Topo;
 
-/** How the feature was captured. */
-enum CaptureMethod {
-  Manual: "manual",
-  Automated: "automated",
-  Surveyed: "surveyed",
-}
-
-/** Lifecycle change type for a feature row. */
-enum ChangeType {
-  New: "new",
-  ModifiedAttributes: "modified attributes",
-  ModifiedGeometry: "modified geometry",
-  ModifiedGeometryAndAttributes: "modified geometry and attributes",
-}
-
 // ---- Auto-detected enums (column-level, < 20 distinct values across dataset) ----
 
 /** Auto-derived from observed values of `bridge_use`. */
@@ -43,6 +28,7 @@ enum BridgeUse2Enum {
 /** Auto-derived from observed values of `charplace`. */
 enum CharplaceEnum {
   _: "",
+  CharactersAtVertices: "CharactersAtVertices",
   StretchCharacterSpacingToFit: "StretchCharacterSpacingToFit",
   StretchWordSpacingToFit: "StretchWordSpacingToFit",
 }
@@ -51,7 +37,8 @@ enum CharplaceEnum {
 enum ColourEnum {
   _: "",
   Black: "black",
-  Steelblue: "steelblue",
+  ProcessBlue: "process_blue",
+  Red: "red",
 }
 
 /** Auto-derived from observed values of `composition`. */
@@ -95,7 +82,7 @@ enum ExampleClassEnum {
 /** Auto-derived from observed values of `font`. */
 enum FontEnum {
   _: "",
-  NimbusSans: "Nimbus Sans",
+  NimbusSansLinz: "Nimbus Sans LINZ",
 }
 
 /** Auto-derived from observed values of `formation`. */
@@ -104,15 +91,15 @@ enum FormationEnum {
 }
 
 /** Auto-derived from observed values of `infrastructure_use`. */
-enum InfrastructureUseEnum {
+enum UtilityUseEnum {
   Ironsand: "ironsand",
   Sewage: "sewage",
   Steam: "steam",
   Water: "water",
 }
 
-/** Auto-derived from observed values of `landuse_type`. */
-enum LanduseTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum LanduseSubTypeEnum {
   Opencast: "opencast",
   Training: "training",
 }
@@ -224,8 +211,8 @@ enum StoredItemEnum {
   Water: "water",
 }
 
-/** Auto-derived from observed values of `structure_type`. */
-enum StructureTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum StructureSubTypeEnum {
   Lighthouse: "lighthouse",
   SurgeChamber: "surge chamber",
   Uncovered: "uncovered",
@@ -234,6 +221,7 @@ enum StructureTypeEnum {
 
 /** Auto-derived from observed values of `structure_use`. */
 enum StructureUseEnum {
+  Disused: "disused",
   Historic: "historic",
   Jetty: "jetty",
   PowerGeneration: "power generation",
@@ -246,11 +234,11 @@ enum StyleEnum {
   Italic: "Italic",
   Narrow: "Narrow",
   NarrowBold: "Narrow Bold",
-  NarrowOblique: "Narrow Oblique",
+  NarrowItalic: "Narrow Italic",
   Regular: "Regular",
 }
 
-/** Auto-derived from observed values of `sub_type`. */
+/** Auto-derived from observed values of `subtype`. */
 enum SubTypeEnum {
   Coniferous: "coniferous",
   NonConiferous: "non-coniferous",
@@ -317,6 +305,7 @@ enum TextanchorEnum {
   _: "",
   Centre: "centre",
   Left: "left",
+  LeftWithSpace: "left ", // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
   Left062: "left 0.62",
   Right: "right",
 }
@@ -338,11 +327,11 @@ enum TrackUseEnum {
 
 /** Auto-derived from observed values of `trig_type`. */
 enum TrigTypeEnum {
-  Beacon: "beacon",
+  Beacon: "beaconed",
 }
 
-/** Auto-derived from observed values of `tunnel_type`. */
-enum TunnelTypeEnum {
+/** Auto-derived from observed values of `subtype`. */
+enum TunnelSubTypeEnum {
   Natural: "natural",
 }
 
@@ -411,25 +400,21 @@ model BBox {
 /** Identity columns shared by every file in the dataset. */
 @jsonSchema
 model TopoIdentity {
-  /** UUID without braces. Unique identifier for the feature. */
-  @format("uuid")
-  topo_id: string;
-  fid: unknown /* int64; hyparquet returns BigInt */;
+  /** UUID for the feature. */
+  id: string;
+}
+
+@jsonSchema
+model ProductIdentity {
+  /** UUID for the feature. */
+  id: string;
 }
 
 /** Capture / change-tracking columns shared by most features. */
 @jsonSchema
 model AuditFields {
-  /** How the feature was captured. */
-  capture_method: CaptureMethod = CaptureMethod.Manual;
-  /** What kind of change this row represents. */
-  change_type: ChangeType = ChangeType.New;
-  /** Must be on or after create_date. Default at write time: today. */
-  @extension("formatMinimum", #{ `$data`: "1/create_date" })
-  update_date: plainDate;
+  updated_at: {};
+
   /** Default at write time: today. */
-  create_date: plainDate;
-  /** Lifecycle counter; increments on each update. */
-  @minValue(1)
-  version: int32 = 1;
+  created_at: {};
 }

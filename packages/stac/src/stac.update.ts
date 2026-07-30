@@ -4,6 +4,7 @@ import { qMapAll } from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
+import { CacheControl } from './cache.ts';
 import { StacIs } from './geo.ts';
 import type { StacFileChecksum } from './hash.writer.ts';
 import { HashWriter } from './hash.writer.ts';
@@ -192,7 +193,7 @@ export const StacUpdater = {
       const ret = cb(source == null ? null : JSON.parse(String(source)));
       if (ret == null) return;
 
-      const flags: WriteOptions = { contentType: 'application/json' };
+      const flags: WriteOptions = { contentType: 'application/json', cacheControl: CacheControl.StacJson };
       if (StacIs.item(ret)) flags.contentType = 'application/geo+json';
 
       if (source == null) flags.ifNoneMatch = '*';

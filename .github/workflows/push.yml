@@ -15,20 +15,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
 
+      - name: Python CI
+        id: python-ci
+        uses: ./.github/actions/python-ci
+        background: true
+
+      # Remove existing schema files to ensure no dangling json schemas.
+      - run: rm -fv schema/*.json schema/next/*.json
+
       - run: npm ci
+
       - run: npm run build
-      - run: npm run check
-      - run: npm run test
+
       - run: npm run bundle
 
-      - run: git diff --exit-code
+      - run: npm run check
+        id: check
+        background: true
 
-      - name: Python CI
-        uses: ./.github/actions/python-ci
+      - run: npm run test
+        id: test
+        background: true
+
+      - wait: [check, test, python-ci]
+      - run: git diff --exit-code
 
   build-container:
     uses: ./.github/workflows/containers.yml
@@ -38,11 +52,12 @@ jobs:
 
   visual-diff:
     needs: build-container
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     uses: ./.github/workflows/visual-diff.yml
     with:
       environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
       map_version: 'git-${{ github.sha }}'
-      project: s3://linz-topography-nonprod/qgis/nztopo50/latest/nztopo50.json
+      project: https://d1jzh93b1t1cv.cloudfront.net/qgis/nztopo50/latest/nztopo50.json
     secrets: inherit
 
   test-kart-workflow:
@@ -65,7 +80,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
 
@@ -73,6 +88,26 @@ jobs:
 
       - run: |
           node e2e/index.ts \
+            --verbose \
+            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
+            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
+
+  test-end-2-end-kart-import:
+    needs: build-container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version-file: .node-version
+
+      - run: npm ci
+
+      - run: |
+          node e2e/index.import.ts \
             --verbose \
             --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
             --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}

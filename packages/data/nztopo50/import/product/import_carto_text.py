@@ -9,6 +9,11 @@ import uuid
 # source = 'windows-shp'
 source = 'windows-gpkg'
 # source = 'aws-gpkg'
+import uuid
+
+import geopandas as gpd
+from sqlalchemy import create_engine, text
+
 # Database connection parameters
 db_params = "postgresql+psycopg://postgres:landinformation@localhost:5432/topo"
 

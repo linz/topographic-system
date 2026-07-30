@@ -1,4 +1,5 @@
 import { basename } from 'path';
+import { zstdCompressSync } from 'zlib';
 
 import { fsa } from '@chunkd/fs';
 import {
@@ -9,36 +10,40 @@ import {
   registerFileSystem,
   Url,
   UrlFolder,
+  UrlFolders,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
-import { command, option, optional, restPositionals } from 'cmd-ts';
+import { command, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
-import { pyRunner } from '../python.runner.ts';
+import { getQgisProjectMeta } from '../qgis.ts';
 
-async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
+async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   const tarPack = tar.pack();
   const chunks: Buffer[] = [];
 
   tarPack.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
 
-  const projectFiles = await fsa.toArray(fsa.list(projectFolder));
-  if (projectFiles.length === 0) return null;
-
   let fileCount = 0;
-  for (const file of projectFiles) {
-    const filename = basename(file.href);
-    if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
-    if (filename.endsWith('.tar')) continue; // TODO
-    if (filename.endsWith('.qgs')) continue;
 
-    const data = await fsa.read(file);
-    tarPack.entry({ name: filename, size: data.byteLength }, data);
-    fileCount++;
+  for (const folder of folders) {
+    const projectFiles = await fsa.toArray(fsa.list(folder));
+    if (projectFiles.length === 0) continue;
+
+    for (const file of projectFiles) {
+      const filename = basename(file.pathname);
+      if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
+      if (filename.endsWith('.tar')) continue; // TODO
+      if (filename.endsWith('.qgs')) continue;
+
+      const data = await fsa.read(file);
+      logger.info({ filename, size: data.byteLength }, 'Tar:Pack');
+      tarPack.entry({ name: filename, size: data.byteLength }, data);
+      fileCount++;
+    }
   }
-
   if (fileCount === 0) return null;
 
   tarPack.finalize();
@@ -48,7 +53,13 @@ async function buildTarBuffer(projectFolder: URL): Promise<Buffer | null> {
     tarPack.on('error', reject);
   });
 
-  return Buffer.concat(chunks);
+  const before = Buffer.concat(chunks);
+  const compressed = zstdCompressSync(before);
+  logger.info(
+    { fileCount, compressed: compressed.byteLength, ratio: before.byteLength / compressed.byteLength },
+    'Tar:Packed',
+  );
+  return compressed;
 }
 
 async function deployProject(
@@ -56,16 +67,22 @@ async function deployProject(
   args: {
     source: URL;
     target: URL;
+    extras: URL[];
     dataTag?: string;
   },
   q: LimitFunction,
 ): Promise<URL> {
   const projectName = basename(project.href, '.qgs');
-  const layers = await pyRunner.listSourceLayers(project);
-  if (layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
+  const meta = await getQgisProjectMeta(project);
+  if (meta.layers.length === 0) throw new Error(`No source layers found in project ${project.href}`);
+
+  // QGIS may have duplicate layer sources, so get the unique sources
+  const uniqueSource = new Set(
+    meta.layers.map((layer) => layer.source.replace('.parquet', '').replace('.geojson', '')),
+  );
 
   const datasetLinks = await Promise.all(
-    layers.map((layer) =>
+    [...uniqueSource].map((layer) =>
       q(async () => {
         const collectionUrl = await getDataFromCatalog(args.source, layer);
         const collection = await fsa.readJson<StacCollection>(collectionUrl);
@@ -73,7 +90,7 @@ async function deployProject(
       }),
     ),
   );
-  const tarBuffer = await buildTarBuffer(new URL('.', project));
+  const tarBuffer = await buildTarBuffer(new URL('.', project), ...args.extras);
 
   const sw = new StacCollectionWriter('qgis', projectName);
   sw.collection.title = `Topographic System QGIS ${projectName} Projects.`;
@@ -94,8 +111,8 @@ async function deployProject(
 
   if (tarBuffer) {
     sw.itemAsset(projectName, 'assets', tarBuffer, {
-      href: `./${projectName}.tar`,
-      type: 'application/x-tar',
+      href: `./${projectName}.tar.zst`,
+      type: 'application/zstd',
       roles: ['data'],
     });
   }
@@ -109,6 +126,11 @@ export const DeployArgs = {
   project: restPositionals({
     type: Url,
     description: 'QGIS Project to deploy.',
+  }),
+  extras: multioption({
+    type: UrlFolders,
+    long: 'extra-assets',
+    description: 'Extra assets to be deployed',
   }),
   target: option({
     type: UrlFolder,

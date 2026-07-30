@@ -2,6 +2,7 @@ import { fsa } from '@chunkd/fs';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
 
+import { CacheControl } from './cache.ts';
 import { StacGeometry } from './geo.ts';
 import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
@@ -71,7 +72,7 @@ export class StacCollectionWriter {
       const target = new URL(asset.href, baseUrl);
       const source = getSource(asset);
       if (source == null) continue; // TODO should this throw?
-      todo.push(q(() => HashWriter.writeStac(asset, target, source)));
+      todo.push(q(() => HashWriter.writeStac(asset, target, source, { cacheControl: CacheControl.Asset })));
     }
 
     await Promise.all(todo);
@@ -100,7 +101,9 @@ export class StacCollectionWriter {
           const targetLink = targetCollection.links.find((f) => f.href === `./${itemName}.json`);
           if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
-          await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2));
+          await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2), {
+            cacheControl: CacheControl.StacJson,
+          });
         });
       }),
     );
@@ -110,7 +113,10 @@ export class StacCollectionWriter {
     targetCollection.links.unshift({ rel: 'parent', href: '../catalog.json', type: 'application/json' });
     targetCollection.links.unshift({ rel: 'root', href: '/catalog.json', type: 'application/json' });
 
-    await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), { contentType: 'application/json' });
+    await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), {
+      contentType: 'application/json',
+      cacheControl: CacheControl.StacJson,
+    });
 
     return collectionUrl;
   }

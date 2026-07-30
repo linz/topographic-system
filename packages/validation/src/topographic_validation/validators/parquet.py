@@ -39,23 +39,19 @@ class ParquetTopologyValidator(AbstractTopologyValidator):
 
         # Remove 'files.parquet' from the end if present
         self.db_url = db_url.replace("files.parquet", "")
-        self.pkey = "topo_id"
+        self.pkey = "id"
         self.source = "parquet"
         self.geom_column = "geometry"
 
     def _read_data(self) -> None:
         """Read data from Parquet files"""
-        print(f"Reading data from Parquet files in: {self.db_url}")
+        print(f"Reading data from Parquet files in: {self.db_url}", flush=True)
         file = os.path.join(self.db_url, f"{self.table}.parquet")
 
         gdf = gpd.read_parquet(file, bbox=self.bbox)
         if self.where_condition:
             # Note: read_parquet does not support where directly
-            where = (
-                self.where_condition.replace("=", "==")
-                .replace("AND", "&")
-                .replace("OR", "|")
-            )
+            where = self.where_condition.replace("=", "==").replace("AND", "&").replace("OR", "|")
             gdf = gdf.query(where)
         self.gdf = gdf
 

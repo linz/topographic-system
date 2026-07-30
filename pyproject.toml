@@ -10,12 +10,12 @@ authors = [
     { name = "Tāwera Manaena", email = "tmanaena@linz.govt.nz" },
 ]
 
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "topographic-system-qgis",
     "topographic-system-validation",
     "topographic-system-data-prep",
-    "topographic-system-lds-import",
+    "topographic-system-kart-import",
 ]
 
 [dependency-groups]
@@ -27,18 +27,19 @@ dev = [
     "types-pytz",
     "types-setuptools",
     "types-geopandas",  # Includes types-shapely as dependency
+    "types-jsonschema",
     "types-pyyaml>=6.0.12.20260408",
-
-    ]
+    "uuid6>=2025.0.1",
+]
 
 [tool.uv.sources]
 topographic-system-qgis = { workspace = true }
 topographic-system-validation = { workspace = true }
 topographic-system-data-prep = { workspace = true }
-topographic-system-lds-import = { workspace = true }
+topographic-system-kart-import = { workspace = true }
 
 [tool.uv.workspace]
-members = ["packages/qgis", "packages/validation", "packages/data-prep", "packages/lds-import"]
+members = ["packages/qgis", "packages/validation", "packages/data-prep", "packages/kart-import"]
 
 [[tool.mypy.overrides]]
 module = ["qgis.core"]
@@ -47,3 +48,33 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["pyarrow.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["uuid6"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length=120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # Style violations
+    "F",       # Common bugs/errors
+    "I",       # Clean import sorting
+    "UP",      # Modern syntax upgrades
+    "B",       # Design anti-patterns
+    "SIM",     # Simplifying code logic
+]
+ignore = [
+    "E501",    # Suppress line-length violations in comments/strings if they slip through
+    "SIM108",  # Suppress simplified if statements
+    "UP030"
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"

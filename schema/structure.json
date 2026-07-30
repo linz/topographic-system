@@ -3,44 +3,21 @@
   "$id": "structure",
   "type": "object",
   "properties": {
-    "topo_id": {
+    "id": {
       "type": "string",
-      "format": "uuid",
-      "description": "UUID without braces. Unique identifier for the feature."
+      "description": "UUID for the feature."
     },
-    "fid": {},
-    "capture_method": {
-      "$ref": "#/$defs/CaptureMethod",
-      "default": "manual",
-      "description": "How the feature was captured."
+    "updated_at": {
+      "type": "object",
+      "properties": {}
     },
-    "change_type": {
-      "$ref": "#/$defs/ChangeType",
-      "default": "new",
-      "description": "What kind of change this row represents."
-    },
-    "update_date": {
-      "type": "string",
-      "format": "date",
-      "description": "Must be on or after create_date. Default at write time: today.",
-      "formatMinimum": {
-        "$data": "1/create_date"
-      }
-    },
-    "create_date": {
-      "type": "string",
-      "format": "date",
+    "created_at": {
+      "type": "object",
+      "properties": {},
       "description": "Default at write time: today."
     },
-    "version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 2147483647,
-      "default": 1,
-      "description": "Lifecycle counter; increments on each update."
-    },
     "t50_fid": {},
-    "feature_type": {
+    "type": {
       "anyOf": [
         {
           "type": "string",
@@ -65,9 +42,6 @@
         {
           "type": "string",
           "const": "tank"
-        },
-        {
-          "type": "null"
         }
       ]
     },
@@ -81,10 +55,20 @@
         }
       ]
     },
-    "structure_type": {
+    "tank_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StructureTypeEnum"
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructureSubTypeEnum"
         },
         {
           "type": "null"
@@ -141,28 +125,18 @@
       "$ref": "#/$defs/BBox"
     }
   },
-  "required": ["topo_id", "fid", "capture_method", "change_type", "update_date", "create_date", "version", "geometry"],
+  "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "CaptureMethod": {
-      "type": "string",
-      "enum": ["manual", "automated", "surveyed"],
-      "description": "How the feature was captured."
-    },
-    "ChangeType": {
-      "type": "string",
-      "enum": ["new", "modified attributes", "modified geometry", "modified geometry and attributes"],
-      "description": "Lifecycle change type for a feature row."
-    },
     "LidTypeEnum": {
       "type": "string",
       "enum": ["covered"],
       "description": "Auto-derived from observed values of `lid_type`."
     },
-    "StructureTypeEnum": {
+    "StructureSubTypeEnum": {
       "type": "string",
       "enum": ["lighthouse", "surge chamber", "uncovered", "water"],
-      "description": "Auto-derived from observed values of `structure_type`."
+      "description": "Auto-derived from observed values of `subtype`."
     },
     "SpeciesEnum": {
       "type": "string",
