@@ -15,6 +15,9 @@ model rock_outcrop {
   ...TopographicFeature;
   type: "rock_outcrop";
   subtype: rock_outcrop_subtype;
+  name: string | null;
+  orientation: float64 | null;
+  elevation: int32 | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
@@ -24,6 +27,9 @@ model landcover_point_core_types {
   ...TopographicFeature;
   type: landcover_point_core_type;
   subtype: null;
+  name: string | null;
+  orientation: float64 | null;
+  elevation: int32 | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
