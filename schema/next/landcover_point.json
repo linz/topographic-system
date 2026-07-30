@@ -46,6 +46,38 @@
         "subtype": {
           "$ref": "#/$defs/rock_outcrop_subtype"
         },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "orientation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elevation": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "theme": {
           "type": "string",
           "const": "landcover"
@@ -74,7 +106,20 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "theme", "metadata", "geometry"]
+      "required": [
+        "id",
+        "created_at",
+        "updated_at",
+        "t50_fid",
+        "type",
+        "subtype",
+        "name",
+        "orientation",
+        "elevation",
+        "theme",
+        "metadata",
+        "geometry"
+      ]
     },
     "landcover_point_core_types": {
       "type": "object",
@@ -110,6 +155,38 @@
         "subtype": {
           "type": "null"
         },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "orientation": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elevation": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "theme": {
           "type": "string",
           "const": "landcover"
@@ -138,7 +215,20 @@
           "description": "GeoParquet 1.1 covering bbox struct."
         }
       },
-      "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "theme", "metadata", "geometry"]
+      "required": [
+        "id",
+        "created_at",
+        "updated_at",
+        "t50_fid",
+        "type",
+        "subtype",
+        "name",
+        "orientation",
+        "elevation",
+        "theme",
+        "metadata",
+        "geometry"
+      ]
     },
     "rock_outcrop_subtype": {
       "type": "string",
