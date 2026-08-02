@@ -5,9 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .env import env_releases, env_themes, env_transform_format
+from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
 
@@ -21,6 +22,7 @@ CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
 CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
+CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
@@ -32,6 +34,7 @@ WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
+WORKING_LOOKUP_DIR = WORKING_DIR / "lookup"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
@@ -102,6 +105,8 @@ class FieldSpec(BaseModel):
     """Column reference (``$`` / ``$col``), a literal constant, or ``None`` for an all-NULL column."""
     default: Any = None
     """Value substituted when the resolved source is NULL/NaN."""
+    fixup: bool = False
+    """This column's final value is modified by a dataset fixup, skip static schema check."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":
@@ -130,11 +135,85 @@ class Fixup(BaseModel):
         return value
 
 
+class Correction(BaseModel):
+    """A declarative value correction applied to one target `column` after field
+    normalization. Two forms:
+        # value->value map within the column (multiple pairs allowed)
+        - {column: tunnel_use2, replace: {ivestock: livestock}}
+
+        # set the column on rows where every `where` condition matches
+        - {column: support_type, set: pole, where: {type: telephone}}
+
+    `set` requires `where` (an unconditional set is a literal-constant mapping entry).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    column: str
+    """Target column to modify."""
+    replace: dict[Any, Any] | None = None
+    """Value->value map applied within `column`."""
+    set_value: Any = Field(default=None, alias="set")
+    """Value to assign to `column` on the rows matched by `where`."""
+    where: dict[str, Any] | None = None
+    """Equality conditions ``{column: value}``; all must match (AND). Required with `set`."""
+
+    @model_validator(mode="after")
+    def check_form(self):
+        # `set` may legitimately be null, so detect its presence via the set fields.
+        has_set = "set_value" in self.model_fields_set
+        has_replace = self.replace is not None
+        if has_set == has_replace:
+            raise ValueError(f"correction for '{self.column}' needs exactly one of 'replace' or 'set'")
+        if has_set and self.where is None:
+            raise ValueError(f"correction for '{self.column}' with 'set' requires 'where'")
+        if has_replace and self.where is not None:
+            raise ValueError(f"correction for '{self.column}' with 'replace' must not use 'where'")
+        return self
+
+
+class Lookup(BaseModel):
+    """A slim derived table, prepared from a source dataset, used to enrich
+    emitted datasets via a join (the "prepare" step).
+
+    `key` is the join key kept in the prepared table.
+    `columns` lists the source columns to expose.
+    Each column accessed namespaced as `<lookup name>.<column>`
+    The lookup is cloned + exported like a dataset, then prepared (slimmed).
+    It is NOT emitted as theme features.
+    """
+
+    source: Source
+    name: str = ""
+    key: str
+    columns: list[str] = []
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_name(cls, data):
+        if isinstance(data, dict) and data.get("source") and not data.get("name"):
+            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+        return data
+
+
+class Join(BaseModel):
+    """Left-join a prepared `Lookup`'s columns onto a dataset, matched on a key."""
+
+    lookup: str
+    """Name of the `Lookup` to join in."""
+    left_on: str
+    """Column on this dataset's source matched against the lookup's `key`."""
+    columns: list[str] | None = None
+    """Subset of the lookup's columns to bring in; `None` brings all of them."""
+
+
 class ThemeDataset(BaseModel):
     source: Source
     name: str = ""
     mapping: dict = {}
     fixups: list[Fixup] = []
+    corrections: list[Correction] = []
+    joins: list[Join] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -175,6 +254,11 @@ class Theme(BaseModel):
     list of datasets to include in the theme
     """
 
+    lookups: list[Lookup] = []
+    """
+    derived lookup tables prepared from sources and joined into datasets
+    """
+
 
 class Release(BaseModel):
     id: int
@@ -183,11 +267,12 @@ class Release(BaseModel):
 
 
 ALL_THEMES: list[Theme] = []
-ALL_DATASETS: set[str] = set()
 ALL_KART_REPOS: set[str] = set()
 ALL_RELEASES: list[Release] = []
 DATASET_MAP: dict[str, ThemeDataset] = {}
 DATASET_TO_THEME_MAP: dict[str, Theme] = {}
+LOOKUP_MAP: dict[str, Lookup] = {}
+LOOKUP_TO_THEME_MAP: dict[str, Theme] = {}
 
 
 def load_config(file_name: str) -> Theme:
@@ -195,8 +280,27 @@ def load_config(file_name: str) -> Theme:
     with open(file) as f:
         data = yaml.safe_load(f)
         if not isinstance(data, dict):
-            raise Exception(f"Invalid theme config format in {file_name}.yml")
+            raise ValueError(f"Invalid theme config format in {file_name}.yml")
         return Theme(**data)
+
+
+def build_releases(raw_releases: list, base_releases: set[str] | None) -> list[Release]:
+    """Releases (optionally scoped to ``base_releases``) with correct ``until`` cutoffs.
+
+    A release's ``until`` is derived from the NEXT release's date, so it must be computed against
+    the full schedule before filtering: subsetting first would drop the neighbour needed to cap the
+    selected release, leaving it at the ``Release.until`` default (``now()``), which resolves to the
+    source's latest commit rather than the release's historical snapshot.
+    """
+    all_releases: list[Release] = []
+    for entry in raw_releases:
+        for key, timestamp in entry.items():
+            date = datetime.fromisoformat(str(timestamp))
+            if all_releases:
+                all_releases[-1].until = date - timedelta(days=14)
+            all_releases.append(Release(id=int(key), date=date))
+
+    return [r for r in all_releases if not base_releases or str(r.id) in base_releases]
 
 
 def get_releases() -> list[Release]:
@@ -211,22 +315,104 @@ def get_theme_by_name(theme_name: str) -> Theme:
     for t in ALL_THEMES:
         if t.name == theme_name:
             return t
-    raise Exception(f"{theme_name} does not exist")
-
-
-def get_datasets() -> list[str]:
-    return list(ALL_DATASETS)
+    raise LookupError(f"Theme {theme_name!r} does not exist")
 
 
 def get_kart_repos() -> list[str]:
     return list(ALL_KART_REPOS)
 
 
+def get_repo_remote(repo_name: str) -> str:
+    """GitHub remote URL for a target repo, from ``config/repos.yml``."""
+    if not CONFIG_DIR_REPOS.exists():
+        raise FileNotFoundError(f"Missing repo mapping file {CONFIG_DIR_REPOS}")
+    with open(CONFIG_DIR_REPOS) as f:
+        data = yaml.safe_load(f) or {}
+    remotes = data.get("repos", data)
+    url = remotes.get(repo_name)
+    if not url:
+        raise KeyError(f"No remote URL defined for repo {repo_name!r} in {CONFIG_DIR_REPOS}")
+    return url
+
+
 def get_dataset_by_name(dataset_name: str) -> ThemeDataset:
     dataset = DATASET_MAP.get(dataset_name)
     if dataset is None:
-        raise Exception(f"Dataset {dataset_name} not found")
+        raise LookupError(f"Dataset {dataset_name!r} not found")
     return dataset
+
+
+def get_lookup_by_name(lookup_name: str) -> Lookup:
+    lookup = LOOKUP_MAP.get(lookup_name)
+    if lookup is None:
+        raise LookupError(f"Lookup {lookup_name!r} not found")
+    return lookup
+
+
+def get_source_entry(name: str) -> ThemeDataset | Lookup:
+    """The clone/export-able entry (dataset or lookup) for a name; both carry `.source`."""
+    if name in DATASET_MAP:
+        return DATASET_MAP[name]
+    if name in LOOKUP_MAP:
+        return LOOKUP_MAP[name]
+    raise LookupError(f"No dataset or lookup named {name!r}")
+
+
+def _validate_dataset_joins(
+    dataset: ThemeDataset, theme: Theme, theme_lookups: dict[str, Lookup]
+) -> dict[str, set[str]]:
+    """Validate each join targets a known lookup and only its columns."""
+    joined: dict[str, set[str]] = {}
+    for join in dataset.joins:
+        lookup = theme_lookups.get(join.lookup)
+        if lookup is None:
+            raise ValueError(
+                f"Dataset {dataset.name} joins unknown lookup '{join.lookup}'; "
+                f"theme '{theme.name}' lookups: {sorted(theme_lookups)}"
+            )
+        if join.columns is not None:
+            unknown = [c for c in join.columns if c not in lookup.columns]
+            if unknown:
+                raise ValueError(
+                    f"Dataset {dataset.name} join on lookup '{join.lookup}' "
+                    f"requests unknown columns {unknown}; "
+                    f"lookup exposes: {sorted(lookup.columns)}"
+                )
+        joined[join.lookup] = set(join.columns) if join.columns is not None else set(lookup.columns)
+    return joined
+
+
+def _validate_mapping_join_refs(
+    dataset: ThemeDataset, theme_lookups: dict[str, Lookup], joined: dict[str, set[str]]
+) -> None:
+    """Every mapping reference to a namespaced lookup column (`$<lookup>.<col>`) must exist."""
+    for target, spec in dataset.field_specs().items():
+        source = spec.source
+        if not (isinstance(source, str) and source.startswith("$")):
+            continue
+        ref = target if source == "$" else source[1:]
+        prefix, _, col = ref.partition(".")
+        if not col or prefix not in theme_lookups:
+            continue
+        if prefix not in joined:
+            raise ValueError(
+                f"Dataset {dataset.name} mapping '{target}' references lookup '{prefix}' "
+                f"via '{source}', but the dataset has no join on '{prefix}'"
+            )
+        if col not in joined[prefix]:
+            raise ValueError(
+                f"Dataset {dataset.name} mapping '{target}' references '{source}', but its join on "
+                f"'{prefix}' does not bring in column '{col}'; joined columns: {sorted(joined[prefix])}"
+            )
+
+
+def validate_theme_joins(theme: Theme) -> None:
+    """Each dataset's joins must reference known lookups/columns, and its mapping may only
+    reference lookup columns it actually joins in."""
+    theme_lookups = {lookup.name: lookup for lookup in theme.lookups}
+    for dataset in theme.datasets:
+        joined = _validate_dataset_joins(dataset, theme, theme_lookups)
+        _validate_mapping_join_refs(dataset, theme_lookups, joined)
 
 
 def load_from_yaml():
@@ -242,28 +428,30 @@ def load_from_yaml():
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
-            ALL_DATASETS.add(dataset.source.url)
-            if dataset.name in DATASET_MAP:
-                raise Exception(f"Dataset {dataset.name} is defined in more than one theme")
+            if dataset.name in DATASET_MAP or dataset.name in LOOKUP_MAP:
+                raise ValueError(f"Dataset {dataset.name!r} name collides with an existing dataset/lookup")
             DATASET_MAP[dataset.name] = dataset
             DATASET_TO_THEME_MAP[dataset.name] = theme
 
+        for lookup in theme.lookups:
+            if lookup.name in DATASET_MAP or lookup.name in LOOKUP_MAP:
+                raise ValueError(f"Lookup {lookup.name!r} name collides with an existing dataset/lookup")
+            LOOKUP_MAP[lookup.name] = lookup
+            LOOKUP_TO_THEME_MAP[lookup.name] = theme
+
+        validate_theme_joins(theme)
+        check_theme_or_warn(theme)
+
+    for repo_name in ALL_KART_REPOS:
+        get_repo_remote(repo_name)
+
     if not CONFIG_DIR_RELEASE.exists():
-        raise Exception(f"Missing {CONFIG_DIR_RELEASE}")
+        raise FileNotFoundError(CONFIG_DIR_RELEASE)
 
     with open(CONFIG_DIR_RELEASE) as f:
         raw = yaml.safe_load(f)
 
-        for entry in raw.get("releases", []):
-            for key, timestamp in entry.items():
-                if base_releases and str(key) not in base_releases:
-                    continue
-
-                date = datetime.fromisoformat(str(timestamp))
-                if ALL_RELEASES:
-                    day_before = date - timedelta(days=14)
-                    ALL_RELEASES[-1].until = day_before
-                ALL_RELEASES.append(Release(id=int(key), date=date))
+        ALL_RELEASES.extend(build_releases(raw.get("releases", []), base_releases))
 
     logger.info(
         "config-loaded",

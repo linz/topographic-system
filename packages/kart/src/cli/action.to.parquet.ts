@@ -41,7 +41,7 @@ export function buildOgr2OgrArgs(parquetFile: URL, gpkgFile: URL, options: Ogr2O
     ['-lco', `ROW_GROUP_SIZE=${options.rowGroupSize}`],
     ['-lco', 'WRITE_COVERING_BBOX=YES'],
     ['-lco', 'COVERING_BBOX_NAME=bbox'],
-    ['-a_srs', 'epsg:4167'],
+    // ['-a_srs', 'epsg:4167'],  # TODO: use t_srs if this needs to be enforced (to reproject the geometries)
   ];
   if (options.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
   return command.flat();

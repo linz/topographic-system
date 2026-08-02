@@ -1,7 +1,7 @@
 import type { Projection } from '@basemaps/geo';
 import type { MultiPolygon } from '@linzjs/geojson';
 import { union, Wgs84 } from '@linzjs/geojson';
-import type { Position } from 'geojson';
+import type { BBox, Position } from 'geojson';
 import type {
   SpatialExtent,
   SpatialExtents,
@@ -30,6 +30,19 @@ export function polygonToWgs84(proj: Projection, polygon: Position[][]): Positio
 
 export function multipolygonToWgs84(proj: Projection, multipolygon: Position[][][]): Position[][][] {
   return multipolygon.map((polygon) => polygonToWgs84(proj, polygon));
+}
+
+export function geoJsonToWgs84<T extends GeoJSONPolygon | GeoJSONMultiPolygon>(g: T, proj: Projection): T {
+  if (g.type === 'Polygon') {
+    return { ...g, type: 'Polygon', coordinates: polygonToWgs84(proj, g.coordinates) } as T;
+  } else if (g.type === 'MultiPolygon') {
+    return { ...g, type: 'MultiPolygon', coordinates: multipolygonToWgs84(proj, g.coordinates) } as T;
+  }
+  throw new Error('Unknown GeoJson type: ' + String(g['type']));
+}
+
+export function geoJsonToWgs84Bbox<T extends GeoJSONPolygon | GeoJSONMultiPolygon>(g: T): BBox {
+  return Wgs84.multiPolygonToBbox((g.type === 'Polygon' ? [g.coordinates] : g.coordinates) as MultiPolygon);
 }
 
 export type StacObject = StacItem | StacCollection | StacCatalog;

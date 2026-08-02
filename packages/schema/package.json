@@ -8,6 +8,8 @@
     "node": "^24.5.0"
   },
   "scripts": {
+    "check": "tsp format --check \"src/**/*.tsp\"",
+    "format": "tsp format \"src/**/*.tsp\"",
     "bundle": "tsp compile . && tsp compile src/next.tsp --config tspconfig.next.yaml && (cd ../../schema && oxfmt .)"
   },
   "devDependencies": {

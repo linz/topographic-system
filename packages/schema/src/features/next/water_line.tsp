@@ -1,0 +1,16 @@
+import "@typespec/json-schema";
+import "./common.tsp";
+import "./water.tsp";
+
+using TypeSpec.JsonSchema;
+
+@jsonSchema("next/water_line")
+@extension("additionalProperties", false)
+model water_line {
+  ...TopographicFeature;
+  type: water_type;
+  name: string | null;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}

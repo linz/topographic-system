@@ -8,8 +8,8 @@
   "scripts": {
     "build": "tsc -b",
     "build:container": "lerna run build:container",
-    "lint": "oxlint . --type-aware --fix && oxfmt . --write",
-    "check": "oxlint . --type-aware && oxfmt . --check",
+    "lint": "oxlint . --type-aware --fix && oxfmt . --write && npm run format --workspaces --if-present",
+    "check": "oxlint . --type-aware && oxfmt . --check && npm run check --workspaces --if-present",
     "test": "lerna run test",
     "test:integration": "lerna run test:integration",
     "bundle": "lerna run bundle --stream",

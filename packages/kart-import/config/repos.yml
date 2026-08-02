@@ -1,0 +1,7 @@
+# Target kart repos (push destinations).
+# The `target_repo` field of each theme config selects which repo it lands in.
+repos:
+  topographic-data: git@github.com:linz/topographic-data
+  topographic-product-data: git@github.com:linz/topographic-product-data
+  topographic-contour-data: git@github.com:linz/topographic-contour-data
+  topographic-test-data: git@github.com:linz/topographic-test-data

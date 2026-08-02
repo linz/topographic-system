@@ -13,12 +13,14 @@ import {
   concurrency,
   parquetToStac,
   Downloader,
+  getCanonical,
 } from '@linzjs/topographic-system-shared';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
 import { iceContour } from '../python.runner.ts';
+import { ValidateSchemaCommand } from './action.validate.schema.ts';
 
 export const IceContourArgs = {
   concurrency,
@@ -49,9 +51,24 @@ export const IceContourArgs = {
     description: 'Optional local cache for storing versioned map assets',
     defaultValue: () => fsa.toUrl('./.cache'),
   }),
+  schema: option({
+    type: Url,
+    long: 'schema',
+    description: 'Path to the JSON schema to validate the ice contour output against',
+    defaultValue: () => new URL(`file:///schema/${iceContourName}.json`),
+  }),
 };
 
 const iceContourName = 'nztopo50_ice_contour';
+
+/** Download collection parquet and return local path */
+async function downloadParquet(downloader: Downloader, url: URL) {
+  downloader.addStac(url);
+  const asset = await downloader.getAsset(url);
+  const linked = asset[0]?.linked;
+  if (linked == null) throw new Error(`Failed to download ${url.href} asset`);
+  return linked;
+}
 
 export const IceContourCommand = command({
   name: 'ice contour',
@@ -62,51 +79,42 @@ export const IceContourCommand = command({
     logger.info({ args }, 'Prepare ice contour: Started');
     const rootCatalog = new URL('catalog.json', args.output);
     const q = qFromArgs(args);
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
 
-    // TODO use canonical
-    const contourCollection = await fsa.readJson<StacCollection>(args.contour);
-
-    const contourParquetAsset = contourCollection.assets?.['parquet'];
-    if (contourParquetAsset == null) {
-      throw new Error(`Contour collection must have a parquet asset: ${args.contour.toString()}`);
-    }
-
-    // TODO use canonical
-    const landcoverCollection = await fsa.readJson<StacCollection>(args.landcover);
-    const landcoverParquetAsset = landcoverCollection.assets?.['parquet'];
-    if (landcoverParquetAsset == null) {
-      throw new Error(`Landcover collection must have a parquet asset: ${args.landcover.toString()}`);
-    }
+    const contourUrl = await getCanonical(args.contour);
+    const landcoverUrl = await getCanonical(args.landcover);
 
     const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
     if (await fsa.exists(latestCollectionUrl)) {
       const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
-      if (
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === contourParquetAsset.href) &&
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === landcoverParquetAsset.href)
-      ) {
+
+      const derivedHrefs = [contourUrl.href, landcoverUrl.href];
+
+      const derivedUnchanged = derivedHrefs.every((derivedHref) => {
+        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === derivedHref);
+      });
+      if (derivedUnchanged) {
         logger.info(
           'Latest output collection is already up to date with contour and landcover source, skipping processing',
         );
-        logger.info('IceContour: Skip');
         return;
       }
     }
 
-    downloader.addStac(args.contour);
-    downloader.addStac(args.landcover);
-    const contourAsset = await downloader.getAsset(args.contour);
-    const landcoverAsset = await downloader.getAsset(args.landcover);
-    const contourtPath = contourAsset[0]?.linked;
-    const landcoverPath = landcoverAsset[0]?.linked;
-    if (contourtPath == null || landcoverPath == null) {
-      throw new Error('Failed to download contour or landcover assets');
-    }
+    const downloader = new Downloader(args.tempLocation, args.cache, q);
+    const contourPath = await downloadParquet(downloader, contourUrl);
+    const landcoverPath = await downloadParquet(downloader, landcoverUrl);
 
     const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
 
-    await iceContour(contourtPath, landcoverPath, tempOutputParquet);
+    await iceContour(contourPath, landcoverPath, tempOutputParquet);
+
+    // validate output against schema
+    await ValidateSchemaCommand.handler({
+      concurrency: args.concurrency,
+      schema: args.schema,
+      paths: [tempOutputParquet],
+      decodeGeometry: false,
+    });
 
     const parquetStats = await parquetToStac(tempOutputParquet);
 
@@ -119,8 +127,8 @@ export const IceContourCommand = command({
       ...parquetStats.table,
     });
 
-    sw.collection.links.push({ rel: 'derived_from', href: contourParquetAsset.href });
-    sw.collection.links.push({ rel: 'derived_from', href: landcoverParquetAsset.href });
+    sw.collection.links.push({ rel: 'derived_from', href: contourUrl.href });
+    sw.collection.links.push({ rel: 'derived_from', href: landcoverUrl.href });
     sw.collection.extent = parquetStats.extent;
 
     const collections = await sw.write(rootCatalog, q);

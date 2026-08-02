@@ -1,9 +1,46 @@
+from datetime import datetime
+
 import geopandas as gpd
 import pytest
 from shapely.geometry import Point
 
-from ..config import Source, ThemeDataset
-from .transform import normalize_fields
+from ..config import Join, Release, Source, ThemeDataset
+from . import transform
+from .transform import find_canonical_release, normalize_fields
+
+
+def _releases(*ids: int) -> list[Release]:
+    return [Release(id=i, date=datetime(2020, 1, 1)) for i in ids]
+
+
+def _link_shared_source(root, dataset_name: str, release_ids: list[int]) -> None:
+    """Point each release's export at one shared commit file (what export's symlinking produces)."""
+    commit_file = root / f"{dataset_name}_commit.json"
+    commit_file.write_text("{}")
+    for r in release_ids:
+        d = root / f"release_{r}"
+        d.mkdir()
+        (d / f"{dataset_name}.json").symlink_to(commit_file)
+
+
+def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch):
+    monkeypatch.setattr(transform, "WORKING_EXPORTS_DIR", tmp_path)
+    releases = _releases(1, 2, 3)
+    _link_shared_source(tmp_path, "ds", [1, 2, 3])  # all three share one source export
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_lkp", left_on="t50_fid")],
+    )
+
+    # lookup frozen across releases -> earliest release is canonical for all
+    monkeypatch.setattr(transform, "join_fingerprint", lambda td, rid: ("frozen",))
+    assert find_canonical_release("ds", td, 3, releases) == 1
+
+    # lookup advanced for release 3 -> release 3 transforms on its own; 1 and 2 still share
+    monkeypatch.setattr(transform, "join_fingerprint", lambda td, rid: ("old",) if rid < 3 else ("new",))
+    assert find_canonical_release("ds", td, 3, releases) == 3
+    assert find_canonical_release("ds", td, 2, releases) == 1
 
 
 def _gdf(rows: list[dict]) -> gpd.GeoDataFrame:

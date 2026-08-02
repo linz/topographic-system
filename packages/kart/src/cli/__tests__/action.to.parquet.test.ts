@@ -32,8 +32,6 @@ describe('buildOgr2OgrArgs', () => {
         'WRITE_COVERING_BBOX=YES',
         '-lco',
         'COVERING_BBOX_NAME=bbox',
-        '-a_srs',
-        'epsg:4167',
         '-lco',
         'SORT_BY_BBOX=YES',
       ],
@@ -65,8 +63,6 @@ describe('buildOgr2OgrArgs', () => {
         'WRITE_COVERING_BBOX=YES',
         '-lco',
         'COVERING_BBOX_NAME=bbox',
-        '-a_srs',
-        'epsg:4167',
       ],
     );
   });

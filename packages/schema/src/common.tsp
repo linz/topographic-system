@@ -221,6 +221,7 @@ enum StructureSubTypeEnum {
 
 /** Auto-derived from observed values of `structure_use`. */
 enum StructureUseEnum {
+  Disused: "disused",
   Historic: "historic",
   Jetty: "jetty",
   PowerGeneration: "power generation",
@@ -304,7 +305,7 @@ enum TextanchorEnum {
   _: "",
   Centre: "centre",
   Left: "left",
-  LeftWithSpace: "left ",  // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
+  LeftWithSpace: "left ", // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
   Left062: "left 0.62",
   Right: "right",
 }
@@ -413,7 +414,7 @@ model ProductIdentity {
 @jsonSchema
 model AuditFields {
   updated_at: {};
+
   /** Default at write time: today. */
   created_at: {};
-
 }

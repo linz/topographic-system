@@ -9,7 +9,26 @@ model structure_point {
   ...Topo.TopoIdentity;
   ...Topo.AuditFields;
   t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "beacon" | "bivouac" | "buoy" | "chimney" | "dredge" | "flare" | "floodgate" | "gate" | "ladder" | "mast" | "redoubt" | "shaft" | "siphon" | "stockyard" | "tank" | "tower" | "well" | "windmill" | "wreck";
+  type:
+    | "beacon"
+    | "bivouac"
+    | "buoy"
+    | "chimney"
+    | "dredge"
+    | "flare"
+    | "floodgate"
+    | "gate"
+    | "ladder"
+    | "mast"
+    | "redoubt"
+    | "shaft"
+    | "siphon"
+    | "stockyard"
+    | "tank"
+    | "tower"
+    | "well"
+    | "windmill"
+    | "wreck";
   structure_use?: Topo.StructureUseEnum | null;
   tank_type?: "uncovered" | "water" | "surge chamber" | null;
   subtype?: Topo.StructureSubTypeEnum | null;
@@ -22,9 +41,10 @@ model structure_point {
   restrictions?: Topo.RestrictionsEnum | null;
   stored_item?: Topo.StoredItemEnum | null;
   wreck_of?: Topo.WreckOfEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

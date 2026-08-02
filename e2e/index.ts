@@ -121,17 +121,17 @@ describe('topographic-system.e2e', async () => {
 
     await it('should produce map sheets', async () => {
       await tsMap(
-        'produce-cover',
+        'prepare',
         ['--project', '/target/bucket/qgis/topo-test/latest/topo-test.json'], // TODO allow collection.json
         ['--output', '/target/produce/'],
-        ['--map-sheet-layer', 'testmapsheet'],
+        ['--map-sheet-dataset', 'testmapsheet.parquet'],
         ['--format', 'png'],
         ['--dpi', '120'],
         'BQ26',
         'BQ27',
       );
 
-      await tsMap('produce', '/target/produce/topo-test/BQ26.json', '/target/produce/topo-test/BQ27.json');
+      await tsMap('export', '/target/produce/topo-test/BQ26.json', '/target/produce/topo-test/BQ27.json');
 
       assert.ok(await fsa.exists(new URL('produce/topo-test/BQ26.png', targetFolder)));
       assert.ok(await fsa.exists(new URL('produce/topo-test/BQ27.png', targetFolder)));

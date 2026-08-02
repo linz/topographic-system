@@ -17,7 +17,7 @@ jobs:
       environment: ${{ steps.matrix.outputs.environment }}
     steps:
       - id: matrix
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const manifest = JSON.parse(`${{ inputs.manifest }}`);
@@ -57,28 +57,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version-file: .node-version
-
-      - run: npm ci
-      - run: npm run build
-      - run: npm run check
-      - run: npm run test
-
-      - name: Bundle the packages
-        run: npx lerna run bundle --stream
 
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+        background: true
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        id: ghcr-login
+        uses: docker/login-action@v4.4.0
+        background: true
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: npm ci
+      - run: npm run build
+
+      - run: npm run check
+        id: check
+        background: true
+      - run: npm run test
+        id: test
+        background: true
+
+      - name: Bundle the packages
+        run: npx lerna run bundle --stream
 
       - name: Ensure tag exists
         run: |
@@ -92,7 +100,7 @@ jobs:
 
       - name: Generate Tags
         id: tags
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
@@ -114,14 +122,15 @@ jobs:
 
       - name: Create docker metadata
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           labels: |
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
             org.opencontainers.image.licenses=MIT
 
+      - wait: [check, test, buildx, ghcr-login]
       - name: Build and push container
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile

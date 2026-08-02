@@ -6,27 +6,9 @@ from ..command import run_command
 logger = logging.getLogger("kart_import")
 
 
-def git_to_kart(target_dir: Path):
-    """Attempt to convert a git folder to a kart folder,
-
-    This can be removed once the next version of kart allows KART_ALLOW_GIT=1
-    """
-    git_folder = target_dir / ".git"
-    kart_folder = target_dir / ".kart"
-
-    # Already a kart folder
-    if kart_folder.exists():
-        return
-
-    git_folder.rename(kart_folder)
-    git_folder.write_text("gitdir: .kart\n")
-
-    run_command(["git", "config", "-f", ".kart/config", "kart.repostructure.version", "3"], cwd=target_dir)
-
-
 def is_kart(target_dir: Path):
-    """Is the target folder a kart repo, can be swapped to .git with KART_ALLOW_GIT=1"""
-    return (target_dir / ".kart").exists()
+    """Is the target folder a cloned kart/git repo."""
+    return (target_dir / ".kart").exists() or (target_dir / ".git").exists()
 
 
 def get_kart_dataset_id(target_dir: Path):
@@ -34,3 +16,24 @@ def get_kart_dataset_id(target_dir: Path):
     if "\n" in kart_dataset_id:
         raise Exception(f"Invalid dataset id: '{target_dir}'")
     return kart_dataset_id
+
+
+def source_ref(repo_dir: Path) -> str:
+    """The ref representing the source's *current* tip.
+
+    Prefers the fetched remote-tracking ref, so a stale or split-brain local branch (e.g. a
+    bundle-seeded clone whose local ``master`` lags ``origin/master``) doesn't make callers
+    resolve outdated commits. Falls back to ``HEAD`` for repos with no remote-tracking refs.
+    """
+    for ref in ("origin/HEAD", "origin/master", "origin/main"):
+        out = run_command(["git", "rev-parse", "--verify", "--quiet", ref], cwd=str(repo_dir), check_error=False)
+        if out.strip():
+            return ref
+    return "HEAD"
+
+
+def ref_has_dataset(repo_dir: Path, ref: str, dataset_id: str) -> bool:
+    """Whether ``dataset_id`` is a top-level dataset tree at ``ref`` (used to detect a clone
+    that is the wrong repo / a stale bundle that doesn't actually contain the dataset)."""
+    out = run_command(["git", "ls-tree", "--name-only", ref], cwd=str(repo_dir), check_error=False)
+    return dataset_id in out.split()

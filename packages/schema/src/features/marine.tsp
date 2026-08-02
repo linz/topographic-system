@@ -12,9 +12,10 @@ model marine {
   type: "mangrove" | "reef" | "rock" | "shoal";
   name?: string | null;
   composition?: Topo.CompositionEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-

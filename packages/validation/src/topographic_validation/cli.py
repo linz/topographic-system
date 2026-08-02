@@ -183,7 +183,7 @@ def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
 
     # Database connection
     settings.db_path = args.db_path
-    print(f"Using database path: {settings.db_path}")
+    print(f"Using database path: {settings.db_path}", flush=True)
 
     # Output settings
     settings.output_dir = args.output_dir
@@ -255,10 +255,10 @@ def main() -> None:
 
     # Run validation
     try:
-        print("Starting topology validation...")
+        print("Starting topology validation...", flush=True)
         controller = ValidateDatasetController(settings)
         controller.run_validation()
-        print("Validation completed successfully!")
+        print("Validation completed successfully!", flush=True)
 
     except KeyboardInterrupt:
         print("\nValidation interrupted by user", file=sys.stderr)

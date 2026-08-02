@@ -9,8 +9,10 @@ model nztopo50_grid {
   ...Topo.ProductIdentity;
   direction?: Topo.DirectionEnum | null;
   value?: float64 | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }

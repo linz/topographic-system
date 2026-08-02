@@ -1,11 +1,11 @@
 from kart_import.config import (
     get_themes,
     get_releases,
-    get_datasets,
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
     TRANSFORM_SUFFIX,
+    LOOKUP_TO_THEME_MAP,
 )
 
 import os
@@ -14,7 +14,6 @@ import uuid
 # Load configuration details from the Python package
 THEMES = get_themes()
 RELEASES = get_releases()
-DATASETS = get_datasets()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
 
@@ -23,6 +22,11 @@ if "TRACEPARENT" not in os.environ:
     run_trace_id = uuid.uuid4().hex
     run_span_id = uuid.uuid4().hex[:16]
     os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
+
+# Per-invocation run id (the trace id, whether generated above or inherited). Used to
+# scope log files so each run's logs live in their own directory and match the `TraceId`
+# embedded in every JSON log record. `ls -t logs/bundle/` finds the latest run.
+RUN_ID = os.environ["TRACEPARENT"].split("-")[1]
 
 
 # TARGETS
@@ -52,7 +56,7 @@ rule lifecycle:
         "uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
-# 3. EXPORT RELEASES (Produces all release files for a dataset at once)
+# 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
 rule export:
     input:
         cloned = "data/source/{dataset}/.cloned"
@@ -60,6 +64,27 @@ rule export:
         files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
     shell:
         "uv run python -m kart_import.assets.export {wildcards.dataset}"
+
+
+# 3b. EXPORT LOOKUP (one export of full lookup source per distinct commit across releases; not per release)
+rule export_lookup:
+    input:
+        cloned = "data/source/{lookup}/.cloned"
+    output:
+        exported = directory("data/working/export/lookup/{lookup}")
+    shell:
+        "uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
+
+
+# 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
+rule prepare_lookup:
+    input:
+        exported = "data/working/export/lookup/{lookup}",
+        config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
+    output:
+        prepared = directory("data/working/lookup/{lookup}")
+    shell:
+        "uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
 # 4. TRANSFORM
@@ -70,7 +95,16 @@ rule transform:
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
-        )
+        ),
+        lookups = lambda wildcards: [
+            f"data/working/lookup/{join.lookup}"
+            for join in DATASET_MAP[wildcards.dataset].joins
+        ],
+        # clone must be present (not just the prepared parquet).
+        lookup_clones = lambda wildcards: [
+            f"data/source/{join.lookup}/.cloned"
+            for join in DATASET_MAP[wildcards.dataset].joins
+        ]
     output:
         transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
     shell:
@@ -113,12 +147,28 @@ rule kart_repo:
         "uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
+# 6. PUSH (push a built target repo to its GitHub remote - a release-named branch by default)
+rule push:
+    input:
+        imported = "data/output/{repo}/.imported"
+    output:
+        pushed = "data/output/{repo}/.pushed"
+    shell:
+        "uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
+
+
 # 7. UTILITY BUNDLE RULE
 rule bundle:
     output:
         sentinel = "data/source/{dataset}/.bundle_created"
+    log:
+        # Per-dataset, per-run log so parallel jobs don't interleave, runs don't clobber
+        # each other, and failures are easy to isolate:
+        #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
+        # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
+        f"logs/bundle/{RUN_ID}/{{dataset}}.log"
     shell:
-        "uv run python -m kart_import.assets.bundle {wildcards.dataset}"
+        "uv run python -m kart_import.assets.bundle {wildcards.dataset} > {log} 2>&1"
 
 
 
@@ -167,3 +217,15 @@ for repo in REPOS:
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+    workflow.rule(name=f"push_{safe_repo_name}")(
+        workflow.input(f"data/output/{repo}/.pushed")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+workflow.rule(name="push_all")(
+    workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)

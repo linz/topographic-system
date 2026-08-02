@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { fsa } from '@chunkd/fs';
 import type cmdts from 'cmd-ts';
 import type { Type } from 'cmd-ts';
+import type { StacCollection } from 'stac-ts';
 
 /**
  * Parse an input parameter as a URL.
@@ -72,4 +73,13 @@ export function stringToUrlFolder(str: string): URL {
   const url = fsa.toUrl(str);
   if (url.pathname.endsWith('/')) return url;
   return new URL(url.href + '/');
+}
+
+/**
+ * Resolve a collection URL to its canonical location, if it declares one
+ **/
+export async function getCanonical(url: URL): Promise<URL> {
+  const collection = await fsa.readJson<StacCollection>(url);
+  const canonicalLink = collection.links.find((link) => link.rel === 'canonical');
+  return canonicalLink ? new URL(canonicalLink.href, url) : url;
 }

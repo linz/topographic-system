@@ -4,7 +4,6 @@ from pathlib import Path
 
 from ..command import run_command
 from ..env import env_bundle_url
-from .kart import git_to_kart
 
 
 def download_bundle(dataset_name: str, target_path: Path) -> None:
@@ -15,13 +14,12 @@ def download_bundle(dataset_name: str, target_path: Path) -> None:
 
 
 def clone_from_bundle(bundle_path: Path, target_dir: Path) -> None:
-    """Clone a git bundle into target_dir and convert it to a kart repository."""
+    """Clone a git bundle into target_dir."""
     run_command(["git", "clone", str(bundle_path), str(target_dir), "--no-checkout"])
-    git_to_kart(target_dir)
 
 
 def download_and_clone_from_bundle(bundle_target: Path, dataset_name: str, target_dir: Path) -> None:
-    """Download a git bundle from CloudFront to a local path and convert it to a kart repository."""
+    """Download a git bundle from CloudFront to a local path and clone it into target_dir."""
     sentinel = target_dir / ".cloned"
     try:
         download_bundle(dataset_name, bundle_target)

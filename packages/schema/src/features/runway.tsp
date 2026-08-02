@@ -13,9 +13,10 @@ model runway {
   runway_use?: Topo.RunwayUseEnum | null;
   status?: Topo.StatusEnum | null;
   surface?: Topo.SurfaceEnum | null;
+
   /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
   bbox?: Topo.BBox;
 }
-
