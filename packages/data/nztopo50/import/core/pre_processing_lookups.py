@@ -49,6 +49,36 @@ def create_t50_fid_index(
     conn.commit()
 
 
+def write_df_to_postgres(
+    df: pd.DataFrame,
+    schema: str,
+    table: str,
+    if_exists: str,
+    params: dict[str, Any],
+) -> None:
+    engine = create_engine(
+        (
+            f"postgresql+psycopg://{params['user']}:{params['password']}"
+            f"@{params['host']}:{params['port']}/{params['dbname']}"
+        )
+    )
+
+    with psycopg.connect(**params) as conn:
+        ensure_schema(conn, schema)
+        drop_table_if_exists(conn, schema, table)
+
+    df.to_sql(
+        name=table.lower(),
+        con=engine,
+        schema=schema,
+        if_exists=if_exists,
+        index=False,
+    )
+
+    with psycopg.connect(**params) as conn:
+        create_t50_fid_index(conn, schema, table)
+
+
 def load_roads_shp(
     shp_path: str,
     schema: str,
@@ -77,40 +107,40 @@ def load_roads_shp(
     # Convert name_id to integer, keeping NaN for missing values
     df["name_id"] = pd.to_numeric(df["name_id"], errors="coerce").astype("Int64")
 
-    engine = create_engine(
-        (
-            f"postgresql+psycopg://{params['user']}:{params['password']}"
-            f"@{params['host']}:{params['port']}/{params['dbname']}"
-        )
-    )
-
-    with psycopg.connect(**params) as conn:
-        ensure_schema(conn, schema)
-        drop_table_if_exists(conn, schema, table)
-
-    df.to_sql(
-        name=table.lower(),
-        con=engine,
-        schema=schema,
-        if_exists=if_exists,
-        index=False,
-    )
-
-    with psycopg.connect(**params) as conn:
-        create_t50_fid_index(conn, schema, table)
+    write_df_to_postgres(df, schema, table, if_exists, params)
 
     print(
         f"Loaded {len(df)} rows from '{input_path.name}' into {schema}.{table.lower()}"
     )
 
+def load_name_tables_shp(
+    shp_path: str,
+    schema: str,
+    table: str,
+    if_exists: str,
+    params: dict[str, Any],
+) -> None:
+    input_path = Path(shp_path)
+    if not input_path.exists():
+        raise FileNotFoundError(f"Shapefile not found: {input_path}")
+
+    # Only load the required fields (no geometry).
+    keep_fields = ["t50_fid", "gazfeatid", "name"]
+    df = pyogrio.read_dataframe(input_path, columns=keep_fields, read_geometry=False)
+    df = df.rename(
+        columns={
+            "gazfeatid": "feat_id",
+        }
+    )
+    df.columns = [str(col).lower() for col in df.columns]
+
+    write_df_to_postgres(df, schema, table, if_exists, params)
+
+    print(
+        f"Loaded {len(df)} rows from '{input_path.name}' into {schema}.{table.lower()}"
+    )
 
 if __name__ == "__main__":
-    # Input file and target table settings.
-    shp_path = r"C:\Data\Topo50\lookups\road_cl.shp"
-    schema = "lookups"
-    table = "road_lkp"
-    if_exists = "replace"  # fail | replace | append
-
     # Database settings.
     run_params = {
         "dbname": "topo",
@@ -120,10 +150,89 @@ if __name__ == "__main__":
         "port": 5432,
     }
 
-    load_roads_shp(
+    schema = "lookups"
+    if_exists = "replace"  # fail | replace | append
+
+    # Input file and target table settings.
+    shp_path = r"C:\Data\Topo50\lookups\road_cl.shp"
+    table = "road_lkp"
+
+    #load_roads_shp(
+    #    shp_path=shp_path,
+    #    schema=schema,
+    #    table=table,
+    #    if_exists=if_exists,
+    #    params=run_params,
+   # )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\canal_cl.shp"
+    table = "canal_line_lkp"
+    load_name_tables_shp(
         shp_path=shp_path,
         schema=schema,
         table=table,
         if_exists=if_exists,
         params=run_params,
     )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\canal_poly.shp"
+    table = "canal_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\drain_cl.shp"
+    table = "drain_line_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\lagoon_poly.shp"
+    table = "lagoon_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\lake_poly.shp"
+    table = "lake_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\river_cl.shp"
+    table = "river_line_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    shp_path = r"C:\Data\Topo50\kart-topographic-source-data\named-water-features-release-66\river_poly.shp"
+    table = "river_lkp"
+    load_name_tables_shp(
+        shp_path=shp_path,
+        schema=schema,
+        table=table,
+        if_exists=if_exists,
+        params=run_params,
+    )
+
+    
