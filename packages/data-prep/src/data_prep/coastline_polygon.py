@@ -20,7 +20,7 @@ from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 logger = logging.getLogger(__name__)
 
 # Round the coastline precision
-PRECISION_TOLERANCE = 0.001
+PRECISION_TOLERANCE = 1e-6
 
 # Output properties for the merged coastline and island polygons.
 OUTPUT_COLUMNS = [
@@ -57,6 +57,9 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> 
 
     if len(polygons) == 0:
         raise ValueError("Coastline did not form any closed polygons; check for gaps in source linework.")
+
+    # drop those duplicate nodes so the rings stay clean.
+    polygons = shapely.remove_repeated_points(polygons, tolerance=0)
 
     return gpd.GeoSeries(polygons, crs=coastline_gdf.crs)
 
@@ -124,6 +127,9 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
         geometry="geometry",
         crs=island_gdf.crs,
     ).to_crs(NZGD2000)
+
+    # Split any multi-part geometries so every feature is a single Polygon.
+    coastlines_islands_gdf = coastlines_islands_gdf.explode(ignore_index=True)
 
     write_parquet(coastlines_islands_gdf, output_path)
 

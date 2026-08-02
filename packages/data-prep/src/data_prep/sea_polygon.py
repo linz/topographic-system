@@ -85,8 +85,10 @@ def set_derived_identity(
 
     The quadkey is derived from each tile's ``x``/``y`` index. The UUIDv7
     timestamp and ``created_at`` come from the source land polygons' earliest
-    ``created_at`` so ids stay stable across reruns; the quadkey makes each
-    tile's id unique. ``updated_at`` is the produce time.
+    ``created_at`` so ids stay stable across reruns. A tile whose sea is
+    disconnected is split into several single-part polygons that share a quadkey,
+    so a per-tile part index is folded into the id seed to keep ids unique and
+    reproducible. ``updated_at`` is the produce time.
     """
     result = sea_gdf.copy()
 
@@ -94,7 +96,13 @@ def set_derived_identity(
         TILE_MATRIX_SET.quadkey(morecantile.Tile(x, y, zoom)) for x, y in zip(result["x"], result["y"], strict=True)
     ]
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
-    result["id"] = [str(reproducible_uuid7(timestamp_ms, quadkey)) for quadkey in result["quadkey"]]
+    # Several single-part polygons can share a quadkey; a per-tile part index
+    # keeps each id unique while staying reproducible across reruns.
+    part_index = result.groupby("quadkey", sort=False).cumcount()
+    result["id"] = [
+        str(reproducible_uuid7(timestamp_ms, f"{quadkey}:{part}"))
+        for quadkey, part in zip(result["quadkey"], part_index, strict=True)
+    ]
     result["type"] = "moana"
     result["created_at"] = source_created_at
     result["updated_at"] = produced_at
@@ -108,8 +116,10 @@ def run(coastline_path: Path, output_path: Path, zoom: int = SLICE_ZOOM) -> None
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(land_gdf)
 
-    # Invert the land polygons into per-tile sea polygons.
+    # Invert the land polygons into per-tile sea polygons, then split any
+    # multi-part tiles so every feature is a single Polygon.
     sea_gdf = land_to_sea_tiles(land_gdf, zoom)
+    sea_gdf = sea_gdf.explode(ignore_index=True)
     sea_gdf = set_derived_identity(sea_gdf, zoom, source_created_at, produced_at)
 
     sea_gdf = gpd.GeoDataFrame(

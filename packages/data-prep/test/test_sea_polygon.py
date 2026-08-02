@@ -27,13 +27,17 @@ def test_produces_sea_polygons(tmp_path: Path):
     result = run_sea_polygon(tmp_path, [LAND_POLYGON])
     assert not result.empty
     assert (result["type"] == "moana").all()
-    assert result.geometry.geom_type.isin(["Polygon", "MultiPolygon"]).all()
 
 
 def test_output_is_nzgd2000(tmp_path: Path):
     result = run_sea_polygon(tmp_path, [LAND_POLYGON])
     assert result.crs is not None
     assert result.crs.to_epsg() == NZGD2000
+
+
+def test_geometries_are_single_polygons(tmp_path: Path):
+    result = run_sea_polygon(tmp_path, [LAND_POLYGON])
+    assert (result.geometry.geom_type == "Polygon").all()
 
 
 def test_ids_are_unique(tmp_path: Path):
@@ -45,6 +49,13 @@ def test_ids_are_reproducible(tmp_path: Path):
     first = run_sea_polygon(tmp_path, [LAND_POLYGON])
     second = run_sea_polygon(tmp_path, [LAND_POLYGON])
     assert set(first["id"]) == set(second["id"])
+
+
+def test_quadkeys_are_present(tmp_path: Path):
+    result = run_sea_polygon(tmp_path, [LAND_POLYGON])
+    # A tile with disconnected sea yields several single-part polygons that share
+    # a quadkey, so quadkeys are not unique; they must always be populated though.
+    assert result["quadkey"].notna().all()
 
 
 def test_sea_excludes_land(tmp_path: Path):
@@ -61,9 +72,3 @@ def test_higher_zoom_produces_more_tiles(tmp_path: Path):
     coarse = run_sea_polygon(tmp_path / "coarse", [wide_land], zoom=6)
     fine = run_sea_polygon(tmp_path / "fine", [wide_land], zoom=8)
     assert len(fine) > len(coarse)
-
-
-def test_quadkeys_are_unique(tmp_path: Path):
-    result = run_sea_polygon(tmp_path, [LAND_POLYGON])
-    assert result["quadkey"].notna().all()
-    assert result["quadkey"].is_unique
