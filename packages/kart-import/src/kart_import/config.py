@@ -95,6 +95,7 @@ class FieldSpec(BaseModel):
         version: 1                    # literal constant (non-string is fine)
         topo_id: null                 # create the column populated with NULL
         name: {source: $, default: "Unknown"}   # default when the value is NULL
+        orientation: {source: $orientatn, since_release: 49}  # column absent before release 49
 
     An unlisted source column is dropped.
     """
@@ -107,6 +108,8 @@ class FieldSpec(BaseModel):
     """Value substituted when the resolved source is NULL/NaN."""
     fixup: bool = False
     """This column's final value is modified by a dataset fixup, skip static schema check."""
+    since_release: int | None = None
+    """Earlier releases emit NULL for a missing column instead of failing."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":

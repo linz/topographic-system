@@ -86,7 +86,7 @@ def normalize_projection(gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: s
     return gdf
 
 
-def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFrame:
+def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     new_data = {
         "id": gdf["id"],
         "created_at": gdf["created_at"],
@@ -100,7 +100,19 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFram
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
             if source_col not in gdf.columns:
-                raise KeyError(f"Source column not found: {source_col} in {td.name}")
+                if spec.since_release is None or release_id >= spec.since_release:
+                    raise KeyError(f"Source column not found: {source_col} in {td.name}")
+                logger.info(
+                    "source_column_absent",
+                    extra={
+                        "dataset": td.name,
+                        "column": source_col,
+                        "release": release_id,
+                        "since_release": spec.since_release,
+                    },
+                )
+                new_data[target_field] = spec.default
+                continue
             values = gdf[source_col]
             if spec.default is not None:
                 values = values.fillna(spec.default)
@@ -281,7 +293,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         start_time = time.perf_counter()
-        gdf = normalize_fields(gdf, td)
+        gdf = normalize_fields(gdf, td, release_id)
         logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if td.corrections:

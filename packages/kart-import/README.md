@@ -177,6 +177,12 @@ datasets:
       # Use for a placeholder the fixup fills, or a transient input column it consumes and drops:
       origin_x: { fixup: true }
       example_name: { source: $source_name, fixup: true }
+      # `since_release`: this source column first appears in this release. Used when a source
+      # schema gained a column part way through its history. Earlier releases emit NULL instead
+      # of failing; from this release on an absent column is an error
+      # A column that *is* present is always mapped whatever the release,
+      # so a boundary set too late loses no data.
+      orientation: { source: $orientatn, since_release: 49 }
     # NOTE: Fictional examples for illustrative purposes :-)
     corrections: # declarative value corrections, applied after `mapping` (operate on target column names).
       # keys are matched on their raw YAML value, so the key's type must match the column's:
