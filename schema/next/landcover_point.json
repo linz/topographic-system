@@ -9,7 +9,6 @@
       "$ref": "#/$defs/landcover_point_core_types"
     }
   ],
-  "additionalProperties": false,
   "$defs": {
     "rock_outcrop": {
       "type": "object",
@@ -119,7 +118,8 @@
         "theme",
         "metadata",
         "geometry"
-      ]
+      ],
+      "additionalProperties": false
     },
     "landcover_point_core_types": {
       "type": "object",
@@ -228,7 +228,8 @@
         "theme",
         "metadata",
         "geometry"
-      ]
+      ],
+      "additionalProperties": false
     },
     "rock_outcrop_subtype": {
       "type": "string",
