@@ -42,6 +42,14 @@
           "type": "string",
           "const": "rock_outcrop"
         },
+        "orientation": {
+          "type": "number"
+        },
+        "elevation": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
         "subtype": {
           "$ref": "#/$defs/rock_outcrop_subtype"
         },
@@ -49,28 +57,6 @@
           "anyOf": [
             {
               "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "orientation": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "elevation": {
-          "anyOf": [
-            {
-              "type": "integer",
-              "minimum": -2147483648,
-              "maximum": 2147483647
             },
             {
               "type": "null"
@@ -111,10 +97,10 @@
         "updated_at",
         "t50_fid",
         "type",
-        "subtype",
-        "name",
         "orientation",
         "elevation",
+        "subtype",
+        "name",
         "theme",
         "metadata",
         "geometry"
@@ -152,6 +138,12 @@
         "type": {
           "$ref": "#/$defs/landcover_point_core_type"
         },
+        "orientation": {
+          "type": "null"
+        },
+        "elevation": {
+          "type": "null"
+        },
         "subtype": {
           "type": "null"
         },
@@ -159,28 +151,6 @@
           "anyOf": [
             {
               "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "orientation": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "elevation": {
-          "anyOf": [
-            {
-              "type": "integer",
-              "minimum": -2147483648,
-              "maximum": 2147483647
             },
             {
               "type": "null"
@@ -221,10 +191,10 @@
         "updated_at",
         "t50_fid",
         "type",
-        "subtype",
-        "name",
         "orientation",
         "elevation",
+        "subtype",
+        "name",
         "theme",
         "metadata",
         "geometry"

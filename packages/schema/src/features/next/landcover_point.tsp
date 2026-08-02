@@ -12,8 +12,6 @@ union landcover_point {
 // Not decorated with @jsonSchema so it does not get emitted standalone.
 model LandcoverPointCommon {
   name: string | null;
-  orientation: float64 | null;
-  elevation: int32 | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
@@ -23,6 +21,8 @@ model LandcoverPointCommon {
 model rock_outcrop {
   ...TopographicFeature;
   type: "rock_outcrop";
+  orientation: float64;
+  elevation: int32;
   subtype: rock_outcrop_subtype;
   ...LandcoverPointCommon;
 }
@@ -31,6 +31,8 @@ model rock_outcrop {
 model landcover_point_core_types {
   ...TopographicFeature;
   type: landcover_point_core_type;
+  orientation: null;
+  elevation: null;
   subtype: null;
   ...LandcoverPointCommon;
 }
