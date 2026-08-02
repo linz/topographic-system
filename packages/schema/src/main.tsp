@@ -35,6 +35,7 @@ import "./features/relief_point.tsp";
 import "./features/residential_area.tsp";
 import "./features/road_line.tsp";
 import "./features/runway.tsp";
+import "./features/sea_polygon.tsp";
 import "./features/structure.tsp";
 import "./features/structure_line.tsp";
 import "./features/structure_point.tsp";
