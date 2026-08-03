@@ -350,6 +350,46 @@ class ModifyTable:
                 f"Updated default value for '{column_name}' in '{schema}.{table}' to '{default_value}'"
             )
 
+    def alter_column_to_iso_datetime_varchar(self, schema, table, column_name):
+        """Convert a datetime-like column to ISO datetime text.
+
+        Applies this SQL pattern:
+        ``ALTER COLUMN <column> TYPE varchar USING TO_CHAR(<column>::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS')``
+
+        Args:
+            schema: Schema name.
+            table: Table name.
+            column_name: Column to convert.
+        """
+        self.connect()
+
+        if not self.table_exists(schema, table):
+            print(f"Table '{schema}.{table}' does not exist")
+            return
+
+        if not self.column_exists(schema, table, column_name):
+            print(f"Column '{column_name}' does not exist in table '{schema}.{table}'")
+            return
+
+        query = f'''
+            ALTER TABLE {schema}.{table}
+            ALTER COLUMN {column_name} TYPE varchar
+            USING TO_CHAR({column_name}::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS');
+        '''
+
+        with self.conn.cursor() as cur:
+            try:
+                cur.execute(query)
+                self.conn.commit()
+                print(
+                    f"Converted '{schema}.{table}.{column_name}' to ISO datetime varchar format"
+                )
+            except Exception as e:
+                self.conn.rollback()
+                print(
+                    f"Error converting '{schema}.{table}.{column_name}' to varchar with TO_CHAR: {e}. Query: {query}"
+                )
+
     def update_primary_key(self, schema, table, new_primary_key):
         """Replace the primary key with an integer sequence-backed column.
 
@@ -494,8 +534,10 @@ class ModifyTable:
                # ["capture_method", "VARCHAR(25) DEFAULT 'manual'", "DEFAULT"],
                # ["change_type", "VARCHAR(25) DEFAULT 'new'", "DEFAULT"],
                 ["id", "uuid DEFAULT gen_random_uuid()", "DEFAULT"],
-                ["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
-                ["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                #["updated_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                #["created_at", "DATE DEFAULT CURRENT_DATE", "DEFAULT"],
+                ["updated_at", "TEXT DEFAULT TO_CHAR(CURRENT_TIMESTAMP,'YYYY-MM-DD\"T\"HH24:MI:SSOF')", "DEFAULT"],
+                ["created_at", "TEXT DEFAULT TO_CHAR(CURRENT_TIMESTAMP,'YYYY-MM-DD\"T\"HH24:MI:SSOF')", "DEFAULT"],
                 ["metadata", "VARCHAR(1000) DEFAULT NULL", "DEFAULT"],
                # ["version", "INTEGER DEFAULT 1", "DEFAULT"],
             ]
