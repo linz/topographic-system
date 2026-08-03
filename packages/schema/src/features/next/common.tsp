@@ -43,7 +43,7 @@ model ProductFeature {
 }
 
 model TopographicMetadata {
-  metadata: DataSource[] | null;
+  metadata: string | null;
 }
 @extension("additionalProperties", false)
 model DataSource {
