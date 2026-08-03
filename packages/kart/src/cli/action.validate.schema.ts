@@ -123,8 +123,7 @@ export const ValidateSchemaCommand = command({
   async handler(args) {
     const q = qFromArgs(args);
     const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
-    // ajv-formats CJS/nodenext interop: module.exports is the plugin function
-    (addFormats as unknown as FormatsPlugin)(ajv);
+    addFormats.default(ajv); 
 
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);
