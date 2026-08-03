@@ -1,6 +1,5 @@
 import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
-import type { FormatsPlugin } from 'ajv-formats';
 import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
