@@ -15,9 +15,9 @@ class TopoValidatorTools:
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             output_dir = os.path.join(output_dir, date_str)
 
-        if remove_folder and os.path.exists(output_dir):
-            shutil.rmtree(output_dir)
-        os.makedirs(output_dir, exist_ok=True)
+        #if remove_folder and os.path.exists(output_dir):
+        #    shutil.rmtree(output_dir)
+        #os.makedirs(output_dir, exist_ok=True)
         return output_dir
 
     def create_folder(self, path: str) -> None:
