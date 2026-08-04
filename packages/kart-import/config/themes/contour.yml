@@ -1,0 +1,103 @@
+name: contour
+target_repo: topographic-contour-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-contours-topo-125k-zone4
+    name: cook_islands_contours_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/niue-contours-topo-150k
+    name: niue_contours_topo_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-contours-topo-150k
+    name: nz_contours_topo_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-contours-topo-125k
+    name: nz_antipodes_island_contours_topo_125k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-contours-topo-150k
+    name: nz_auckland_island_contours_topo_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-contours-topo-125k
+    name: nz_bounty_islands_contours_topo_125k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-contours-topo-150k
+    name: nz_campbell_island_motu_ihupuku_contours_topo_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-contours-topo-150k
+    name: nz_chatham_island_contours_topo_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-contours-topo-125k
+    name: nz_kermadec_is_contours_topo_125k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-contours-ant-150k
+    name: nz_ross_dependency_contours_ant_150k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-contours-topo-125k
+    name: nz_snares_island_tini_heke_contours_topo_125k
+    mapping:
+      t50_fid: $
+      type: contour
+      elevation: $elevation
+      definition: $definition
+      formation: $nat_form
+      designation: $designated

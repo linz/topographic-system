@@ -1,0 +1,26 @@
+name: tunnel_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-tunnel-centrelines-topo-150k
+    name: nz_tunnel_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: tunnel
+      tunnel_use: $use1
+      tunnel_use2: $use2
+      subtype: $type
+      status: $status
+      name: $name
+    corrections:
+      - column: tunnel_use2
+        replace:
+          ivestock: livestock
+      - column: tunnel_use
+        set: vehicle
+        where:
+          tunnel_use2: vehicle
+      - column: tunnel_use2
+        set: livestock
+        where:
+          tunnel_use2: vehicle

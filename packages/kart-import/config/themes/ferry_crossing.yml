@@ -1,0 +1,9 @@
+name: ferry_crossing
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-ferry-crossing-centrelines-topo-150k
+    name: nz_ferry_crossing_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ferry_crossing

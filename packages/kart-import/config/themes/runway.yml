@@ -1,0 +1,60 @@
+name: runway
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-runway-polygons-topo-125k-zone3
+    name: cook_islands_runway_polygons_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/cook-islands-runway-polygons-topo-125k-zone4
+    name: cook_islands_runway_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/niue-runway-polygons-topo-150k
+    name: niue_runway_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/nz-runway-polygons-topo-150k
+    name: nz_runway_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-runway-polygons-topo-150k
+    name: nz_chatham_island_runway_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-runway-polygons-topo-125k
+    name: nz_kermadec_is_runway_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-runway-polygons-ant-150k
+    name: nz_ross_dependency_runway_polygons_ant_150k
+    mapping:
+      t50_fid: $
+      type: runway
+      runway_use: $runway_use
+      status: $status
+      surface: $surface

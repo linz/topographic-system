@@ -1,0 +1,171 @@
+name: landuse
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-cemetery-polygons-topo-125k-zone4
+    name: cook_islands_cemetery_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-cemetery-polygons-topo-150k
+    name: nz_cemetery_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-polygons-topo-150k
+    name: nz_chatham_island_cemetery_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-golf-course-polygons-topo-125k-zone4
+    name: cook_islands_golf_course_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: golf_course
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-golf-course-polygons-topo-150k
+    name: niue_golf_course_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: golf_course
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-golf-course-polygons-topo-150k
+    name: nz_golf_course_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: golf_course
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-golf-course-polygons-topo-150k
+    name: nz_chatham_island_golf_course_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: golf_course
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-gravel-pit-polygons-topo-150k
+    name: nz_gravel_pit_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: gravel_pit
+  - source: kart@data.koordinates.com:linz/cook-islands-landfill-polygons-topo-125k-zone4
+    name: cook_islands_landfill_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: landfill
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-landfill-polygons-topo-150k
+    name: niue_landfill_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: landfill
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-landfill-polygons-topo-150k
+    name: nz_landfill_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: landfill
+      name: $
+  - source: kart@data.koordinates.com:linz/tokelau-landfill-polygons-topo-125k
+    name: tokelau_landfill_polygons_topo_125k
+    mapping:
+      t50_fid: $
+      type: landfill
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-mine-polygons-topo-150k
+    name: nz_mine_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: mine
+      name: $
+      status: $
+      substance_extracted: $substance
+      subtype: $visibility
+  - source: kart@data.koordinates.com:linz/nz-pumice-pit-polygons-topo-150k
+    name: nz_pumice_pit_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: pumice_pit
+  - source: kart@data.koordinates.com:linz/cook-islands-quarry-polygons-topo-125k-zone4
+    name: cook_islands_quarry_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: quarry
+      name: $
+      status: $
+      substance_extracted: $substance
+  - source: kart@data.koordinates.com:linz/niue-quarry-polygons-topo-150k
+    name: niue_quarry_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: quarry
+      name: $
+      status: $
+      substance_extracted: $substance
+  - source: kart@data.koordinates.com:linz/nz-quarry-polygons-topo-150k
+    name: nz_quarry_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: quarry
+      name: $
+      status: $
+      substance_extracted: $substance
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-quarry-polygons-topo-150k
+    name: nz_chatham_island_quarry_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: quarry
+      name: $
+      status: $
+      substance_extracted: $substance
+  - source: kart@data.koordinates.com:linz/nz-racetrack-polygons-topo-150k
+    name: nz_racetrack_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: racetrack
+      name: $
+      subtype: $track_type
+      landuse_use: $track_use
+  - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
+    name: nz_rifle_range_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: rifle_range
+  - source: kart@data.koordinates.com:linz/nz-showground-polygons-topo-150k
+    name: nz_showground_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: showground
+  - source: kart@data.koordinates.com:linz/cook-islands-sportsfield-polygons-topo-125k-zone4
+    name: cook_islands_sportsfield_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: sportsfield
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-sportsfield-polygons-topo-150k
+    name: nz_sportsfield_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: sportsfield
+      name: $
+  - source: kart@data.koordinates.com:linz/cook-islands-orchard-polygons-topo-125k-zone4
+    name: cook_islands_orchard_polygons_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: orchard
+  - source: kart@data.koordinates.com:linz/niue-orchard-polygons-topo-150k
+    name: niue_orchard_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: orchard
+  - source: kart@data.koordinates.com:linz/nz-orchard-polygons-topo-150k
+    name: nz_orchard_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: orchard
+  - source: kart@data.koordinates.com:linz/nz-vineyard-polygons-topo-150k
+    name: nz_vineyard_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: vineyard

@@ -1,0 +1,9 @@
+name: landcover_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-dredge-tailing-centrelines-topo-150k
+    name: nz_dredge_tailing_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: dredge_tailing

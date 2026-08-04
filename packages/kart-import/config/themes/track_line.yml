@@ -1,0 +1,94 @@
+name: track_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-track-centrelines-topo-125k-zone3
+    name: cook_islands_track_centrelines_topo_125k_zone3
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/cook-islands-track-centrelines-topo-125k-zone4
+    name: cook_islands_track_centrelines_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/niue-track-centrelines-topo-150k
+    name: niue_track_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-track-centrelines-topo-150k
+    name: nz_track_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
+    name: nz_auckland_island_track_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-track-centrelines-topo-150k
+    name: nz_campbell_island_motu_ihupuku_track_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-track-centrelines-topo-150k
+    name: nz_chatham_island_track_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-track-centrelines-topo-125k
+    name: nz_kermadec_is_track_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-track-centrelines-ant-150k
+    name: nz_ross_dependency_track_centrelines_ant_150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $
+  - source: kart@data.koordinates.com:linz/tokelau-track-centrelines-topo-125k
+    name: tokelau_track_centrelines_topo_125k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      track_use: $

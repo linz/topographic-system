@@ -1,0 +1,92 @@
+name: descriptive_text
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/cook-islands-descriptive-texts-topo-150k-zone3
+    name: cook_islands_descriptive_texts_topo_150k_zone3
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/cook-islands-descriptive-texts-topo-125k-zone4
+    name: cook_islands_descriptive_texts_topo_125k_zone4
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/niue-descriptive-texts-topo-150k
+    name: niue_descriptive_texts_topo_150k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-descriptive-texts-topo-150k
+    name: nz_descriptive_texts_topo_150k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-descriptive-texts-topo-125k
+    name: nz_antipodes_island_descriptive_texts_topo_125k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-descriptive-texts-topo-150k
+    name: nz_campbell_island_motu_ihupuku_descriptive_texts_topo_150k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-descriptive-texts-topo-150k
+    name: nz_chatham_island_descriptive_texts_topo_150k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-descriptive-texts-topo-125k
+    name: nz_kermadec_is_descriptive_texts_topo_125k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-descriptive-texts-ant-150k
+    name: nz_ross_dependency_descriptive_texts_ant_150k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-descriptive-texts-topo-125k
+    name: nz_snares_island_tini_heke_descriptive_texts_topo_125k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size
+  - source: kart@data.koordinates.com:linz/tokelau-descriptive-texts-topo-125k
+    name: tokelau_descriptive_texts_topo_125k
+    mapping:
+      t50_fid: $
+      type: descriptive_text
+      nzgb_id: null
+      info_display: $info_disp
+      size: $size

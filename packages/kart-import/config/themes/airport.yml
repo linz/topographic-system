@@ -2,13 +2,27 @@ name: airport
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+  - source: kart@data.koordinates.com:linz/cook-islands-airport-polygons-topo-125k-zone4
+    name: cook_islands_airport_polygons_topo_125k_zone4
     mapping:
       t50_fid: $
-      feature_type: airport
+      type: airport
+      name: $
+  - source: kart@data.koordinates.com:linz/niue-airport-polygons-topo-150k
+    name: niue_airport_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: airport
+      name: $
+  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+    name: nz_airport_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: airport
       name: $
   - source: kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k
+    name: nz_chatham_island_airport_polygons_topo_150k
     mapping:
       t50_fid: $
-      feature_type: airport
+      type: airport
       name: $
