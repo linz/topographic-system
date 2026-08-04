@@ -3,14 +3,14 @@
   "geometry": {
     "type": "LineString",
     "coordinates": [
-      [174.75, -41.24],
-      [174.77, -41.26]
+      [174.75, -41.25],
+      [174.77, -41.25]
     ]
   },
   "properties": {
     "id": "00000000-0000-0000-0000-000000000000",
     "t50_fid": 1000000,
-    "type": "ferry_crossing",
+    "type": "ferry_line",
     "name": null,
     "updated_at": "2025-03-24",
     "created_at": "2025-03-24"
