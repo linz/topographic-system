@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vegetation_point",
+  "$id": "railway_point",
   "type": "object",
   "properties": {
     "id": {
@@ -29,20 +29,22 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
+      "type": "string",
+      "const": "station"
+    },
+    "name": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "tree"
+          "type": "string"
         },
         {
-          "type": "string",
-          "const": "scattered_scrub"
+          "type": "null"
         }
       ]
     },
     "theme": {
       "type": "string",
-      "const": "landcover"
+      "const": "transport"
     },
     "metadata": {
       "anyOf": [
@@ -65,7 +67,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "theme", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {

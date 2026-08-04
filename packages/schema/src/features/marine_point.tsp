@@ -1,14 +1,14 @@
 import "@typespec/json-schema";
 import "./common.tsp";
-import "./water.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("water_line")
+@jsonSchema("marine_point")
 @extension("additionalProperties", false)
-model water_line {
+model marine_point {
   ...TopographicFeature;
-  type: water_type;
+  type: "rock";
+  subtype: composition_subtype | null;
   name: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;

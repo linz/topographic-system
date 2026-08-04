@@ -5,76 +5,36 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
+      "type": "string",
+      "format": "date-time"
     },
-    "t50_fid": {},
-    "type": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "cave"
-        },
-        {
-          "type": "string",
-          "const": "cemetery"
-        },
-        {
-          "type": "string",
-          "const": "grave"
-        },
-        {
-          "type": "string",
-          "const": "historic_site"
-        },
-        {
-          "type": "string",
-          "const": "mine"
-        },
-        {
-          "type": "string",
-          "const": "monument"
-        },
-        {
-          "type": "string",
-          "const": "pa"
-        },
-        {
-          "type": "string",
-          "const": "radar_dome"
-        },
-        {
-          "type": "string",
-          "const": "saddle"
-        },
-        {
-          "type": "string",
-          "const": "satellite_station"
-        }
-      ]
-    },
-    "place_type": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/PlaceTypeEnum"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "status": {
+    "type": {
+      "$ref": "#/$defs/place_type"
+    },
+    "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StatusEnum"
+          "$ref": "#/$defs/composition_subtype"
         },
         {
           "type": "null"
@@ -91,29 +51,11 @@
         }
       ]
     },
-    "elevation": {
-      "anyOf": [
-        {
-          "type": "integer",
-          "minimum": -2147483648,
-          "maximum": 2147483647
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "theme": {
+      "type": "string",
+      "const": "landuse"
     },
-    "composition": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/CompositionEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "description": {
+    "metadata": {
       "anyOf": [
         {
           "type": "string"
@@ -123,87 +65,27 @@
         }
       ]
     },
-    "orientation": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "substance_extracted": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/SubstanceEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "PlaceTypeEnum": {
+    "place_type": {
       "type": "string",
-      "enum": ["opencast", "underground"],
-      "description": "Auto-derived from observed values of `place_type`."
+      "enum": ["cave", "grave", "historic_site", "monument", "pa"]
     },
-    "StatusEnum": {
+    "composition_subtype": {
       "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "CompositionEnum": {
-      "type": "string",
-      "enum": ["limestone", "pumice"],
-      "description": "Auto-derived from observed values of `composition`."
-    },
-    "SubstanceEnum": {
-      "type": "string",
-      "enum": [
-        "bentonite",
-        "clay",
-        "coal",
-        "gold",
-        "gravel",
-        "ironsand",
-        "lime",
-        "limestone",
-        "metal",
-        "quartz",
-        "scheelite",
-        "shingle",
-        "silica sand",
-        "silver",
-        "stone",
-        "zeolite"
-      ],
-      "description": "Auto-derived from observed values of `substance`."
+      "enum": ["coral", "limestone", "pumice", "rock"]
     },
     "BBox": {
       "type": "object",
@@ -222,7 +104,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

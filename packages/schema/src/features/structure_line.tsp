@@ -1,44 +1,40 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
+import "./structure.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("structure_line")
 @extension("additionalProperties", false)
 model structure_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "boatramp"
-    | "boom"
-    | "breakwater"
-    | "cableway_industrial"
-    | "cableway_people"
-    | "dam"
-    | "flume"
-    | "ladder"
-    | "marine_farm"
-    | "ski_lift"
-    | "ski_tow"
-    | "slipway"
-    | "spillway_edge"
-    | "walkwire"
-    | "water_race"
-    | "weir"
-    | "wharf"
-    | "wharf_edge";
-  structure_use?: Topo.StructureUseEnum | null;
-  species?: Topo.SpeciesEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  material?: Topo.MaterialEnum | null;
-  material_conveyed?: Topo.MaterialConveyedEnum | null;
-  restrictions?: Topo.RestrictionsEnum | null;
+  ...TopographicFeature;
+  type: structure_line_type;
+  subtype: structure_subtype | null;
+  species: structure_species | null;
+  status: structure_status | null;
+  name: string | null;
+  theme: Theme.Structures;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum structure_line_type {
+  Boatramp: "boatramp",
+  Boom: "boom",
+  Breakwater: "breakwater",
+  CablewayIndustrial: "cableway_industrial",
+  CablewayPeople: "cableway_people",
+  Dam: "dam",
+  Flume: "flume",
+  Ladder: "ladder",
+  MarineFarm: "marine_farm",
+  SkiLift: "ski_lift",
+  SkiTow: "ski_tow",
+  Slipway: "slipway",
+  SpillwayEdge: "spillway_edge",
+  Walkwire: "walkwire",
+  WaterRace: "water_race",
+  Weir: "weir",
+  Wharf: "wharf",
+  WharfEdge: "wharf_edge",
 }

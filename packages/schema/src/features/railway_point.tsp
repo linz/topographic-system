@@ -1,16 +1,15 @@
 import "@typespec/json-schema";
 import "./common.tsp";
-import "./water.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("water_line")
+@jsonSchema("railway_point")
 @extension("additionalProperties", false)
-model water_line {
+model railway_point {
   ...TopographicFeature;
-  type: water_type;
+  type: "station";
   name: string | null;
-  theme: Theme.Landcover;
+  theme: Theme.Transport;
   ...TopographicMetadata;
   ...GeoParquet;
 }

@@ -1,24 +1,19 @@
 import "@typespec/json-schema";
 import "./common.tsp";
+import "./landuse.tsp";
 
 using TypeSpec.JsonSchema;
 
-@jsonSchema("place_point")
+@jsonSchema("landuse_point")
 @extension("additionalProperties", false)
-model place_point {
+model landuse_point {
   ...TopographicFeature;
-  type: place_type;
-  subtype: composition_subtype | null;
+  type: landuse_type;
+  subtype: landuse_subtype | null;
+  status: landuse_status | null;
   name: string | null;
+  substance_extracted: substance_extracted | null;
   theme: Theme.Landuse;
   ...TopographicMetadata;
   ...GeoParquet;
-}
-
-enum place_type {
-  Cave: "cave",
-  Grave: "grave",
-  HistoricSite: "historic_site",
-  Monument: "monument",
-  Pa: "pa",
 }

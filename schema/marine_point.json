@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vegetation_point",
+  "$id": "marine_point",
   "type": "object",
   "properties": {
     "id": {
@@ -29,14 +29,26 @@
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": {
+      "type": "string",
+      "const": "rock"
+    },
+    "subtype": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "tree"
+          "$ref": "#/$defs/composition_subtype"
         },
         {
-          "type": "string",
-          "const": "scattered_scrub"
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
         }
       ]
     },
@@ -65,9 +77,13 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "theme", "metadata", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "subtype", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
+    "composition_subtype": {
+      "type": "string",
+      "enum": ["coral", "limestone", "pumice", "rock"]
+    },
     "BBox": {
       "type": "object",
       "properties": {
