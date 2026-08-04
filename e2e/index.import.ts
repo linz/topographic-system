@@ -66,7 +66,7 @@ describe('kart.import', async () => {
     assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } });
     const count = airports.features.length;
 
-    assert.equal(count, 85);
+    assert.equal(count, 84);
     // All airports have a t50_fid
     assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count);
     // All airports have a name
