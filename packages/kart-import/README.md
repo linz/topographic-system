@@ -30,7 +30,7 @@ This project is a snakemake-based pipeline for importing topographic data from L
   pull the tip from the source repo.
 
 - **`pjl`** (optional) pretty-prints the pipeline's JSON logs; the examples below pipe to it.
-  It ships as a workspace dependency, so `npm install` at the repo root puts it on `PATH`.
+  `npm install` at the repo root installs it, but does not add it to `PATH`, hence run with `npx`.
 
 ## Flow
 
@@ -39,13 +39,13 @@ Datasets are first cloned then transformed and loaded,
 using `snakemake` individual datasets can be cloned
 
 ```bash
-uv run snakemake --cores=4 clone_all --quiet | pjl
+uv run snakemake --cores=4 clone_all --quiet | npx pjl
 ```
 
 or entire themes can be imported, which will clone both the NZ and Chatham Islands airports
 
 ```shell
-uv run snakemake --cores=4 theme_airport --quiet | pjl
+uv run snakemake --cores=4 theme_airport --quiet | npx pjl
 ```
 
 ### Targets
@@ -68,7 +68,7 @@ key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake
 contain `-`. Repo `topographic-data` therefore gives `kart_import_topographic_data`:
 
 ```shell
-uv run snakemake --cores=4 kart_import_topographic_data --quiet | pjl
+uv run snakemake --cores=4 kart_import_topographic_data --quiet | npx pjl
 ```
 
 `uv run snakemake --list` prints every rule the current config generates.
@@ -106,7 +106,7 @@ The stages between `clone` and `kart_theme` (`export`, `lifecycle`, `prepare_loo
 module directly to bypass snakemake:
 
 ```shell
-uv run snakemake --cores=4 data/working/transform/release_66/nz_airport_polygons.parquet --quiet | pjl
+uv run snakemake --cores=4 data/working/transform/release_66/nz_airport_polygons.parquet --quiet | npx pjl
 uv run python -m kart_import.assets.transform nz_airport_polygons 66
 ```
 
@@ -184,7 +184,7 @@ To (re)create the bundle for a single dataset, target its `.bundle_created`
 sentinel (there is no per-dataset named rule for bundling):
 
 ```shell
-uv run snakemake --cores=4 data/source/nz_airport_polygons/.bundle_created --quiet | pjl
+uv run snakemake --cores=4 data/source/nz_airport_polygons/.bundle_created --quiet | npx pjl
 ```
 
 ### Prerequisites for bundling
@@ -218,7 +218,7 @@ which is what the clone step reads from when `GIT_BUNDLE=true`.
 To turn bundle usage off
 
 ```shell
-export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | pjl
+export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | npx pjl
 ```
 
 ## Push
@@ -232,8 +232,8 @@ carries the entire import history, ready to open a PR into `master`.
 Push a single repo, or every repo, via snakemake:
 
 ```shell
-uv run snakemake --cores=4 push_topographic_data --quiet | pjl
-uv run snakemake --cores=4 push_all --quiet | pjl
+uv run snakemake --cores=4 push_topographic_data --quiet | npx pjl
+uv run snakemake --cores=4 push_all --quiet | npx pjl
 ```
 
 A successful push writes a `data/output/<repo>/.pushed` sentinel (`<url> <ref>`).
@@ -245,9 +245,9 @@ flags (this is the only way through the snakemake rules, which take no arguments
 
 ```shell
 # force-push the release branch
-KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic_data --quiet | pjl
+KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic_data --quiet | npx pjl
 # push to master, force (destructive full reload)
-KART_PUSH_MASTER=true KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic_data --quiet | pjl
+KART_PUSH_MASTER=true KART_PUSH_FORCE=true uv run snakemake --cores=4 push_topographic_data --quiet | npx pjl
 ```
 
 The module can also be invoked directly with equivalent CLI flags (`--master`,
