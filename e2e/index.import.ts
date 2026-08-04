@@ -21,7 +21,7 @@ interface FeatureAirport {
     type: 'airport';
     name?: string;
     theme: 'transport';
-    metadata: any;
+    metadata?: string;
   };
   geometry: unknown;
 }
@@ -66,15 +66,15 @@ describe('kart.import', async () => {
     assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } });
     const count = airports.features.length;
 
-    assert.equal(count, 84);
+    assert.equal(count, 85);
     // All airports have a t50_fid
     assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count);
     // All airports have a name
     assert.equal(airports.features.filter((f) => f.properties.name != null).length, count);
-    // queenstown airport exists
+    // Queenstown airport exists
     assert.equal(airports.features.filter((f) => f.properties.name === 'Queenstown Airport').length, 1);
 
-    // Chatham islands data was also imported
+    // Chatham Islands data was also imported
     const ciAirport = airports.features.find((f) => f.properties.name?.includes('Tuuta'));
     assert.equal(ciAirport?.properties.id, '014fa452-a5e0-7733-81f0-6d80886c86d5');
     assert.equal(ciAirport?.properties.created_at, '2015-09-06T20:22:04Z');
