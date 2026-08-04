@@ -11,8 +11,7 @@ And install dependencies from repo root: > npm install
 
 example checks
 node -v = v24.15.0
-npm -v  = 11.12.1
-
+npm -v = 11.12.1
 
 Run location topographic-system
 Run from command line
@@ -23,7 +22,6 @@ node packages/kart/src/index.ts validate-schema --schema schema/next/airport.jso
 
 node packages/kart/src/index.ts validate-schema --schema file:///c:/Data/toposource/schema_model/airport.json file:///c:/data/temp/airport.parquet
 
-
 Building docker locally using latest code
 
 Dependencies:
@@ -33,11 +31,12 @@ wslc - this is the built in Linux container - info see: https://devblogs.microso
 Running update will install the latest version
 
 > wsl --version
-> wsl --update 
+> wsl --update
 
 NOTE: while container in pre-release
-You can now access the WSL container feature in our latest pre-release of WSL! 
-You can install this release right away by running 
+You can now access the WSL container feature in our latest pre-release of WSL!
+You can install this release right away by running
+
 > wsl --update --pre-release
 
 Create docker environment - BUILD IMAGE
@@ -62,11 +61,12 @@ Against next schema
 > wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/next/road_line.json /data/road_line.parquet
 
 Target a schema folder
+
 > wslc run --rm -it -v C:\data\temp\amcmenamin:/data -v C:\Data\toposource\schema_model:/schema kart validate-schema --schema /schema/airport.json /data/airport.parquet
 
 HELP
-> wslc run --rm -it kart --help 
 
+> wslc run --rm -it kart --help
 
 Other useful WSLC commands
 LIST
@@ -91,7 +91,6 @@ wslc run --rm -it kart bash
 Find a file - CHECK NEEDED
 wslc run --rm kart find / -name "airport.json"
 
-
 Running TOPOLOGY VALIDATION
 
 topology validation (will not work due to code at the momement so use standalone dockerfile - example below)
@@ -101,9 +100,7 @@ wslc run --rm -it -v c:/Data/toposource/topographic-data:/input -v c:\temp\valid
 topology validation - python - building the docker container
 wslc build -t topoval .
 
-
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output topoval uv run python src/topographic_validation/cli.py --verbose --config-file config/default_config.json  --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
-
+wslc run --rm -it -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output topoval uv run python src/topographic_validation/cli.py --verbose --config-file config/default_config.json --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
 
 Clean Up if Fails - locked file
 
@@ -111,7 +108,7 @@ wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval sh -lc "
 
 Optional verify after delete:
 
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval sh -lc "ls -la /input/topographic-data.gpkg*"
+wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval sh -lc "ls -la /input/topographic-data.gpkg\*"
 
 Useful check commands:
 
