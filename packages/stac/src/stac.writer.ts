@@ -2,7 +2,7 @@ import { fsa } from '@chunkd/fs';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
 
-import { CacheControl } from './cache.ts';
+import { getCacheControl } from './cache.ts';
 import { StacGeometry } from './geo.ts';
 import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
@@ -72,7 +72,7 @@ export class StacCollectionWriter {
       const target = new URL(asset.href, baseUrl);
       const source = getSource(asset);
       if (source == null) continue; // TODO should this throw?
-      todo.push(q(() => HashWriter.writeStac(asset, target, source, { cacheControl: CacheControl.Asset })));
+      todo.push(q(() => HashWriter.writeStac(asset, target, source, { cacheControl: getCacheControl(target) })));
     }
 
     await Promise.all(todo);
@@ -102,7 +102,7 @@ export class StacCollectionWriter {
           if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
           await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2), {
-            cacheControl: CacheControl.StacJson,
+            cacheControl: getCacheControl(itemUrl),
           });
         });
       }),
@@ -115,7 +115,7 @@ export class StacCollectionWriter {
 
     await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), {
       contentType: 'application/json',
-      cacheControl: CacheControl.StacJson,
+      cacheControl: getCacheControl(collectionUrl),
     });
 
     return collectionUrl;
