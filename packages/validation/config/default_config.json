@@ -143,7 +143,7 @@
     {
       "table": "road_line",
       "column": "lane_count",
-      "where": "status NOT IN ('proposed', 'non-under construction')",
+      "where": "status NOT IN ('proposed', 'under_construction')",
       "message": "Road line features must have a lane_count attribute where status is not proposed or non-under construction"
     },
     {
