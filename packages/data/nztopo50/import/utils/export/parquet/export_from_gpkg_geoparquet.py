@@ -5,7 +5,7 @@ import pyogrio
 # Read the layer from the GeoPackage file
 gpkg_path = r"C:\Data\toposource\topographic-data\topographic-data.gpkg"
 output_path = r"C:\Data\temp"
-layers = ["airport"]
+layers = ["road_line"]
 
 
 if not layers:
