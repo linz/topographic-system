@@ -1,12 +1,14 @@
-export const CacheControl = {
-  StacJson: 'public, max-age=300, stale-while-revalidate=86400',
-  Asset: 'public, max-age=31536000, immutable',
-  AssetMutable: 'public, max-age=300, stale-while-revalidate=86400',
-};
-
 export function getAssetCacheControl(target: URL): string {
-  if (target.pathname.endsWith('.json')) return CacheControl.StacJson;
-  if (target.pathname.includes('/latest/')) return CacheControl.AssetMutable;
-  if (target.pathname.includes('/next/')) return CacheControl.AssetMutable;
-  return CacheControl.Asset;
+  const isStac = target.pathname.endsWith('.json');
+  const isMutable = target.pathname.includes('/latest/') || target.pathname.includes('/next/');
+
+  if (isStac) {
+    if (isMutable) return 'public, max-age=30';
+    // Immutable stac documents can sometimes change but it is very infrequent
+    return 'public, max-age=300, stale-while-revalidate=86400'
+  }
+
+  if (isMutable) return 'public, max-age=30'
+  // Immutable assets should never change.
+  return 'public, max-age=31536000, immutable'
 }
