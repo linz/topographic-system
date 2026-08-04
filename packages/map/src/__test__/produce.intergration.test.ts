@@ -100,6 +100,16 @@ describe('deploy -> produce-cover -> produce', () => {
     );
 
     const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduce));
+    // All data links should be canoical
+    const dataLinks = bq32Json.links.filter(f => f.rel == 'source');
+    assert.ok(dataLinks.every(f => f.href.includes('/year=') && !f.href.includes('/latest/')))
+
+    // Project link should be canoical
+    const projectLink = bq32Json.links.find(f => f.rel == 'project')
+    assert.ok(projectLink);
+    assert.equal(projectLink.href, `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`);
+
+    console.log(bq32Json)
     assert.equal(bq32Json.properties['proj:epsg'], 2193);
     assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
