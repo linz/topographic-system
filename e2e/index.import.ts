@@ -60,9 +60,7 @@ describe('kart.import', async () => {
     // The merge is FlatGeobuf, the production default, because GeoJSON carries no column types.
     // Convert a copy to GeoJSON so the value assertions below can read it as text.
     const themeDir = 'data/working/theme/release_30';
-    await tsKartImport(
-      `ogr2ogr -f GeoJSON ${themeDir}/airport.e2e.geojson ${themeDir}/airport.fgb`,
-    );
+    await tsKartImport(`ogr2ogr -f GeoJSON ${themeDir}/airport.e2e.geojson ${themeDir}/airport.fgb`);
 
     const release30Airports = new URL(
       './packages/kart-import/data/working/theme/release_30/airport.e2e.geojson',
