@@ -12,7 +12,6 @@ Files are updated in **NEXT** until **manual** release process which will move t
 
 **C)** edit file as required. IMPORTANT - the schema link needs to point to next @jsonSchema("next/railway_line")
 
-
 **D)** Review check
 
 **src\features\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed. THis now only contain widely common enums.
@@ -72,7 +71,7 @@ Then run **oxfmt** to reformat the json files
 
 Other ways of running
 
-> cd schema  or cd schema/next
+> cd schema or cd schema/next
 
 > npx oxfmt .
 
