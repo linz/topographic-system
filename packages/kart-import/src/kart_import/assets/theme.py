@@ -3,7 +3,14 @@ import logging
 import geopandas as gpd
 import pandas as pd
 
-from ..config import TRANSFORM_SUFFIX, WORKING_THEME_DIR, WORKING_TRANSFORM_DIR, get_theme_by_name
+from ..config import (
+    THEME_DRIVER,
+    THEME_SUFFIX,
+    TRANSFORM_SUFFIX,
+    WORKING_THEME_DIR,
+    WORKING_TRANSFORM_DIR,
+    get_theme_by_name,
+)
 from ..log import log_context
 from .transform import read_transform
 
@@ -17,20 +24,20 @@ def merge_theme_release(theme_name: str, release_id: int):
 
     release_dir = WORKING_THEME_DIR / f"release_{release_id}"
     release_dir.mkdir(parents=True, exist_ok=True)
-    output_geojson = release_dir / f"{theme.name}.geojson"
+    output_file = release_dir / f"{theme.name}{THEME_SUFFIX}"
     gdfs = []
 
-    if output_geojson.exists():
-        output_geojson.unlink()
+    if output_file.exists():
+        output_file.unlink()
 
-    has_missing = False
+    missing = []
     for dataset in theme.datasets:
         transform_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}"
         if not transform_path.exists():
             logger.warning(
                 f"Transformed file not found: {transform_path}. Skipping.", extra={"source_dataset": dataset.name}
             )
-            has_missing = True
+            missing.append(dataset.name)
             continue
         gdf = read_transform(transform_path)
         if gdf.empty:
@@ -40,8 +47,10 @@ def merge_theme_release(theme_name: str, release_id: int):
         logger.info(f"{dataset.name} (release {release_id}): {len(gdf)} features")
         gdfs.append(gdf)
 
-    if has_missing:
-        raise Exception("Missing source datasets run transform")
+    if missing:
+        raise FileNotFoundError(
+            f"{theme.name} release {release_id}: no transform output for {', '.join(missing)}. Run transform first."
+        )
 
     if not gdfs:
         logger.warning(f"No data found for theme {theme.name} release {release_id}.")
@@ -53,13 +62,13 @@ def merge_theme_release(theme_name: str, release_id: int):
     if "id" in merged.columns:
         merged = merged.sort_values(by=["id"]).reset_index(drop=True)
 
-    logger.info(f"Writing {len(merged)} total features → {output_geojson}")
+    logger.info(f"Writing {len(merged)} total features into {output_file}")
 
     # Explicitly remove fid if it exists and ensure index is not written
     if "fid" in merged.columns:
         merged = merged.drop(columns=["fid"])
 
-    merged.to_file(output_geojson, driver="GeoJSON", index=False)
+    merged.to_file(output_file, driver=THEME_DRIVER, index=False)
 
 
 if __name__ == "__main__":

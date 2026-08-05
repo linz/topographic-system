@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_releases, env_themes, env_transform_format
+from .env import env_releases, env_theme_format, env_themes, env_transform_format
 from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -42,6 +42,12 @@ OUTPUT_DIR = DATA_DIR / "output"
 # Format of the working/transform intermediates (GeoParquet by default)
 TRANSFORM_FORMAT = env_transform_format()
 TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"
+
+# Merged per-theme releases, the input to `kart import`. FlatGeobuf carries each column's
+# declared type, so kart records the type we intend rather than one auto-detected from GeoJSON.
+THEME_FORMAT = env_theme_format()
+THEME_SUFFIX = ".fgb" if THEME_FORMAT == "fgb" else ".geojson"
+THEME_DRIVER = "FlatGeobuf" if THEME_FORMAT == "fgb" else "GeoJSON"
 
 
 KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"
