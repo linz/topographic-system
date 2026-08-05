@@ -52,7 +52,6 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', `GIT_COMMITTER_EMAIL=e2e@example.com`],
         ['-e', 'KART_IMPORT_THEME=airport'],
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
-        ['-e', 'KART_THEME_FORMAT=geojson'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],
         ['-e', 'XDG_CACHE_HOME=/source/.cache'],
         ['-e', 'UV_PYTHON_INSTALL_DIR=/source/.uv-python'],

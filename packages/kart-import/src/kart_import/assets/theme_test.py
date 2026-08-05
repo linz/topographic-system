@@ -1,5 +1,6 @@
 import geopandas as gpd
 import pandas as pd
+import pyogrio
 import pytest
 from shapely.geometry import Point
 
@@ -129,6 +130,18 @@ def test_coerce_types_a_column_that_is_null_everywhere(monkeypatch):
 
     assert coerced["metadata"].dtype == "string"
     assert coerced["metadata"].isna().all()
+
+
+def test_all_null_integer_survives_the_write(tmp_path, monkeypatch):
+    """The other end of the airport bug: the dtype has to survive into the file, not just the
+    frame. Left as `object` the column is written as OFTString and kart records text."""
+    monkeypatch.setattr(theme, "schema_dtypes", lambda name: {"t50_fid": "Int64"})
+    output = tmp_path / "airport.fgb"
+
+    coerce_dtypes(_gdf(t50_fid=[None, None]), "airport").to_file(output, driver="FlatGeobuf", index=False)
+
+    info = pyogrio.read_info(output)
+    assert dict(zip(info["fields"], info["dtypes"], strict=True))["t50_fid"] == "int64"
 
 
 def test_missing_transform_names_the_datasets(tmp_path, monkeypatch):

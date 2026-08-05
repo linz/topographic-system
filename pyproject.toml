@@ -28,6 +28,7 @@ dev = [
     "types-setuptools",
     "types-geopandas",  # Includes types-shapely as dependency
     "types-jsonschema",
+    "types-pyogrio",
     "types-pyyaml>=6.0.12.20260408",
     "uuid6>=2025.0.1",
 ]

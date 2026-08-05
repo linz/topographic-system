@@ -176,7 +176,7 @@ def merge_theme_release(theme_name: str, release_id: int):
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
     merged = coerce_dtypes(merged, theme.name)
 
-    # Stable sorting to keep row order predictable
+    # Stable sorting to keep row order predictable (Note: FlatGeobuf writes in spatial-index order)
     if "id" in merged.columns:
         merged = merged.sort_values(by=["id"]).reset_index(drop=True)
 

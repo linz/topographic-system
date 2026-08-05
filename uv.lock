@@ -1449,6 +1449,7 @@ dev = [
     { name = "ruff" },
     { name = "types-geopandas" },
     { name = "types-jsonschema" },
+    { name = "types-pyogrio" },
     { name = "types-pytz" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
@@ -1471,6 +1472,7 @@ dev = [
     { name = "ruff" },
     { name = "types-geopandas" },
     { name = "types-jsonschema" },
+    { name = "types-pyogrio" },
     { name = "types-pytz" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260408" },
     { name = "types-setuptools" },
@@ -1515,6 +1517,7 @@ dependencies = [
     { name = "geopandas" },
     { name = "jsonschema" },
     { name = "opentelemetry-sdk" },
+    { name = "pyogrio" },
     { name = "pyyaml" },
     { name = "referencing" },
     { name = "snakemake" },
@@ -1526,6 +1529,7 @@ requires-dist = [
     { name = "geopandas", specifier = ">=1.1.3" },
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "opentelemetry-sdk", specifier = ">=1.0.0" },
+    { name = "pyogrio", specifier = ">=0.12.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "referencing", specifier = ">=0.37.0" },
     { name = "snakemake", specifier = ">=8.0.0" },
@@ -1641,6 +1645,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/46/73b6a5d61a61015c4248030a8cb07e5bdddb4041430fae9e585a68692578/types_jsonschema-4.26.0.20260518.tar.gz", hash = "sha256:e1dd53dc97a64f5eccdd6fa9839666e09bb500a8ebba2db6fdaf1789faea81a6", size = 16638, upload-time = "2026-05-18T06:06:44.106Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/07/d5/134f8a147dcecda10db7f60cfc6af0578a25a5c53c87b3907a64385e0184/types_jsonschema-4.26.0.20260518-py3-none-any.whl", hash = "sha256:30b30a518c7fe335df85c919fcbcc631b69c03d4a4b5b632fa916bea03065307", size = 16072, upload-time = "2026-05-18T06:06:43.264Z" },
+]
+
+[[package]]
+name = "types-pyogrio"
+version = "0.13.0.20260728"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/c0/7cca8b86804911c34e2b6d86cc2d7012b3c2d0e2778498362d4197b63cc2/types_pyogrio-0.13.0.20260728.tar.gz", hash = "sha256:b7c81821295a3d6877df6db4e62c790d3bc5680f12778de6ba8a130025b08f44", size = 11119, upload-time = "2026-07-28T04:51:52.873Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/f5/3afd067481c97d7cab1e6d87455e59669f7044830d919c2ad6494e5f9791/types_pyogrio-0.13.0.20260728-py3-none-any.whl", hash = "sha256:21d9e5fde53d3e809096001ee4bcdb5d365a4981b5c54cc5f4684171ba2ff1ab", size = 12127, upload-time = "2026-07-28T04:51:51.953Z" },
 ]
 
 [[package]]
