@@ -53,15 +53,15 @@ uv run snakemake --cores=4 theme_airport --quiet | npx pjl
 Each stage has a named rule, so you can stop at (or resume from) any point. Later targets pull
 in everything they need, so `all` on its own builds the lot.
 
-| Target                                  | Builds                                           | What it does                                                                                      |
-| --------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `clone_<dataset>` / `clone_all`         | `data/source/<dataset>/.cloned`                  | clone the LDS source repos                                                                        |
-| `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.geojson` | export, transform and merge the theme's datasets, for every configured release                    |
-| `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                     | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle |
-| `kart_import_<repo>`                    | `data/output/<repo>/.imported`                   | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
-| `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                     | push the built repo to its GitHub remote (see [Push](#push))                                      |
-| `all` (default)                         | every repo's `.imported`                         | the full pipeline for all configured repos                                                        |
-| `bundle_all`                            | `data/source/<dataset>/.bundle_created`          | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
+| Target                                  | Builds                                       | What it does                                                                                      |
+| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `clone_<dataset>` / `clone_all`         | `data/source/<dataset>/.cloned`              | clone the LDS source repos                                                                        |
+| `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.fgb` | export, transform and merge the theme's datasets, for every configured release                    |
+| `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                 | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle |
+| `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
+| `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
+| `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
+| `bundle_all`                            | `data/source/<dataset>/.bundle_created`      | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot
@@ -93,6 +93,8 @@ export KART_IMPORT_THEME=airport,water_point
 export KART_IMPORT_RELEASE=66,65,64
 # human-readable transform intermediates; slower and larger than the parquet default
 export KART_TRANSFORM_FORMAT=geojson
+# human-readable theme merges; carries no column types, so kart guesses them (use for dev only)
+export KART_THEME_FORMAT=geojson
 ```
 
 Because they change which files the rules expect, keep them exported for every command in a
@@ -158,8 +160,43 @@ Per dataset, per release, `transform` applies:
 
 The result is `data/working/transform/release_<n>/<dataset>.parquet` (`.json` under
 `KART_TRANSFORM_FORMAT=geojson`). `theme_release` then concatenates the theme's datasets for that
-release, sorts by `id` for a stable row order, and writes
-`data/working/theme/release_<n>/<theme>.geojson` — the file `kart_theme_<theme>` commits.
+release, reconciles the column types (below), sorts by `id` for a stable row order, and writes
+`data/working/theme/release_<n>/<theme>.fgb` (the file `kart_theme_<theme>` commits).
+
+### Column types
+
+Kart takes each column's type from the file it imports, so the merge has to hand it the type we
+intend rather than one that happens to survive a concatenation. Two things get in the way:
+
+- A dataset mapped `col: null` contributes a column that is NULL for every row. Concatenated with
+  a sibling's integer column, pandas widens the result to `object`, and pyogrio writes an `object`
+  column as `OFTString`. An integer would reach kart as text.
+- FlatGeobuf declares each column's type; GeoJSON does not, leaving kart to auto-detect from the
+  JSON text. Hence the `.fgb` default, and why `KART_THEME_FORMAT=geojson` is dev only. Do not
+  import a repo built that way into production.
+
+So `theme_release` reconciles types in two passes around the concatenation:
+
+1. **unify** (before): give every frame one dtype per column, taken from the datasets that
+   actually carry values and pushed onto the ones that don't, always as a nullable dtype (`Int32`,
+   not `int32`) so a NULL cannot degrade it. Consults no schema files.
+   Where sources genuinely disagree (e.g. text in one, integer in another) it declines to
+   invent a common type and leaves the column to the next pass.
+2. **coerce** (after): force the dtypes `schema/<theme>.json` declares. A source handing us a
+   float where the schema says `integer` is converted here if it is exactly representable, and
+   raises naming the theme and column if it is not, rather than silently becoming text
+   downstream. A dtype that already conveys the schema's type is kept, so an `Int32` derived from
+   the sources is not widened for nothing. Columns the schema does not describe, and themes with
+   no schema at all, keep their unified dtype.
+
+### Timestamps
+
+`created_at` and `updated_at` are normalised to RFC 3339 UTC text (`2015-11-19T02:26:49Z`) during
+the coerce pass. They are handled by column name rather than left to the schema, so a theme without
+a schema emits the same text as one with.
+
+The values are parsed and reformatted rather than passed through: `format: date-time` requires an
+offset, and `astype("string")` over a datetime column yields a space-separated form that fails it.
 
 Lookups take a slightly different path: they are exported once per distinct commit
 (`export_lookup`), then `prepare_lookup` slims each export to the key plus the selected columns,
@@ -286,6 +323,14 @@ cheap, early guard for authoring mistakes:
 
 It does not replace the GeoParquet data validation run in CI. Columns tagged `fixup: true`
 are skipped for the value checks (2/3) but still count as _present_ for the required check (4).
+
+The same schemas are read a second time, at merge rather than load, to supply the dtypes
+[`theme_release` coerces to](#column-types): `integer` → `Int64`, `number` → `Float64`,
+`string` → `string`, `boolean` → `boolean`, all nullable. `anyOf: [{...}, {type: null}]` is read
+as the nullable form of its non-null branch, and `$ref` is resolved within the document. A
+property the mapping does not supply a scalar for (i.e. `geometry`, declared only as
+`not: {type: null}`; and `bbox`, declared as object) contributes no dtype, and neither does a theme with
+no schema file.
 
 Some columns are populated by the pipeline rather than a mapping and so are always treated as
 present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
