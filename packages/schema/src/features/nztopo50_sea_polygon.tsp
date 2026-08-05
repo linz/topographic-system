@@ -9,9 +9,9 @@ using TypeSpec.JsonSchema;
  * The land polygons (coastline and island) are inverted and sliced by Web
  * Mercator quadkey tiles so no single large polygon exists.
  */
-@jsonSchema("next/sea_polygon")
+@jsonSchema("nztopo50_sea_polygon")
 @extension("additionalProperties", false)
-model sea_polygon {
+model nztopo50_sea_polygon {
   id: string;
   type: "moana";
 

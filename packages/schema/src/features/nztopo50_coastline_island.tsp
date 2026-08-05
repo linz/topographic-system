@@ -6,9 +6,9 @@ using TypeSpec.JsonSchema;
 /**
  * Derived polygon Union of coastline and island
  */
-@jsonSchema("next/coastline_polygon")
+@jsonSchema("nztopo50_coastline_island")
 @extension("additionalProperties", false)
-model coastline_polygon {
+model nztopo50_coastline_island {
   ...TopographicFeature;
   type: "coastline" | "island";
   elevation: int32 | null;

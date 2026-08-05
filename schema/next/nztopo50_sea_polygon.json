@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "next/nztopo50_sea_polygon",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "const": "moana"
+    },
+    "quadkey": {
+      "type": "string",
+      "description": "Web Mercator quadkey of the tile this sea polygon was sliced to."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": ["id", "type", "quadkey", "created_at", "updated_at", "geometry"],
+  "description": "Derived sea (moana) polygons for the water layer.\n\nThe land polygons (coastline and island) are inverted and sliced by Web\nMercator quadkey tiles so no single large polygon exists.",
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
+    }
+  }
+}
