@@ -1,29 +1,14 @@
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-
-import { fsa } from '@chunkd/fs';
-import {
-  CliId,
-  logger,
-  registerFileSystem,
-  Url,
-  UrlFolder,
-  stringToUrlFolder,
-  qFromArgs,
-  concurrency,
-  parquetToStac,
-  Downloader,
-  getCanonical,
-} from '@linzjs/topographic-system-shared';
-import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
-import type { StacCollection } from 'stac-ts';
 
 import { iceContour } from '../python.runner.ts';
-import { ValidateSchemaCommand } from './action.validate.schema.ts';
+import { DataPrepareArgs, prepareData } from './data.prepare.ts';
+
+const iceContourName = 'nztopo50_ice_contour';
+const iceContourSchema = new URL('file:///schema/nztopo50_ice_contour.json');
 
 export const IceContourArgs = {
-  concurrency,
+  ...DataPrepareArgs,
   contour: option({
     type: Url,
     long: 'contour',
@@ -34,41 +19,7 @@ export const IceContourArgs = {
     long: 'landcover',
     description: 'Path or s3 of landcover stac collection',
   }),
-  output: option({
-    type: UrlFolder,
-    long: 'output',
-    description: 'Path or s3 of output directory to write to',
-  }),
-  tempLocation: option({
-    type: UrlFolder,
-    long: 'temp-location',
-    description: 'Where temporary files are stored, generally in /tmp/...',
-    defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `topo-system-${CliId}`)),
-  }),
-  cache: option({
-    type: UrlFolder,
-    long: 'cache',
-    description: 'Optional local cache for storing versioned map assets',
-    defaultValue: () => fsa.toUrl('./.cache'),
-  }),
-  schema: option({
-    type: Url,
-    long: 'schema',
-    description: 'Path to the JSON schema to validate the ice contour output against',
-    defaultValue: () => new URL(`file:///schema/${iceContourName}.json`),
-  }),
 };
-
-const iceContourName = 'nztopo50_ice_contour';
-
-/** Download collection parquet and return local path */
-async function downloadParquet(downloader: Downloader, url: URL) {
-  downloader.addStac(url);
-  const asset = await downloader.getAsset(url);
-  const linked = asset[0]?.linked;
-  if (linked == null) throw new Error(`Failed to download ${url.href} asset`);
-  return linked;
-}
 
 export const IceContourCommand = command({
   name: 'ice contour',
@@ -76,63 +27,19 @@ export const IceContourCommand = command({
   args: IceContourArgs,
   async handler(args) {
     registerFileSystem();
-    logger.info({ args }, 'Prepare ice contour: Started');
-    const rootCatalog = new URL('catalog.json', args.output);
-    const q = qFromArgs(args);
-
     const contourUrl = await getCanonical(args.contour);
     const landcoverUrl = await getCanonical(args.landcover);
 
-    const latestCollectionUrl = new URL(`${iceContourName}/latest/collection.json`, args.output);
-    if (await fsa.exists(latestCollectionUrl)) {
-      const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
-
-      const derivedHrefs = [contourUrl.href, landcoverUrl.href];
-
-      const derivedUnchanged = derivedHrefs.every((derivedHref) => {
-        latestCollection.links.find((link) => link.rel === 'derived_from' && link.href === derivedHref);
-      });
-      if (derivedUnchanged) {
-        logger.info(
-          'Latest output collection is already up to date with contour and landcover source, skipping processing',
-        );
-        return;
-      }
-    }
-
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
-    const contourPath = await downloadParquet(downloader, contourUrl);
-    const landcoverPath = await downloadParquet(downloader, landcoverUrl);
-
-    const tempOutputParquet = new URL(`${iceContourName}.parquet`, args.tempLocation);
-
-    await iceContour(contourPath, landcoverPath, tempOutputParquet);
-
-    // validate output against schema
-    await ValidateSchemaCommand.handler({
+    await prepareData({
+      name: iceContourName,
+      label: 'ice contour',
+      sources: [contourUrl, landcoverUrl],
+      run: ([contour, landcover], output) => iceContour(contour, landcover, output),
+      output: args.output,
+      tempLocation: args.tempLocation,
+      cache: args.cache,
       concurrency: args.concurrency,
-      schema: args.schema,
-      paths: [tempOutputParquet],
-      decodeGeometry: false,
+      schema: args.schema ?? iceContourSchema,
     });
-
-    const parquetStats = await parquetToStac(tempOutputParquet);
-
-    const sw = new StacCollectionWriter('data', iceContourName);
-
-    sw.asset('parquet', tempOutputParquet, {
-      href: `./${iceContourName}.parquet`,
-      type: 'application/vnd.apache.parquet',
-      roles: ['data'],
-      ...parquetStats.table,
-    });
-
-    sw.collection.links.push({ rel: 'derived_from', href: contourUrl.href });
-    sw.collection.links.push({ rel: 'derived_from', href: landcoverUrl.href });
-    sw.collection.extent = parquetStats.extent;
-
-    const collections = await sw.write(rootCatalog, q);
-
-    await StacUpdater.collections(rootCatalog, [collections], true);
   },
 });
