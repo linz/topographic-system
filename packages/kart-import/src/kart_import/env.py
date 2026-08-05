@@ -60,7 +60,10 @@ def env_releases() -> set[str] | None:
 
 
 def env_schema_set() -> str:
-    """Which schema set the static schema check validates a theme's mapping against.
+    """Which schema set is read for a theme.
+
+    Selects the set for *both* the static check of a theme's mapping at config-load time,
+    and the dtypes `theme.coerce_dtypes` forces onto the merged frame at write time.
 
     KART_SCHEMA_SET=current|next (default current):
     ``current`` -> ``schema/`` ; ``next`` -> ``schema/next/``.

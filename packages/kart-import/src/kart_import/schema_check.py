@@ -23,6 +23,11 @@ Behaviour is gated by ``KART_SCHEMA_CHECK``:
   ``warn`` (default: log and continue)
   ``strict`` (raise)
   ``off`` (do not check)
+
+``KART_SCHEMA_CHECK`` gates *only* the check above. `schema_dtypes` in this module is a second,
+ungated use of the same files: `theme.coerce_dtypes` calls it at write time to decide the merged
+frame's dtypes. Turning the check off does not stop the schemas deciding output types, and a
+property with no usable type contributes no dtype whether the check runs or not.
 """
 
 from __future__ import annotations

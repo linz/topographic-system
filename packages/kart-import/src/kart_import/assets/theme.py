@@ -51,6 +51,13 @@ def _cast(series: pd.Series, target: str) -> pd.Series:
     dtype = pd.api.types.pandas_dtype(target)
     if series.isna().all():
         return pd.Series(pd.NA, index=series.index, dtype=dtype)
+    # pandas refuses a lossy float64 -> Int64 cast but silently truncates a *nullable* Float64
+    # one, and `unify_dtypes` has already widened floats to Float64 by the time we get here,
+    # so the check pandas would have made has to be made here instead.
+    if pd.api.types.is_integer_dtype(dtype) and pd.api.types.is_float_dtype(series.dtype):
+        lossy = series.notna() & (series != series.round())
+        if lossy.any():
+            raise ValueError(f"would truncate non-integer values {series[lossy].unique()[:5].tolist()}")
     return series.astype(dtype)
 
 
@@ -94,21 +101,6 @@ def _to_rfc3339(series: pd.Series) -> pd.Series:
     return parsed.dt.strftime("%Y-%m-%dT%H:%M:%SZ").astype("string")
 
 
-def _carries(dtype, target: str) -> bool:
-    """Whether `dtype` already conveys the schema's type, so the cast can be skipped.
-
-    Keeps a narrower nullable dtype that `unify_dtypes` derived from the sources (Int32 for an
-    ``integer``) rather than widening it for no reason.
-    """
-    if not isinstance(dtype, pd.api.extensions.ExtensionDtype):
-        return False
-    if target == "Int64":
-        return pd.api.types.is_integer_dtype(dtype)
-    if target == "Float64":
-        return pd.api.types.is_float_dtype(dtype)
-    return str(dtype) == target
-
-
 def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str) -> gpd.GeoDataFrame:
     """Force the merged frame onto the dtypes the theme's JSON schema declares.
 
@@ -125,12 +117,34 @@ def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str) -> gpd.GeoDataFrame
         try:
             if target == RFC3339_STRING:
                 merged[col] = _cast(series, "string") if series.isna().all() else _to_rfc3339(series)
-            elif not _carries(series.dtype, target):
+            else:
                 merged[col] = _cast(series, target)
         except (TypeError, ValueError) as e:
             raise ValueError(f"{theme_name}.{col}: cannot cast {series.dtype} to {target}: {e}") from e
 
+    if untyped := untyped_columns(merged):
+        logger.warning(
+            f"{theme_name}: no dtype for {', '.join(untyped)}; will be written as text",
+            extra={"theme": theme_name, "columns": untyped},
+        )
+
     return merged
+
+
+def untyped_columns(merged: gpd.GeoDataFrame) -> list[str]:
+    """The columns still on `object`, which pyogrio writes as text whatever they hold.
+
+    Non-empty when no dataset in the release carried a value for the column (``col: null``
+    everywhere, a `since_release` not yet met, a lookup predating its own history) or when the
+    sources genuinely disagree, and the schema had no dtype to settle it with. The release still
+    builds, but the column lands in kart as text, and a later release where a value does appear
+    would type it properly.
+    """
+    return [
+        col
+        for col in merged.columns
+        if col != merged.geometry.name and merged[col].dtype == object  # noqa: E721
+    ]
 
 
 def merge_theme_release(theme_name: str, release_id: int):
