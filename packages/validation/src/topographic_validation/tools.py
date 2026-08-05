@@ -4,11 +4,7 @@ import os
 
 
 class TopoValidatorTools:
-    def prep_output_folder(
-        self,
-        output_dir: str = "./topoedit/validation-data",
-        use_date: bool = True
-    ) -> str:
+    def prep_output_folder(self, output_dir: str = "./topoedit/validation-data", use_date: bool = True) -> str:
         if use_date:
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             output_dir = os.path.join(output_dir, date_str)
