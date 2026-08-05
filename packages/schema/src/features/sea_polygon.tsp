@@ -23,4 +23,6 @@ model sea_polygon {
   /** WKB polygon geometry in NZGD2000 (EPSG:4167). */
   @extension("not", #{ type: "null" })
   geometry: unknown;
+
+  bbox?: Topo.BBox;
 }

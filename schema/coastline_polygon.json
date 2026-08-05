@@ -76,9 +76,33 @@
       "not": {
         "type": "null"
       }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox"
     }
   },
   "required": ["id", "updated_at", "created_at", "type", "geometry"],
   "description": "Derived polygon Union of coastline and island",
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  }
 }
