@@ -99,11 +99,9 @@ Help
 
 wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --help
 
-
 wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --verbose --config-file config/default_config.json --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
 
 Clean Up if Fails - locked file
-
 
 Optional verify after delete:
 
