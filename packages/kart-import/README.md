@@ -185,9 +185,23 @@ So `theme_release` reconciles types in two passes around the concatenation:
 2. **coerce** (after): force the dtypes `schema/<theme>.json` declares. A source handing us a
    float where the schema says `integer` is converted here if it is exactly representable, and
    raises naming the theme and column if it is not, rather than silently becoming text
-   downstream. A dtype that already conveys the schema's type is kept, so an `Int32` derived from
-   the sources is not widened for nothing. Columns the schema does not describe, and themes with
-   no schema at all, keep their unified dtype.
+   downstream. Every column the schema describes is cast, including one whose dtype is merely
+   *compatible* with the target (e.g. `Int32` is widened to a declared `Int64`).
+   Columns the schema does not describe, and themes with no schema at all, keep their unified
+   dtype.
+
+Which schema file the coerce pass reads is selected by **`KART_SCHEMA_SET`**, the same variable
+that selects the set for the static check, so it decides output dtypes as well as config
+validation. See [Schema check](#schema-check).
+
+A column the coerce pass could not type because no dataset in the release carried a value for it
+_and_ the schema had no dtype to settle it with, stays `object` and is written as text. That is
+logged as a warning naming the columns:
+
+```
+airport: no dtype for metadata, t50_fid; will be written as text
+```
+
 
 ### Timestamps
 
@@ -340,9 +354,9 @@ Controlled by env vars:
 
 ```shell
 # warn (default): log problems and continue | strict: raise | off: skip
-export KART_SCHEMA_CHECK=strict            # e.g. in CI or a pre-commit hook
-export KART_SCHEMA_SET=next                 # check against schema/next/ instead of schema/
-export KART_SCHEMA_DIR=/path/to/schema      # override the schema root (folder must exist)
+export KART_SCHEMA_CHECK=strict         # e.g. in CI or a pre-commit hook
+export KART_SCHEMA_SET=next             # use schema/next/ instead of schema/ for BOTH the check above and the coerce dtypes
+export KART_SCHEMA_DIR=/path/to/schema  # override the schema root (folder must exist)
 ```
 
 # Example YAML Configuration Files
