@@ -112,7 +112,6 @@ describe('deploy -> produce-cover -> produce', () => {
       `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
     );
 
-    console.log(bq32Json);
     assert.equal(bq32Json.properties['proj:epsg'], 2193);
     assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
