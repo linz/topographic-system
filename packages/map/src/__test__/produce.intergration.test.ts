@@ -100,11 +100,11 @@ describe('deploy -> produce-cover -> produce', () => {
     );
 
     const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduce));
-    // All data links should be canoical
+    // All data links should be canonical
     const dataLinks = bq32Json.links.filter((f) => f.rel === 'source');
     assert.ok(dataLinks.every((f) => f.href.includes('/year=') && !f.href.includes('/latest/')));
 
-    // Project link should be canoical
+    // Project link should be canonical
     const projectLink = bq32Json.links.find((f) => f.rel === 'project');
     assert.ok(projectLink);
     assert.equal(
