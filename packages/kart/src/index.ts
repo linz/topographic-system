@@ -25,7 +25,7 @@ const dataPrepCmds = {
   'sea-polygon': SeaPolygonCommand,
 };
 
-export const AllCommands = {
+export const cmds = {
   'kart-prepare': FlowCommand,
   clone: CloneCommand,
   diff: DiffCommand,
@@ -47,9 +47,7 @@ export const AllCommands = {
 const Cli = subcommands({
   name: 'topographic-system',
   description: '',
-  cmds: AllCommands,
+  cmds,
 });
 
-// The `data-prep` group has no handler of its own; monitor its leaf commands directly.
-const leafCommands = Object.fromEntries(Object.entries(AllCommands).filter(([, cmd]) => 'handler' in cmd));
-void traceAndRun(Cli, { ...leafCommands, ...dataPrepCmds }, packageJson.name);
+void traceAndRun(Cli, cmds, packageJson.name);

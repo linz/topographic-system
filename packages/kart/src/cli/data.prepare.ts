@@ -87,7 +87,7 @@ export interface PrepareDataOptions<T extends readonly URL[]> {
  *
  * Steps:
  * 1. Skip when the latest output is already derived from the same sources.
- * 2.Otherwise download the source parquets, run the python cli to prepare the data
+ * 2. Otherwise download the source parquets, run the python cli to prepare the data
  * 3. Validate the output against schema, then write and publish the STAC collection.
  */
 export async function prepareData<const T extends readonly URL[]>(opts: PrepareDataOptions<T>): Promise<void> {
