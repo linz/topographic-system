@@ -93,18 +93,17 @@ wslc run --rm kart find / -name "airport.json"
 
 Running TOPOLOGY VALIDATION
 
-topology validation (will not work due to code at the momement so use standalone dockerfile - example below)
+Key is --entrypoint
 
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input -v c:\temp\validation:/output kart validate --config-file config/default_config.json --verbose --bbox "174.824 -36.92 174.829 -36.919" --db-path /input/topographic-data.gkpg --output /output
+Help
 
-topology validation - python - building the docker container
-wslc build -t topoval .
+wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --help
 
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output topoval uv run python src/topographic_validation/cli.py --verbose --config-file config/default_config.json --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
+
+wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --verbose --config-file config/default_config.json --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
 
 Clean Up if Fails - locked file
 
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval sh -lc "rm -f /input/topographic-data.gpkg-journal"
 
 Optional verify after delete:
 
