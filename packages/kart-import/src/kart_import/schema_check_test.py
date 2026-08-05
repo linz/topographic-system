@@ -3,7 +3,14 @@ import json
 import pytest
 
 from .config import Theme
-from .schema_check import SchemaCheckError, check_theme, check_theme_or_warn, schema_dir
+from .schema_check import (
+    RFC3339_STRING,
+    SchemaCheckError,
+    check_theme,
+    check_theme_or_warn,
+    schema_dir,
+    schema_dtypes,
+)
 
 SOURCE = "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"
 
@@ -166,3 +173,75 @@ def test_strict_mode_does_not_raise_on_missing_schema(schema_folder, monkeypatch
     theme.name = "no_such_theme"
     problems = check_theme_or_warn(theme)
     assert len(problems) == 1 and "no schema" in problems[0]
+
+
+# A sample schema exercising each shape `schema_dtypes` has to read: a nullable integer, a plain
+# number, a `$ref` enum, a date-time string, and the two pipeline-supplied columns that don't
+# map to a scalar at all.
+DTYPE_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "id": {"type": "string"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "t50_fid": {"anyOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+        "height": {"anyOf": [{"type": "number"}, {"type": "null"}]},
+        "kind": {"$ref": "#/$defs/kind"},
+        "note": {},
+        "geometry": {"not": {"type": "null"}},
+        "bbox": {"$ref": "#/$defs/BBox"},
+    },
+    "$defs": {
+        "kind": {"type": "string", "enum": ["a", "b"]},
+        "BBox": {"type": "object", "properties": {"xmin": {"type": "number"}}},
+    },
+}
+
+
+@pytest.fixture
+def dtype_schema_folder(tmp_path, monkeypatch):
+    (tmp_path / "water_point.json").write_text(json.dumps(DTYPE_SCHEMA))
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
+    return tmp_path
+
+
+def test_schema_dtypes_reads_each_property_shape(dtype_schema_folder):
+    assert schema_dtypes("water_point") == {
+        "id": "string",
+        "created_at": RFC3339_STRING,
+        "t50_fid": "Int64",  # the `null` branch of the anyOf drops out; the dtype is nullable
+        "height": "Float64",
+        "kind": "string",  # resolved through $defs
+    }
+
+
+def test_schema_dtypes_skips_columns_it_cannot_type(dtype_schema_folder):
+    """`geometry` (declared only as not-null), `bbox` (an object) and `note` ({}) are supplied
+    by the pipeline or unconstrained: There's no scalar dtype to assert."""
+    dtypes = schema_dtypes("water_point")
+
+    assert "geometry" not in dtypes and "bbox" not in dtypes and "note" not in dtypes
+
+
+def test_schema_dtypes_is_empty_without_a_schema(dtype_schema_folder):
+    """Local dev without a schema keeps whatever dtypes the sources carried."""
+    assert schema_dtypes("no_such_theme") == {}
+
+
+def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
+    """`$ref` is resolved by the referencing library, so a pointer into a nested property
+    works. Reading the last path segment out of `$defs` would find nothing here."""
+    (tmp_path / "nested.json").write_text(
+        json.dumps(
+            {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "properties": {"count": {"$ref": "#/$defs/Wrapper/properties/count"}},
+                "$defs": {"Wrapper": {"properties": {"count": {"type": "integer"}}}},
+            }
+        )
+    )
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
+
+    assert schema_dtypes("nested") == {"count": "Int64"}

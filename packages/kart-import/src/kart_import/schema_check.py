@@ -31,11 +31,16 @@ import json
 import logging
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT202012
 
 from .env import env_schema_check_mode, env_schema_dir_override, env_schema_set
+
+if TYPE_CHECKING:
+    from referencing._core import Resolver
 
 logger = logging.getLogger("kart_import")
 
@@ -48,6 +53,22 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 #   geometry                      -> kart export `-lco GEOMETRY_NAME=geometry`
 #   bbox                          -> to-parquet ogr2ogr `-lco COVERING_BBOX_NAME=bbox`
 PIPELINE_MANAGED = frozenset({"id", "created_at", "updated_at", "geometry", "bbox"})
+
+# Defines the JSON schema data type (left) and assigns which pandas dtype will be used to represent it.
+# By default, current pandas uses non-nullable types for integer, which causes all kinds of issues downstream.
+# See `theme.coerce_dtypes`.
+_JSON_TYPE_DTYPES = {
+    "integer": "Int64",
+    "number": "Float64",
+    "string": "string",
+    "boolean": "boolean",
+}
+
+RFC3339_STRING = "rfc3339"
+"""Target for a ``format: date-time`` property.
+
+This is not a pandas dtype. The column is text in the output, which is what the schemas prescribe.
+The *value* is normalised to RFC 3339. See `theme._to_rfc3339`."""
 
 
 class SchemaCheckError(Exception):
@@ -78,6 +99,59 @@ def _load_schema(path_str: str) -> dict[str, Any]:
 def _is_source_ref(value: Any) -> bool:
     """A ``$`` / ``$col`` reference to a source column — runtime value, not checkable here."""
     return isinstance(value, str) and value.startswith("$")
+
+
+def _dtype_for(subschema: dict[str, Any], resolver: Resolver[Any]) -> str | None:
+    """The pandas dtype for one property, or None where it isn't a scalar we can carry.
+
+    Returning None covers ``geometry`` (declared only as ``not: {type: null}``) and ``bbox``
+    (an object ``$ref``), both of which the pipeline supplies rather than the mapping.
+
+    `resolver` is a `referencing` resolver over the whole schema document.
+
+    A ``$ref`` that doesn't resolve raises, rather than quietly leaving the column untyped:
+    the schemas are committed alongside the code, so that's a broken schema file to fix.
+    """
+    ref = subschema.get("$ref")
+    if isinstance(ref, str):
+        subschema = resolver.lookup(ref).contents
+
+    branches: list[dict[str, Any]] = subschema.get("anyOf") or []
+    if branches:
+        # `anyOf: [{...}, {type: null}]` is how these schemas spell "nullable". The null branch
+        # maps to no dtype and is dropped as every dtype here is already nullable. One dtype
+        # left means the branches agree; none or several means there's nothing to assert.
+        branch_dtypes = [_dtype_for(branch, resolver) for branch in branches]
+        found = {dtype for dtype in branch_dtypes if dtype is not None}
+        return found.pop() if len(found) == 1 else None
+
+    json_type = subschema.get("type")
+    if json_type == "string" and subschema.get("format") == "date-time":
+        return RFC3339_STRING
+    if isinstance(json_type, str):
+        return _JSON_TYPE_DTYPES.get(json_type)
+    return None
+
+
+def schema_dtypes(theme_name: str, schema_set: str | None = None) -> dict[str, str]:
+    """The pandas dtype each of the theme's columns must carry, read off its JSON schema.
+
+    Empty when the theme has no schema, and columns the schema doesn't describe are simply
+    absent. A schema-less dev run keeps the same dtypes the sources carried.
+    """
+    sp = schema_path(theme_name, schema_set)
+    if not sp.exists():
+        return {}
+    doc = _load_schema(str(sp))
+    resource = Resource.from_contents(doc, default_specification=DRAFT202012)
+    resolver = Registry().with_resource("", resource).resolver()
+
+    dtypes = {}
+    for name, subschema in doc.get("properties", {}).items():
+        dtype = _dtype_for(subschema, resolver)
+        if dtype is not None:
+            dtypes[name] = dtype
+    return dtypes
 
 
 def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
