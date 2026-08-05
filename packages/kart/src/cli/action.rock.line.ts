@@ -1,4 +1,4 @@
-import { getCanonical, Url } from '@linzjs/topographic-system-shared';
+import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { rockLine } from '../python.runner.ts';
@@ -36,6 +36,7 @@ export const RockLineCommand = command({
   description: 'Rock Line',
   args: RockLineArgs,
   async handler(args) {
+    registerFileSystem();
     const marineUrl = await getCanonical(args.marine);
     const coastlineUrl = await getCanonical(args.coastline);
     const islandUrl = await getCanonical(args.island);

@@ -1,4 +1,4 @@
-import { getCanonical, Url } from '@linzjs/topographic-system-shared';
+import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { coastlinePolygon } from '../python.runner.ts';
@@ -26,6 +26,7 @@ export const CoastlinePolygonCommand = command({
   description: 'Build the coastlines and islands polygon layer from coastline lines and island polygons',
   args: CoastlinePolygonArgs,
   async handler(args) {
+    registerFileSystem();
     const coastlineUrl = await getCanonical(args.coastline);
     const islandUrl = await getCanonical(args.island);
 

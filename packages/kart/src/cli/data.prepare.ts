@@ -9,7 +9,6 @@ import {
   logger,
   parquetToStac,
   qFromArgs,
-  registerFileSystem,
   stringToUrlFolder,
   Url,
   UrlFolder,
@@ -94,7 +93,6 @@ export interface PrepareDataOptions<T extends readonly URL[]> {
 export async function prepareData<const T extends readonly URL[]>(opts: PrepareDataOptions<T>): Promise<void> {
   const { name, label, sources, run, output, tempLocation, cache, schema } = opts;
 
-  registerFileSystem();
   logger.info({ name }, `Prepare ${label}: Started`);
 
   const rootCatalog = new URL('catalog.json', output);

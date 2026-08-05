@@ -1,4 +1,4 @@
-import { getCanonical, Url } from '@linzjs/topographic-system-shared';
+import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { seaPolygon } from '../python.runner.ts';
@@ -21,6 +21,7 @@ export const SeaPolygonCommand = command({
   description: 'Build the sea (moana) polygons for the water layer by inverting the derived land polygon layer',
   args: SeaPolygonArgs,
   async handler(args) {
+    registerFileSystem();
     const coastlineUrl = await getCanonical(args.coastline);
 
     await prepareData({
