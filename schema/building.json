@@ -5,26 +5,37 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
+      "type": "string",
+      "format": "date-time"
     },
-    "t50_fid": {},
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
     "type": {
       "type": "string",
       "const": "building"
     },
-    "building_use": {
+    "subtype": {
       "anyOf": [
         {
-          "type": "string"
+          "$ref": "#/$defs/building_subtype"
         },
         {
           "type": "null"
@@ -34,7 +45,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StatusEnum"
+          "$ref": "#/$defs/building_status"
         },
         {
           "type": "null"
@@ -51,35 +62,91 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "buildings"
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "status",
+    "name",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "StatusEnum": {
+    "building_subtype": {
       "type": "string",
       "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
+        "abattoir",
+        "camp",
+        "cement_works",
+        "church",
+        "energy_facility",
+        "factory",
+        "fertiliser_works",
+        "fire_lookout",
+        "forest_headquarters",
+        "gas_compound",
+        "greenhouse",
+        "gun_club",
+        "gun_emplacement",
+        "hall",
+        "homestead",
+        "hospital",
+        "hut",
+        "lodge",
+        "marae",
+        "mill",
+        "museum",
+        "observatory",
+        "polytechnic",
+        "power_generation",
+        "prison",
+        "private_hut",
+        "salt_works",
+        "school",
+        "shingle_works",
+        "shelter",
+        "silo",
+        "stamping_battery",
+        "substation",
+        "surf_club",
+        "university",
+        "visitor_centre",
+        "water_treatment_plant"
+      ]
+    },
+    "building_status": {
+      "type": "string",
+      "enum": ["derelict", "historic", "private"]
     },
     "BBox": {
       "type": "object",
@@ -98,7 +165,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

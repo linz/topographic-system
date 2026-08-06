@@ -1,37 +1,69 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("landuse")
 @extension("additionalProperties", false)
 model landuse {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "cemetery"
-    | "golf_course"
-    | "gravel_pit"
-    | "landfill"
-    | "mine"
-    | "orchard"
-    | "pumice_pit"
-    | "quarry"
-    | "racetrack"
-    | "rifle_range"
-    | "showground"
-    | "sportsfield"
-    | "vineyard";
-  landuse_use?: Topo.LanduseUseEnum | null;
-  subtype?: Topo.LanduseSubTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  substance_extracted?: Topo.SubstanceEnum | null;
+  ...TopographicFeature;
+  type: landuse_type;
+  subtype: landuse_subtype | null;
+  status: landuse_status | null;
+  name: string | null;
+  substance_extracted: substance_extracted | null;
+  theme: Theme.Landuse;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum landuse_type {
+  Cemetery: "cemetery",
+  Cycle_track: "cycle_track",
+  Dogtrack: "dog_track",
+  GolfCourse: "golf_course",
+  GravelPit: "gravel_pit",
+  Horsetrack: "horse_track",
+  Landfill: "landfill",
+  Mine: "mine",
+  Orchard: "orchard",
+  PumicePit: "pumice_pit",
+  Quarry: "quarry",
+  Racetrack: "racetrack",
+  RifleRange: "rifle_range",
+  Showground: "showground",
+  Sportsfield: "sportsfield",
+  Vineyard: "vineyard",
+  Vehicletrack: "vehicle_track",
+}
 
-  bbox?: Topo.BBox;
+enum landuse_subtype {
+  Training: "training",
+  Opencast: "opencast",
+  Underground: "underground",
+}
+
+enum landuse_status {
+  Dangerous: "dangerous",
+  Disused: "disused",
+  Old: "old",
+}
+
+enum substance_extracted {
+  Bentonite: "bentonite",
+  Clay: "clay",
+  Coal: "coal",
+  Gold: "gold",
+  Gravel: "gravel",
+  Ironsand: "ironsand",
+  Lime: "lime",
+  Limestone: "limestone",
+  Metal: "metal",
+  Quartz: "quartz",
+  Scheelite: "scheelite",
+  Shingle: "shingle",
+  SilicaSand: "silica_sand",
+  Silver: "silver",
+  Stone: "stone",
+  Zeolite: "zeolite",
 }

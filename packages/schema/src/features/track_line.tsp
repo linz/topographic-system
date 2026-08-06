@@ -1,23 +1,35 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("track_line")
 @extension("additionalProperties", false)
 model track_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "track";
-  track_use?: Topo.TrackUseEnum | null;
-  track_type?: Topo.TrackTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
+  subtype: track_subtype | null;
+  track_type: track_type | null;
+  status: track_status | null;
+  name: string | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum track_subtype {
+  CycleOnly: "cycle_only",
+  Foot: "foot",
+  Vehicle: "vehicle",
+}
 
-  bbox?: Topo.BBox;
+enum track_type {
+  Connector: "connector",
+  Multiple: "multiple",
+  Route: "route",
+  Single: "single",
+}
+
+enum track_status {
+  Closed: "closed",
 }

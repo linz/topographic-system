@@ -1,32 +1,78 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("structure")
 @extension("additionalProperties", false)
 model structure {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "dry_dock"
-    | "fish_farm"
-    | "marine_farm"
-    | "reservoir"
-    | "siphon"
-    | "tank";
-  lid_type?: Topo.LidTypeEnum | null;
-  tank_type?: string | null;
-  subtype?: Topo.StructureSubTypeEnum | null;
-  species?: Topo.SpeciesEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  stored_item?: Topo.StoredItemEnum | null;
+  ...TopographicFeature;
+  type: structure_type;
+  subtype: structure_subtype | null;
+  lid_type: "covered" | null;
+  tank_type: structure_tank_type | null;
+  species: structure_species | null;
+  status: structure_status | null;
+  name: string | null;
+  theme: Theme.Structures;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum structure_type {
+  DryDock: "dry_dock",
+  FishFarm: "fish_farm",
+  MarineFarm: "marine_farm",
+  Reservoir: "reservoir",
+  Siphon: "siphon",
+  Tank: "tank",
+}
 
-  bbox?: Topo.BBox;
+enum structure_subtype {
+  Building: "building",
+  Coal: "coal",
+  Concrete: "concrete",
+  Disused: "disused",
+  Fuel: "fuel",
+  Historic: "historic",
+  Jetty: "jetty",
+  Lake: "lake",
+  Land: "land",
+  Lighthouse: "lighthouse",
+  Lime: "lime",
+  Locked: "locked",
+  Plane: "plane",
+  PowerGeneration: "power_generation",
+  Rock: "rock",
+  Sea: "sea",
+  Ship: "ship",
+  SurgeChamber: "surge_chamber",
+  TunnelVentilation: "tunnel_ventilation",
+  Uncovered: "uncovered",
+  Water: "water",
+}
+
+enum structure_tank_type {
+  Uncovered: "uncovered",
+  Water: "water",
+  SurgeChamber: "surge_chamber",
+}
+
+enum structure_species {
+  Mussels: "mussels",
+  Salmon: "salmon",
+}
+
+enum structure_status {
+  Closed: "closed",
+  Dangerous: "dangerous",
+  Derelict: "derelict",
+  Disused: "disused",
+  Historic: "historic",
+  Locked: "locked",
+  Old: "old",
+  Private: "private",
+  Remains: "remains",
+  Ruins: "ruins",
+  UnderConstruction: "under_construction",
 }

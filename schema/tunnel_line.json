@@ -5,46 +5,47 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "t50_fid": {},
-    "type": {
       "type": "string",
-      "const": "tunnel"
+      "format": "date-time"
     },
-    "tunnel_use": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
       "anyOf": [
         {
-          "$ref": "#/$defs/TunnelUseEnum"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "tunnel_use2": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/TunnelUse2Enum"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "type": {
+      "$ref": "#/$defs/tunnel_type"
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/TunnelSubTypeEnum"
+          "type": "string",
+          "const": "livestock"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "construction_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/tunnel_construction_type"
         },
         {
           "type": "null"
@@ -54,7 +55,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StatusEnum"
+          "$ref": "#/$defs/tunnel_status"
         },
         {
           "type": "null"
@@ -71,50 +72,58 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "construction_type",
+    "status",
+    "name",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "TunnelUseEnum": {
+    "tunnel_type": {
       "type": "string",
-      "enum": ["cablecar", "foot traffic", "livestock", "river", "train", "tram", "vehicle"],
-      "description": "Auto-derived from observed values of `tunnel_use`."
+      "enum": ["cablecar", "foot_traffic", "livestock", "river", "train", "tram", "vehicle"]
     },
-    "TunnelUse2Enum": {
+    "tunnel_construction_type": {
       "type": "string",
-      "enum": ["livestock"],
-      "description": "Auto-derived from observed values of `tunnel_use2`."
+      "enum": ["natural", "manmade"]
     },
-    "TunnelSubTypeEnum": {
+    "tunnel_status": {
       "type": "string",
-      "enum": ["natural"],
-      "description": "Auto-derived from observed values of `subtype`."
-    },
-    "StatusEnum": {
-      "type": "string",
-      "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
+      "enum": ["closed", "historic", "disused", "derelict", "under_construction"]
     },
     "BBox": {
       "type": "object",
@@ -133,7 +142,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

@@ -1,55 +1,36 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "coastline_polygon",
+  "$id": "railway_point",
   "type": "object",
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
+      "type": "string",
+      "format": "date-time"
     },
-    "t50_fid": {},
-    "type": {
-      "anyOf": [
-        {
-          "type": "string",
-          "const": "coastline"
-        },
-        {
-          "type": "string",
-          "const": "island"
-        }
-      ]
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
     },
-    "coastline_type": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "elevation": {
+    "t50_fid": {
       "anyOf": [
         {
           "type": "integer",
-          "minimum": -2147483648,
-          "maximum": 2147483647
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "type": "string",
+      "const": "station"
     },
     "name": {
       "anyOf": [
@@ -61,7 +42,11 @@
         }
       ]
     },
-    "group_name": {
+    "theme": {
+      "type": "string",
+      "const": "transport"
+    },
+    "metadata": {
       "anyOf": [
         {
           "type": "string"
@@ -72,17 +57,17 @@
       ]
     },
     "geometry": {
-      "description": "WKB polygon geometry in NZGD2000 (EPSG:4167).",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
-  "description": "Derived polygon Union of coastline and island",
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "name", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {
@@ -102,7 +87,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

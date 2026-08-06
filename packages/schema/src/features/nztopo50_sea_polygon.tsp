@@ -1,5 +1,5 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
@@ -9,20 +9,16 @@ using TypeSpec.JsonSchema;
  * The land polygons (coastline and island) are inverted and sliced by Web
  * Mercator quadkey tiles so no single large polygon exists.
  */
-@jsonSchema("sea_polygon")
+@jsonSchema("nztopo50_sea_polygon")
 @extension("additionalProperties", false)
-model sea_polygon {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
+model nztopo50_sea_polygon {
+  id: string;
+  type: "moana";
 
   /** Web Mercator quadkey of the tile this sea polygon was sliced to. */
   quadkey: string;
 
-  type: "moana";
-
-  /** WKB polygon geometry in NZGD2000 (EPSG:4167). */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+  created_at: utcDateTime;
+  updated_at: utcDateTime;
+  ...GeoParquet;
 }
