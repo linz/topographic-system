@@ -5,7 +5,7 @@ import { seaPolygon } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const seaPolygonName = 'nztopo50_sea_polygon';
-const seaPolygonSchema = new URL('file:///schema/sea_polygon.json');
+const seaPolygonSchema = new URL('file:///schema/nztopo50_sea_polygon.json');
 
 export const SeaPolygonArgs = {
   ...DataPrepareArgs,
