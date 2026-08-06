@@ -2,31 +2,142 @@ name: water_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
+  # -- soakhole ---------------------------------------------------------------
+  # FIXME: The Cook Islands soakhole points dataset only gained the `t50_fid` field in
+  #    release 57 (2022-05-18); we start processing at release 30. `t50_fid` is also float here, not integer.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-soakhole-points-topo-125k-zone4
+  #    name: cook_islands_soakhole_points
+  #    mapping:
+  #      t50_fid: {source: $, since_release: 57}
+  #      type: soakhole
+  #      name: null
+  #      height: null
+  #      orientation: {source: $orientn, since_release: 57}
+  #      temperature_indicator: null
+  #      theme: landcover
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-soakhole-points-topo-150k
+    name: nz_soakhole_points
     mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
+      t50_fid: $
+      type: soakhole
+      name: null
+      height: null
+      orientation: { source: $orientatn, since_release: 50 }
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-soakhole-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_soakhole_points
     mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
+      t50_fid: null # FIXME: Needs lookup
+      type: soakhole
+      name: null
+      height: null
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-soakhole-points-topo-150k
+    name: nz_chatham_island_soakhole_points
     mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
+      t50_fid: $
+      type: soakhole
+      name: null
+      height: null
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-soakhole-points-topo-125k
+    name: nz_kermadec_is_soakhole_points
     mapping:
-      feature_type: rock
-      name: $
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
+      t50_fid: null # FIXME: Needs lookup
+      type: soakhole
+      name: null
+      height: null
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  # -- spring -----------------------------------------------------------------
+  - source: kart@data.koordinates.com:linz/nz-spring-points-topo-150k
+    name: nz_spring_points
     mapping:
-      feature_type: rock
+      t50_fid: $
+      type: spring
       name: $
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
+      height: null
+      orientation: null
+      temperature_indicator: $temp
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-spring-points-topo-125k
+    name: nz_kermadec_is_spring_points
     mapping:
-      feature_type: rock
+      t50_fid: null # FIXME: Needs lookup
+      type: spring
       name: $
-  - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
+      height: null
+      orientation: null
+      temperature_indicator: $temp
+      theme: landcover
+      metadata: null
+  # -- waterfall --------------------------------------------------------------
+  # FIXME: The Cook Islands waterfall points dataset has the same `t50_fid`-arrives-at-release-57 defect as the soakhole dataset above
+  #  - source: kart@data.koordinates.com:linz/cook-islands-waterfall-points-topo-125k-zone4
+  #    name: cook_islands_waterfall_points
+  #    mapping:
+  #      t50_fid: {source: $, since_release: 57}
+  #      type: waterfall
+  #      name: $
+  #      height: $
+  #      orientation: {source: $orientn, since_release: 57}
+  #      temperature_indicator: null
+  #      theme: landcover
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-waterfall-points-topo-150k
+    name: nz_waterfall_points
     mapping:
-      feature_type: rock
+      t50_fid: $
+      type: waterfall
       name: $
+      height: $
+      # `orientatn` was added to the source schema on 2020-06-10 (release 50).
+      orientation: { source: $orientatn, since_release: 50 }
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-waterfall-points-topo-125k
+    name: nz_antipodes_island_waterfall_points
+    mapping:
+      t50_fid: null # FIXME: Needs lookup
+      type: waterfall
+      name: $
+      height: $
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-waterfall-points-topo-150k
+    name: nz_auckland_island_waterfall_points
+    mapping:
+      t50_fid: null # FIXME: Needs lookup
+      type: waterfall
+      name: $
+      height: $
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-waterfall-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_waterfall_points
+    mapping:
+      t50_fid: null # FIXME: Needs lookup
+      type: waterfall
+      name: $
+      height: $
+      orientation: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null

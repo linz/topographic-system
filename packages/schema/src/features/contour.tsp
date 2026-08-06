@@ -1,23 +1,18 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("contour")
 @extension("additionalProperties", false)
 model contour {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: int32 | null;
+  ...TopographicFeature;
   type: "contour";
-  elevation?: int32 | null;
-  definition?: string | null;
-  designation?: Topo.DesignationEnum | null;
-  formation?: Topo.FormationEnum | null;
-
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+  elevation: int32 | null;
+  definition: string | null;
+  designation: "supplementary" | null;
+  formation: "depression" | null;
+  theme: Theme.Relief;
+  ...TopographicMetadata;
+  ...GeoParquet;
 }

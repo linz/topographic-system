@@ -5,29 +5,42 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
-    },
-    "t50_fid": {},
-    "type": {
       "type": "string",
-      "const": "coastline"
+      "format": "date-time"
     },
-    "coastline_type": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
           "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "coastline"
+        },
+        {
+          "type": "string",
+          "const": "water_confluence"
+        },
+        {
+          "type": "string",
+          "const": "wharf"
         }
       ]
     },
@@ -43,17 +56,32 @@
         }
       ]
     },
+    "theme": {
+      "type": "string",
+      "const": "landcover"
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": ["id", "created_at", "updated_at", "t50_fid", "type", "elevation", "theme", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "BBox": {
@@ -73,7 +101,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

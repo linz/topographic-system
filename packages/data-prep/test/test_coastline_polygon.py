@@ -4,7 +4,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 import pytest
-from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, NZGD2000, NZTM2000, earliest_created_at, run
+from data_prep.coastline_polygon import NAME_REFERENCE_POINTS, earliest_created_at, run
+from data_prep.parquet_utils import NZGD2000, NZTM2000
 from shapely.geometry import LineString, Point, box
 
 

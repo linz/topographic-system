@@ -5,7 +5,7 @@ import { fsa } from '@chunkd/fs';
 import { HashTransform } from '@chunkd/fs/build/src/hash.stream.js';
 import type { StacAsset, StacLink } from 'stac-ts';
 
-import { getAssetCacheControl } from './cache.ts';
+import { getCacheControl } from './cache.ts';
 
 export interface StacFileChecksum {
   'file:checksum': string;
@@ -14,7 +14,7 @@ export interface StacFileChecksum {
 
 export const HashWriter = {
   async write(target: URL, source: URL | string | Buffer, obj: WriteOptions): Promise<StacFileChecksum> {
-    if (obj.cacheControl == null) obj.cacheControl = getAssetCacheControl(target);
+    if (obj.cacheControl == null) obj.cacheControl = getCacheControl(target);
     if (source instanceof URL) return HashWriter.stream(target, source, obj);
     return HashWriter.file(target, source, obj);
   },

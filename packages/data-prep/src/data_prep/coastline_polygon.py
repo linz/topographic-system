@@ -15,15 +15,12 @@ import pandas as pd
 import shapely
 
 from data_prep.identity import earliest_created_at, reproducible_uuid7
-from data_prep.parquet_utils import write_parquet
+from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
 
-NZTM2000 = 2193
-NZGD2000 = 4167
-
 # Round the coastline precision
-PRECISION_TOLERANCE = 0.1
+PRECISION_TOLERANCE = 1e-6
 
 # Output properties for the merged coastline and island polygons.
 OUTPUT_COLUMNS = [
@@ -47,14 +44,6 @@ NAME_REFERENCE_POINTS = {
 }
 
 
-def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
-    gdf = gpd.read_parquet(path, **read_kwargs)
-    epsg = gdf.crs.to_epsg() if gdf.crs else None
-    if epsg != NZGD2000:
-        raise ValueError(f"{path} must be NZGD2000 (EPSG:{NZGD2000}), got EPSG:{epsg}")
-    return gdf.to_crs(NZTM2000)
-
-
 def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> gpd.GeoSeries:
     """Convert coastline lines into land polygons."""
     geoms = coastline_gdf.geometry
@@ -68,6 +57,9 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> 
 
     if len(polygons) == 0:
         raise ValueError("Coastline did not form any closed polygons; check for gaps in source linework.")
+
+    # drop those duplicate nodes so the rings stay clean.
+    polygons = shapely.remove_repeated_points(polygons, tolerance=0)
 
     return gpd.GeoSeries(polygons, crs=coastline_gdf.crs)
 
@@ -135,6 +127,9 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
         geometry="geometry",
         crs=island_gdf.crs,
     ).to_crs(NZGD2000)
+
+    # Split any multi-part geometries so every feature is a single Polygon.
+    coastlines_islands_gdf = coastlines_islands_gdf.explode(ignore_index=True)
 
     write_parquet(coastlines_islands_gdf, output_path)
 

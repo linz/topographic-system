@@ -1,30 +1,34 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("road_line")
 @extension("additionalProperties", false)
 model road_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "road";
-  hierarchy?: string | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  highway_number?: string | null;
-  lane_count?: int32 | null;
-  surface?: Topo.SurfaceEnum | null;
-  way_count?: Topo.WayCountEnum | null;
-  width_indicator?: "w" | null;
-  road_access?: Topo.RoadAccessEnum | null;
-  name_id?: unknown /* int64; hyparquet returns BigInt */;
-  rna_sufi?: unknown /* int64; hyparquet returns BigInt */;
+  hierarchy: string | null;
+  status: road_status | null;
+  name: string | null;
+  highway_number: string | null;
+  lane_count: int32 | null;
+  surface: road_surface | null;
+  way_count: "one_way" | null;
+  width_indicator: "w" | null;
+  road_access: "mp" | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum road_status {
+  UnderConstruction: "under_construction",
+  Closed: "closed",
+}
 
-  bbox?: Topo.BBox;
+enum road_surface {
+  Metalled: "metalled",
+  Unmetalled: "unmetalled",
+  Sealed: "sealed",
 }

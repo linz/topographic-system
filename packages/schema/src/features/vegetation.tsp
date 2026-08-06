@@ -1,21 +1,20 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("vegetation")
 @extension("additionalProperties", false)
 model vegetation {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "exotic" | "native" | "scattered_scrub" | "scrub";
-  subtype?: Topo.SubTypeEnum | null;
-  species?: Topo.SpeciesEnum | null;
+  subtype: vegetation_subtype | null;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum vegetation_subtype {
+  Coniferous: "coniferous",
+  NonConiferous: "non-coniferous",
 }

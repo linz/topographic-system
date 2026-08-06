@@ -5,9 +5,21 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
+      "description": "UUIDv7 of the feature"
     },
-    "t50_fid": {},
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
     "type": {
       "type": "string",
       "const": "nztopo50_map_sheet"
@@ -18,44 +30,46 @@
     "sheet_name": {
       "type": "string"
     },
-    "x_origin": {
+    "origin_x": {
       "type": "number"
     },
-    "y_origin": {
+    "origin_y": {
       "type": "number"
     },
     "example_point_id": {
       "type": "string",
-      "description": "topo_id (UUID) of the example feature."
+      "description": "id (UUID) of the example feature."
     },
     "published_version": {
       "type": "string"
     },
     "published_at": {
-      "type": "object",
-      "properties": {}
+      "type": "string",
+      "format": "date-time"
     },
     "updated_at": {
-      "type": "object",
-      "properties": {}
+      "type": "string",
+      "format": "date-time"
     },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
   "required": [
     "id",
+    "t50_fid",
     "type",
     "sheet_code",
     "sheet_name",
-    "x_origin",
-    "y_origin",
+    "origin_x",
+    "origin_y",
     "example_point_id",
     "published_version",
     "published_at",
@@ -81,7 +95,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

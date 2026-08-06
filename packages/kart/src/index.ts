@@ -12,12 +12,20 @@ import { IceContourCommand } from './cli/action.ice.contour.ts';
 import { LintQgisProjectCommand } from './cli/action.lint.qgis.ts';
 import { CommentCommand } from './cli/action.pr.comment.ts';
 import { RockLineCommand } from './cli/action.rock.line.ts';
+import { SeaPolygonCommand } from './cli/action.sea.polygon.ts';
 import { ParquetCommand } from './cli/action.to.parquet.ts';
 import { ValidateSchemaCommand } from './cli/action.validate.schema.ts';
 import { ValidateCommand } from './cli/action.validate.ts';
 import { VersionCommand } from './cli/action.version.ts';
 
-const cmds = {
+const dataPrepCmds = {
+  'ice-contour': IceContourCommand,
+  'coastline-polygon': CoastlinePolygonCommand,
+  'rock-line': RockLineCommand,
+  'sea-polygon': SeaPolygonCommand,
+};
+
+export const cmds = {
   'kart-prepare': FlowCommand,
   clone: CloneCommand,
   diff: DiffCommand,
@@ -26,12 +34,14 @@ const cmds = {
   'pr-comment': CommentCommand,
   validate: ValidateCommand,
   version: VersionCommand,
-  'ice-contour': IceContourCommand,
-  'coastline-polygon': CoastlinePolygonCommand,
-  'rock-line': RockLineCommand,
   'stac-push': StacPushCommand,
   'validate-schema': ValidateSchemaCommand,
   'lint-qgis': LintQgisProjectCommand,
+  'data-prep': subcommands({
+    name: 'data-prep',
+    description: 'Prepare derived data layers',
+    cmds: dataPrepCmds,
+  }),
 };
 
 const Cli = subcommands({

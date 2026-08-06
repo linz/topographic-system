@@ -5,88 +5,36 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
+      "type": "string",
+      "format": "date-time"
     },
-    "t50_fid": {},
-    "type": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "cemetery"
-        },
-        {
-          "type": "string",
-          "const": "golf_course"
-        },
-        {
-          "type": "string",
-          "const": "gravel_pit"
-        },
-        {
-          "type": "string",
-          "const": "landfill"
-        },
-        {
-          "type": "string",
-          "const": "mine"
-        },
-        {
-          "type": "string",
-          "const": "orchard"
-        },
-        {
-          "type": "string",
-          "const": "pumice_pit"
-        },
-        {
-          "type": "string",
-          "const": "quarry"
-        },
-        {
-          "type": "string",
-          "const": "racetrack"
-        },
-        {
-          "type": "string",
-          "const": "rifle_range"
-        },
-        {
-          "type": "string",
-          "const": "showground"
-        },
-        {
-          "type": "string",
-          "const": "sportsfield"
-        },
-        {
-          "type": "string",
-          "const": "vineyard"
-        }
-      ]
-    },
-    "landuse_use": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/LanduseUseEnum"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "$ref": "#/$defs/landuse_type"
     },
     "subtype": {
       "anyOf": [
         {
-          "$ref": "#/$defs/LanduseSubTypeEnum"
+          "$ref": "#/$defs/landuse_subtype"
         },
         {
           "type": "null"
@@ -96,7 +44,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StatusEnum"
+          "$ref": "#/$defs/landuse_status"
         },
         {
           "type": "null"
@@ -116,7 +64,21 @@
     "substance_extracted": {
       "anyOf": [
         {
-          "$ref": "#/$defs/SubstanceEnum"
+          "$ref": "#/$defs/substance_extracted"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "theme": {
+      "type": "string",
+      "const": "landuse"
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "type": "string"
         },
         {
           "type": "null"
@@ -124,46 +86,63 @@
       ]
     },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "status",
+    "name",
+    "substance_extracted",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "LanduseUseEnum": {
-      "type": "string",
-      "enum": ["cycle", "dog", "horse", "vehicle"],
-      "description": "Auto-derived from observed values of `landuse_use`."
-    },
-    "LanduseSubTypeEnum": {
-      "type": "string",
-      "enum": ["opencast", "training"],
-      "description": "Auto-derived from observed values of `subtype`."
-    },
-    "StatusEnum": {
+    "landuse_type": {
       "type": "string",
       "enum": [
-        "closed",
-        "dangerous",
-        "derelict",
-        "disused",
-        "historic",
-        "locked",
-        "old",
-        "private",
-        "remains",
-        "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
+        "cemetery",
+        "cycle_track",
+        "dog_track",
+        "golf_course",
+        "gravel_pit",
+        "horse_track",
+        "landfill",
+        "mine",
+        "orchard",
+        "pumice_pit",
+        "quarry",
+        "racetrack",
+        "rifle_range",
+        "showground",
+        "sportsfield",
+        "vineyard",
+        "vehicle_track"
+      ]
     },
-    "SubstanceEnum": {
+    "landuse_subtype": {
+      "type": "string",
+      "enum": ["training", "opencast", "underground"]
+    },
+    "landuse_status": {
+      "type": "string",
+      "enum": ["dangerous", "disused", "old"]
+    },
+    "substance_extracted": {
       "type": "string",
       "enum": [
         "bentonite",
@@ -178,12 +157,11 @@
         "quartz",
         "scheelite",
         "shingle",
-        "silica sand",
+        "silica_sand",
         "silver",
         "stone",
         "zeolite"
-      ],
-      "description": "Auto-derived from observed values of `substance`."
+      ]
     },
     "BBox": {
       "type": "object",
@@ -202,7 +180,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

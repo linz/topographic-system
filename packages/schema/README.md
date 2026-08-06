@@ -12,15 +12,11 @@ Files are updated in **NEXT** until **manual** release process which will move t
 
 **C)** edit file as required. IMPORTANT - the schema link needs to point to next @jsonSchema("next/railway_line")
 
-and pointer to common.tsp
-
-import "../common.tsp"; -> import "./common.tsp"; ->
-
 **D)** Review check
 
-**src\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed. THis now only contain widely common enums.
+**src\features\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed. THis now only contain widely common enums.
 
-**src\main.tsp** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
+**src\features\main.tsp** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
 
 **Example element to review**
 
@@ -54,11 +50,13 @@ compile...
 
 Run Main - this is **when full release** is required
 
-> tsp compile .
+linux
 
-If this does not run in your environment try
+> tsp compile ./packages/schema/src/features/main.tsp --config ./packages/schema/tspconfig.yaml
 
-> npx tsp compile .
+If this does not run in your environment use npx (requires installation)
+
+> npx tsp compile ./packages/schema/src/features/main.tsp --config ./packages/schema/tspconfig.yaml
 
 depending on where you run this from, and how your tsp is installed; You may need to
 
@@ -72,6 +70,8 @@ Then move to the json output folder - topographic-system/schema/next or topograp
 Then run **oxfmt** to reformat the json files
 
 Other ways of running
+
+> cd schema or cd schema/next
 
 > npx oxfmt .
 

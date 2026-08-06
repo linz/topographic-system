@@ -48,6 +48,22 @@ uv run src/data_prep/coastline_polygon.py \
 | `--island`    | Path to input island GeoParquet (polygons) |
 | `--output`    | Path to write the output GeoParquet        |
 
+### Sea Polygon
+
+Builds the sea (`type == "moana"`) polygons for the water layer by inverting the land polygons produced by `coastline_polygon.py`. To avoid a single large polygon, the sea is sliced by Web Mercator quadkey tiles at a fixed zoom level (7 by default): each tile contributes one sea feature clipped to that tile's extent.
+
+```sh
+uv run src/data_prep/sea_polygon.py \
+  --coastline coastline_polygon.parquet \
+  --output sea_polygons.parquet
+```
+
+| Argument      | Description                                                             |
+| ------------- | ----------------------------------------------------------------------- |
+| `--coastline` | Path to input coastline polygon GeoParquet (`coastline_polygon` output) |
+| `--output`    | Path to write the output GeoParquet                                     |
+| `--zoom`      | Web Mercator zoom level for slicing (optional, default `7`)             |
+
 ### Rock Line
 
 Extract rock boundary lines that don't coincide coastlines, island shorelines and lake shorelines. Produces a cartographic layer for symbolising rock outlines without duplicating linework already drawn by the coastline, island and lake.

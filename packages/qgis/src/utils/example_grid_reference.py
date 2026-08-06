@@ -66,6 +66,11 @@ def set_example_grid_reference(
             "has a null text_string."
         )
 
+    # strip new lines
+    example_text = example_text.replace("\n", " ")
+    # strip spaces between /
+    example_text = example_text.replace(" / ", "/")
+
     example_geom = example_feature.geometry()
     example_geom.transform(QgsCoordinateTransform(example_layer.crs(), map_main.crs(), project))
     QgsExpressionContextUtils.setLayoutVariable(layout, "example_x", example_geom.asPoint().x())

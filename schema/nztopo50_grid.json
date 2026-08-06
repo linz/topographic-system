@@ -5,45 +5,44 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
+      "description": "UUIDv7 of the feature"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "direction": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/DirectionEnum"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/grid_direction"
     },
     "value": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "number"
     },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "geometry"],
+  "required": ["id", "t50_fid", "direction", "value", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "DirectionEnum": {
+    "grid_direction": {
       "type": "string",
-      "enum": ["x", "y"],
-      "description": "Auto-derived from observed values of `direction`."
+      "enum": ["x", "y"]
     },
     "BBox": {
       "type": "object",
@@ -62,7 +61,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

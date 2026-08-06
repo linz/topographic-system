@@ -279,7 +279,7 @@ export const PrepareCommand = command({
       const canonicalLink = stac.links.find((link) => link.rel === 'canonical');
       item.links.push({
         rel: 'project',
-        href: canonicalLink ? canonicalLink.href : args.project.href,
+        href: canonicalLink ? new URL(canonicalLink.href, args.project).href : args.project.href,
         type: 'application/json',
       });
 
