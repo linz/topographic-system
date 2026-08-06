@@ -2,13 +2,36 @@ name: airport
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
+  # FIXME: The Cook Islands airport polygons dataset only gained the
+  #    `t50_fid` field after release 30 (the first release processed here).
+  #    The `t50_fid` field will need to be backfilled or the import process modified
+  #    for this dataset to load without error.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-airport-polygons-topo-125k-zone4
+  #    name: cook_islands_airport_polygons
+  #    mapping:
+  #      t50_fid: $
+  #      type: airport
+  #      name: $
+  #      theme: transport
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/niue-airport-polygons-topo-150k
+    mapping:
+      t50_fid: null # FIXME: needs lookup
+      type: airport
+      name: $
+      theme: transport
+      metadata: null
   - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
     mapping:
       t50_fid: $
-      feature_type: airport
+      type: airport
       name: $
+      theme: transport
+      metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-airport-polygons-topo-150k
     mapping:
       t50_fid: $
-      feature_type: airport
+      type: airport
       name: $
+      theme: transport
+      metadata: null

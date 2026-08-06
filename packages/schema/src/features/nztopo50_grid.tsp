@@ -1,18 +1,18 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("nztopo50_grid")
 @extension("additionalProperties", false)
 model nztopo50_grid {
-  ...Topo.ProductIdentity;
-  direction?: Topo.DirectionEnum | null;
-  value?: float64 | null;
+  ...ProductFeature;
+  direction: grid_direction;
+  value: float64;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum grid_direction {
+  X: "x",
+  Y: "y",
 }

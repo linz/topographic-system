@@ -1,28 +1,56 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("water")
 @extension("additionalProperties", false)
 model water {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "canal" | "lagoon" | "lake" | "pond" | "river";
-  water_use?: Topo.WaterUseEnum | null;
-  hierarchy?: string | null;
-  name?: string | null;
-  group_name?: string | null;
-  nzgb_feat_id?: unknown /* int64; hyparquet returns BigInt */;
-  height?: float64 | null;
-  elevation?: int32 | null;
-  perennial?: Topo.PerennialEnum | null;
-  temperature?: Topo.TemperatureEnum | null;
+  ...TopographicFeature;
+  type: water_type;
+  subtype: water_subtype | null;
+  name: string | null;
+  group_name: string | null;
+  height: float64 | null;
+  elevation: int32 | null;
+  perennial: water_perennial | null;
+  temperature_indicator: water_temperature_indicator | null;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum water_type {
+  Canal: "canal",
+  Drain: "drain",
+  Lagoon: "lagoon",
+  Lake: "lake",
+  Pond: "pond",
+  River: "river",
+  Soakhole: "soakhole",
+  Spring: "spring",
+  Waterfall: "waterfall",
+}
 
-  bbox?: Topo.BBox;
+enum water_subtype {
+  Evaporation: "evaporation",
+  HydroElectric: "hydro_electric",
+  IceSkating: "ice_skating",
+  Oil: "oil",
+  Oxidation: "oxidation",
+  Reservoir: "reservoir",
+  Settling: "settling",
+  Sewage: "sewage",
+  SewageTreatment: "sewage_treatment",
+  Sludge: "sludge",
+}
+
+enum water_perennial {
+  Dry: "dry",
+  Seasonal: "seasonal",
+}
+
+enum water_temperature_indicator {
+  Cold: "cold",
+  Hot: "hot",
 }

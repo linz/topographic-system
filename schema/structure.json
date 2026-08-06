@@ -5,50 +5,47 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "UUID for the feature."
-    },
-    "updated_at": {
-      "type": "object",
-      "properties": {}
+      "description": "UUIDv7 of the feature"
     },
     "created_at": {
-      "type": "object",
-      "properties": {},
-      "description": "Default at write time: today."
+      "type": "string",
+      "format": "date-time"
     },
-    "t50_fid": {},
-    "type": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "t50_fid": {
       "anyOf": [
         {
-          "type": "string",
-          "const": "dry_dock"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
         },
         {
-          "type": "string",
-          "const": "fish_farm"
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "$ref": "#/$defs/structure_type"
+    },
+    "subtype": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/structure_subtype"
         },
         {
-          "type": "string",
-          "const": "marine_farm"
-        },
-        {
-          "type": "string",
-          "const": "reservoir"
-        },
-        {
-          "type": "string",
-          "const": "siphon"
-        },
-        {
-          "type": "string",
-          "const": "tank"
+          "type": "null"
         }
       ]
     },
     "lid_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/LidTypeEnum"
+          "type": "string",
+          "const": "covered"
         },
         {
           "type": "null"
@@ -58,17 +55,7 @@
     "tank_type": {
       "anyOf": [
         {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "subtype": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/StructureSubTypeEnum"
+          "$ref": "#/$defs/structure_tank_type"
         },
         {
           "type": "null"
@@ -78,7 +65,7 @@
     "species": {
       "anyOf": [
         {
-          "$ref": "#/$defs/SpeciesEnum"
+          "$ref": "#/$defs/structure_species"
         },
         {
           "type": "null"
@@ -88,7 +75,7 @@
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StatusEnum"
+          "$ref": "#/$defs/structure_status"
         },
         {
           "type": "null"
@@ -105,10 +92,14 @@
         }
       ]
     },
-    "stored_item": {
+    "theme": {
+      "type": "string",
+      "const": "structures"
+    },
+    "metadata": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StoredItemEnum"
+          "type": "string"
         },
         {
           "type": "null"
@@ -116,34 +107,73 @@
       ]
     },
     "geometry": {
-      "description": "WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere.",
+      "description": "GeoParquet 1.1 covering geometry struct.",
       "not": {
         "type": "null"
       }
     },
     "bbox": {
-      "$ref": "#/$defs/BBox"
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "updated_at", "created_at", "type", "geometry"],
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "lid_type",
+    "tank_type",
+    "species",
+    "status",
+    "name",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
   "additionalProperties": false,
   "$defs": {
-    "LidTypeEnum": {
+    "structure_type": {
       "type": "string",
-      "enum": ["covered"],
-      "description": "Auto-derived from observed values of `lid_type`."
+      "enum": ["dry_dock", "fish_farm", "marine_farm", "reservoir", "siphon", "tank"]
     },
-    "StructureSubTypeEnum": {
+    "structure_subtype": {
       "type": "string",
-      "enum": ["lighthouse", "surge chamber", "uncovered", "water"],
-      "description": "Auto-derived from observed values of `subtype`."
+      "enum": [
+        "building",
+        "coal",
+        "concrete",
+        "disused",
+        "fuel",
+        "historic",
+        "jetty",
+        "lake",
+        "land",
+        "lighthouse",
+        "lime",
+        "locked",
+        "plane",
+        "power_generation",
+        "rock",
+        "sea",
+        "ship",
+        "surge_chamber",
+        "tunnel_ventilation",
+        "uncovered",
+        "water"
+      ]
     },
-    "SpeciesEnum": {
+    "structure_tank_type": {
       "type": "string",
-      "enum": ["mussels", "salmon"],
-      "description": "Auto-derived from observed values of `species`."
+      "enum": ["uncovered", "water", "surge_chamber"]
     },
-    "StatusEnum": {
+    "structure_species": {
+      "type": "string",
+      "enum": ["mussels", "salmon"]
+    },
+    "structure_status": {
       "type": "string",
       "enum": [
         "closed",
@@ -156,14 +186,8 @@
         "private",
         "remains",
         "ruins",
-        "under construction"
-      ],
-      "description": "Auto-derived from observed values of `status`."
-    },
-    "StoredItemEnum": {
-      "type": "string",
-      "enum": ["fuel", "water"],
-      "description": "Auto-derived from observed values of `stored_item`."
+        "under_construction"
+      ]
     },
     "BBox": {
       "type": "object",
@@ -182,7 +206,8 @@
         }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
-      "description": "GeoParquet 1.1 covering bbox struct."
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
     }
   }
 }

@@ -1,11 +1,35 @@
 import { fsa } from '@chunkd/fs';
 import type { LimitFunction } from 'p-limit';
-import type { StacAsset, StacCatalog, StacCollection, StacItem } from 'stac-ts';
+import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { HashWriter } from './hash.writer.ts';
 import { getRelativePath } from './stac.paths.ts';
 import type { StorageContext, StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 import { StacStorage } from './stac.storage.ts';
+
+interface StrategyMap {
+  latest?: StorageStrategy;
+  canonical?: StorageStrategy;
+}
+
+export function getStrategyLink(
+  currentStrategy: StorageStrategy,
+  strats: StrategyMap,
+  ctx: StorageContext,
+  targetUrl: URL,
+  filename: string,
+): StacLink | null {
+  if (currentStrategy.type === 'latest' && strats.canonical != null) {
+    const canonicalUrl = new URL(filename, StacStorage.url(strats.canonical, ctx));
+    return { rel: 'canonical', href: getRelativePath(canonicalUrl, targetUrl) };
+  }
+
+  if (currentStrategy.type !== 'latest' && strats.latest != null) {
+    const latestUrl = new URL(filename, StacStorage.url(strats.latest, ctx));
+    return { rel: 'latest-version', href: getRelativePath(latestUrl, targetUrl) };
+  }
+  return null;
+}
 
 export class StacPusher {
   catalogs = new Map<URL, StacCatalog>();
@@ -103,6 +127,7 @@ export class StacPusher {
     collection: StacCollection,
     s: StorageStrategy,
     q: LimitFunction,
+    strats: StrategyMap,
     commit: boolean,
   ): Promise<URL[]> {
     const todo: Promise<unknown>[] = [];
@@ -125,6 +150,9 @@ export class StacPusher {
         const relativeLink = getRelativePath(new URL(link.href, itemUrl), targetItemUrl);
         link.href = relativeLink;
       }
+      // Prepare the canonical and latest links between items
+      const itemLink = getStrategyLink(s, strats, ctx, targetItemUrl, filename);
+      if (itemLink != null) item.links.push(itemLink);
 
       items.push(targetItemUrl);
       if (commit) {
@@ -145,7 +173,7 @@ export class StacPusher {
     // Load all stac files for push
     await this.loadCatalog(source);
 
-    const strats = {
+    const strats: StrategyMap = {
       latest: this.strategies.find((f) => f.type === 'latest'),
       canonical: this.strategies.find((f) => f.type !== 'latest'),
     };
@@ -161,24 +189,11 @@ export class StacPusher {
         targetCollection.id = StacStorage.id(s, ctx);
 
         // Push stac items and item assets
-        items.push(...(await this.pushItems(url, this.target, targetCollection, s, q, commit)));
+        items.push(...(await this.pushItems(url, this.target, targetCollection, s, q, strats, commit)));
 
         // Prepare the canonical and latest links between collections
-        if (s.type === 'latest') {
-          if (strats.canonical != null) {
-            const canonicalUrl = new URL('collection.json', StacStorage.url(strats.canonical, ctx));
-            targetCollection.links.push({
-              rel: 'canonical',
-              href: getRelativePath(canonicalUrl, targetCollectionUrl),
-            });
-          }
-        } else if (strats.latest != null) {
-          const latestUrl = new URL('collection.json', StacStorage.url(strats.latest, ctx));
-          targetCollection.links.push({
-            rel: 'latest-version',
-            href: getRelativePath(latestUrl, targetCollectionUrl),
-          });
-        }
+        const collectionLink = getStrategyLink(s, strats, ctx, targetCollectionUrl, filename);
+        if (collectionLink != null) targetCollection.links.push(collectionLink);
         collections.push(targetCollectionUrl);
         if (commit) {
           todo.push(

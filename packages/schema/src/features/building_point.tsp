@@ -1,23 +1,19 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
+import "./building.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("building_point")
 @extension("additionalProperties", false)
 model building_point {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "building";
-  building_use?: string | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  orientation?: float64 | null;
-
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+  subtype: building_subtype | null;
+  status: building_status | null;
+  name: string | null;
+  orientation: float64 | null;
+  theme: Theme.Buildings;
+  ...TopographicMetadata;
+  ...GeoParquet;
 }

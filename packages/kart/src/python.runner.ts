@@ -28,3 +28,13 @@ export async function rockLine(marine: URL, coastline: URL, island: URL, water: 
     await $`uv run --directory /packages/data-prep src/data_prep/rock_line.py --marine ${marine.pathname} --coastline ${coastline.pathname} --island ${island.pathname} --water ${water.pathname} --output ${output.pathname}`;
   logger.debug('rock_line.py ' + res.stdout);
 }
+
+/**
+ * Running python commands to build the sea (moana) polygons for the water layer by
+ * inverting the derived land (coastline polygon) layer
+ */
+export async function seaPolygon(land: URL, output: URL): Promise<void> {
+  const res =
+    await $`uv run --directory /packages/data-prep src/data_prep/sea_polygon.py --coastline ${land.pathname} --output ${output.pathname}`;
+  logger.debug('sea_polygon.py ' + res.stdout);
+}

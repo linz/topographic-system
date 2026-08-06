@@ -1,28 +1,60 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+/**
+ * All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps.
+ * Where a railway line is located close to a road, the line held in the data and shown on the printed map
+ * may be offset from the road sufficient that the two symbols are recognisable at 1:50,000.
+ *
+ * Multiple sidings may be held in the data and shown on the printed maps as a single feature
+ *
+ * @example Reference Spec
+ * ![Reference Spec](https://docs.topo.linz.govt.nz/data-dictionary/reprspecs/railway_cl.gif)
+ *
+ * @example Railway line
+ * ![Railway Line](https://docs.topo.linz.govt.nz/data-dictionary/diagrams/railway_cl.gif)
+ *
+ * @example Aerial view
+ * ![Aerial View](https://docs.topo.linz.govt.nz/data-dictionary/airphotos/railway_cl.gif)
+ */
 @jsonSchema("railway_line")
 @extension("additionalProperties", false)
 model railway_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "railway";
-  railway_use?: Topo.RailwayUseEnum | null;
-  track_type?: Topo.TrackTypeEnum | null;
-  vehicle_type?: Topo.VehicleTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  nzgb_id?: unknown /* int64; hyparquet returns BigInt */;
-  route?: string | null;
-  route2?: string | null;
-  route3?: string | null;
+  subtype: railway_subtype | null;
+  track_type: railway_track_type | null;
+  vehicle_type: railway_vehicle_type | null;
+  status: railway_status | null;
+  name: string | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum railway_subtype {
+  Siding: "siding",
+}
 
-  bbox?: Topo.BBox;
+enum railway_track_type {
+  Single: "single",
+  Multiple: "multiple",
+}
+
+enum railway_vehicle_type {
+  Train: "train",
+  Tram: "tram",
+
+  /**
+   * A decommissioned railway line with adapted motorised golf carts, or rail bicycles designed for tourist use
+   */
+  RailCart: "rail_cart",
+
+  Cablecar: "cablecar",
+}
+
+enum railway_status {
+  Disused: "disused",
 }
