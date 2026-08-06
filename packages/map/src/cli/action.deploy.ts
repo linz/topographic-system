@@ -36,8 +36,10 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
     if (projectFiles.length === 0) continue;
 
     for (const file of projectFiles) {
-      const relPath = getRelativePath(file, folder).replace(/^\.\//, '');
-      const filename = decodeURIComponent(relPath);
+      const relPath = getRelativePath(file, folder);
+      // tar files generally dont like having "./" as the starting point
+      const cleanPath = relPath.startsWith('./') ? relPath.slice(2) : relPath;
+      const filename = decodeURIComponent(cleanPath);
       if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
       if (filename.endsWith('.tar')) continue; // TODO
       if (filename.endsWith('.qgs')) continue;
