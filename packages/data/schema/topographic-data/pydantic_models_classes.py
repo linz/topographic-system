@@ -28,19 +28,6 @@ class AirportBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class AirportDataSource(BaseTopoModel):
-    __doc__ = "Generated model for AirportDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Airport(BaseTopoModel):
     __doc__ = "Generated model for Airport."
 
@@ -51,7 +38,7 @@ class Airport(BaseTopoModel):
     type: Literal['airport'] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[AirportDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[AirportBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -63,19 +50,6 @@ class BridgeLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class BridgeLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for BridgeLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BridgeLine(BaseTopoModel):
@@ -91,7 +65,7 @@ class BridgeLine(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[BridgeLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BridgeLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -103,19 +77,6 @@ class BuildingBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class BuildingDataSource(BaseTopoModel):
-    __doc__ = "Generated model for BuildingDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Building(BaseTopoModel):
@@ -130,7 +91,7 @@ class Building(BaseTopoModel):
     status: Optional[Literal['derelict', 'historic', 'private']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['buildings'] = Field(...)
-    metadata: Optional[list[BuildingDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BuildingBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -142,19 +103,6 @@ class BuildingPointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class BuildingPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for BuildingPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class BuildingPoint(BaseTopoModel):
@@ -170,7 +118,7 @@ class BuildingPoint(BaseTopoModel):
     name: Optional[str] = Field(...)
     orientation: Optional[float] = Field(...)
     theme: Literal['buildings'] = Field(...)
-    metadata: Optional[list[BuildingPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[BuildingPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -184,19 +132,6 @@ class CoastlineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class CoastlineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for CoastlineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Coastline(BaseTopoModel):
     __doc__ = "Generated model for Coastline."
 
@@ -207,7 +142,7 @@ class Coastline(BaseTopoModel):
     type: Union[Literal['coastline'], Literal['water_confluence'], Literal['wharf']] = Field(...)
     elevation: Optional[int] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[CoastlineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[CoastlineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -219,19 +154,6 @@ class ContourBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class ContourDataSource(BaseTopoModel):
-    __doc__ = "Generated model for ContourDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Contour(BaseTopoModel):
@@ -247,7 +169,7 @@ class Contour(BaseTopoModel):
     designation: Optional[Literal['supplementary']] = Field(...)
     formation: Optional[Literal['depression']] = Field(...)
     theme: Literal['relief'] = Field(...)
-    metadata: Optional[list[ContourDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ContourBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -261,19 +183,6 @@ class DescriptiveTextBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class DescriptiveTextDataSource(BaseTopoModel):
-    __doc__ = "Generated model for DescriptiveTextDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class DescriptiveText(BaseTopoModel):
     __doc__ = "Generated model for DescriptiveText."
 
@@ -285,7 +194,7 @@ class DescriptiveText(BaseTopoModel):
     info_display: Optional[str] = Field(...)
     size: Optional[float] = Field(...)
     theme: Literal['annotation'] = Field(...)
-    metadata: Optional[list[DescriptiveTextDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[DescriptiveTextBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -299,19 +208,6 @@ class FenceLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class FenceLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for FenceLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class FenceLine(BaseTopoModel):
     __doc__ = "Generated model for FenceLine."
 
@@ -321,7 +217,7 @@ class FenceLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['fence'] = Field(...)
     theme: Literal['structures'] = Field(...)
-    metadata: Optional[list[FenceLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[FenceLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -335,19 +231,6 @@ class FerryLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class FerryLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for FerryLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class FerryLine(BaseTopoModel):
     __doc__ = "Generated model for FerryLine."
 
@@ -359,7 +242,7 @@ class FerryLine(BaseTopoModel):
     subtype: Optional[Union[Literal['vehicle'], Literal['passenger'], Literal['freight']]] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[FerryLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[FerryLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -371,19 +254,6 @@ class GeographicNameBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class GeographicNameDataSource(BaseTopoModel):
-    __doc__ = "Generated model for GeographicNameDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class GeographicName(BaseTopoModel):
@@ -398,7 +268,7 @@ class GeographicName(BaseTopoModel):
     desc_code: Optional[str] = Field(...)
     size: Optional[float] = Field(...)
     theme: Literal['annotation'] = Field(...)
-    metadata: Optional[list[GeographicNameDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[GeographicNameBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -412,19 +282,6 @@ class IslandBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class IslandDataSource(BaseTopoModel):
-    __doc__ = "Generated model for IslandDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Island(BaseTopoModel):
     __doc__ = "Generated model for Island."
 
@@ -436,7 +293,7 @@ class Island(BaseTopoModel):
     name: Optional[str] = Field(...)
     group_name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[IslandDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[IslandBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -450,19 +307,6 @@ class LandcoverBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class LandcoverDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LandcoverDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Landcover(BaseTopoModel):
     __doc__ = "Generated model for Landcover."
 
@@ -473,7 +317,7 @@ class Landcover(BaseTopoModel):
     type: Literal['ice', 'moraine', 'moraine_wall', 'mud', 'sand', 'scree', 'shingle', 'swamp'] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[LandcoverDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -487,19 +331,6 @@ class LandcoverLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class LandcoverLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LandcoverLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class LandcoverLine(BaseTopoModel):
     __doc__ = "Generated model for LandcoverLine."
 
@@ -509,7 +340,7 @@ class LandcoverLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['dredge_tailing'] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[LandcoverLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -523,19 +354,6 @@ class BBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class DataSource(BaseTopoModel):
-    __doc__ = "Generated model for DataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class LandcoverPointCoreTypesBBox(BaseTopoModel):
     __doc__ = "GeoParquet 1.1 covering bbox struct."
 
@@ -543,19 +361,6 @@ class LandcoverPointCoreTypesBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class LandcoverPointCoreTypesDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LandcoverPointCoreTypesDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandcoverPointCoreTypes(BaseTopoModel):
@@ -566,9 +371,12 @@ class LandcoverPointCoreTypes(BaseTopoModel):
     updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['cemetery', 'fumarole', 'swamp'] = Field(...)
+    orientation: Any = Field(...)
+    elevation: Any = Field(...)
     subtype: Any = Field(...)
+    name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[LandcoverPointCoreTypesDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandcoverPointCoreTypesBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -582,19 +390,6 @@ class RockOutcropBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class RockOutcropDataSource(BaseTopoModel):
-    __doc__ = "Generated model for RockOutcropDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class RockOutcrop(BaseTopoModel):
     __doc__ = "Generated model for RockOutcrop."
 
@@ -603,9 +398,12 @@ class RockOutcrop(BaseTopoModel):
     updated_at: datetime = Field(...)
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['rock_outcrop'] = Field(...)
+    orientation: float = Field(...)
+    elevation: int = Field(...)
     subtype: Literal['small_rock_outcrop', 'large_rock_outcrop', 'large_boulder'] = Field(...)
+    name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[RockOutcropDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RockOutcropBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -617,19 +415,6 @@ class LanduseBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class LanduseDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LanduseDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Landuse(BaseTopoModel):
@@ -645,7 +430,7 @@ class Landuse(BaseTopoModel):
     name: Optional[str] = Field(...)
     substance_extracted: Optional[Literal['bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite']] = Field(...)
     theme: Literal['landuse'] = Field(...)
-    metadata: Optional[list[LanduseDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LanduseBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -659,19 +444,6 @@ class LanduseLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class LanduseLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LanduseLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class LanduseLine(BaseTopoModel):
     __doc__ = "Generated model for LanduseLine."
 
@@ -683,7 +455,7 @@ class LanduseLine(BaseTopoModel):
     subtype: Optional[Literal['training', 'opencast', 'underground']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landuse'] = Field(...)
-    metadata: Optional[list[LanduseLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LanduseLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -695,19 +467,6 @@ class LandusePointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class LandusePointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for LandusePointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class LandusePoint(BaseTopoModel):
@@ -723,7 +482,7 @@ class LandusePoint(BaseTopoModel):
     name: Optional[str] = Field(...)
     substance_extracted: Optional[Literal['bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite']] = Field(...)
     theme: Literal['landuse'] = Field(...)
-    metadata: Optional[list[LandusePointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[LandusePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -737,19 +496,6 @@ class MarineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class MarineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for MarineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Marine(BaseTopoModel):
     __doc__ = "Generated model for Marine."
 
@@ -761,7 +507,7 @@ class Marine(BaseTopoModel):
     subtype: Optional[Literal['coral', 'limestone', 'pumice', 'rock']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[MarineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[MarineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -775,19 +521,6 @@ class MarinePointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class MarinePointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for MarinePointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class MarinePoint(BaseTopoModel):
     __doc__ = "Generated model for MarinePoint."
 
@@ -799,7 +532,7 @@ class MarinePoint(BaseTopoModel):
     subtype: Optional[Literal['coral', 'limestone', 'pumice', 'rock']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[MarinePointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[MarinePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -845,6 +578,30 @@ class Nztopo50CartoText(BaseTopoModel):
     bbox: Optional[Nztopo50CartoTextBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
 
+class Nztopo50CoastlineIslandBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class Nztopo50CoastlineIsland(BaseTopoModel):
+    __doc__ = "Derived polygon Union of coastline and island"
+
+    id: str = Field(..., description="UUIDv7 of the feature")
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Union[Literal['coastline'], Literal['island']] = Field(...)
+    elevation: Optional[int] = Field(...)
+    name: Optional[str] = Field(...)
+    group_name: Optional[str] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50CoastlineIslandBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
 class Nztopo50DmsGridBBox(BaseTopoModel):
     __doc__ = "GeoParquet 1.1 covering bbox struct."
 
@@ -885,6 +642,35 @@ class Nztopo50Grid(BaseTopoModel):
     bbox: Optional[Nztopo50GridBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
 
+class Nztopo50IceContourBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class Nztopo50IceContour(BaseTopoModel):
+    __doc__ = "Generated model for Nztopo50IceContour."
+
+    id: str = Field(..., description="UUIDv7 of the feature")
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    type: Literal['contour_ice'] = Field(...)
+    elevation: Optional[int] = Field(...)
+    definition: Optional[str] = Field(...)
+    designation: Optional[Literal['supplementary']] = Field(...)
+    formation: Optional[Literal['depression']] = Field(...)
+    theme: Literal['relief'] = Field(...)
+    contour_id: str = Field(..., description="UUID for the intersecting contour feature.")
+    landcover_id: str = Field(..., description="UUID for the intersecting landcover feature.")
+    metadata: Optional[str] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50IceContourBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
 class Nztopo50MapSheetBBox(BaseTopoModel):
     __doc__ = "GeoParquet 1.1 covering bbox struct."
 
@@ -912,7 +698,7 @@ class Nztopo50MapSheet(BaseTopoModel):
     bbox: Optional[Nztopo50MapSheetBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
 
-class PlacePointBBox(BaseTopoModel):
+class Nztopo50RockLineBBox(BaseTopoModel):
     __doc__ = "GeoParquet 1.1 covering bbox struct."
 
     xmin: float = Field(...)
@@ -921,17 +707,50 @@ class PlacePointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class PlacePointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for PlacePointDataSource."
+class Nztopo50RockLine(BaseTopoModel):
+    __doc__ = "Generated model for Nztopo50RockLine."
 
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
+    id: str = Field(..., description="UUIDv7 of the feature")
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
+    t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
+    marine_id: str = Field(..., description="UUID of the source `marine` rock polygon this boundary line was derived from.")
+    type: Literal['rock'] = Field(...)
+    name: Optional[str] = Field(...)
+    sub_type: Optional[Literal['coral', 'limestone', 'pumice', 'rock']] = Field(...)
+    metadata: Optional[str] = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50RockLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class Nztopo50SeaPolygonBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
+
+
+class Nztopo50SeaPolygon(BaseTopoModel):
+    __doc__ = "Derived sea (moana) polygons for the water layer.\n\nThe land polygons (coastline and island) are inverted and sliced by Web\nMercator quadkey tiles so no single large polygon exists."
+
+    id: str = Field(...)
+    type: Literal['moana'] = Field(...)
+    quadkey: str = Field(..., description="Web Mercator quadkey of the tile this sea polygon was sliced to.")
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
+    geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
+    bbox: Optional[Nztopo50SeaPolygonBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
+
+
+class PlacePointBBox(BaseTopoModel):
+    __doc__ = "GeoParquet 1.1 covering bbox struct."
+
+    xmin: float = Field(...)
+    ymin: float = Field(...)
+    xmax: float = Field(...)
+    ymax: float = Field(...)
 
 
 class PlacePoint(BaseTopoModel):
@@ -945,7 +764,7 @@ class PlacePoint(BaseTopoModel):
     subtype: Optional[Literal['coral', 'limestone', 'pumice', 'rock']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landuse'] = Field(...)
-    metadata: Optional[list[PlacePointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[PlacePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -957,19 +776,6 @@ class RailwayLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class RailwayLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for RailwayLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RailwayLine(BaseTopoModel):
@@ -986,7 +792,7 @@ class RailwayLine(BaseTopoModel):
     status: Optional[Literal['disused']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[RailwayLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RailwayLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1000,19 +806,6 @@ class RailwayPointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class RailwayPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for RailwayPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class RailwayPoint(BaseTopoModel):
     __doc__ = "Generated model for RailwayPoint."
 
@@ -1023,7 +816,7 @@ class RailwayPoint(BaseTopoModel):
     type: Literal['station'] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[RailwayPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RailwayPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1037,19 +830,6 @@ class ReliefBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class ReliefDataSource(BaseTopoModel):
-    __doc__ = "Generated model for ReliefDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Relief(BaseTopoModel):
     __doc__ = "Generated model for Relief."
 
@@ -1061,7 +841,7 @@ class Relief(BaseTopoModel):
     name: Optional[str] = Field(...)
     height: Optional[float] = Field(...)
     theme: Literal['relief'] = Field(...)
-    metadata: Optional[list[ReliefDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1073,19 +853,6 @@ class ReliefLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class ReliefLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for ReliefLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefLine(BaseTopoModel):
@@ -1100,7 +867,7 @@ class ReliefLine(BaseTopoModel):
     name: Optional[str] = Field(...)
     height: Optional[float] = Field(...)
     theme: Literal['relief'] = Field(...)
-    metadata: Optional[list[ReliefLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1112,19 +879,6 @@ class ReliefPointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class ReliefPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for ReliefPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class ReliefPoint(BaseTopoModel):
@@ -1140,7 +894,7 @@ class ReliefPoint(BaseTopoModel):
     height: Optional[float] = Field(...)
     orientation: Optional[float] = Field(...)
     theme: Literal['relief'] = Field(...)
-    metadata: Optional[list[ReliefPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ReliefPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1154,19 +908,6 @@ class ResidentialAreaBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class ResidentialAreaDataSource(BaseTopoModel):
-    __doc__ = "Generated model for ResidentialAreaDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class ResidentialArea(BaseTopoModel):
     __doc__ = "Generated model for ResidentialArea."
 
@@ -1177,7 +918,7 @@ class ResidentialArea(BaseTopoModel):
     type: Literal['residential_area'] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landuse'] = Field(...)
-    metadata: Optional[list[ResidentialAreaDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[ResidentialAreaBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1189,19 +930,6 @@ class RoadLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class RoadLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for RoadLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class RoadLine(BaseTopoModel):
@@ -1222,7 +950,7 @@ class RoadLine(BaseTopoModel):
     width_indicator: Optional[Literal['w']] = Field(...)
     road_access: Optional[Literal['mp']] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[RoadLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RoadLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1234,19 +962,6 @@ class RunwayBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class RunwayDataSource(BaseTopoModel):
-    __doc__ = "Generated model for RunwayDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Runway(BaseTopoModel):
@@ -1261,7 +976,7 @@ class Runway(BaseTopoModel):
     status: Optional[Literal['disused']] = Field(...)
     surface: Optional[Literal['grass', 'sealed']] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[RunwayDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[RunwayBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1273,19 +988,6 @@ class StructureBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class StructureDataSource(BaseTopoModel):
-    __doc__ = "Generated model for StructureDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Structure(BaseTopoModel):
@@ -1303,7 +1005,7 @@ class Structure(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['structures'] = Field(...)
-    metadata: Optional[list[StructureDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructureBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1315,19 +1017,6 @@ class StructureLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class StructureLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for StructureLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructureLine(BaseTopoModel):
@@ -1343,7 +1032,7 @@ class StructureLine(BaseTopoModel):
     status: Optional[Literal['closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['structures'] = Field(...)
-    metadata: Optional[list[StructureLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructureLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1355,19 +1044,6 @@ class StructurePointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class StructurePointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for StructurePointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class StructurePoint(BaseTopoModel):
@@ -1385,7 +1061,7 @@ class StructurePoint(BaseTopoModel):
     height: Optional[float] = Field(...)
     orientation: Optional[float] = Field(...)
     theme: Literal['structures'] = Field(...)
-    metadata: Optional[list[StructurePointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[StructurePointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1397,19 +1073,6 @@ class TrackLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class TrackLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for TrackLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrackLine(BaseTopoModel):
@@ -1425,7 +1088,7 @@ class TrackLine(BaseTopoModel):
     status: Optional[Literal['closed']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[TrackLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TrackLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1439,19 +1102,6 @@ class TransportPointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class TransportPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for TransportPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class TransportPoint(BaseTopoModel):
     __doc__ = "Generated model for TransportPoint."
 
@@ -1462,7 +1112,7 @@ class TransportPoint(BaseTopoModel):
     type: Union[Literal['ford'], Literal['helipad']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[TransportPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TransportPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1474,19 +1124,6 @@ class TrigPointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class TrigPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for TrigPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TrigPoint(BaseTopoModel):
@@ -1502,7 +1139,7 @@ class TrigPoint(BaseTopoModel):
     code: Optional[str] = Field(...)
     elevation: Optional[int] = Field(...)
     theme: Literal['relief'] = Field(...)
-    metadata: Optional[list[TrigPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TrigPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1514,19 +1151,6 @@ class TunnelLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class TunnelLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for TunnelLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class TunnelLine(BaseTopoModel):
@@ -1542,7 +1166,7 @@ class TunnelLine(BaseTopoModel):
     status: Optional[Literal['closed', 'historic', 'disused', 'derelict', 'under_construction']] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['transport'] = Field(...)
-    metadata: Optional[list[TunnelLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[TunnelLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1554,19 +1178,6 @@ class UtilityLineBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class UtilityLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for UtilityLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class UtilityLine(BaseTopoModel):
@@ -1582,7 +1193,7 @@ class UtilityLine(BaseTopoModel):
     status: Optional[str] = Field(...)
     visibility: Optional[Literal['underground']] = Field(...)
     theme: Literal['utility'] = Field(...)
-    metadata: Optional[list[UtilityLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[UtilityLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1596,19 +1207,6 @@ class UtilityPointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class UtilityPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for UtilityPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class UtilityPoint(BaseTopoModel):
     __doc__ = "Generated model for UtilityPoint."
 
@@ -1619,7 +1217,7 @@ class UtilityPoint(BaseTopoModel):
     type: Literal['gas_valve', 'geo_bore', 'pylon'] = Field(...)
     orientation: Optional[float] = Field(...)
     theme: Literal['utility'] = Field(...)
-    metadata: Optional[list[UtilityPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[UtilityPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1633,19 +1231,6 @@ class VegetationBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class VegetationDataSource(BaseTopoModel):
-    __doc__ = "Generated model for VegetationDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class Vegetation(BaseTopoModel):
     __doc__ = "Generated model for Vegetation."
 
@@ -1656,7 +1241,7 @@ class Vegetation(BaseTopoModel):
     type: Union[Literal['exotic'], Literal['native'], Literal['scattered_scrub'], Literal['scrub']] = Field(...)
     subtype: Optional[Literal['coniferous', 'non-coniferous']] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[VegetationDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1670,19 +1255,6 @@ class VegetationLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class VegetationLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for VegetationLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class VegetationLine(BaseTopoModel):
     __doc__ = "Generated model for VegetationLine."
 
@@ -1692,7 +1264,7 @@ class VegetationLine(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Literal['shelter_belt'] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[VegetationLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1706,19 +1278,6 @@ class VegetationPointBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class VegetationPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for VegetationPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class VegetationPoint(BaseTopoModel):
     __doc__ = "Generated model for VegetationPoint."
 
@@ -1728,7 +1287,7 @@ class VegetationPoint(BaseTopoModel):
     t50_fid: Optional[int] = Field(..., description="Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition.")
     type: Union[Literal['tree'], Literal['scattered_scrub']] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[VegetationPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[VegetationPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1740,19 +1299,6 @@ class WaterBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class WaterDataSource(BaseTopoModel):
-    __doc__ = "Generated model for WaterDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class Water(BaseTopoModel):
@@ -1771,7 +1317,7 @@ class Water(BaseTopoModel):
     perennial: Optional[Literal['dry', 'seasonal']] = Field(...)
     temperature_indicator: Optional[Literal['cold', 'hot']] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[WaterDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1785,19 +1331,6 @@ class WaterLineBBox(BaseTopoModel):
     ymax: float = Field(...)
 
 
-class WaterLineDataSource(BaseTopoModel):
-    __doc__ = "Generated model for WaterLineDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
-
-
 class WaterLine(BaseTopoModel):
     __doc__ = "Generated model for WaterLine."
 
@@ -1808,7 +1341,7 @@ class WaterLine(BaseTopoModel):
     type: Literal['canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall'] = Field(...)
     name: Optional[str] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[WaterLineDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterLineBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")
 
@@ -1820,19 +1353,6 @@ class WaterPointBBox(BaseTopoModel):
     ymin: float = Field(...)
     xmax: float = Field(...)
     ymax: float = Field(...)
-
-
-class WaterPointDataSource(BaseTopoModel):
-    __doc__ = "Generated model for WaterPointDataSource."
-
-    table_column: str = Field(..., description="Name of the column in this table where the linked data gets copied to")
-    source: Literal['nzgb_gazetteer', 'linz_aims'] = Field(..., description="Registered source for linked data")
-    source_key_name: str = Field(..., description="Name of the key column in source to use for linking")
-    source_key_value: Union[int, str] = Field(..., description="Value of the key column in source to use for linking.")
-    source_table: str = Field(..., description="Name of the table in source that contains the linked data")
-    source_column: str = Field(..., description="Name of the column in the source where the linked data gets copied from")
-    source_updated_at: datetime = Field(..., description="Timestamp when the source was last updated")
-    imported_at: datetime = Field(..., description="Timestamp when this linked data was last imported")
 
 
 class WaterPoint(BaseTopoModel):
@@ -1848,6 +1368,6 @@ class WaterPoint(BaseTopoModel):
     orientation: Optional[float] = Field(...)
     temperature_indicator: Optional[Literal['cold', 'hot']] = Field(...)
     theme: Literal['landcover'] = Field(...)
-    metadata: Optional[list[WaterPointDataSource]] = Field(...)
+    metadata: Optional[str] = Field(...)
     geometry: Any = Field(..., description="GeoParquet 1.1 covering geometry struct.")
     bbox: Optional[WaterPointBBox] = Field(None, description="GeoParquet 1.1 covering bbox struct.")

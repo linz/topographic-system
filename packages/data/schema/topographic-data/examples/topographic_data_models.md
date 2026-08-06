@@ -1,151 +1,62 @@
 # Topographic Data Models
 
-Total models: 142
+Total models: 53
 
 ## Models
 
 - [Airport](#airport)
-- [AirportBBox](#airportbbox)
-- [AirportDataSource](#airportdatasource)
-- [BBox](#bbox)
 - [BridgeLine](#bridgeline)
-- [BridgeLineBBox](#bridgelinebbox)
-- [BridgeLineDataSource](#bridgelinedatasource)
 - [Building](#building)
-- [BuildingBBox](#buildingbbox)
-- [BuildingDataSource](#buildingdatasource)
 - [BuildingPoint](#buildingpoint)
-- [BuildingPointBBox](#buildingpointbbox)
-- [BuildingPointDataSource](#buildingpointdatasource)
 - [Coastline](#coastline)
-- [CoastlineBBox](#coastlinebbox)
-- [CoastlineDataSource](#coastlinedatasource)
 - [Contour](#contour)
-- [ContourBBox](#contourbbox)
-- [ContourDataSource](#contourdatasource)
-- [DataSource](#datasource)
 - [DescriptiveText](#descriptivetext)
-- [DescriptiveTextBBox](#descriptivetextbbox)
-- [DescriptiveTextDataSource](#descriptivetextdatasource)
 - [FenceLine](#fenceline)
-- [FenceLineBBox](#fencelinebbox)
-- [FenceLineDataSource](#fencelinedatasource)
 - [FerryLine](#ferryline)
-- [FerryLineBBox](#ferrylinebbox)
-- [FerryLineDataSource](#ferrylinedatasource)
 - [GeographicName](#geographicname)
-- [GeographicNameBBox](#geographicnamebbox)
-- [GeographicNameDataSource](#geographicnamedatasource)
 - [Island](#island)
-- [IslandBBox](#islandbbox)
-- [IslandDataSource](#islanddatasource)
 - [Landcover](#landcover)
-- [LandcoverBBox](#landcoverbbox)
-- [LandcoverDataSource](#landcoverdatasource)
 - [LandcoverLine](#landcoverline)
-- [LandcoverLineBBox](#landcoverlinebbox)
-- [LandcoverLineDataSource](#landcoverlinedatasource)
 - [LandcoverPointCoreTypes](#landcoverpointcoretypes)
-- [LandcoverPointCoreTypesBBox](#landcoverpointcoretypesbbox)
-- [LandcoverPointCoreTypesDataSource](#landcoverpointcoretypesdatasource)
 - [Landuse](#landuse)
-- [LanduseBBox](#landusebbox)
-- [LanduseDataSource](#landusedatasource)
 - [LanduseLine](#landuseline)
-- [LanduseLineBBox](#landuselinebbox)
-- [LanduseLineDataSource](#landuselinedatasource)
 - [LandusePoint](#landusepoint)
-- [LandusePointBBox](#landusepointbbox)
-- [LandusePointDataSource](#landusepointdatasource)
 - [Marine](#marine)
-- [MarineBBox](#marinebbox)
-- [MarineDataSource](#marinedatasource)
 - [MarinePoint](#marinepoint)
-- [MarinePointBBox](#marinepointbbox)
-- [MarinePointDataSource](#marinepointdatasource)
 - [Nztopo50CartoText](#nztopo50cartotext)
-- [Nztopo50CartoTextBBox](#nztopo50cartotextbbox)
+- [Nztopo50CoastlineIsland](#nztopo50coastlineisland)
 - [Nztopo50DmsGrid](#nztopo50dmsgrid)
-- [Nztopo50DmsGridBBox](#nztopo50dmsgridbbox)
 - [Nztopo50Grid](#nztopo50grid)
-- [Nztopo50GridBBox](#nztopo50gridbbox)
+- [Nztopo50IceContour](#nztopo50icecontour)
 - [Nztopo50MapSheet](#nztopo50mapsheet)
-- [Nztopo50MapSheetBBox](#nztopo50mapsheetbbox)
+- [Nztopo50RockLine](#nztopo50rockline)
+- [Nztopo50SeaPolygon](#nztopo50seapolygon)
 - [PlacePoint](#placepoint)
-- [PlacePointBBox](#placepointbbox)
-- [PlacePointDataSource](#placepointdatasource)
 - [RailwayLine](#railwayline)
-- [RailwayLineBBox](#railwaylinebbox)
-- [RailwayLineDataSource](#railwaylinedatasource)
 - [RailwayPoint](#railwaypoint)
-- [RailwayPointBBox](#railwaypointbbox)
-- [RailwayPointDataSource](#railwaypointdatasource)
 - [Relief](#relief)
-- [ReliefBBox](#reliefbbox)
-- [ReliefDataSource](#reliefdatasource)
 - [ReliefLine](#reliefline)
-- [ReliefLineBBox](#relieflinebbox)
-- [ReliefLineDataSource](#relieflinedatasource)
 - [ReliefPoint](#reliefpoint)
-- [ReliefPointBBox](#reliefpointbbox)
-- [ReliefPointDataSource](#reliefpointdatasource)
 - [ResidentialArea](#residentialarea)
-- [ResidentialAreaBBox](#residentialareabbox)
-- [ResidentialAreaDataSource](#residentialareadatasource)
 - [RoadLine](#roadline)
-- [RoadLineBBox](#roadlinebbox)
-- [RoadLineDataSource](#roadlinedatasource)
 - [RockOutcrop](#rockoutcrop)
-- [RockOutcropBBox](#rockoutcropbbox)
-- [RockOutcropDataSource](#rockoutcropdatasource)
 - [Runway](#runway)
-- [RunwayBBox](#runwaybbox)
-- [RunwayDataSource](#runwaydatasource)
 - [Structure](#structure)
-- [StructureBBox](#structurebbox)
-- [StructureDataSource](#structuredatasource)
 - [StructureLine](#structureline)
-- [StructureLineBBox](#structurelinebbox)
-- [StructureLineDataSource](#structurelinedatasource)
 - [StructurePoint](#structurepoint)
-- [StructurePointBBox](#structurepointbbox)
-- [StructurePointDataSource](#structurepointdatasource)
 - [TrackLine](#trackline)
-- [TrackLineBBox](#tracklinebbox)
-- [TrackLineDataSource](#tracklinedatasource)
 - [TransportPoint](#transportpoint)
-- [TransportPointBBox](#transportpointbbox)
-- [TransportPointDataSource](#transportpointdatasource)
 - [TrigPoint](#trigpoint)
-- [TrigPointBBox](#trigpointbbox)
-- [TrigPointDataSource](#trigpointdatasource)
 - [TunnelLine](#tunnelline)
-- [TunnelLineBBox](#tunnellinebbox)
-- [TunnelLineDataSource](#tunnellinedatasource)
 - [UtilityLine](#utilityline)
-- [UtilityLineBBox](#utilitylinebbox)
-- [UtilityLineDataSource](#utilitylinedatasource)
 - [UtilityPoint](#utilitypoint)
-- [UtilityPointBBox](#utilitypointbbox)
-- [UtilityPointDataSource](#utilitypointdatasource)
 - [Vegetation](#vegetation)
-- [VegetationBBox](#vegetationbbox)
-- [VegetationDataSource](#vegetationdatasource)
 - [VegetationLine](#vegetationline)
-- [VegetationLineBBox](#vegetationlinebbox)
-- [VegetationLineDataSource](#vegetationlinedatasource)
 - [VegetationPoint](#vegetationpoint)
-- [VegetationPointBBox](#vegetationpointbbox)
-- [VegetationPointDataSource](#vegetationpointdatasource)
 - [Water](#water)
-- [WaterBBox](#waterbbox)
-- [WaterDataSource](#waterdatasource)
 - [WaterLine](#waterline)
-- [WaterLineBBox](#waterlinebbox)
-- [WaterLineDataSource](#waterlinedatasource)
 - [WaterPoint](#waterpoint)
-- [WaterPointBBox](#waterpointbbox)
-- [WaterPointDataSource](#waterpointdatasource)
+- [BBox](#bbox)
 
 ## Airport
 
@@ -159,47 +70,10 @@ Generated model for Airport.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'airport' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[AirportDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[AirportBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## AirportBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## AirportDataSource
-
-Generated model for AirportDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
-
-## BBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## BridgeLine
 
@@ -216,36 +90,10 @@ Generated model for BridgeLine.
 | construction_type | Optional[string] | yes | required |  |  | enum: 'suspension', 'swing', 'trestle' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[BridgeLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[BridgeLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## BridgeLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## BridgeLineDataSource
-
-Generated model for BridgeLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Building
 
@@ -261,36 +109,10 @@ Generated model for Building.
 | subtype | Optional[string] | yes | required |  |  | enum: 'abattoir', 'camp', 'cement_works', 'church', 'energy_facility', 'factory', 'fertiliser_works', 'fire_lookout', 'forest_headquarters', 'gas_compound', 'greenhouse', 'gun_club', 'gun_emplacement', 'hall', 'homestead', 'hospital', 'hut', 'lodge', 'marae', 'mill', 'museum', 'observatory', 'polytechnic', 'power_generation', 'prison', 'private_hut', 'salt_works', 'school', 'shingle_works', 'shelter', 'silo', 'stamping_battery', 'substation', 'surf_club', 'university', 'visitor_centre', 'water_treatment_plant' |
 | status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[BuildingDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'buildings' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[BuildingBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## BuildingBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## BuildingDataSource
-
-Generated model for BuildingDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## BuildingPoint
 
@@ -307,36 +129,10 @@ Generated model for BuildingPoint.
 | status | Optional[string] | yes | required |  |  | enum: 'derelict', 'historic', 'private' |
 | name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[BuildingPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'buildings' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[BuildingPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## BuildingPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## BuildingPointDataSource
-
-Generated model for BuildingPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Coastline
 
@@ -350,36 +146,10 @@ Generated model for Coastline.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'coastline' |
 | elevation | Optional[integer] | yes | required |  |  |  |
-| metadata | Optional[list[CoastlineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[CoastlineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## CoastlineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## CoastlineDataSource
-
-Generated model for CoastlineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Contour
 
@@ -396,51 +166,10 @@ Generated model for Contour.
 | definition | Optional[string] | yes | required |  |  |  |
 | designation | Optional[string] | yes | required |  |  | enum: 'supplementary' |
 | formation | Optional[string] | yes | required |  |  | enum: 'depression' |
-| metadata | Optional[list[ContourDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[ContourBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## ContourBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## ContourDataSource
-
-Generated model for ContourDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
-
-## DataSource
-
-Generated model for DataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## DescriptiveText
 
@@ -455,36 +184,10 @@ Generated model for DescriptiveText.
 | type | string | yes | required |  |  | enum: 'descriptive_text' |
 | info_display | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[DescriptiveTextDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'annotation' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[DescriptiveTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## DescriptiveTextBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## DescriptiveTextDataSource
-
-Generated model for DescriptiveTextDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## FenceLine
 
@@ -497,36 +200,10 @@ Generated model for FenceLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'fence' |
-| metadata | Optional[list[FenceLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'structures' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[FenceLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## FenceLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## FenceLineDataSource
-
-Generated model for FenceLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## FerryLine
 
@@ -541,36 +218,10 @@ Generated model for FerryLine.
 | type | string | yes | required |  |  | enum: 'ferry_crossing' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'vehicle' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[FerryLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[FerryLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## FerryLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## FerryLineDataSource
-
-Generated model for FerryLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## GeographicName
 
@@ -586,36 +237,10 @@ Generated model for GeographicName.
 | name | Optional[string] | yes | required |  |  |  |
 | desc_code | Optional[string] | yes | required |  |  |  |
 | size | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[GeographicNameDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'annotation' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[GeographicNameBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## GeographicNameBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## GeographicNameDataSource
-
-Generated model for GeographicNameDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Island
 
@@ -630,36 +255,10 @@ Generated model for Island.
 | type | string | yes | required |  |  | enum: 'island' |
 | name | Optional[string] | yes | required |  |  |  |
 | group_name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[IslandDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[IslandBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## IslandBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## IslandDataSource
-
-Generated model for IslandDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Landcover
 
@@ -673,36 +272,10 @@ Generated model for Landcover.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'ice', 'moraine', 'moraine_wall', 'mud', 'sand', 'scree', 'shingle', 'swamp' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[LandcoverDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LandcoverBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LandcoverBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LandcoverDataSource
-
-Generated model for LandcoverDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## LandcoverLine
 
@@ -715,36 +288,10 @@ Generated model for LandcoverLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'dredge_tailing' |
-| metadata | Optional[list[LandcoverLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LandcoverLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LandcoverLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LandcoverLineDataSource
-
-Generated model for LandcoverLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## LandcoverPointCoreTypes
 
@@ -757,37 +304,14 @@ Generated model for LandcoverPointCoreTypes.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'cemetery', 'fumarole', 'swamp' |
+| orientation | unknown | yes | required |  |  |  |
+| elevation | unknown | yes | required |  |  |  |
 | subtype | unknown | yes | required |  |  |  |
-| metadata | Optional[list[LandcoverPointCoreTypesDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LandcoverPointCoreTypesBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LandcoverPointCoreTypesBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LandcoverPointCoreTypesDataSource
-
-Generated model for LandcoverPointCoreTypesDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Landuse
 
@@ -804,36 +328,10 @@ Generated model for Landuse.
 | status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
 | substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite' |
-| metadata | Optional[list[LanduseDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landuse' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LanduseBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LanduseBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LanduseDataSource
-
-Generated model for LanduseDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## LanduseLine
 
@@ -848,36 +346,10 @@ Generated model for LanduseLine.
 | type | string | yes | required |  |  | enum: 'cemetery', 'cycle_track', 'dog_track', 'golf_course', 'gravel_pit', 'horse_track', 'landfill', 'mine', 'orchard', 'pumice_pit', 'quarry', 'racetrack', 'rifle_range', 'showground', 'sportsfield', 'vineyard', 'vehicle_track' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'training', 'opencast', 'underground' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[LanduseLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landuse' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LanduseLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LanduseLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LanduseLineDataSource
-
-Generated model for LanduseLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## LandusePoint
 
@@ -894,36 +366,10 @@ Generated model for LandusePoint.
 | status | Optional[string] | yes | required |  |  | enum: 'dangerous', 'disused', 'old' |
 | name | Optional[string] | yes | required |  |  |  |
 | substance_extracted | Optional[string] | yes | required |  |  | enum: 'bentonite', 'clay', 'coal', 'gold', 'gravel', 'ironsand', 'lime', 'limestone', 'metal', 'quartz', 'scheelite', 'shingle', 'silica_sand', 'silver', 'stone', 'zeolite' |
-| metadata | Optional[list[LandusePointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landuse' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[LandusePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## LandusePointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## LandusePointDataSource
-
-Generated model for LandusePointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Marine
 
@@ -936,38 +382,12 @@ Generated model for Marine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'mangrove' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'coral', 'limestone', 'pumice', 'rock' |
 | name | Optional[string] | yes | required |  |  |  |
-| composition | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[MarineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[MarineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## MarineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## MarineDataSource
-
-Generated model for MarineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## MarinePoint
 
@@ -980,37 +400,12 @@ Generated model for MarinePoint.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'rock' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'coral', 'limestone', 'pumice', 'rock' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[MarinePointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[MarinePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## MarinePointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## MarinePointDataSource
-
-Generated model for MarinePointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Nztopo50CartoText
 
@@ -1044,18 +439,24 @@ Generated model for Nztopo50CartoText.
 | charplace | Optional[string] | yes | required |  |  | enum: '', 'CharactersAtVertices', 'StretchCharacterSpacingToFit', 'StretchWordSpacingToFit' |
 | chardistance | Optional[number] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[Nztopo50CartoTextBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## Nztopo50CartoTextBBox
+## Nztopo50CoastlineIsland
 
-GeoParquet 1.1 covering bbox struct.
+Derived polygon Union of coastline and island
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  | enum: 'coastline' |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| group_name | Optional[string] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Nztopo50DmsGrid
 
@@ -1068,18 +469,7 @@ Generated model for Nztopo50DmsGrid.
 | direction | string | yes | required |  |  | enum: 'x', 'y' |
 | value | number | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[Nztopo50DmsGridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## Nztopo50DmsGridBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Nztopo50Grid
 
@@ -1092,18 +482,29 @@ Generated model for Nztopo50Grid.
 | direction | string | yes | required |  |  | enum: 'x', 'y' |
 | value | number | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[Nztopo50GridBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## Nztopo50GridBBox
+## Nztopo50IceContour
 
-GeoParquet 1.1 covering bbox struct.
+Generated model for Nztopo50IceContour.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| type | string | yes | required |  |  | enum: 'contour_ice' |
+| elevation | Optional[integer] | yes | required |  |  |  |
+| definition | Optional[string] | yes | required |  |  |  |
+| designation | Optional[string] | yes | required |  |  | enum: 'supplementary' |
+| formation | Optional[string] | yes | required |  |  | enum: 'depression' |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| contour_id | string | yes | required |  | UUID for the intersecting contour feature. |  |
+| landcover_id | string | yes | required |  | UUID for the intersecting landcover feature. |  |
+| metadata | Optional[string] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Nztopo50MapSheet
 
@@ -1123,18 +524,42 @@ Generated model for Nztopo50MapSheet.
 | published_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[Nztopo50MapSheetBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## Nztopo50MapSheetBBox
+## Nztopo50RockLine
 
-GeoParquet 1.1 covering bbox struct.
+Generated model for Nztopo50RockLine.
 
 | Field | Type | Required | Default | Max Length | Description | Extra |
 | --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
+| id | string | yes | required |  | UUIDv7 of the feature |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
+| t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
+| marine_id | string | yes | required |  | UUID of the source `marine` rock polygon this boundary line was derived from. |  |
+| type | string | yes | required |  |  | enum: 'rock' |
+| name | Optional[string] | yes | required |  |  |  |
+| sub_type | Optional[string] | yes | required |  |  | enum: 'coral', 'limestone', 'pumice', 'rock' |
+| metadata | Optional[string] | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+
+## Nztopo50SeaPolygon
+
+Derived sea (moana) polygons for the water layer.
+
+The land polygons (coastline and island) are inverted and sliced by Web
+Mercator quadkey tiles so no single large polygon exists.
+
+| Field | Type | Required | Default | Max Length | Description | Extra |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | string | yes | required |  |  |  |
+| type | string | yes | required |  |  | enum: 'moana' |
+| quadkey | string | yes | required |  | Web Mercator quadkey of the tile this sea polygon was sliced to. |  |
+| created_at | datetime | yes | required |  |  |  |
+| updated_at | datetime | yes | required |  |  |  |
+| geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## PlacePoint
 
@@ -1146,46 +571,18 @@ Generated model for PlacePoint.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  | enum: 'cave', 'cemetery', 'grave', 'historic_site', 'mine', 'monument', 'pa' |
-| subtype | Optional[string] | yes | required |  |  | enum: 'opencast', 'underground' |
+| type | string | yes | required |  |  | enum: 'cave', 'grave', 'historic_site', 'monument', 'pa' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'coral', 'limestone', 'pumice', 'rock' |
 | name | Optional[string] | yes | required |  |  |  |
-| composition | Optional[string] | yes | required |  |  | enum: 'limestone', 'pumice', 'coral' |
-| description | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[PlacePointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landuse' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[PlacePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## PlacePointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## PlacePointDataSource
-
-Generated model for PlacePointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## RailwayLine
 
-All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps. 
-Where a railway line is located close to a road, the line held in the data and shown on the printed map 
+All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps.
+Where a railway line is located close to a road, the line held in the data and shown on the printed map
 may be offset from the road sufficient that the two symbols are recognisable at 1:50,000.
 
 Multiple sidings may be held in the data and shown on the printed maps as a single feature
@@ -1202,36 +599,10 @@ Multiple sidings may be held in the data and shown on the printed maps as a sing
 | vehicle_type | Optional[string] | yes | required |  |  | enum: 'train', 'tram', 'rail_cart', 'cablecar' |
 | status | Optional[string] | yes | required |  |  | enum: 'disused' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[RailwayLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[RailwayLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## RailwayLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## RailwayLineDataSource
-
-Generated model for RailwayLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## RailwayPoint
 
@@ -1245,36 +616,10 @@ Generated model for RailwayPoint.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'station' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[RailwayPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[RailwayPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## RailwayPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## RailwayPointDataSource
-
-Generated model for RailwayPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Relief
 
@@ -1289,36 +634,10 @@ Generated model for Relief.
 | type | string | yes | required |  |  | enum: 'waterfall' |
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[ReliefDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[ReliefBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## ReliefBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## ReliefDataSource
-
-Generated model for ReliefDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## ReliefLine
 
@@ -1334,36 +653,10 @@ Generated model for ReliefLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'causeway', 'stopbank' |
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[ReliefLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[ReliefLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## ReliefLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## ReliefLineDataSource
-
-Generated model for ReliefLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## ReliefPoint
 
@@ -1380,36 +673,10 @@ Generated model for ReliefPoint.
 | elevation | Optional[integer] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[ReliefPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[ReliefPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## ReliefPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## ReliefPointDataSource
-
-Generated model for ReliefPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## ResidentialArea
 
@@ -1423,36 +690,10 @@ Generated model for ResidentialArea.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'residential_area' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[ResidentialAreaDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landuse' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[ResidentialAreaBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## ResidentialAreaBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## ResidentialAreaDataSource
-
-Generated model for ResidentialAreaDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## RoadLine
 
@@ -1474,36 +715,10 @@ Generated model for RoadLine.
 | way_count | Optional[string] | yes | required |  |  | enum: 'one_way' |
 | width_indicator | Optional[string] | yes | required |  |  | enum: 'w' |
 | road_access | Optional[string] | yes | required |  |  | enum: 'mp' |
-| metadata | Optional[list[RoadLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[RoadLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## RoadLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## RoadLineDataSource
-
-Generated model for RoadLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## RockOutcrop
 
@@ -1516,37 +731,14 @@ Generated model for RockOutcrop.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'rock_outcrop' |
+| orientation | number | yes | required |  |  |  |
+| elevation | integer | yes | required |  |  |  |
 | subtype | string | yes | required |  |  | enum: 'small_rock_outcrop', 'large_rock_outcrop', 'large_boulder' |
-| metadata | Optional[list[RockOutcropDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| name | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[RockOutcropBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## RockOutcropBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## RockOutcropDataSource
-
-Generated model for RockOutcropDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Runway
 
@@ -1562,36 +754,10 @@ Generated model for Runway.
 | subtype | Optional[string] | yes | required |  |  | enum: 'aerodrome', 'airport', 'airstrip' |
 | status | Optional[string] | yes | required |  |  | enum: 'disused' |
 | surface | Optional[string] | yes | required |  |  | enum: 'grass', 'sealed' |
-| metadata | Optional[list[RunwayDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[RunwayBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## RunwayBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## RunwayDataSource
-
-Generated model for RunwayDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Structure
 
@@ -1610,36 +776,10 @@ Generated model for Structure.
 | species | Optional[string] | yes | required |  |  | enum: 'mussels', 'salmon' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[StructureDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'structures' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[StructureBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## StructureBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## StructureDataSource
-
-Generated model for StructureDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## StructureLine
 
@@ -1656,36 +796,10 @@ Generated model for StructureLine.
 | species | Optional[string] | yes | required |  |  | enum: 'mussels', 'salmon' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed', 'dangerous', 'derelict', 'disused', 'historic', 'locked', 'old', 'private', 'remains', 'ruins', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[StructureLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'structures' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[StructureLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## StructureLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## StructureLineDataSource
-
-Generated model for StructureLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## StructurePoint
 
@@ -1704,36 +818,10 @@ Generated model for StructurePoint.
 | name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[StructurePointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'structures' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[StructurePointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## StructurePointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## StructurePointDataSource
-
-Generated model for StructurePointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## TrackLine
 
@@ -1750,36 +838,10 @@ Generated model for TrackLine.
 | track_type | Optional[string] | yes | required |  |  | enum: 'connector', 'multiple', 'route', 'single' |
 | status | Optional[string] | yes | required |  |  | enum: 'closed' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[TrackLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[TrackLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## TrackLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## TrackLineDataSource
-
-Generated model for TrackLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## TransportPoint
 
@@ -1793,36 +855,10 @@ Generated model for TransportPoint.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'ford' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[TransportPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[TransportPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## TransportPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## TransportPointDataSource
-
-Generated model for TransportPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## TrigPoint
 
@@ -1839,36 +875,10 @@ Generated model for TrigPoint.
 | name | Optional[string] | yes | required |  |  |  |
 | code | Optional[string] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
-| metadata | Optional[list[TrigPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'relief' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[TrigPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## TrigPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## TrigPointDataSource
-
-Generated model for TrigPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## TunnelLine
 
@@ -1880,42 +890,15 @@ Generated model for TunnelLine.
 | created_at | datetime | yes | required |  |  |  |
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
-| type | string | yes | required |  |  | enum: 'tunnel' |
-| tunnel_use | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
-| tunnel_use2 | Optional[string] | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
-| subtype | Optional[string] | yes | required |  |  | enum: 'natural' |
-| status | Optional[string] | yes | required |  |  | enum: 'under_construction', 'closed' |
+| type | string | yes | required |  |  | enum: 'cablecar', 'foot_traffic', 'livestock', 'river', 'train', 'tram', 'vehicle' |
+| subtype | Optional[string] | yes | required |  |  | enum: 'livestock' |
+| construction_type | Optional[string] | yes | required |  |  | enum: 'natural', 'manmade' |
+| status | Optional[string] | yes | required |  |  | enum: 'closed', 'historic', 'disused', 'derelict', 'under_construction' |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[TunnelLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'transport' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[TunnelLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## TunnelLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## TunnelLineDataSource
-
-Generated model for TunnelLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## UtilityLine
 
@@ -1931,38 +914,11 @@ Generated model for UtilityLine.
 | subtype | Optional[string] | yes | required |  |  | enum: 'ironsand', 'sewage', 'steam', 'water' |
 | support_type | Optional[string] | yes | required |  |  | enum: 'pole', 'pylon' |
 | status | Optional[string] | yes | required |  |  |  |
-| name | Optional[string] | yes | required |  |  |  |
 | visibility | Optional[string] | yes | required |  |  | enum: 'underground' |
-| metadata | Optional[list[UtilityLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'utility' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[UtilityLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## UtilityLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## UtilityLineDataSource
-
-Generated model for UtilityLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## UtilityPoint
 
@@ -1975,38 +931,11 @@ Generated model for UtilityPoint.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'gas_valve', 'geo_bore', 'pylon' |
-| name | Optional[string] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
-| metadata | Optional[list[UtilityPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'utility' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[UtilityPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## UtilityPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## UtilityPointDataSource
-
-Generated model for UtilityPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Vegetation
 
@@ -2020,37 +949,10 @@ Generated model for Vegetation.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'exotic' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'coniferous', 'non-coniferous' |
-| species | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[VegetationDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[VegetationBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## VegetationBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## VegetationDataSource
-
-Generated model for VegetationDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## VegetationLine
 
@@ -2063,36 +965,10 @@ Generated model for VegetationLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'shelter_belt' |
-| metadata | Optional[list[VegetationLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[VegetationLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## VegetationLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## VegetationLineDataSource
-
-Generated model for VegetationLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## VegetationPoint
 
@@ -2105,36 +981,10 @@ Generated model for VegetationPoint.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'tree' |
-| metadata | Optional[list[VegetationPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[VegetationPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## VegetationPointBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## VegetationPointDataSource
-
-Generated model for VegetationPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## Water
 
@@ -2148,43 +998,16 @@ Generated model for Water.
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
 | subtype | Optional[string] | yes | required |  |  | enum: 'evaporation', 'hydro_electric', 'ice_skating', 'oil', 'oxidation', 'reservoir', 'settling', 'sewage', 'sewage_treatment', 'sludge' |
-| hierarchy | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
 | group_name | Optional[string] | yes | required |  |  |  |
 | height | Optional[number] | yes | required |  |  |  |
 | elevation | Optional[integer] | yes | required |  |  |  |
 | perennial | Optional[string] | yes | required |  |  | enum: 'dry', 'seasonal' |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
-| metadata | Optional[list[WaterDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[WaterBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## WaterBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## WaterDataSource
-
-Generated model for WaterDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## WaterLine
 
@@ -2197,38 +1020,11 @@ Generated model for WaterLine.
 | updated_at | datetime | yes | required |  |  |  |
 | t50_fid | Optional[integer] | yes | required |  | Reference topo50 feature ID.  Will be null if the feature is new and has not been published in a Topo50 edition. |  |
 | type | string | yes | required |  |  | enum: 'canal', 'drain', 'lagoon', 'lake', 'pond', 'river', 'soakhole', 'spring', 'waterfall' |
-| hierarchy | Optional[string] | yes | required |  |  |  |
 | name | Optional[string] | yes | required |  |  |  |
-| metadata | Optional[list[WaterLineDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[WaterLineBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
-
-## WaterLineBBox
-
-GeoParquet 1.1 covering bbox struct.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| xmin | number | yes | required |  |  |  |
-| ymin | number | yes | required |  |  |  |
-| xmax | number | yes | required |  |  |  |
-| ymax | number | yes | required |  |  |  |
-
-## WaterLineDataSource
-
-Generated model for WaterLineDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
 ## WaterPoint
 
@@ -2245,12 +1041,12 @@ Generated model for WaterPoint.
 | height | Optional[number] | yes | required |  |  |  |
 | orientation | Optional[number] | yes | required |  |  |  |
 | temperature_indicator | Optional[string] | yes | required |  |  | enum: 'cold', 'hot' |
-| metadata | Optional[list[WaterPointDataSource]] | yes | required |  |  |  |
-| theme | Optional[string] | yes | required |  |  |  |
+| theme | string | yes | required |  |  | enum: 'landcover' |
+| metadata | Optional[string] | yes | required |  |  |  |
 | geometry | unknown | yes | required |  | GeoParquet 1.1 covering geometry struct. |  |
-| bbox | Optional[WaterPointBBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
+| bbox | Optional[BBox] | no | None |  | GeoParquet 1.1 covering bbox struct. |  |
 
-## WaterPointBBox
+## BBox
 
 GeoParquet 1.1 covering bbox struct.
 
@@ -2260,18 +1056,3 @@ GeoParquet 1.1 covering bbox struct.
 | ymin | number | yes | required |  |  |  |
 | xmax | number | yes | required |  |  |  |
 | ymax | number | yes | required |  |  |  |
-
-## WaterPointDataSource
-
-Generated model for WaterPointDataSource.
-
-| Field | Type | Required | Default | Max Length | Description | Extra |
-| --- | --- | --- | --- | --- | --- | --- |
-| table_column | string | yes | required |  | Name of the column in this table where the linked data gets copied to |  |
-| source | string | yes | required |  | Registered source for linked data | enum: 'nzgb_gazetteer', 'linz_aims' |
-| source_key_name | string | yes | required |  | Name of the key column in source to use for linking |  |
-| source_key_value | integer \| string | yes | required |  | Value of the key column in source to use for linking. |  |
-| source_table | string | yes | required |  | Name of the table in source that contains the linked data |  |
-| source_column | string | yes | required |  | Name of the column in the source where the linked data gets copied from |  |
-| source_updated_at | datetime | yes | required |  | Timestamp when the source was last updated |  |
-| imported_at | datetime | yes | required |  | Timestamp when this linked data was last imported |  |

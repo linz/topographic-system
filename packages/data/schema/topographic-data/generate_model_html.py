@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import html
 import importlib.util
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -153,7 +154,7 @@ def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[st
         if not isinstance(property_schema, dict):
             continue
 
-        field_type = _json_type_to_text(property_schema)
+        field_type = re.sub(r'\w+BBox', 'BBox', _json_type_to_text(property_schema))
         required_text = "yes" if field_name in required else "no"
 
         if field_name in required:
@@ -276,13 +277,21 @@ def build_html(models_file: Path, output_file: Path) -> None:
     models_by_title = _load_models_by_title(module)
     _rebuild_models(models_by_title, module)
 
-    model_items = sorted(models_by_title.items(), key=lambda item: item[0])
+    all_items = sorted(models_by_title.items(), key=lambda item: item[0])
+    non_bbox_items = [(name, cls) for name, cls in all_items if not name.endswith("BBox")]
+    bbox_models = [(name, cls) for name, cls in all_items if name.endswith("BBox")]
+
+    model_items = non_bbox_items
     toc_items = [
         f'<li><a href="#{html.escape(name)}">{html.escape(name)}</a></li>'
-        for name, _ in model_items
+        for name, _ in non_bbox_items
     ]
+    if bbox_models:
+        toc_items.append('<li><a href="#BBox">BBox</a></li>')
 
-    sections = [_render_model_section(name, model_class) for name, model_class in model_items]
+    sections = [_render_model_section(name, model_class) for name, model_class in non_bbox_items]
+    if bbox_models:
+        sections.append(_render_model_section("BBox", bbox_models[0][1]))
 
     page = f"""<!doctype html>
 <html lang=\"en\">
@@ -389,7 +398,7 @@ def build_html(models_file: Path, output_file: Path) -> None:
   <div class=\"wrap\">
     <header>
       <h1>Topographic Data Models</h1>
-      <p class=\"meta\">Total models: {len(model_items)}</p>
+      <p class="meta">Total models: {len(non_bbox_items) + (1 if bbox_models else 0)}</p>
     </header>
     <nav>
       <h2>Models</h2>
@@ -409,18 +418,26 @@ def build_markdown(models_file: Path, output_file: Path) -> None:
     models_by_title = _load_models_by_title(module)
     _rebuild_models(models_by_title, module)
 
-    model_items = sorted(models_by_title.items(), key=lambda item: item[0])
-    toc_items = [f"- [{name}](#{name.lower()})" for name, _ in model_items]
+    all_items = sorted(models_by_title.items(), key=lambda item: item[0])
+    non_bbox_items = [(name, cls) for name, cls in all_items if not name.endswith("BBox")]
+    bbox_models = [(name, cls) for name, cls in all_items if name.endswith("BBox")]
+
+    model_items = non_bbox_items
+    toc_items = [f"- [{name}](#{name.lower()})" for name, _ in non_bbox_items]
+    if bbox_models:
+        toc_items.append("- [BBox](#bbox)")
     sections = [
         _render_model_markdown_section(name, model_class)
-        for name, model_class in model_items
+        for name, model_class in non_bbox_items
     ]
+    if bbox_models:
+        sections.append(_render_model_markdown_section("BBox", bbox_models[0][1]))
 
     page = "\n".join(
         [
             "# Topographic Data Models",
             "",
-            f"Total models: {len(model_items)}",
+            f"Total models: {len(non_bbox_items) + (1 if bbox_models else 0)}",
             "",
             "## Models",
             "",

@@ -39,7 +39,7 @@ model/metadata_source/diagrams
 
 ## Order to create source metadata information:
 
-> **1: create_schema_feature_themes.py** - process the layers_info to create a summary of table,theme,feature_type -> model/schema_features_theme.csv
+> **1: create_schema_feature_themes.py** - process the layers_info to create a summary of table,theme,feature_type -> model/metadata_source/schema_features_theme.csv
 
 > **2: create_model_diagrams.py** -> create schema picture png files. It uses the GKPS data source - for example data to model in c:\data\topoedit\topographic-data\topographic-data.gpkg
 
