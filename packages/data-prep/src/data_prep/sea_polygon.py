@@ -12,7 +12,8 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import geopandas as gpd
@@ -79,7 +80,7 @@ def land_to_sea_tiles(land_gdf: gpd.GeoDataFrame, zoom: int) -> gpd.GeoDataFrame
 
 
 def set_derived_identity(
-    sea_gdf: gpd.GeoDataFrame, zoom: int, source_created_at: date, produced_at: date
+    sea_gdf: gpd.GeoDataFrame, zoom: int, source_created_at: datetime, produced_at: datetime
 ) -> gpd.GeoDataFrame:
     """Assign the quadkey, a reproducible id and timestamps to each sea polygon.
 
@@ -104,15 +105,15 @@ def set_derived_identity(
         for quadkey, part in zip(result["quadkey"], part_index, strict=True)
     ]
     result["type"] = "moana"
-    result["created_at"] = source_created_at
-    result["updated_at"] = produced_at
+    result["created_at"] = source_created_at.isoformat()
+    result["updated_at"] = produced_at.isoformat()
     return result
 
 
 def run(coastline_path: Path, output_path: Path, zoom: int = SLICE_ZOOM) -> None:
     land_gdf = read_and_project(coastline_path, target_crs=NZGD2000)
 
-    produced_at = date.today()
+    produced_at = datetime.now(ZoneInfo("Pacific/Auckland"))
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(land_gdf)
 

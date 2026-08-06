@@ -7,7 +7,8 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import geopandas as gpd
@@ -27,7 +28,6 @@ OUTPUT_COLUMNS = [
     "id",
     "t50_fid",
     "type",
-    "coastline_type",
     "elevation",
     "name",
     "group_name",
@@ -64,7 +64,7 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> 
     return gpd.GeoSeries(polygons, crs=coastline_gdf.crs)
 
 
-def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: date, produced_at: date) -> gpd.GeoDataFrame:
+def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: datetime, produced_at: datetime) -> gpd.GeoDataFrame:
     """Assign a reproducible uuid for id and timestamps to combined polygons.
 
     The UUIDv7 timestamp and ``created_at`` come from the earliest source
@@ -77,8 +77,8 @@ def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: date, pr
     # Derive a reproducible UUIDv7 from the source timestamp and the name.
     result["id"] = [str(reproducible_uuid7(timestamp_ms, name)) for name in result["name"]]
     result["t50_fid"] = None
-    result["created_at"] = source_created_at
-    result["updated_at"] = produced_at
+    result["created_at"] = source_created_at.isoformat()
+    result["updated_at"] = produced_at.isoformat()
     return result
 
 
@@ -104,7 +104,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     coastline_gdf = read_and_project(coastline_path)
     island_gdf = read_and_project(island_path)
 
-    produced_at = date.today()
+    produced_at = datetime.now(ZoneInfo("Pacific/Auckland"))
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(coastline_gdf)
 

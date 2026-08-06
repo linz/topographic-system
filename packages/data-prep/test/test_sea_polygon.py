@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -12,7 +11,7 @@ LAND_POLYGON = box(174.7, -41.4, 174.9, -41.2)
 def run_sea_polygon(tmp_path: Path, land_polygons, zoom: int = SLICE_ZOOM) -> gpd.GeoDataFrame:
     tmp_path.mkdir(parents=True, exist_ok=True)
     land_gdf = gpd.GeoDataFrame(
-        {"created_at": [date(2020, 1, 1)] * len(land_polygons), "geometry": land_polygons},
+        {"created_at": ["2020-01-01"] * len(land_polygons), "geometry": land_polygons},
         crs=NZGD2000,
     )
     land_path = tmp_path / "land.parquet"
