@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 
-import { lint, LintRuleDataSources, LintRuleFontFamily, LintRuleSvgFills } from '../action.lint.qgis.ts';
+import { lint, LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath } from '../action.lint.qgis.ts';
 
 describe('action.lint.qgis', () => {
   const ctx = { qgisPath: new URL(import.meta.url) };
@@ -132,7 +132,7 @@ describe('action.lint.qgis', () => {
     });
   });
 
-  describe('lintSvgFills', () => {
+  describe('lintSvgPaths', () => {
     it('should pass when SVG file exists', async () => {
       const mem = new FsMemory();
       fsa.register('memory://', mem);
@@ -146,7 +146,7 @@ describe('action.lint.qgis', () => {
         },
       };
 
-      const errors = await lint(node, [LintRuleSvgFills], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
+      const errors = await lint(node, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
       assert.deepStrictEqual(errors, []);
     });
 
@@ -162,8 +162,8 @@ describe('action.lint.qgis', () => {
         },
       };
 
-      const errors = await lint(node, [LintRuleSvgFills], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
-      assert.deepStrictEqual(errors, [{ name: 'svg-fill', error: 'SVG Fill file does not exist: ./svg/missing.svg' }]);
+      const errors = await lint(node, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
+      assert.deepStrictEqual(errors, [{ name: 'svg-path', error: 'SvgFill file does not exist: "./svg/missing.svg"' }]);
     });
 
     it('should pass for base64 embedded SVG fill', async () => {
@@ -175,7 +175,7 @@ describe('action.lint.qgis', () => {
         },
       };
 
-      const errors = await lint(node, [LintRuleSvgFills], ctx);
+      const errors = await lint(node, [LintRuleSvgPath], ctx);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -188,9 +188,9 @@ describe('action.lint.qgis', () => {
         prop: [{ '@_k': 'svgFile', '@_v': './svg/missing_prop.svg' }],
       };
 
-      const errors = await lint(node, [LintRuleSvgFills], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
+      const errors = await lint(node, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
       assert.deepStrictEqual(errors, [
-        { name: 'svg-fill', error: 'SVG Fill file does not exist: ./svg/missing_prop.svg' },
+        { name: 'svg-path', error: 'SvgFill file does not exist: "./svg/missing_prop.svg"' },
       ]);
     });
 
@@ -202,7 +202,7 @@ describe('action.lint.qgis', () => {
         },
       };
 
-      const errors = await lint(node, [LintRuleSvgFills], ctx);
+      const errors = await lint(node, [LintRuleSvgPath], ctx);
       assert.deepStrictEqual(errors, []);
     });
 
@@ -211,17 +211,35 @@ describe('action.lint.qgis', () => {
       fsa.register('memory://', mem);
 
       const layer1 = {
-        '@_class': 'SvgFill',
+        '@_class': 'SVGFill',
         Option: { Option: [{ '@_name': 'svgFile', '@_value': './svg/missing.svg' }] },
       };
       const layer2 = {
-        '@_class': 'SvgFill',
+        '@_class': 'SVGFill',
         Option: { Option: [{ '@_name': 'svgFile', '@_value': './svg/missing.svg' }] },
       };
 
       const xml = { qgis: { layers: [layer1, layer2] } };
-      const errors = await lint(xml, [LintRuleSvgFills], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
-      assert.deepStrictEqual(errors, [{ name: 'svg-fill', error: 'SVG Fill file does not exist: ./svg/missing.svg' }]);
+      const errors = await lint(xml, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
+      assert.deepStrictEqual(errors, [{ name: 'svg-path', error: 'SVGFill file does not exist: "./svg/missing.svg"' }]);
+    });
+
+    it('should error when SvgMarker SVG file does not exist', async () => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const node = {
+        '@_class': 'SvgMarker',
+        Option: {
+          '@_type': 'Map',
+          Option: [{ '@_name': 'name', '@_type': 'QString', '@_value': './svg/missing_marker.svg' }],
+        },
+      };
+
+      const errors = await lint(node, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
+      assert.deepStrictEqual(errors, [
+        { name: 'svg-path', error: 'SvgMarker file does not exist: "./svg/missing_marker.svg"' },
+      ]);
     });
   });
 });

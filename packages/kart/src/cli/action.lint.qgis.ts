@@ -115,7 +115,7 @@ export async function doLint(
 export const LintRuleFontFamily: LintRuleContext = {
   name: 'font-families',
   rule(node) {
-    const fontFamily = node['@_fontFamily'] as string | undefined;
+    const fontFamily = X.string(node, '@_fontFamily');
     if (fontFamily == null) return null;
 
     const fontConfig = AllowedFonts[fontFamily];
@@ -126,7 +126,7 @@ export const LintRuleFontFamily: LintRuleContext = {
     if (fontConfig === true) return null; // All styles of this font are allowed
 
     // Default "" and null to "default"
-    const fontStyle = (node['@_namedStyle'] || 'default') as string;
+    const fontStyle = X.string(node, '@_namedStyle') || 'default';
     if (fontConfig.has(fontStyle)) return null; // This style of the font is allowed
     return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
   },
@@ -140,10 +140,9 @@ export const LintRuleFontFamily: LintRuleContext = {
 export const LintRuleDataSources: LintRuleContext = {
   name: 'data-sources',
   rule(node) {
-    const dataSource = node['datasource'] as string | undefined;
-    if (dataSource == null || dataSource === '') return null;
-    const provider = node['provider'] as string | undefined;
-    if (provider == null) return null;
+    const dataSource = X.string(node, 'datasource');
+    if (dataSource == null || dataSource.trim() === '') return null;
+    const provider = X.string(node, 'provider');
     if (provider !== 'ogr') return null;
 
     if (!(dataSource.startsWith('./') || dataSource.startsWith('../'))) {
@@ -154,54 +153,48 @@ export const LintRuleDataSources: LintRuleContext = {
   },
 };
 /**
- * Helper to recursively extract SVG file paths from an SvgFill symbol layer node.
+ * Helper to recursively extract SVG file paths from an SVGFill | SvgMarker symbol layer node.
  */
-export function findSvgPaths(node: Record<string, unknown>): Set<string> {
-  const paths: Set<string> = new Set();
+export function findSvgPaths(obj: Record<string, unknown>, paths = new Set<string>()): Set<string> {
+  if (obj == null || typeof obj !== 'object') return paths;
 
-  function find(obj: unknown): void {
-    if (obj == null || typeof obj !== 'object') return;
-
-    if (Array.isArray(obj)) {
-      for (const item of obj) find(item);
-      return;
-    }
-
-    const rec = obj as Record<string, unknown>;
-    if (rec !== node && typeof rec['@_class'] === 'string') return;
-
-    const key = (rec['@_name'] ?? rec['@_k']) as string | undefined;
-    const val = (rec['@_value'] ?? rec['@_v']) as string | undefined;
-    if (typeof key === 'string' && typeof val === 'string' && val.trim() !== '') {
-      const k = key.toLowerCase();
-      const v = val.trim();
-      if (k === 'svgfile' || k === 'svg_path' || k === 'file' || (k === 'name' && v.endsWith('.svg'))) {
-        paths.add(v);
-      }
-    }
-
-    for (const value of Object.values(rec)) {
-      if (value != null && typeof value === 'object') {
-        find(value);
-      }
-    }
+  if (Array.isArray(obj)) {
+    for (const item of obj) findSvgPaths(item, paths);
+    return paths;
   }
 
-  find(node);
+  const rec = obj as Record<string, unknown>;
+  for (const value of Object.values(rec)) {
+    if (value == null) continue;
+    if (typeof value === 'object') findSvgPaths(value as Record<string, unknown>, paths);
+    if (typeof value === 'string') {
+      if (value.endsWith('.svg')) paths.add(value);
+    }
+  }
   return paths;
 }
+
+/** Xml helper utils */
+const X = {
+  /** Attempt to read a string value from the xml  */
+  string(node: Record<string, unknown>, key: string): string | undefined {
+    const value = node[key];
+    if (typeof value === 'string') return value;
+    return undefined;
+  },
+};
 
 /**
  * Ensure all SVG file paths referenced in SVG Fills exist.
  * @param node
  * @param context
  */
-// export async function lintSvgFills
-export const LintRuleSvgFills: LintRuleContext = {
-  name: 'svg-fill',
+export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
+  name: 'svg-path',
+  classes: new Set(['svgfill', 'svgmarker']),
   async rule(node, context) {
-    const className = node['@_class'] as string | undefined;
-    if (typeof className !== 'string' || className.toLowerCase() !== 'svgfill') return null;
+    const className = X.string(node, '@_class') ?? '';
+    if (!this.classes.has(className?.toLowerCase())) return null;
 
     const svgPaths = findSvgPaths(node);
     if (svgPaths.size === 0) return null;
@@ -211,15 +204,14 @@ export const LintRuleSvgFills: LintRuleContext = {
       if (svgPath.startsWith('base64:')) continue;
 
       const targetUrl = new URL(svgPath, context.qgisPath);
-
       const exists = await fsa.exists(targetUrl);
       if (!exists) missingFiles.push(svgPath);
     }
 
-    if (missingFiles.length > 0) return `SVG Fill file does not exist: ${missingFiles.join(', ')}`;
+    if (missingFiles.length > 0) return `${className} file does not exist: "${missingFiles.join(', ')}"`;
 
     return null;
   },
 };
 
-export const LintRules: LintRuleContext[] = [LintRuleDataSources, LintRuleFontFamily, LintRuleSvgFills];
+export const LintRules: LintRuleContext[] = [LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath];
