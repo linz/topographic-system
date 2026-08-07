@@ -5,7 +5,7 @@ import { coastlinePolygon } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const coastlinePolygonName = 'nztopo50_coastline_island';
-const coastlinePolygonSchema = new URL('file:///schema/coastline_polygon.json');
+const coastlinePolygonSchema = new URL('file:///schema/nztopo50_coastline_island.json');
 
 export const CoastlinePolygonArgs = {
   ...DataPrepareArgs,

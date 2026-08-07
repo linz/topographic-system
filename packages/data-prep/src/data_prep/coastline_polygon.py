@@ -64,7 +64,9 @@ def coastline_to_polygons(coastline_gdf: gpd.GeoDataFrame, tolerance: float) -> 
     return gpd.GeoSeries(polygons, crs=coastline_gdf.crs)
 
 
-def set_derived_identity(land_gdf: gpd.GeoDataFrame, source_created_at: datetime, produced_at: datetime) -> gpd.GeoDataFrame:
+def set_derived_identity(
+    land_gdf: gpd.GeoDataFrame, source_created_at: datetime, produced_at: datetime
+) -> gpd.GeoDataFrame:
     """Assign a reproducible uuid for id and timestamps to combined polygons.
 
     The UUIDv7 timestamp and ``created_at`` come from the earliest source
