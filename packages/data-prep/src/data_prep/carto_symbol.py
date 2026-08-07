@@ -5,6 +5,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import numpy
+import pandas as pd
 import shapely
 
 from data_prep.parquet_utils import read_and_project, write_parquet
@@ -28,7 +29,7 @@ def chop(gdf: gpd.GeoDataFrame, stride: int = 64) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(attrs, geometry=pieces, crs=gdf.crs)
 
 
-def run(input_path: Path, contour_path: Path, output_path: Path) -> None:
+def add_contour_numbers(input_path: Path, contour_path: Path) -> gpd.GeoDataFrame:
     contour_number_gdf = gpd.read_file(input_path, layer="contour_number")
     contour_number_gdf["orientation"] = (
         numpy.round(numpy.degrees(contour_number_gdf["orientation"].astype("float64"))).astype("int32") % 360
@@ -45,6 +46,20 @@ def run(input_path: Path, contour_path: Path, output_path: Path) -> None:
     )
     output_gdf["label"] = output_gdf["label"].astype("Int64").astype("string")
     output_gdf["type"] = "contour_number"
+
+    return output_gdf
+
+
+def run(input_path: Path, contour_path: Path, output_path: Path) -> None:
+    contour_number_gdf = add_contour_numbers(input_path, contour_path)
+
+    golf_sym_gdf = gpd.read_file(input_path, layer="golf_sym")
+    golf_sym_gdf["type"] = "golf_course"
+
+    mine_sym_gdf = gpd.read_file(input_path, layer="mine_sym")
+    mine_sym_gdf.rename(columns={"mine_vis": "type"})
+
+    output_gdf = gpd.GeoDataFrame(pd.concat([contour_number_gdf, golf_sym_gdf, mine_sym_gdf], ignore_index=True))
 
     write_parquet(output_gdf, output_path)
 
