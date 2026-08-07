@@ -79,8 +79,8 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
 
     contour_gdf = read_nzgd2000(
         contour_path,
-        columns=["topo_id", "elevation", "definition", "designation", "formation", primary_geom_column(contour_path)],
-    ).rename(columns={"topo_id": "contour_id"})
+        columns=["id", "elevation", "definition", "designation", "formation", primary_geom_column(contour_path)],
+    ).rename(columns={"id": "contour_id"})
 
     _landcover_gdf = read_nzgd2000(
         landcover_path,

@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -14,7 +13,7 @@ def result(tmp_path: Path):
 
     contour_gdf = gpd.GeoDataFrame(
         {
-            "topo_id": [1],
+            "id": [1],
             "elevation": [100],
             "definition": [None],
             "designation": [None],
@@ -28,8 +27,8 @@ def result(tmp_path: Path):
         {
             "id": [10],
             "type": ["ice"],
-            "created_at": [date(2025, 1, 2)],
-            "updated_at": [date(2025, 6, 15)],
+            "created_at": ["2025-01-02"],
+            "updated_at": ["2025-06-15"],
             "geometry": [poly2],
         },
         crs=NZGD2000,
@@ -53,4 +52,4 @@ def test_geometry_is_intersection(result):
 
 
 def test_updated_at_takes_landcover(result):
-    assert result.iloc[0]["updated_at"] == date(2025, 6, 15)
+    assert result.iloc[0]["updated_at"] == "2025-06-15"
