@@ -33,5 +33,6 @@ def write_parquet(gdf: gpd.GeoDataFrame, output: Path, row_group_size=2**15):
         compression_level=compression_level,
         row_group_size=row_group_size,
         write_covering_bbox=True,
+        index=False,
         schema_version="1.1.0",
     )
