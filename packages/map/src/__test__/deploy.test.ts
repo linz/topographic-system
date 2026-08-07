@@ -1,9 +1,11 @@
 import assert from 'node:assert';
-import { before, describe, it } from 'node:test';
+import { afterEach, before, describe, it } from 'node:test';
+import { zstdDecompressSync } from 'node:zlib';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 import { StacPushCommand } from '@linzjs/topographic-system-stac';
 import type { GeoJSONMultiPolygon, StacCollection, StacItem } from 'stac-ts';
+import tar from 'tar-stream';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
 import { writeBaseLayers } from './util.ts';
@@ -14,6 +16,10 @@ describe('action.deploy', () => {
 
   before(() => {
     fsa.register('memory://', mem);
+  });
+
+  afterEach(() => {
+    mem.files.clear();
   });
 
   it('should deploy a qgs file', async () => {
@@ -124,5 +130,43 @@ describe('action.deploy', () => {
         href: `../../latest/collection.json`,
       },
     );
+  });
+
+  it('should preserve UTF-8 filenames and relative paths when compressing extra assets into tar archive', async () => {
+    const rootCatalog = new URL('memory://source/catalog.json');
+    await writeBaseLayers(rootCatalog);
+
+    const extrasFolder = new URL('memory://source/extras/');
+    await fsa.write(new URL('symbols/pā.svg', new URL('memory://source/topo50maps/')), '<svg>test</svg>');
+    await fsa.write(new URL('pā.svg', extrasFolder), '<svg>test</svg>');
+
+    const targetDeploy = new URL('memory://target/deploy-utf8/');
+    await DeployCommand.handler({
+      concurrency,
+      extras: [extrasFolder],
+      project: [new URL('memory://source/topo50maps/topo50.qgs')],
+      target: targetDeploy,
+      source: rootCatalog,
+    });
+
+    const tarZstBuffer = await fsa.read(new URL('memory://target/deploy-utf8/topo50/topo50.tar.zst'));
+    const tarBuffer = zstdDecompressSync(tarZstBuffer);
+
+    const extract = tar.extract();
+    const filenames: string[] = [];
+
+    extract.on('entry', (header, stream, next) => {
+      filenames.push(header.name);
+      stream.on('end', () => next());
+      stream.resume();
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      extract.on('finish', resolve);
+      extract.on('error', reject);
+      extract.end(tarBuffer);
+    });
+
+    assert.deepEqual(filenames.sort(), ['pā.svg', 'symbols/pā.svg'].sort());
   });
 });
