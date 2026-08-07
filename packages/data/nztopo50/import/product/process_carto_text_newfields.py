@@ -650,7 +650,7 @@ class CartoTextProcessor:
                 if text_colour_number == 9:
                     matching_new_values = matching_new_values[matching_new_values["Colour"] == "black"]
                 elif text_colour_number == 5:
-                    matching_new_values = matching_new_values[matching_new_values["Colour"] == "red"]
+                    matching_new_values = matching_new_values[matching_new_values["Colour"] == "warm_red"]
                 elif text_colour_number == 6:
                     matching_new_values = matching_new_values[
                         matching_new_values["Colour"] == "process_blue"
