@@ -57,8 +57,13 @@ describe('kart.import', async () => {
     const ret = await tsKartImport('uv', 'run', 'snakemake', '--cores', 'all', 'theme_airport');
     assert.ok(ret);
 
+    // The merge is FlatGeobuf, the production default, because GeoJSON carries no column types.
+    // Convert a copy to GeoJSON so the value assertions below can read it as text.
+    const themeDir = 'data/working/theme/release_30';
+    await tsKartImport(`ogr2ogr -f GeoJSON ${themeDir}/airport.e2e.geojson ${themeDir}/airport.fgb`);
+
     const release30Airports = new URL(
-      './packages/kart-import/data/working/theme/release_30/airport.geojson',
+      './packages/kart-import/data/working/theme/release_30/airport.e2e.geojson',
       sourceCodeUrl,
     );
     const airports = JSON.parse(await readFile(release30Airports, 'utf-8')) as FeatureCollectionAirport;
@@ -106,5 +111,30 @@ describe('kart.import', async () => {
       'import airport for release 31',
       'import airport for release 30',
     ]);
+
+    // The types kart recorded are the point of importing FlatGeobuf rather than GeoJSON, so
+    // assert on the repo's own schema rather than on the intermediate that produced it.
+    const retSchema = await tsKartImport(
+      'kart',
+      '-C',
+      '/source/packages/kart-import/data/output/theme/airport/',
+      'meta',
+      'get',
+      'airport',
+      'schema.json',
+      '-o',
+      'json',
+    );
+    const schema = JSON.parse(retSchema.buffer().toString()) as {
+      airport: { 'schema.json': { name: string; dataType: string }[] };
+    };
+    const dataTypes = new Map(schema.airport['schema.json'].map((c) => [c.name, c.dataType]));
+
+    // The Niue dataset maps `t50_fid: null`, so it contributes a column that is NULL for every
+    // feature. Before the merge unified dtypes that made the whole merged column text.
+    assert.equal(dataTypes.get('t50_fid'), 'integer');
+    // RFC 3339 text, as the schemas prescribe. A GeoJSON merge records these as `timestamp`.
+    assert.equal(dataTypes.get('created_at'), 'text');
+    assert.equal(dataTypes.get('updated_at'), 'text');
   });
 });
