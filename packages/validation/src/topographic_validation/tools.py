@@ -1,22 +1,14 @@
 import datetime
 import json
 import os
-import shutil
 
 
 class TopoValidatorTools:
-    def prep_output_folder(
-        self,
-        output_dir: str = "./topoedit/validation-data",
-        use_date: bool = True,
-        remove_folder: bool = True,
-    ) -> str:
+    def prep_output_folder(self, output_dir: str = "./topoedit/validation-data", use_date: bool = True) -> str:
         if use_date:
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             output_dir = os.path.join(output_dir, date_str)
 
-        if remove_folder and os.path.exists(output_dir):
-            shutil.rmtree(output_dir)
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
 
