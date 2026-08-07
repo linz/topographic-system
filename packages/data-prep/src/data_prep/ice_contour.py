@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from multiprocessing import cpu_count, get_context
 from pathlib import Path
 
-import geopandas as gpd
+import geopandas as gpd  # type: ignore
 import pandas as pd
 import pyarrow.parquet as pq
 
