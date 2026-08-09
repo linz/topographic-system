@@ -79,8 +79,8 @@ def set_derived_identity(
     # Derive a reproducible UUIDv7 from the source timestamp and the name.
     result["id"] = [str(reproducible_uuid7(timestamp_ms, name)) for name in result["name"]]
     result["t50_fid"] = None
-    result["created_at"] = source_created_at.isoformat()
-    result["updated_at"] = produced_at.isoformat()
+    result["created_at"] = source_created_at
+    result["updated_at"] = produced_at
     return result
 
 
@@ -133,6 +133,10 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     # Split any multi-part geometries so every feature is a single Polygon.
     coastlines_islands_gdf = coastlines_islands_gdf.explode(ignore_index=True)
 
+    # Normalise merged timestamps
+    for col in ("created_at", "updated_at"):
+        if col in coastlines_islands_gdf.columns:
+                coastlines_islands_gdf[col] = coastlines_islands_gdf[col].isoformat()
     write_parquet(coastlines_islands_gdf, output_path)
 
 
