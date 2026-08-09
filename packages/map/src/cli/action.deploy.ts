@@ -1,5 +1,6 @@
+import { promisify } from 'node:util';
+import { zstdCompress } from 'node:zlib';
 import { basename } from 'path';
-import { zstdCompressSync } from 'zlib';
 
 import { fsa } from '@chunkd/fs';
 import {
@@ -12,13 +13,15 @@ import {
   UrlFolder,
   UrlFolders,
 } from '@linzjs/topographic-system-shared';
-import { StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
+import { getRelativePath, StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
 import { getQgisProjectMeta } from '../qgis.ts';
+
+const zstdCompressAsync = promisify(zstdCompress);
 
 async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   const tarPack = tar.pack();
@@ -33,7 +36,10 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
     if (projectFiles.length === 0) continue;
 
     for (const file of projectFiles) {
-      const filename = basename(file.pathname);
+      const relPath = getRelativePath(file, folder);
+      // tar files generally dont like having "./" as the starting point
+      const cleanPath = relPath.startsWith('./') ? relPath.slice(2) : relPath;
+      const filename = decodeURIComponent(cleanPath);
       if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
       if (filename.endsWith('.tar')) continue; // TODO
       if (filename.endsWith('.qgs')) continue;
@@ -44,6 +50,7 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
       fileCount++;
     }
   }
+
   if (fileCount === 0) return null;
 
   tarPack.finalize();
@@ -54,9 +61,15 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   });
 
   const before = Buffer.concat(chunks);
-  const compressed = zstdCompressSync(before);
+  const compressStartTime = performance.now();
+  const compressed = await zstdCompressAsync(before);
   logger.info(
-    { fileCount, compressed: compressed.byteLength, ratio: before.byteLength / compressed.byteLength },
+    {
+      fileCount,
+      compressed: compressed.byteLength,
+      ratio: before.byteLength / compressed.byteLength,
+      duration: performance.now() - compressStartTime,
+    },
     'Tar:Packed',
   );
   return compressed;
