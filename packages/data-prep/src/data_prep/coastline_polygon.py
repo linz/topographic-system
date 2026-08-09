@@ -141,10 +141,12 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
                 lambda value: value.isoformat() if pd.notna(value) else None
             )
 
-    # Source islands may carry t50_fid as numeric strings. Convert to Int64 so the output parquet has a consistent type.
+    # Source islands may carry t50_fid as numeric strings. Convert to UInt32 so
+    # parquet stores a concrete 32-bit integer type that schema validation
+    # treats as numeric (not int64 string coercions in downstream readers).
     if "t50_fid" in coastlines_islands_gdf.columns:
         coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
-            "Int64"
+            "UInt32"
         )
 
     write_parquet(coastlines_islands_gdf, output_path)
