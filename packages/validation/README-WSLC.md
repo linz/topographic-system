@@ -1,113 +1,181 @@
-# Information about and guides to using WSLC to run docker containers on windows using native windows linux set up
+# WSLC — Running Docker Containers on Windows
 
-DOCUMENTATION
+Guide to using WSLC (Windows Subsystem for Linux Container) to build and run the `kart` Docker image locally on Windows.
 
-Windows
+---
 
-Run schema validation locally.
-Requires node.js installed
-For this repo specifically, it declares a required Node version of about 24.x (engine is ^24.5.0), so use Node 24 to avoid runtime issues.
-And install dependencies from repo root: > npm install
+## Running Schema Validation Locally (without Docker)
 
-example checks
-node -v = v24.15.0
-npm -v = 11.12.1
+Requires Node.js. This repo targets Node 24 (`^24.5.0`).
 
-Run location topographic-system
-Run from command line
+Install dependencies from the repo root:
 
-For windows - requires URL file style location if file not relative to command line location.
+```bash
+npm install
+```
 
+Verify versions:
+
+```
+node -v  # e.g. v24.15.0
+npm -v   # e.g. 11.12.1
+```
+
+Run from the `topographic-system` root. On Windows, use a `file://` URL if the file is not relative to the working directory:
+
+```bash
 node packages/kart/src/index.ts validate-schema --schema schema/next/airport.json file:///c:/data/temp/airport.parquet
 
 node packages/kart/src/index.ts validate-schema --schema file:///c:/Data/toposource/schema_model/airport.json file:///c:/data/temp/airport.parquet
+```
 
-Building docker locally using latest code
+---
 
-Dependencies:
-wsl - should be installed by default Windows 11. Windows Subsystem for Linux.
-wslc - this is the built in Linux container - info see: https://devblogs.microsoft.com/commandline/wsl-container-is-now-available-for-public-preview/
+## Prerequisites for Docker (WSLC)
 
-Running update will install the latest version
+- **WSL** — included by default on Windows 11 (Windows Subsystem for Linux)
+- **WSLC** — built-in Linux container support; see [announcement](https://devblogs.microsoft.com/commandline/wsl-container-is-now-available-for-public-preview/)
 
-> wsl --version
-> wsl --update
+Update WSL (and install the latest pre-release for WSLC support):
 
-NOTE: while container in pre-release
-You can now access the WSL container feature in our latest pre-release of WSL!
-You can install this release right away by running
+```bash
+wsl --version
+wsl --update
+# or, while WSLC is in pre-release:
+wsl --update --pre-release
+```
 
-> wsl --update --pre-release
+---
 
-Create docker environment - BUILD IMAGE
-run full docker build
+## Build the Docker Image
 
-npm run -w @linzjs/topographic-system-kart bundle (needed if code updated)
+Bundle the kart package (required if code has changed):
+
+```bash
+npm run -w @linzjs/topographic-system-kart bundle
+```
+
+Build the image:
+
+```bash
 wslc build -t kart -f packages/kart/Dockerfile .
+```
 
-This full docker build a series of commands including the schema and topology validation
-Running commands in windows
+The build includes schema and topology validation tooling.
 
-Assuming the build has included the schema juts need to point to the data.
+---
 
-Running SCHEMA VALIDATION
+## Schema Validation
 
-Against live schema
+### Against the live schema
 
-> wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/airport.json /data/airport.parquet
+```bash
+wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/airport.json /data/airport.parquet
+```
 
-Against next schema
+### Against the next schema
 
-> wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/next/road_line.json /data/road_line.parquet
+```bash
+wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/next/road_line.json /data/road_line.parquet
+```
 
-Target a schema folder
+### Targeting a custom schema folder
 
-> wslc run --rm -it -v C:\data\temp\amcmenamin:/data -v C:\Data\toposource\schema_model:/schema kart validate-schema --schema /schema/airport.json /data/airport.parquet
+```bash
+wslc run --rm -it -v C:\data\temp\amcmenamin:/data -v C:\Data\toposource\schema_model:/schema kart validate-schema --schema /schema/airport.json /data/airport.parquet
+```
 
-HELP
+### Help
 
-> wslc run --rm -it kart --help
+```bash
+wslc run --rm -it kart --help
+```
 
-Other useful WSLC commands
-LIST
+---
+
+## Topology Validation
+
+Topology validation is invoked via `--entrypoint uv`.
+
+### Help
+
+```bash
+wslc run --rm \
+  -v c:/Data/toposource/topographic-data:/input \
+  -v c:/Data/toposource/validation-results:/output \
+  --entrypoint uv kart:latest \
+  run --directory /packages/validation python src/topographic_validation/cli.py --help
+```
+
+### Run validation
+
+```bash
+wslc run --rm \
+  -v c:/Data/toposource/topographic-data:/input \
+  -v c:/Data/toposource/validation-results:/output \
+  --entrypoint uv kart:latest \
+  run --directory /packages/validation python src/topographic_validation/cli.py \
+  --verbose \
+  --config-file config/default_config.json \
+  --bbox 174.824 -36.92 174.829 -36.919 \
+  --db-path /input/topographic-data.gpkg \
+  --output-dir /output
+```
+
+---
+
+## Troubleshooting — Locked GeoPackage File
+
+If a run fails and leaves the `.gpkg` file locked, verify the file state inside the container:
+
+```bash
+wslc run --rm -it -v c:/Data/toposource/topographic-data:/input kart sh -lc "ls -la /input/topographic-data.gpkg*"
+```
+
+Run an integrity check on the GeoPackage:
+
+```bash
+wslc run --rm -it -v c:/Data/toposource/topographic-data:/input kart \
+  uv run python -c "import sqlite3; c=sqlite3.connect('/input/topographic-data.gpkg'); print(c.execute('PRAGMA integrity_check').fetchone()[0])"
+```
+
+---
+
+## Useful WSLC Commands
+
+### List containers and images
+
+```bash
 wslc container ps -a
 wslc image ls
+```
 
-DELETE
-wslc container delete id/name
-wslc image delete id/name
+### Delete containers and images
 
-examples:
+```bash
+wslc container delete <id|name>
+wslc image delete <id|name>
+
+# Examples:
 wslc image delete kart
 wslc image delete 20649cd1bb45
+```
 
-Sessions
+### Sessions
+
+```bash
 wslc system session list
 wslc system session terminate
+```
 
-create a command line in container where kart is the image
+### Open a shell in the container
+
+```bash
 wslc run --rm -it kart bash
+```
 
-Find a file - CHECK NEEDED
+### Find a file inside the container
+
+```bash
 wslc run --rm kart find / -name "airport.json"
-
-Running TOPOLOGY VALIDATION
-
-Key is --entrypoint
-
-Help
-
-wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --help
-
-wslc run --rm -v c:/Data/toposource/topographic-data:/input -v c:/Data/toposource/validation-results:/output --entrypoint uv kart:latest run --directory /packages/validation python src/topographic_validation/cli.py --verbose --config-file config/default_config.json --bbox 174.824 -36.92 174.829 -36.919 --db-path /input/topographic-data.gpkg --output-dir /output
-
-Clean Up if Fails - locked file
-
-Optional verify after delete:
-
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval sh -lc "ls -la /input/topographic-data.gpkg\*"
-
-Useful check commands:
-
-Integrity check in container
-wslc run --rm -it -v c:/Data/toposource/topographic-data:/input topoval uv run python -c "import sqlite3; c=sqlite3.connect('/input/topographic-data.gpkg'); print(c.execute('PRAGMA integrity_check').fetchone()[0])"
+```
