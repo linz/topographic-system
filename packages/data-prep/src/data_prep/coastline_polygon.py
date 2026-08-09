@@ -136,7 +136,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     # Normalise merged timestamps
     for col in ("created_at", "updated_at"):
         if col in coastlines_islands_gdf.columns:
-                coastlines_islands_gdf[col] = coastlines_islands_gdf[col].isoformat()
+            coastlines_islands_gdf[col] = coastlines_islands_gdf[col].isoformat()
     write_parquet(coastlines_islands_gdf, output_path)
 
 
