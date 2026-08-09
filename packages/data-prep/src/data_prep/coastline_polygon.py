@@ -137,7 +137,9 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     for col in ("created_at", "updated_at"):
         if col in coastlines_islands_gdf.columns:
             parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="coerce", utc=True)
-            coastlines_islands_gdf[col] = parsed_datetime.apply(lambda value: value.isoformat() if pd.notna(value) else None)
+            coastlines_islands_gdf[col] = parsed_datetime.apply(
+                lambda value: value.isoformat() if pd.notna(value) else None
+            )
     write_parquet(coastlines_islands_gdf, output_path)
 
 
