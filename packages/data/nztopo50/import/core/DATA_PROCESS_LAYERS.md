@@ -1,6 +1,6 @@
 # Data Process Layers
 
-Last checked: 2026-07-15
+Last checked: 2026-08-10
 
 This document maps processing by layer using:
 - core/load_shp_to_themes.py
@@ -29,6 +29,7 @@ It is intended as a layer-by-layer companion to DATA_PROCESSING_WORKFLOW.md.
    - bldg_use/pipe_use/rway_use/embkmt_use -> subtype
    - grp_ascii/grp_macron/grp_name -> group_ascii/group_macron/group_name
    - substance -> substance_extracted
+   - temp -> temperature_indicator (water_point only; other layers: temp -> temperature, temperatur -> temperature)
 8. UFID -> t50_fid (integer) when present.
 9. feature_type -> type (after any layer-specific type/subtype remaps).
 10. Data is appended to schema.table in PostGIS.
@@ -75,7 +76,7 @@ For each layer:
   - columns: type <- use1, then use1 dropped.
   - additions: use2 renamed to subtype.
   - defaults: type default set to 'bridge'.
-  - update_spaces_with_underscores applies to type, use1, use2, construction_type, status.
+  - update_spaces_with_underscores applies to type, construction_type, status (use1/use2 already dropped/renamed before this step runs).
 
 ### building
 - Loader:
@@ -143,7 +144,6 @@ For each layer:
 - Loader:
   - track_use -> landcover_use
 - Post-load:
-  - additions: ensures subtype column exists.
   - update_spaces_with_underscores applies to type, subtype.
 
 ### landcover_line
@@ -167,7 +167,8 @@ For each layer:
   - additions: track_type -> landuse_type; landuse_type <- visibility; drops visibility.
   - use_to_subtype_updates:
     - type <- landuse_use where present.
-    - subtype 'historic' -> 'old'.
+    - type normalization: horse -> horse_track, vehicle -> vehicle_track.
+    - status 'historic' -> 'old'.
     - drops landuse_use.
   - update_spaces_with_underscores applies to type, subtype, status, substance_extracted.
 
@@ -188,19 +189,21 @@ For each layer:
   - Global Processing only.
 - Post-load:
   - additions: visibility renamed to subtype.
+  - use_to_subtype_updates: status 'historic' -> 'old'.
   - update_spaces_with_underscores applies to type, status, subtype, substance_extracted.
 
 ### marine
 - Loader:
   - compositn -> composition (generic short-field rule)
 - Post-load:
-  - update_spaces_with_underscores applies to type, composition.
+  - columns: composition renamed to subtype; default 'rock' applied.
+  - update_spaces_with_underscores applies to type (composition already renamed to subtype before this step runs).
 
 ### marine_point
 - Loader:
   - compositn -> composition (generic short-field rule)
 - Post-load:
-  - Global Processing only.
+  - columns: subtype column added with default 'rock'.
 
 ### nztopo50_map_sheet
 - Loader:
@@ -215,7 +218,8 @@ For each layer:
 - Loader:
   - compositn -> composition (generic short-field rule)
 - Post-load:
-  - update_spaces_with_underscores applies to type, composition.
+  - columns: composition renamed to subtype; name <- description where type='historic_site', then description dropped.
+  - update_spaces_with_underscores applies to type, subtype.
 
 ### railway_line
 - Loader:
@@ -267,13 +271,13 @@ For each layer:
   - drops RW_lane_c and RW_surface if present
 - Post-load:
   - columns: highway_number <- highway_numb, then highway_numb dropped.
-  - columns: way_count '1' -> 'one way'.
+  - columns: way_count '1' -> 'one_way'.
   - columns: road_access 'm' -> 'mp'.
   - additions: ensures hierarchy, width_indicator, road_access columns exist.
   - road_lkp_updates: width_indicator and road_access updated from lookups.road_lkp by t50_fid.
   - defaults: type default set to 'road'.
   - use_to_subtype_updates: metadata JSON populated from LINZ AIMS lineage; drops rna_sufi after metadata write.
-  - update_spaces_with_underscores applies to type, hierarchy, status, surface, width_indicator.
+  - update_spaces_with_underscores applies to type, hierarchy, status, surface, way_count, width_indicator.
 
 ### runway
 - Loader:
@@ -323,7 +327,7 @@ For each layer:
     - subtype <- wreck_of for type='wreck'.
     - typo fix: subtype 'watre' -> 'water'.
     - drops transitional fields material, location, structure_use, restrictions, stored_item, wreck_of.
-  - update_spaces_with_underscores applies to type, subtype, status.
+  - update_spaces_with_underscores applies to type, subtype, status, tank_type.
 
 ### track_line
 - Loader:
@@ -351,13 +355,14 @@ For each layer:
 - Loader:
   - use1 -> tunnel_use
   - use2 -> tunnel_use2
-  - type -> subtype
+  - type -> construction_type
 - Post-load:
   - columns typo/normalization:
     - tunnel_use2 'ivestock' -> 'livestock'
     - if tunnel_use2='vehicle', then tunnel_use='vehicle' and tunnel_use2='livestock'
+  - columns: type <- tunnel_use; tunnel_use2 renamed to subtype; tunnel_use dropped.
   - defaults: type default set to 'tunnel'.
-  - update_spaces_with_underscores applies to type, tunnel_use, tunnel_use2, subtype.
+  - update_spaces_with_underscores applies to type, construction_type, subtype.
 
 ### utility_line
 - Loader:
@@ -365,14 +370,13 @@ For each layer:
   - pipe_use -> subtype (generic short-field rule)
 - Post-load:
   - columns: support_type='pole' where type='telephone'.
-  - name: ensures name column exists.
+  - additions: name column dropped.
   - update_spaces_with_underscores applies to type, subtype, support_type, status, visibility.
 
 ### utility_point
 - Loader:
   - Global Processing only.
 - Post-load:
-  - name: ensures name column exists.
   - update_spaces_with_underscores applies to type.
 
 ### vegetation
@@ -380,7 +384,7 @@ For each layer:
   - Global Processing only.
 - Post-load:
   - null_updates: species='coniferous' where species is null and type='exotic'.
-  - additions: add subtype <- species, then clear species.
+  - additions: add subtype <- species, then species dropped.
 
 ### vegetation_line
 - Loader:
@@ -404,25 +408,23 @@ For each layer:
 - Post-load:
   - columns: subtype <- pond_use (pond_use dropped).
   - rename: temperature -> temperature_indicator (defensive rename step).
-  - additions: ensures hierarchy column exists.
   - structure_updates: subtype 'hydro-electric' -> 'hydro_electric'.
   - use_to_subtype_updates:
     - subtype <- water_use where water_use='hydro-electric'.
-    - metadata JSON populated from NZGB Gazetteer lineage.
-    - drops feat_id after metadata write.
+    - metadata JSON population from NZGB Gazetteer lineage (currently inactive).
+    - drops feat_id.
   - update_spaces_with_underscores applies to type, subtype, hierarchy, perennial, temperature_indicator.
 
 ### water_line
 - Loader:
-  - Global Processing only.
+  - gazfeatid -> feat_id
 - Post-load:
-  - additions: ensures hierarchy column exists.
+  - use_to_subtype_updates: drops feat_id (metadata write from NZGB Gazetteer lineage is currently inactive).
   - update_spaces_with_underscores applies to type.
 
 ### water_point
 - Loader:
-  - temp -> temperature_indicator
-  - generic temp -> temperature rule may also apply when temp exists.
+  - temp -> temperature_indicator (layer-specific rule runs before generic temp/temperatur -> temperature rename).
 - Post-load:
   - update_spaces_with_underscores applies to type, temperature_indicator.
 
