@@ -17,9 +17,7 @@ class TopoValidatorTools:
 
         if remove_folder and os.path.exists(output_dir):
             for entry in os.scandir(output_dir):
-                if entry.is_dir() and not entry.is_symlink():
-                    shutil.rmtree(entry.path)
-                else:
+                if not entry.is_dir():
                     os.unlink(entry.path)
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
