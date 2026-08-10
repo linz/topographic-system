@@ -1,8 +1,6 @@
 import datetime
 import json
 import os
-import shutil
-
 
 class TopoValidatorTools:
     def prep_output_folder(
