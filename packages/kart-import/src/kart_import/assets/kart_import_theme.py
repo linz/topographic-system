@@ -4,7 +4,7 @@ import shutil
 from kart_import.log import log_context
 
 from ..command import run_command
-from ..config import OUTPUT_DIR, WORKING_THEME_DIR, get_releases
+from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases
 
 logger = logging.getLogger("kart_import")
 
@@ -32,7 +32,7 @@ def kart_import_theme(theme_name: str):
             "GIT_COMMITTER_DATE": release.until.isoformat(),
         }
 
-        input_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}.geojson"
+        input_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
         if not input_file.exists():
             logger.warning(f"Theme file not found: {input_file}. Skipping import.")
             continue
