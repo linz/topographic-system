@@ -1,7 +1,7 @@
 {
   "feature_not_on_layers": [
     {
-      "table": "railway_station",
+      "table": "railway_point",
       "intersection_table": "railway_line",
       "layername": "stations-not-on-railway-line",
       "message": "Railway station point features must fall on a railway line"
@@ -34,26 +34,26 @@
       "intersection_table": "road_line",
       "layername": "bridges-not-on-road-line",
       "message": "Bridge line features must fall on a road line",
-      "where": "bridge_use = 'vehicle'"
+      "where": "type = 'vehicle'"
     },
     {
       "table": "bridge_line",
       "intersection_table": "railway_line",
       "layername": "bridges-not-on-railway-line",
       "message": "Bridge line features must fall on a railway line",
-      "where": "bridge_use = 'train'"
+      "where": "type = 'train'"
     },
     {
       "table": "tunnel_line",
       "intersection_table": "railway_line",
       "layername": "tunnels-not-on-railway-line",
       "message": "Train tunnel line features must fall on a railway line",
-      "where": "tunnel_use = 'train'"
+      "where": "type = 'train'"
     }
   ],
   "line_not_touches_feature_layers": [
     {
-      "table": "ferry_crossing",
+      "table": "ferry_line",
       "intersection_table": "structure_line",
       "layername": "ferry-not-touches-structure-line",
       "message": "Ferry line features must touch a structure line (start/end on boat ramp or wharf)"
@@ -143,8 +143,8 @@
     {
       "table": "road_line",
       "column": "lane_count",
-      "where": "status NOT IN ('proposed', 'non-under construction')",
-      "message": "Road line features must have a lane_count attribute where status is not proposed or non-under construction"
+      "where": "status NOT IN ('under_construction')",
+      "message": "Road line features must have a lane_count attribute where status is not under construction"
     },
     {
       "table": "road_line",
@@ -159,18 +159,18 @@
     },
     {
       "table": "track_line",
-      "column": "track_use",
-      "message": "Track line features must have a track_use attribute"
+      "column": "subtype",
+      "message": "Track line features must have a subtype attribute"
     },
     {
       "table": "tunnel_line",
-      "column": "tunnel_use",
-      "message": "Tunnel line features must have a tunnel_use attribute"
+      "column": "type",
+      "message": "Tunnel line features must have a type attribute"
     },
     {
       "table": "runway",
-      "column": "runway_use",
-      "message": "Runway features must have a runway_use attribute"
+      "column": "subtype",
+      "message": "Runway features must have a subtype attribute"
     },
     {
       "table": "runway",
