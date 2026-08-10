@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 
+
 class TopoValidatorTools:
     def prep_output_folder(
         self,
