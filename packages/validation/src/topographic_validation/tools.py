@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import shutil
 
 
 class TopoValidatorTools:
@@ -15,9 +16,11 @@ class TopoValidatorTools:
             output_dir = os.path.join(output_dir, date_str)
 
         if remove_folder and os.path.exists(output_dir):
-            for item in os.listdir(output_dir):
-                item_path = os.path.join(output_dir, item)
-                os.remove(item_path)
+            for entry in os.scandir(output_dir):
+                if entry.is_dir() and not entry.is_symlink():
+                    shutil.rmtree(entry.path)
+                else:
+                    os.unlink(entry.path)
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
 
