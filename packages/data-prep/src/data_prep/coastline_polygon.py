@@ -139,6 +139,9 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
         coastlines_islands_gdf[col] = parsed_datetime.apply(
             lambda value: value.isoformat() if pd.notna(value) else None
         )
+    coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
+        "UInt32"
+    )
 
     write_parquet(coastlines_islands_gdf, output_path)
 
