@@ -328,7 +328,7 @@
     },
     "carto_colour": {
       "type": "string",
-      "enum": ["", "black", "process_blue", "red"]
+      "enum": ["", "black", "process_blue", "warm_red"]
     },
     "carto_placement": {
       "type": "string",
