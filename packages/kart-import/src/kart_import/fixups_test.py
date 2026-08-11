@@ -4,12 +4,14 @@ from datetime import datetime
 
 import geopandas as gpd
 import pytest
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point
+from shapely.wkt import loads
 
 from . import fixups
 from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .fixups import drop_degenerate_fences
 
 
 def _gdf() -> gpd.GeoDataFrame:
@@ -54,16 +56,55 @@ def test_apply_fixups_applies_to_all_releases_when_unset(monkeypatch):
     assert seen == [99]
 
 
-def test_match_fids_handles_int_and_float_dtypes():
+EMPTY = loads("LINESTRING EMPTY")
+REAL = LineString([(174.0, -41.0), (174.1, -41.1)])
+DEGENERATE_FIDS = [7640059, 7640098, 7704786, 7704787]
+
+
+def _fence_gdf(rows: list[tuple[object, object]]) -> gpd.GeoDataFrame:
+    """A nz_fence_centrelines-shaped frame from (t50_fid, geometry) rows."""
+    return gpd.GeoDataFrame(
+        {"t50_fid": [fid for fid, _ in rows]},
+        geometry=[geom for _, geom in rows],
+        crs="EPSG:4167",
+    )
+
+
+@pytest.mark.parametrize(
+    "rows, survivors",
+    [
+        ([(7640059, EMPTY), (123, REAL)], [123]),
+        # The gate: a fid repaired upstream is kept rather than dropped by a stale list.
+        ([(7640059, REAL), (123, REAL)], [7640059, 123]),
+        # Deliberately narrow: an unexpected empty geometry is left to fail loudly at the
+        # FlatGeobuf write rather than being silently swallowed here.
+        ([(999, EMPTY), (123, REAL)], [999, 123]),
+        ([(7704786, None), (123, REAL)], [123]),
+        ([(123, REAL), (456, REAL)], [123, 456]),
+        ([(fid, EMPTY) for fid in DEGENERATE_FIDS] + [(123, REAL)], [123]),
+    ],
+    ids=[
+        "listed-and-collapsed-dropped",
+        "listed-but-repaired-kept",
+        "unlisted-empty-kept",
+        "listed-with-null-geometry-dropped",
+        "nothing-listed-is-a-noop",
+        "all-four-dropped",
+    ],
+)
+def test_drop_degenerate_fences(rows, survivors):
+    out = drop_degenerate_fences(_fence_gdf(rows), _td([]), 60)
+    assert out["t50_fid"].tolist() == survivors
+    # theme.py concatenates with ignore_index, but a gappy index would still surface in any
+    # positional lookup downstream.
+    assert out.index.tolist() == list(range(len(survivors)))
+
+
+@pytest.mark.parametrize("cast", [int, float], ids=["int", "float"])
+def test_drop_degenerate_fences_matches_either_fid_dtype(cast):
     """pyogrio may read an integer t50_fid as float; matching must work for both."""
-    rows = [{"fid": 10}, {"fid": 20}, {"fid": 30}]
-    for cast in (int, float):
-        gdf = gpd.GeoDataFrame(
-            {"fid": [cast(r["fid"]) for r in rows]},
-            geometry=[Point(0, 0)] * len(rows),
-            crs="EPSG:4326",
-        )
-        assert fixups._match_fids(gdf, {10, 30}).tolist() == [True, False, True]
+    out = drop_degenerate_fences(_fence_gdf([(cast(7640059), EMPTY), (cast(123), REAL)]), _td([]), 60)
+    assert out["t50_fid"].tolist() == [cast(123)]
 
 
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:

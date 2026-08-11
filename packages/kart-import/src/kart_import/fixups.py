@@ -35,22 +35,58 @@ if TYPE_CHECKING:
 Fixup = Callable[["gpd.GeoDataFrame", "ThemeDataset", int], "gpd.GeoDataFrame"]
 
 
-def _match_fids(gdf: gpd.GeoDataFrame, fids: set[int]):
-    """Boolean mask of rows whose `fid` is in `fids`, robust to int/float dtypes
-    (pyogrio may read an integer fid as float)."""
+def drop_degenerate_fences(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Drop four zero-length nz_fence_centrelines features.
+
+    All four are the same 0.5 micrometre two-vertex line in EPSG:2193
+    (1756000.000000001 5420267.181827734 -> ...182310526), present from the 2020-02-16 source
+    snapshot on. Both vertices land in the same 1e-8 degree cell, so `set_precision` collapses
+    them to LINESTRING EMPTY, and the FlatGeobuf driver refuses an empty geometry while
+    building a spatial index ("NULL geometry not supported with spatial index").
+
+    Ungated on release: the fids come and go across snapshots (absent in releases 52-55, back
+    in 56+), and a fixup can't be gated to a release that shares its transform with another.
+    A release without them is a no-op.
+
+    Gated on the geometry instead: only a listed fid that has actually collapsed is dropped. If
+    a fence was repaired upstream it stays in place in the theme rather than being deleted forever
+    by a stale fid list, and the retained fid is logged so the list can be trimmed.
+    """
     import pandas as pd
 
-    return pd.to_numeric(gdf["fid"], errors="coerce").isin(fids)
+    listed = pd.to_numeric(gdf["t50_fid"], errors="coerce").isin({7640059, 7640098, 7704786, 7704787})
+    if not listed.any():
+        return gdf
 
+    # `isna` as well as `is_empty`: a NULL geometry fails the FlatGeobuf write the same way.
+    collapsed = gdf.geometry.is_empty | gdf.geometry.isna()
 
-def change_type_to_none(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Demo function that sets change type to none for specific fids"""
-    logger.info(f"Fixing {release_id=} for {td.name}")
-    mask = _match_fids(gdf, {3198908, 3198849})
-    gdf.loc[mask, "change_type"] = None
-    return gdf
+    if (repaired := listed & ~collapsed).any():
+        logger.warning(
+            "degenerate fence centreline now has geometry, keeping it",
+            extra={
+                "dataset": td.name,
+                "release": release_id,
+                "t50_fids": sorted(gdf.loc[repaired, "t50_fid"].tolist()),
+            },
+        )
+
+    drop = listed & collapsed
+    if not drop.any():
+        return gdf
+
+    logger.info(
+        "dropping degenerate fence centrelines",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "count": int(drop.sum()),
+            "t50_fids": sorted(gdf.loc[drop, "t50_fid"].tolist()),
+        },
+    )
+    return gdf[~drop].reset_index(drop=True)
 
 
 FIXUPS: dict[str, Fixup] = {
-    "change_type_to_none": change_type_to_none,
+    "drop_degenerate_fences": drop_degenerate_fences,
 }
