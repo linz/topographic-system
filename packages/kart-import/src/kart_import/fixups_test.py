@@ -3,8 +3,10 @@ import os
 from datetime import datetime
 
 import geopandas as gpd
+import numpy as np
 import pytest
 from shapely.geometry import LineString, Point
+from shapely.geometry.base import BaseGeometry
 from shapely.wkt import loads
 
 from . import fixups
@@ -61,11 +63,16 @@ REAL = LineString([(174.0, -41.0), (174.1, -41.1)])
 DEGENERATE_FIDS = [7640059, 7640098, 7704786, 7704787]
 
 
-def _fence_gdf(rows: list[tuple[object, object]]) -> gpd.GeoDataFrame:
-    """A nz_fence_centrelines-shaped frame from (t50_fid, geometry) rows."""
+def _fence_gdf(rows: list[tuple[float, BaseGeometry | None]]) -> gpd.GeoDataFrame:
+    """A nz_fence_centrelines-shaped frame from (t50_fid, geometry) rows.
+
+    A `None` geometry is a case under test (it fails the FlatGeobuf write like an empty one does).
+    An object array rather than a plain list because that is how geopandas holds missing geometry,
+    and the only geometry-sequence form the stubs admit a `None` into.
+    """
     return gpd.GeoDataFrame(
         {"t50_fid": [fid for fid, _ in rows]},
-        geometry=[geom for _, geom in rows],
+        geometry=np.array([geom for _, geom in rows], dtype=object),
         crs="EPSG:4167",
     )
 
