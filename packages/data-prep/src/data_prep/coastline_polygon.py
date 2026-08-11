@@ -133,21 +133,15 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     # Split any multi-part geometries so every feature is a single Polygon.
     coastlines_islands_gdf = coastlines_islands_gdf.explode(ignore_index=True)
 
-    # Normalise merged timestamps
+    # Ensure required schema properties exist with expected shapes and types.
     for col in ("created_at", "updated_at"):
-        if col in coastlines_islands_gdf.columns:
-            parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="coerce", utc=True)
-            coastlines_islands_gdf[col] = parsed_datetime.apply(
-                lambda value: value.isoformat() if pd.notna(value) else None
-            )
-
-    # Source islands may carry t50_fid as numeric strings. Convert to UInt32 so
-    # parquet stores a concrete 32-bit integer type that schema validation
-    # treats as numeric (not int64 string coercions in downstream readers).
-    if "t50_fid" in coastlines_islands_gdf.columns:
-        coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
-            "UInt32"
+        parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="coerce", utc=True)
+        coastlines_islands_gdf[col] = parsed_datetime.apply(
+            lambda value: value.isoformat() if pd.notna(value) else None
         )
+    coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
+        "UInt32"
+    )
 
     write_parquet(coastlines_islands_gdf, output_path)
 
