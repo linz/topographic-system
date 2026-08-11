@@ -30,7 +30,7 @@ OUTPUT_COLUMNS = [
     "marine_id",
     "type",
     "name",
-    "sub_type",
+    "subtype",
     "metadata",
     "geometry",
 ]
@@ -48,10 +48,8 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
     rock_line_gdf = rock_line_gdf.rename(columns={"id": "marine_id"})
     rock_line_gdf = rock_line_gdf.assign(t50_fid=None)
-    if "composition" in rock_line_gdf.columns:
-        rock_line_gdf = rock_line_gdf.rename(columns={"composition": "sub_type"})
-    if "sub_type" not in rock_line_gdf.columns:
-        rock_line_gdf = rock_line_gdf.assign(sub_type=None)
+    if "subtype" not in rock_line_gdf.columns:
+        rock_line_gdf = rock_line_gdf.assign(subtype=None)
     if "metadata" not in rock_line_gdf.columns:
         rock_line_gdf = rock_line_gdf.assign(metadata=None)
 
@@ -85,12 +83,6 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     rock_line_clip_gdf["created_at"] = source_created_at.isoformat()
     rock_line_clip_gdf["updated_at"] = produced_at.isoformat()
     rock_line_clip_gdf["t50_fid"] = pd.to_numeric(rock_line_clip_gdf["t50_fid"], errors="coerce").astype("Int64")
-    rock_line_clip_gdf["sub_type"] = rock_line_clip_gdf["sub_type"].map(
-        lambda value: value if pd.notna(value) else None
-    )
-    rock_line_clip_gdf["metadata"] = rock_line_clip_gdf["metadata"].map(
-        lambda value: value if pd.notna(value) else None
-    )
     rock_line_clip_gdf = rock_line_clip_gdf.reindex(columns=OUTPUT_COLUMNS)
 
     write_parquet(rock_line_clip_gdf, output_path)
