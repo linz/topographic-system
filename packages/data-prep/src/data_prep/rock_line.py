@@ -48,10 +48,6 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     rock_line_gdf = rock_gdf.assign(geometry=rock_gdf.geometry.boundary)
     rock_line_gdf = rock_line_gdf.rename(columns={"id": "marine_id"})
     rock_line_gdf = rock_line_gdf.assign(t50_fid=None)
-    if "subtype" not in rock_line_gdf.columns:
-        rock_line_gdf = rock_line_gdf.assign(subtype=None)
-    if "metadata" not in rock_line_gdf.columns:
-        rock_line_gdf = rock_line_gdf.assign(metadata=None)
 
     coastline_gdf = read_and_project(coastline_path)
 
