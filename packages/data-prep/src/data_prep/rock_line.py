@@ -78,7 +78,6 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
     # Ensure required schema properties exist with expected shapes and types.
     rock_line_clip_gdf["created_at"] = source_created_at.isoformat()
     rock_line_clip_gdf["updated_at"] = produced_at.isoformat()
-    rock_line_clip_gdf["t50_fid"] = pd.to_numeric(rock_line_clip_gdf["t50_fid"], errors="coerce").astype("Int64")
     rock_line_clip_gdf = rock_line_clip_gdf.reindex(columns=OUTPUT_COLUMNS)
 
     write_parquet(rock_line_clip_gdf, output_path)
