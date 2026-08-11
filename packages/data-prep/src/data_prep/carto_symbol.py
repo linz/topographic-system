@@ -85,6 +85,7 @@ def add_mines(input_path: Path, landuse_path: Path) -> gpd.GeoDataFrame:
     output_gdf = output_gdf[["id", "mine_vis", output_gdf.geometry.name]].rename(
         columns={"id": "source_id", "mine_vis": "type"}
     )
+    output_gdf["type"] = "mine_" + output_gdf["type"]
 
     return output_gdf
 
