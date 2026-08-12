@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import geopandas as gpd
@@ -68,7 +68,7 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
 
     # Derive a reproducible UUIDv7 from the source timestamp and the geometry.
     source_created_at = earliest_created_at(rock_gdf)
-    produced_at = datetime.now(datetime.UTC)
+    produced_at = datetime.now(UTC)
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     rock_line_clip_gdf["id"] = [
         str(reproducible_uuid7(timestamp_ms, f"rock_line/{geom.wkb_hex}")) for geom in rock_line_clip_gdf.geometry

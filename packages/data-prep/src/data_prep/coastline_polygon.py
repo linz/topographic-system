@@ -7,7 +7,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import geopandas as gpd
@@ -105,7 +105,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     coastline_gdf = read_and_project(coastline_path)
     island_gdf = read_and_project(island_path)
 
-    produced_at = datetime.now(datetime.UTC)
+    produced_at = datetime.now(UTC)
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(coastline_gdf)
 
