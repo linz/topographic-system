@@ -9,7 +9,6 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import pandas as pd
@@ -106,7 +105,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     coastline_gdf = read_and_project(coastline_path)
     island_gdf = read_and_project(island_path)
 
-    produced_at = datetime.now(ZoneInfo("Pacific/Auckland"))
+    produced_at = datetime.now(datetime.UTC)
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(coastline_gdf)
 
@@ -135,10 +134,10 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
 
     # Ensure required schema properties exist with expected shapes and types.
     for col in ("created_at", "updated_at"):
-        parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="coerce", utc=True)
-        coastlines_islands_gdf[col] = parsed_datetime.apply(
-            lambda value: value.isoformat() if pd.notna(value) else None
-        )
+        parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="raise", utc=True)
+        if parsed_datetime.isna().any():
+            raise ValueError(f"Column '{col}' contains null values after parsing; all rows must have a valid datetime.")
+        coastlines_islands_gdf[col] = parsed_datetime.apply(lambda value: value.isoformat())
     coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
         "UInt32"
     )
