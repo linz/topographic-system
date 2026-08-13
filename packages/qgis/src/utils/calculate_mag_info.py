@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from PyQt6.QtCore import QDate, QDateTime
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeature, QgsPoint, QgsPointXY, QgsProject
 
 from utils.mag_dec import calculate_magnetic_declination, calculate_rate_of_change
@@ -15,12 +14,10 @@ def calculate_mag_info(
     # date (rounded to july 1st)
     published_at = feature.attribute("published_at")
 
-    if isinstance(published_at, QDate):
-        date = published_at.toPyDate()
-    elif isinstance(published_at, QDateTime):
-        date = published_at.toPyDateTime()
+    if isinstance(published_at, str):
+        date = datetime.fromisoformat(published_at)
     else:
-        raise TypeError(f"published_at is not a QDate or QDateTime. Actual type: {type(published_at)}")
+        raise TypeError(f"published_at must be a string. Actual type: {type(published_at)}")
 
     date_rounded = datetime(date.year, month=7, day=1)
 
