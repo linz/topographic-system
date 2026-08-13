@@ -56,7 +56,7 @@ enum carto_colour {
   _: "",
   Black: "black",
   ProcessBlue: "process_blue",
-  Red: "red",
+  Red: "warm_red",
 }
 
 enum carto_placement {

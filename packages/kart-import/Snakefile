@@ -4,6 +4,7 @@ from kart_import.config import (
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
+    THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
 )
@@ -120,14 +121,14 @@ rule theme_release:
             for ds in THEME_MAP[wildcards.theme].datasets
         ]
     output:
-        merged = "data/working/theme/release_{release}/{theme}.geojson"
+        merged = "data/working/theme/release_{release}/{theme}" + THEME_SUFFIX
     shell:
         "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
 rule kart_theme:
     input:
         themes = lambda wildcards: [
-            f"data/working/theme/release_{r.id}/{wildcards.theme}.geojson"
+            f"data/working/theme/release_{r.id}/{wildcards.theme}{THEME_SUFFIX}"
             for r in RELEASES
         ]
     output:
@@ -193,7 +194,7 @@ workflow.rule(name="bundle_all")(
 
 for t in THEMES:
     workflow.rule(name=f"theme_{t.name}")(
-        workflow.input([f"data/working/theme/release_{r.id}/{t.name}.geojson" for r in RELEASES])(
+        workflow.input([f"data/working/theme/release_{r.id}/{t.name}{THEME_SUFFIX}" for r in RELEASES])(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
