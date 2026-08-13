@@ -34,7 +34,8 @@ on:
         description: 'Stac storage strategy.'
         type: string
         required: false
-        default: 'commit=${{ github.sha }}'
+        # `github.sha` is the ephemeral merge commit on pull requests, use the head commit instead
+        default: 'commit=${{ github.event.pull_request.head.sha || github.sha }}'
       commit:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
