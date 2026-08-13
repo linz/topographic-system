@@ -19,6 +19,12 @@ describe('buildCloneContext', () => {
     assert.strictEqual(ctx.ref, 'master');
   });
 
+  it('should default an empty ref to master', () => {
+    const ctx = buildCloneContext({ repository: 'linz/topographic-data', ref: '' });
+
+    assert.strictEqual(ctx.ref, 'master');
+  });
+
   it('should use the provided ref', () => {
     const ctx = buildCloneContext({ repository: 'linz/topographic-data', ref: 'abc123' });
 
