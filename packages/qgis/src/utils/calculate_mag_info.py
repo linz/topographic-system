@@ -16,15 +16,15 @@ def calculate_mag_info(
     published_at = feature.attribute("published_at")
 
     if isinstance(published_at, str):
-        date = datetime.fromisoformat(published_at)
+        year = datetime.fromisoformat(published_at).year
     elif isinstance(published_at, QDate):
-        date = published_at.toPyDate()
+        year = published_at.toPyDate().year
     elif isinstance(published_at, QDateTime):
-        date = published_at.toPyDateTime()
+        year = published_at.toPyDateTime().year
     else:
         raise TypeError(f"published_at is not of a supported type. Actual: {type(published_at)}")
 
-    date_rounded = datetime(date.year, month=7, day=1)
+    date_rounded = datetime(year, month=7, day=1)
 
     # geometry (source crs)
     geometry = feature.geometry()
