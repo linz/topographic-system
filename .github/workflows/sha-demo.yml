@@ -31,6 +31,10 @@ jobs:
             'head.sha || github.sha' "$FALLBACK"
 
       - uses: actions/checkout@v6
+        with:
+          # Default depth 1 leaves HEAD with no parents locally, which is exactly the
+          # detail worth seeing on a pull request. 2 is enough to resolve both.
+          fetch-depth: 2
 
       - name: What checkout actually gave us
         run: |
