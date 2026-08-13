@@ -1,8 +1,10 @@
 import subprocess
 from pathlib import Path
 
-parquet_folder = r"C:\Data\temp"
-schema_folder = "/schema/next"
+#wslc run --rm -it -v C:\data\temp\amcmenamin:/data -v C:\Data\toposource\schema_model:/schema kart validate-schema --schema /schema/marine_point.json /data/marine_point.parquet
+parquet_folder = r"C:\Data\temp\amcmenamin"
+#schema_folder = "/schema/next"
+schema_folder = r"C:\data\toposource\schema_model"
 data_mount = "/data"
 log_file = Path(parquet_folder) / "schema_validation.log"
 
@@ -14,7 +16,7 @@ for parquet_file in parquet_files:
 	print(parquet_file)
 	layer_name = parquet_file.stem
 	print(f"Layer name: {layer_name}")
-	schema = f"{schema_folder}/{layer_name}.json"
+	schema = f"/schema/{layer_name}.json"
 	data_file = f"{data_mount}/{parquet_file.name}"
 	val_command = [
 		"wslc",
@@ -23,6 +25,8 @@ for parquet_file in parquet_files:
 		"-it",
 		"-v",
 		f"{parquet_folder}:{data_mount}",
+		"-v",
+		f"{schema_folder}:/schema",
 		"kart",
 		"validate-schema",
 		"--schema",
@@ -34,16 +38,15 @@ for parquet_file in parquet_files:
 	with log_file.open("a", encoding="utf-8") as log_handle:
 		log_handle.write(f"Command: {' '.join(val_command)}\n")
 		log_handle.write(f"Return code: {result.returncode}\n")
-		if result.stdout:
+		validation_errors = [
+			line.replace("\x1b", " ")
+			for output in (result.stdout, result.stderr)
+			for line in output.splitlines()
+			if "ValidateSchema:ErrorSummary" in line
+		]
+		if validation_errors:
 			log_handle.write("STDOUT:\n")
-			log_handle.write(result.stdout)
-			if not result.stdout.endswith("\n"):
-				log_handle.write("\n")
-		if result.stderr:
-			log_handle.write("STDERR:\n")
-			log_handle.write(result.stderr)
-			if not result.stderr.endswith("\n"):
-				log_handle.write("\n")
+			log_handle.write("\n".join(validation_errors) + "\n")
 		log_handle.write("-" * 80 + "\n")
 	print(f"Validation completed for {layer_name} with schema {schema}")
 

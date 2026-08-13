@@ -22,7 +22,8 @@ class GpkgValidator:
             db_file = db_file.with_suffix(".gpkg")
         self.gpkg_path = Path(gpkg_path) / db_file
         self.schema_dir = Path(schema_dir)
-        self.error_log_path = Path(error_log_path)
+        log_path = Path(error_log_path)
+        self.error_log_path = log_path if log_path.is_absolute() else Path(gpkg_path) / log_path
 
         self.error_log_path.write_text("", encoding="utf-8")
         self.error_count = 0
@@ -265,7 +266,7 @@ class GpkgValidator:
 
         return error_count, output_lines, log_lines
 
-    def run(self):
+    def run(self, use_threads: bool = True):
         if not self.gpkg_path.exists():
             raise FileNotFoundError(f"GeoPackage not found: {self.gpkg_path}")
         if not self.schema_dir.exists():
@@ -297,20 +298,32 @@ class GpkgValidator:
             else:
                 work[layer] = schema_path
 
-        with ThreadPoolExecutor() as executor:
-            futures = {
-                executor.submit(self._validate_layer, layer, schema_path): layer
+        if use_threads:
+            with ThreadPoolExecutor() as executor:
+                futures = {
+                    executor.submit(self._validate_layer, layer, schema_path): layer
+                    for layer, schema_path in work.items()
+                }
+                results = [
+                    (futures[future], future.result())
+                    for future in as_completed(futures)
+                ]
+        else:
+            print(layer)
+            results = [
+                (layer, self._validate_layer(layer, schema_path))
                 for layer, schema_path in work.items()
-            }
-            for future in as_completed(futures):
-                layer = futures[future]
-                error_count, output_lines, log_lines = future.result()
-                for line in output_lines:
-                    print(line)
-                self.write_error_log(log_lines)
-                self.error_count += error_count
-                layer_error_counts[layer] = error_count
-                layers_validated += 1
+            ]
+            print(f"Validation complete for layer '{layer}'")
+
+        for layer, result in results:
+            error_count, output_lines, log_lines = result
+            for line in output_lines:
+                print(line)
+            self.write_error_log(log_lines)
+            self.error_count += error_count
+            layer_error_counts[layer] = error_count
+            layers_validated += 1
 
         print("\nValidation complete.")
         print(f"Layers validated: {layers_validated}")
@@ -323,8 +336,8 @@ class GpkgValidator:
 
 if __name__ == "__main__":
     GpkgValidator(
-        gpkg_path=r"C:\Data\toposource\topographic-data",
-        gpkg_db="topographic-data.gpkg",
+        gpkg_path=r"C:\Data\toposource\topographic-data-amcmenamin",
+        gpkg_db="topographic-data-amcmenamin.gpkg",
         schema_dir=r"C:\Data\toposource\schema_model",
         error_log_path="val_errors.log",
-    ).run()
+    ).run(use_threads=False)
