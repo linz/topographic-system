@@ -1,0 +1,61 @@
+name: sha-demo
+
+# Demo only, not for merging. BM-1850 background: on a pull_request event `github.sha` is
+# the ephemeral merge commit, not the branch tip. Runs on both events so a push run and a
+# pull request run of the same file can be compared line for line.
+on:
+  pull_request:
+  push:
+
+jobs:
+  # Which sha is which, and what checkout actually hands you.
+  values:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo the shas
+        env:
+          EVENT: ${{ github.event_name }}
+          GH_SHA: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          FALLBACK: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # Square brackets so an empty value is visible instead of looking like a blank line.
+          printf '%-26s [%s]\n' \
+            'github.event_name'      "$EVENT" \
+            'github.sha'             "$GH_SHA" \
+            'pull_request.head.sha'  "$PR_HEAD_SHA" \
+            'github.head_ref'        "$HEAD_REF" \
+            'github.ref_name'        "$REF_NAME" \
+            'head.sha || github.sha' "$FALLBACK"
+
+      - uses: actions/checkout@v6
+
+      - name: What checkout actually gave us
+        run: |
+          # On a pull request this is the merge commit: two parents, "Merge <head> into <base>".
+          printf '%-26s [%s]\n' \
+            'git rev-parse HEAD' "$(git rev-parse HEAD)" \
+            'HEAD subject'       "$(git log -1 --format=%s)" \
+            'HEAD parents'       "$(git rev-parse HEAD^@ | tr '\n' ' ')"
+
+  # Separate job: if a missing-key expression were a hard error, it fails here on its own
+  # rather than taking the comparison above down with it.
+  null-behaviour:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Missing keys and falsiness
+        env:
+          MISSING: ${{ github.event.no_such_key }}
+          DEEP: ${{ github.event.no_such_key.nor.this.one }}
+          TERNARY: "${{ github.event.pull_request.head.sha && 'truthy' || 'falsy' }}"
+          EMPTY_FALLS_THROUGH: "${{ '' || 'fell through' }}"
+          ZERO_FALLS_THROUGH: "${{ 0 || 'fell through' }}"
+        run: |
+          printf '%-26s [%s]\n' \
+            'missing key'          "$MISSING" \
+            'deep null deref'      "$DEEP" \
+            'head.sha truthy?'     "$TERNARY" \
+            "'' || 'fell through'" "$EMPTY_FALLS_THROUGH" \
+            "0 || 'fell through'"  "$ZERO_FALLS_THROUGH"
