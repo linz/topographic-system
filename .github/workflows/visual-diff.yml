@@ -15,8 +15,11 @@ on:
         description: 'URL of the project stac item to run visual diff on.'
         required: true
         type: string
-      data:
-        description: 'Optional path to download the source data for the project, that override the default data from project.'
+      catalog:
+        description: 'Optional catalog.json URL to use with commit-sha for filtering collections by commit.'
+        type: string
+      commit-sha:
+        description: 'Optional GitHub commit SHA to filter data collections by commit prefix.'
         type: string
 
 jobs:
@@ -51,7 +54,8 @@ jobs:
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
-          ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
+          ${{ inputs.catalog && format('--catalog {0}', inputs.catalog) || '' }} \
+          ${{ inputs.commit-sha && format('--commit-sha {0}', inputs.commit-sha) || '' }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.2

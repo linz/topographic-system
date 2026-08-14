@@ -8,10 +8,10 @@ import {
   qFromArgs,
   registerFileSystem,
   Url,
-  UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { command, option, optional } from 'cmd-ts';
+import { getCollectionsByCommit } from '@linzjs/topographic-system-stac';
+import { command, option, optional, string } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
@@ -49,11 +49,15 @@ export const VisualDiffArgs = {
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
-  data: option({
-    type: optional(UrlFolder),
-    long: 'data',
-    description:
-      'Optional local path to download the source data for the project, that override the default data from project.',
+  commitSha: option({
+    type: optional(string),
+    long: 'commit-sha',
+    description: 'Optional GitHub commit SHA to filter data collections by commit prefix.',
+  }),
+  catalog: option({
+    type: optional(Url),
+    long: 'catalog',
+    description: 'Optional catalog.json URL to use with --commit-sha for filtering collections by commit.',
   }),
   output: option({
     type: Url,
@@ -82,13 +86,21 @@ export const VisualDiffCommand = command({
 
     // Download local data if provided, and add the data path to stac for exporting
     const downloader = new Downloader(args.tempLocation, args.cache, q);
-    if (args.data) {
-      const files = await fsa.toArray(fsa.list(args.data));
-      for (const file of files) {
-        if (!file.href.endsWith('.json')) continue;
-        if (file.href.endsWith('catalog.json')) continue;
-        downloader.addStac(file);
+
+    // Use commit-based filtering if both commitSha and catalog are provided
+    if (args.commitSha && args.catalog) {
+      logger.info(
+        { commit: args.commitSha, catalog: args.catalog.href },
+        'Visual Diff: Filtering collections by commit',
+      );
+      const collectionsByCommit = await getCollectionsByCommit(args.catalog, args.commitSha);
+
+      for (const [layerName, collectionUrl] of collectionsByCommit) {
+        logger.info({ layer: layerName, collection: collectionUrl.href }, 'Visual Diff: Adding collection');
+        downloader.addStac(collectionUrl);
       }
+
+      // Download all assets
       await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
     }
 

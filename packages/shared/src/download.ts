@@ -285,7 +285,7 @@ export class Downloader {
 
 const CatalogCache = new Map<string, Promise<StacCatalog>>();
 
-function readCatalog(url: URL): Promise<StacCatalog> {
+export function readCatalog(url: URL): Promise<StacCatalog> {
   let existing = CatalogCache.get(url.href);
   if (existing) return existing;
   existing = fsa.readJson<StacCatalog>(url);
