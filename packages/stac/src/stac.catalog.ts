@@ -13,29 +13,29 @@ import { readCatalog } from '@linzjs/topographic-system-shared';
  * @throws Error if no layers have commit-specific data
  */
 export async function getCollectionsByCommit(catalogUrl: URL, commitSha: string): Promise<Map<string, URL>> {
-  const catalog = await readCatalog(catalogUrl);
-  const collections = new Map<string, URL>();
+    const catalog = await readCatalog(catalogUrl);
+    const collections = new Map<string, URL>();
 
-  // For each layer (e.g., /airport/catalog.json, /coastline/catalog.json)
-  for (const link of catalog.links) {
-    const match = link.href.match(/\/([^/]+)\/catalog\.json$/);
-    if (!match) continue;
+    // For each layer (e.g., /airport/catalog.json, /coastline/catalog.json)
+    for (const link of catalog.links) {
+        const match = link.href.match(/\/([^/]+)\/catalog\.json$/);
+        if (!match) continue;
 
-    const layerName = match[1]!;
-    const layerCatalogUrl = new URL(link.href, catalogUrl);
-    const commitColUrl = new URL(
-      `commit_prefix=${commitSha.charAt(0)}/commit=${commitSha}/collection.json`,
-      layerCatalogUrl,
-    );
+        const layerName = match[1]!;
+        const layerCatalogUrl = new URL(link.href, catalogUrl);
+        const commitColUrl = new URL(
+            `commit_prefix=${commitSha.charAt(0)}/commit=${commitSha}/collection.json`,
+            layerCatalogUrl,
+        );
 
-    if (await fsa.exists(commitColUrl)) {
-      collections.set(layerName, commitColUrl);
+        if (await fsa.head(commitColUrl).catch(() => null)) {
+            collections.set(layerName, commitColUrl);
+        }
     }
-  }
 
-  if (collections.size === 0) {
-    throw new Error(`No data found for commit ${commitSha} in catalog: ${catalogUrl.href}`);
-  }
+    if (collections.size === 0) {
+        throw new Error(`No data found for commit ${commitSha} in catalog: ${catalogUrl.href}`);
+    }
 
-  return collections;
+    return collections;
 }
