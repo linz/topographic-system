@@ -227,7 +227,10 @@ export class Downloader {
     if (existing) {
       // Already linked and matches the hash
       if (existing.hash === asset['file:checksum']) return existing;
-      if (options.skipIfExists) return existing;
+      if (options.skipIfExists) {
+        logger.debug({ url: url.href, linked: linkedPath.href }, 'DownloadFile:Skip');
+        return existing;
+      }
       logger.info(
         {
           project: url.href,
