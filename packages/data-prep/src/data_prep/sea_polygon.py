@@ -12,9 +12,8 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import morecantile
@@ -113,7 +112,7 @@ def set_derived_identity(
 def run(coastline_path: Path, output_path: Path, zoom: int = SLICE_ZOOM) -> None:
     land_gdf = read_and_project(coastline_path, target_crs=NZGD2000)
 
-    produced_at = datetime.now(ZoneInfo("Pacific/Auckland"))
+    produced_at = datetime.now(UTC)
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(land_gdf)
 

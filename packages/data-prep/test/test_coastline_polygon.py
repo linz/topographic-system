@@ -22,7 +22,11 @@ def run_coastline_polygon(tmp_path: Path, coastline_lines, island_polygons, isla
     coastline_path = tmp_path / "coastline.parquet"
     coastline_gdf.to_parquet(coastline_path)
 
-    island_attrs = {"geometry": island_polygons}
+    island_attrs = {
+        "created_at": "2020-01-01T00:00:00+00:00",
+        "updated_at": "2020-01-01T00:00:00+00:00",
+        "geometry": island_polygons,
+    }
     if island_names is not None:
         island_attrs["name"] = island_names
     island_gdf = gpd.GeoDataFrame(island_attrs, crs=NZGD2000)

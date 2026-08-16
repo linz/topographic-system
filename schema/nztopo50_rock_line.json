@@ -46,7 +46,7 @@
         }
       ]
     },
-    "sub_type": {
+    "subtype": {
       "anyOf": [
         {
           "$ref": "#/$defs/composition_subtype"
@@ -85,7 +85,7 @@
     "marine_id",
     "type",
     "name",
-    "sub_type",
+    "subtype",
     "metadata",
     "geometry"
   ],

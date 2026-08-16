@@ -7,9 +7,8 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import pandas as pd
@@ -79,8 +78,8 @@ def set_derived_identity(
     # Derive a reproducible UUIDv7 from the source timestamp and the name.
     result["id"] = [str(reproducible_uuid7(timestamp_ms, name)) for name in result["name"]]
     result["t50_fid"] = None
-    result["created_at"] = source_created_at.isoformat()
-    result["updated_at"] = produced_at.isoformat()
+    result["created_at"] = source_created_at
+    result["updated_at"] = produced_at
     return result
 
 
@@ -106,7 +105,7 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
     coastline_gdf = read_and_project(coastline_path)
     island_gdf = read_and_project(island_path)
 
-    produced_at = datetime.now(ZoneInfo("Pacific/Auckland"))
+    produced_at = datetime.now(UTC)
     # Use the earliest source created_at so derived ids stay stable across reruns.
     source_created_at = earliest_created_at(coastline_gdf)
 
@@ -132,6 +131,16 @@ def run(coastline_path: Path, island_path: Path, output_path: Path) -> None:
 
     # Split any multi-part geometries so every feature is a single Polygon.
     coastlines_islands_gdf = coastlines_islands_gdf.explode(ignore_index=True)
+
+    # Ensure required schema properties exist with expected shapes and types.
+    for col in ("created_at", "updated_at"):
+        parsed_datetime = pd.to_datetime(coastlines_islands_gdf[col], errors="raise", utc=True)
+        if parsed_datetime.isna().any():
+            raise ValueError(f"Column '{col}' contains null values after parsing; all rows must have a valid datetime.")
+        coastlines_islands_gdf[col] = parsed_datetime.apply(lambda value: value.isoformat())
+    coastlines_islands_gdf["t50_fid"] = pd.to_numeric(coastlines_islands_gdf["t50_fid"], errors="coerce").astype(
+        "UInt32"
+    )
 
     write_parquet(coastlines_islands_gdf, output_path)
 
