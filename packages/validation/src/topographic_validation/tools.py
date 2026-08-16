@@ -32,7 +32,7 @@ class TopoValidatorTools:
             date = datetime.datetime.now().strftime("%Y-%m-%d")
 
         # date('2025-09-13');
-        where = f"update_date >= date('{date}')"
+        where = f"updated_at >= '{date}'"
         return where
 
     def last_week(self, number_of_weeks: int = 1) -> str:
@@ -55,7 +55,7 @@ class TopoValidatorSettings:
         process_queries: bool = True,
         process_features_on_layer: bool = True,
         process_self_intersections: bool = True,
-        update_date: str | None = None,
+        date: str | None = None,
         weeks: int | None = None,
         bbox: tuple[float, float, float, float] | None = None,
     ) -> None:
@@ -71,7 +71,7 @@ class TopoValidatorSettings:
         self.process_queries = process_queries
         self.process_features_on_layer = process_features_on_layer
         self.process_self_intersections = process_self_intersections
-        self.update_date = update_date
+        self.date = date
         self.weeks = weeks
         self.bbox = bbox
 
@@ -242,12 +242,12 @@ class TopoValidatorSettings:
         self._query_rules = value
 
     @property
-    def update_date(self):
-        return self._update_date
+    def date(self):
+        return self._date
 
-    @update_date.setter
-    def update_date(self, value):
-        self._update_date = value
+    @date.setter
+    def date(self, value):
+        self._date = value
 
     @property
     def weeks(self):

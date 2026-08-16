@@ -210,7 +210,7 @@ def setup_settings(args: argparse.Namespace) -> TopoValidatorSettings:
         settings.bbox = tuple(args.bbox)
 
     if args.date:
-        settings.update_date = args.date
+        settings.date = args.date
 
     if args.weeks:
         settings.weeks = args.weeks
@@ -239,6 +239,7 @@ def main() -> None:
 
     # Verbose output
     if args.verbose:
+        print("Validation settings:")
         print(f"Validation mode: {args.mode}")
         print(f"Database path: {settings.db_path}")
         print(f"Config file: {settings.validation_config_file}")
