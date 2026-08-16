@@ -18,6 +18,7 @@ def result(tmp_path: Path):
             "definition": [None],
             "designation": [None],
             "formation": [None],
+            "metadata": [None],
             "geometry": [poly1],
         },
         crs=NZGD2000,
