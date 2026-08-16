@@ -6,7 +6,6 @@ Processing is parallelised across available CPU cores.
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -16,7 +15,6 @@ from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
-import pyarrow.parquet as pq
 
 from data_prep.identity import reproducible_uuid7
 from data_prep.parquet_utils import write_parquet
@@ -70,16 +68,12 @@ def read_nzgd2000(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
     return gdf
 
 
-def primary_geom_column(path: Path) -> str:
-    return json.loads(pq.read_schema(path).metadata[b"geo"])["primary_column"]
-
-
 def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     global _landcover_gdf, _contour_chunks
 
     contour_gdf = read_nzgd2000(
         contour_path,
-        columns=["id", "elevation", "definition", "designation", "formation", primary_geom_column(contour_path)],
+        columns=["id", "elevation", "definition", "designation", "formation", "metadata", "geometry"],
     ).rename(columns={"id": "contour_id"})
 
     _landcover_gdf = read_nzgd2000(
@@ -89,7 +83,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
             "id",
             "created_at",
             "updated_at",
-            primary_geom_column(landcover_path),
+            "geometry",
         ],
     ).rename(columns={"id": "landcover_id"})
 
@@ -117,6 +111,7 @@ def run(contour_path: Path, landcover_path: Path, overlay_path: Path) -> None:
     ]
     overlay_gdf = overlay_gdf.assign(t50_fid=None)
     overlay_gdf = overlay_gdf.assign(type="contour_ice")
+    overlay_gdf = overlay_gdf.assign(theme="relief")
 
     write_parquet(overlay_gdf, overlay_path)
 
