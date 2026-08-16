@@ -38,8 +38,8 @@ class ValidateDatasetController:
 
     def build_where_statement(self, active_dict: dict, date: str | None = None, weeks: int | None = None) -> str | None:
         where = active_dict.get("where")
-        date = date 
-        weeks = weeks 
+        date = date
+        weeks = weeks
         datetool = TopoValidatorTools()
         if date is not None:
             date_where = datetool.get_update_date(date=date)
