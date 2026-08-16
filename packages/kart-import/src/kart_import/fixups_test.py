@@ -3,22 +3,26 @@ import os
 from datetime import datetime
 
 import geopandas as gpd
+import numpy as np
 import pytest
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry.base import BaseGeometry
+from shapely.wkt import loads
 
 from . import fixups
 from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .fixups import _drop_listed_empty, drop_degenerate_fences, drop_empty_residential_areas
 
 
 def _gdf() -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame({"name": ["Broken", "OK"]}, geometry=[Point(0, 0), Point(1, 1)], crs="EPSG:4326")
 
 
-def _td(fixups_cfg: list[dict]) -> ThemeDataset:
+def _td(fixups_cfg: list[dict], name: str = "t") -> ThemeDataset:
     return ThemeDataset.model_validate(
-        {"name": "t", "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
+        {"name": name, "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
     )
 
 
@@ -54,16 +58,94 @@ def test_apply_fixups_applies_to_all_releases_when_unset(monkeypatch):
     assert seen == [99]
 
 
-def test_match_fids_handles_int_and_float_dtypes():
+LINE_EMPTY = loads("LINESTRING EMPTY")
+LINE_REAL = LineString([(174.0, -41.0), (174.1, -41.1)])
+POLY_EMPTY = loads("POLYGON EMPTY")
+POLY_REAL = Polygon([(175.0, -39.0), (175.1, -39.0), (175.1, -39.1), (175.0, -39.0)])
+DEGENERATE_FENCE_FIDS = [7640059, 7640098, 7704786, 7704787]
+FENCES = "nz_fence_centrelines"
+RESIDENTIAL = "nz_residential_area_polygons"
+
+DS = "ds"
+LISTED = {1, 2}
+
+
+def _fid_gdf(rows: list[tuple[float, BaseGeometry | None]]) -> gpd.GeoDataFrame:
+    """A (t50_fid, geometry) frame, the only two columns the drop fixups look at.
+
+    A `None` geometry is a case under test (it fails the FlatGeobuf write like an empty one does).
+    An object array rather than a plain list because that is how geopandas holds missing geometry,
+    and the only geometry-sequence form the stubs admit a `None` into.
+    """
+    return gpd.GeoDataFrame(
+        {"t50_fid": [fid for fid, _ in rows]},
+        geometry=np.array([geom for _, geom in rows], dtype=object),
+        crs="EPSG:4167",
+    )
+
+
+@pytest.mark.parametrize(
+    "rows, survivors",
+    [
+        # The gate: a listed fid repaired upstream is kept rather than dropped by a stale list.
+        ([(1, LINE_REAL), (9, LINE_REAL)], [1, 9]),
+        # Deliberately narrow: an unlisted empty geometry is left to fail loudly at the
+        # FlatGeobuf write rather than being silently swallowed here.
+        ([(9, LINE_EMPTY), (8, LINE_REAL)], [9, 8]),
+        # The plain drop path, on one listed fid, is `test_drop_listed_empty_drops_every_missing_form`.
+        ([(1, LINE_EMPTY), (2, LINE_EMPTY), (9, LINE_REAL)], [9]),
+        ([(8, LINE_REAL), (9, LINE_REAL)], [8, 9]),
+    ],
+    ids=[
+        "listed-but-repaired-kept",
+        "unlisted-empty-kept",
+        "every-listed-dropped",
+        "nothing-listed-is-a-noop",
+    ],
+)
+def test_drop_listed_empty(rows, survivors):
+    out = _drop_listed_empty(_fid_gdf(rows), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == survivors
+    # theme.py concatenates with ignore_index, but a gappy index would still surface in any
+    # positional lookup downstream.
+    assert out.index.tolist() == list(range(len(survivors)))
+
+
+@pytest.mark.parametrize("geom", [LINE_EMPTY, POLY_EMPTY, None], ids=["empty-line", "empty-polygon", "null"])
+def test_drop_listed_empty_drops_every_missing_form(geom):
+    """All three reach the FlatGeobuf write as a NULL geometry, whatever the feature type, so the
+    fixups need no per-geometry handling. `None` is what a source publishing a null produces;
+    the empties are what `set_precision` leaves behind when a feature rounds away."""
+    out = _drop_listed_empty(_fid_gdf([(1, geom), (9, LINE_REAL)]), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == [9]
+
+
+@pytest.mark.parametrize("cast", [int, float], ids=["int", "float"])
+def test_drop_listed_empty_matches_either_fid_dtype(cast):
     """pyogrio may read an integer t50_fid as float; matching must work for both."""
-    rows = [{"fid": 10}, {"fid": 20}, {"fid": 30}]
-    for cast in (int, float):
-        gdf = gpd.GeoDataFrame(
-            {"fid": [cast(r["fid"]) for r in rows]},
-            geometry=[Point(0, 0)] * len(rows),
-            crs="EPSG:4326",
-        )
-        assert fixups._match_fids(gdf, {10, 30}).tolist() == [True, False, True]
+    out = _drop_listed_empty(_fid_gdf([(cast(1), LINE_EMPTY), (cast(9), LINE_REAL)]), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == [cast(9)]
+
+
+def test_drop_listed_empty_rejects_wrong_dataset():
+    """A fid list matches nothing on another dataset, so a miswired fixup would otherwise pass as
+    a successful no-op build."""
+    with pytest.raises(ValueError, match=f"fixup for dataset '{DS}' applied to 'other_dataset'"):
+        _drop_listed_empty(_fid_gdf([(9, LINE_REAL)]), _td([], "other_dataset"), DS, LISTED)
+
+
+def test_drop_degenerate_fences_targets_its_own_fids():
+    """Wiring, the one thing the generic tests above cannot check: that this fixup hands
+    `_drop_listed_empty` the hand-checked fids and the dataset they were checked against."""
+    rows = [(fid, LINE_EMPTY) for fid in DEGENERATE_FENCE_FIDS] + [(123, LINE_REAL)]
+    out = drop_degenerate_fences(_fid_gdf(rows), _td([], FENCES), 60)
+    assert out["t50_fid"].tolist() == [123]
+
+
+def test_drop_empty_residential_areas_targets_its_own_fid():
+    """As above. `None` is the form release 51 actually ships for residential area 6753838."""
+    out = drop_empty_residential_areas(_fid_gdf([(6753838, None), (123, POLY_REAL)]), _td([], RESIDENTIAL), 51)
+    assert out["t50_fid"].tolist() == [123]
 
 
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:
