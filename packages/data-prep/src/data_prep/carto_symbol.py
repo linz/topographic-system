@@ -31,9 +31,14 @@ def chop(gdf: gpd.GeoDataFrame, stride: int = 64) -> gpd.GeoDataFrame:
 
 def add_contour_numbers(input_path: Path, contour_path: Path) -> gpd.GeoDataFrame:
     contour_number_gdf = gpd.read_file(input_path, layer="contour_number")
-    contour_number_gdf["orientation"] = (
-        numpy.round(numpy.degrees(contour_number_gdf["orientation"].astype("float64"))).astype("int32") % 360
-    )
+
+    # LAMPS orientation is contour tangent in radians, counter-clockwise from east
+    # LAMPS cont_rota is uphill direction in degrees clockwise from north
+    orientation = numpy.degrees(contour_number_gdf["orientation"].astype("float64")) % 360
+    contour_rotation = (360 - contour_number_gdf["cont_rota"].astype("float64")) % 360
+    # flip label when orientation and contour_rotation are within 90 degrees
+    orientation = orientation + ((abs(orientation - contour_rotation) < 90) * 180)
+    contour_number_gdf["orientation"] = 360 - (numpy.round(orientation).astype("int32") % 360)
 
     contour_gdf = read_and_project(contour_path, columns=["topo_id", "elevation", "geometry"])
     contour_chop_gdf = chop(contour_gdf)
