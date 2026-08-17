@@ -186,7 +186,8 @@ So `theme_release` reconciles types in two passes around the concatenation:
    float where the schema says `integer` is converted here if it is exactly representable, and
    raises naming the theme and column if it is not, rather than silently becoming text
    downstream. Every column the schema describes is cast, including one whose dtype is merely
-   _compatible_ with the target (e.g. `Int32` is widened to a declared `Int64`).
+   _compatible_ with the target. Note: integer values are capped at `Int32` due to hyparquet / Ajv
+   constraints. This will need fixing if t50_fid grows beyond `Int32`.
    Columns the schema does not describe, and themes with no schema at all, keep their unified
    dtype.
 
