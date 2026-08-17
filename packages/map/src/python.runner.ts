@@ -7,6 +7,7 @@ import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-co
 import { Command } from '@linzjs/docker-command';
 import { logger, trace } from '@linzjs/topographic-system-shared';
 
+import type { ExportAsset } from './cli/export.options.ts';
 import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from './qgis.ts';
 import type { ExportOptions } from './stac.ts';
 
@@ -79,7 +80,13 @@ async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult>
 /**
  * Running python commands for qgis_export
  */
-async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+async function qgisExport(
+  input: URL,
+  output: URL,
+  sheetCode: string,
+  options: ExportOptions,
+  asset: ExportAsset,
+): Promise<URL> {
   const startTime = performance.now();
   const sourceLocation = await findQgisSource();
 
@@ -102,11 +109,11 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(fileURLToPath(new URL('qgis_export.py', sourceLocation)));
   cmd.args.push(`--project=${fileURLToPath(input)}`);
   cmd.args.push(`--output=${fileURLToPath(output)}`);
-  cmd.args.push(`--layout=${options.layout}`);
+  cmd.args.push(`--layout=${asset.layout}`);
   cmd.args.push(`--map-sheet-layer-name=${mapSheetLayerName.name}`);
   cmd.args.push(`--carto-text-layer-name=${cartoTextLayer.name}`);
-  cmd.args.push(`--format=${options.format}`);
-  cmd.args.push(`--dpi=${options.dpi.toFixed(0)}`);
+  cmd.args.push(`--format=${asset.format}`);
+  cmd.args.push(`--dpi=${asset.dpi.toFixed(0)}`);
   cmd.args.push(`--sheet-code=${sheetCode}`);
 
   if (options.excludeLayers) {

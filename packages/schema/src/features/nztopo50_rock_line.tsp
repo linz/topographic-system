@@ -13,7 +13,7 @@ model nztopo50_rock_line {
 
   type: "rock";
   name: string | null;
-  sub_type: composition_subtype | null;
+  subtype: composition_subtype | null;
   ...TopographicMetadata;
   ...GeoParquet;
 }

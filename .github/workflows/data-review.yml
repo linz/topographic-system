@@ -34,7 +34,8 @@ on:
         description: 'Stac storage strategy.'
         type: string
         required: false
-        default: 'commit=${{ github.sha }}'
+        # `github.sha` is the ephemeral merge commit on pull requests, use the head commit instead
+        default: 'commit=${{ github.event.pull_request.head.sha || github.sha }}'
       commit:
         description: 'Whether to push the parquet and stac files into output location.'
         type: boolean
@@ -88,7 +89,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
-          HEAD_REF: ${{ inputs.head_ref || github.head_ref }}
+          # Fetch the exact commit, not the branch name: the branch tip can move while the job runs,
+          # which would publish data that does not match the commit it is labelled with.
+          HEAD_REF: ${{ inputs.head_ref || github.event.pull_request.head.sha || github.sha }}
           CHANGED_DATASETS_ONLY: ${{ inputs.changed_datasets_only }}
 
       - name: Stac Push

@@ -76,7 +76,9 @@ export interface CloneContext {
  */
 export function buildCloneContext(args: CloneArgs, token?: string): CloneContext {
   const target = args.output ?? stringToUrlFolder('repo');
-  const ref = args.ref ?? 'master';
+  // `||` not `??`: callers pass `--ref ""` when a workflow has no head ref (eg a push to master),
+  // and an empty ref must fall back to master rather than reaching `kart fetch origin ''`.
+  const ref = args.ref || 'master';
 
   const repoUrl = new URL(args.repository, 'https://github.com/');
 

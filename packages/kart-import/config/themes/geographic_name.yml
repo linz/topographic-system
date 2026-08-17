@@ -1,0 +1,134 @@
+name: geographic_name
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone3
+  #    name: cook_islands_geographic_names_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone4
+  #    name: cook_islands_geographic_names_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/niue-geographic-names-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-geographic-names-topo-150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+      theme: annotation
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-geographic-names-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-geographic-names-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-geographic-names-topo-150k
+    mapping:
+      t50_fid: $
+      type: geographic_name
+      name: $name
+      desc_code: $desc_code
+      size: $size
+      theme: annotation
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-geographic-names-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-geographic-names-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-geographic-names-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/tokelau-geographic-names-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: geographic_name
+  #      name: $name
+  #      desc_code: $desc_code
+  #      size: $size
+  #      theme: annotation
+  #      metadata: null

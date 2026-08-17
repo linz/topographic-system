@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 import geopandas as gpd
@@ -19,6 +20,19 @@ from data_prep.identity import earliest_created_at, reproducible_uuid7
 from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
+
+OUTPUT_COLUMNS = [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "marine_id",
+    "type",
+    "name",
+    "subtype",
+    "metadata",
+    "geometry",
+]
 
 
 # Mask buffer is a metric operation, so buffer in NZTM2000(projected metres) instead of NZGD2000(geographic degrees)
@@ -54,10 +68,16 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
 
     # Derive a reproducible UUIDv7 from the source timestamp and the geometry.
     source_created_at = earliest_created_at(rock_gdf)
+    produced_at = datetime.now(UTC)
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     rock_line_clip_gdf["id"] = [
         str(reproducible_uuid7(timestamp_ms, f"rock_line/{geom.wkb_hex}")) for geom in rock_line_clip_gdf.geometry
     ]
+
+    # Ensure required schema properties exist with expected shapes and types.
+    rock_line_clip_gdf["created_at"] = source_created_at.isoformat()
+    rock_line_clip_gdf["updated_at"] = produced_at.isoformat()
+    rock_line_clip_gdf = rock_line_clip_gdf.reindex(columns=OUTPUT_COLUMNS)
 
     write_parquet(rock_line_clip_gdf, output_path)
 

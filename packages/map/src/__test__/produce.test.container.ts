@@ -138,11 +138,9 @@ describe('QGIS Process', () => {
       await cli(
         'prepare',
         ['--project', fileURLToPath(new URL('target-deploy-push/qgis/beehive/latest/beehive.json', tempLocation))],
-        ['--layout', 'tiff-50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
-        ['--format', 'png'],
-        ['--dpi', '200'],
+        ['--asset', 'layout=tiff-50,dpi=200,format=png'],
         'BQ31',
       );
 
