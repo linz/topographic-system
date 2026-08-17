@@ -1,0 +1,105 @@
+name: marine_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: rock
+      # Source carries no composition attribute, so the subtype stays null.
+      subtype: null
+      name: $name
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: rock
+      subtype: null
+      name: $name
+      theme: landcover
+      metadata: null
+  # FIXME: needs lookup for t50_fid — these sources key on auto_pk, or carry
+  #   t50_fid as a float that only appears in later releases.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone3
+  #    name: cook_islands_rock_points_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone4
+  #    name: cook_islands_rock_points_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/niue-rock-points-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/tokelau-rock-points-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-points-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: rock
+  #      subtype: null
+  #      name: $name
+  #      theme: landcover
+  #      metadata: null
