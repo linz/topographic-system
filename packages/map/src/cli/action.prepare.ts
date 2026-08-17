@@ -195,7 +195,6 @@ export const PrepareCommand = command({
       throw new Error('--data-tags not supported');
     }
 
-
     // Find downloaded project file
     const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
     if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
