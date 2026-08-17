@@ -121,7 +121,7 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
     const destPath = new URL(path.href.replace('.json', `.${getAssetSuffix(exportAsset)}`));
     if (args.force !== true && (await fsa.exists(destPath))) {
       logger.info({ destPath: destPath.href }, 'Produce:Exists, skipping');
-      return;
+      continue;
     }
 
     // Start to export file

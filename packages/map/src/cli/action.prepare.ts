@@ -27,16 +27,6 @@ import { ExportCommand, fromFile } from './action.export.ts';
 import { FormatMultiOption } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
-export const ExportFormats = {
-  Pdf: 'pdf',
-  Tiff: 'tiff',
-  GeoTiff: 'geotiff',
-  Png: 'png',
-  Webp: 'webp',
-} as const;
-
-export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
-
 interface dataTag {
   layer: string;
   tag: string;
