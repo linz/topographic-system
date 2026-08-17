@@ -36,13 +36,11 @@ class ValidateDatasetController:
         with open(summary_report_file, "w") as f:
             json.dump(self.summary_report, f, indent=4)
 
-    def build_where_statement(self, active_dict: dict) -> str | None:
-        # CHANGE TO SETTINGS
+    def build_where_statement(self, active_dict: dict, date: str | None = None, weeks: int | None = None) -> str | None:
         where = active_dict.get("where")
-        date = active_dict.get("date")
-        weeks = active_dict.get("weeks")
+        date = date
+        weeks = weeks
         datetool = TopoValidatorTools()
-
         if date is not None:
             date_where = datetool.get_update_date(date=date)
             if where is not None:
@@ -56,7 +54,7 @@ class ValidateDatasetController:
                 where = f"({where}) AND ({date_where})"
             else:
                 where = date_where
-
+        print("where statement:", where, flush=True)
         return where
 
     def run_validation(self) -> None:
@@ -90,7 +88,7 @@ class ValidateDatasetController:
         for null_check in self.settings.null_columns:
             table = null_check["table"]
             # export_layername = null_check["table"]
-            where_condition = self.build_where_statement(null_check)
+            where_condition = self.build_where_statement(null_check, self.settings.date, self.settings.weeks)
             message = null_check.get("message", "")
 
             print(f"Running null check on {table}, column: {where_condition}", flush=True)
@@ -115,7 +113,7 @@ class ValidateDatasetController:
         for query_rule in self.settings.query_rules:
             table = query_rule["table"]
             # export_layername = query_rule["table"]
-            where_condition = self.build_where_statement(query_rule)
+            where_condition = self.build_where_statement(query_rule, self.settings.date, self.settings.weeks)
             message = query_rule.get("message", "")
 
             print(f"Running null check on {table}, column: {where_condition}", flush=True)
@@ -150,7 +148,7 @@ class ValidateDatasetController:
                 table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
-                where_condition=self.build_where_statement(layer),
+                where_condition=self.build_where_statement(layer, self.settings.date, self.settings.weeks),
                 message=layer["message"],
             )
 
@@ -173,7 +171,7 @@ class ValidateDatasetController:
                 table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
-                where_condition=self.build_where_statement(layer),
+                where_condition=self.build_where_statement(layer, self.settings.date, self.settings.weeks),
                 message=layer["message"],
             )
 
@@ -197,7 +195,7 @@ class ValidateDatasetController:
                 table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
-                where_condition=self.build_where_statement(layer),
+                where_condition=self.build_where_statement(layer, self.settings.date, self.settings.weeks),
                 message=layer["message"],
             )
 
@@ -225,7 +223,7 @@ class ValidateDatasetController:
                 table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
-                where_condition=self.build_where_statement(layer),
+                where_condition=self.build_where_statement(layer, self.settings.date, self.settings.weeks),
                 message=layer["message"],
             )
 
@@ -254,7 +252,7 @@ class ValidateDatasetController:
                 table=layer["table"],
                 table2=layer["intersection_table"],
                 export_layername=layer["layername"],
-                where_condition=self.build_where_statement(layer),
+                where_condition=self.build_where_statement(layer, self.settings.date, self.settings.weeks),
                 message=layer["message"],
             )
 
@@ -280,7 +278,7 @@ class ValidateDatasetController:
         for layer in self.settings.self_intersect_layers:
             table = layer["table"]
             export_layername = layer["layername"]
-            where_condition = self.build_where_statement(layer)
+            where_condition = self.build_where_statement(layer, self.settings.date, self.settings.weeks)
             message = layer.get("message", "")
 
             # Will automatically create the appropriate validator
