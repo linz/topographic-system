@@ -1,0 +1,16 @@
+name: landuse_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-mine-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: mine
+      subtype: $visibility
+      status:
+      name: $
+      substance_extracted: $substance
+      theme: landuse
+      metadata: null
+    corrections:
+      - { column: status, replace: { historic: old } }

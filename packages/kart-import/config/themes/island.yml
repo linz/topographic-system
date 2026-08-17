@@ -1,0 +1,112 @@
+name: island
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone3
+  #    name: cook_islands_island_polygons_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone4
+  #    name: cook_islands_island_polygons_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/niue-island-polygons-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-island-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+      theme: landcover
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-island-polygons-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-island-polygons-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-island-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: island
+      name: $name
+      group_name: $grp_name
+      theme: landcover
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-island-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-island-polygons-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: null
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-island-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/tokelau-island-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: island
+  #      name: $name
+  #      group_name: $grp_name
+  #      theme: landcover
+  #      metadata: null

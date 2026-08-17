@@ -1,0 +1,33 @@
+name: fence_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-fence-centrelines-topo-125k-zone4
+  #    name: cook_islands_fence_centrelines
+  #    mapping:
+  #      t50_fid: $
+  #      type: fence
+  #      theme: structures
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/niue-fence-centrelines-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: fence
+  #      theme: structures
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-fence-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: fence
+      theme: structures
+      metadata: null
+    fixups:
+      - fn: drop_degenerate_fences # near-zero-length lines that collapse to LINESTRING EMPTY on rounding
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-fence-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: fence
+      theme: structures
+      metadata: null
