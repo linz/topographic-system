@@ -25,7 +25,7 @@ import {
   StacCollectionWriter,
   StacUpdater,
 } from '@linzjs/topographic-system-stac';
-import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
