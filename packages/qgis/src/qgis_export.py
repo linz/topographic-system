@@ -81,7 +81,7 @@ def parse_args() -> ExportArgs:
         "--format",
         type=str,
         dest="export_format",
-        choices=["pdf", "tiff", "geotiff", "png"],
+        choices=["pdf", "tiff", "geotiff", "png", "webp"],
         required=True,
         help="Export format.",
     )
@@ -206,8 +206,8 @@ def main():
             pdf_settings.dpi = args.dpi
             pdf_settings.rasterizeWholeImage = False
             export_result = exporter.exportToPdf(output_file, pdf_settings)
-        elif args.export_format in ["tiff", "geotiff", "png"]:
-            ext = "tiff" if args.export_format in ["tiff", "geotiff"] else "png"
+        elif args.export_format in ["tiff", "geotiff", "png", "webp"]:
+            ext = "tiff" if args.export_format in ["tiff", "geotiff"] else args.export_format
             output_file = os.path.join(args.file_output_path, f"{args.sheet_code}.{ext}")
             img_settings = QgsLayoutExporter.ImageExportSettings()
             img_settings.dpi = args.dpi

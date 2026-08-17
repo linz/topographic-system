@@ -258,7 +258,7 @@ describe('deploy -> produce-cover -> produce', () => {
     t.mock.method(
       pyRunner,
       'qgisExport',
-      async (_input: URL, output: URL, _sheet: string, opts: ExportOptions, asset: ExportAsset) => {
+      async (_input: URL, output: URL, _sheet: string, _opts: ExportOptions, asset: ExportAsset) => {
         const ext = getFormatExtension(asset.format);
         const outputFile = new URL(`product/latest/BQ32${ext}`, output);
         await fsa.write(outputFile, `BQ32${ext}`);

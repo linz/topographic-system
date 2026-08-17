@@ -133,7 +133,7 @@ const ProduceArgs = {
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
   assets: multioption({
-    long: 'assets',
+    long: 'asset',
     type: FormatMultiOption,
     description: `Assets to export as key=value spec e.g. "layout=tiff-50,dpi=600,format=tiff"`,
   }),
