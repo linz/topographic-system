@@ -18,12 +18,13 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
-import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
 import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
+import { FormatMultiOption } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
 export const ExportFormats = {
@@ -31,6 +32,7 @@ export const ExportFormats = {
   Tiff: 'tiff',
   GeoTiff: 'geotiff',
   Png: 'png',
+  Webp: 'webp',
 } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
@@ -130,19 +132,10 @@ const ProduceArgs = {
     long: 'project',
     description: 'Stac Item path of QGIS Project to use for generate map sheets.',
   }),
-  format: option({
-    type: oneOf([ExportFormats.Pdf, ExportFormats.Tiff, ExportFormats.GeoTiff, ExportFormats.Png]),
-    long: 'format',
-    description: `Export format as ${ExportFormats.Pdf}, ${ExportFormats.Tiff}, ${ExportFormats.GeoTiff}, or ${ExportFormats.Png}`,
-    defaultValue: () => ExportFormats.Pdf,
-    defaultValueIsSerializable: true,
-  }),
-  layout: option({
-    type: string,
-    long: 'layout',
-    description: 'Qgis Layout name to use for export',
-    defaultValue: () => 'tiff-50',
-    defaultValueIsSerializable: true,
+  assets: multioption({
+    long: 'assets',
+    type: FormatMultiOption,
+    description: `Assets to export as key=value spec e.g. "layout=tiff-50,dpi=600,format=tiff"`,
   }),
   mapSheetDataset: option({
     type: optional(string),
@@ -164,13 +157,6 @@ const ProduceArgs = {
     long: 'data-tags',
     description:
       'Override data tags in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
-  }),
-  dpi: option({
-    type: number,
-    long: 'dpi',
-    description: 'Export dpi setting',
-    defaultValue: () => 300,
-    defaultValueIsSerializable: true,
   }),
   output: option({
     type: UrlFolder,
@@ -239,11 +225,9 @@ export const PrepareCommand = command({
 
     // Run python list all the mapsheet covering metadata
     const exportOptions: ExportOptions = {
-      layout: args.layout,
       mapSheetDataset: mapSheetLayer.source,
       cartoTextDataset: cartoTextLayer.source,
-      dpi: args.dpi,
-      format: args.format,
+      assets: args.assets,
     };
 
     const mapSheetsToCreate: SheetMetadata[] = [];
@@ -260,8 +244,9 @@ export const PrepareCommand = command({
     // Create Stac Files and upload to destination
     const projectName = basename(args.project.href, '.json');
     const sw = new StacCollectionWriter('product', projectName);
-    sw.collection.title = `Topographic System projects ${projectName} exports ${args.format}.`;
-    sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${args.format} format.`;
+    const formatsStr = exportOptions.assets.map((o) => o.label ?? o.format).join(', ');
+    sw.collection.title = `Topographic System projects ${projectName} exports ${formatsStr}.`;
+    sw.collection.description = `LINZ Topographic QGIS Project Series ${projectName} exported maps in ${formatsStr} format.`;
 
     logger.info({ project: args.project.href, number: mapSheetsToCreate.length }, 'Prepare: CreateStacItems');
 

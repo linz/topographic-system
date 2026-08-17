@@ -17,6 +17,7 @@ import type { StacItem } from 'stac-ts';
 import { pyRunner } from '../python.runner.ts';
 import { getQgisProjectMeta, getQgisMapSheetDataset, getQgisCartoTextLayer } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
+import type { ExportAsset } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
 interface TestProject {
@@ -117,19 +118,18 @@ export const VisualDiffCommand = command({
         const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
 
         // Prepare test export options
+        const exportAsset: ExportAsset = { layout: test.layout, dpi: test.dpi, format: 'png' };
         const exportOptions: ExportOptions = {
-          layout: test.layout,
-          dpi: test.dpi,
           mapSheetDataset: mapSheetLayer.source,
           cartoTextDataset: cartoTextLayer.source,
-          format: 'png',
           excludeLayers: test.excludeLayers,
+          assets: [exportAsset],
         };
 
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>
           q(async () => {
-            const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions);
+            const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions, exportAsset);
             logger.info({ file: file.href }, `Visual Diff: Exported ${sheetCode}`);
           }),
         );

@@ -6,9 +6,13 @@ import { StacPushCommand } from '@linzjs/topographic-system-stac';
 import type { StacItem } from 'stac-ts';
 
 import { DeployCommand } from '../cli/action.deploy.ts';
-import { ExportCommand } from '../cli/action.export.ts';
+import { ExportCommand, getFormatExtension } from '../cli/action.export.ts';
 import { PrepareCommand } from '../cli/action.prepare.ts';
+import type { ExportAsset } from '../cli/export.options.ts';
+import { parseFormatOptionString } from '../cli/export.options.ts';
 import { BaseCommandOptions, pyRunner } from '../python.runner.ts';
+import type { ExportOptions } from '../stac.ts';
+import { validator } from '../validate.ts';
 import { writeBaseLayers } from './util.ts';
 
 describe('deploy -> produce-cover -> produce', () => {
@@ -79,15 +83,13 @@ describe('deploy -> produce-cover -> produce', () => {
       concurrency,
       mapSheet: ['BQ32'],
       project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
-      layout: 'tiff-50',
       mapSheetDataset: undefined,
       cartoTextDataset: undefined,
       source: new URL('memory://source/catalog.json'),
-      dpi: 300,
       output: targetProduce,
       fromFile: undefined,
       all: false,
-      format: 'pdf',
+      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
       dataTags: undefined,
       cache: new URL('memory://temp-cache/'),
       tempLocation: new URL('memory://temp-produce-cover/'),
@@ -115,11 +117,9 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.equal(bq32Json.properties['proj:epsg'], 2193);
     assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
-      layout: 'tiff-50',
       mapSheetDataset: 'nztopo50_map_sheet.parquet',
       cartoTextDataset: 'nztopo50_carto_text.parquet',
-      dpi: 300,
-      format: 'pdf',
+      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
     });
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL) => {
@@ -204,5 +204,91 @@ describe('deploy -> produce-cover -> produce', () => {
       title: 'Topographic nztopo50_carto_text',
     });
     assert.equal(dateLinks.length, 4);
+  });
+
+  it('should prepare and export multiple formats with key-value specs', async (t) => {
+    const targetProduceMulti = new URL('memory://target-produce-multi/');
+    await PrepareCommand.handler({
+      concurrency,
+      mapSheet: ['BQ32'],
+      project: new URL('memory://target-push/qgis/topo50/latest/topo50.json'),
+      mapSheetDataset: undefined,
+      cartoTextDataset: undefined,
+      source: new URL('memory://source/catalog.json'),
+      output: targetProduceMulti,
+      fromFile: undefined,
+      all: false,
+      assets: [
+        'layout=nztopo50,dpi=600,format=tiff',
+        'layout=nztopo50,dpi=600,format=pdf',
+        'layout=nztopo50,dpi=30,format=webp,role=thumbnail',
+      ].map(parseFormatOptionString),
+      dataTags: undefined,
+      cache: new URL('memory://temp-cache/'),
+      tempLocation: new URL('memory://temp-produce-cover-multi/'),
+      export: false,
+    });
+
+    const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduceMulti));
+    assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
+      mapSheetDataset: 'nztopo50_map_sheet.parquet',
+      cartoTextDataset: 'nztopo50_carto_text.parquet',
+      assets: [
+        {
+          layout: 'nztopo50',
+          dpi: 600,
+          format: 'tiff',
+        },
+        {
+          layout: 'nztopo50',
+
+          dpi: 600,
+          format: 'pdf',
+        },
+        {
+          layout: 'nztopo50',
+          dpi: 30,
+          format: 'webp',
+          label: 'thumbnail',
+          role: 'thumbnail',
+        },
+      ],
+    });
+
+    t.mock.method(
+      pyRunner,
+      'qgisExport',
+      async (_input: URL, output: URL, _sheet: string, opts: ExportOptions, asset: ExportAsset) => {
+        const ext = getFormatExtension(asset.format);
+        const outputFile = new URL(`product/latest/BQ32${ext}`, output);
+        await fsa.write(outputFile, `BQ32${ext}`);
+        return outputFile;
+      },
+    );
+
+    t.mock.method(validator, 'validateTiff', async () => {});
+
+    await ExportCommand.handler({
+      path: [new URL(`memory://target-produce-multi/topo50/BQ32.json`)],
+      cache: new URL('memory://temp-cache/'),
+      tempLocation: new URL('memory://temp-produce-multi/'),
+      fromFile: undefined,
+      force: false,
+      worker: 1,
+    });
+
+    const exportedFiles = [...(await fsa.toArray(fsa.list(targetProduceMulti)))]
+      .map((f) => f.href.replace(targetProduceMulti.href, ''))
+      .sort();
+
+    assert.ok(exportedFiles.includes('topo50/BQ32.tiff'));
+    assert.ok(exportedFiles.includes('topo50/BQ32.pdf'));
+    assert.ok(exportedFiles.includes('topo50/BQ32.thumbnail.webp'));
+
+    const updatedJson = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduceMulti));
+    assert.ok(updatedJson?.assets?.['tiff']);
+    assert.ok(updatedJson?.assets?.['pdf']);
+    assert.ok(updatedJson?.assets?.['thumbnail']);
+    assert.equal(updatedJson.assets['thumbnail'].href, './BQ32.thumbnail.webp');
   });
 });
