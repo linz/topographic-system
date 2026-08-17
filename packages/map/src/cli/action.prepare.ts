@@ -171,6 +171,7 @@ export const PrepareCommand = command({
     const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project.href, cache: args.cache.href }, 'Prepare: Start');
 
+    if (args.assets.length === 0) throw new Error('No --asset provided');
     const q = qFromArgs(args);
 
     const mapSheets = new Set(
@@ -193,6 +194,7 @@ export const PrepareCommand = command({
     if (args.source && args.dataTags) {
       throw new Error('--data-tags not supported');
     }
+
 
     // Find downloaded project file
     const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;

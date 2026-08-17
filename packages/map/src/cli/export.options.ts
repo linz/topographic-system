@@ -13,7 +13,7 @@ export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
 
 const ExportParser = z.object({
   layout: z.string(),
-  dpi: z.coerce.number(),
+  dpi: z.coerce.number().refine((n) => n > 0, { message: 'DPI must be a positive number' }),
   format: z.enum(ExportFormats),
   // STAC asset label used in asset map
   label: z.optional(z.string()),
