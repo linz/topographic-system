@@ -17,7 +17,14 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import {
+  geoJsonToWgs84,
+  getCollectionsByStrategy,
+  getJsonToWgs84Bbox,
+  parseStrategy,
+  StacCollectionWriter,
+  StacUpdater,
+} from '@linzjs/topographic-system-stac';
 import { command, flag, number, oneOf, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
@@ -159,11 +166,16 @@ const ProduceArgs = {
     long: 'source',
     description: 'Source data catalog.json that contains the layers.',
   }),
-  dataTags: option({
+  strategy: option({
     type: optional(string),
-    long: 'data-tags',
+    long: 'strategy',
     description:
-      'Override data tags in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
+      'Optional storage strategy to filter source data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".',
+  }),
+  catalog: option({
+    type: optional(Url),
+    long: 'catalog',
+    description: 'Optional catalog.json URL to use with --commit-sha for filtering source collections by commit.',
   }),
   dpi: option({
     type: number,
@@ -213,9 +225,17 @@ export const PrepareCommand = command({
     await downloader.getAllAssets();
     logger.info({ project: args.project.href }, 'Download: End');
 
-    // Override data with dataTag if provided
-    if (args.source && args.dataTags) {
-      throw new Error('--data-tags not supported');
+    // Get strategy-filtered collection URLs to override source links in the output STAC
+    const strategyCollections = new Map<string, URL>();
+    if (args.strategy && args.catalog) {
+      const [storageStrategy] = parseStrategy(args.strategy);
+      if (!storageStrategy) throw new Error(`Invalid strategy: ${args.strategy}`);
+      logger.info(
+        { strategy: args.strategy, catalog: args.catalog.href },
+        'Prepare: Filtering collections by strategy',
+      );
+      const filtered = await getCollectionsByStrategy(args.catalog, storageStrategy, q);
+      for (const [layerName, url] of filtered) strategyCollections.set(layerName, url);
     }
 
     // Find downloaded project file
@@ -224,11 +244,30 @@ export const PrepareCommand = command({
 
     logger.info({ project: args.project.href }, 'Prepare');
     const projectMeta = await getQgisProjectMeta(projectPath);
-    const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
+    const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset, strategyCollections);
     logger.info({ project: args.project.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
 
-    const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset);
+    const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset, strategyCollections);
     logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
+
+    // Download strategy-specific versions of map sheet and carto text layers if available
+    if (mapSheetLayer.strategyUrl) {
+      logger.info(
+        { layer: mapSheetLayer.source, url: mapSheetLayer.strategyUrl.href },
+        'Prepare: MapSheet strategy override',
+      );
+      downloader.addStac(mapSheetLayer.strategyUrl);
+    }
+    if (cartoTextLayer.strategyUrl) {
+      logger.info(
+        { layer: cartoTextLayer.source, url: cartoTextLayer.strategyUrl.href },
+        'Prepare: CartoText strategy override',
+      );
+      downloader.addStac(cartoTextLayer.strategyUrl);
+    }
+    if (mapSheetLayer.strategyUrl ?? cartoTextLayer.strategyUrl) {
+      await downloader.getAllAssets({ skipIfExists: true, useCanonical: true });
+    }
 
     const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
@@ -295,13 +334,16 @@ export const PrepareCommand = command({
 
       for (const s of sources) {
         if (s.item.json == null) throw new Error(`Source stac json not found for url: ${s.url.href}`);
+
+        // Use strategy-specific URL if this layer has one, otherwise fall back to canonical/original
+        const layerName = s.url.pathname.split('/').find((layer) => strategyCollections.has(layer));
+        const strategyUrl = layerName ? strategyCollections.get(layerName) : undefined;
         const canonicalLink = s.item.json.links.find((link) => link.rel === 'canonical');
 
         const itemLink: StacLink = {
           rel: 'source',
-          href: canonicalLink ? new URL(canonicalLink.href, s.url).href : s.url.href,
+          href: strategyUrl?.href ?? (canonicalLink ? new URL(canonicalLink.href, s.url).href : s.url.href),
           type: 'application/json',
-          // TODO: if these are canonical links, we should add file:size and file:checksum
         };
 
         if (typeof s.item.json.title === 'string') itemLink.title = s.item.json.title;

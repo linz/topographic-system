@@ -23,6 +23,9 @@ interface QgisLayerDef {
 
   /** Optional extra QGIS option metadata */
   options?: { key: string; value?: string }[];
+
+  /** Strategy-specific collection URL override, if a strategy was provided */
+  strategyUrl?: URL;
 }
 /**
  * Load a QGS project and extract the layers names and their source and basic projection information
@@ -101,26 +104,47 @@ function hasQuery(layer: QgisLayerDef): boolean {
  * otherwise the first layer whose source ends with `suffix` is used.
  *
  * @param label human readable name used in error messages, e.g. "Map sheet"
+ * @param strategyCollections optional map of layer name → strategy collection URL to override the layer's source
  */
-function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, explicitName?: string): QgisLayerDef {
+function findQgisLayer(
+  layers: QgisLayerDef[],
+  suffix: string,
+  label: string,
+  explicitName?: string,
+  strategyCollections?: Map<string, URL>,
+): QgisLayerDef {
+  let layer: QgisLayerDef | undefined;
   if (explicitName != null) {
     // add .parquet if there is no extension
     const searchName = explicitName.includes('.') ? explicitName : `${explicitName}.parquet`;
-    const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
-    if (layer) return layer;
-    throw new Error(`${label} source layer not found: "${explicitName}"`);
+    layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
+    if (!layer) throw new Error(`${label} source layer not found: "${explicitName}"`);
+  } else {
+    layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
+    if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
   }
-  const layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
-  if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
+  if (strategyCollections) {
+    const layerName = layer.source.replace(`.parquet`, '');
+    const strategyUrl = strategyCollections.get(layerName);
+    if (strategyUrl) return { ...layer, strategyUrl };
+  }
   return layer;
 }
 
 /** Attempt to find the carto text layer */
-export function getQgisCartoTextLayer(layers: QgisLayerDef[], cartoTextLayerName?: string): QgisLayerDef {
-  return findQgisLayer(layers, 'carto_text.parquet', 'Carto text', cartoTextLayerName);
+export function getQgisCartoTextLayer(
+  layers: QgisLayerDef[],
+  cartoTextLayerName?: string,
+  strategyCollections?: Map<string, URL>,
+): QgisLayerDef {
+  return findQgisLayer(layers, 'carto_text.parquet', 'Carto text', cartoTextLayerName, strategyCollections);
 }
 
 /** Attempt to find a MapSheet metadata layer */
-export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
-  return findQgisLayer(layers, 'map_sheet.parquet', 'Map sheet', mapSheetLayerName);
+export function getQgisMapSheetDataset(
+  layers: QgisLayerDef[],
+  mapSheetLayerName?: string,
+  strategyCollections?: Map<string, URL>,
+): QgisLayerDef {
+  return findQgisLayer(layers, 'map_sheet.parquet', 'Map sheet', mapSheetLayerName, strategyCollections);
 }

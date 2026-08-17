@@ -16,10 +16,10 @@ on:
         required: true
         type: string
       catalog:
-        description: 'Optional catalog.json URL to use with commit-sha for filtering collections by commit.'
+        description: 'Optional catalog.json URL to use with strategy for filtering collections.'
         type: string
-      commit-sha:
-        description: 'Optional GitHub commit SHA to filter data collections by commit prefix.'
+      strategy:
+        description: 'Optional storage strategy to filter data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".'
         type: string
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
           ${{ inputs.catalog && format('--catalog {0}', inputs.catalog) || '' }} \
-          ${{ inputs.commit-sha && format('--commit-sha {0}', inputs.commit-sha) || '' }}
+          ${{ inputs.strategy && format('--strategy {0}', inputs.strategy) || '' }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.2

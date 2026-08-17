@@ -1,7 +1,7 @@
 export { StacCollectionWriter } from './stac.writer.ts';
 export { parseStrategy, StorageStrategyMulti } from './parser.ts';
 export { StacUpdater } from './stac.update.ts';
-export { getCollectionsByCommit } from './stac.catalog.ts';
+export { getCollectionsByStrategy } from './stac.catalog.ts';
 
 export type {
   StorageStrategy,

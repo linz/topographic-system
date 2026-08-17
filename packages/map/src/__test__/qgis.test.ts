@@ -93,5 +93,22 @@ describe('qgis', () => {
 
       assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer2');
     });
+
+    it('should attach strategyUrl when strategyCollections contains a matching layer', () => {
+      const layers = [{ name: 'MapSheet', source: 'nztopo50_map_sheet.parquet', options: [] }];
+      const strategyUrl = new URL('memory://stac/data/nztopo50_map_sheet/commit_prefix=a/commit=abc/collection.json');
+      const strategyCollections = new Map([['nztopo50_map_sheet', strategyUrl]]);
+
+      const result = getQgisMapSheetDataset(layers, undefined, strategyCollections);
+      assert.strictEqual(result.strategyUrl?.href, strategyUrl.href);
+    });
+
+    it('should not attach strategyUrl when no match in strategyCollections', () => {
+      const layers = [{ name: 'MapSheet', source: 'nztopo50_map_sheet.parquet', options: [] }];
+      const strategyCollections = new Map([['airport', new URL('memory://stac/data/airport/latest/collection.json')]]);
+
+      const result = getQgisMapSheetDataset(layers, undefined, strategyCollections);
+      assert.strictEqual(result.strategyUrl, undefined);
+    });
   });
 });
