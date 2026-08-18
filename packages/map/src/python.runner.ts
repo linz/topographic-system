@@ -55,22 +55,26 @@ async function findQgisSource(): Promise<URL> {
   throw new Error('Unable to find QGIS source files');
 }
 
-async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult> {
-  const script = basename(cmd.args[0] ?? 'unknown');
-  return trace(`python.${script}`, async (span) => {
+export async function runAndLog(
+  cmd: CommandExecution,
+  name = 'Python',
+  scriptName?: string,
+): Promise<CommandExecutionResult> {
+  const script = scriptName ?? basename(cmd.args[0] ?? 'unknown');
+  return trace(`${name.toLowerCase()}.${script}`, async (span) => {
     span.setAttribute('script.name', script);
     span.setAttribute('script.arguments', cmd.args.slice(1));
 
-    logger.debug({ script, args: cmd.args.slice(1) }, 'Python:Start');
+    logger.debug({ script, args: cmd.args.slice(1) }, `${name}:Start`);
 
     const startTime = performance.now();
     const res = await cmd.run();
 
-    logger.info({ script, duration: performance.now() - startTime }, 'Python:Done');
+    logger.info({ script, duration: performance.now() - startTime }, `${name}:Done`);
     span.setAttribute('script.exit', res.exitCode);
 
     if (res.exitCode !== 0) {
-      logger.fatal({ script, stderr: res.stderr, stdout: res.stdout }, 'Failure');
+      logger.fatal({ script, stderr: res.stderr, stdout: res.stdout }, `${name}:Failure`);
       throw new Error(`${script} failed to run`);
     }
     return res;
