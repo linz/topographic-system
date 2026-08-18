@@ -1,6 +1,8 @@
 import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import { Command } from '@linzjs/docker-command';
 import {
   Downloader,
   DownloadRels,
@@ -16,7 +18,7 @@ import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
-import { pyRunner } from '../python.runner.ts';
+import { BaseCommandOptions, pyRunner, runAndLog } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
 import { validator } from '../validate.ts';
 import type { ExportAsset, ExportFormat } from './export.options.ts';
@@ -125,9 +127,10 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
     }
 
     // Start to export file
-    const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions, exportAsset);
+    let file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions, exportAsset);
 
     if (exportAsset.format === ExportFormats.GeoTiff || exportAsset.format === ExportFormats.Tiff) {
+      file = await optimizeTiff(file);
       // TODO optimize tiff to COG / lossless webp
       await validator.validateTiff(file, Number(stac.properties['proj:epsg']));
     }
@@ -158,4 +161,38 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
       return stac;
     });
   }
+}
+
+const GdalTranslate = new Command('gdal_translate', BaseCommandOptions);
+
+async function optimizeTiff(file: URL): Promise<URL> {
+  if (file.protocol !== 'file:') {
+    logger.warn({ path: file.href }, 'Unable to optimize remote tiffs');
+    return file;
+  }
+
+  const sourcePath = fileURLToPath(file);
+  const targetPath = sourcePath + '.cog.tiff';
+
+  const cmd = GdalTranslate.create(BaseCommandOptions);
+
+  cmd.mount(fileURLToPath(new URL('.', file)));
+
+  cmd.args.push('-q');
+  cmd.args.push('-of', 'COG');
+  cmd.args.push('-stats');
+  cmd.args.push('-co', 'compress=webp');
+  cmd.args.push('-co', 'quality=100'); // lossless webp
+  cmd.args.push('-co', 'blocksize=512');
+  cmd.args.push('-co', 'num_threads=ALL_CPUS');
+
+  cmd.args.push('-co', 'overview_quality=90'); // overviews can be lossy
+  cmd.args.push('-co', 'overview_resampling=lanczos');
+
+  cmd.args.push(sourcePath);
+  cmd.args.push(targetPath);
+
+  await runAndLog(cmd, 'GDAL', 'gdal_translate');
+
+  return fsa.toUrl(targetPath);
 }
