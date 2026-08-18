@@ -166,6 +166,12 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
 const GdalTranslate = new Command('gdal_translate', BaseCommandOptions);
 
 async function optimizeTiff(file: URL): Promise<URL> {
+
+  if (file.protocol !== 'file:') {
+    logger.warn({ path: file.href }, 'Unable to optimize remote tiffs');
+    return file;
+  }
+
   const sourcePath = fileURLToPath(file);
   const targetPath = sourcePath + '.cog.tiff';
 
