@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
+import { parseStrategy } from '../parser.ts';
 import { StacPusher } from '../stac.pusher.ts';
 import { StacStorage } from '../stac.storage.ts';
 
@@ -39,6 +40,26 @@ describe('stac.storage', async () => {
         { type: 'commit', commit: 'abc' },
         { type: 'latest' },
       ]);
+    });
+
+    it('should parse an ISO date strategy', () => {
+      assert.deepEqual(parseStrategy('date=2026-05-19T22:18:14.595Z'), [
+        { type: 'date', date: new Date('2026-05-19T22:18:14.595Z') },
+      ]);
+    });
+
+    it('should parse a path-safe date strategy', () => {
+      assert.deepEqual(parseStrategy('date=2026-05-19T22-18-14.595Z'), [
+        { type: 'date', date: new Date('2026-05-19T22:18:14.595Z') },
+      ]);
+    });
+
+    it('should throw for empty date strategy', () => {
+      assert.throws(() => parseStrategy('date='), /Invalid date/);
+    });
+
+    it('should throw for missing date strategy value', () => {
+      assert.throws(() => parseStrategy('date'), /Invalid date/);
     });
   });
 });

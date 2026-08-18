@@ -56,6 +56,22 @@ export type StorageStrategyIdGen<T extends StorageStrategyName> = (
 
 export const StorageStrategySep = '=';
 
+function parseStorageStrategyDate(value: string | undefined): Date {
+  if (value == null || value === '') throw new Error('Invalid date');
+
+  const directDate = new Date(value);
+  if (!isNaN(directDate.getTime())) return directDate;
+
+  const pathSafeDate = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2}(?:\.\d+)?)Z$/);
+  if (pathSafeDate != null) {
+    const normalized = `${pathSafeDate[1]}:${pathSafeDate[2]}:${pathSafeDate[3]}Z`;
+    const normalizedDate = new Date(normalized);
+    if (!isNaN(normalizedDate.getTime())) return normalizedDate;
+  }
+
+  throw new Error('Invalid date');
+}
+
 export const StorageStrategyParsers: { [K in StorageStrategyName]: StorageStrategyParser<K> } = {
   commit(obj: string): StorageStrategyCommit {
     return { type: 'commit', commit: obj.split(StorageStrategySep)[1] ?? '' };
@@ -65,9 +81,7 @@ export const StorageStrategyParsers: { [K in StorageStrategyName]: StorageStrate
   },
   date(obj: string): StorageStrategyDate {
     const value = obj.split(StorageStrategySep)[1];
-    let date = value == null ? new Date() : new Date(value);
-    if (isNaN(date.getTime())) throw new Error('Invalid date');
-    return { type: 'date', date };
+    return { type: 'date', date: parseStorageStrategyDate(value) };
   },
 };
 
