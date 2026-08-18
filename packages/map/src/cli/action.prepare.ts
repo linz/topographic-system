@@ -6,7 +6,6 @@ import {
   concurrency,
   Downloader,
   DownloadRels,
-  getDataFromCatalog,
   isArgo,
   logger,
   parquetGeometryStats,
@@ -34,40 +33,6 @@ import { ExportCommand, fromFile } from './action.export.ts';
 import { FormatMultiOption } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
-interface dataTag {
-  layer: string;
-  tag: string;
-}
-
-/**
- * Parse a input data tag string into an array of dataTag,
- * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ layer: "airport", tag: "pull_request/pr-18/" }, { layer: "contours", tag: "pull_request/pr-18/" }]
- */
-export function parseDataTag(input: string): dataTag[] {
-  const tags: dataTag[] = [];
-  const pairs = input.split(',').map((part) => part.trim());
-  const error = `Invalid data tag format, expected "layer/latest", "layer/pull_request/pr-<number>", or "layer/year/<date>", got ${input}`;
-  for (const rawPair of pairs) {
-    // Remove leading and trailing slashes
-    const pair = rawPair.replace(/^\/+|\/+$/g, '');
-    const splits = pair.split('/');
-
-    if (splits.length === 2) {
-      // If only one tag provided, it should be always 'latest' tag, for example "airport/latest/"
-      if (splits[1] !== 'latest') {
-        throw new Error(error);
-      }
-      tags.push({ layer: splits[0]!, tag: 'latest' });
-    } else if (splits.length === 3) {
-      // Other tags like pull request or date tags should have 3 parts, for example "airport/pull_request/pr-18/"
-      tags.push({ layer: splits[0]!, tag: `${splits[1]}/${splits[2]}` });
-    } else {
-      throw new Error(error);
-    }
-  }
-  return tags;
-}
-
 interface SheetMetadata {
   sheetCode: string;
   geometry: GeoJSONPolygon;
@@ -84,30 +49,6 @@ interface TopoMapSheetParquet {
  */
 export function sheetCodeToPath(sheetCode: string): string {
   return sheetCode.replace(/[/,]/g, '');
-}
-
-/**
- * Override the source data link with provided data tags return.
- *
- * @param sources the original source data links from the project stac file
- * @param tags the data tags to override the source links, for example [{ layer: "airport", tag: "pull_request/pr-18/" }]
- * @param catalogUrl the catalog url to look for the source layer with tag
- *
- * @returns the override source links with the data tag applied
- *
- */
-export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl: URL): Promise<URL[]> {
-  for (const source of sources) {
-    for (const tag of tags) {
-      if (source.href.includes(tag.layer)) {
-        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'Prepare: DataOverride');
-        // Find the source layer with the tag from the catalog and override the source link
-        const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer);
-        source.href = layerCollection.href;
-      }
-    }
-  }
-  return sources;
 }
 
 const ProduceArgs = {
