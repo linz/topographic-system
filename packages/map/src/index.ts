@@ -4,6 +4,7 @@ import { subcommands } from 'cmd-ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 import { DeployCommand } from './cli/action.deploy.ts';
+import { DownloadCommand } from './cli/action.download.ts';
 import { ExportCommand } from './cli/action.export.ts';
 import { PrepareCommand } from './cli/action.prepare.ts';
 import { VersionCommand } from './cli/action.version.ts';
@@ -12,6 +13,7 @@ import { VisualDiffCommand } from './cli/action.visual.diff.ts';
 const cmds = {
   export: ExportCommand,
   prepare: PrepareCommand,
+  download: DownloadCommand,
   deploy: DeployCommand,
   'visual-diff': VisualDiffCommand,
   version: VersionCommand,
