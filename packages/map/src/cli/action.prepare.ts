@@ -194,14 +194,7 @@ export const PrepareCommand = command({
     const stac = await fsa.readJson<StacItem>(args.project);
     if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
-    // Download project file from the project stac file
-    logger.info({ project: args.project.href }, 'Download: Start');
     const downloader = new Downloader(args.tempLocation, args.cache, q);
-    downloader.addStac(args.project);
-    downloader.addStacLinks(stac, DownloadRels, args.project);
-    await downloader.getAllAssets();
-    logger.info({ project: args.project.href }, 'Download: End');
-
     // Get strategy-filtered collection URLs to override source links in the output STAC
     const strategyCollections = new Map<string, URL>();
     if (args.strategy && args.catalog) {
@@ -212,8 +205,21 @@ export const PrepareCommand = command({
         'Prepare: Filtering collections by strategy',
       );
       const filtered = await getCollectionsByStrategy(args.catalog, storageStrategy, q);
-      for (const [layerName, url] of filtered) strategyCollections.set(layerName, url);
+      for (const [layerName, url] of filtered) {
+        strategyCollections.set(layerName, url);
+        downloader.addStac(url);
+      }
+
+      // Download strategy-filtered collections first so downstream lookups can reuse local cache.
+      await downloader.getAllAssets({ skipIfExists: false, useCanonical: false });
     }
+
+    // Download project file from the project stac file
+    logger.info({ project: args.project.href }, 'Download: Start');
+    downloader.addStac(args.project);
+    downloader.addStacLinks(stac, DownloadRels, args.project);
+    await downloader.getAllAssets({ skipIfExists: true, useCanonical: false });
+    logger.info({ project: args.project.href }, 'Download: End');
 
     // Find downloaded project file
     const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
