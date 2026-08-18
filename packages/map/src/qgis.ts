@@ -118,7 +118,7 @@ function findQgisLayer(
     // add .parquet if there is no extension
     const searchName = explicitName.includes('.') ? explicitName : `${explicitName}.parquet`;
     layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
-    if (!layer) throw new Error(`${label} source layer not found: "${explicitName}"`);
+    if (layer == null) throw new Error(`${label} source layer not found: "${explicitName}"`);
   } else {
     layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
     if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);

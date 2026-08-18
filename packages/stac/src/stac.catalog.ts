@@ -31,7 +31,7 @@ export async function getCollectionsByStrategy(
   const layers = catalog.links
     .filter((link) => link.rel === 'child' && link.title && link.href.endsWith('/catalog.json'))
     .map((link) => ({
-      title: link.title!,
+      title: link.title,
       strategyUrl: new URL('collection.json', StacStorage.url(strategy, { prefix, category, label: link.title! })),
     }));
 
@@ -40,7 +40,11 @@ export async function getCollectionsByStrategy(
     return exists ? { title, strategyUrl } : null;
   });
 
-  const collections = new Map(results.filter((r) => r != null).map(({ title, strategyUrl }) => [title, strategyUrl]));
+  const collections = new Map<string, URL>();
+  for (const result of results) {
+    if (result == null || result.title == null) continue;
+    collections.set(result.title, result.strategyUrl);
+  }
 
   if (collections.size === 0) {
     throw new Error(`No data found for strategy ${JSON.stringify(strategy)} in catalog: ${catalogUrl.href}`);

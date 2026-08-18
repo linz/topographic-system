@@ -99,7 +99,8 @@ const ProduceArgs = {
   catalog: option({
     type: optional(Url),
     long: 'catalog',
-    description: 'Optional catalog.json URL to use with --commit-sha for filtering source collections by commit.',
+    description:
+      'Optional catalog.json URL to use with --strategy for filtering source collections by commit or date strategy.',
   }),
   output: option({
     type: UrlFolder,
@@ -123,9 +124,12 @@ export const PrepareCommand = command({
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project.href, cache: args.cache.href }, 'Prepare: Start');
-
     if (args.assets.length === 0) throw new Error('No --asset provided');
     const q = qFromArgs(args);
+
+    if ((args.strategy == null) !== (args.catalog == null)) {
+      throw new Error('Both --strategy and --catalog must be provided together');
+    }
 
     const mapSheets = new Set(
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
@@ -173,25 +177,6 @@ export const PrepareCommand = command({
 
     const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset, strategyCollections);
     logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
-
-    // Download strategy-specific versions of map sheet and carto text layers if available
-    if (mapSheetLayer.strategyUrl) {
-      logger.info(
-        { layer: mapSheetLayer.source, url: mapSheetLayer.strategyUrl.href },
-        'Prepare: MapSheet strategy override',
-      );
-      downloader.addStac(mapSheetLayer.strategyUrl);
-    }
-    if (cartoTextLayer.strategyUrl) {
-      logger.info(
-        { layer: cartoTextLayer.source, url: cartoTextLayer.strategyUrl.href },
-        'Prepare: CartoText strategy override',
-      );
-      downloader.addStac(cartoTextLayer.strategyUrl);
-    }
-    if (mapSheetLayer.strategyUrl ?? cartoTextLayer.strategyUrl) {
-      await downloader.getAllAssets({ skipIfExists: true, useCanonical: true });
-    }
 
     const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
@@ -267,6 +252,7 @@ export const PrepareCommand = command({
           rel: 'source',
           href: strategyUrl?.href ?? (canonicalLink ? new URL(canonicalLink.href, s.url).href : s.url.href),
           type: 'application/json',
+          // TODO: if these are canonical links, we should add file:size and file:checksum
         };
 
         if (typeof s.item.json.title === 'string') itemLink.title = s.item.json.title;

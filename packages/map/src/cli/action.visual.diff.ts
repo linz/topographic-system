@@ -59,7 +59,8 @@ export const VisualDiffArgs = {
   catalog: option({
     type: optional(Url),
     long: 'catalog',
-    description: 'Optional catalog.json URL to use with --commit-sha for filtering collections by commit.',
+    description:
+      'Optional catalog.json URL to use with --strategy for filtering source collections by commit or date strategy.',
   }),
   output: option({
     type: Url,
@@ -81,6 +82,10 @@ export const VisualDiffCommand = command({
     let testProjects = defaultTests;
     if (args.testFile) {
       testProjects = await fsa.readJson<TestProject[]>(args.testFile);
+    }
+
+    if ((args.strategy == null) !== (args.catalog == null)) {
+      throw new Error('Both --strategy and --catalog must be provided together');
     }
 
     mkdirSync(args.output, { recursive: true });
