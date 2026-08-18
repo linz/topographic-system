@@ -7,7 +7,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 const LayerDefs = new Map<string, Promise<{ layers: QgisLayerDef[]; epsg: Epsg }>>();
 
-interface QgisLayerDef {
+export interface QgisLayerDef {
   /**
    * QGIS layer name
    *

@@ -3,6 +3,7 @@ import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 
+import type { QgisLayerDef } from '../qgis.ts';
 import { getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import { BaseQgsProject } from './util.ts';
 
@@ -51,7 +52,7 @@ describe('qgis', () => {
       { name: 'layer1', source: 'data1.parquet' },
       { name: 'layer2', source: 'my_map_sheet.parquet' },
       { name: 'layer3', source: 'data3.parquet' },
-    ];
+    ] as [QgisLayerDef, QgisLayerDef, QgisLayerDef];
 
     it('should find map sheet layer by name', () => {
       const result = getQgisMapSheetDataset(layers, 'data1');
@@ -69,7 +70,7 @@ describe('qgis', () => {
 
     it('should throw if no map sheet layer found by source ending', () => {
       assert.throws(
-        () => getQgisMapSheetDataset([layers[0]!, layers[2]!]),
+        () => getQgisMapSheetDataset([layers[0], layers[2]]),
         /No map sheet layer ending with "map_sheet.parquet" found/,
       );
     });

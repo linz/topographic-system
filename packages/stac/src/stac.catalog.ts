@@ -28,12 +28,17 @@ export async function getCollectionsByStrategy(
   const prefix = new URL('../', catalogUrl);
   const category = new URL('./', catalogUrl).pathname.split('/').filter(Boolean).at(-1) as StacStorageCategory;
 
-  const layers = catalog.links
-    .filter((link) => link.rel === 'child' && link.title && link.href.endsWith('/catalog.json'))
-    .map((link) => ({
+  const layers = [];
+
+  for (const link of catalog.links) {
+    if (link.rel !== 'child') continue;
+    if (link.title == null) continue;
+    if (!link.href.endsWith('/catalog.json')) continue;
+    layers.push({
       title: link.title,
-      strategyUrl: new URL('collection.json', StacStorage.url(strategy, { prefix, category, label: link.title! })),
-    }));
+      strategyUrl: new URL('collection.json', StacStorage.url(strategy, { prefix, category, label: link.title })),
+    });
+  }
 
   const results = await qMapAll(q, layers, async ({ title, strategyUrl }) => {
     const exists = await fsa.exists(strategyUrl).catch(() => false);
@@ -42,7 +47,7 @@ export async function getCollectionsByStrategy(
 
   const collections = new Map<string, URL>();
   for (const result of results) {
-    if (result == null || result.title == null) continue;
+    if (result?.title == null) continue;
     collections.set(result.title, result.strategyUrl);
   }
 

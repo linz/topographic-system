@@ -69,7 +69,7 @@ describe('Downloader - Canonical URLs', () => {
     // 5. Verify results
     assert.strictEqual(assets.length, 1);
     // It should have downloaded from canonicalUrl, so url of asset should be canonicalAssetUrl
-    assert.strictEqual(assets[0]!.url.href, canonicalAssetUrl.href);
+    assert.strictEqual(assets[0]?.url.href, canonicalAssetUrl.href);
 
     // We can also verify that the link in target was created for the canonical asset
     const targetAssetPath = new URL('canonical-data.parquet', targetUrl);
@@ -92,7 +92,7 @@ describe('Downloader - Canonical URLs', () => {
 
     // It should have downloaded from initialUrl, so url of asset should be initialAssetUrl
     assert.strictEqual(assets.length, 1);
-    assert.strictEqual(assets[0]!.url.href, initialAssetUrl.href);
+    assert.strictEqual(assets[0]?.url.href, initialAssetUrl.href);
 
     const targetAssetPath = new URL('initial-data.parquet', targetUrl);
     assert.ok(await fsa.exists(targetAssetPath));
@@ -186,7 +186,7 @@ describe('Downloader - Canonical URLs', () => {
 
     // only one asset should be returned
     assert.strictEqual(assets.length, 1);
-    assert.strictEqual(assets[0]!.url.href, canonicalAssetUrl.href);
+    assert.strictEqual(assets[0]?.url.href, canonicalAssetUrl.href);
 
     assert.deepEqual(
       spy.mock.calls.map((m) => m.arguments[0].href),
