@@ -244,7 +244,12 @@ export const PrepareCommand = command({
         if (s.item.json == null) throw new Error(`Source stac json not found for url: ${s.url.href}`);
 
         // Use strategy-specific URL if this layer has one, otherwise fall back to canonical/original
-        const layerName = s.url.pathname.split('/').find((layer) => strategyCollections.has(layer));
+        const dataPrefix = '/data/';
+        const dataPathIndex = s.url.pathname.indexOf(dataPrefix);
+        const layerName =
+          dataPathIndex >= 0
+            ? s.url.pathname.slice(dataPathIndex + dataPrefix.length).split('/')[0]
+            : s.url.pathname.split('/').find((layer) => strategyCollections.has(layer));
         const strategyUrl = layerName ? strategyCollections.get(layerName) : undefined;
         const canonicalLink = s.item.json.links.find((link) => link.rel === 'canonical');
 
