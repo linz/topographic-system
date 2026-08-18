@@ -89,15 +89,14 @@ export const VisualDiffCommand = command({
     }
 
     mkdirSync(args.output, { recursive: true });
-    const tasks = [];
+    const tasks: Promise<void>[] = [];
 
     // Download local data if provided, and add the data path to stac for exporting
     const downloader = new Downloader(args.tempLocation, args.cache, q);
 
     // Use strategy-based filtering if both strategy and catalog are provided
     if (args.strategy && args.catalog) {
-      const [storageStrategy] = parseStrategy(args.strategy);
-      if (!storageStrategy) throw new Error(`Invalid strategy: ${args.strategy}`);
+      const storageStrategy = parseStrategy(args.strategy);
       logger.info(
         { strategy: args.strategy, catalog: args.catalog.href },
         'Visual Diff: Filtering collections by strategy',

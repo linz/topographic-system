@@ -28,7 +28,7 @@ export async function getCollectionsByStrategy(
   const prefix = new URL('../', catalogUrl);
   const category = new URL('./', catalogUrl).pathname.split('/').filter(Boolean).at(-1) as StacStorageCategory;
 
-  const layers = [];
+  const layers: { title: string; strategyUrl: URL }[] = [];
 
   for (const link of catalog.links) {
     if (link.rel !== 'child') continue;
@@ -47,7 +47,7 @@ export async function getCollectionsByStrategy(
 
   const collections = new Map<string, URL>();
   for (const result of results) {
-    if (result?.title == null) continue;
+    if (result == null) continue;
     collections.set(result.title, result.strategyUrl);
   }
 

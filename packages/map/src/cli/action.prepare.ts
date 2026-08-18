@@ -143,8 +143,7 @@ export const PrepareCommand = command({
     // Get strategy-filtered collection URLs to override source links in the output STAC
     const strategyCollections = new Map<string, URL>();
     if (args.strategy && args.catalog) {
-      const [storageStrategy] = parseStrategy(args.strategy);
-      if (!storageStrategy) throw new Error(`Invalid strategy: ${args.strategy}`);
+      const storageStrategy = parseStrategy(args.strategy);
       logger.info(
         { strategy: args.strategy, catalog: args.catalog.href },
         'Prepare: Filtering collections by strategy',
