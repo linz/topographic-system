@@ -2,15 +2,13 @@ from pathlib import Path
 
 import geopandas as gpd
 import pytest
-from data_prep.ice_contour import NZGD2000, run
-from shapely.geometry import Polygon
+from data_prep.ice_contour import run
+from data_prep.parquet_utils import NZGD2000
+from shapely.geometry import LineString, box
 
 
 @pytest.fixture()
 def result(tmp_path: Path):
-    poly1 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
-    poly2 = Polygon([(1, 1), (3, 1), (3, 3), (1, 3)])
-
     contour_gdf = gpd.GeoDataFrame(
         {
             "id": [1],
@@ -19,7 +17,8 @@ def result(tmp_path: Path):
             "designation": [None],
             "formation": [None],
             "metadata": [None],
-            "geometry": [poly1],
+            "geometry": [LineString([(174, -41), (178, -41)])],
+
         },
         crs=NZGD2000,
     )
@@ -30,7 +29,7 @@ def result(tmp_path: Path):
             "type": ["ice"],
             "created_at": ["2025-01-02"],
             "updated_at": ["2025-06-15"],
-            "geometry": [poly2],
+            "geometry": [box(175, -42, 177, -40)],
         },
         crs=NZGD2000,
     )
@@ -48,8 +47,7 @@ def result(tmp_path: Path):
 
 
 def test_geometry_is_intersection(result):
-    expected = Polygon([(1, 1), (2, 1), (2, 2), (1, 2)])
-    assert result.iloc[0].geometry.equals(expected)
+    assert result.iloc[0].geometry.equals(LineString([(175, -41), (177, -41)]))
 
 
 def test_updated_at_takes_landcover(result):

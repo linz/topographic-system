@@ -40,14 +40,14 @@ def add_contour_numbers(input_path: Path, contour_path: Path) -> gpd.GeoDataFram
     orientation = orientation + ((abs(orientation - contour_rotation) < 90) * 180)
     contour_number_gdf["orientation"] = 360 - (numpy.round(orientation).astype("int32") % 360)
 
-    contour_gdf = read_and_project(contour_path, columns=["topo_id", "elevation", "geometry"])
+    contour_gdf = read_and_project(contour_path, columns=["id", "elevation", "geometry"])
+    # sjoin_nearest prunes on bbox only, lots of long contours matching every point until chopped
     contour_chop_gdf = chop(contour_gdf)
-
     output_gdf = gpd.sjoin_nearest(contour_number_gdf, contour_chop_gdf, how="left", max_distance=1)
     output_gdf = output_gdf.reset_index(names="point_index")
     output_gdf = output_gdf.sort_values("point_index").drop_duplicates("point_index", keep="first")
-    output_gdf = output_gdf[["topo_id", "orientation", "elevation", output_gdf.geometry.name]].rename(
-        columns={"topo_id": "source_id", "elevation": "label"}
+    output_gdf = output_gdf[["id", "orientation", "elevation", output_gdf.geometry.name]].rename(
+        columns={"id": "source_id", "elevation": "label"}
     )
     output_gdf["label"] = output_gdf["label"].astype("Int64").astype("string")
     output_gdf["type"] = "contour_number"
