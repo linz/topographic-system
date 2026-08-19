@@ -109,7 +109,7 @@ const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K
  * @returns
  */
 export function storageStrategyFromLatest(url: URL): StorageContext | null {
-  const latest = url.href.indexOf('/latest/');
+  const latest = url.href.lastIndexOf('/latest/');
   if (latest === -1) return null;
 
   const parts = url.href.slice(0, latest).split('/');

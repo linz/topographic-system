@@ -40,7 +40,7 @@ function strategyResolver(strategy: string): StacUrlResolver {
     return target;
   };
 }
-async function canoicalResolver(downloader: StacDownloader, url: URL, visited: Set<string> = new Set()): Promise<URL> {
+async function canonicalResolver(downloader: StacDownloader, url: URL, visited: Set<string> = new Set()): Promise<URL> {
   if (visited.has(url.href)) throw new Error(`Circular canonical link detected: ${url.href}`);
   visited.add(url.href);
 
@@ -49,9 +49,11 @@ async function canoicalResolver(downloader: StacDownloader, url: URL, visited: S
   const canonical = asset.links.find((link) => link.rel === 'canonical');
   if (canonical == null) return url;
   const nextUrl = new URL(canonical.href, url);
+  // Sometimes canonical links to it self.
+  if (nextUrl.href === url.href) return url;
   if (visited.has(nextUrl.href)) throw new Error(`Circular canonical link detected: ${nextUrl.href}`);
 
-  return canoicalResolver(downloader, nextUrl, visited);
+  return canonicalResolver(downloader, nextUrl, visited);
 }
 
 export class StacDownloader {
@@ -59,10 +61,10 @@ export class StacDownloader {
   cache: URL;
   q: LimitFunction;
 
-  static Resolver = { strategy: strategyResolver, canoical: canoicalResolver };
+  static Resolver = { strategy: strategyResolver, canonical: canonicalResolver };
   linkCache: Map<string, SourceAsset> = new Map();
 
-  resolvers: StacUrlResolver[] = [canoicalResolver];
+  resolvers: StacUrlResolver[] = [canonicalResolver];
   resolved = new Map<string, Promise<URL>>();
 
   lru = new StacLruCache(1000);
