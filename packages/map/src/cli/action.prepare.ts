@@ -193,7 +193,7 @@ export const PrepareCommand = command({
       stac.asset.links
         .filter((link) => link.rel === 'dataset')
         .map(async (link) => {
-          const linkUrl = new URL(link.href, args.project);
+          const linkUrl = new URL(link.href, stac.url);
           const item = await downloader.fetchStac<StacCollection | StacItem>(linkUrl);
           if (item == null) throw new Error('Unable to find source stac for url: ' + linkUrl.href);
           return item;

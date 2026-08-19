@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { fsa, HashTransform } from '@chunkd/fs';
 import { StacBasic, StacUpdater } from '@linzjs/topographic-system-stac';
-import sharp from 'sharp';
 import type { StacCollection, StacItem } from 'stac-ts';
 import { $ } from 'zx';
+import sharp from 'sharp';
 
 let cliLocation = '/app/index.cjs';
 async function findCli(): Promise<string> {
@@ -18,6 +18,10 @@ async function findCli(): Promise<string> {
 
 async function cli(...args: (string | string[])[]): Promise<string> {
   const result = await $`node ${cliLocation} ${args.flat()}`;
+  if (process.argv.includes('--debug')) {
+    console.log(result.stdout);
+    console.log(result.stderr)
+  }
   if (result.exitCode !== 0) throw new Error('Error running CLI');
   return result.stdout;
 }
