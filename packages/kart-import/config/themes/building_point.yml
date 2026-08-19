@@ -76,6 +76,9 @@ datasets:
       # status with an empty bldg_use; move it to the subtype it belongs in.
       - { column: subtype, set: homestead, where: { status: homestea } }
       - { column: status, replace: { homestea: null } }
+      - { column: status, set: null, where: { t50_fid: 159743, status: 'closed' } }
+      - { column: status, set: null, where: { t50_fid: 7798270, status: 'closed' } }
+      - { column: status, set: null, where: { t50_fid: 8411910, status: 'locked' } }
       - { column: subtype, set: null, where: { t50_fid: 6744342, subtype: tank } }
       - { column: subtype, set: null, where: { t50_fid: 7862766, subtype: 'research station' } }
       - { column: subtype, set: null, where: { t50_fid: 7862767, subtype: 'research station' } }
