@@ -93,7 +93,7 @@ export const VisualDiffCommand = command({
         logger.info({ resolved: stac.url.href }, 'Visual Diff Project');
 
         const projectFiles = await downloader.fetchAssets(args.project);
-        await downloader.fetchLinkedAssets(args.project, (link) => link.rel === 'datastet');
+        await downloader.fetchLinkedAssets(args.project, (link) => link.rel === 'dataset');
 
         // Get the downloaded project file path
         const projectPath = projectFiles.find((f) => f.target.href.includes(`${test.name}.qgs`));
