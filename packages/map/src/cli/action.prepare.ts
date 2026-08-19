@@ -93,12 +93,6 @@ const ProduceArgs = {
     description:
       'Optional storage strategy to filter source data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".',
   }),
-  catalog: option({
-    type: optional(Url),
-    long: 'catalog',
-    description:
-      'Optional catalog.json URL to use with --strategy for filtering source collections by commit or date strategy.',
-  }),
   output: option({
     type: UrlFolder,
     long: 'output',
@@ -228,10 +222,6 @@ export const PrepareCommand = command({
         if (typeof s.asset.title === 'string') itemLink.title = s.asset.title;
         item.links.push(itemLink);
       }
-
-      // Add assets link if available
-      // TODO do we have asset links??
-      // item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
     }
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);

@@ -15,9 +15,6 @@ on:
         description: 'URL of the project stac item to run visual diff on.'
         required: true
         type: string
-      catalog:
-        description: 'Optional catalog.json URL to use with strategy for filtering collections.'
-        type: string
       strategy:
         description: 'Optional storage strategy to filter data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".'
         type: string

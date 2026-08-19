@@ -47,12 +47,6 @@ export const VisualDiffArgs = {
     description:
       'Optional storage strategy to filter data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".',
   }),
-  catalog: option({
-    type: optional(Url),
-    long: 'catalog',
-    description:
-      'Optional catalog.json URL to use with --strategy for filtering source collections by commit or date strategy.',
-  }),
   output: option({
     type: Url,
     long: 'output',
@@ -69,7 +63,7 @@ export const VisualDiffCommand = command({
   async handler(args) {
     registerFileSystem();
     const q = qFromArgs(args);
-    // Prepare the test senarios, either from the default tests or from the provided test file
+    // Prepare the test scenarios, either from the default tests or from the provided test file
     const testProjects = args.testFile ? await fsa.readJson<TestProject[]>(args.testFile) : defaultTests;
 
     mkdirSync(args.output, { recursive: true });
