@@ -18,7 +18,7 @@ export function parseStrategies(str: string): StorageStrategy[] {
 
 export function parseStrategy(str: string): StorageStrategy {
   const strats = parseStrategies(str);
-  if (strats.length !== 1) throw new Error('Invalid strategy');
+  if (strats.length !== 1) throw new Error(`Invalid strategy, required=1, found=${strats.length}`);
   return strats[0] as StorageStrategy;
 }
 

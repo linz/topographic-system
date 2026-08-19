@@ -106,13 +106,7 @@ function hasQuery(layer: QgisLayerDef): boolean {
  * @param label human readable name used in error messages, e.g. "Map sheet"
  * @param strategyCollections optional map of layer name → strategy collection URL to override the layer's source
  */
-function findQgisLayer(
-  layers: QgisLayerDef[],
-  suffix: string,
-  label: string,
-  explicitName?: string,
-  strategyCollections?: Map<string, URL>,
-): QgisLayerDef {
+function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, explicitName?: string): QgisLayerDef {
   let layer: QgisLayerDef | undefined;
   if (explicitName != null) {
     // add .parquet if there is no extension
@@ -123,28 +117,16 @@ function findQgisLayer(
     layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
     if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
   }
-  if (strategyCollections) {
-    const layerName = layer.source.replace(`.parquet`, '');
-    const strategyUrl = strategyCollections.get(layerName);
-    if (strategyUrl) return { ...layer, strategyUrl };
-  }
+
   return layer;
 }
 
 /** Attempt to find the carto text layer */
-export function getQgisCartoTextLayer(
-  layers: QgisLayerDef[],
-  cartoTextLayerName?: string,
-  strategyCollections?: Map<string, URL>,
-): QgisLayerDef {
-  return findQgisLayer(layers, 'carto_text.parquet', 'Carto text', cartoTextLayerName, strategyCollections);
+export function getQgisCartoTextLayer(layers: QgisLayerDef[], cartoTextLayerName?: string): QgisLayerDef {
+  return findQgisLayer(layers, 'carto_text.parquet', 'Carto text', cartoTextLayerName);
 }
 
 /** Attempt to find a MapSheet metadata layer */
-export function getQgisMapSheetDataset(
-  layers: QgisLayerDef[],
-  mapSheetLayerName?: string,
-  strategyCollections?: Map<string, URL>,
-): QgisLayerDef {
-  return findQgisLayer(layers, 'map_sheet.parquet', 'Map sheet', mapSheetLayerName, strategyCollections);
+export function getQgisMapSheetDataset(layers: QgisLayerDef[], mapSheetLayerName?: string): QgisLayerDef {
+  return findQgisLayer(layers, 'map_sheet.parquet', 'Map sheet', mapSheetLayerName);
 }

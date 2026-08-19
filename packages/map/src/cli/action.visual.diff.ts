@@ -10,7 +10,7 @@ import {
   Url,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { getCollectionsByStrategy, parseStrategy } from '@linzjs/topographic-system-stac';
+import { addDownloaderStrategy, parseStrategy } from '@linzjs/topographic-system-stac';
 import { command, option, optional, string } from 'cmd-ts';
 import type { StacItem } from 'stac-ts';
 
@@ -91,25 +91,12 @@ export const VisualDiffCommand = command({
     mkdirSync(args.output, { recursive: true });
     const tasks: Promise<void>[] = [];
 
-    // Download local data if provided, and add the data path to stac for exporting
     const downloader = new Downloader(args.tempLocation, args.cache, q);
 
-    // Use strategy-based filtering if both strategy and catalog are provided
-    if (args.strategy && args.catalog) {
+    if (args.strategy) {
       const storageStrategy = parseStrategy(args.strategy);
-      logger.info(
-        { strategy: args.strategy, catalog: args.catalog.href },
-        'Visual Diff: Filtering collections by strategy',
-      );
-      const collectionsByCommit = await getCollectionsByStrategy(args.catalog, storageStrategy, q);
-
-      for (const [layerName, collectionUrl] of collectionsByCommit) {
-        logger.info({ layer: layerName, collection: collectionUrl.href }, 'Visual Diff: Adding collection');
-        downloader.addStac(collectionUrl);
-      }
-
-      // Download all assets
-      await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
+      addDownloaderStrategy(downloader, storageStrategy);
+      logger.info({ strategy: args.strategy }, 'Visual Diff: Storage strategy override set');
     }
 
     for (const test of testProjects) {

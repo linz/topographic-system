@@ -103,6 +103,24 @@ const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K
   },
 };
 
+/**
+ * Attempt to parse the storage context from a "/latest/" URL
+ * @param url
+ * @returns
+ */
+export function storageStrategyFromLatest(url: URL): StorageContext | null {
+  const latest = url.href.indexOf('/latest/');
+  if (latest === -1) return null;
+
+  const parts = url.href.slice(0, latest).split('/');
+  const label = parts.at(-1);
+  const category = parts.at(-2) as StacStorageCategory;
+  const prefix = new URL(parts.slice(0, parts.length - 2).join('/') + '/');
+  if (label == null || category == null) return null;
+  if (!StacStorageCategoryTypes.includes(category)) return null;
+  return { label, category, prefix };
+}
+
 interface StorageContextWithItem extends StorageContext {
   /** Optional item name */
   item?: string;

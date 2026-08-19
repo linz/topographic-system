@@ -10,6 +10,8 @@ import { type LimitFunction } from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import * as tar from 'tar';
 
+export type UrlResolver = (url: URL) => Promise<URL>;
+
 export interface SourceAsset {
   /** downloaded URL */
   url: URL;
@@ -54,11 +56,39 @@ export class Downloader {
   target: URL;
   /** Cache asset files into the source cache */
   sourceCache: URL;
+  /** Registered URL resolvers to override asset/stac locations */
+  resolvers: UrlResolver[] = [];
+  /** Cache of resolved URLs */
+  resolvedUrls: Map<string, Promise<URL>> = new Map();
 
   constructor(target: URL, sourceCache: URL, q: LimitFunction) {
     this.q = q;
     this.target = target;
     this.sourceCache = sourceCache;
+  }
+
+  /** Add a URL resolver */
+  addResolver(resolver: UrlResolver): this {
+    this.resolvers.push(resolver);
+    return this;
+  }
+
+  /** Resolve URL through registered resolvers in sequence */
+  async resolveUrl(url: URL): Promise<URL> {
+    if (this.resolvers.length === 0) return url;
+    const existing = this.resolvedUrls.get(url.href);
+    if (existing) return existing;
+
+    const promise = (async () => {
+      let current = url;
+      for (const resolver of this.resolvers) {
+        current = await resolver(current);
+      }
+      return current;
+    })();
+
+    this.resolvedUrls.set(url.href, promise);
+    return promise;
   }
 
   /** Add an asset URL to the download list */
@@ -79,7 +109,7 @@ export class Downloader {
   }
 
   /** Get the linked path for the given asset URL, downloading it if it hasn't been already */
-  getAsset(
+  async getAsset(
     url: URL,
     options: SourceAssetDownloadOptions = { skipIfExists: false, useCanonical: false },
     visited?: Set<string>,
@@ -88,7 +118,8 @@ export class Downloader {
       throw new Error(`Circular canonical link detected: ${url.href}`);
     }
 
-    const sourceStac = this.stac.get(url.href);
+    const resolvedUrl = await this.resolveUrl(url);
+    const sourceStac = this.stac.get(url.href) ?? this.stac.get(resolvedUrl.href);
 
     if (sourceStac == null) throw new Error(`Stac not added for url: ${url.href}`);
     // If the stac is already been fetched and it has no assets, return null to avoid re-fetching
@@ -97,21 +128,26 @@ export class Downloader {
       return sourceStac.future;
     }
 
-    sourceStac.future = fsa.readJson<StacItem | StacCollection>(url).then(async (stac) => {
+    sourceStac.future = fsa.readJson<StacItem | StacCollection>(resolvedUrl).then(async (stac) => {
       sourceStac.json = stac;
       if (options?.useCanonical) {
         const canonical = stac.links.find((l) => l.rel === 'canonical');
         if (canonical) {
-          const canonicalUrl = new URL(canonical.href, url);
-          this.stac.set(canonicalUrl.href, this.stac.get(canonicalUrl.href) ?? { url: canonicalUrl, assets: [] });
-          logger.debug({ url: url.href, canonicalUrl: canonicalUrl.href }, 'Downloader:Canonical');
-          return this.getAsset(canonicalUrl, options, new Set(visited ?? []).add(url.href));
+          const canonicalUrl = new URL(canonical.href, resolvedUrl);
+          const resolvedCanonical = await this.resolveUrl(canonicalUrl);
+          this.stac.set(
+            resolvedCanonical.href,
+            this.stac.get(resolvedCanonical.href) ?? { url: resolvedCanonical, assets: [] },
+          );
+          logger.debug({ url: url.href, canonicalUrl: resolvedCanonical.href }, 'Downloader:Canonical');
+          return this.getAsset(resolvedCanonical, options, new Set(visited ?? []).add(url.href));
         }
       }
 
       const sourceAssets = [];
       for (const asset of Object.values(stac.assets ?? {})) {
-        const sourceAsset = await this.downloadAsset(new URL(asset.href, url), asset, options);
+        const assetUrl = new URL(asset.href, resolvedUrl);
+        const sourceAsset = await this.downloadAsset(assetUrl, asset, options);
         sourceAssets.push(sourceAsset);
       }
       sourceStac.assets = sourceAssets;
@@ -219,21 +255,22 @@ export class Downloader {
     asset: StacAsset | StacLink,
     options: SourceAssetDownloadOptions,
   ): Promise<SourceAsset> {
+    const resolvedUrl = await this.resolveUrl(url);
     const startTime = performance.now();
-    logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
-    const linkedPath = new URL(basename(url.pathname), this.target);
+    logger.debug({ project: resolvedUrl.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    const linkedPath = new URL(basename(resolvedUrl.pathname), this.target);
 
     const existing = this.linkCache.get(linkedPath.href);
     if (existing) {
       // Already linked and matches the hash
       if (existing.hash === asset['file:checksum']) return existing;
       if (options.skipIfExists) {
-        logger.debug({ url: url.href, linked: linkedPath.href }, 'DownloadFile:Skip');
+        logger.debug({ url: resolvedUrl.href, linked: linkedPath.href }, 'DownloadFile:Skip');
         return existing;
       }
       logger.info(
         {
-          project: url.href,
+          project: resolvedUrl.href,
           downloaded: this.target.href,
           existingHash: existing.hash,
           newHash: asset['file:checksum'],
@@ -242,10 +279,10 @@ export class Downloader {
       );
     }
 
-    const cacheStat = await this.ensureAssetInCache(asset, url);
+    const cacheStat = await this.ensureAssetInCache(asset, resolvedUrl);
 
     const sourceAsset: SourceAsset = {
-      url,
+      url: resolvedUrl,
       linked: linkedPath,
       size: cacheStat.size,
       hash: cacheStat.hash,

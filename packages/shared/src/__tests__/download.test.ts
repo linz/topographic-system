@@ -198,3 +198,26 @@ describe('Downloader - Canonical URLs', () => {
     );
   });
 });
+
+describe('Downloader - Resolver Support', () => {
+  it('should resolve URL via custom resolver if match exists', async () => {
+    const originalUrl = new URL('memory://stac/data/airport/latest/collection.json');
+    const overrideUrl = new URL('memory://stac/data/airport/commit=123/collection.json');
+
+    const downloader = new Downloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    downloader.addResolver(async (url) => (url.href === originalUrl.href ? overrideUrl : url));
+
+    const resolved = await downloader.resolveUrl(originalUrl);
+    assert.strictEqual(resolved.href, overrideUrl.href);
+  });
+
+  it('should return original URL if resolver makes no changes', async () => {
+    const originalUrl = new URL('memory://stac/data/coastline/latest/collection.json');
+
+    const downloader = new Downloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    downloader.addResolver(async (url) => url);
+
+    const resolved = await downloader.resolveUrl(originalUrl);
+    assert.strictEqual(resolved.href, originalUrl.href);
+  });
+});

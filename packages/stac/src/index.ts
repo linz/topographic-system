@@ -25,3 +25,4 @@ export { StacPusher } from './stac.pusher.ts';
 export { StacPushCommand } from './cli/action.stac.push.ts';
 export { getRelativePath } from './stac.paths.ts';
 export type { StacFileChecksum } from './hash.writer.ts';
+export { StacDownloader } from './stac.downloader.ts';
