@@ -68,6 +68,8 @@ export const ProduceArgs = {
   cache,
 };
 
+const DownloadRels = new Set(['source', 'derived_from', 'project']);
+
 export const ExportCommand = command({
   name: 'export',
   description: 'Export a collection of mapsheets from a prepared',
@@ -78,21 +80,17 @@ export const ExportCommand = command({
     const q = qFromArgs(args);
 
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
-    if (paths.length === 0) {
-      throw new Error('At least one path to a stac item or item configuration must be provided');
-    }
+    if (paths.length === 0) throw new Error('At least one path to a stac item or item configuration must be provided');
 
     const downloader = new StacDownloader(args.tempLocation, args.cache, q);
 
-    const items = await qMapAll(q, paths, async (path) => {
-      const stac = await downloader.fetchStac<StacItem>(path);
-      return { stac: stac.asset, path: stac.url };
-    });
+    const items = await Promise.all(
+      paths
+        .filter((f) => f.href.endsWith('.json'))
+        .map((m) => downloader.fetchLinkedAssets(m, (link) => DownloadRels.has(link.rel))),
+    );
 
-    const firstItem = items[0];
-    if (firstItem == null) throw new Error('No items found to export');
-    const projectAssets = await downloader.fetchAssets(firstItem.path, (asset) => asset.href.endsWith('.qgs'));
-    const qgsProject = projectAssets.find((f) => f.source.href.endsWith('.qgs'));
+    const qgsProject = items.flat().find((f) => f.source.href.endsWith('.qgs'));
     if (qgsProject == null) throw new Error(`Project file not found from downloaded assets`);
 
     await qMapAll(q, paths, (p) => produce(p, qgsProject.target, args));

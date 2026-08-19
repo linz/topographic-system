@@ -1,7 +1,8 @@
 import { fsa } from '@chunkd/fs';
-import { qMapAll, readCatalog } from '@linzjs/topographic-system-shared';
+import { qMapAll } from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 
+import { readCatalog } from './stac.downloader.ts';
 import { StacStorage } from './stac.storage.ts';
 import type { StacStorageCategory, StorageStrategy } from './stac.storage.ts';
 

@@ -87,11 +87,14 @@ export async function prepareData<const T extends readonly URL[]>(opts: PrepareD
 
   const rootCatalog = new URL('catalog.json', output);
   const q = qFromArgs({ concurrency: opts.concurrency });
+  const downloader = new StacDownloader(tempLocation, cache, q);
+
+  const resolvedSource = await Promise.all(sources.map((m) => downloader.resolveUrl(m)));
 
   const latestCollectionUrl = new URL(`${name}/latest/collection.json`, output);
-  if (await fsa.exists(latestCollectionUrl)) {
-    const latestCollection = await fsa.readJson<StacCollection>(latestCollectionUrl);
-    const derivedUnchanged = sources.every((source) =>
+  const latestCollection = await downloader.lru.fetch<StacCollection>(latestCollectionUrl).catch(() => null);
+  if (latestCollection) {
+    const derivedUnchanged = resolvedSource.every((source) =>
       latestCollection.links.some((link) => link.rel === 'derived_from' && link.href === source.href),
     );
     if (derivedUnchanged) {
@@ -100,9 +103,10 @@ export async function prepareData<const T extends readonly URL[]>(opts: PrepareD
     }
   }
 
-  const downloader = new StacDownloader(tempLocation, cache, q);
-  const sourceAssets = (await Promise.all(sources.map((m) => downloader.fetchAssets(m)))).flat();
-  const sourcePaths = sourceAssets.filter((s) => s.target.pathname.endsWith('.parquet')).map((s) => s.target);
+  const sourceAssets = (
+    await Promise.all(sources.map((m) => downloader.fetchAssets(m, (asset) => asset.href.endsWith('.parquet'))))
+  ).flat();
+  const sourcePaths = sourceAssets.map((s) => s.target);
 
   const tempOutputParquet = new URL(`${name}.parquet`, tempLocation);
 
