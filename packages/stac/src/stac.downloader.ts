@@ -34,7 +34,8 @@ function strategyResolver(strategy: string): StacUrlResolver {
     const context = storageStrategyFromLatest(url);
     if (context == null) return url;
 
-    const target = StacStorage.url(st, context);
+    const targetFile = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
+    const target = new URL(targetFile,StacStorage.url(st, context));
     const asset = await downloader.lru.fetch(target).catch(() => null);
     if (asset == null) return url;
     return target;
@@ -94,6 +95,10 @@ export class StacDownloader {
     const resolved = await this.resolveUrl(url);
     if (resolved == null) throw new Error('Unable to resolve: ' + url);
     const asset = (await this.lru.fetch(resolved)) as T;
+
+    if (url.href !== resolved.href) {
+      logger.debug({ url: url.href, resolved: resolved.href }, 'Url:Resolved');
+    }
     return { url: resolved, asset };
   }
 
