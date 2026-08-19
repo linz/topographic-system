@@ -17,12 +17,9 @@ import geopandas as gpd
 import pandas as pd
 
 from data_prep.identity import reproducible_uuid7
-from data_prep.parquet_utils import write_parquet
+from data_prep.parquet_utils import NZGD2000, write_parquet
 
 logger = logging.getLogger(__name__)
-
-# All inputs and the output are in NZGD2000
-NZGD2000 = 4167
 
 # Module-level globals so forked workers inherit via copy-on-write
 # instead of pickling gigabytes of geodata per worker
