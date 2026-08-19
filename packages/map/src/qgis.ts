@@ -23,9 +23,6 @@ export interface QgisLayerDef {
 
   /** Optional extra QGIS option metadata */
   options?: { key: string; value?: string }[];
-
-  /** Strategy-specific collection URL override, if a strategy was provided */
-  strategyUrl?: URL;
 }
 /**
  * Load a QGS project and extract the layers names and their source and basic projection information
@@ -107,17 +104,16 @@ function hasQuery(layer: QgisLayerDef): boolean {
  * @param strategyCollections optional map of layer name → strategy collection URL to override the layer's source
  */
 function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, explicitName?: string): QgisLayerDef {
-  let layer: QgisLayerDef | undefined;
   if (explicitName != null) {
     // add .parquet if there is no extension
     const searchName = explicitName.includes('.') ? explicitName : `${explicitName}.parquet`;
-    layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
-    if (layer == null) throw new Error(`${label} source layer not found: "${explicitName}"`);
-  } else {
-    layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
-    if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
+    const layer = layers.find((f) => f.source === searchName && hasQuery(f) === false);
+    if (layer) return layer;
+    throw new Error(`${label} source layer not found: "${explicitName}"`);
   }
 
+  const layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
+  if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
   return layer;
 }
 
