@@ -18,7 +18,6 @@ def result(tmp_path: Path):
             "formation": [None],
             "metadata": [None],
             "geometry": [LineString([(174, -41), (178, -41)])],
-
         },
         crs=NZGD2000,
     )
