@@ -69,6 +69,9 @@ export class StacDownloader {
 
   lru = new StacLruCache(1000);
 
+  // Inflight downloads
+  downloads: Map<string, Promise<SourceAsset>> = new Map();
+
   constructor(target: URL, cache: URL, q: LimitFunction) {
     this.target = target;
     this.cache = cache;
@@ -194,10 +197,25 @@ export class StacDownloader {
 
   /** Download given asset extract it if tar file */
   private async downloadAsset(url: URL, asset: StacAsset | StacLink): Promise<SourceAsset> {
+    let existingDownload = this.downloads.get(url.href);
+    if (existingDownload) return existingDownload;
+
+    const resolvedUrl = await this.resolveUrl(url);
+    existingDownload = this.downloads.get(resolvedUrl.href);
+    if (existingDownload) return existingDownload;
+
+    const downloadPromise = this._downloadAsset(resolvedUrl, asset);
+    this.downloads.set(url.href, downloadPromise);
+    this.downloads.set(resolvedUrl.href, downloadPromise);
+
+    return downloadPromise;
+  }
+
+  private async _downloadAsset(url: URL, asset: StacAsset | StacLink): Promise<SourceAsset> {
     const resolvedUrl = await this.resolveUrl(url);
     const startTime = performance.now();
-    logger.debug({ project: resolvedUrl.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
-    const linkedPath = new URL(basename(resolvedUrl.pathname), this.target);
+    logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    const linkedPath = new URL(basename(url.pathname), this.target);
 
     const existing = this.linkCache.get(linkedPath.href);
     if (existing) {
