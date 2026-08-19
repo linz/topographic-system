@@ -35,7 +35,7 @@ function strategyResolver(strategy: string): StacUrlResolver {
     if (context == null) return url;
 
     const targetFile = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
-    const target = new URL(targetFile,StacStorage.url(st, context));
+    const target = new URL(targetFile, StacStorage.url(st, context));
     const asset = await downloader.lru.fetch(target).catch(() => null);
     if (asset == null) return url;
     return target;
