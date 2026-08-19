@@ -96,7 +96,7 @@ export const VisualDiffCommand = command({
         await downloader.fetchLinkedAssets(args.project, (link) => link.rel === 'datastet');
 
         // Get the downloaded project file path
-        const projectPath = projectFiles.find((f) => f.target.href.includes('`${test.name}.qgs`'));
+        const projectPath = projectFiles.find((f) => f.target.href.includes(`${test.name}.qgs`));
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
         const projectMeta = await getQgisProjectMeta(projectPath.target);
