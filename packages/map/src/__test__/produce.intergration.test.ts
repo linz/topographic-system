@@ -90,7 +90,6 @@ describe('deploy -> produce-cover -> produce', () => {
       fromFile: undefined,
       all: false,
       strategy: undefined,
-      catalog: undefined,
       assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
       cache: new URL('memory://temp-cache/'),
       tempLocation: new URL('memory://temp-produce-cover/'),
@@ -220,7 +219,6 @@ describe('deploy -> produce-cover -> produce', () => {
       fromFile: undefined,
       all: false,
       strategy: undefined,
-      catalog: undefined,
       assets: [
         'layout=nztopo50,dpi=600,format=tiff',
         'layout=nztopo50,dpi=600,format=pdf',
