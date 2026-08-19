@@ -2,7 +2,7 @@ name: bridge_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # FIXME: needs lookup for t50_fid
+  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/cook-islands-bridge-centrelines-topo-125k-zone4
   #    name: cook_islands_bridge_centrelines
   #    mapping:
@@ -42,18 +42,18 @@ datasets:
       - column: type
         replace:
           foot traffic: foot_traffic
-  # FIXME: needs lookup for t50_fid
-#  - source: kart@data.koordinates.com:linz/tokelau-bridge-centrelines-topo-125k
-#    mapping:
-#      t50_fid: $
-#      type: $use_1
-#      subtype: $use_2
-#      construction_type: $constr_typ
-#      status: $status
-#      name: $name
-#      theme: transport
-#      metadata: null
-#    corrections:
-#      - column: type
-#        replace:
-#          foot traffic: foot_traffic
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/tokelau-bridge-centrelines-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: $use_1
+  #      subtype: $use_2
+  #      construction_type: $constr_typ
+  #      status: $status
+  #      name: $name
+  #      theme: transport
+  #      metadata: null
+  #    corrections:
+  #      - column: type
+  #        replace:
+  #          foot traffic: foot_traffic

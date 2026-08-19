@@ -120,7 +120,79 @@ def drop_empty_residential_areas(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
     return _drop_listed_empty(gdf, td, "nz_residential_area_polygons", {6753838})
 
 
+def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
+    """Deterministic UUIDv7 for a part that has no source fid.
+
+    Reuses the parent's 48-bit timestamp prefix (so the derived record sorts with the feature it
+    came from) and hashes a key that cannot collide with a key from the lifecycle.
+    """
+    import uuid
+
+    from .uuid7 import reproducable_uuid7_text
+
+    try:
+        timestamp_ms = int(uuid.UUID(str(parent_id)).hex[:12], 16)
+    except ValueError:
+        timestamp_ms = 0
+    return str(reproducable_uuid7_text(timestamp_ms, f"{dataset_name}:{parent_fid}:part{part_index}"))
+
+
+def split_multipart_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Explode multipart geometries into one record per part.
+
+    The largest part stays on the original row (keeping its id, `t50_fid` and attributes); the
+    remaining parts are appended as new records carrying the same attributes but a null `t50_fid`
+    and a derived id. Single-part features are untouched, so a layer with no splits comes back
+    unchanged.
+    """
+    import geopandas as gpd_
+    import pandas as pd
+
+    multipart = gdf.geometry.geom_type.isin(("MultiPolygon", "MultiLineString", "MultiPoint"))
+    if not multipart.any():
+        return gdf
+
+    gdf = gdf.reset_index(drop=True)
+    extra_rows = []
+
+    for position in gdf.index[multipart.to_numpy()]:
+        row = gdf.loc[position]
+        parts = sorted(row.geometry.geoms, key=lambda part: part.area or part.length, reverse=True)
+        parent_fid = row["t50_fid"] if "t50_fid" in gdf.columns else None
+
+        # The largest part keeps the source feature's identity.
+        gdf.at[position, "geometry"] = parts[0]
+
+        for part_index, part in enumerate(parts[1:], start=1):
+            new_row = row.copy()
+            new_row["geometry"] = part
+            new_row["id"] = _split_id(row["id"], td.name, parent_fid, part_index)
+            if "t50_fid" in gdf.columns:
+                new_row["t50_fid"] = pd.NA
+            extra_rows.append(new_row)
+
+        logger.info(
+            "split multipart feature",
+            extra={
+                "dataset": td.name,
+                "release": release_id,
+                "t50_fid": None if parent_fid is None or pd.isna(parent_fid) else int(parent_fid),
+                "parts": len(parts),
+                "kept": float(parts[0].area or parts[0].length),
+                "split_off": [float(p.area or p.length) for p in parts[1:]],
+            },
+        )
+
+    if not extra_rows:
+        return gdf
+
+    added = gpd_.GeoDataFrame(extra_rows, columns=gdf.columns, crs=gdf.crs).set_geometry("geometry")
+    out = pd.concat([gdf, added], ignore_index=True)
+    return gpd_.GeoDataFrame(out, geometry="geometry", crs=gdf.crs)
+
+
 FIXUPS: dict[str, Fixup] = {
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_empty_residential_areas": drop_empty_residential_areas,
+    "split_multipart_features": split_multipart_features,
 }

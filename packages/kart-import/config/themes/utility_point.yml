@@ -1,0 +1,25 @@
+name: utility_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-gas-valve-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: gas_valve
+      orientation: null
+      theme: utility
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-geo-bore-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: geo_bore
+      orientation: null
+      theme: utility
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-pylon-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: pylon
+      orientation: { source: $orientatn, since_release: 49 }
+      theme: utility
+      metadata: null
