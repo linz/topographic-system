@@ -150,12 +150,13 @@ export const PrepareCommand = command({
     const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset);
     logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
 
-    const sourceAssets = await downloader.fetchLinkedAssets(args.project, (link) =>
-      link.href.includes(mapSheetLayer.source),
+    const sourceAssets = await downloader.fetchLinkedAssets(
+      args.project,
+      (link) => link.rel === 'dataset',
+      (asset) => asset.href.endsWith(mapSheetLayer.source),
     );
     const mapSheetFile = sourceAssets[0];
-    if (mapSheetFile == null || sourceAssets.length !== 0)
-      throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
+    if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
 
     const mapSheetMeta = await readParquetMetadata(mapSheetFile.target);
     const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);

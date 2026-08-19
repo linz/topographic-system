@@ -1,21 +1,12 @@
 import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
-import {
-  Downloader,
-  DownloadRels,
-  logger,
-  qFromArgs,
-  registerFileSystem,
-  Url,
-  worker,
-} from '@linzjs/topographic-system-shared';
-import { addDownloaderStrategy, parseStrategy } from '@linzjs/topographic-system-stac';
+import { logger, qFromArgs, registerFileSystem, Url, worker } from '@linzjs/topographic-system-shared';
+import { StacDownloader } from '@linzjs/topographic-system-stac';
 import { command, option, optional, string } from 'cmd-ts';
-import type { StacItem } from 'stac-ts';
 
 import { pyRunner } from '../python.runner.ts';
-import { getQgisProjectMeta, getQgisMapSheetDataset, getQgisCartoTextLayer } from '../qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import type { ExportAsset } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
@@ -79,23 +70,15 @@ export const VisualDiffCommand = command({
     registerFileSystem();
     const q = qFromArgs(args);
     // Prepare the test senarios, either from the default tests or from the provided test file
-    let testProjects = defaultTests;
-    if (args.testFile) {
-      testProjects = await fsa.readJson<TestProject[]>(args.testFile);
-    }
-
-    if ((args.strategy == null) !== (args.catalog == null)) {
-      throw new Error('Both --strategy and --catalog must be provided together');
-    }
+    const testProjects = args.testFile ? await fsa.readJson<TestProject[]>(args.testFile) : defaultTests;
 
     mkdirSync(args.output, { recursive: true });
     const tasks: Promise<void>[] = [];
 
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
 
     if (args.strategy) {
-      const storageStrategy = parseStrategy(args.strategy);
-      addDownloaderStrategy(downloader, storageStrategy);
+      downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));
       logger.info({ strategy: args.strategy }, 'Visual Diff: Storage strategy override set');
     }
 
@@ -105,21 +88,18 @@ export const VisualDiffCommand = command({
 
         // Download project file, assets, and source data from the project stac file
 
-        const stac = await fsa.readJson<StacItem>(args.project);
-        if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
+        const stac = await downloader.fetchStac(args.project);
 
-        // Add links from download rels for downloading
-        downloader.addStac(args.project);
-        downloader.addStacLinks(stac, DownloadRels, args.project);
+        logger.info({ resolved: stac.url.href }, 'Visual Diff Project');
 
-        // Download all the assets, including the project file and source data for the project.
-        await downloader.getAllAssets({ skipIfExists: true, useCanonical: true });
+        const projectFiles = await downloader.fetchAssets(args.project);
+        await downloader.fetchLinkedAssets(args.project, (link) => link.rel === 'datastet');
 
         // Get the downloaded project file path
-        const projectPath = downloader.findAsset((asset) => asset.url.href.includes(`${test.name}.qgs`))?.linked;
+        const projectPath = projectFiles.find((f) => f.target.href.includes('`${test.name}.qgs`'));
         if (projectPath == null) throw new Error(`Project file not found: ${test.name}.qgs`);
 
-        const projectMeta = await getQgisProjectMeta(projectPath);
+        const projectMeta = await getQgisProjectMeta(projectPath.target);
         const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers);
         const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers);
 
@@ -135,7 +115,13 @@ export const VisualDiffCommand = command({
         // Start to export file
         const task = test.sheetCodes.map((sheetCode) =>
           q(async () => {
-            const file = await pyRunner.qgisExport(projectPath, args.output, sheetCode, exportOptions, exportAsset);
+            const file = await pyRunner.qgisExport(
+              projectPath.target,
+              args.output,
+              sheetCode,
+              exportOptions,
+              exportAsset,
+            );
             logger.info({ file: file.href }, `Visual Diff: Exported ${sheetCode}`);
           }),
         );

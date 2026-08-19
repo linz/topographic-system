@@ -5,7 +5,6 @@ import { fsa } from '@chunkd/fs';
 import {
   CliId,
   concurrency,
-  Downloader,
   logger,
   parquetToStac,
   qFromArgs,
@@ -13,7 +12,7 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { StacCollectionWriter, StacUpdater, StacDownloader } from '@linzjs/topographic-system-stac';
 import { option, optional } from 'cmd-ts';
 import type { StacCollection } from 'stac-ts';
 
@@ -44,15 +43,6 @@ export const DataPrepareArgs = {
     description: 'Path to the JSON schema to validate the prepared output against',
   }),
 };
-
-/** Download the parquet asset for a STAC collection and return the local path. */
-async function downloadParquet(downloader: Downloader, url: URL): Promise<URL> {
-  downloader.addStac(url);
-  const asset = await downloader.getAsset(url);
-  const linked = asset[0]?.linked;
-  if (linked == null) throw new Error(`Failed to download ${url.href} asset`);
-  return linked;
-}
 
 export interface PrepareDataOptions<T extends readonly URL[]> {
   /** Output collection name, e.g. `nztopo50_rock_line`. */
@@ -110,11 +100,9 @@ export async function prepareData<const T extends readonly URL[]>(opts: PrepareD
     }
   }
 
-  const downloader = new Downloader(tempLocation, cache, q);
-  const sourcePaths: URL[] = [];
-  for (const source of sources) {
-    sourcePaths.push(await downloadParquet(downloader, source));
-  }
+  const downloader = new StacDownloader(tempLocation, cache, q);
+  const sourceAssets = (await Promise.all(sources.map((m) => downloader.fetchAssets(m)))).flat();
+  const sourcePaths = sourceAssets.filter((s) => s.target.pathname.endsWith('.parquet')).map((s) => s.target);
 
   const tempOutputParquet = new URL(`${name}.parquet`, tempLocation);
 

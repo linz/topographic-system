@@ -2,8 +2,6 @@ import { mkdir } from 'node:fs/promises';
 
 import { fsa } from '@chunkd/fs';
 import {
-  Downloader,
-  DownloadRels,
   logger,
   qFromArgs,
   qMapAll,
@@ -12,7 +10,7 @@ import {
   UrlArrayJsonFile,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { HashWriter, StacDownloader, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
@@ -84,22 +82,20 @@ export const ExportCommand = command({
       throw new Error('At least one path to a stac item or item configuration must be provided');
     }
 
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
 
     const items = await qMapAll(q, paths, async (path) => {
-      const stac = await fsa.readJson<StacItem>(path);
-      if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
-      return { stac, path };
+      const stac = await downloader.fetchStac<StacItem>(path);
+      return { stac: stac.asset, path: stac.url };
     });
-    items.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
 
-    // Download all the assets, including the project file and source data for the project.
-    await downloader.getAllAssets();
+    const firstItem = items[0];
+    if (firstItem == null) throw new Error('No items found to export');
+    const projectAssets = await downloader.fetchAssets(firstItem.path, (asset) => asset.href.endsWith('.qgs'));
+    const qgsProject = projectAssets.find((f) => f.source.href.endsWith('.qgs'));
+    if (qgsProject == null) throw new Error(`Project file not found from downloaded assets`);
 
-    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
-    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
-
-    await qMapAll(q, paths, (p) => produce(p, projectPath, args));
+    await qMapAll(q, paths, (p) => produce(p, qgsProject.target, args));
     await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');
