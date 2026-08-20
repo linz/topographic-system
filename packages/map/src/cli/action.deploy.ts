@@ -5,7 +5,6 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
-  getDataFromCatalog,
   logger,
   qFromArgs,
   registerFileSystem,
@@ -13,7 +12,13 @@ import {
   UrlFolder,
   UrlFolders,
 } from '@linzjs/topographic-system-shared';
-import { getRelativePath, StacCollectionWriter, StacGeometry, StacUpdater } from '@linzjs/topographic-system-stac';
+import {
+  getRelativePath,
+  StacCollectionWriter,
+  StacGeometry,
+  StacUpdater,
+  getDataFromCatalog,
+} from '@linzjs/topographic-system-stac';
 import { command, multioption, option, optional, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';

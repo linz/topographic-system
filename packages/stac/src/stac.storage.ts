@@ -56,6 +56,22 @@ export type StorageStrategyIdGen<T extends StorageStrategyName> = (
 
 export const StorageStrategySep = '=';
 
+function parseStorageStrategyDate(value: string | undefined): Date {
+  if (value == null || value === '') throw new Error('Invalid date');
+
+  const directDate = new Date(value);
+  if (!isNaN(directDate.getTime())) return directDate;
+
+  const pathSafeDate = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2}(?:\.\d+)?)Z$/);
+  if (pathSafeDate != null) {
+    const normalized = `${pathSafeDate[1]}:${pathSafeDate[2]}:${pathSafeDate[3]}Z`;
+    const normalizedDate = new Date(normalized);
+    if (!isNaN(normalizedDate.getTime())) return normalizedDate;
+  }
+
+  throw new Error('Invalid date');
+}
+
 export const StorageStrategyParsers: { [K in StorageStrategyName]: StorageStrategyParser<K> } = {
   commit(obj: string): StorageStrategyCommit {
     return { type: 'commit', commit: obj.split(StorageStrategySep)[1] ?? '' };
@@ -65,9 +81,7 @@ export const StorageStrategyParsers: { [K in StorageStrategyName]: StorageStrate
   },
   date(obj: string): StorageStrategyDate {
     const value = obj.split(StorageStrategySep)[1];
-    let date = value == null ? new Date() : new Date(value);
-    if (isNaN(date.getTime())) throw new Error('Invalid date');
-    return { type: 'date', date };
+    return { type: 'date', date: parseStorageStrategyDate(value) };
   },
 };
 
@@ -88,6 +102,24 @@ const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K
     );
   },
 };
+
+/**
+ * Attempt to parse the storage context from a "/latest/" URL
+ * @param url
+ * @returns
+ */
+export function storageStrategyFromLatest(url: URL): StorageContext | null {
+  const latest = url.href.lastIndexOf('/latest/');
+  if (latest === -1) return null;
+
+  const parts = url.href.slice(0, latest).split('/');
+  const label = parts.at(-1);
+  const category = parts.at(-2) as StacStorageCategory;
+  const prefix = new URL(parts.slice(0, parts.length - 2).join('/') + '/');
+  if (label == null || category == null) return null;
+  if (!StacStorageCategoryTypes.includes(category)) return null;
+  return { label, category, prefix };
+}
 
 interface StorageContextWithItem extends StorageContext {
   /** Optional item name */

@@ -4,8 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { fsa } from '@chunkd/fs';
 import { Command } from '@linzjs/docker-command';
 import {
-  Downloader,
-  DownloadRels,
   logger,
   qFromArgs,
   qMapAll,
@@ -14,7 +12,7 @@ import {
   UrlArrayJsonFile,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { HashWriter, StacDownloader, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
@@ -72,6 +70,8 @@ export const ProduceArgs = {
   cache,
 };
 
+const DownloadRels = new Set(['source', 'derived_from', 'project']);
+
 export const ExportCommand = command({
   name: 'export',
   description: 'Export a collection of mapsheets from a prepared',
@@ -82,26 +82,20 @@ export const ExportCommand = command({
     const q = qFromArgs(args);
 
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
-    if (paths.length === 0) {
-      throw new Error('At least one path to a stac item or item configuration must be provided');
-    }
+    if (paths.length === 0) throw new Error('At least one path to a stac item or item configuration must be provided');
 
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
 
-    const items = await qMapAll(q, paths, async (path) => {
-      const stac = await fsa.readJson<StacItem>(path);
-      if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
-      return { stac, path };
-    });
-    items.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
+    const items = await Promise.all(
+      paths
+        .filter((f) => f.href.endsWith('.json'))
+        .map((m) => downloader.fetchLinkedAssets(m, (link) => DownloadRels.has(link.rel))),
+    );
 
-    // Download all the assets, including the project file and source data for the project.
-    await downloader.getAllAssets();
+    const qgsProject = items.flat().find((f) => f.source.href.endsWith('.qgs'));
+    if (qgsProject == null) throw new Error(`Project file not found from downloaded assets`);
 
-    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
-    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
-
-    await qMapAll(q, paths, (p) => produce(p, projectPath, args));
+    await qMapAll(q, paths, (p) => produce(p, qgsProject.target, args));
     await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');

@@ -4,9 +4,6 @@ import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
-  Downloader,
-  DownloadRels,
-  getDataFromCatalog,
   isArgo,
   logger,
   parquetGeometryStats,
@@ -17,7 +14,13 @@ import {
   Url,
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
-import { geoJsonToWgs84, getJsonToWgs84Bbox, StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import {
+  geoJsonToWgs84,
+  getJsonToWgs84Bbox,
+  StacCollectionWriter,
+  StacDownloader,
+  StacUpdater,
+} from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
@@ -26,40 +29,6 @@ import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { FormatMultiOption } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
-
-interface dataTag {
-  layer: string;
-  tag: string;
-}
-
-/**
- * Parse a input data tag string into an array of dataTag,
- * For example: "airport/pull_request/pr-18/,contours/pull_request/pr-18/" => [{ layer: "airport", tag: "pull_request/pr-18/" }, { layer: "contours", tag: "pull_request/pr-18/" }]
- */
-export function parseDataTag(input: string): dataTag[] {
-  const tags: dataTag[] = [];
-  const pairs = input.split(',').map((part) => part.trim());
-  const error = `Invalid data tag format, expected "layer/latest", "layer/pull_request/pr-<number>", or "layer/year/<date>", got ${input}`;
-  for (const rawPair of pairs) {
-    // Remove leading and trailing slashes
-    const pair = rawPair.replace(/^\/+|\/+$/g, '');
-    const splits = pair.split('/');
-
-    if (splits.length === 2) {
-      // If only one tag provided, it should be always 'latest' tag, for example "airport/latest/"
-      if (splits[1] !== 'latest') {
-        throw new Error(error);
-      }
-      tags.push({ layer: splits[0]!, tag: 'latest' });
-    } else if (splits.length === 3) {
-      // Other tags like pull request or date tags should have 3 parts, for example "airport/pull_request/pr-18/"
-      tags.push({ layer: splits[0]!, tag: `${splits[1]}/${splits[2]}` });
-    } else {
-      throw new Error(error);
-    }
-  }
-  return tags;
-}
 
 interface SheetMetadata {
   sheetCode: string;
@@ -77,30 +46,6 @@ interface TopoMapSheetParquet {
  */
 export function sheetCodeToPath(sheetCode: string): string {
   return sheetCode.replace(/[/,]/g, '');
-}
-
-/**
- * Override the source data link with provided data tags return.
- *
- * @param sources the original source data links from the project stac file
- * @param tags the data tags to override the source links, for example [{ layer: "airport", tag: "pull_request/pr-18/" }]
- * @param catalogUrl the catalog url to look for the source layer with tag
- *
- * @returns the override source links with the data tag applied
- *
- */
-export async function overrideSource(sources: URL[], tags: dataTag[], catalogUrl: URL): Promise<URL[]> {
-  for (const source of sources) {
-    for (const tag of tags) {
-      if (source.href.includes(tag.layer)) {
-        logger.info({ source: source.href, layer: tag.layer, tag: tag.tag }, 'Prepare: DataOverride');
-        // Find the source layer with the tag from the catalog and override the source link
-        const layerCollection = await getDataFromCatalog(catalogUrl, tag.layer);
-        source.href = layerCollection.href;
-      }
-    }
-  }
-  return sources;
 }
 
 const ProduceArgs = {
@@ -142,11 +87,11 @@ const ProduceArgs = {
     long: 'source',
     description: 'Source data catalog.json that contains the layers.',
   }),
-  dataTags: option({
+  strategy: option({
     type: optional(string),
-    long: 'data-tags',
+    long: 'strategy',
     description:
-      'Override data tags in a string array to use when looking for source layers, for example airport/pull_request/pr-18/,contours/pull_request/pr-18/',
+      'Optional storage strategy to filter source data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".',
   }),
   output: option({
     type: UrlFolder,
@@ -170,7 +115,6 @@ export const PrepareCommand = command({
     registerFileSystem();
     const rootCatalog = new URL('catalog.json', args.output);
     logger.info({ project: args.project.href, cache: args.cache.href }, 'Prepare: Start');
-
     if (args.assets.length === 0) throw new Error('No --asset provided');
     const q = qFromArgs(args);
 
@@ -178,39 +122,37 @@ export const PrepareCommand = command({
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
     );
 
-    // Download mapshseet layer data from the project stac file
-    const stac = await fsa.readJson<StacItem>(args.project);
-    if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
-
-    // Download project file from the project stac file
-    logger.info({ project: args.project.href }, 'Download: Start');
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
-    downloader.addStac(args.project);
-    downloader.addStacLinks(stac, DownloadRels, args.project);
-    await downloader.getAllAssets();
-    logger.info({ project: args.project.href }, 'Download: End');
-
-    // Override data with dataTag if provided
-    if (args.source && args.dataTags) {
-      throw new Error('--data-tags not supported');
+    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
+    if (args.strategy) {
+      downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));
+      logger.info({ strategy: args.strategy }, 'Prepare: Storage strategy override set');
     }
 
-    // Find downloaded project file
-    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
-    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
+    const stac = await downloader.fetchStac<StacItem>(args.project);
+    logger.info({ project: args.project.href }, 'Download: Start');
+
+    const projectAssets = await downloader.fetchAssets(args.project, (asset) => asset.href.endsWith('.qgs'));
+    const qgsProject = projectAssets.find((f) => f.source.href.endsWith('.qgs'));
+    if (qgsProject == null) throw new Error(`QGIS project file not found at: ${args.project.href}`);
+    logger.info({ project: args.project.href }, 'Download: End');
 
     logger.info({ project: args.project.href }, 'Prepare');
-    const projectMeta = await getQgisProjectMeta(projectPath);
+    const projectMeta = await getQgisProjectMeta(qgsProject.target);
     const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
     logger.info({ project: args.project.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
 
     const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset);
     logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
 
-    const mapSheetFile = downloader.findAsset((asset) => asset.url.href.endsWith(mapSheetLayer.source));
+    const sourceAssets = await downloader.fetchLinkedAssets(
+      args.project,
+      (link) => link.rel === 'dataset',
+      (asset) => asset.href.endsWith(mapSheetLayer.source),
+    );
+    const mapSheetFile = sourceAssets[0];
     if (mapSheetFile == null) throw new Error(`MapSheet asset "${mapSheetLayer.source}" not found`);
 
-    const mapSheetMeta = await readParquetMetadata(mapSheetFile.linked);
+    const mapSheetMeta = await readParquetMetadata(mapSheetFile.target);
     const mapSheetGeo = await parquetGeometryStats(mapSheetMeta);
     const mapSheetProj = Projection.get(mapSheetGeo.epsg);
 
@@ -223,7 +165,7 @@ export const PrepareCommand = command({
 
     const mapSheetsToCreate: SheetMetadata[] = [];
 
-    for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.linked, { decodeGeometry: true })) {
+    for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.target, { decodeGeometry: true })) {
       if (args.all || mapSheets.has(row.sheet_code)) {
         mapSheetsToCreate.push({
           sheetCode: row.sheet_code,
@@ -241,6 +183,17 @@ export const PrepareCommand = command({
 
     logger.info({ project: args.project.href, number: mapSheetsToCreate.length }, 'Prepare: CreateStacItems');
 
+    const sources = await Promise.all(
+      stac.asset.links
+        .filter((link) => link.rel === 'dataset')
+        .map(async (link) => {
+          const linkUrl = new URL(link.href, stac.url);
+          const item = await downloader.fetchStac<StacCollection | StacItem>(linkUrl);
+          if (item == null) throw new Error('Unable to find source stac for url: ' + linkUrl.href);
+          return item;
+        }),
+    );
+
     for (const metadata of mapSheetsToCreate) {
       const standardizedSheetCode = sheetCodeToPath(metadata.sheetCode);
 
@@ -252,40 +205,23 @@ export const PrepareCommand = command({
       item.properties['linz_topographic_system:options'] = exportOptions;
 
       // Add project link
-      const canonicalLink = stac.links.find((link) => link.rel === 'canonical');
       item.links.push({
         rel: 'project',
-        href: canonicalLink ? new URL(canonicalLink.href, args.project).href : args.project.href,
+        href: stac.url.href,
         type: 'application/json',
       });
 
-      // Add source data links
-      const sources = stac.links
-        .filter((link) => link.rel === 'dataset')
-        .map((link) => {
-          const linkUrl = new URL(link.href, args.project);
-          const item = downloader.stac.get(linkUrl.href);
-          if (item == null) throw new Error('Unable to find source stac for url: ' + linkUrl.href);
-          return { item, url: linkUrl };
-        });
-
       for (const s of sources) {
-        if (s.item.json == null) throw new Error(`Source stac json not found for url: ${s.url.href}`);
-        const canonicalLink = s.item.json.links.find((link) => link.rel === 'canonical');
-
         const itemLink: StacLink = {
           rel: 'source',
-          href: canonicalLink ? new URL(canonicalLink.href, s.url).href : s.url.href,
+          href: s.url.href,
           type: 'application/json',
           // TODO: if these are canonical links, we should add file:size and file:checksum
         };
 
-        if (typeof s.item.json.title === 'string') itemLink.title = s.item.json.title;
+        if (typeof s.asset.title === 'string') itemLink.title = s.asset.title;
         item.links.push(itemLink);
       }
-
-      // Add assets link if available
-      item.links.push(...stac.links.filter((link) => link.rel === 'assets'));
     }
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);

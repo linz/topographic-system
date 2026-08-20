@@ -1,4 +1,4 @@
-import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { iceContour } from '../python.runner.ts';
@@ -27,13 +27,11 @@ export const IceContourCommand = command({
   args: IceContourArgs,
   async handler(args) {
     registerFileSystem();
-    const contourUrl = await getCanonical(args.contour);
-    const landcoverUrl = await getCanonical(args.landcover);
 
     await prepareData({
       name: iceContourName,
       label: 'ice contour',
-      sources: [contourUrl, landcoverUrl],
+      sources: [args.contour, args.landcover],
       run: ([contour, landcover], output) => iceContour(contour, landcover, output),
       output: args.output,
       tempLocation: args.tempLocation,

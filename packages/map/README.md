@@ -6,6 +6,10 @@ Utilities to run a map production flow inside of a container
 
 Exports are made by first creating a map production run with `map prepare`, once the STAC documents are created the assets can be exported with `map export`. Both of these commands require `QGIS` to be installed and is easier to run inside of the prepared container.
 
+`map prepare` requires at least one `--asset` option.
+
+If you see `EACCES` writing to `/working/.cache`, ensure the local `.cache` directory is writable by your current user before running the container command.
+
 ```shell
 # Build the map container
 docker build -f packages/map/Dockerfile -t map .
@@ -17,6 +21,7 @@ docker run -it --rm \
   --project https://d1jzh93b1t1cv.cloudfront.net/qgis/nztopo50/latest/nztopo50.json \
   --output /working/output/ \
   --cache /working/.cache/ \
+  --asset layout=nztopo50,dpi=600,format=pdf \
   BQ32 BQ33
 
 # export mapsheet BQ32 & BQ33

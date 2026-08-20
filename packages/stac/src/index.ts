@@ -1,7 +1,6 @@
 export { StacCollectionWriter } from './stac.writer.ts';
 export { parseStrategy, StorageStrategyMulti } from './parser.ts';
 export { StacUpdater } from './stac.update.ts';
-
 export type {
   StorageStrategy,
   StorageStrategyCommit,
@@ -24,3 +23,4 @@ export { StacPusher } from './stac.pusher.ts';
 export { StacPushCommand } from './cli/action.stac.push.ts';
 export { getRelativePath } from './stac.paths.ts';
 export type { StacFileChecksum } from './hash.writer.ts';
+export { StacDownloader, getDataFromCatalog, readCatalog } from './stac.downloader.ts';

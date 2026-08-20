@@ -4,7 +4,7 @@ import { before, describe, it } from 'node:test';
 import { fsa, FsMemory } from '@chunkd/fs';
 import pLimit from 'p-limit';
 
-import { Downloader } from '../download.ts';
+import { StacDownloader } from '../stac.downloader.ts';
 
 describe('Downloader - Canonical URLs', () => {
   const mem = new FsMemory();
@@ -13,7 +13,7 @@ describe('Downloader - Canonical URLs', () => {
     fsa.register('memory://', mem);
   });
 
-  it('should hit canonical URL if useCanonical option is true', async () => {
+  it('should hit canonical URL if canonical resolver is active', async () => {
     // 1. Setup paths
     const targetUrl = new URL('memory://target/');
     const sourceCacheUrl = new URL('memory://source-cache/');
@@ -60,16 +60,15 @@ describe('Downloader - Canonical URLs', () => {
     await fsa.write(initialAssetUrl, fileContent);
     await fsa.write(canonicalAssetUrl, fileContent);
 
-    // 4. Test downloader with useCanonical: true
-    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(1));
-    downloader.addStac(initialUrl);
+    // 4. Test downloader with default canonical resolver
+    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
 
-    const assets = await downloader.getAsset(initialUrl, { skipIfExists: false, useCanonical: true });
+    const assets = await downloader.fetchAssets(initialUrl);
 
     // 5. Verify results
     assert.strictEqual(assets.length, 1);
-    // It should have downloaded from canonicalUrl, so url of asset should be canonicalAssetUrl
-    assert.strictEqual(assets[0]!.url.href, canonicalAssetUrl.href);
+    // It should have downloaded from canonicalUrl, so source of asset should be canonicalAssetUrl
+    assert.strictEqual(assets[0]?.source.href, canonicalAssetUrl.href);
 
     // We can also verify that the link in target was created for the canonical asset
     const targetAssetPath = new URL('canonical-data.parquet', targetUrl);
@@ -78,21 +77,21 @@ describe('Downloader - Canonical URLs', () => {
     assert.strictEqual(targetContent.toString(), fileContent);
   });
 
-  it('should hit original URL if useCanonical option is false', async () => {
+  it('should hit original URL if canonical resolver is removed', async () => {
     const targetUrl = new URL('memory://target-original/');
     const sourceCacheUrl = new URL('memory://source-cache-original/');
 
     const initialUrl = new URL('memory://source/catalog.json');
     const initialAssetUrl = new URL('memory://source/initial-data.parquet');
 
-    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(1));
-    downloader.addStac(initialUrl);
+    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
+    downloader.resolvers = [];
 
-    const assets = await downloader.getAsset(initialUrl, { skipIfExists: false, useCanonical: false });
+    const assets = await downloader.fetchAssets(initialUrl);
 
-    // It should have downloaded from initialUrl, so url of asset should be initialAssetUrl
+    // It should have downloaded from initialUrl, so source of asset should be initialAssetUrl
     assert.strictEqual(assets.length, 1);
-    assert.strictEqual(assets[0]!.url.href, initialAssetUrl.href);
+    assert.strictEqual(assets[0]?.source.href, initialAssetUrl.href);
 
     const targetAssetPath = new URL('initial-data.parquet', targetUrl);
     assert.ok(await fsa.exists(targetAssetPath));
@@ -124,16 +123,15 @@ describe('Downloader - Canonical URLs', () => {
     await fsa.write(stacAUrl, JSON.stringify(stacA));
     await fsa.write(stacBUrl, JSON.stringify(stacB));
 
-    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(1));
-    downloader.addStac(stacAUrl);
+    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
 
-    await assert.rejects(downloader.getAsset(stacAUrl, { skipIfExists: false, useCanonical: true }), (err: Error) => {
+    await assert.rejects(downloader.fetchAssets(stacAUrl), (err: Error) => {
       assert.ok(err.message.includes('Circular canonical link detected'));
       return true;
     });
   });
 
-  it('should support multiple files pointing to the same canonical list without throwing or downloading twice', async (t) => {
+  it('should support multiple files pointing to the same canonical list without downloading twice', async (t) => {
     const targetUrl = new URL('memory://target-same-canonical/');
     const sourceCacheUrl = new URL('memory://source-cache-same-canonical/');
 
@@ -176,25 +174,97 @@ describe('Downloader - Canonical URLs', () => {
     const canonicalAssetUrl = new URL('memory://canonical-same-canonical/canonical-data.parquet');
     await fsa.write(canonicalAssetUrl, fileContent);
 
-    const downloader = new Downloader(targetUrl, sourceCacheUrl, pLimit(2));
-    downloader.addStac(stacAUrl);
-    downloader.addStac(stacBUrl);
+    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(2));
 
     const spy = t.mock.method(fsa, 'readStream');
 
-    const assets = await downloader.getAllAssets({ skipIfExists: false, useCanonical: true });
+    const assetsA = await downloader.fetchAssets(stacAUrl);
+    const assetsB = await downloader.fetchAssets(stacBUrl);
 
-    // only one asset should be returned
-    assert.strictEqual(assets.length, 1);
-    assert.strictEqual(assets[0]!.url.href, canonicalAssetUrl.href);
+    assert.strictEqual(assetsA.length, 1);
+    assert.strictEqual(assetsB.length, 1);
+    assert.strictEqual(assetsA[0]?.source.href, canonicalAssetUrl.href);
+    assert.strictEqual(assetsB[0]?.source.href, canonicalAssetUrl.href);
 
     assert.deepEqual(
       spy.mock.calls.map((m) => m.arguments[0].href),
       [
         'memory://canonical-same-canonical/canonical-data.parquet',
-        // writes the parquet into the cache
         'memory://source-cache-same-canonical/1220b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9_canonical-data.parquet',
       ],
     );
+  });
+
+  it('should return the canonical url when an absolute canonical link exists', async () => {
+    const collectionUrl = new URL('memory://source-canonical-abs/collection.json');
+    const canonical = 'https://example.com/canonical/collection.json';
+    await fsa.write(
+      collectionUrl,
+      JSON.stringify({ type: 'Collection', id: 'test', links: [{ rel: 'canonical', href: canonical }] }),
+    );
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const resolved = await downloader.resolveUrl(collectionUrl);
+    assert.strictEqual(resolved.href, canonical);
+  });
+
+  it('should resolve a relative canonical link against the collection url', async () => {
+    const collectionUrl = new URL('memory://source-canonical-rel/source/collection.json');
+    await fsa.write(
+      collectionUrl,
+      JSON.stringify({
+        type: 'Collection',
+        id: 'test',
+        links: [{ rel: 'canonical', href: '../canonical/collection.json' }],
+      }),
+    );
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const resolved = await downloader.resolveUrl(collectionUrl);
+    assert.strictEqual(resolved.href, 'memory://source-canonical-rel/canonical/collection.json');
+  });
+
+  it('should return the original url when no canonical link exists', async () => {
+    const collectionUrl = new URL('memory://source-no-canonical/collection.json');
+    await fsa.write(
+      collectionUrl,
+      JSON.stringify({ type: 'Collection', id: 'test', links: [{ rel: 'self', href: collectionUrl.href }] }),
+    );
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const resolved = await downloader.resolveUrl(collectionUrl);
+    assert.strictEqual(resolved.href, collectionUrl.href);
+  });
+
+  it('should return the original url when there are no links', async () => {
+    const collectionUrl = new URL('memory://source-empty-links/collection.json');
+    await fsa.write(collectionUrl, JSON.stringify({ type: 'Collection', id: 'test', links: [] }));
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const resolved = await downloader.resolveUrl(collectionUrl);
+    assert.strictEqual(resolved.href, collectionUrl.href);
+  });
+});
+
+describe('Downloader - Resolver Support', () => {
+  it('should resolve URL via custom resolver if match exists', async () => {
+    const originalUrl = new URL('memory://stac/data/airport/latest/collection.json');
+    const overrideUrl = new URL('memory://stac/data/airport/commit=123/collection.json');
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    downloader.resolvers.push(async (_downloader, url) => (url.href === originalUrl.href ? overrideUrl : url));
+
+    const resolved = await downloader.resolveUrl(originalUrl);
+    assert.strictEqual(resolved.href, overrideUrl.href);
+  });
+
+  it('should return original URL if resolver makes no changes', async () => {
+    const originalUrl = new URL('memory://stac/data/coastline/latest/collection.json');
+
+    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    downloader.resolvers.push(async (_downloader, url) => url);
+
+    const resolved = await downloader.resolveUrl(originalUrl);
+    assert.strictEqual(resolved.href, originalUrl.href);
   });
 });

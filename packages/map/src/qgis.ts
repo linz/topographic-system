@@ -7,7 +7,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 const LayerDefs = new Map<string, Promise<{ layers: QgisLayerDef[]; epsg: Epsg }>>();
 
-interface QgisLayerDef {
+export interface QgisLayerDef {
   /**
    * QGIS layer name
    *
@@ -101,6 +101,7 @@ function hasQuery(layer: QgisLayerDef): boolean {
  * otherwise the first layer whose source ends with `suffix` is used.
  *
  * @param label human readable name used in error messages, e.g. "Map sheet"
+ * @param strategyCollections optional map of layer name → strategy collection URL to override the layer's source
  */
 function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, explicitName?: string): QgisLayerDef {
   if (explicitName != null) {
@@ -110,6 +111,7 @@ function findQgisLayer(layers: QgisLayerDef[], suffix: string, label: string, ex
     if (layer) return layer;
     throw new Error(`${label} source layer not found: "${explicitName}"`);
   }
+
   const layer = layers.find((f) => f.source.endsWith(suffix) && hasQuery(f) === false);
   if (layer == null) throw new Error(`No ${label.toLowerCase()} layer ending with "${suffix}" found`);
   return layer;
