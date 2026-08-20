@@ -1,14 +1,7 @@
-import {
-  concurrency,
-  logger,
-  qFromArgs,
-  registerFileSystem,
-  Url,
-  UrlFolder,
-} from '@linzjs/topographic-system-shared';
+import { concurrency, logger, qFromArgs, registerFileSystem, Url, UrlFolder } from '@linzjs/topographic-system-shared';
+import { StacDownloader } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
 
-import { StacDownloader } from '@linzjs/topographic-system-stac';
 import { DownloadRels } from './action.export.ts';
 import { cache } from './shared.args.ts';
 
