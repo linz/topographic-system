@@ -120,6 +120,20 @@ def drop_empty_residential_areas(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
     return _drop_listed_empty(gdf, td, "nz_residential_area_polygons", {6753838})
 
 
+def drop_degenerate_roads(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Drop two zero-length nz_road_centrelines features.
+
+    Both are two-vertex lines whose vertices share a 1e-8 degree cell, so `set_precision`
+    collapses them to LINESTRING EMPTY - the same defect as `drop_degenerate_fences`:
+      6635943 "MINGAROA ROAD", releases 42-45, ~0.1mm apart in EPSG:2193
+      8532247 "DEATHS ROAD", release 66, ~0.1mm apart
+
+    Neither fid appears in any other release, so the geometry gate never fires the
+    "now has geometry" warning and no release gate is needed; see `_drop_listed_empty`.
+    """
+    return _drop_listed_empty(gdf, td, "nz_road_centrelines", {6635943, 8532247})
+
+
 def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
     """Deterministic UUIDv7 for a part that has no source fid.
 
@@ -193,6 +207,7 @@ def split_multipart_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id
 
 FIXUPS: dict[str, Fixup] = {
     "drop_degenerate_fences": drop_degenerate_fences,
+    "drop_degenerate_roads": drop_degenerate_roads,
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "split_multipart_features": split_multipart_features,
 }
