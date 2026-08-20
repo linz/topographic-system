@@ -5,6 +5,7 @@ import { fsa, FsMemory } from '@chunkd/fs';
 import pLimit from 'p-limit';
 
 import { StacDownloader } from '../stac.downloader.ts';
+import type { StacLruCache } from '../stac.lru.ts';
 
 describe('Downloader - Canonical URLs', () => {
   const mem = new FsMemory();
@@ -251,8 +252,10 @@ describe('Downloader - Resolver Support', () => {
     const originalUrl = new URL('memory://stac/data/airport/latest/collection.json');
     const overrideUrl = new URL('memory://stac/data/airport/commit=123/collection.json');
 
+    const resolver = { name: 'custom', stats: { invokes: 0, resolves: 0 }, resolve: async (_downloader: StacLruCache, url: URL) => (url.href === originalUrl.href ? overrideUrl : url) };
+
     const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
-    downloader.resolvers.push(async (_downloader, url) => (url.href === originalUrl.href ? overrideUrl : url));
+    downloader.resolvers.push(resolver);
 
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, overrideUrl.href);
@@ -261,8 +264,10 @@ describe('Downloader - Resolver Support', () => {
   it('should return original URL if resolver makes no changes', async () => {
     const originalUrl = new URL('memory://stac/data/coastline/latest/collection.json');
 
+    const resolver = { name: 'custom', stats: { invokes: 0, resolves: 0 }, resolve: async (_downloader: StacLruCache, url: URL) => url };
+
     const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
-    downloader.resolvers.push(async (_downloader, url) => url);
+    downloader.resolvers.push(resolver);
 
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, originalUrl.href);

@@ -9,10 +9,10 @@ import { type LimitFunction } from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import * as tar from 'tar';
 
-import { parseStrategy } from './parser.ts';
-import { StacStorage, storageStrategyFromLatest } from './stac.storage.ts';
-
-export type StacUrlResolver = (downloader: StacDownloader, url: URL) => Promise<URL>;
+import { StacUrlResolverCanonical } from './resolvers/canonical.ts';
+import type { StacUrlResolver } from './resolvers/resolver.ts';
+import { StacUrlResolverStrategy } from './resolvers/strategy.ts';
+import { StacLruCache } from './stac.lru.ts';
 
 export interface SourceAsset {
   /** resolved source URL */
@@ -28,44 +28,15 @@ export interface SourceAsset {
 type CheckLink = (link: StacLink) => boolean;
 type CheckAsset = (asset: StacAsset) => boolean;
 
-function strategyResolver(strategy: string): StacUrlResolver {
-  const st = parseStrategy(strategy);
-  return async (downloader: StacDownloader, url: URL) => {
-    const context = storageStrategyFromLatest(url);
-    if (context == null) return url;
-
-    const targetFile = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
-    const target = new URL(targetFile, StacStorage.url(st, context));
-    const asset = await downloader.lru.fetch(target).catch(() => null);
-    if (asset == null) return url;
-    return target;
-  };
-}
-async function canonicalResolver(downloader: StacDownloader, url: URL, visited: Set<string> = new Set()): Promise<URL> {
-  if (visited.has(url.href)) throw new Error(`Circular canonical link detected: ${url.href}`);
-  visited.add(url.href);
-
-  const asset = await downloader.lru.fetch<StacItem | StacCollection>(url).catch(() => null);
-  if (asset?.links == null) return url;
-  const canonical = asset.links.find((link) => link.rel === 'canonical');
-  if (canonical == null) return url;
-  const nextUrl = new URL(canonical.href, url);
-  // Sometimes canonical links to it self.
-  if (nextUrl.href === url.href) return url;
-  if (visited.has(nextUrl.href)) throw new Error(`Circular canonical link detected: ${nextUrl.href}`);
-
-  return canonicalResolver(downloader, nextUrl, visited);
-}
-
 export class StacDownloader {
   target: URL;
   cache: URL;
   q: LimitFunction;
 
-  static Resolver = { strategy: strategyResolver, canonical: canonicalResolver };
+  static Resolver = { strategy: (strat: string) => new StacUrlResolverStrategy(strat) };
   linkCache: Map<string, SourceAsset> = new Map();
 
-  resolvers: StacUrlResolver[] = [canonicalResolver];
+  resolvers: StacUrlResolver[] = [new StacUrlResolverCanonical()];
   resolved = new Map<string, Promise<URL>>();
 
   lru = new StacLruCache(1000);
@@ -84,7 +55,7 @@ export class StacDownloader {
     if (existing != null) return existing;
 
     const resolver = this.q(async () => {
-      for (const r of this.resolvers) url = await r(this, url);
+      for (const r of this.resolvers) url = await r.resolve(this.lru, url);
       return url;
     });
     this.resolved.set(url.href, resolver);
@@ -270,37 +241,6 @@ export class StacDownloader {
     this.linkCache.set(linkedPath.href, sourceAsset);
 
     return sourceAsset;
-  }
-}
-
-type StacObject = StacItem | StacCatalog | StacCollection;
-class StacLruCache {
-  mapA = new Map<string, Promise<StacObject>>();
-  mapB = new Map<string, Promise<StacObject>>();
-
-  maxSize: number;
-
-  constructor(maxSize = 100) {
-    this.maxSize = maxSize;
-  }
-
-  fetch<T extends StacObject>(url: URL): Promise<T> {
-    let existing = this.mapA.get(url.href);
-    if (existing != null) return existing as Promise<T>;
-    existing = this.mapB.get(url.href);
-    if (existing) {
-      this.mapB.delete(url.href);
-      this.mapA.set(url.href, existing);
-      return existing as Promise<T>;
-    }
-
-    existing = fsa.readJson(url);
-    this.mapA.set(url.href, existing);
-    if (this.mapA.size > this.maxSize) {
-      this.mapB = this.mapA;
-      this.mapA = new Map();
-    }
-    return existing as Promise<T>;
   }
 }
 
