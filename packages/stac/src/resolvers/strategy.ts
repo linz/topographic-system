@@ -20,13 +20,11 @@ export class StacUrlResolverStrategy implements StacUrlResolver {
   async resolve(lru: StacLruCache, url: URL): Promise<URL> {
     const context = storageStrategyFromLatest(url);
     if (context == null) return url;
-    this.stats.invokes++;
 
     const targetFile = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
     const target = new URL(targetFile, StacStorage.url(this.st, context));
     const asset = await lru.tryFetch(target);
     if (asset == null) return url;
-    this.stats.resolves++;
     return target;
   }
 }

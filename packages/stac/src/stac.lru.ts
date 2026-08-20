@@ -23,6 +23,7 @@ export class StacLruCache {
   }
 
   fetch<T extends StacObject>(url: URL): Promise<T> {
+    if (!url.href.endsWith('.json')) throw new Error('StacLRU is only for JSON objects');
     let existing = this.mapA.get(url.href);
     if (existing != null) return existing as Promise<T>;
     existing = this.mapB.get(url.href);
