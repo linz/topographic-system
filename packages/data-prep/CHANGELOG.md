@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.4.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.3.0...topographic-system-data-prep-v0.4.0) (2026-08-20)
+
+
+### Features
+
+* **data-prep:** Generate coastline polygons layer. BM-1731 ([#265](https://github.com/linz/topographic-system/issues/265)) ([2560b70](https://github.com/linz/topographic-system/commit/2560b70ae7ae8450cc7c0e06ddb29583c2a2abfc))
+* **data-prep:** Python script to produce sea polygons from costline. BM-1811 ([#312](https://github.com/linz/topographic-system/issues/312)) ([c76ecd8](https://github.com/linz/topographic-system/commit/c76ecd8d92bb5a297175877f06cf9eb797719767))
+* **data-prep:** Refactory the python cli args parsing strategy. BM-1802 ([#286](https://github.com/linz/topographic-system/issues/286)) ([c52de9a](https://github.com/linz/topographic-system/commit/c52de9a67c48d7a2c0d1d18e7df858845f2f3c2f))
+* derived dataset schema for ice contours BM-1602 ([#105](https://github.com/linz/topographic-system/issues/105)) ([208eeb9](https://github.com/linz/topographic-system/commit/208eeb9b1128d99fc1ef3d957536dbe06bcacee0))
+* rock line kart wiring BM-1653 ([#212](https://github.com/linz/topographic-system/issues/212)) ([f4066c4](https://github.com/linz/topographic-system/commit/f4066c4f829b58397f68699fc01b6993e6189252))
+
+
+### Bug Fixes
+
+* data-prep schema update ([#113](https://github.com/linz/topographic-system/issues/113)) ([207f6c7](https://github.com/linz/topographic-system/commit/207f6c71f9850a29b74fdc4c56ff54f847f4727c))
+* **data-prep:** Fix the schemas on the data prepare scripts. BM-1847 ([#346](https://github.com/linz/topographic-system/issues/346)) ([25fd848](https://github.com/linz/topographic-system/commit/25fd8480bf0fb4d66813c08d32b2050a8e1f5e71))
+* **data-prep:** Update the label for Stewart Island. ([#299](https://github.com/linz/topographic-system/issues/299)) ([6e330da](https://github.com/linz/topographic-system/commit/6e330da4bfd0285cff3df0d5617d12efb748c6f2))
+* **data-prep:** Update the schema name in data-prep to match the new filename ([#341](https://github.com/linz/topographic-system/issues/341)) ([cd084ce](https://github.com/linz/topographic-system/commit/cd084ceaf9b09720d80a988185728b66b501e2ff))
+* ice contour schema update ([#241](https://github.com/linz/topographic-system/issues/241)) ([f0a67d3](https://github.com/linz/topographic-system/commit/f0a67d387fd27f482841006019e0a086aeb4d3a3))
+* ice_contour add stac table and extents BM-1648 ([#136](https://github.com/linz/topographic-system/issues/136)) ([8a35311](https://github.com/linz/topographic-system/commit/8a353114dea18cb63c99abf8a7351985bcd40d41))
+* ice-contour schema update, add metadata and theme ([#357](https://github.com/linz/topographic-system/issues/357)) ([2e10d51](https://github.com/linz/topographic-system/commit/2e10d51c9a88f6f359ea105d5f5d739ac30f9157))
+* update scripts and tests to support iso dates ([#339](https://github.com/linz/topographic-system/issues/339)) ([eda6bfb](https://github.com/linz/topographic-system/commit/eda6bfbbd37b6063f58f89d134b77d82b286f063))
+* use NZGD2000 projection BM-1664 ([#142](https://github.com/linz/topographic-system/issues/142)) ([3ad9d68](https://github.com/linz/topographic-system/commit/3ad9d68844d69dc3a722b6c376729e471a675a16))
+
 ## [0.3.0](https://github.com/linz/topographic-system/compare/topographic-system-data-prep-v0.2.0...topographic-system-data-prep-v0.3.0) (2026-04-01)
 
 
