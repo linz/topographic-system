@@ -66,7 +66,7 @@ export const VisualDiffCommand = command({
     // Prepare the test scenarios, either from the default tests or from the provided test file
     const testProjects = args.testFile ? await fsa.readJson<TestProject[]>(args.testFile) : defaultTests;
 
-    mkdirSync(args.output, { recursive: true });
+    if (args.output.protocol === 'file:') mkdirSync(args.output, { recursive: true });
     const tasks: Promise<void>[] = [];
 
     const downloader = new StacDownloader(args.tempLocation, args.cache, q);
@@ -123,5 +123,13 @@ export const VisualDiffCommand = command({
       }
     }
     await Promise.all(tasks);
+
+    const resolutions = [...downloader.resolutionStats.values()];
+    logger.info({ resolutions }, 'ResolverStats');
+
+    const emptyResolutions = resolutions.filter((f) => f.resolves === 0);
+    if (emptyResolutions.length > 0) {
+      throw new Error('No resolutions found: ' + emptyResolutions.map((m) => m.name).join(', '));
+    }
   },
 });
