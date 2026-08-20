@@ -1,8 +1,5 @@
-import { fsa } from '@chunkd/fs';
 import {
   concurrency,
-  Downloader,
-  DownloadRels,
   logger,
   qFromArgs,
   registerFileSystem,
@@ -10,8 +7,9 @@ import {
   UrlFolder,
 } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
-import type { StacItem } from 'stac-ts';
 
+import { StacDownloader } from '@linzjs/topographic-system-stac';
+import { DownloadRels } from './action.export.ts';
 import { cache } from './shared.args.ts';
 
 export const DownloadArgs = {
@@ -38,14 +36,10 @@ export const DownloadCommand = command({
     logger.info({ project: args.project.href, output: args.output.href, cache: args.cache.href }, 'Download: Start');
 
     const q = qFromArgs(args);
-    const stac = await fsa.readJson<StacItem>(args.project);
-    if (stac == null) throw new Error(`Invalid STAC Item at path: ${args.project.href}`);
 
-    const downloader = new Downloader(args.output, args.cache, q);
-    downloader.addStac(args.project);
-    downloader.addStacLinks(stac, DownloadRels, args.project);
+    const downloader = new StacDownloader(args.output, args.cache, q);
+    await downloader.fetchLinkedAssets(args.project, (link) => DownloadRels.has(link.rel));
 
-    await downloader.getAllAssets();
     logger.info({ project: args.project.href, output: args.output.href }, 'Download: End');
   },
 });

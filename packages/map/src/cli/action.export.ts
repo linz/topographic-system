@@ -70,7 +70,7 @@ export const ProduceArgs = {
   cache,
 };
 
-const DownloadRels = new Set(['source', 'derived_from', 'project']);
+export const DownloadRels = new Set(['source', 'derived_from', 'project']);
 
 export const ExportCommand = command({
   name: 'export',
