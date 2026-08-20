@@ -7,6 +7,7 @@ import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-co
 import { Command } from '@linzjs/docker-command';
 import { logger, trace } from '@linzjs/topographic-system-shared';
 
+import type { ExportAsset } from './cli/export.options.ts';
 import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from './qgis.ts';
 import type { ExportOptions } from './stac.ts';
 
@@ -54,22 +55,26 @@ async function findQgisSource(): Promise<URL> {
   throw new Error('Unable to find QGIS source files');
 }
 
-async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult> {
-  const script = basename(cmd.args[0] ?? 'unknown');
-  return trace(`python.${script}`, async (span) => {
+export async function runAndLog(
+  cmd: CommandExecution,
+  name = 'Python',
+  scriptName?: string,
+): Promise<CommandExecutionResult> {
+  const script = scriptName ?? basename(cmd.args[0] ?? 'unknown');
+  return trace(`${name.toLowerCase()}.${script}`, async (span) => {
     span.setAttribute('script.name', script);
     span.setAttribute('script.arguments', cmd.args.slice(1));
 
-    logger.debug({ script, args: cmd.args.slice(1) }, 'Python:Start');
+    logger.debug({ script, args: cmd.args.slice(1) }, `${name}:Start`);
 
     const startTime = performance.now();
     const res = await cmd.run();
 
-    logger.info({ script, duration: performance.now() - startTime }, 'Python:Done');
+    logger.info({ script, duration: performance.now() - startTime }, `${name}:Done`);
     span.setAttribute('script.exit', res.exitCode);
 
     if (res.exitCode !== 0) {
-      logger.fatal({ script, stderr: res.stderr, stdout: res.stdout }, 'Failure');
+      logger.fatal({ script, stderr: res.stderr, stdout: res.stdout }, `${name}:Failure`);
       throw new Error(`${script} failed to run`);
     }
     return res;
@@ -79,7 +84,13 @@ async function runAndLog(cmd: CommandExecution): Promise<CommandExecutionResult>
 /**
  * Running python commands for qgis_export
  */
-async function qgisExport(input: URL, output: URL, sheetCode: string, options: ExportOptions): Promise<URL> {
+async function qgisExport(
+  input: URL,
+  output: URL,
+  sheetCode: string,
+  options: ExportOptions,
+  asset: ExportAsset,
+): Promise<URL> {
   const startTime = performance.now();
   const sourceLocation = await findQgisSource();
 
@@ -102,11 +113,11 @@ async function qgisExport(input: URL, output: URL, sheetCode: string, options: E
   cmd.args.push(fileURLToPath(new URL('qgis_export.py', sourceLocation)));
   cmd.args.push(`--project=${fileURLToPath(input)}`);
   cmd.args.push(`--output=${fileURLToPath(output)}`);
-  cmd.args.push(`--layout=${options.layout}`);
+  cmd.args.push(`--layout=${asset.layout}`);
   cmd.args.push(`--map-sheet-layer-name=${mapSheetLayerName.name}`);
   cmd.args.push(`--carto-text-layer-name=${cartoTextLayer.name}`);
-  cmd.args.push(`--format=${options.format}`);
-  cmd.args.push(`--dpi=${options.dpi.toFixed(0)}`);
+  cmd.args.push(`--format=${asset.format}`);
+  cmd.args.push(`--dpi=${asset.dpi.toFixed(0)}`);
   cmd.args.push(`--sheet-code=${sheetCode}`);
 
   if (options.excludeLayers) {

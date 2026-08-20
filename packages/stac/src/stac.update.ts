@@ -251,7 +251,7 @@ function catalogContext(root: URL, catalogUrl: URL): { id: string; title: string
     return {
       id: idParts.join('_'),
       title: `${idParts.at(-1)}`,
-      description: `${idParts.at(-1)!} catalog for LINZ Topographic`,
+      description: `${idParts.at(-1)} catalog for LINZ Topographic`,
     };
   }
 

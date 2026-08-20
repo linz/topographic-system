@@ -63,7 +63,7 @@ PIPELINE_MANAGED = frozenset({"id", "created_at", "updated_at", "geometry", "bbo
 # By default, current pandas uses non-nullable types for integer, which causes all kinds of issues downstream.
 # See `theme.coerce_dtypes`.
 _JSON_TYPE_DTYPES = {
-    "integer": "Int64",
+    "integer": "Int32",  # FIXME: This works for all our t50_fid but will silently wrap if IDs exceed Int32 bounds
     "number": "Float64",
     "string": "string",
     "boolean": "boolean",

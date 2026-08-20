@@ -1,0 +1,32 @@
+name: residential_area
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-residential-area-polygons-topo-125k-zone4
+  #    name: cook_islands_residential_area_polygons
+  #    mapping:
+  #      t50_fid: $
+  #      type: residential_area
+  #      name: $name
+  #      theme: landuse
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-residential-area-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: residential_area
+      name: $name
+      theme: landuse
+      metadata: null
+    fixups:
+      # Taihape sliver, published with a null geometry in the 2020-11-17 snapshot only
+      - fn: drop_empty_residential_areas
+        releases: [51]
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/tokelau-residential-area-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: residential_area
+  #      name: $name
+  #      theme: landuse
+  #      metadata: null

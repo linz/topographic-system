@@ -1,9 +1,9 @@
 import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import { Command } from '@linzjs/docker-command';
 import {
-  Downloader,
-  DownloadRels,
   logger,
   qFromArgs,
   qMapAll,
@@ -12,21 +12,29 @@ import {
   UrlArrayJsonFile,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { HashWriter, StacUpdater } from '@linzjs/topographic-system-stac';
+import { HashWriter, StacDownloader, StacUpdater } from '@linzjs/topographic-system-stac';
 import { command, flag, option, optional, restPositionals } from 'cmd-ts';
 import type { StacAsset, StacItem } from 'stac-ts';
 
-import { pyRunner } from '../python.runner.ts';
+import { BaseCommandOptions, pyRunner, runAndLog } from '../python.runner.ts';
 import type { ExportOptions } from '../stac.ts';
-import { validateTiff } from '../validate.ts';
-import { type ExportFormat, ExportFormats } from './action.prepare.ts';
+import { validator } from '../validate.ts';
+import type { ExportAsset, ExportFormat } from './export.options.ts';
+import { ExportFormats } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';
 
-function getExtentFormat(format: ExportFormat): string {
+export function getFormatExtension(format: ExportFormat): string {
   if (format === 'pdf') return 'pdf';
   else if (format === 'tiff' || format === 'geotiff') return 'tiff';
   else if (format === 'png') return 'png';
+  else if (format === 'webp') return 'webp';
   else throw new Error(`Invalid format`);
+}
+
+export function getAssetSuffix(asset: ExportAsset): string {
+  if (asset.role == null || asset.role === 'data') return getFormatExtension(asset.format);
+  // For non data roles, include them in the target file, eg .thumbnail.webp
+  return `${asset.role}.${getFormatExtension(asset.format)}`;
 }
 
 /** Ready the json file and parse all the mapsheet code as array */
@@ -43,6 +51,7 @@ export function getContentType(format: ExportFormat): string {
   else if (format === ExportFormats.Tiff) return 'image/tiff;';
   else if (format === ExportFormats.GeoTiff) return 'image/tiff; application=geotiff; profile=cloud-optimized';
   else if (format === ExportFormats.Png) return 'image/png';
+  else if (format === ExportFormats.Webp) return 'image/webp';
   else throw new Error(`Invalid format`);
 }
 
@@ -61,6 +70,8 @@ export const ProduceArgs = {
   cache,
 };
 
+const DownloadRels = new Set(['source', 'derived_from', 'project', 'dataset']);
+
 export const ExportCommand = command({
   name: 'export',
   description: 'Export a collection of mapsheets from a prepared',
@@ -71,26 +82,20 @@ export const ExportCommand = command({
     const q = qFromArgs(args);
 
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
-    if (paths.length === 0) {
-      throw new Error('At least one path to a stac item or item configuration must be provided');
-    }
+    if (paths.length === 0) throw new Error('At least one path to a stac item or item configuration must be provided');
 
-    const downloader = new Downloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
 
-    const items = await qMapAll(q, paths, async (path) => {
-      const stac = await fsa.readJson<StacItem>(path);
-      if (stac == null) throw new Error(`Invalid STAC Item at path: ${path.href}`);
-      return { stac, path };
-    });
-    items.map((s) => downloader.addStacLinks(s.stac, DownloadRels, s.path));
+    const items = await Promise.all(
+      paths
+        .filter((f) => f.href.endsWith('.json'))
+        .map((m) => downloader.fetchLinkedAssets(m, (link) => DownloadRels.has(link.rel))),
+    );
 
-    // Download all the assets, including the project file and source data for the project.
-    await downloader.getAllAssets();
+    const qgsProject = items.flat().find((f) => f.source.href.endsWith('.qgs'));
+    if (qgsProject == null) throw new Error(`Project file not found from downloaded assets`);
 
-    const projectPath = downloader.findAsset((asset) => asset.url.href.endsWith('.qgs'))?.linked;
-    if (projectPath == null) throw new Error(`Project file not found from downloaded assets`);
-
-    await qMapAll(q, paths, (p) => produce(p, projectPath, args));
+    await qMapAll(q, paths, (p) => produce(p, qgsProject.target, args));
     await StacUpdater.items(paths, q, true);
 
     logger.info('Produce: Done');
@@ -108,44 +113,80 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
   const exportOptions = stac.properties['linz_topographic_system:options'] as ExportOptions;
   const mapSheets = stac.properties['linz:mapsheet'] as string;
 
-  const destPath = new URL(path.href.replace('.json', `.${getExtentFormat(exportOptions.format)}`));
-  if (args.force !== true && (await fsa.exists(destPath))) {
-    logger.info({ destPath: destPath.href }, 'Produce:Exists, skipping');
-    return;
+  for (const exportAsset of exportOptions.assets) {
+    const destPath = new URL(path.href.replace('.json', `.${getAssetSuffix(exportAsset)}`));
+    if (args.force !== true && (await fsa.exists(destPath))) {
+      logger.info({ destPath: destPath.href }, 'Produce:Exists, skipping');
+      continue;
+    }
+
+    // Start to export file
+    let file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions, exportAsset);
+
+    if (exportAsset.format === ExportFormats.GeoTiff || exportAsset.format === ExportFormats.Tiff) {
+      file = await optimizeTiff(file);
+      // TODO optimize tiff to COG / lossless webp
+      await validator.validateTiff(file, Number(stac.properties['proj:epsg']));
+    }
+
+    logger.info({ file: file.href }, 'Produce: FileExported');
+
+    const asset = await HashWriter.write(destPath, file, { contentType: getContentType(exportAsset.format) });
+    logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
+
+    // StacUpdater in stac-push command will update all the collection links checksum.
+    await StacUpdater.readWriteJson<StacItem>(path, (stac) => {
+      if (stac == null) throw new Error(`Failed to read: ${path.href}`);
+      stac.assets ??= {};
+
+      if (stac.assets[exportAsset.format]) throw new Error('Asset already exists');
+
+      const date = new Date().toISOString();
+      stac.assets[exportAsset.label ?? exportAsset.format] = {
+        href: `./${destPath.pathname.split('/').pop()}`,
+        type: getContentType(exportAsset.format),
+        roles: [exportAsset.role ?? 'data'],
+        updated: date,
+        created: date,
+        ...asset,
+      } as StacAsset;
+      logger.info({ destPath: destPath.href }, 'Produce: StacUpdated');
+
+      return stac;
+    });
+  }
+}
+
+const GdalTranslate = new Command('gdal_translate', BaseCommandOptions);
+
+async function optimizeTiff(file: URL): Promise<URL> {
+  if (file.protocol !== 'file:') {
+    logger.warn({ path: file.href }, 'Unable to optimize remote tiffs');
+    return file;
   }
 
-  // Start to export file
-  const file = await pyRunner.qgisExport(projectPath, tempOutput, mapSheets, exportOptions);
+  const sourcePath = fileURLToPath(file);
+  const targetPath = sourcePath + '.cog.tiff';
 
-  if (exportOptions.format === ExportFormats.GeoTiff || exportOptions.format === ExportFormats.Tiff) {
-    // TODO optimize tiff to COG / lossless webp
-    await validateTiff(file, Number(stac.properties['proj:epsg']));
-  }
+  const cmd = GdalTranslate.create(BaseCommandOptions);
 
-  logger.info({ file: file.href }, 'Produce: FileExported');
+  cmd.mount(fileURLToPath(new URL('.', file)));
 
-  const asset = await HashWriter.write(destPath, file, { contentType: getContentType(exportOptions.format) });
-  logger.info({ destPath: destPath.href }, 'Produce: FileUploaded');
+  cmd.args.push('-q');
+  cmd.args.push('-of', 'COG');
+  cmd.args.push('-stats');
+  cmd.args.push('-co', 'compress=webp');
+  cmd.args.push('-co', 'quality=100'); // lossless webp
+  cmd.args.push('-co', 'blocksize=512');
+  cmd.args.push('-co', 'num_threads=ALL_CPUS');
 
-  // StacUpdater in stac-push command will update all the collection links checksum.
-  await StacUpdater.readWriteJson<StacItem>(path, (stac) => {
-    if (stac == null) throw new Error(`Failed to read: ${path.href}`);
-    stac.assets ??= {};
+  cmd.args.push('-co', 'overview_quality=90'); // overviews can be lossy
+  cmd.args.push('-co', 'overview_resampling=lanczos');
 
-    if (stac.assets[exportOptions.format]) throw new Error('Asset already exists');
+  cmd.args.push(sourcePath);
+  cmd.args.push(targetPath);
 
-    const date = new Date().toISOString();
-    stac.assets[exportOptions.format] = {
-      href: `./${destPath.pathname.split('/').pop()}`,
-      type: getContentType(exportOptions.format),
-      roles: ['data'],
-      updated: date,
-      created: date,
-      ...asset,
-    } as StacAsset;
+  await runAndLog(cmd, 'GDAL', 'gdal_translate');
 
-    return stac;
-  });
-
-  logger.info({ destPath: destPath.href }, 'Produce: StacUpdated');
+  return fsa.toUrl(targetPath);
 }

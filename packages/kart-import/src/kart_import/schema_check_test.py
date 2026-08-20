@@ -210,7 +210,7 @@ def test_schema_dtypes_reads_each_property_shape(dtype_schema_folder):
     assert schema_dtypes("water_point") == {
         "id": "string",
         "created_at": RFC3339_STRING,
-        "t50_fid": "Int64",  # the `null` branch of the anyOf drops out; the dtype is nullable
+        "t50_fid": "Int32",  # the `null` branch of the anyOf drops out; the dtype is nullable
         "height": "Float64",
         "kind": "string",  # resolved through $defs
     }
@@ -244,4 +244,4 @@ def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
     monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
 
-    assert schema_dtypes("nested") == {"count": "Int64"}
+    assert schema_dtypes("nested") == {"count": "Int32"}

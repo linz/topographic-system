@@ -1,0 +1,31 @@
+name: vegetation_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/cook-islands-shelter-belt-centrelines-topo-125k-zone4
+  #    name: cook_islands_shelter_belt_centrelines
+  #    mapping:
+  #      t50_fid: $
+  #      type: shelter_belt
+  #      theme: landcover
+  #      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/niue-shelter-belt-centrelines-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: shelter_belt
+  #      theme: landcover
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-shelter-belt-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: shelter_belt
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-shelter-belt-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: shelter_belt
+      theme: landcover
+      metadata: null
