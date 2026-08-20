@@ -270,7 +270,7 @@ describe('Downloader - Resolver Support', () => {
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, overrideUrl.href);
 
-    assert.deepEqual(downloader.resolutionStats.get('custom'), { invokes: 1, resolves: 1 });
+    assert.deepEqual(downloader.resolutionStats.get('custom'), { name: 'custom', invokes: 1, resolves: 1 });
   });
 
   it('should return original URL if resolver makes no changes', async () => {
@@ -285,5 +285,6 @@ describe('Downloader - Resolver Support', () => {
 
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, originalUrl.href);
+    assert.deepEqual(downloader.resolutionStats.get('custom'), { name: 'custom', invokes: 1, resolves: 0 });
   });
 });
