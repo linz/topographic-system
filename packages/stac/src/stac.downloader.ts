@@ -38,7 +38,7 @@ export class StacDownloader {
 
   resolvers: StacUrlResolver[] = [new StacUrlResolverCanonical()];
   resolved = new Map<string, Promise<URL>>();
-  resolutionStats = new Map<string, { invokes: 0, resolves: 0 }>();
+  resolutionStats = new Map<string, { name: string; invokes: 0; resolves: 0 }>();
 
   lru = new StacLruCache(1000);
 
@@ -57,11 +57,11 @@ export class StacDownloader {
 
     const resolver = this.q(async () => {
       for (const r of this.resolvers) {
-        const stat = this.resolutionStats.get(r.name) ?? { invokes: 0, resolves: 0 };
+        const stat = this.resolutionStats.get(r.name) ?? { name: r.name, invokes: 0, resolves: 0 };
         this.resolutionStats.set(r.name, stat);
         stat.invokes++;
         const afterUrl = await r.resolve(this.lru, url);
-        if (afterUrl.href !== url.href) stat.resolves ++;
+        if (afterUrl.href !== url.href) stat.resolves++;
         url = afterUrl;
       }
       return url;

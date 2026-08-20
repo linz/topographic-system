@@ -259,7 +259,10 @@ describe('Downloader - Resolver Support', () => {
     await fsa.write(originalUrl, JSON.stringify({ type: 'Collection', id: 'airport-latest', links: [] }));
     await fsa.write(overrideUrl, JSON.stringify({ type: 'Collection', id: 'airport-commit', links: [] }));
 
-    const resolver = { name: 'custom', resolve: async (_downloader: StacLruCache, url: URL) => (url.href === originalUrl.href ? overrideUrl : url) };
+    const resolver = {
+      name: 'custom',
+      resolve: async (_downloader: StacLruCache, url: URL) => (url.href === originalUrl.href ? overrideUrl : url),
+    };
 
     const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
     downloader.resolvers.push(resolver);
@@ -267,7 +270,7 @@ describe('Downloader - Resolver Support', () => {
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, overrideUrl.href);
 
-    assert.deepEqual(downloader.resolutionStats.get('custom'), { invokes: 1, resolves: 1 })
+    assert.deepEqual(downloader.resolutionStats.get('custom'), { invokes: 1, resolves: 1 });
   });
 
   it('should return original URL if resolver makes no changes', async () => {
@@ -283,5 +286,4 @@ describe('Downloader - Resolver Support', () => {
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, originalUrl.href);
   });
-
 });

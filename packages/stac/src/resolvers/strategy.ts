@@ -18,6 +18,7 @@ export class StacUrlResolverStrategy implements StacUrlResolver {
   }
 
   async resolve(lru: StacLruCache, url: URL): Promise<URL> {
+    if (!url.pathname.endsWith('.json')) return url;
     const context = storageStrategyFromLatest(url);
     if (context == null) return url;
 
