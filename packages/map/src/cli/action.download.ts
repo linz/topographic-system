@@ -2,7 +2,6 @@ import { concurrency, logger, qFromArgs, registerFileSystem, Url, UrlFolder } fr
 import { StacDownloader } from '@linzjs/topographic-system-stac';
 import { command, option } from 'cmd-ts';
 
-import { DownloadRels } from './action.export.ts';
 import { cache } from './shared.args.ts';
 
 export const DownloadArgs = {
@@ -31,7 +30,8 @@ export const DownloadCommand = command({
     const q = qFromArgs(args);
 
     const downloader = new StacDownloader(args.output, args.cache, q);
-    await downloader.fetchLinkedAssets(args.project, (link) => DownloadRels.has(link.rel));
+    await downloader.fetchAssets(args.project); // Project assets eg project.qgs and symbols
+    await downloader.fetchLinkedAssets(args.project, (link) => link.rel === 'dataset'); // All linked datasets
 
     logger.info({ project: args.project.href, output: args.output.href }, 'Download: End');
   },
