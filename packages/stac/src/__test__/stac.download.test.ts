@@ -1,5 +1,9 @@
 import assert from 'node:assert';
+import { lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { before, describe, it } from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 import pLimit from 'p-limit';
@@ -309,5 +313,66 @@ describe('Downloader - Resolver Support', () => {
     const resolved = await downloader.resolveUrl(originalUrl);
     assert.strictEqual(resolved.href, originalUrl.href);
     assert.deepEqual(downloader.resolutionStats.get('custom'), { name: 'custom', invokes: 1, resolves: 0 });
+  });
+
+  it('should create relative symlink on local filesystem', async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'stac-symlink-test-'));
+    try {
+      const cacheDirUrl = pathToFileURL(path.join(tmpDir, 'cache/'));
+      const targetDirUrl = pathToFileURL(path.join(tmpDir, 'working/'));
+      const sourceFileUrl = pathToFileURL(path.join(tmpDir, 'source/catalog.json'));
+      const sourceAssetUrl = pathToFileURL(path.join(tmpDir, 'source/data.parquet'));
+
+      const fileContent = 'hello relative symlink';
+      const checksum = '12201ad31ea119365eb90100b57a1b94156e01b10bf0e4f6d4e266e4ba4216186651';
+
+      const stacCatalog = {
+        type: 'Collection',
+        id: 'test-symlink',
+        links: [],
+        assets: {
+          data: {
+            href: './data.parquet',
+            'file:checksum': checksum,
+            'file:size': Buffer.byteLength(fileContent),
+          },
+        },
+      };
+
+      await mkdir(new URL('.', sourceFileUrl), { recursive: true });
+      await writeFile(sourceFileUrl, JSON.stringify(stacCatalog));
+      await writeFile(sourceAssetUrl, fileContent);
+
+      const downloader = new StacDownloader({
+        target: targetDirUrl,
+        cache: cacheDirUrl,
+        q: pLimit(1),
+        linkMode: 'link-relative',
+      });
+
+      // First run
+      const assets = await downloader.fetchAssets(sourceFileUrl);
+      assert.strictEqual(assets.length, 1);
+
+      const linkedFilePath = path.join(tmpDir, 'working/data.parquet');
+      const fileStat = await lstat(linkedFilePath);
+      assert.ok(fileStat.isSymbolicLink(), 'Target file should be a symbolic link');
+
+      const symlinkTarget = await readlink(linkedFilePath);
+      assert.ok(
+        symlinkTarget.startsWith('../cache/'),
+        `Symlink target (${symlinkTarget}) should point relatively to cache directory`,
+      );
+
+      const content = await readFile(linkedFilePath, 'utf8');
+      assert.strictEqual(content, fileContent);
+
+      // Second run (re-linking when target already exists)
+      await downloader.fetchAssets(sourceFileUrl);
+      const reContent = await readFile(linkedFilePath, 'utf8');
+      assert.strictEqual(reContent, fileContent);
+    } finally {
+      await rm(tmpDir, { recursive: true, force: true });
+    }
   });
 });
