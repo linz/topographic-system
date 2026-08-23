@@ -224,6 +224,14 @@ export const PrepareCommand = command({
       }
     }
 
+    const resolutions = [...downloader.resolutionStats.values()];
+    logger.info({ resolutions }, 'ResolverStats');
+
+    const emptyResolutions = resolutions.filter((f) => f.resolves === 0);
+    if (emptyResolutions.length > 0) {
+      throw new Error('No resolutions found: ' + emptyResolutions.map((m) => m.name).join(', '));
+    }
+
     const itemTarget = new URL(`./${projectName}.json`, args.output);
     logger.info({ destination: itemTarget.href }, 'Prepare: WriteStacItem');
     const collectionUrl = await sw.write(itemTarget, q);
