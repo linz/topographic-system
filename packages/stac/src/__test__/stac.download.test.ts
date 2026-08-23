@@ -63,7 +63,7 @@ describe('Downloader - Canonical URLs', () => {
     await fsa.write(canonicalAssetUrl, fileContent);
 
     // 4. Test downloader with default canonical resolver
-    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
+    const downloader = new StacDownloader({ target: targetUrl, cache: sourceCacheUrl, q: pLimit(1) });
 
     const assets = await downloader.fetchAssets(initialUrl);
 
@@ -86,7 +86,7 @@ describe('Downloader - Canonical URLs', () => {
     const initialUrl = new URL('memory://source/catalog.json');
     const initialAssetUrl = new URL('memory://source/initial-data.parquet');
 
-    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
+    const downloader = new StacDownloader({ target: targetUrl, cache: sourceCacheUrl, q: pLimit(1) });
     downloader.resolvers = [];
 
     const assets = await downloader.fetchAssets(initialUrl);
@@ -125,7 +125,7 @@ describe('Downloader - Canonical URLs', () => {
     await fsa.write(stacAUrl, JSON.stringify(stacA));
     await fsa.write(stacBUrl, JSON.stringify(stacB));
 
-    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(1));
+    const downloader = new StacDownloader({ target: targetUrl, cache: sourceCacheUrl, q: pLimit(1) });
 
     await assert.rejects(downloader.fetchAssets(stacAUrl), (err: Error) => {
       assert.ok(err.message.includes('Circular canonical link detected'));
@@ -176,7 +176,7 @@ describe('Downloader - Canonical URLs', () => {
     const canonicalAssetUrl = new URL('memory://canonical-same-canonical/canonical-data.parquet');
     await fsa.write(canonicalAssetUrl, fileContent);
 
-    const downloader = new StacDownloader(targetUrl, sourceCacheUrl, pLimit(2));
+    const downloader = new StacDownloader({ target: targetUrl, cache: sourceCacheUrl, q: pLimit(2) });
 
     const spy = t.mock.method(fsa, 'readStream');
 
@@ -206,7 +206,11 @@ describe('Downloader - Canonical URLs', () => {
     );
     await fsa.write(new URL(canonical), JSON.stringify({ type: 'Collection', id: 'canonical-abs', links: [] }));
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     const resolved = await downloader.resolveUrl(collectionUrl);
     assert.strictEqual(resolved.href, canonical);
   });
@@ -224,7 +228,11 @@ describe('Downloader - Canonical URLs', () => {
     );
     await fsa.write(canonicalUrl, JSON.stringify({ type: 'Collection', id: 'canonical-rel', links: [] }));
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     const resolved = await downloader.resolveUrl(collectionUrl);
     assert.strictEqual(resolved.href, 'memory://source-canonical-rel/canonical/collection.json');
   });
@@ -236,7 +244,11 @@ describe('Downloader - Canonical URLs', () => {
       JSON.stringify({ type: 'Collection', id: 'test', links: [{ rel: 'self', href: collectionUrl.href }] }),
     );
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     const resolved = await downloader.resolveUrl(collectionUrl);
     assert.strictEqual(resolved.href, collectionUrl.href);
   });
@@ -245,7 +257,11 @@ describe('Downloader - Canonical URLs', () => {
     const collectionUrl = new URL('memory://source-empty-links/collection.json');
     await fsa.write(collectionUrl, JSON.stringify({ type: 'Collection', id: 'test', links: [] }));
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     const resolved = await downloader.resolveUrl(collectionUrl);
     assert.strictEqual(resolved.href, collectionUrl.href);
   });
@@ -258,13 +274,16 @@ describe('Downloader - Resolver Support', () => {
 
     await fsa.write(originalUrl, JSON.stringify({ type: 'Collection', id: 'airport-latest', links: [] }));
     await fsa.write(overrideUrl, JSON.stringify({ type: 'Collection', id: 'airport-commit', links: [] }));
-
     const resolver = {
       name: 'custom',
       resolve: async (_downloader: StacLruCache, url: URL) => (url.href === originalUrl.href ? overrideUrl : url),
     };
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     downloader.resolvers.push(resolver);
 
     const resolved = await downloader.resolveUrl(originalUrl);
@@ -280,7 +299,11 @@ describe('Downloader - Resolver Support', () => {
 
     const resolver = { name: 'custom', resolve: async (_downloader: StacLruCache, url: URL) => url };
 
-    const downloader = new StacDownloader(new URL('memory://target/'), new URL('memory://cache/'), pLimit(1));
+    const downloader = new StacDownloader({
+      target: new URL('memory://target/'),
+      cache: new URL('memory://cache/'),
+      q: pLimit(1),
+    });
     downloader.resolvers.push(resolver);
 
     const resolved = await downloader.resolveUrl(originalUrl);

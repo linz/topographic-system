@@ -13,6 +13,7 @@ import { StacUrlResolverCanonical } from './resolvers/canonical.ts';
 import type { StacUrlResolver } from './resolvers/resolver.ts';
 import { StacUrlResolverStrategy } from './resolvers/strategy.ts';
 import { StacLruCache } from './stac.lru.ts';
+import { getRelativePath } from './stac.paths.ts';
 
 export interface SourceAsset {
   /** resolved source URL */
@@ -28,10 +29,31 @@ export interface SourceAsset {
 type CheckLink = (link: StacLink) => boolean;
 type CheckAsset = (asset: StacAsset) => boolean;
 
+interface StacDownloaderOptions {
+  /** Where to store the output */
+  target: URL;
+  /** Where to cache all the assets */
+  cache: URL;
+  /** Limit downloads */
+  q: LimitFunction;
+
+  /**
+   * When linking files from the cache to the target, Should it use
+   *
+   * - link-absolute - Absolute folder links
+   * - link-relative - Relative Links
+   * - copy - Copy  the files
+   *
+   * @default: 'link-absolute'
+   */
+  linkMode?: 'link-absolute' | 'link-relative' | 'copy';
+}
+
 export class StacDownloader {
   target: URL;
   cache: URL;
   q: LimitFunction;
+  linkMode: StacDownloaderOptions['linkMode'];
 
   static Resolver = { strategy: (strat: string) => new StacUrlResolverStrategy(strat) };
   linkCache: Map<string, SourceAsset> = new Map();
@@ -45,10 +67,11 @@ export class StacDownloader {
   // Inflight downloads
   downloads: Map<string, Promise<SourceAsset>> = new Map();
 
-  constructor(target: URL, cache: URL, q: LimitFunction) {
-    this.target = target;
-    this.cache = cache;
-    this.q = q;
+  constructor(opts: StacDownloaderOptions) {
+    this.target = opts.target;
+    this.cache = opts.cache;
+    this.q = opts.q;
+    this.linkMode = opts.linkMode ?? 'link-relative';
   }
 
   async resolveUrl(url: URL): Promise<URL> {
@@ -163,7 +186,7 @@ export class StacDownloader {
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
   protected async ensureLinkedPath(sourceUrl: URL, linkedUrl: URL): Promise<URL> {
     // Symlinks are only supported on the local filesystem
-    if (sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
+    if (this.linkMode === 'copy' || sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
       await fsa.write(linkedUrl, fsa.readStream(sourceUrl));
       return linkedUrl;
     }
@@ -175,7 +198,12 @@ export class StacDownloader {
       // ensure target folder exists
       await mkdir(this.target, { recursive: true });
     }
-    await symlink(sourceUrl, linkedUrl);
+    if (this.linkMode === 'link-relative') {
+      const relurl = getRelativePath(sourceUrl, linkedUrl);
+      await symlink(relurl, linkedUrl);
+    } else {
+      await symlink(sourceUrl, linkedUrl);
+    }
     return linkedUrl;
   }
 

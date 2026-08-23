@@ -49,6 +49,7 @@ describe('action.download', () => {
 
     await DownloadCommand.handler({
       concurrency,
+      linkMode: 'link-relative',
       project: projectUrl,
       output: downloadOutput,
       cache: cacheUrl,
