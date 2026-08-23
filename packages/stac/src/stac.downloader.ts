@@ -143,12 +143,13 @@ export class StacDownloader {
   protected async ensureAssetInCache(
     asset: StacLink | StacAsset,
     url: URL,
-  ): Promise<{ url: URL; size: number; hash: string; hit?: boolean }> {
+  ): Promise<{ url: URL; size: number; hash: string; hit?: boolean; duration: number }> {
     const checksum = asset['file:checksum'] as string | undefined;
     const fileSize = asset['file:size'] as number | undefined;
 
     if (checksum == null) throw new Error(`Asset has no "file:checksum" ${url.href}`);
 
+    const startTime = performance.now();
     const cacheKey = new URL(`${checksum}_${basename(asset.href)}`, this.cache);
     const exists = await fsa.head(cacheKey).catch(() => null);
 
@@ -157,7 +158,14 @@ export class StacDownloader {
         logger.warn({ cacheKey: cacheKey.href, localSize: exists.size, expectedSize: fileSize }, 'Cache:Invalid');
         await fsa.delete(cacheKey);
       } else {
-        return { url: cacheKey, size: exists.size as number, hash: asset['file:checksum'] as string, hit: true };
+        const duration = performance.now() - startTime;
+        return {
+          url: cacheKey,
+          size: exists.size as number,
+          hash: asset['file:checksum'] as string,
+          hit: true,
+          duration,
+        };
       }
     }
 
@@ -180,14 +188,22 @@ export class StacDownloader {
       throw new Error(`Failed to download file: ${url.href} checksum mismatch ${targetHash}`);
     }
 
-    return { url: cacheKey, size: head?.size as number, hash: targetHash };
+    const duration = performance.now() - startTime;
+    logger.debug({ source: url.href, target: cacheKey.href, size: head?.size, duration }, 'DownloadFile:Done');
+
+    return { url: cacheKey, size: head?.size as number, hash: targetHash, duration };
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
   protected async ensureLinkedPath(sourceUrl: URL, linkedUrl: URL): Promise<URL> {
     // Symlinks are only supported on the local filesystem
     if (this.linkMode === 'copy' || sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
+      const startCopyTime = performance.now();
       await fsa.write(linkedUrl, fsa.readStream(sourceUrl));
+      logger.debug(
+        { source: sourceUrl.href, target: linkedUrl.href, duration: performance.now() - startCopyTime },
+        'DownloadFile:Copy:Done',
+      );
       return linkedUrl;
     }
     const [sourceExists, targetExists] = await Promise.all([fsa.exists(sourceUrl), fsa.exists(linkedUrl)]);
@@ -225,8 +241,7 @@ export class StacDownloader {
 
   private async _downloadAsset(url: URL, asset: StacAsset | StacLink): Promise<SourceAsset> {
     const resolvedUrl = await this.resolveUrl(url);
-    const startTime = performance.now();
-    logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    logger.debug({ project: url.href, downloaded: this.target.href }, 'DownloadFile:Start');
     const linkedPath = new URL(basename(url.pathname), this.target);
 
     const existing = this.linkCache.get(linkedPath.href);
@@ -269,7 +284,7 @@ export class StacDownloader {
         destination: cacheStat.url.href,
         ...sourceAsset,
         cacheHit: cacheStat.hit,
-        duration: performance.now() - startTime,
+        duration: cacheStat.duration,
       },
       'DownloadFile:Done',
     );
