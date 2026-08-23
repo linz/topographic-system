@@ -1,0 +1,14 @@
+name: nztopo50_carto_symbol
+target_repo: topographic-product-data
+target_epsg: EPSG:2193
+
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: golf_sym
+    name: golf_sym
+    mapping:
+      t50_fid: null
+      type: golf_course
+      label: null
+      orientation: null
