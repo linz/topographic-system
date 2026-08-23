@@ -71,7 +71,7 @@ export class StacDownloader {
     this.target = opts.target;
     this.cache = opts.cache;
     this.q = opts.q;
-    this.linkMode = opts.linkMode ?? 'link-relative';
+    this.linkMode = opts.linkMode ?? 'link-absolute';
   }
 
   async resolveUrl(url: URL): Promise<URL> {
