@@ -10,6 +10,8 @@ import {
   MaxDiffLines,
   MaxFeatureCount,
   MaxGeoJsonLength,
+  GeojsonCrs,
+  GeojsonCrsLabel,
   buildMarkdownSummary,
   buildTooLargeSummary,
 } from '../action.diff.ts';
@@ -211,6 +213,19 @@ describe('buildMarkdownSummary', () => {
     assert.equal(result.includes('## Feature Changes Preview'), true);
     assert.equal(result.includes('```geojson'), true);
     assert.equal(result.includes('**my-layer**: 2 features changed'), true);
+  });
+
+  it('should state the projection of the embedded geojson', () => {
+    const { counts, geojson } = datasetFixture({ 'my-layer': 2 });
+    const result = buildMarkdownSummary(counts, '', '', geojson);
+    // Readers need to know the coordinates are not in the dataset's own CRS.
+    assert.equal(result.includes(GeojsonCrsLabel), true);
+    assert.equal(GeojsonCrs, 'EPSG:4326', 'geojson must be WGS 84 to satisfy RFC 7946 and render on GitHub');
+  });
+
+  it('should not state a projection when there is no geojson to project', () => {
+    const result = buildMarkdownSummary({}, 'a diff', 'a diff', {});
+    assert.equal(result.includes(GeojsonCrsLabel), false);
   });
 
   it('should show too-large message and hide per-dataset sections when geojson exceeds limit', () => {

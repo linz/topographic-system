@@ -17,6 +17,15 @@ type GeoJson = { type: string; features: unknown[] };
  * all fit together with margin to spare.
  */
 export const MaxGeoJsonLength = 25_000;
+/**
+ * CRS to reproject the geojson diff into. GeoJSON (RFC 7946) mandates WGS 84 longitude/latitude, and
+ * GitHub only draws a geojson code block on a map when the coordinates fall inside that range. The
+ * topographic datasets are stored in projected metres (eg EPSG:2193 for nztopo50_map_sheet), whose
+ * northings sit far outside +/-90, so an unprojected diff renders as an empty map with no error.
+ */
+export const GeojsonCrs = 'EPSG:4326';
+/** Human readable form of {@link GeojsonCrs} for the PR comment. */
+export const GeojsonCrsLabel = 'WGS 84 (EPSG:4326)';
 export const MaxDiffLines = 30;
 export const MaxDiffLineLength = 120;
 /**
@@ -60,11 +69,15 @@ async function writeHtmlDiff(ctx: GitContext): Promise<URL> {
   return location;
 }
 
-/** Run kart to write the geojson diff artifact to disk, returning its location. */
+/**
+ * Run kart to write the geojson diff artifact to disk, returning its location. Geometries are
+ * reprojected to {@link GeojsonCrs}, as kart emits them in the dataset's own CRS which is neither
+ * valid GeoJSON nor renderable - see the note on {@link GeojsonCrs}.
+ */
 async function writeGeojsonDiff(ctx: GitContext): Promise<URL> {
   mkdirSync(ctx.output, { recursive: true });
   const location = new URL(GeojsonDiffName, ctx.output);
-  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${fileURLToPath(location)}"`;
+  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --crs ${GeojsonCrs} --output "${fileURLToPath(location)}"`;
   return location;
 }
 
@@ -384,6 +397,8 @@ export function buildMarkdownSummary(
   if (allFeatures.length > 0) {
     summary += `## Feature Changes Preview\n`;
     if (canEmbedGeojson) {
+      summary += `*Geometries below are reprojected from the dataset CRS to ${GeojsonCrsLabel} so GitHub can `;
+      summary += `render them on a map. The kart and git diffs further down are unprojected.*\n\n`;
       summary += '```geojson\n';
       summary += `${allChangesGeoJson}\n`;
       summary += '```\n\n';
