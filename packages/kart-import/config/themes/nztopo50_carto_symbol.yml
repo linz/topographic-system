@@ -28,3 +28,13 @@ datasets:
           training: mine_training
           opencast: mine_opencast
           underground: mine_underground
+
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_highway_sh
+    name: linz_highway_sh
+    mapping:
+      type: highway_shield
+      label: null
+      orientation: null
+      t50_fid: null

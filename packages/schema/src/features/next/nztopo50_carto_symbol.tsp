@@ -17,6 +17,7 @@ model nztopo50_carto_symbol {
 
 enum carto_symbol_type {
   GolfCourse: "golf_course",
+  HighwayShield: "highway_shield",
   MineOpencast: "mine_opencast",
   MineTraining: "mine_training",
   MineUnderground: "mine_underground",
