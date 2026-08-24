@@ -8,7 +8,23 @@ datasets:
       dataset: golf_sym
     name: golf_sym
     mapping:
-      t50_fid: null
       type: golf_course
       label: null
       orientation: null
+      t50_fid: null
+
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: mine_sym
+    name: mine_sym
+    mapping:
+      type: $mine_vis
+      t50_fid: null
+      label: null
+      orientation: null
+    corrections:
+      - column: type
+        replace:
+          training: mine_training
+          opencast: mine_opencast
+          underground: mine_underground

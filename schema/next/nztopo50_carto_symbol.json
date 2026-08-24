@@ -67,7 +67,7 @@
   "$defs": {
     "carto_symbol_type": {
       "type": "string",
-      "enum": ["golf_course"]
+      "enum": ["golf_course", "mine_opencast", "mine_training", "mine_underground"]
     },
     "BBox": {
       "type": "object",
