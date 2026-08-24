@@ -13,11 +13,14 @@ import geopandas as gpd
 import pandas as pd
 
 from ..config import (
+    SOURCE_DIR,
     WORKING_EXPORTS_DIR,
     WORKING_LOOKUP_DIR,
     Lookup,
     get_lookup_by_name,
 )
+from ..git.kart import get_dataset_schema, get_kart_dataset_id
+from ..kart_types import coerce_integer_columns
 from ..log import log_context
 
 logger = logging.getLogger("kart_import")
@@ -27,12 +30,16 @@ def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame
     """The key + selected columns as a plain DataFrame."""
     if lookup.key not in gdf.columns:
         raise KeyError(f"Lookup '{lookup.name}' key column '{lookup.key}' not found in source")
-
-    out = pd.DataFrame({lookup.key: gdf[lookup.key].to_numpy()})
     for col in lookup.columns:
         if col not in gdf.columns:
             raise KeyError(f"Lookup '{lookup.name}' source column '{col}' not found")
-        out[col] = gdf[col].to_numpy()
+
+    # By label, not `.to_numpy()`: numpy has no nullable integer, so that would turn an `Int64`
+    # column straight back into the float64 `coerce_integer_columns` exists to remove. Deduped
+    # because nothing stops a config repeating a column, or naming the key among them, and a
+    # duplicate label makes the key ambiguous below.
+    selected = list(dict.fromkeys([lookup.key, *lookup.columns]))
+    out = pd.DataFrame(gdf[selected]).reset_index(drop=True)
 
     # A lookup must be unique on the join key, or a duplicate key would fan out the
     # left-join and duplicate rows. The join matches on raw values of a single dtype,
@@ -48,6 +55,10 @@ def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame
 def prepare_lookup(lookup_name: str) -> Path:
     """Slim each of the lookup's per-commit exports into a parquet (keyed by commit)."""
     lookup = get_lookup_by_name(lookup_name)
+
+    # Read per commit below; `.cloned` is an input of the Snakefile rule so the repo is present.
+    repo_dir = SOURCE_DIR / lookup_name
+    kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
 
     input_dir = WORKING_EXPORTS_DIR / "lookup" / lookup_name
     if not input_dir.exists():
@@ -71,6 +82,11 @@ def prepare_lookup(lookup_name: str) -> Path:
         start_time = time.perf_counter()
         gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
         out = select_lookup_columns(gdf, lookup)
+        out = coerce_integer_columns(
+            out,
+            get_dataset_schema(repo_dir, kart_dataset_id, commit),
+            context=f"lookup {lookup_name!r} at {commit}",
+        )
         out.to_parquet(output_file, compression="zstd", index=False)
         logger.info(
             "prepare_lookup",
