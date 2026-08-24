@@ -397,8 +397,6 @@ export function buildMarkdownSummary(
   if (allFeatures.length > 0) {
     summary += `## Feature Changes Preview\n`;
     if (canEmbedGeojson) {
-      summary += `*Geometries below are reprojected from the dataset CRS to ${GeojsonCrsLabel} so GitHub can `;
-      summary += `render them on a map. The kart and git diffs further down are unprojected.*\n\n`;
       summary += '```geojson\n';
       summary += `${allChangesGeoJson}\n`;
       summary += '```\n\n';
