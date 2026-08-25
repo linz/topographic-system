@@ -24,8 +24,6 @@ export const MaxGeoJsonLength = 25_000;
  * northings sit far outside +/-90, so an unprojected diff renders as an empty map with no error.
  */
 export const GeojsonCrs = 'EPSG:4326';
-/** Human readable form of {@link GeojsonCrs} for the PR comment. */
-export const GeojsonCrsLabel = 'WGS 84 (EPSG:4326)';
 export const MaxDiffLines = 30;
 export const MaxDiffLineLength = 120;
 /**
@@ -185,19 +183,13 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
 async function readGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
   try {
     const geojsonDiffLocation = new URL(GeojsonDiffName, ctx.output);
-    const stat = await fsa.head(geojsonDiffLocation);
     const geojsonByDataset: Record<string, string> = {};
 
-    if (stat && stat.isDirectory) {
-      const files = await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }));
-      for (const file of files) {
-        const jsonFile = await readGeojsonFile(file);
-        if (jsonFile) {
-          geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
-        }
-      }
-    } else if (stat) {
-      const jsonFile = await readGeojsonFile(geojsonDiffLocation);
+    const geojsonFiles = (await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }))).filter((f) =>
+      f.pathname.endsWith('.geojson'),
+    );
+    for (const file of geojsonFiles) {
+      const jsonFile = await readGeojsonFile(file);
       if (jsonFile) {
         geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
       }

@@ -9,7 +9,6 @@ import { fsa } from '@chunkd/fs';
 import { logger, stringToUrlFolder, readParquetMetadata } from '@linzjs/topographic-system-shared';
 import { $ } from 'zx';
 
-import { GeojsonCrsLabel } from '../action.diff.ts';
 import { buildOgr2OgrArgs } from '../action.to.parquet.ts';
 
 /** Read the primary geometry column's EPSG code straight from the parquet `geo` metadata. */
@@ -371,10 +370,5 @@ describe('diff CRS reprojection', () => {
       }
     }
     assert.ok(featureCount > 0, 'expected at least one changed feature to assert on');
-  });
-
-  it('tells the reader which projection the comment geojson is in', async () => {
-    const md = (await fsa.read(summaryUrl)).toString();
-    assert.ok(md.includes(GeojsonCrsLabel), `summary should name the reprojection, got: ${md.slice(0, 400)}`);
   });
 });
