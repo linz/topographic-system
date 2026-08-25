@@ -71,9 +71,9 @@ describe('kart.import', async () => {
     assert.deepEqual(airports.crs, { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4167' } });
     const count = airports.features.length;
 
-    assert.equal(count, 85);
-    // All airports have a t50_fid except Nuie - needs backfill
-    assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count - 1);
+    assert.equal(count, 84);
+    // All airports have a t50_fid
+    assert.equal(airports.features.filter((f) => f.properties.t50_fid > 0).length, count);
     // All airports have a name
     assert.equal(airports.features.filter((f) => f.properties.name != null).length, count);
     // Queenstown airport exists
@@ -130,8 +130,8 @@ describe('kart.import', async () => {
     };
     const dataTypes = new Map(schema.airport['schema.json'].map((c) => [c.name, c.dataType]));
 
-    // The Niue dataset maps `t50_fid: null`, so it contributes a column that is NULL for every
-    // feature. Before the merge unified dtypes that made the whole merged column text.
+    // Before the merge unified dtypes, a dataset contributing an all-NULL column made the
+    // whole merged column text.
     assert.equal(dataTypes.get('t50_fid'), 'integer');
     // RFC 3339 text, as the schemas prescribe. A GeoJSON merge records these as `timestamp`.
     assert.equal(dataTypes.get('created_at'), 'text');

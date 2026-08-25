@@ -3,8 +3,7 @@ target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
   # -- soakhole ---------------------------------------------------------------
-  # FIXME: The Cook Islands soakhole points dataset only gained the `t50_fid` field in
-  #    release 57 (2022-05-18); we start processing at release 30. `t50_fid` is also float here, not integer.
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-soakhole-points-topo-125k-zone4
   #    name: cook_islands_soakhole_points
   #    mapping:
@@ -84,7 +83,7 @@ datasets:
       theme: landcover
       metadata: null
   # -- waterfall --------------------------------------------------------------
-  # FIXME: The Cook Islands waterfall points dataset has the same `t50_fid`-arrives-at-release-57 defect as the soakhole dataset above
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-waterfall-points-topo-125k-zone4
   #    name: cook_islands_waterfall_points
   #    mapping:
