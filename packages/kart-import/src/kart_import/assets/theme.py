@@ -161,6 +161,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         output_file.unlink()
 
     missing = []
+    empty_gdfs: list[gpd.GeoDataFrame] = []
     for dataset in theme.datasets:
         transform_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}"
         if not transform_path.exists():
@@ -172,6 +173,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         gdf = read_transform(transform_path)
         if gdf.empty:
             logger.info(f"{dataset.name} (release {release_id}) is empty. Skipping.")
+            empty_gdfs.append(gdf)
             continue
 
         logger.info(f"{dataset.name} (release {release_id}): {len(gdf)} features")
@@ -183,11 +185,15 @@ def merge_theme_release(theme_name: str, release_id: int):
         )
 
     if not gdfs:
-        # Every dataset in the theme was empty for this release. Written rather than skipped so
-        # the Snakefile gets the output it declares.
+        # Every dataset in the theme was empty for this release. Written rather than skipped so the
+        # Snakefile gets the output it declares; `kart_import_theme` skips a featureless file so no
+        # empty commit reaches kart. Merged from the empty frames, not fabricated, so the file
+        # still carries the theme's columns - a geometry-only file has no `id` to key an import on.
         logger.warning(f"No data found for theme {theme.name} release {release_id}, writing empty output.")
-        gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(output_file, driver=THEME_DRIVER, index=False)
-        return
+        if not empty_gdfs:  # a theme with no datasets at all - no shape to take
+            gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(output_file, driver=THEME_DRIVER, index=False)
+            return
+        gdfs = empty_gdfs
 
     unify_dtypes(gdfs)
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)

@@ -6,7 +6,7 @@ from shapely.geometry import Point
 
 from . import theme
 from .theme import coerce_dtypes, unify_dtypes, untyped_columns
-from .transform import write_transform
+from .transform import empty_transform, write_transform
 
 
 def _gdf(**columns) -> gpd.GeoDataFrame:
@@ -230,11 +230,19 @@ def test_theme_with_only_empty_datasets_writes_an_empty_output(tmp_path, monkeyp
 
     transform_dir = tmp_path / "transform" / "release_53"
     transform_dir.mkdir(parents=True)
-    empty = gpd.GeoDataFrame({"t50_fid": pd.Series([], dtype="object")}, geometry=[], crs="EPSG:4167")
-    for dataset in theme.get_theme_by_name("airport").datasets:
-        write_transform(empty, transform_dir / f"{dataset.name}{theme.TRANSFORM_SUFFIX}")
+    airport = theme.get_theme_by_name("airport")
+    for dataset in airport.datasets:
+        # Written by `empty_transform`, as transform does - the frame carries the theme's target
+        # columns, which is what lets the merged placeholder keep them.
+        write_transform(
+            empty_transform(dataset, airport.target_epsg), transform_dir / f"{dataset.name}{theme.TRANSFORM_SUFFIX}"
+        )
 
     theme.merge_theme_release("airport", 53)
 
     output = tmp_path / "theme" / "release_53" / f"airport{theme.THEME_SUFFIX}"
-    assert pyogrio.read_info(output, force_feature_count=True)["features"] == 0
+    info = pyogrio.read_info(output, force_feature_count=True)
+    assert info["features"] == 0
+    # Not geometry alone: `kart import --primary-key id` reads the schema, so a placeholder
+    # without the theme's columns fails the import it was written to keep unblocked.
+    assert "id" in info["fields"]
