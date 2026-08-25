@@ -6,6 +6,7 @@ from shapely.geometry import Point
 
 from . import theme
 from .theme import coerce_dtypes, unify_dtypes, untyped_columns
+from .transform import write_transform
 
 
 def _gdf(**columns) -> gpd.GeoDataFrame:
@@ -219,3 +220,21 @@ def test_missing_transform_names_the_datasets(tmp_path, monkeypatch):
 
     with pytest.raises(FileNotFoundError, match=r"airport release 53: no transform output for .*Run transform first"):
         theme.merge_theme_release("airport", 53)
+
+
+def test_theme_with_only_empty_datasets_writes_an_empty_output(tmp_path, monkeypatch):
+    """A theme whose sources all start after this release still has to produce the file the
+    Snakefile declares, or the rule fails with a missing output it can never have."""
+    monkeypatch.setattr(theme, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
+    monkeypatch.setattr(theme, "WORKING_THEME_DIR", tmp_path / "theme")
+
+    transform_dir = tmp_path / "transform" / "release_53"
+    transform_dir.mkdir(parents=True)
+    empty = gpd.GeoDataFrame({"t50_fid": pd.Series([], dtype="object")}, geometry=[], crs="EPSG:4167")
+    for dataset in theme.get_theme_by_name("airport").datasets:
+        write_transform(empty, transform_dir / f"{dataset.name}{theme.TRANSFORM_SUFFIX}")
+
+    theme.merge_theme_release("airport", 53)
+
+    output = tmp_path / "theme" / "release_53" / f"airport{theme.THEME_SUFFIX}"
+    assert pyogrio.read_info(output, force_feature_count=True)["features"] == 0

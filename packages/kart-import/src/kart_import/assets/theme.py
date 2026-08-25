@@ -183,7 +183,10 @@ def merge_theme_release(theme_name: str, release_id: int):
         )
 
     if not gdfs:
-        logger.warning(f"No data found for theme {theme.name} release {release_id}.")
+        # Every dataset in the theme was empty for this release. Written rather than skipped so
+        # the Snakefile gets the output it declares.
+        logger.warning(f"No data found for theme {theme.name} release {release_id}, writing empty output.")
+        gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(output_file, driver=THEME_DRIVER, index=False)
         return
 
     unify_dtypes(gdfs)
