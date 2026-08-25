@@ -48,7 +48,7 @@ interface GitContext {
 /** Canonical filenames for the diff artifacts written under {@link GitContext.output}. */
 const TextDiffName = 'kart_diff.txt';
 const HtmlDiffName = 'kart_diff.html';
-const GeojsonDiffName = 'kart_diff.geojson';
+const GeojsonDiffName = 'kart_diff_geojson/';
 const GitDiffName = 'git_diff.txt';
 
 /** Run kart to write the text diff artifact to disk, returning its location. */

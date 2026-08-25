@@ -345,13 +345,12 @@ describe('diff CRS reprojection', () => {
       ['--summary-file', fileURLToPath(summaryUrl)],
     );
 
-    // kart writes a directory when the diff spans datasets, a single file otherwise.
-    const geojsonLocation = new URL('kart_diff.geojson', diffUrl);
+    const geojsonLocation = new URL('kart_diff_geojson', diffUrl);
     const stat = await fsa.head(geojsonLocation);
     assert.ok(stat, `expected a geojson diff at ${geojsonLocation.href}`);
-    const geojsonFiles = stat.isDirectory
-      ? await fsa.toArray(fsa.list(geojsonLocation, { recursive: true }))
-      : [geojsonLocation];
+    const geojsonFiles = (await fsa.toArray(fsa.list(geojsonLocation, { recursive: true }))).filter((f) =>
+      f.pathname.endsWith('.geojson'),
+    );
     assert.ok(geojsonFiles.length > 0, 'expected at least one geojson diff file');
 
     let featureCount = 0;
