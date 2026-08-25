@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
@@ -146,6 +146,141 @@ def test_drop_empty_residential_areas_targets_its_own_fid():
     """As above. `None` is the form release 51 actually ships for residential area 6753838."""
     out = drop_empty_residential_areas(_fid_gdf([(6753838, None), (123, POLY_REAL)]), _td([], RESIDENTIAL), 51)
     assert out["t50_fid"].tolist() == [123]
+
+
+ROADS = "nz_road_centrelines"
+RELEASE_66 = Release(id=66, date=datetime(2024, 5, 16, 21, 4, 22, tzinfo=UTC))
+STAMP_66 = "2024-05-16T21:04:22Z"
+
+
+def _road_gdf(sufis: list[int], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` road frame: `metadata` already holds the raw `$rna_sufi` values,
+    which is the only input `build_road_metadata` has (see its docstring)."""
+    return gpd.GeoDataFrame(
+        {"metadata": sufis, "name": names if names is not None else [f"ROAD {s}" for s in sufis]},
+        geometry=[LineString([(174.0, -41.0), (174.1, -41.1)]) for _ in sufis],
+        crs="EPSG:4167",
+    )
+
+
+@pytest.fixture
+def road_releases(monkeypatch):
+    from . import config as config_module
+
+    monkeypatch.setattr(config_module, "get_releases", lambda: [RELEASE_66])
+
+
+def test_build_road_metadata_record_shape(road_releases):
+    """The record the Postgres loader builds with `jsonb_build_array`, as JSON text."""
+    out = fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "linz_aims",
+            "source_key_name": "road_id",
+            "source_key_value": 3061525,
+            "source_table": "roads",
+            "source_column": "name",
+            "source_updated_at": STAMP_66,
+            "imported_at": STAMP_66,
+        }
+    ]
+
+
+def test_build_road_metadata_leaves_unlinked_roads_null(road_releases):
+    """`rna_sufi` 0 is "no AIMS road" - 60,210 of release 66's 153,518 rows. A record for road_id 0
+    would assert a link to an AIMS road that does not exist."""
+    out = fixups.build_road_metadata(_road_gdf([3061525, 0, 1771150]), _td([], ROADS), 66)
+
+    assert out["metadata"].isna().tolist() == [False, True, False]
+
+
+def test_build_road_metadata_stamps_the_release_not_the_wall_clock(road_releases):
+    """Both timestamps are the release date. A build-time stamp would change the bytes of every
+    record on every rebuild, so kart would see all ~93k features as modified each run."""
+    out = fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 66)
+
+    record = json.loads(out["metadata"].iloc[0])[0]
+    assert record["source_updated_at"] == record["imported_at"] == STAMP_66
+
+
+def test_build_road_metadata_is_byte_stable(road_releases):
+    """Same input -> same bytes, keys sorted and separators fixed: dict ordering drift would read
+    as a changed feature downstream."""
+    gdf = _road_gdf([3061525, 3061525])
+    first = fixups.build_road_metadata(gdf, _td([], ROADS), 66)["metadata"]
+    second = fixups.build_road_metadata(gdf, _td([], ROADS), 66)["metadata"]
+
+    assert first.iloc[0] == first.iloc[1] == second.iloc[0]  # repeated sufi and repeated run agree
+    assert first.iloc[0].startswith('[{"imported_at":')  # sorted keys, no whitespace
+
+
+def test_build_road_metadata_does_not_mutate_its_input(road_releases):
+    """`transform` reassigns the returned frame, but a fixup that edited in place would also have
+    rewritten the caller's copy - and the raw sufi values are unrecoverable once overwritten."""
+    gdf = _road_gdf([3061525])
+    fixups.build_road_metadata(gdf, _td([], ROADS), 66)
+
+    assert gdf["metadata"].tolist() == [3061525]
+
+
+def test_build_source_metadata_without_a_sentinel_keys_every_non_null(road_releases):
+    """`unset_key=None` - the shape a source with no "no link" sentinel needs, so only a NULL key
+    means unlinked. Exercised through the shared helper because road's sufi always has one."""
+    gdf = _road_gdf([0, 7, None])
+    out = fixups._build_source_metadata(gdf, _td([], ROADS), 66, ROADS, fixups.ROAD_NAME_FROM_AIMS)
+
+    assert out["metadata"].isna().tolist() == [False, False, True]  # 0 is a real key here
+    assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 0
+
+
+def test_build_source_metadata_writes_the_source_ref_as_json_keys(road_releases):
+    """A `SourceRef`'s field names are the record's JSON keys, so a future `build_water_metadata`
+    only has to declare its own ref rather than restate the record shape."""
+    ref = fixups.SourceRef(
+        table_column="name",
+        source="nzgb_gazetteer",
+        source_key_name="feat_id",
+        source_table="nzgb_gaz",
+        source_column="name",
+    )
+    out = fixups._build_source_metadata(_road_gdf([12345]), _td([], ROADS), 66, ROADS, ref)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "nzgb_gazetteer",
+            "source_key_name": "feat_id",
+            "source_key_value": 12345,
+            "source_table": "nzgb_gaz",
+            "source_column": "name",
+            "source_updated_at": STAMP_66,
+            "imported_at": STAMP_66,
+        }
+    ]
+
+
+def test_build_road_metadata_rejects_wrong_dataset(road_releases):
+    """Miswired to another dataset this would silently overwrite that dataset's `metadata`."""
+    with pytest.raises(ValueError, match=f"fixup for dataset '{ROADS}' applied to 'other_dataset'"):
+        fixups.build_road_metadata(_road_gdf([3061525]), _td([], "other_dataset"), 66)
+
+
+def test_build_road_metadata_rejects_a_non_sufi_metadata_column(road_releases):
+    """`metadata` not holding numbers means the config mapped something other than `$rna_sufi`
+    into it; coercing would quietly yield an all-null column instead."""
+    gdf = _road_gdf([3061525])
+    gdf["metadata"] = ["not a sufi"]
+
+    with pytest.raises((ValueError, TypeError)):
+        fixups.build_road_metadata(gdf, _td([], ROADS), 66)
+
+
+def test_build_road_metadata_rejects_an_unknown_release(road_releases):
+    """No release date means no stamp; falling back to `now()` is exactly what this avoids."""
+    with pytest.raises(LookupError, match="release 99 is not in the release config"):
+        fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 99)
 
 
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:
