@@ -1,0 +1,23 @@
+name: railway_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-railway-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: railway
+      subtype: $rway_use
+      track_type: $track_type
+      vehicle_type: { source: $veh_type, default: train } # legacy null_update: train where NULL
+      status: $status
+      name: $name
+      theme: transport
+      metadata: null
+    corrections:
+      - { column: vehicle_type, replace: { 'rail cart': rail_cart } }
+      # `disuse` arrives in rway_use but reads as a status: the two features are the mothballed
+      # Stratford-Okahukura Line (releases 35-48), both with a null status. Move it to `status`
+      # and clear the subtype.
+      - { column: status, set: disused, where: { subtype: disuse } }
+      - { column: subtype, replace: { disuse: null } }
+      - { column: status, set: null, where: { t50_fid: 2462920, status: heritage } }

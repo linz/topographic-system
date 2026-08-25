@@ -1,0 +1,72 @@
+name: runway
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-runway-polygons-topo-125k-zone3
+  #    name: cook_islands_runway_polygons_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: runway
+  #      subtype: $runway_use
+  #      status: $status
+  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/cook-islands-runway-polygons-topo-125k-zone4
+  #    name: cook_islands_runway_polygons_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: runway
+  #      subtype: $runway_use
+  #      status: $status
+  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/niue-runway-polygons-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: runway
+  #      subtype: $runway_use
+  #      status: $status
+  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+  #      theme: transport
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-runway-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: runway
+      subtype: $runway_use
+      status: $status
+      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+      theme: transport
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-runway-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: runway
+      subtype: $runway_use
+      status: $status
+      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+      theme: transport
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-runway-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: runway
+  #      subtype: $runway_use
+  #      status: $status
+  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+  #      theme: transport
+  #      metadata: null
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-runway-polygons-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: runway
+  #      subtype: $runway_use
+  #      status: $status
+  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+  #      theme: transport
+  #      metadata: null
