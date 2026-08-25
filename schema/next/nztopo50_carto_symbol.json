@@ -28,6 +28,17 @@
       "type": "string",
       "format": "date-time"
     },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "id (UUID) of the feature this symbol annotates: the landuse polygon it sits within, or\nthe road centreline it labels.\n\nNull where no feature was close enough to match."
+    },
     "type": {
       "$ref": "#/$defs/carto_symbol_type"
     },
@@ -62,7 +73,7 @@
       "description": "GeoParquet 1.1 covering bbox struct."
     }
   },
-  "required": ["id", "t50_fid", "created_at", "updated_at", "type", "label", "orientation", "geometry"],
+  "required": ["id", "t50_fid", "created_at", "updated_at", "source_id", "type", "label", "orientation", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "carto_symbol_type": {

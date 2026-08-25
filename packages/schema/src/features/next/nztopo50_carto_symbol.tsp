@@ -9,6 +9,15 @@ model nztopo50_carto_symbol {
   ...ProductFeature;
   created_at: utcDateTime;
   updated_at: utcDateTime;
+
+  /**
+   * id (UUID) of the feature this symbol annotates: the landuse polygon it sits within, or
+   * the road centreline it labels.
+   *
+   * Null where no feature was close enough to match.
+   */
+  source_id: string | null;
+
   type: carto_symbol_type;
   label: string | null;
   orientation: float64 | null;

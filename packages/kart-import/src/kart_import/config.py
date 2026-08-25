@@ -194,8 +194,9 @@ class Lookup(BaseModel):
 
     source: Source
     name: str = ""
-    key: str
+    key: str = ""
     columns: list[str] = []
+    geometry: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -204,16 +205,45 @@ class Lookup(BaseModel):
             data["name"] = get_dataset_name(Source.model_validate(data["source"]))
         return data
 
+    @model_validator(mode="after")
+    def check_key(self):
+        if not self.geometry and not self.key:
+            raise ValueError(f"lookup '{self.name}' needs a 'key' (or 'geometry: true' for a spatial lookup)")
+        if self.geometry and self.key:
+            raise ValueError(f"spatial lookup '{self.name}' must not set 'key'; it matches by predicate")
+        return self
+
+
+SPATIAL_PREDICATES = ("within", "nearest")
+
 
 class Join(BaseModel):
-    """Left-join a prepared `Lookup`'s columns onto a dataset, matched on a key."""
+    """Join a prepared `Lookup`'s columns onto a dataset, matched on a key (`left_on`) or
+    by geometry (`predicate`, against a `geometry: true` lookup)."""
 
     lookup: str
     """Name of the `Lookup` to join in."""
-    left_on: str
+    left_on: str = ""
     """Column on this dataset's source matched against the lookup's `key`."""
     columns: list[str] | None = None
     """Subset of the lookup's columns to bring in; `None` brings all of them."""
+    predicate: str = ""
+    """Spatial match: `within` or `nearest`."""
+    max_distance: float | None = None
+    """`nearest` only: ignore lookup features further away than this."""
+
+    @model_validator(mode="after")
+    def check_form(self):
+        if bool(self.left_on) == bool(self.predicate):
+            raise ValueError(f"join on lookup '{self.lookup}' needs exactly one of 'left_on' or 'predicate'")
+        if self.predicate and self.predicate not in SPATIAL_PREDICATES:
+            raise ValueError(
+                f"join on lookup '{self.lookup}' has unknown predicate '{self.predicate}'; "
+                f"expected one of {', '.join(SPATIAL_PREDICATES)}"
+            )
+        if self.max_distance is not None and self.predicate != "nearest":
+            raise ValueError(f"join on lookup '{self.lookup}' sets 'max_distance', which needs 'predicate: nearest'")
+        return self
 
 
 class ThemeDataset(BaseModel):
@@ -387,6 +417,16 @@ def _validate_dataset_joins(
                     f"requests unknown columns {unknown}; "
                     f"lookup exposes: {sorted(lookup.columns)}"
                 )
+        if join.predicate and not lookup.geometry:
+            raise ValueError(
+                f"Dataset {dataset.name} joins lookup '{join.lookup}' by predicate "
+                f"'{join.predicate}', but that lookup is not declared 'geometry: true'"
+            )
+        if join.left_on and lookup.geometry:
+            raise ValueError(
+                f"Dataset {dataset.name} joins spatial lookup '{join.lookup}' on "
+                f"'{join.left_on}', but a 'geometry: true' lookup keeps no key; use 'predicate'"
+            )
         joined[join.lookup] = set(join.columns) if join.columns is not None else set(lookup.columns)
     return joined
 

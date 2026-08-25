@@ -26,8 +26,23 @@ from ..log import log_context
 logger = logging.getLogger("kart_import")
 
 
+def select_spatial_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> gpd.GeoDataFrame:
+    """The selected columns + geometry, for a lookup joined by spatial predicate."""
+    for col in lookup.columns:
+        if col not in gdf.columns:
+            raise KeyError(f"Lookup '{lookup.name}' source column '{col}' not found")
+
+    out = gdf[[*lookup.columns, gdf.geometry.name]].copy()
+    usable = out.geometry.notna() & ~out.geometry.is_empty
+    if not usable.all():
+        logger.warning(f"Lookup '{lookup.name}' dropped {int((~usable).sum())} rows with no geometry")
+    return out[usable].reset_index(drop=True)
+
+
 def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame:
     """The key + selected columns as a plain DataFrame."""
+    if lookup.geometry:
+        return select_spatial_lookup_columns(gdf, lookup)
     if lookup.key not in gdf.columns:
         raise KeyError(f"Lookup '{lookup.name}' key column '{lookup.key}' not found in source")
     for col in lookup.columns:
