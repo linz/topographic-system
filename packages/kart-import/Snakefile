@@ -80,6 +80,8 @@ rule export_lookup:
 # 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
 rule prepare_lookup:
     input:
+        # clone must be present: prepare reads each commit's declared schema from it.
+        cloned = "data/source/{lookup}/.cloned",
         exported = "data/working/export/lookup/{lookup}",
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
@@ -92,6 +94,8 @@ rule prepare_lookup:
 rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
+        # clone must be present: transform reads the source's declared schema from it.
+        cloned = "data/source/{dataset}/.cloned",
         exported = "data/working/export/release_{release}/{dataset}.json",
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
