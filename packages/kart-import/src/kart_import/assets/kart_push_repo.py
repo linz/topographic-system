@@ -6,9 +6,13 @@ The branch contains the entire import history, ready to PR into `master`.
 Pass `--force` to force-push.
 Pass `--master` to push to `master`.
 Combine for destructive full reload.
+
+Pushed one release at a time, each tagged `release/<id>`: a whole-history push exceeds GitHub's
+2GB pack limit, and releases already on the remote make a retry resumable.
 """
 
 import logging
+from pathlib import Path
 
 from kart_import.log import log_context
 
@@ -24,6 +28,27 @@ def release_branch() -> str:
     return f"feat/release{releases[-1].id}" if releases else "import"
 
 
+def release_tag(release_id: int) -> str:
+    """Tag naming a release's last commit; lightweight so a rebuild tags identically."""
+    return f"release/{release_id}"
+
+
+def release_checkpoints(repo_dir: Path) -> list[tuple[int, str]]:
+    """Each release's marker commit, oldest first -- see `kart_import.git.linearise`."""
+    log = run_command(["git", "log", "--reverse", "--format=%H %s"], cwd=repo_dir)
+
+    checkpoints: list[tuple[int, str]] = []
+    for line in log.splitlines():
+        sha, _, subject = line.partition(" ")
+        word, _, release = subject.partition(" ")
+        if word == "release" and release.isdigit():
+            checkpoints.append((int(release), sha))
+
+    if not checkpoints:
+        raise ValueError(f"No release markers found in {repo_dir}; nothing to push")
+    return checkpoints
+
+
 def push_repo(repo_name: str, to_master: bool = False, force: bool = False) -> str:
     repo_dir = OUTPUT_DIR / repo_name
     if not (repo_dir / ".git").exists():
@@ -35,20 +60,35 @@ def push_repo(repo_name: str, to_master: bool = False, force: bool = False) -> s
     run_command(["git", "remote", "remove", "origin"], cwd=repo_dir, allow_error="No such remote")
     run_command(["git", "remote", "add", "origin", url], cwd=repo_dir)
 
+    checkpoints = release_checkpoints(repo_dir)
+    final_release = checkpoints[-1][0]
+
     logger.info(
         "pushing target repo",
-        extra={"repo": repo_name, "url": url, "ref": ref, "mode": "master" if to_master else "branch"},
+        extra={
+            "repo": repo_name,
+            "url": url,
+            "ref": ref,
+            "mode": "master" if to_master else "branch",
+            "releases": len(checkpoints),
+        },
     )
 
-    git_command = ["git", "push"]
-    if force:
-        git_command.append("--force")
-    git_command.extend(["origin", f"HEAD:refs/heads/{ref}"])
+    for release_id, sha in checkpoints:
+        tag = release_tag(release_id)
+        run_command(["git", "tag", "--force", tag, sha], cwd=repo_dir)
 
-    run_command(git_command, cwd=repo_dir)
+        git_command = ["git", "push"]
+        if force:
+            git_command.append("--force")
+        # Branch and tag in one round trip; an already-pushed release is a no-op, not a re-send.
+        git_command.extend(["origin", f"{sha}:refs/heads/{ref}", f"refs/tags/{tag}"])
+        run_command(git_command, cwd=repo_dir)
+
+        logger.info("pushing chunk", extra={"push": release_id, "of": final_release})
 
     (repo_dir / ".pushed").write_text(f"{url} {ref}\n")
-    logger.info("pushed", extra={"repo": repo_name, "ref": ref})
+    logger.info("pushed", extra={"repo": repo_name, "ref": ref, "releases": len(checkpoints)})
     return ref
 
 
