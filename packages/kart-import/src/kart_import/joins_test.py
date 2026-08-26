@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import geopandas as gpd
 import pandas as pd
 import pytest
+import shapely
 from shapely.geometry import Point
 
 from . import config, joins
@@ -268,3 +269,36 @@ def test_select_lookup_columns_tolerates_a_repeated_column(columns):
     out = prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=columns))
 
     assert list(out.columns) == ["t50_fid", "width"]
+
+
+def test_apply_joins_within_attaches_the_containing_feature(tmp_path, monkeypatch):
+    """A spatial lookup is matched by predicate rather than key."""
+    monkeypatch.setitem(
+        config.LOOKUP_MAP, "landuse", Lookup(name="landuse", source=_SRC, columns=["id"], geometry=True)
+    )
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    (tmp_path / "landuse").mkdir()
+    gpd.GeoDataFrame(
+        {"id": ["LU-1", "LU-2"]},
+        geometry=[shapely.box(0, 0, 10, 10), shapely.box(20, 20, 30, 30)],
+        crs="EPSG:2193",
+    ).to_parquet(tmp_path / "landuse" / "abc123.parquet")
+
+    td = ThemeDataset(
+        name="golf_sym",
+        source=Source(url="git@github.com:linz/topographic-source-data", dataset="golf_sym"),
+        joins=[Join(lookup="landuse", predicate="within")],
+    )
+    points = gpd.GeoDataFrame(
+        {"auto_pk": [1, 2, 3]},
+        geometry=[Point(5, 5), Point(25, 25), Point(50, 50)],
+        crs="EPSG:2193",
+    )
+
+    out = joins.apply_joins(points, td, 66)
+
+    assert len(out) == 3
+    assert out["landuse.id"].tolist()[:2] == ["LU-1", "LU-2"]
+    assert pd.isna(out["landuse.id"].iloc[2])
+    assert isinstance(out, gpd.GeoDataFrame) and out.crs == "EPSG:2193"
