@@ -176,3 +176,19 @@ def test_lifecycle_pk_misses_while_the_export_float_survives():
     """Pins why the restoration matters here: float64 keys as '3197173.0' and matches nothing."""
     with pytest.raises(KeyError, match=r"3197173\.0"):
         transform.normalize_field_lifecyle(_pk_frame("float64"), _TD, LIFECYCLE)
+
+
+def test_empty_transform_carries_the_target_columns_and_crs():
+    """An empty source has no columns to normalise, so the pipeline emits the shape the
+    normalisers would have produced and lets the emptiness flow through to the theme."""
+    td = ThemeDataset(
+        name="ds",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        mapping={"t50_fid": "$", "type": "trig"},
+    )
+
+    out = transform.empty_transform(td, "EPSG:4167")
+
+    assert out.empty
+    assert list(out.columns) == ["id", "created_at", "updated_at", "t50_fid", "type", "geometry"]
+    assert out.crs == "EPSG:4167"

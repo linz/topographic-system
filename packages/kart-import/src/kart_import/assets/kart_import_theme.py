@@ -1,6 +1,8 @@
 import logging
 import shutil
 
+import pyogrio
+
 from kart_import.log import log_context
 
 from ..command import run_command
@@ -35,6 +37,11 @@ def kart_import_theme(theme_name: str):
         input_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
         if not input_file.exists():
             logger.warning(f"Theme file not found: {input_file}. Skipping import.")
+            continue
+
+        # `force_feature_count` because FlatGeobuf reports -1, not 0, for an empty layer.
+        if pyogrio.read_info(input_file, force_feature_count=True)["features"] == 0:
+            logger.info("Theme has no features for this release. Skipping import.", extra={"release": release.id})
             continue
 
         logger.info("Importing release", extra={"release": release.id})
