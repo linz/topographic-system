@@ -17,6 +17,13 @@ type GeoJson = { type: string; features: unknown[] };
  * all fit together with margin to spare.
  */
 export const MaxGeoJsonLength = 25_000;
+/**
+ * CRS to reproject the geojson diff into. GeoJSON (RFC 7946) mandates WGS 84 longitude/latitude, and
+ * GitHub only draws a geojson code block on a map when the coordinates fall inside that range. The
+ * topographic datasets are stored in projected metres (eg EPSG:2193 for nztopo50_map_sheet), whose
+ * northings sit far outside +/-90, so an unprojected diff renders as an empty map with no error.
+ */
+export const GeojsonCrs = 'EPSG:4326';
 export const MaxDiffLines = 30;
 export const MaxDiffLineLength = 120;
 /**
@@ -39,7 +46,7 @@ interface GitContext {
 /** Canonical filenames for the diff artifacts written under {@link GitContext.output}. */
 const TextDiffName = 'kart_diff.txt';
 const HtmlDiffName = 'kart_diff.html';
-const GeojsonDiffName = 'kart_diff.geojson';
+const GeojsonDiffName = 'kart_diff_geojson/';
 const GitDiffName = 'git_diff.txt';
 
 /** Run kart to write the text diff artifact to disk, returning its location. */
@@ -60,11 +67,15 @@ async function writeHtmlDiff(ctx: GitContext): Promise<URL> {
   return location;
 }
 
-/** Run kart to write the geojson diff artifact to disk, returning its location. */
+/**
+ * Run kart to write the geojson diff artifact to disk, returning its location. Geometries are
+ * reprojected to {@link GeojsonCrs}, as kart emits them in the dataset's own CRS which is neither
+ * valid GeoJSON nor renderable - see the note on {@link GeojsonCrs}.
+ */
 async function writeGeojsonDiff(ctx: GitContext): Promise<URL> {
   mkdirSync(ctx.output, { recursive: true });
   const location = new URL(GeojsonDiffName, ctx.output);
-  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --output "${fileURLToPath(location)}"`;
+  await $`kart ${gitContext(ctx.repo)} diff ${ctx.diffRange} -o geojson --crs ${GeojsonCrs} --output "${fileURLToPath(location)}"`;
   return location;
 }
 
@@ -172,19 +183,13 @@ async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileSt
 async function readGeojsonDiff(ctx: GitContext): Promise<Record<string, string>> {
   try {
     const geojsonDiffLocation = new URL(GeojsonDiffName, ctx.output);
-    const stat = await fsa.head(geojsonDiffLocation);
     const geojsonByDataset: Record<string, string> = {};
 
-    if (stat && stat.isDirectory) {
-      const files = await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }));
-      for (const file of files) {
-        const jsonFile = await readGeojsonFile(file);
-        if (jsonFile) {
-          geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
-        }
-      }
-    } else if (stat) {
-      const jsonFile = await readGeojsonFile(geojsonDiffLocation);
+    const geojsonFiles = (await fsa.toArray(fsa.list(geojsonDiffLocation, { recursive: true }))).filter((f) =>
+      f.pathname.endsWith('.geojson'),
+    );
+    for (const file of geojsonFiles) {
+      const jsonFile = await readGeojsonFile(file);
       if (jsonFile) {
         geojsonByDataset[jsonFile.datasetName] = jsonFile.fileString;
       }

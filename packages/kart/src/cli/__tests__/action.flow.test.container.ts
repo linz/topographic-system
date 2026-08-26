@@ -43,14 +43,28 @@ async function cli(...args: (string | string[])[]): Promise<string> {
   return result.stdout;
 }
 
+/** Shape of the fixture repo, so a test can pin the CRS the dataset is genuinely stored in. */
+interface FixtureRepoOptions {
+  /** EPSG code to store the dataset in. Coordinates below are always given as lon/lat. */
+  epsg?: number;
+  /** lon/lat of the feature in the first commit on master. */
+  seedCoordinates?: number[];
+  /** lon/lat of the feature added by the commit on the `changes` branch. */
+  changeCoordinates?: number[];
+}
+
 /**
  * Create a minimal kart repository for testing:
  *  - A single dataset with one point feature, imported from GeoJSON → GPKG
  *  - Initialized as a bare kart repo with one commit on master
  * @param baseDir The base directory under which to create the repo (e.g. a temp directory)
+ * @param options Override the dataset CRS and the seeded coordinates
  * @returns The URL of the created bare kart repository
  */
-async function createFixtureRepo(baseDir: URL): Promise<URL> {
+async function createFixtureRepo(baseDir: URL, options: FixtureRepoOptions = {}): Promise<URL> {
+  const epsg = options.epsg ?? 4326;
+  const seedCoordinates = options.seedCoordinates ?? [174.7794, -41.2809];
+  const changeCoordinates = options.changeCoordinates ?? [174.7633, -36.8485];
   const seedGeojson = new URL('seed.geojson', baseDir);
   const seedGpkg = new URL('seed.gpkg', baseDir);
   const bareRepo = new URL('fixture.kart/', baseDir);
@@ -69,13 +83,14 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
         {
           type: 'Feature',
           properties: { fid: 1, name: 'linz' },
-          geometry: { type: 'Point', coordinates: [174.7794, -41.2809] },
+          geometry: { type: 'Point', coordinates: seedCoordinates },
         },
       ],
     }),
   );
 
-  await $`ogr2ogr -f GPKG ${fileURLToPath(seedGpkg)} ${fileURLToPath(seedGeojson)} -nln test_points`;
+  // -t_srs stores the dataset in the requested CRS; for 4326 it is a no-op.
+  await $`ogr2ogr -f GPKG -t_srs EPSG:${epsg} ${fileURLToPath(seedGpkg)} ${fileURLToPath(seedGeojson)} -nln test_points`;
   await $({
     env: { ...process.env, ...gitEnv },
   })`kart init --import ${`GPKG:${fileURLToPath(seedGpkg)}`} ${fileURLToPath(bareRepo)} --bare -b master`;
@@ -93,12 +108,12 @@ async function createFixtureRepo(baseDir: URL): Promise<URL> {
         {
           type: 'Feature',
           properties: { fid: 2, name: 'elsewhere' },
-          geometry: { type: 'Point', coordinates: [174.7633, -36.8485] },
+          geometry: { type: 'Point', coordinates: changeCoordinates },
         },
       ],
     }),
   );
-  await $`ogr2ogr -append -f GPKG ${fileURLToPath(new URL('wc.gpkg', workingCopy))} ${fileURLToPath(changeGeojson)} -nln test_points`;
+  await $`ogr2ogr -append -f GPKG -t_srs EPSG:${epsg} ${fileURLToPath(new URL('wc.gpkg', workingCopy))} ${fileURLToPath(changeGeojson)} -nln test_points`;
   await $({
     env: { ...process.env, ...gitEnv },
   })`kart -C ${fileURLToPath(workingCopy)} commit -m ${'Add another point'}`;
@@ -286,4 +301,74 @@ describe('to-parquet CRS preservation', () => {
       assert.strictEqual(await readParquetEpsg(parquet), sourceEpsg, `parquet must preserve source EPSG:${sourceEpsg}`);
     });
   }
+});
+
+/**
+ * The datasets are stored in projected metres (eg EPSG:2193), but a `.geojson` diff must be WGS 84
+ * longitude/latitude - both to satisfy RFC 7946 and so GitHub renders the PR comment's geojson block
+ * as a map instead of silently drawing nothing. The 4326 fixture used above cannot catch a missing
+ * reprojection, so build a repo genuinely in NZTM2000 and check the diff comes back in degrees.
+ */
+describe('diff CRS reprojection', () => {
+  const tempDir = stringToUrlFolder(path.join(tmpdir(), 'kart-diff-crs'));
+  const repoUrl = new URL('repo/', tempDir);
+  const diffUrl = new URL('diff/', tempDir);
+  const summaryUrl = new URL('pr_summary.md', tempDir);
+
+  // A point on the CJ07/CK07 sheet, in the lon/lat the diff is expected to return.
+  const seedLonLat: [number, number] = [167.12, -47.34];
+  const [expectedLon, expectedLat]: [number, number] = [167.45, -47.05];
+  const changeLonLat: [number, number] = [expectedLon, expectedLat];
+
+  before(async () => {
+    cliLocation = await findCli();
+    await mkdir(fileURLToPath(tempDir), { recursive: true });
+    const bareRepo = await createFixtureRepo(new URL('source/', tempDir), {
+      epsg: 2193,
+      seedCoordinates: seedLonLat,
+      changeCoordinates: changeLonLat,
+    });
+    await $`kart clone ${bareRepo.href} --no-checkout ${repoUrl.pathname}`;
+    await $`kart -C ${repoUrl.pathname} fetch origin changes`;
+  });
+
+  after(async () => {
+    await rm(fileURLToPath(tempDir), { recursive: true, force: true });
+  });
+
+  it('writes the geojson diff in lon/lat, not the dataset CRS', async () => {
+    await cli(
+      'diff',
+      ['--context', fileURLToPath(repoUrl)],
+      ['--output', fileURLToPath(diffUrl)],
+      ['--summary-file', fileURLToPath(summaryUrl)],
+    );
+
+    const geojsonLocation = new URL('kart_diff_geojson', diffUrl);
+    const stat = await fsa.head(geojsonLocation);
+    assert.ok(stat, `expected a geojson diff at ${geojsonLocation.href}`);
+    const geojsonFiles = (await fsa.toArray(fsa.list(geojsonLocation, { recursive: true }))).filter((f) =>
+      f.pathname.endsWith('.geojson'),
+    );
+    assert.ok(geojsonFiles.length > 0, 'expected at least one geojson diff file');
+
+    let featureCount = 0;
+    for (const file of geojsonFiles) {
+      const collection = JSON.parse((await fsa.read(file)).toString()) as {
+        features: { geometry: { coordinates: number[] } }[];
+      };
+      for (const feature of collection.features) {
+        const [lon, lat] = feature.geometry.coordinates;
+        assert.ok(lon != null && lat != null, 'feature should have coordinates');
+        // An unprojected NZTM easting/northing (~1156000/4740000) fails both of these.
+        assert.ok(lon >= -180 && lon <= 180, `longitude ${lon} outside valid range - diff was not reprojected`);
+        assert.ok(lat >= -90 && lat <= 90, `latitude ${lat} outside valid range - diff was not reprojected`);
+        // Round-trip 2193 -> 4326 is lossy well below a metre, far tighter than 1e-6 degrees.
+        assert.ok(Math.abs(lon - expectedLon) < 1e-6, `longitude ${lon} should match the seeded value`);
+        assert.ok(Math.abs(lat - expectedLat) < 1e-6, `latitude ${lat} should match the seeded value`);
+        featureCount++;
+      }
+    }
+    assert.ok(featureCount > 0, 'expected at least one changed feature to assert on');
+  });
 });

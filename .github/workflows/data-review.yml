@@ -85,7 +85,9 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Kart Prepare
-        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output "${{ inputs.data }}" --changed-datasets-only="$CHANGED_DATASETS_ONLY"
+        # `--diff-output`/`--validation-output-dir` default to $TMPDIR, which the artifact upload below
+        # cannot reach; point them at the workspace so the diff and validation results are collectable.
+        run: node /app/index.cjs kart-prepare "$CLONE_URL" --ref "$HEAD_REF" --output "${{ inputs.data }}" --changed-datasets-only="$CHANGED_DATASETS_ONLY" --diff-output diff/ --validation-output-dir validation-output/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLONE_URL: ${{ inputs.clone_url || github.event.repository.clone_url }}
@@ -97,10 +99,14 @@ jobs:
       - name: Stac Push
         run: node /app/index.cjs stac-push --source "${{ inputs.data }}catalog.json" --target ${{ inputs.output }} --category data --strategy=${{ inputs.strategy }} --commit=${{ inputs.commit }}
 
+      # Runs even when a previous step failed: a validation failure aborts `kart-prepare`, and its
+      # report is exactly what is needed to diagnose that failure.
       - name: Upload artifacts
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: data-review
           path: |
             pr_summary.md
             diff/
+            validation-output/
