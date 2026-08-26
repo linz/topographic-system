@@ -19,8 +19,7 @@ datasets:
       name: $name
       theme: landcover
       metadata: null
-  # FIXME: needs lookup for t50_fid — these sources key on auto_pk, or carry
-  #   t50_fid as a float that only appears in later releases.
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone3
   #    name: cook_islands_rock_points_zone3
   #    mapping:
@@ -55,6 +54,7 @@ datasets:
   #      name: $name
   #      theme: landcover
   #      metadata: null
+  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
   #    mapping:
   #      t50_fid: $
@@ -95,6 +95,7 @@ datasets:
   #      name: $name
   #      theme: landcover
   #      metadata: null
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-points-ant-150k
   #    mapping:
   #      t50_fid: $

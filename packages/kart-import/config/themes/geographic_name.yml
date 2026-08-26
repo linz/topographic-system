@@ -2,7 +2,7 @@ name: geographic_name
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone3
   #    name: cook_islands_geographic_names_zone3
   #    mapping:
@@ -13,7 +13,6 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone4
   #    name: cook_islands_geographic_names_zone4
   #    mapping:
@@ -24,7 +23,6 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/niue-geographic-names-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -53,7 +51,6 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-auckland-island-geographic-names-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -63,7 +60,6 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
   #    mapping:
   #      t50_fid: $
@@ -73,7 +69,6 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -102,7 +97,7 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-geographic-names-ant-150k
   #    mapping:
   #      t50_fid: $
@@ -122,7 +117,7 @@ datasets:
   #      size: $size
   #      theme: annotation
   #      metadata: null
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-geographic-names-topo-125k
   #    mapping:
   #      t50_fid: $

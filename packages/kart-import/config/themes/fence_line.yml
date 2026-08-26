@@ -2,7 +2,7 @@ name: fence_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-fence-centrelines-topo-125k-zone4
   #    name: cook_islands_fence_centrelines
   #    mapping:
@@ -10,7 +10,6 @@ datasets:
   #      type: fence
   #      theme: structures
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/niue-fence-centrelines-topo-150k
   #    mapping:
   #      t50_fid: $
