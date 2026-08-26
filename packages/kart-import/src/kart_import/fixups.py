@@ -28,7 +28,8 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from datetime import UTC
+from typing import TYPE_CHECKING, NamedTuple
 
 logger = logging.getLogger("kart_import")
 
@@ -132,6 +133,142 @@ def drop_degenerate_roads(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: i
     "now has geometry" warning and no release gate is needed; see `_drop_listed_empty`.
     """
     return _drop_listed_empty(gdf, td, "nz_road_centrelines", {6635943, 8532247})
+
+
+class SourceRef(NamedTuple):
+    """The constant half of a provenance record: which target column it explains, and where that
+    column's value came from. Only `source_key_value` and the two timestamps vary per row.
+
+    Field names are the record's JSON keys.
+    """
+
+    table_column: str
+    """The target column whose value this record accounts for."""
+    source: str
+    """The external system, e.g. `linz_aims`."""
+    source_key_name: str
+    """What that system calls the key, e.g. `road_id`."""
+    source_table: str
+    """The table within that system, e.g. `roads`."""
+    source_column: str
+    """The column within that table the value was read from."""
+
+
+ROAD_NAME_FROM_AIMS = SourceRef(
+    table_column="name",
+    source="linz_aims",
+    source_key_name="road_id",
+    source_table="roads",
+    source_column="name",
+)
+
+ROAD_SUFI_UNSET = 0
+"""`rna_sufi`'s "no AIMS road" sentinel. Never null in any release 30-66, always 0 - so this rather
+than a null check is what separates a road whose name came from AIMS from one that has no link."""
+
+
+def _release_stamp(release_id: int) -> str:
+    """The release's own date as RFC 3339 UTC text, for a provenance timestamp."""
+    from .config import get_releases
+
+    release_date = next((release.date for release in get_releases() if release.id == release_id), None)
+    if release_date is None:
+        raise LookupError(f"release {release_id} is not in the release config")
+    # A naive date is read as UTC, not as the builder's local time: every entry in
+    # `topo50_release.yml` carries a `Z`, so naive here means a test or a hand-built Release, and
+    # `astimezone` on a naive value would otherwise make the output depend on the machine's TZ.
+    if release_date.tzinfo is None:
+        release_date = release_date.replace(tzinfo=UTC)
+    return release_date.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _build_source_metadata(
+    gdf: gpd.GeoDataFrame,
+    td: ThemeDataset,
+    release_id: int,
+    dataset: str,
+    ref: SourceRef,
+    unset_key: int | None = None,
+) -> gpd.GeoDataFrame:
+    """Rewrite `metadata` from the raw external keys it is carrying into provenance records.
+
+    A one-element JSON array of the shape the Postgres loader builds with `jsonb_build_array`.
+    `metadata` is typed `string` in the theme schemas, so this is JSON *text*; the cast to `jsonb`
+    happens downstream.
+
+    **The column is its own input.** `normalize_fields` rebuilds the frame from the mapping alone,
+    dropping every unmapped source column, and fixups run after it - so a fixup cannot reach the
+    key column directly, and the key cannot be mapped to a column of its own.
+    Instead, the config maps it *into* `metadata`:
+
+        metadata: {source: $rna_sufi, fixup: true}
+
+    and this rewrites those raw values into the finished records.
+
+    `unset_key` is the source's "no link" sentinel, if it has one; rows holding it get NULL
+    `metadata` rather than a record asserting a link to a row that does not exist. A NULL key is
+    always treated as unset.
+
+    `dataset` names what the wiring was checked against, as in `_drop_listed_empty`: pointed at
+    another dataset this would silently overwrite that dataset's `metadata` instead of failing.
+
+    Keys are assumed numeric (`road_id` and NZGB's `feat_id` both are). A text-keyed source is
+    where this would need to grow a coercion choice.
+    """
+    import json
+
+    import pandas as pd
+
+    if td.name != dataset:
+        raise ValueError(f"fixup for dataset '{dataset}' applied to '{td.name}'")
+
+    stamp = _release_stamp(release_id)
+
+    # Not `errors="coerce"`: a non-numeric column here means the config wired something other than
+    # the key column into `metadata`, which should fail rather than quietly produce an all-null one.
+    key = pd.to_numeric(gdf["metadata"]).astype("Int32", errors="raise")
+    keyed = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+
+    def record(key_value: int) -> str:
+        # sort_keys/separators so the same key always serialises to the same bytes - two runs that
+        # differ only in dict ordering would read as a changed feature to kart.
+        return json.dumps(
+            [{**ref._asdict(), "source_key_value": key_value, "source_updated_at": stamp, "imported_at": stamp}],
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+    # Built per distinct key, not per row: one external record covers many features (21,602 of
+    # release 66's 93,308 keyed roads repeat a sufi), and the record depends on nothing else.
+    keys = key[keyed]
+    records = {key_value: record(key_value) for key_value in keys.unique().tolist()}
+
+    metadata = pd.Series(pd.NA, index=gdf.index, dtype="string")
+    metadata[keyed] = keys.map(records).astype("string")
+
+    logger.info(
+        "built source metadata",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "source": ref.source,
+            "keyed": int(keyed.sum()),
+            "unlinked": int((~keyed).sum()),
+            # A key with no value to attribute: the record still says the column came from `source`.
+            f"keyed_without_{ref.table_column}": int((keyed & gdf[ref.table_column].isna()).sum()),
+        },
+    )
+
+    gdf = gdf.copy()
+    gdf["metadata"] = metadata
+    return gdf
+
+
+def build_road_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Record that `nz_road_centrelines`' `name` came from LINZ AIMS, keyed by `rna_sufi`."""
+    return _build_source_metadata(
+        gdf, td, release_id, "nz_road_centrelines", ROAD_NAME_FROM_AIMS, unset_key=ROAD_SUFI_UNSET
+    )
 
 
 def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
@@ -246,6 +383,7 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
 
 
 FIXUPS: dict[str, Fixup] = {
+    "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,

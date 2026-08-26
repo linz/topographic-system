@@ -28,12 +28,16 @@ datasets:
       road_access: $road_lkp.road_acces
       width_indicator: $road_lkp.width
       theme: transport
-      metadata: null
+      # Carries `rna_sufi` (the AIMS road id) into the column `build_road_metadata` then rewrites
+      # into the provenance record for `name`. Mapped this way because `rna_sufi` is not a column of
+      # the road_line schema, and normalize_fields drops whatever the mapping does not name.
+      metadata: { source: $rna_sufi, fixup: true }
     joins:
       - lookup: road_lkp
         left_on: t50_fid
     fixups:
       - fn: drop_degenerate_roads # near-zero-length lines that collapse to LINESTRING EMPTY on rounding
+      - fn: build_road_metadata # $rna_sufi -> name provenance JSON; sufi 0 (no AIMS link) stays null
     corrections:
       # Both spellings occur across releases: 'one way' is the LDS value the legacy
       # space->underscore step normalised, '1' the older LAMPS code. Applied together.
