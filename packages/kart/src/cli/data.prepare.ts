@@ -87,7 +87,7 @@ export async function prepareData<const T extends readonly URL[]>(opts: PrepareD
 
   const rootCatalog = new URL('catalog.json', output);
   const q = qFromArgs({ concurrency: opts.concurrency });
-  const downloader = new StacDownloader(tempLocation, cache, q);
+  const downloader = new StacDownloader({ target: tempLocation, cache, q });
 
   const resolvedSource = await Promise.all(sources.map((m) => downloader.resolveUrl(m)));
 

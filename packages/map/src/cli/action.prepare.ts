@@ -122,7 +122,7 @@ export const PrepareCommand = command({
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
     );
 
-    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
     if (args.strategy) {
       downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));
       logger.info({ strategy: args.strategy }, 'Prepare: Storage strategy override set');

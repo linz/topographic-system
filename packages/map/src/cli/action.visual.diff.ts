@@ -69,7 +69,7 @@ export const VisualDiffCommand = command({
     if (args.output.protocol === 'file:') mkdirSync(args.output, { recursive: true });
     const tasks: Promise<void>[] = [];
 
-    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
 
     if (args.strategy) {
       downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));

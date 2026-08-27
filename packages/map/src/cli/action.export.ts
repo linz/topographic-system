@@ -84,7 +84,7 @@ export const ExportCommand = command({
     const paths = args.fromFile != null ? args.path.concat(args.fromFile) : args.path;
     if (paths.length === 0) throw new Error('At least one path to a stac item or item configuration must be provided');
 
-    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
 
     const items = await Promise.all(
       paths
