@@ -95,7 +95,7 @@ datasets:
       theme: landuse
       metadata: null
     corrections:
-      - { column: substance_extracted, replace: { "silica sand": silica_sand } }
+      - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
   - source: kart@data.koordinates.com:linz/nz-chatham-island-quarry-polygons-topo-150k
     mapping:
       t50_fid: $
@@ -107,7 +107,7 @@ datasets:
       theme: landuse
       metadata: null
     corrections:
-      - { column: substance_extracted, replace: { "silica sand": silica_sand } }
+      - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
   - source: kart@data.koordinates.com:linz/nz-racetrack-polygons-topo-150k
     mapping:
       t50_fid: $

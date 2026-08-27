@@ -13,7 +13,7 @@ datasets:
       theme: transport
       metadata: null
     corrections:
-      - { column: type, replace: { "foot traffic": foot_traffic } }
+      - { column: type, replace: { 'foot traffic': foot_traffic } }
       - { column: subtype, replace: { ivestock: livestock } }
       # A handful of releases have use1/use2 swapped: `vehicle` lands in use2 and `livestock` in use1. Put each back in its own column.
       - { column: type, set: vehicle, where: { subtype: vehicle } }
