@@ -1,0 +1,20 @@
+name: tunnel_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-tunnel-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: $use1
+      subtype: $use2
+      construction_type: $type
+      status: $status
+      name: $name
+      theme: transport
+      metadata: null
+    corrections:
+      - { column: type, replace: { "foot traffic": foot_traffic } }
+      - { column: subtype, replace: { ivestock: livestock } }
+      # A handful of releases have use1/use2 swapped: `vehicle` lands in use2 and `livestock` in use1. Put each back in its own column.
+      - { column: type, set: vehicle, where: { subtype: vehicle } }
+      - { column: subtype, set: livestock, where: { subtype: vehicle } }
