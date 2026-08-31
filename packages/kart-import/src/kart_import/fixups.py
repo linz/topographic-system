@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, NamedTuple
 
 logger = logging.getLogger("kart_import")
@@ -382,11 +382,129 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
     )
 
 
+def _grid_values(low: float, high: float, interval: float) -> list[float]:
+    """Grid line positions covering ``low``..``high``, snapped outward to whole intervals."""
+    import math
+
+    first = math.floor(low / interval)
+    last = math.ceil(high / interval)
+    return [(first + i) * interval for i in range(last - first + 1)]
+
+
+def _grid_line(value: float, along_x: bool, low: float, high: float, vertices: int):
+    """One grid line of ``vertices`` evenly spaced points, always wound low to high: along x holding
+    y ``value`` when ``along_x``, else along y holding x ``value``."""
+    from shapely.geometry import LineString
+
+    span = [low + (high - low) * i / (vertices - 1) for i in range(vertices)]
+    if along_x:
+        return LineString([(s, value) for s in span])
+    return LineString([(value, s) for s in span])
+
+
+def _generate_grid_features(
+    gdf: gpd.GeoDataFrame,
+    td: ThemeDataset,
+    release_id: int,
+    *,
+    bounds: tuple[float, float, float, float],
+    directions: tuple[str, str],
+    interval: float,
+    crs: str,
+    vertices: int,
+    margin: int = 0,
+) -> gpd.GeoDataFrame:
+    """Create grid with lines for a map sheet.
+
+    ``bounds`` is the extent to rule, as ``(minx, miny, maxx, maxy)`` already in ``crs`` units, and
+    ``directions`` labels the two line families, as (along x, along y).
+    Lines are ruled every ``interval`` units of ``crs``, each drawn with ``vertices``
+    evenly spaced points so it follows the curve of the grid once reprojected.
+    """
+    import geopandas as gpd_
+
+    from .uuid7 import reproducable_uuid7_text
+
+    minx, miny, maxx, maxy = bounds
+    pad = margin * interval
+    minx, miny, maxx, maxy = minx - pad, miny - pad, maxx + pad, maxy + pad
+    xs = _grid_values(minx, maxx, interval)
+    ys = _grid_values(miny, maxy, interval)
+    along_x, along_y = directions
+
+    # Lines run edge to edge of the snapped extent, so every sheet is ruled corner to corner.
+    lines = [(along_x, value, _grid_line(value, True, xs[0], xs[-1], vertices)) for value in ys]
+    lines += [(along_y, value, _grid_line(value, False, ys[0], ys[-1], vertices)) for value in xs]
+
+    # IDs are a pure function of the line itself based on the earliest release timestamp (release 30)
+    base_timestamp = int(datetime(2015, 11, 19, 2, 33, 32, tzinfo=UTC).timestamp() * 1000)
+    ids = [
+        str(reproducable_uuid7_text(base_timestamp, f"{td.name}:{direction}:{value:.9f}"))
+        for direction, value, _ in lines
+    ]
+
+    logger.info(
+        "generate_grid_features",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "lines": len(lines),
+            "extent": [minx, miny, maxx, maxy],
+        },
+    )
+
+    geoms = gpd_.GeoSeries([geom for _, _, geom in lines], crs=crs)
+    if gdf.crs is not None:
+        geoms = geoms.to_crs(gdf.crs)
+    return gpd_.GeoDataFrame(
+        {
+            "id": ids,
+            "t50_fid": [None] * len(lines),
+            "direction": [direction for direction, _, _ in lines],
+            "value": [value for _, value, _ in lines],
+        },
+        geometry=geoms.reset_index(drop=True),
+        crs=geoms.crs,
+    )
+
+
+def generate_nztm_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Rule the nztopo50_grid: 1 km lines in NZTM2000, straight in projection so two points are sufficient"""
+    return _generate_grid_features(
+        gdf,
+        td,
+        release_id,
+        bounds=(1_084_000, 4_722_000, 2_092_000, 6_234_000),
+        directions=("easting", "northing"),
+        interval=1_000,
+        crs="EPSG:2193",
+        vertices=2,
+        margin=1,
+    )
+
+
+def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Rule the nztopo50_dms_grid: one arcminute lines in WGS84, 1000 vertices so they stay curved when reprojected into NZTM2000."""
+    return _generate_grid_features(
+        gdf,
+        td,
+        release_id,
+        bounds=(166, -48, 180, -34),
+        directions=("longitude", "latitude"),
+        interval=1.0 / 60.0,
+        crs="EPSG:4326",
+        vertices=1_001,
+        margin=0,
+    )
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,
     "drop_empty_residential_areas": drop_empty_residential_areas,
+    "generate_dms_grid_features": generate_dms_grid_features,
+    "generate_nztm_grid_features": generate_nztm_grid_features,
     "split_multipart_features": split_multipart_features,
 }

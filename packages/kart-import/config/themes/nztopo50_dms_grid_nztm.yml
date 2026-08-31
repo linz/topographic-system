@@ -1,0 +1,13 @@
+name: nztopo50_dms_grid_nztm
+target_repo: topographic-product-data
+target_epsg: EPSG:2193 # test sibling of nztopo50_dms_grid: same grid, stored in NZTM
+datasets:
+  # any valid source is fine. The fixups function supplies every row and column.
+  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+    name: nztopo50_dms_grid_nztm
+    mapping:
+      t50_fid: null
+      direction: { source: null, fixup: true }
+      value: { source: null, fixup: true }
+    fixups:
+      - fn: generate_dms_grid_features
