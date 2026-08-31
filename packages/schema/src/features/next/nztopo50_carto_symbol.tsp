@@ -20,11 +20,15 @@ model nztopo50_carto_symbol {
 
   type: carto_symbol_type;
   label: string | null;
+
+  /** Label rotation in degrees clockwise from east. Null for symbols drawn unrotated. */
   orientation: float64 | null;
+
   ...GeoParquet;
 }
 
 enum carto_symbol_type {
+  ContourNumber: "contour_number",
   GolfCourse: "golf_course",
   HighwayShield: "highway_shield",
   MineOpencast: "mine_opencast",

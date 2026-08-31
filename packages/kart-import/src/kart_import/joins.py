@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import geopandas as gpd
 import pandas as pd
+import shapely
 
 from .config import (
     SOURCE_DIR,
@@ -145,6 +146,21 @@ def _plan_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> lis
     return plans
 
 
+def chop(gdf: gpd.GeoDataFrame, stride: int) -> gpd.GeoDataFrame:
+    """Split linework into pieces of at most `stride` segments."""
+    gdf = gdf.explode(index_parts=False).reset_index(drop=True)
+
+    owner, pieces = [], []
+    for index, geometry in enumerate(gdf.geometry.to_numpy()):
+        coords = shapely.get_coordinates(geometry)
+        for start in range(0, len(coords) - 1, stride):
+            owner.append(index)
+            pieces.append(shapely.LineString(coords[start : start + stride + 1]))
+
+    attrs = gdf.drop(columns=gdf.geometry.name).iloc[owner].reset_index(drop=True)
+    return gpd.GeoDataFrame(attrs, geometry=pieces, crs=gdf.crs)
+
+
 def _spatial_join(gdf: gpd.GeoDataFrame, plan: _JoinPlan, dataset_name: str) -> gpd.GeoDataFrame:
     """Attach a spatial lookup's columns by geometry."""
     join = plan.join
@@ -156,6 +172,9 @@ def _spatial_join(gdf: gpd.GeoDataFrame, plan: _JoinPlan, dataset_name: str) -> 
     assert crs is not None
     if right.crs != crs:
         right = right.to_crs(crs)
+
+    if join.chop:
+        right = chop(right, join.chop)
 
     if join.predicate == "nearest":
         if join.max_distance is not None and crs.is_geographic:

@@ -60,7 +60,8 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "description": "Label rotation in degrees clockwise from east. Null for symbols drawn unrotated."
     },
     "geometry": {
       "description": "GeoParquet 1.1 covering geometry struct.",
@@ -78,7 +79,7 @@
   "$defs": {
     "carto_symbol_type": {
       "type": "string",
-      "enum": ["golf_course", "highway_shield", "mine_opencast", "mine_training", "mine_underground"]
+      "enum": ["contour_number", "golf_course", "highway_shield", "mine_opencast", "mine_training", "mine_underground"]
     },
     "BBox": {
       "type": "object",

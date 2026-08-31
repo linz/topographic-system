@@ -229,6 +229,8 @@ class Join(BaseModel):
     """Subset of the lookup's columns to bring in; `None` brings all of them."""
     predicate: str = ""
     """Spatial match: `within` or `nearest`."""
+    chop: int | None = None
+    """`nearest` only: split lookup linework into pieces of at most this many segments first."""
     max_distance: float | None = None
     """`nearest` only: ignore lookup features further away than this."""
 
@@ -241,8 +243,9 @@ class Join(BaseModel):
                 f"join on lookup '{self.lookup}' has unknown predicate '{self.predicate}'; "
                 f"expected one of {', '.join(SPATIAL_PREDICATES)}"
             )
-        if self.max_distance is not None and self.predicate != "nearest":
-            raise ValueError(f"join on lookup '{self.lookup}' sets 'max_distance', which needs 'predicate: nearest'")
+        for field in ("max_distance", "chop"):
+            if getattr(self, field) is not None and self.predicate != "nearest":
+                raise ValueError(f"join on lookup '{self.lookup}' sets '{field}', which needs 'predicate: nearest'")
         return self
 
 

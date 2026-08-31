@@ -10,6 +10,13 @@ lookups:
     columns: [id]
     geometry: true
 
+  - name: contour
+    source:
+      url: git@github.com:linz/topographic-contour-data
+      dataset: contour
+    columns: [id, elevation]
+    geometry: true
+
   - name: road_line
     source:
       url: git@github.com:linz/topographic-data
@@ -66,3 +73,22 @@ datasets:
       label: $road_line.highway_number
       orientation: null
       t50_fid: null
+
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: contour_number
+    name: contour_number
+    joins:
+      - lookup: contour
+        predicate: nearest
+        max_distance: 20
+        chop: 64
+    mapping:
+      source_id: $contour.id
+      type: contour_number
+      label: $contour.elevation
+      orientation: $orientation
+      cont_rota: { source: $, fixup: true }
+      t50_fid: null
+    fixups:
+      - fn: contour_number
