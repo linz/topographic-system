@@ -302,3 +302,47 @@ def test_apply_joins_within_attaches_the_containing_feature(tmp_path, monkeypatc
     assert out["landuse.id"].tolist()[:2] == ["LU-1", "LU-2"]
     assert pd.isna(out["landuse.id"].iloc[2])
     assert isinstance(out, gpd.GeoDataFrame) and out.crs == "EPSG:2193"
+
+
+def test_apply_joins_nearest_respects_max_distance(tmp_path, monkeypatch):
+    """`nearest` takes the closest lookup feature, and `max_distance` (in the source CRS units)
+    bounds how far it will reach before giving up and leaving the columns null."""
+    monkeypatch.setitem(
+        config.LOOKUP_MAP, "contour", Lookup(name="contour", source=_SRC, columns=["elevation"], geometry=True)
+    )
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    (tmp_path / "contour").mkdir()
+    gpd.GeoDataFrame(
+        {"elevation": [100, 200]},
+        geometry=[shapely.LineString([(0, 0), (100, 0)]), shapely.LineString([(0, 40), (100, 40)])],
+        crs="EPSG:2193",
+    ).to_parquet(tmp_path / "contour" / "abc123.parquet")
+
+    td = ThemeDataset(
+        name="contour_number",
+        source=Source(url="git@github.com:linz/topographic-source-data", dataset="contour_number"),
+        joins=[Join(lookup="contour", predicate="nearest", max_distance=20)],
+    )
+    points = gpd.GeoDataFrame(
+        {"auto_pk": [1, 2, 3]},
+        geometry=[Point(50, 2), Point(50, 38), Point(200, 0)],  # 2m, 2m, and 100m past both lines
+        crs="EPSG:2193",
+    )
+
+    out = joins.apply_joins(points, td, 66)
+
+    assert len(out) == 3  # one row in, one row out
+    assert out["contour.elevation"].tolist()[:2] == [100, 200]
+    assert pd.isna(out["contour.elevation"].iloc[2])  # past max_distance
+    assert out.crs == "EPSG:2193"
+
+
+def test_chop_splits_linework_without_losing_segments():
+    line = shapely.LineString([(x, 0) for x in range(11)])
+    out = joins.chop(gpd.GeoDataFrame({"elevation": [100]}, geometry=[line], crs="EPSG:2193"), stride=4)
+
+    assert len(out) == 3  # 4 + 4 + 2, so 3 segments
+    assert out["elevation"].tolist() == [100, 100, 100]
+    assert sum(shapely.get_num_coordinates(g) - 1 for g in out.geometry) == 10
+    assert out.crs == "EPSG:2193"

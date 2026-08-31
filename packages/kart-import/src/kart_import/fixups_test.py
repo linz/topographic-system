@@ -365,3 +365,29 @@ def test_non_fixup_dataset_still_reuses_shared_source(tmp_path, monkeypatch):
 
     out66 = transform.transform_dataset_release("ds", 66)
     assert os.path.islink(out66)
+
+
+def _contour_number_gdf() -> gpd.GeoDataFrame:
+    """Two labels on the same contour direction, with downhill on opposite sides, plus one
+    whose nearest-contour join found nothing so `label` is null."""
+    return gpd.GeoDataFrame(
+        {
+            "orientation": [np.radians(30), np.radians(30), np.radians(30)],  # radians CCW from east
+            "cont_rota": [150.0, 330.0, 150.0],  # degrees CW from north, downhill, either side
+            "label": [100.0, 250.0, np.nan],
+        },
+        geometry=[Point(1600000, 5400000)] * 3,
+        crs="EPSG:2193",
+    )
+
+
+def test_contour_number_orients_the_label_and_renders_the_elevation():
+    """The tangent is radians counter-clockwise from east and the renderer wants degrees
+    clockwise from east, so an unflipped label comes out as `-degrees(orientation)`. Where
+    downhill sits on the other side of the contour the label is turned 180 degrees to keep
+    the digits facing uphill."""
+    out = fixups.contour_number(_contour_number_gdf(), _td([], name="contour_number"), 66)
+
+    # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
+    assert out["orientation"].tolist() == [330.0, 150.0, 330.0]
+    assert out["label"].tolist()[:2] == ["100", "250"]
