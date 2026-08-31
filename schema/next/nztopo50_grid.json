@@ -42,7 +42,7 @@
   "$defs": {
     "grid_direction": {
       "type": "string",
-      "enum": ["x", "y"]
+      "enum": ["easting", "northing"]
     },
     "BBox": {
       "type": "object",

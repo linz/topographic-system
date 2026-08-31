@@ -20,6 +20,7 @@ import "./marine_point.tsp";
 import "./nztopo50_carto_text.tsp";
 import "./nztopo50_coastline_island.tsp";
 import "./nztopo50_dms_grid.tsp";
+import "./nztopo50_dms_grid_nztm.tsp";
 import "./nztopo50_grid.tsp";
 import "./nztopo50_ice_contour.tsp";
 import "./nztopo50_map_sheet.tsp";

@@ -13,7 +13,14 @@ from . import fixups
 from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
-from .fixups import _drop_listed_empty, drop_degenerate_fences, drop_empty_residential_areas
+from .fixups import (
+    _drop_listed_empty,
+    _generate_grid_features,
+    drop_degenerate_fences,
+    drop_empty_residential_areas,
+    generate_dms_grid_features,
+    generate_nztm_grid_features,
+)
 
 
 def _gdf() -> gpd.GeoDataFrame:
@@ -365,3 +372,137 @@ def test_non_fixup_dataset_still_reuses_shared_source(tmp_path, monkeypatch):
 
     out66 = transform.transform_dataset_release("ds", 66)
     assert os.path.islink(out66)
+
+
+GRID = "nztopo50_grid"
+DMS_GRID = "nztopo50_dms_grid"
+
+# A 2x3 grid, small enough to assert line by line: eastings [0, 10], northings [0, 10, 20].
+TINY = {
+    "bounds": (0.0, 0.0, 10.0, 20.0),
+    "directions": ("easting", "northing"),
+    "interval": 10.0,
+    "crs": "EPSG:2193",
+    "vertices": 2,
+    "margin": 0,
+}
+
+
+def _grid_gdf(crs: str = "EPSG:2193", rows: list[tuple[str, float, str]] | None = None) -> gpd.GeoDataFrame:
+    """The source grid; only its CRS is read, so `rows` proves nothing else reaches the output."""
+    rows = rows or []
+    return gpd.GeoDataFrame(
+        {
+            "id": [fid for _, _, fid in rows],
+            "t50_fid": [None] * len(rows),
+            "direction": [d for d, _, _ in rows],
+            "value": [v for _, v, _ in rows],
+        },
+        geometry=np.array([LINE_REAL] * len(rows), dtype=object),
+        crs=crs,
+    )
+
+
+def _tiny(gdf: gpd.GeoDataFrame | None = None, *, release_id: int = 66, name: str = GRID, **overrides):
+    return _generate_grid_features(
+        _grid_gdf() if gdf is None else gdf, _td([], name), release_id, **{**TINY, **overrides}
+    )
+
+
+def _values(out: gpd.GeoDataFrame, direction: str) -> list[float]:
+    return sorted(out.loc[out["direction"] == direction, "value"])
+
+
+@pytest.mark.parametrize(
+    "direction, values, held, swept",
+    [
+        ("easting", [0.0, 10.0, 20.0], 1, [0.0, 10.0]),
+        ("northing", [0.0, 10.0], 0, [0.0, 20.0]),
+    ],
+)
+def test_grid_lines_run_along_their_named_axis(direction, values, held, swept):
+    """`direction` names the axis a line runs along, both wound low to high; get it backwards and
+    every coordinate pair transposes."""
+    lines = (out := _tiny())[out["direction"] == direction]
+    assert lines["value"].tolist() == values
+    for value, geom in zip(lines["value"], lines.geometry, strict=True):
+        coords = list(zip(*geom.coords, strict=True))
+        assert set(coords[held]) == {value}
+        assert list(coords[1 - held]) == swept
+
+
+@pytest.mark.parametrize(
+    "bounds, margin, eastings, northings",
+    [
+        ((0.0, 0.0, 10.0, 20.0), 0, [0.0, 10.0], [0.0, 10.0, 20.0]),
+        ((1.0, 1.0, 19.0, 9.0), 0, [0.0, 10.0, 20.0], [0.0, 10.0]),
+        ((1.0, 1.0, 19.0, 9.0), 1, [-10.0, 0.0, 10.0, 20.0, 30.0], [-10.0, 0.0, 10.0, 20.0]),
+    ],
+    ids=["aligned", "snapped-outward", "margin"],
+)
+def test_grid_extent_snaps_outward_and_honours_margin(bounds, margin, eastings, northings):
+    """Snapping is always outward, so no sheet falls outside the ruling."""
+    out = _tiny(bounds=bounds, margin=margin)
+    assert (_values(out, "northing"), _values(out, "easting")) == (eastings, northings)
+
+
+def test_grid_ids_ignore_the_source_and_the_release():
+    """Ids depend only on dataset and position, so a rebuild is a geometry diff, not id churn."""
+    out = _tiny(_grid_gdf(rows=[("easting", 0.0, "id-from-source")]))
+    assert out["id"].tolist() == _tiny(release_id=30)["id"].tolist()
+    assert "id-from-source" not in out["id"].tolist()
+
+
+def test_grid_ids_are_unique_and_namespaced_per_dataset():
+    """Both grids rule lines at the same `value`, so the dataset name must be in the hash."""
+    nztm, dms = _tiny(name=GRID), _tiny(name=DMS_GRID)
+    assert nztm["id"].nunique() == len(nztm)
+    assert set(nztm["id"]).isdisjoint(dms["id"])
+
+
+def test_grid_output_shape():
+    out = _tiny()
+    assert out.columns.tolist() == ["id", "t50_fid", "direction", "value", "geometry"]
+    assert out["t50_fid"].isna().all()
+    assert out.index.tolist() == list(range(len(out)))  # theme.py does positional lookups
+    assert out.geometry.is_valid.all()
+
+
+def test_grid_is_reprojected_into_the_source_crs_with_every_vertex():
+    """Ruled in the grid's own CRS, handed back in the release's, densification intact."""
+    out = _tiny(crs="EPSG:4326", bounds=(174.0, -41.0, 175.0, -40.0), interval=0.5, vertices=7)
+    assert out.crs.to_epsg() == 2193
+    assert {len(g.coords) for g in out.geometry} == {7}
+
+
+def test_grid_densified_lines_bow_once_reprojected():
+    """Why `vertices` exists: a projected parallel is a curve, and two points would cut its chord."""
+    out = _tiny(crs="EPSG:4326", bounds=(174.0, -42.0, 176.0, -40.0), interval=2.0, vertices=101)
+    parallel = out.loc[out["direction"] == "easting"].geometry.iloc[0]
+    chord = LineString([parallel.coords[0], parallel.coords[-1]])
+    assert parallel.hausdorff_distance(chord) > 100  # metres of bow, in EPSG:2193
+
+
+@pytest.mark.parametrize(
+    "fn, directions, vertices, interval, extent",
+    [
+        (
+            generate_nztm_grid_features,
+            ("easting", "northing"),
+            2,
+            1_000.0,
+            (1_083_000, 2_093_000, 4_721_000, 6_235_000),
+        ),
+        (generate_dms_grid_features, ("longitude", "latitude"), 1_001, 1 / 60, (166.0, 180.0, -48.0, -34.0)),
+    ],
+    ids=["nztm", "dms"],
+)
+def test_grid_fixups_are_wired_to_their_own_settings(fn, directions, vertices, interval, extent):
+    """The one thing the tests above cannot see: a swap between these bare settings."""
+    out = fn(_grid_gdf(), _td([], GRID), 66)
+    assert out.crs.to_epsg() == 2193  # the source frame's CRS, whatever the grid is ruled in
+    assert {len(g.coords) for g in out.geometry} == {vertices}
+    along_x, along_y = directions
+    lons, lats = _values(out, along_y), _values(out, along_x)
+    assert (lons[0], lons[-1], lats[0], lats[-1]) == extent
+    assert lats[1] - lats[0] == pytest.approx(interval)

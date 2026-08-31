@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/nztopo50_dms_grid",
+  "$id": "next/nztopo50_dms_grid_nztm",
   "type": "object",
   "properties": {
     "id": {

@@ -1,0 +1,13 @@
+name: nztopo50_grid
+target_repo: topographic-product-data
+target_epsg: EPSG:2193 # ruled and stored in NZTM, where a 1 km line is straight
+datasets:
+  # any valid source is fine. The fixups function supplies every row and column.
+  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+    name: nztopo50_grid
+    mapping:
+      t50_fid: null
+      direction: { source: null, fixup: true }
+      value: { source: null, fixup: true }
+    fixups:
+      - fn: generate_nztm_grid_features
