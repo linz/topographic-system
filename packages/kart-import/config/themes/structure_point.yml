@@ -1,0 +1,38 @@
+name: structure_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- radar_dome
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-radar-dome-points-topo-150k
+    name: nz_radar_dome_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: radar_dome
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- satellite_station
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-satellite-station-points-topo-150k
+    name: nz_satellite_station_points_topo_150k
+    mapping: &satellite_station
+      t50_fid: $
+      type: satellite_station
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-satellite-station-points-topo-150k
+    name: nz_chatham_island_satellite_station_points_topo_150k
+    mapping: *satellite_station
