@@ -1,108 +1,58 @@
-# https://github.com/linz/topographic-system/blob/master/packages/schema/src/features/contour.tsp
 name: contour
 target_repo: topographic-contour-data
 target_epsg: EPSG:4167
 datasets:
-  # new zealand
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-contours-topo-150k
-    name: nz_chatham_island_contours_topo_150k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+  # -------- contour
+  # nz
   - source: kart@data.koordinates.com:linz/nz-contours-topo-150k
     name: nz_contours_topo_150k
-    mapping:
+    mapping: &contour
       t50_fid: $
       type: contour
       elevation: $elevation
       definition: $definition
       designation: $designated
       formation: $nat_form
-  # new zealand outer islands
+      theme: relief
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-contours-topo-150k
+    name: nz_chatham_island_contours_topo_150k
+    mapping: *contour
+  # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-contours-topo-125k
     name: nz_antipodes_island_contours_topo_125k
-    mapping:
-      t50_fid: $
+    mapping: &contour_fixme
+      t50_fid: null # FIXME: needs lookup
       type: contour
       elevation: $elevation
       definition: $definition
       designation: $designated
       formation: $nat_form
+      theme: relief
+      metadata: null
   - source: kart@data.koordinates.com:linz/nz-auckland-island-contours-topo-150k
     name: nz_auckland_island_contours_topo_150k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour
   - source: kart@data.koordinates.com:linz/nz-bounty-islands-contours-topo-125k
     name: nz_bounty_islands_contours_topo_125k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour
   - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-contours-topo-150k
     name: nz_campbell_island_motu_ihupuku_contours_topo_150k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour_fixme
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-contours-topo-125k
     name: nz_kermadec_is_contours_topo_125k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour_fixme
   - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-contours-topo-125k
     name: nz_snares_island_tini_heke_contours_topo_125k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
-  # pacific islands
+    mapping: *contour_fixme
+  # pi
   - source: kart@data.koordinates.com:linz/cook-islands-contours-topo-125k-zone4
     name: cook_islands_contours_topo_125k_zone4
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour
   - source: kart@data.koordinates.com:linz/niue-contours-topo-150k
     name: niue_contours_topo_150k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
-  # antarctic
+    mapping: *contour
+  # ant
   - source: kart@data.koordinates.com:linz/nz-ross-dependency-contours-ant-150k
     name: nz_ross_dependency_contours_ant_150k
-    mapping:
-      t50_fid: $
-      type: contour
-      elevation: $elevation
-      definition: $definition
-      designation: $designated
-      formation: $nat_form
+    mapping: *contour

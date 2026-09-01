@@ -1,0 +1,167 @@
+name: landcover
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- ice
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-ice-polygons-topo-150k
+    name: nz_ice_polygons_topo_150k
+    mapping: &ice
+      t50_fid: $
+      type: ice
+      name: null
+      theme: landcover
+      metadata: null
+  # ant
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-ice-polygons-ant-150k
+    name: nz_ross_dependency_ice_polygons_ant_150k
+    mapping: *ice
+
+  # -------- moraine
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-moraine-polygons-topo-150k
+    name: nz_moraine_polygons_topo_150k
+    mapping: &moraine
+      t50_fid: $
+      type: moraine
+      name: null
+      theme: landcover
+      metadata: null
+  # ant
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-moraine-polygons-ant-150k
+    name: nz_ross_dependency_moraine_polygons_ant_150k
+    mapping: *moraine
+
+  # -------- moraine wall
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-moraine-wall-polygons-topo-150k
+    name: nz_moraine_wall_polygons_topo_150k
+    mapping:
+      t50_fid: $
+      type: moraine_wall
+      name: null
+      theme: landcover
+      metadata: null
+
+  # -------- mud
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-mud-polygons-topo-150k
+    name: nz_mud_polygons_topo_150k
+    mapping: &mud
+      t50_fid: $
+      type: mud
+      name: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-mud-polygons-topo-150k
+    name: nz_chatham_island_mud_polygons_topo_150k
+    mapping: *mud
+
+  # -------- sand
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-sand-polygons-topo-150k
+    name: nz_sand_polygons_topo_150k
+    mapping: &sand
+      t50_fid: $
+      type: sand
+      name: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-sand-polygons-topo-150k
+    name: nz_chatham_island_sand_polygons_topo_150k
+    mapping: *sand
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-sand-polygons-topo-125k
+    name: nz_antipodes_island_sand_polygons_topo_125k
+    mapping: *sand
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-sand-polygons-topo-150k
+    name: nz_auckland_island_sand_polygons_topo_150k
+    mapping: *sand
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-sand-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_sand_polygons_topo_150k
+    mapping: *sand
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-sand-polygons-topo-125k
+    name: nz_kermadec_is_sand_polygons_topo_125k
+    mapping: *sand
+  # pi
+  - source: kart@data.koordinates.com:linz/cook-islands-sand-polygons-topo-125k-zone3
+    name: cook_islands_sand_polygons_topo_125k_zone3
+    mapping: *sand
+  - source: kart@data.koordinates.com:linz/cook-islands-sand-polygons-topo-125k-zone4
+    name: cook_islands_sand_polygons_topo_125k_zone4
+    mapping: *sand
+  - source: kart@data.koordinates.com:linz/tokelau-sand-polygons-topo-125k
+    name: tokelau_sand_polygons_topo_125k
+    mapping: *sand
+  # ant
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-sand-polygons-ant-150k
+    name: nz_ross_dependency_sand_polygons_ant_150k
+    mapping: *sand
+
+  # -------- scree
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-scree-polygons-topo-150k
+    name: nz_scree_polygons_topo_150k
+    mapping: &scree
+      t50_fid: $
+      type: scree
+      name: null
+      theme: landcover
+      metadata: null
+  # ant
+  - source: kart@data.koordinates.com:linz/nz-ross-dependency-scree-polygons-ant-150k
+    name: nz_ross_dependency_scree_polygons_ant_150k
+    mapping: *scree
+
+  # -------- shingle
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-shingle-polygons-topo-150k
+    name: nz_shingle_polygons_topo_150k
+    mapping: &shingle
+      t50_fid: $
+      type: shingle
+      name: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-shingle-polygons-topo-150k
+    name: nz_chatham_island_shingle_polygons_topo_150k
+    mapping: *shingle
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-shingle-polygons-topo-125k
+    name: nz_antipodes_island_shingle_polygons_topo_125k
+    mapping: *shingle
+
+  # -------- swamp
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-swamp-polygons-topo-150k
+    name: nz_swamp_polygons_topo_150k
+    mapping: &swamp
+      t50_fid: $
+      type: swamp
+      name: $
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-swamp-polygons-topo-150k
+    name: nz_chatham_island_swamp_polygons_topo_150k
+    mapping: *swamp
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-swamp-polygons-topo-125k
+    name: nz_antipodes_island_swamp_polygons_topo_125k
+    mapping: *swamp
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-polygons-topo-150k
+    name: nz_auckland_island_swamp_polygons_topo_150k
+    mapping: *swamp
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-swamp-polygons-topo-125k
+    name: nz_kermadec_is_swamp_polygons_topo_125k
+    mapping: *swamp
+  # pi
+  - source: kart@data.koordinates.com:linz/cook-islands-swamp-polygons-topo-125k-zone3
+    name: cook_islands_swamp_polygons_topo_125k_zone3
+    mapping: *swamp
+  - source: kart@data.koordinates.com:linz/cook-islands-swamp-polygons-topo-125k-zone4
+    name: cook_islands_swamp_polygons_topo_125k_zone4
+    mapping: *swamp
+
+  # Note: nz-rapid-polygons-topo-150k is NOT mapped here — "rapid" is not a
+  # member of landcover_type. It belongs to the `relief` schema/theme and is
+  # already handled in relief.yml.
