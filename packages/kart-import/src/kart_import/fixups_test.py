@@ -389,5 +389,5 @@ def test_contour_number_orients_the_label_and_renders_the_elevation():
     out = fixups.contour_number(_contour_number_gdf(), _td([], name="contour_number"), 66)
 
     # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
-    assert out["orientation"].tolist() == [330.0, 150.0, 330.0]
+    assert out["orientation"].tolist() == [330, 150, 330]
     assert out["label"].tolist()[:2] == ["100", "250"]
