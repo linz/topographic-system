@@ -17,36 +17,36 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-cliff-edges-topo-150k
     name: nz_chatham_island_cliff_edges_topo_150k
     mapping: *cliff_edge
-  # nzoi
-  - source: kart@data.koordinates.com:linz/nz-antipodes-island-cliff-edges-topo-125k
-    name: nz_antipodes_island_cliff_edges_topo_125k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-cliff-edges-topo-150k
-    name: nz_auckland_island_cliff_edges_topo_150k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-bounty-islands-cliff-edges-topo-125k
-    name: nz_bounty_islands_cliff_edges_topo_125k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-cliff-edges-topo-150k
-    name: nz_campbell_island_motu_ihupuku_cliff_edges_topo_150k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-cliff-edges-topo-125k
-    name: nz_kermadec_is_cliff_edges_topo_125k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-cliff-edges-topo-125k
-    name: nz_snares_island_tini_heke_cliff_edges_topo_125k
-    mapping: *cliff_edge
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-cliff-edges-topo-125k-zone4
-    name: cook_islands_cliff_edges_topo_125k_zone4
-    mapping: *cliff_edge
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-cliff-edges-ant-150k
-    name: nz_ross_dependency_cliff_edges_ant_150k
-    mapping: *cliff_edge
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-ice-cliff-edges-ant-150k
-    name: nz_ross_dependency_ice_cliff_edges_ant_150k
-    mapping: *cliff_edge
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-cliff-edges-topo-125k
+  #   name: nz_antipodes_island_cliff_edges_topo_125k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-cliff-edges-topo-150k
+  #   name: nz_auckland_island_cliff_edges_topo_150k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-bounty-islands-cliff-edges-topo-125k
+  #   name: nz_bounty_islands_cliff_edges_topo_125k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-cliff-edges-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_cliff_edges_topo_150k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-cliff-edges-topo-125k
+  #   name: nz_kermadec_is_cliff_edges_topo_125k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-cliff-edges-topo-125k
+  #   name: nz_snares_island_tini_heke_cliff_edges_topo_125k
+  #   mapping: *cliff_edge
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-cliff-edges-topo-125k-zone4
+  #   name: cook_islands_cliff_edges_topo_125k_zone4
+  #   mapping: *cliff_edge
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-cliff-edges-ant-150k
+  #   name: nz_ross_dependency_cliff_edges_ant_150k
+  #   mapping: *cliff_edge
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-ice-cliff-edges-ant-150k
+  #   name: nz_ross_dependency_ice_cliff_edges_ant_150k
+  #   mapping: *cliff_edge
 
   # -------- cutting_edge
   # nz
@@ -73,13 +73,13 @@ datasets:
       height: null
       theme: relief
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-embankment-centrelines-topo-125k-zone3
-    name: cook_islands_embankment_centrelines_topo_125k_zone3
-    mapping: *embankment
-  - source: kart@data.koordinates.com:linz/cook-islands-embankment-centrelines-topo-125k-zone4
-    name: cook_islands_embankment_centrelines_topo_125k_zone4
-    mapping: *embankment
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-embankment-centrelines-topo-125k-zone3
+  #   name: cook_islands_embankment_centrelines_topo_125k_zone3
+  #   mapping: *embankment
+  # - source: kart@data.koordinates.com:linz/cook-islands-embankment-centrelines-topo-125k-zone4
+  #   name: cook_islands_embankment_centrelines_topo_125k_zone4
+  #   mapping: *embankment
 
   # -------- slip_edge
   # nz
