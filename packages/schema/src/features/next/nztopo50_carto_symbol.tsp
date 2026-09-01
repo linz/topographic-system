@@ -22,7 +22,7 @@ model nztopo50_carto_symbol {
   label: string | null;
 
   /** Label rotation in degrees clockwise from east. Null for symbols drawn unrotated. */
-  orientation: float64 | null;
+  orientation: int32 | null;
 
   ...GeoParquet;
 }

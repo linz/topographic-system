@@ -391,7 +391,7 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     bearing = 90 - np.degrees(gdf["orientation"])
     flip = ((gdf["cont_rota"] - bearing) % 360) > 180
     bearing = np.where(flip, bearing + 180, bearing)
-    gdf["orientation"] = (bearing - 90) % 360
+    gdf["orientation"] = (np.round(bearing - 90) % 360).astype("Int32")
 
     gdf = gdf.drop(columns="cont_rota")
 
