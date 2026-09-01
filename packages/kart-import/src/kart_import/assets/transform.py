@@ -2,14 +2,17 @@ import fcntl
 import json
 import logging
 import os
+import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
+import pandas as pd
 
 from ..config import (
+    SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
@@ -22,11 +25,16 @@ from ..config import (
 )
 from ..corrections import apply_corrections
 from ..fixups import FIXUPS
+from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
+from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
+
+NORMALIZED_LIFECYCLE_COLUMNS = ("id", "created_at", "updated_at")
+"""The columns `normalize_fields` prepends to every dataset's mapped fields."""
 
 
 def write_transform(gdf: gpd.GeoDataFrame, output_file: Path) -> None:
@@ -159,6 +167,29 @@ def normalize_field_lifecyle(
     return gdf
 
 
+def empty_transform(td: ThemeDataset, target_epsg: str) -> gpd.GeoDataFrame:
+    """A zero-row frame carrying the theme's target columns and CRS.
+
+    A source with no features has nothing to normalise, and the column-wise steps would each raise
+    on the columns an empty export doesn't have (no `t50_fid` to key the lifecycle on, no mapped
+    source columns). Emitting the shape they would have produced keeps the emptiness flowing
+    through to `theme.py`.
+    """
+    columns = [*NORMALIZED_LIFECYCLE_COLUMNS, *td.field_specs()]
+    return gpd.GeoDataFrame({col: pd.Series([], dtype="object") for col in columns}, geometry=[], crs=target_epsg)
+
+
+def _source_commit(input_file: Path) -> str | None:
+    """The commit an export was made from, per the `{date}_{commit}` name `export` gave the file,
+    or None for a name that carries no commit (an export not built from one).
+
+    Read off the symlink target rather than re-resolved from the release, so the schema we look up
+    is the one that actually produced this file even if the source repo has since advanced.
+    """
+    commit = input_file.resolve().stem.rpartition("_")[2]
+    return commit if re.fullmatch(r"[0-9a-f]{40}", commit) else None
+
+
 def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int) -> tuple:
     """Identity of a release's transform output: equal fingerprints => identical output, so it can
     be produced once and shared. Combines the resolved source export (already shared across
@@ -271,6 +302,26 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         start_time = time.perf_counter()
         gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
+
+        if gdf.empty:
+            # Either the source repo starts after this release (see `export_empty_releases`) or
+            # the layer was genuinely empty at that commit.
+            logger.info("source has no features, writing empty transform")
+            write_transform(empty_transform(td, theme.target_epsg), output_file)
+            return output_file
+
+        # Before the joins: a key that widened to float64 on read has to be an integer again by
+        # the time it meets the lookup's, which is upstream of any target-schema coercion.
+        commit = _source_commit(input_file)
+        if commit is None:
+            logger.warning("no commit in export name; declared types not restored", extra={"file": str(input_file)})
+        else:
+            repo_dir = SOURCE_DIR / dataset_name
+            gdf = coerce_integer_columns(
+                gdf,
+                get_dataset_schema(repo_dir, td.source.dataset or get_kart_dataset_id(repo_dir), commit),
+                context=f"dataset {dataset_name!r} at {commit}",
+            )
 
         if gdf.crs is None:
             raise ValueError("source frame has no projection")

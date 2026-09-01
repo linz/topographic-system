@@ -190,16 +190,39 @@ def test_resolve_lookup_commit_errors_on_bad_clone(tmp_path, monkeypatch, make_c
         joins._resolve_lookup_commit("road_lkp", 66)
 
 
-def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
-    """prepare_lookup slims every per-commit export into a parquet named by commit."""
+def test_select_lookup_columns_keeps_a_nullable_integer_key(monkeypatch):
+    """numpy has no nullable integer, so copying values out that way returns an `Int64` key as
+    float64 - the type prepare exists to remove."""
+    gdf = gpd.GeoDataFrame(
+        {"t50_fid": pd.array([1, None, 3], dtype="Int64"), "width": ["a", "b", "c"]},
+        geometry=[Point(0, 0)] * 3,
+        crs="EPSG:4326",
+    )
+
+    out = prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"]))
+
+    assert out["t50_fid"].dtype == "Int64"
+    assert out["t50_fid"].tolist() == [1, 3]  # null key still dropped
+
+
+def _export_lookup_dir(tmp_path, monkeypatch, schema):
+    """A prepare_lookup environment: registered lookup, isolated dirs, fixed schema."""
     monkeypatch.setitem(
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
+    monkeypatch.setattr(prepare, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(prepare, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(prepare, "get_dataset_schema", lambda *_: schema)
 
     export_dir = tmp_path / "export" / "lookup" / "road_lkp"
     export_dir.mkdir(parents=True)
+    return export_dir
+
+
+def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
+    """prepare_lookup slims every per-commit export into a parquet named by commit."""
+    export_dir = _export_lookup_dir(tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "integer"}])
     gpd.GeoDataFrame(
         {"t50_fid": [1, 2], "width": ["WIDE", "NARROW"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326"
     ).to_file(export_dir / "abc123.json", driver="GeoJSON")
@@ -210,3 +233,38 @@ def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
     out = pd.read_parquet(out_dir / "abc123.parquet")  # keyed by commit
     assert list(out.columns) == ["t50_fid", "width"]  # slimmed to key + selected columns
     assert sorted(out["width"]) == ["NARROW", "WIDE"]
+
+
+def test_prepare_lookup_restores_a_key_the_export_turned_into_a_float(tmp_path, monkeypatch):
+    """The road_lkp case end to end: `numeric(10, 0)` exported as REAL, read back float64. The
+    parquet must hold the declared integer, or the join against an int-keyed source is a type
+    mismatch."""
+    export_dir = _export_lookup_dir(
+        tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0}]
+    )
+    gpd.GeoDataFrame(
+        {"t50_fid": [3197173.0, 7874815.0], "width": ["WIDE", "NARROW"]},
+        geometry=[Point(0, 0)] * 2,
+        crs="EPSG:4326",
+    ).to_file(export_dir / "abc123.json", driver="GeoJSON")
+    assert gpd.read_file(export_dir / "abc123.json")["t50_fid"].dtype == "float64"  # what the export really gives us
+
+    prepare.prepare_lookup("road_lkp")
+
+    out = pd.read_parquet(tmp_path / "lookup" / "road_lkp" / "abc123.parquet")
+    assert out["t50_fid"].dtype == "Int64"  # parquet carries it, so the join sees an integer
+    assert out["t50_fid"].tolist() == [3197173, 7874815]
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [["t50_fid", "width"], ["width", "width"]],
+    ids=["key-among-columns", "repeated-column"],
+)
+def test_select_lookup_columns_tolerates_a_repeated_column(columns):
+    """Nothing in `Lookup` forbids either, and a duplicate label makes the key ambiguous."""
+    gdf = gpd.GeoDataFrame({"t50_fid": [1, 2], "width": ["a", "b"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326")
+
+    out = prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=columns))
+
+    assert list(out.columns) == ["t50_fid", "width"]

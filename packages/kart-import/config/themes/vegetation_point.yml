@@ -2,7 +2,7 @@ name: vegetation_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone3
   #    name: cook_islands_tree_points_zone3
   #    mapping:
@@ -10,7 +10,6 @@ datasets:
   #      type: tree
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone4
   #    name: cook_islands_tree_points_zone4
   #    mapping:
@@ -18,7 +17,6 @@ datasets:
   #      type: tree
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/niue-tree-points-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -44,7 +42,7 @@ datasets:
   #      type: tree
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-tree-points-topo-125k
   #    mapping:
   #      t50_fid: $

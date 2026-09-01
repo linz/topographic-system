@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 
@@ -37,3 +38,22 @@ def ref_has_dataset(repo_dir: Path, ref: str, dataset_id: str) -> bool:
     that is the wrong repo / a stale bundle that doesn't actually contain the dataset)."""
     out = run_command(["git", "ls-tree", "--name-only", ref], cwd=str(repo_dir), check_error=False)
     return dataset_id in out.split()
+
+
+_DATASET_DIR = ".table-dataset"
+"""Metadata path for a kart repostructure v3 dataset; the one place that knows the layout."""
+
+
+def get_dataset_schema(repo_dir: Path, dataset_id: str, ref: str) -> tuple[dict, ...]:
+    """The columns kart declares for `dataset_id` at `ref`, in declaration order.
+
+    Read from the repo, not an export, because an export cannot carry every type kart records
+    (see `kart_types`). The schema is a blob in the commit, so this needs no working copy.
+    """
+    blob = f"{ref}:{dataset_id}/{_DATASET_DIR}/meta/schema.json"
+    out = run_command(["git", "show", blob], cwd=str(repo_dir), check_error=False)
+    if not out.strip():
+        raise FileNotFoundError(
+            f"no kart schema at {blob} in {repo_dir}; expected a repostructure v3 dataset - re-clone the source repo"
+        )
+    return tuple(json.loads(out))

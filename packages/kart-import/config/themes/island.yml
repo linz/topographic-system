@@ -2,7 +2,7 @@ name: island
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone3
   #    name: cook_islands_island_polygons_zone3
   #    mapping:
@@ -12,7 +12,6 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone4
   #    name: cook_islands_island_polygons_zone4
   #    mapping:
@@ -22,7 +21,6 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/niue-island-polygons-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -48,7 +46,6 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-auckland-island-island-polygons-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -57,7 +54,6 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-island-polygons-topo-150k
   #    mapping:
   #      t50_fid: $
@@ -83,7 +79,7 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-island-polygons-ant-150k
   #    mapping:
   #      t50_fid: $
@@ -101,7 +97,7 @@ datasets:
   #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-island-polygons-topo-125k
   #    mapping:
   #      t50_fid: $

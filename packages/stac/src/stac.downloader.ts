@@ -9,10 +9,11 @@ import { type LimitFunction } from 'p-limit';
 import type { StacAsset, StacCatalog, StacCollection, StacItem, StacLink } from 'stac-ts';
 import * as tar from 'tar';
 
-import { parseStrategy } from './parser.ts';
-import { StacStorage, storageStrategyFromLatest } from './stac.storage.ts';
-
-export type StacUrlResolver = (downloader: StacDownloader, url: URL) => Promise<URL>;
+import { StacUrlResolverCanonical } from './resolvers/canonical.ts';
+import type { StacUrlResolver } from './resolvers/resolver.ts';
+import { StacUrlResolverStrategy } from './resolvers/strategy.ts';
+import { StacLruCache } from './stac.lru.ts';
+import { getRelativePath } from './stac.paths.ts';
 
 export interface SourceAsset {
   /** resolved source URL */
@@ -28,55 +29,49 @@ export interface SourceAsset {
 type CheckLink = (link: StacLink) => boolean;
 type CheckAsset = (asset: StacAsset) => boolean;
 
-function strategyResolver(strategy: string): StacUrlResolver {
-  const st = parseStrategy(strategy);
-  return async (downloader: StacDownloader, url: URL) => {
-    const context = storageStrategyFromLatest(url);
-    if (context == null) return url;
+interface StacDownloaderOptions {
+  /** Where to store the output */
+  target: URL;
+  /** Where to cache all the assets */
+  cache: URL;
+  /** Limit downloads */
+  q: LimitFunction;
 
-    const targetFile = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
-    const target = new URL(targetFile, StacStorage.url(st, context));
-    const asset = await downloader.lru.fetch(target).catch(() => null);
-    if (asset == null) return url;
-    return target;
-  };
-}
-async function canonicalResolver(downloader: StacDownloader, url: URL, visited: Set<string> = new Set()): Promise<URL> {
-  if (visited.has(url.href)) throw new Error(`Circular canonical link detected: ${url.href}`);
-  visited.add(url.href);
-
-  const asset = await downloader.lru.fetch<StacItem | StacCollection>(url).catch(() => null);
-  if (asset?.links == null) return url;
-  const canonical = asset.links.find((link) => link.rel === 'canonical');
-  if (canonical == null) return url;
-  const nextUrl = new URL(canonical.href, url);
-  // Sometimes canonical links to it self.
-  if (nextUrl.href === url.href) return url;
-  if (visited.has(nextUrl.href)) throw new Error(`Circular canonical link detected: ${nextUrl.href}`);
-
-  return canonicalResolver(downloader, nextUrl, visited);
+  /**
+   * When linking files from the cache to the target, Should it use
+   *
+   * - link-absolute - Absolute folder links
+   * - link-relative - Relative Links
+   * - copy - Copy  the files
+   *
+   * @default: 'link-absolute'
+   */
+  linkMode?: 'link-absolute' | 'link-relative' | 'copy';
 }
 
 export class StacDownloader {
   target: URL;
   cache: URL;
   q: LimitFunction;
+  linkMode: StacDownloaderOptions['linkMode'];
 
-  static Resolver = { strategy: strategyResolver, canonical: canonicalResolver };
+  static Resolver = { strategy: (strat: string) => new StacUrlResolverStrategy(strat) };
   linkCache: Map<string, SourceAsset> = new Map();
 
-  resolvers: StacUrlResolver[] = [canonicalResolver];
+  resolvers: StacUrlResolver[] = [new StacUrlResolverCanonical()];
   resolved = new Map<string, Promise<URL>>();
+  resolutionStats = new Map<string, { name: string; invokes: 0; resolves: 0 }>();
 
   lru = new StacLruCache(1000);
 
   // Inflight downloads
   downloads: Map<string, Promise<SourceAsset>> = new Map();
 
-  constructor(target: URL, cache: URL, q: LimitFunction) {
-    this.target = target;
-    this.cache = cache;
-    this.q = q;
+  constructor(opts: StacDownloaderOptions) {
+    this.target = opts.target;
+    this.cache = opts.cache;
+    this.q = opts.q;
+    this.linkMode = opts.linkMode ?? 'link-absolute';
   }
 
   async resolveUrl(url: URL): Promise<URL> {
@@ -84,7 +79,14 @@ export class StacDownloader {
     if (existing != null) return existing;
 
     const resolver = this.q(async () => {
-      for (const r of this.resolvers) url = await r(this, url);
+      for (const r of this.resolvers) {
+        const stat = this.resolutionStats.get(r.name) ?? { name: r.name, invokes: 0, resolves: 0 };
+        this.resolutionStats.set(r.name, stat);
+        stat.invokes++;
+        const afterUrl = await r.resolve(this.lru, url);
+        if (afterUrl.href !== url.href) stat.resolves++;
+        url = afterUrl;
+      }
       return url;
     });
     this.resolved.set(url.href, resolver);
@@ -141,12 +143,13 @@ export class StacDownloader {
   protected async ensureAssetInCache(
     asset: StacLink | StacAsset,
     url: URL,
-  ): Promise<{ url: URL; size: number; hash: string; hit?: boolean }> {
+  ): Promise<{ url: URL; size: number; hash: string; hit?: boolean; duration: number }> {
     const checksum = asset['file:checksum'] as string | undefined;
     const fileSize = asset['file:size'] as number | undefined;
 
     if (checksum == null) throw new Error(`Asset has no "file:checksum" ${url.href}`);
 
+    const startTime = performance.now();
     const cacheKey = new URL(`${checksum}_${basename(asset.href)}`, this.cache);
     const exists = await fsa.head(cacheKey).catch(() => null);
 
@@ -155,7 +158,14 @@ export class StacDownloader {
         logger.warn({ cacheKey: cacheKey.href, localSize: exists.size, expectedSize: fileSize }, 'Cache:Invalid');
         await fsa.delete(cacheKey);
       } else {
-        return { url: cacheKey, size: exists.size as number, hash: asset['file:checksum'] as string, hit: true };
+        const duration = performance.now() - startTime;
+        return {
+          url: cacheKey,
+          size: exists.size as number,
+          hash: asset['file:checksum'] as string,
+          hit: true,
+          duration,
+        };
       }
     }
 
@@ -178,14 +188,22 @@ export class StacDownloader {
       throw new Error(`Failed to download file: ${url.href} checksum mismatch ${targetHash}`);
     }
 
-    return { url: cacheKey, size: head?.size as number, hash: targetHash };
+    const duration = performance.now() - startTime;
+    logger.debug({ source: url.href, target: cacheKey.href, size: head?.size, duration }, 'DownloadFile:Done');
+
+    return { url: cacheKey, size: head?.size as number, hash: targetHash, duration };
   }
 
   /** Ensure the linked path is a symlink to the target file, creating it if it doesn't exist or is incorrect */
   protected async ensureLinkedPath(sourceUrl: URL, linkedUrl: URL): Promise<URL> {
     // Symlinks are only supported on the local filesystem
-    if (sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
+    if (this.linkMode === 'copy' || sourceUrl.protocol !== 'file:' || linkedUrl.protocol !== 'file:') {
+      const startCopyTime = performance.now();
       await fsa.write(linkedUrl, fsa.readStream(sourceUrl));
+      logger.debug(
+        { source: sourceUrl.href, target: linkedUrl.href, duration: performance.now() - startCopyTime },
+        'DownloadFile:Copy:Done',
+      );
       return linkedUrl;
     }
     const [sourceExists, targetExists] = await Promise.all([fsa.exists(sourceUrl), fsa.exists(linkedUrl)]);
@@ -196,7 +214,12 @@ export class StacDownloader {
       // ensure target folder exists
       await mkdir(this.target, { recursive: true });
     }
-    await symlink(sourceUrl, linkedUrl);
+    if (this.linkMode === 'link-relative') {
+      const relurl = getRelativePath(sourceUrl, linkedUrl);
+      await symlink(relurl, linkedUrl);
+    } else {
+      await symlink(sourceUrl, linkedUrl);
+    }
     return linkedUrl;
   }
 
@@ -218,8 +241,7 @@ export class StacDownloader {
 
   private async _downloadAsset(url: URL, asset: StacAsset | StacLink): Promise<SourceAsset> {
     const resolvedUrl = await this.resolveUrl(url);
-    const startTime = performance.now();
-    logger.debug({ project: url.href, downloaded: this.target.href, startTime }, 'DownloadFile:Start');
+    logger.debug({ project: url.href, downloaded: this.target.href }, 'DownloadFile:Start');
     const linkedPath = new URL(basename(url.pathname), this.target);
 
     const existing = this.linkCache.get(linkedPath.href);
@@ -262,7 +284,7 @@ export class StacDownloader {
         destination: cacheStat.url.href,
         ...sourceAsset,
         cacheHit: cacheStat.hit,
-        duration: performance.now() - startTime,
+        duration: cacheStat.duration,
       },
       'DownloadFile:Done',
     );
@@ -270,37 +292,6 @@ export class StacDownloader {
     this.linkCache.set(linkedPath.href, sourceAsset);
 
     return sourceAsset;
-  }
-}
-
-type StacObject = StacItem | StacCatalog | StacCollection;
-class StacLruCache {
-  mapA = new Map<string, Promise<StacObject>>();
-  mapB = new Map<string, Promise<StacObject>>();
-
-  maxSize: number;
-
-  constructor(maxSize = 100) {
-    this.maxSize = maxSize;
-  }
-
-  fetch<T extends StacObject>(url: URL): Promise<T> {
-    let existing = this.mapA.get(url.href);
-    if (existing != null) return existing as Promise<T>;
-    existing = this.mapB.get(url.href);
-    if (existing) {
-      this.mapB.delete(url.href);
-      this.mapA.set(url.href, existing);
-      return existing as Promise<T>;
-    }
-
-    existing = fsa.readJson(url);
-    this.mapA.set(url.href, existing);
-    if (this.mapA.size > this.maxSize) {
-      this.mapB = this.mapA;
-      this.mapA = new Map();
-    }
-    return existing as Promise<T>;
   }
 }
 

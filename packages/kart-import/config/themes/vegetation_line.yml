@@ -2,7 +2,7 @@ name: vegetation_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
-  # needs t50_fid backfilled
+  # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-shelter-belt-centrelines-topo-125k-zone4
   #    name: cook_islands_shelter_belt_centrelines
   #    mapping:
@@ -10,7 +10,6 @@ datasets:
   #      type: shelter_belt
   #      theme: landcover
   #      metadata: null
-  # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/niue-shelter-belt-centrelines-topo-150k
   #    mapping:
   #      t50_fid: $

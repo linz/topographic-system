@@ -122,7 +122,7 @@ export const PrepareCommand = command({
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
     );
 
-    const downloader = new StacDownloader(args.tempLocation, args.cache, q);
+    const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
     if (args.strategy) {
       downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));
       logger.info({ strategy: args.strategy }, 'Prepare: Storage strategy override set');
@@ -222,6 +222,14 @@ export const PrepareCommand = command({
         if (typeof s.asset.title === 'string') itemLink.title = s.asset.title;
         item.links.push(itemLink);
       }
+    }
+
+    const resolutions = [...downloader.resolutionStats.values()];
+    logger.info({ resolutions }, 'ResolverStats');
+
+    const emptyResolutions = resolutions.filter((f) => f.resolves === 0);
+    if (emptyResolutions.length > 0) {
+      throw new Error('No resolutions found: ' + emptyResolutions.map((m) => m.name).join(', '));
     }
 
     const itemTarget = new URL(`./${projectName}.json`, args.output);

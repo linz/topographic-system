@@ -6,6 +6,7 @@ from shapely.geometry import Point
 
 from . import theme
 from .theme import coerce_dtypes, unify_dtypes, untyped_columns
+from .transform import empty_transform, write_transform
 
 
 def _gdf(**columns) -> gpd.GeoDataFrame:
@@ -219,3 +220,29 @@ def test_missing_transform_names_the_datasets(tmp_path, monkeypatch):
 
     with pytest.raises(FileNotFoundError, match=r"airport release 53: no transform output for .*Run transform first"):
         theme.merge_theme_release("airport", 53)
+
+
+def test_theme_with_only_empty_datasets_writes_an_empty_output(tmp_path, monkeypatch):
+    """A theme whose sources all start after this release still has to produce the file the
+    Snakefile declares, or the rule fails with a missing output it can never have."""
+    monkeypatch.setattr(theme, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
+    monkeypatch.setattr(theme, "WORKING_THEME_DIR", tmp_path / "theme")
+
+    transform_dir = tmp_path / "transform" / "release_53"
+    transform_dir.mkdir(parents=True)
+    airport = theme.get_theme_by_name("airport")
+    for dataset in airport.datasets:
+        # Written by `empty_transform`, as transform does - the frame carries the theme's target
+        # columns, which is what lets the merged placeholder keep them.
+        write_transform(
+            empty_transform(dataset, airport.target_epsg), transform_dir / f"{dataset.name}{theme.TRANSFORM_SUFFIX}"
+        )
+
+    theme.merge_theme_release("airport", 53)
+
+    output = tmp_path / "theme" / "release_53" / f"airport{theme.THEME_SUFFIX}"
+    info = pyogrio.read_info(output, force_feature_count=True)
+    assert info["features"] == 0
+    # Not geometry alone: `kart import --primary-key id` reads the schema, so a placeholder
+    # without the theme's columns fails the import it was written to keep unblocked.
+    assert "id" in info["fields"]

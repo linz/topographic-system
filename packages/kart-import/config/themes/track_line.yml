@@ -1,0 +1,120 @@
+name: track_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-track-centrelines-topo-125k-zone3
+  #    name: cook_islands_track_centrelines_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/cook-islands-track-centrelines-topo-125k-zone4
+  #    name: cook_islands_track_centrelines_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/niue-track-centrelines-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-track-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      subtype: $track_use
+      theme: transport
+      metadata: null
+    fixups:
+      - fn: drop_degenerate_tracks # near-zero-length lines that collapse to LINESTRING EMPTY on rounding
+    corrections:
+      - { column: subtype, replace: { 'cycle only': cycle_only } }
+      # `poled route` (releases 30-58, up to 397 features) needs a track_type enum value
+      # (BM-1783); snake_cased here as the legacy loader did. `routeroute` is a source typo
+      # (1 feature, release 63).
+      - { column: track_type, replace: { 'poled route': poled_route, routeroute: route } }
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-track-centrelines-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-track-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: track
+      name: $
+      status: $
+      track_type: $
+      subtype: $track_use
+      theme: transport
+      metadata: null
+    corrections:
+      - { column: status, set: null, where: { t50_fid: 5451703, status: unmaintained } }
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-track-centrelines-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-track-centrelines-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/tokelau-track-centrelines-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: track
+  #      name: $
+  #      status: $
+  #      track_type: $
+  #      subtype: $track_use
+  #      theme: transport
+  #      metadata: null

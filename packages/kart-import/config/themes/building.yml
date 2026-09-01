@@ -1,0 +1,100 @@
+name: building
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/cook-islands-building-polygons-topo-125k-zone3
+  #    name: cook_islands_building_polygons_zone3
+  #    mapping:
+  #      t50_fid: $
+  #      type: building
+  #      subtype: $bldg_use
+  #      status: $status
+  #      name: $name
+  #      theme: buildings
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/cook-islands-building-polygons-topo-150k-zone4
+  #    name: cook_islands_building_polygons_zone4
+  #    mapping:
+  #      t50_fid: $
+  #      type: building
+  #      subtype: $bldg_use
+  #      status: $status
+  #      name: $name
+  #      theme: buildings
+  #      metadata: null
+  #  - source: kart@data.koordinates.com:linz/niue-building-polygons-topo-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: building
+  #      subtype: $bldg_use
+  #      status: $status
+  #      name: $name
+  #      theme: buildings
+  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-building-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: building
+      subtype: $bldg_use
+      status: $status
+      name: $name
+      theme: buildings
+      metadata: null
+    corrections:
+      - column: subtype
+        replace:
+          'cement works': cement_works
+          'energy facility': energy_facility
+          'fertiliser works': fertiliser_works
+          'fertilizer works': fertiliser_works # US spelling, releases 30-33
+          'forest headquarters': forest_headquarters
+          'gas compound': gas_compound
+          'glasshouse': greenhouse # releases 32-33
+          'gun club': gun_club
+          'power generation': power_generation
+          'power station': power_generation # 1 feature, release 36
+          'salt works': salt_works
+          'shingle works': shingle_works
+          'surf club': surf_club
+          'visitor centre': visitor_centre
+          'water treatment': water_treatment_plant # 1 feature, release 58
+          'water treatment plant': water_treatment_plant
+          # BM-1783 (add ENUM values): `chimney` (10 features, releases 32-36) and
+          # `railway_station` (2, releases 41-42) still need a building_subtype value.
+          'railway station': railway_station
+    fixups:
+      # t50_fid 8229245 is two blobs joined by a 0.107 mm isthmus, which the 1e-8 degree
+      # (~1.1 mm) precision snap in normalize_projection closes into a 2-part MultiPolygon.
+      # Split the smaller 345 m2 part off as its own null-t50_fid record so the layer stays
+      # uniformly POLYGON (a single multipart feature types the whole dataset GEOMETRY).
+      - fn: split_multipart_features
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-building-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: building
+      subtype: $bldg_use
+      status: $status
+      name: $name
+      theme: buildings
+      metadata: null
+  # needs t50_fid backfilled
+  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: building
+  #      subtype: $bldg_use
+  #      status: $status
+  #      name: $name
+  #      theme: buildings
+  #      metadata: null
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/tokelau-building-polygons-topo-125k
+  #    mapping:
+  #      t50_fid: $
+  #      type: building
+  #      subtype: $bldg_use
+  #      status: $status
+  #      name: $name
+  #      theme: buildings
+  #      metadata: null
