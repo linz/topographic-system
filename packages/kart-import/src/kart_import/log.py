@@ -77,6 +77,10 @@ class _JsonLineExporter(LogExporter):
     def shutdown(self):
         pass
 
+    def force_flush(self, timeout_millis=30000):
+        self._out.flush()
+        return True
+
 
 def setup_logging():
     # Extract trace and baggage contexts passed down by the parent process (e.g. Snakemake)
