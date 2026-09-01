@@ -13,17 +13,17 @@ datasets:
       name: $
       theme: landuse
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-cave-points-topo-125k-zone4
-    name: cook_islands_cave_points_topo_125k_zone4
-    mapping: *cave
-  - source: kart@data.koordinates.com:linz/niue-cave-points-topo-150k
-    name: niue_cave_points_topo_150k
-    mapping: *cave
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-cave-points-ant-150k
-    name: nz_ross_dependency_cave_points_ant_150k
-    mapping: *cave
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-cave-points-topo-125k-zone4
+  #   name: cook_islands_cave_points_topo_125k_zone4
+  #   mapping: *cave
+  # - source: kart@data.koordinates.com:linz/niue-cave-points-topo-150k
+  #   name: niue_cave_points_topo_150k
+  #   mapping: *cave
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-cave-points-ant-150k
+  #   name: nz_ross_dependency_cave_points_ant_150k
+  #   mapping: *cave
 
   # Note: cemetery points are NOT mapped here — "cemetery" is not a member of
   # place_type. They belong to the `landcover_point` schema/theme and are
@@ -43,10 +43,10 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-grave-points-topo-150k
     name: nz_chatham_island_grave_points_topo_150k
     mapping: *grave
-  # pi
-  - source: kart@data.koordinates.com:linz/niue-grave-points-topo-150k
-    name: niue_grave_points_topo_150k
-    mapping: *grave
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-grave-points-topo-150k
+  #   name: niue_grave_points_topo_150k
+  #   mapping: *grave
 
   # -------- historic_site
   # Note: source has no dedicated name field for historic sites — per FTM
@@ -61,24 +61,24 @@ datasets:
       name: $descriptn
       theme: landuse
       metadata: null
-  # nzoi
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
-    name: nz_auckland_island_historic_site_points_topo_150k
-    mapping: *historic_site
-  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
-    name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
-    mapping: *historic_site
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-historic-site-points-topo-125k-zone4
-    name: cook_islands_historic_site_points_topo_125k_zone4
-    mapping: *historic_site
-  - source: kart@data.koordinates.com:linz/niue-historic-site-points-topo-150k
-    name: niue_historic_site_points_topo_150k
-    mapping: *historic_site
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-historic-site-points-ant-150k
-    name: nz_ross_dependency_historic_site_points_ant_150k
-    mapping: *historic_site
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
+  #   name: nz_auckland_island_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-historic-site-points-topo-125k-zone4
+  #   name: cook_islands_historic_site_points_topo_125k_zone4
+  #   mapping: *historic_site
+  # - source: kart@data.koordinates.com:linz/niue-historic-site-points-topo-150k
+  #   name: niue_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-historic-site-points-ant-150k
+  #   name: nz_ross_dependency_historic_site_points_ant_150k
+  #   mapping: *historic_site
 
   # -------- monument
   # nz
@@ -94,13 +94,13 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-monument-points-topo-150k
     name: nz_chatham_island_monument_points_topo_150k
     mapping: *monument
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-monument-points-topo-125k-zone4
-    name: cook_islands_monument_points_topo_125k_zone4
-    mapping: *monument
-  - source: kart@data.koordinates.com:linz/tokelau-monument-points-topo-125k
-    name: tokelau_monument_points_topo_125k
-    mapping: *monument
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-monument-points-topo-125k-zone4
+  #   name: cook_islands_monument_points_topo_125k_zone4
+  #   mapping: *monument
+  # - source: kart@data.koordinates.com:linz/tokelau-monument-points-topo-125k
+  #   name: tokelau_monument_points_topo_125k
+  #   mapping: *monument
 
   # -------- pa
   # nz
