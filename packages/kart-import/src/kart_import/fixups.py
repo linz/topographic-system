@@ -382,6 +382,24 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
     )
 
 
+def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """LAMPS orientation is contour tangent in radians, counter-clockwise from east.
+
+    LAMPS cont_rota is perpendicular to the contour and points downhill."""
+    import numpy as np
+
+    bearing = 90 - np.degrees(gdf["orientation"])
+    flip = ((gdf["cont_rota"] - bearing) % 360) > 180
+    bearing = np.where(flip, bearing + 180, bearing)
+    gdf["orientation"] = np.round(bearing - 90) % 360
+    gdf["orientation"] = gdf["orientation"].astype("Int32")
+
+    gdf = gdf.drop(columns="cont_rota")
+
+    gdf["label"] = gdf["label"].astype("Int64").astype("string")
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
@@ -389,4 +407,5 @@ FIXUPS: dict[str, Fixup] = {
     "drop_degenerate_tracks": drop_degenerate_tracks,
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "split_multipart_features": split_multipart_features,
+    "contour_number": contour_number,
 }
