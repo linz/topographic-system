@@ -26,10 +26,10 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-drain-centrelines-topo-150k
     name: nz_chatham_island_drain_centrelines_topo_150k
     mapping: *drain
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-drain-centrelines-topo-125k-zone4
-    name: cook_islands_drain_centrelines_topo_125k_zone4
-    mapping: *drain
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-drain-centrelines-topo-125k-zone4
+  #   name: cook_islands_drain_centrelines_topo_125k_zone4
+  #   mapping: *drain
 
   # -------- river
   # nz
@@ -44,26 +44,26 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-river-centrelines-topo-150k
     name: nz_chatham_island_river_centrelines_topo_150k
     mapping: *river
-  # nzoi
-  - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
-    name: nz_antipodes_island_river_centrelines_topo_125k
-    mapping: *river
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-river-centrelines-topo-150k
-    name: nz_auckland_island_river_centrelines_topo_150k
-    mapping: *river
-  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-river-centrelines-topo-150k
-    name: nz_campbell_island_motu_ihupuku_river_centrelines_topo_150k
-    mapping: *river
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-river-centrelines-topo-125k
-    name: nz_kermadec_is_river_centrelines_topo_125k
-    mapping: *river
-  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-river-centrelines-topo-125k
-    name: nz_snares_island_tini_heke_river_centrelines_topo_125k
-    mapping: *river
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone3
-    name: cook_islands_river_centrelines_topo_125k_zone3
-    mapping: *river
-  - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone4
-    name: cook_islands_river_centrelines_topo_125k_zone4
-    mapping: *river
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
+  #   name: nz_antipodes_island_river_centrelines_topo_125k
+  #   mapping: *river
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-river-centrelines-topo-150k
+  #   name: nz_auckland_island_river_centrelines_topo_150k
+  #   mapping: *river
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-river-centrelines-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_river_centrelines_topo_150k
+  #   mapping: *river
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-river-centrelines-topo-125k
+  #   name: nz_kermadec_is_river_centrelines_topo_125k
+  #   mapping: *river
+  # - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-river-centrelines-topo-125k
+  #   name: nz_snares_island_tini_heke_river_centrelines_topo_125k
+  #   mapping: *river
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone3
+  #   name: cook_islands_river_centrelines_topo_125k_zone3
+  #   mapping: *river
+  # - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone4
+  #   name: cook_islands_river_centrelines_topo_125k_zone4
+  #   mapping: *river
