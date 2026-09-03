@@ -1,0 +1,44 @@
+name: utility_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-pipeline-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: pipeline
+      subtype: $pipe_use
+      support_type: null
+      status: null
+      visibility: $
+      theme: utility
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-powerline-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: powerline
+      subtype: null
+      support_type: $support_ty
+      status: null
+      visibility: null
+      theme: utility
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-powerline-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: powerline
+      subtype: null
+      support_type: $support_ty
+      status: null
+      visibility: null
+      theme: utility
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-telephone-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      type: telephone
+      subtype: null
+      support_type: pole
+      status: null
+      visibility: null
+      theme: utility
+      metadata: null
