@@ -2,6 +2,229 @@ name: structure_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
 datasets:
+  # -------- beacon
+  # Per FTM schema feedback (page 19): raw `type` column distinguishes plain
+  # beacons from lighthouses ("lighthouse" is a valid structure_subtype
+  # value; plain "beacon" is not, so it corrects to null). The raw
+  # `location` (land/sea) column has no schema field yet and is dropped —
+  # a "type=lighthouse, subtype=location" alternative was proposed but not
+  # adopted.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-beacon-points-topo-150k
+    name: nz_beacon_points_topo_150k
+    mapping: &beacon
+      t50_fid: $
+      type: beacon
+      subtype: $type
+      tank_type: null
+      status: $
+      name: $
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+    corrections: &beacon_corrections
+      - column: subtype
+        replace:
+          beacon: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-beacon-points-topo-150k
+    name: nz_chatham_island_beacon_points_topo_150k
+    mapping: *beacon
+    corrections: *beacon_corrections
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-150k-zone3
+  #   name: cook_islands_beacon_points_topo_150k_zone3
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
+  # - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-125k-zone4
+  #   name: cook_islands_beacon_points_topo_125k_zone4
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-beacon-points-ant-150k
+  #   name: nz_ross_dependency_beacon_points_ant_150k
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
+
+  # -------- bivouac
+  # Per FTM schema feedback (item 240, Agreed): bivouac_material -> subtype,
+  # defaulting to "building" where the source material is null.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-bivouac-points-topo-150k
+    name: nz_bivouac_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: bivouac
+      subtype: { source: $materials, default: building }
+      tank_type: null
+      status: $
+      name: $
+      height: null
+      orientation: $orientatn
+      theme: structures
+      metadata: null
+
+  # -------- buoy
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-buoy-points-topo-150k
+    name: nz_buoy_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: buoy
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- chimney
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-chimney-points-topo-150k
+    name: nz_chimney_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: chimney
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- dredge
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-dredge-points-topo-150k
+    name: nz_dredge_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: dredge
+      subtype: null
+      tank_type: null
+      status: $
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- flare
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-flare-points-topo-150k
+    name: nz_flare_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: flare
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- floodgate
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-floodgate-points-topo-150k
+    name: nz_floodgate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: floodgate
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: $orientatn
+      theme: structures
+      metadata: null
+
+  # -------- gate
+  # Per FTM schema feedback (page 19): gate restrictns -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-gate-points-topo-150k
+    name: nz_gate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: gate
+      subtype: $restrictns
+      tank_type: null
+      status: null
+      name: $
+      height: null
+      orientation: $orientatn
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-gate-points-topo-150k
+    name: nz_chatham_island_gate_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: gate
+      subtype: $restrictns
+      tank_type: null
+      status: null
+      name: $
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- ladder
+  # Per FTM schema feedback (page 20): ladder_upright_materials is always
+  # null in practice, so it's dropped rather than mapped to subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-ladder-points-topo-150k
+    name: nz_ladder_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: ladder
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- mast
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-mast-points-topo-150k
+    name: nz_mast_points_topo_150k
+    mapping: &mast
+      t50_fid: $
+      type: mast
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: $
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-mast-points-topo-150k
+    name: nz_chatham_island_mast_points_topo_150k
+    mapping: *mast
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-mast-points-topo-125k-zone4
+  #   name: cook_islands_mast_points_topo_125k_zone4
+  #   mapping: *mast
+  # - source: kart@data.koordinates.com:linz/niue-mast-points-topo-150k
+  #   name: niue_mast_points_topo_150k
+  #   mapping: *mast
+  # - source: kart@data.koordinates.com:linz/tokelau-mast-points-topo-125k
+  #   name: tokelau_mast_points_topo_125k
+  #   mapping: *mast
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-mast-points-ant-150k
+  #   name: nz_ross_dependency_mast_points_ant_150k
+  #   mapping: *mast
+
   # -------- radar_dome
   # nz
   - source: kart@data.koordinates.com:linz/nz-radar-dome-points-topo-150k
@@ -13,6 +236,22 @@ datasets:
       tank_type: null
       status: null
       name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- redoubt
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-redoubt-points-topo-150k
+    name: nz_redoubt_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: redoubt
+      subtype: null
+      tank_type: null
+      status: $
+      name: $
       height: null
       orientation: null
       theme: structures
@@ -36,3 +275,181 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-satellite-station-points-topo-150k
     name: nz_chatham_island_satellite_station_points_topo_150k
     mapping: *satellite_station
+
+  # -------- shaft
+  # Per FTM schema feedback (page 19): shaft_use -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-shaft-points-topo-150k
+    name: nz_shaft_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: shaft
+      subtype: $shaft_use
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- siphon
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-siphon-points-topo-150k
+    name: nz_siphon_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: siphon
+      subtype: null
+      tank_type: null
+      status: $
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- stockyard
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-stockyard-points-topo-150k
+    name: nz_stockyard_points_topo_150k
+    mapping: &stockyard
+      t50_fid: $
+      type: stockyard
+      subtype: null
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-stockyard-points-topo-150k
+    name: nz_chatham_island_stockyard_points_topo_150k
+    mapping: *stockyard
+
+  # -------- tank
+  # Per FTM schema feedback (BM-1754): stored_item -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-tank-points-topo-150k
+    name: nz_tank_points_topo_150k
+    mapping: &tank
+      t50_fid: $
+      type: tank
+      subtype: $store_item
+      tank_type: $
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-tank-points-topo-150k
+    name: nz_chatham_island_tank_points_topo_150k
+    mapping: *tank
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-tank-points-topo-125k-zone4
+  #   name: cook_islands_tank_points_topo_125k_zone4
+  #   mapping: *tank
+  # - source: kart@data.koordinates.com:linz/niue-tank-points-topo-150k
+  #   name: niue_tank_points_topo_150k
+  #   mapping: *tank
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-points-ant-150k
+  #   name: nz_ross_dependency_tank_points_ant_150k
+  #   mapping: *tank
+
+  # -------- tower
+  # Per FTM schema feedback (page 19): tower material -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-tower-points-topo-150k
+    name: nz_tower_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: tower
+      subtype: $material
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+
+  # -------- well
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-well-points-topo-150k
+    name: nz_well_points_topo_150k
+    mapping: &well
+      t50_fid: $
+      type: well
+      subtype: null
+      tank_type: null
+      status: $
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-well-points-topo-150k
+  #   name: niue_well_points_topo_150k
+  #   mapping: *well
+  # - source: kart@data.koordinates.com:linz/tokelau-well-points-topo-125k
+  #   name: tokelau_well_points_topo_125k
+  #   mapping: *well
+
+  # -------- windmill
+  # Per FTM schema feedback (page 19): windmill use -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-windmill-points-topo-150k
+    name: nz_windmill_points_topo_150k
+    mapping: &windmill
+      t50_fid: $
+      type: windmill
+      subtype: $use
+      tank_type: null
+      status: null
+      name: null
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
+    name: nz_chatham_island_windmill_points_topo_1250k
+    mapping: *windmill
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-windmill-points-ant-150k
+  #   name: nz_ross_dependency_windmill_points_ant_150k
+  #   mapping: *windmill
+
+  # -------- wreck
+  # Per FTM schema feedback (page 19): wreck_of -> subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-wreck-points-topo-150k
+    name: nz_wreck_points_topo_150k
+    mapping: &wreck
+      t50_fid: $
+      type: wreck
+      subtype: $wreck_of
+      tank_type: null
+      status: null
+      name: $
+      height: null
+      orientation: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-wreck-points-topo-150k
+    name: nz_chatham_island_wreck_points_topo_150k
+    mapping: *wreck
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
+  #   name: nz_auckland_island_wreck_points_topo_150k
+  #   mapping: *wreck
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
+  #   name: nz_kermadec_is_wreck_points_topo_125k
+  #   mapping: *wreck
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-wreck-points-topo-150k
+  #   name: niue_wreck_points_topo_150k
+  #   mapping: *wreck
