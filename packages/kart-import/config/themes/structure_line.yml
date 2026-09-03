@@ -18,13 +18,13 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-boatramp-centrelines-topo-150k
     name: nz_chatham_island_boatramp_centrelines_topo_150k
     mapping: *boatramp
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-boatramp-centrelines-topo-125k-zone4
-    name: cook_islands_boatramp_centrelines_topo_125k_zone4
-    mapping: *boatramp
-  - source: kart@data.koordinates.com:linz/niue-boatramp-centrelines-topo-150k
-    name: niue_boatramp_centrelines_topo_150k
-    mapping: *boatramp
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-boatramp-centrelines-topo-125k-zone4
+  #   name: cook_islands_boatramp_centrelines_topo_125k_zone4
+  #   mapping: *boatramp
+  # - source: kart@data.koordinates.com:linz/niue-boatramp-centrelines-topo-150k
+  #   name: niue_boatramp_centrelines_topo_150k
+  #   mapping: *boatramp
 
   # -------- boom
   # nz
@@ -56,13 +56,13 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-breakwater-centrelines-topo-150k
     name: nz_chatham_island_breakwater_centrelines_topo_150k
     mapping: *breakwater
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-breakwater-centrelines-topo-125k-zone4
-    name: cook_islands_breakwater_centrelines_topo_125k_zone4
-    mapping: *breakwater
-  - source: kart@data.koordinates.com:linz/tokelau-breakwater-centrelines-topo-125k
-    name: tokelau_breakwater_centrelines_topo_125k
-    mapping: *breakwater
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-breakwater-centrelines-topo-125k-zone4
+  #   name: cook_islands_breakwater_centrelines_topo_125k_zone4
+  #   mapping: *breakwater
+  # - source: kart@data.koordinates.com:linz/tokelau-breakwater-centrelines-topo-125k
+  #   name: tokelau_breakwater_centrelines_topo_125k
+  #   mapping: *breakwater
 
   # -------- cableway_industrial
   # Per FTM schema feedback (BM-1754): material_conveyed -> subtype (only
@@ -95,10 +95,10 @@ datasets:
       name: null
       theme: structures
       metadata: null
-  # nzoi
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
-    name: nz_kermadec_is_cableway_people_centrelines_topo_125k
-    mapping: *cableway_people
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
+  #   name: nz_kermadec_is_cableway_people_centrelines_topo_125k
+  #   mapping: *cableway_people
 
   # -------- dam
   # nz
@@ -188,10 +188,10 @@ datasets:
       name: null
       theme: structures
       metadata: null
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-ski-tow-centrelines-ant-150k
-    name: nz_ross_dependency_ski_tow_centrelines_ant_150k
-    mapping: *ski_tow
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-ski-tow-centrelines-ant-150k
+  #   name: nz_ross_dependency_ski_tow_centrelines_ant_150k
+  #   mapping: *ski_tow
 
   # -------- slipway
   # nz
@@ -281,16 +281,16 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-wharf-centrelines-topo-150k
     name: nz_chatham_island_wharf_centrelines_topo_150k
     mapping: *wharf
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone3
-    name: cook_islands_wharf_centrelines_topo_125k_zone3
-    mapping: *wharf
-  - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone4
-    name: cook_islands_wharf_centrelines_topo_125k_zone4
-    mapping: *wharf
-  - source: kart@data.koordinates.com:linz/tokelau-wharf-centrelines-topo-125k
-    name: tokelau_wharf_centrelines_topo_125k
-    mapping: *wharf
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone3
+  #   name: cook_islands_wharf_centrelines_topo_125k_zone3
+  #   mapping: *wharf
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone4
+  #   name: cook_islands_wharf_centrelines_topo_125k_zone4
+  #   mapping: *wharf
+  # - source: kart@data.koordinates.com:linz/tokelau-wharf-centrelines-topo-125k
+  #   name: tokelau_wharf_centrelines_topo_125k
+  #   mapping: *wharf
 
   # -------- wharf_edge
   # nz
@@ -305,17 +305,17 @@ datasets:
       name: null
       theme: structures
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-wharf-edges-topo-125k-zone4
-    name: cook_islands_wharf_edges_topo_125k_zone4
-    mapping: *wharf_edge
-  - source: kart@data.koordinates.com:linz/niue-wharf-edges-topo-150k
-    name: niue_wharf_edges_topo_150k
-    mapping: *wharf_edge
-  - source: kart@data.koordinates.com:linz/tokelau-wharf-edges-topo-125k
-    name: tokelau_wharf_edges_topo_125k
-    mapping: *wharf_edge
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-wharf-edges-ant-150k
-    name: nz_ross_dependency_wharf_edges_ant_150k
-    mapping: *wharf_edge
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-edges-topo-125k-zone4
+  #   name: cook_islands_wharf_edges_topo_125k_zone4
+  #   mapping: *wharf_edge
+  # - source: kart@data.koordinates.com:linz/niue-wharf-edges-topo-150k
+  #   name: niue_wharf_edges_topo_150k
+  #   mapping: *wharf_edge
+  # - source: kart@data.koordinates.com:linz/tokelau-wharf-edges-topo-125k
+  #   name: tokelau_wharf_edges_topo_125k
+  #   mapping: *wharf_edge
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-wharf-edges-ant-150k
+  #   name: nz_ross_dependency_wharf_edges_ant_150k
+  #   mapping: *wharf_edge
