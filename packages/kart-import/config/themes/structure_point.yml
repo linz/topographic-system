@@ -31,20 +31,20 @@ datasets:
     name: nz_chatham_island_beacon_points_topo_150k
     mapping: *beacon
     corrections: *beacon_corrections
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-150k-zone3
-    name: cook_islands_beacon_points_topo_150k_zone3
-    mapping: *beacon
-    corrections: *beacon_corrections
-  - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-125k-zone4
-    name: cook_islands_beacon_points_topo_125k_zone4
-    mapping: *beacon
-    corrections: *beacon_corrections
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-beacon-points-ant-150k
-    name: nz_ross_dependency_beacon_points_ant_150k
-    mapping: *beacon
-    corrections: *beacon_corrections
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-150k-zone3
+  #   name: cook_islands_beacon_points_topo_150k_zone3
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
+  # - source: kart@data.koordinates.com:linz/cook-islands-beacon-points-topo-125k-zone4
+  #   name: cook_islands_beacon_points_topo_125k_zone4
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-beacon-points-ant-150k
+  #   name: nz_ross_dependency_beacon_points_ant_150k
+  #   mapping: *beacon
+  #   corrections: *beacon_corrections
 
   # -------- bivouac
   # Per FTM schema feedback (item 240, Agreed): bivouac_material -> subtype,
@@ -210,20 +210,20 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-mast-points-topo-150k
     name: nz_chatham_island_mast_points_topo_150k
     mapping: *mast
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-mast-points-topo-125k-zone4
-    name: cook_islands_mast_points_topo_125k_zone4
-    mapping: *mast
-  - source: kart@data.koordinates.com:linz/niue-mast-points-topo-150k
-    name: niue_mast_points_topo_150k
-    mapping: *mast
-  - source: kart@data.koordinates.com:linz/tokelau-mast-points-topo-125k
-    name: tokelau_mast_points_topo_125k
-    mapping: *mast
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-mast-points-ant-150k
-    name: nz_ross_dependency_mast_points_ant_150k
-    mapping: *mast
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-mast-points-topo-125k-zone4
+  #   name: cook_islands_mast_points_topo_125k_zone4
+  #   mapping: *mast
+  # - source: kart@data.koordinates.com:linz/niue-mast-points-topo-150k
+  #   name: niue_mast_points_topo_150k
+  #   mapping: *mast
+  # - source: kart@data.koordinates.com:linz/tokelau-mast-points-topo-125k
+  #   name: tokelau_mast_points_topo_125k
+  #   mapping: *mast
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-mast-points-ant-150k
+  #   name: nz_ross_dependency_mast_points_ant_150k
+  #   mapping: *mast
 
   # -------- radar_dome
   # nz
@@ -347,17 +347,17 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-tank-points-topo-150k
     name: nz_chatham_island_tank_points_topo_150k
     mapping: *tank
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-tank-points-topo-125k-zone4
-    name: cook_islands_tank_points_topo_125k_zone4
-    mapping: *tank
-  - source: kart@data.koordinates.com:linz/niue-tank-points-topo-150k
-    name: niue_tank_points_topo_150k
-    mapping: *tank
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-points-ant-150k
-    name: nz_ross_dependency_tank_points_ant_150k
-    mapping: *tank
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-tank-points-topo-125k-zone4
+  #   name: cook_islands_tank_points_topo_125k_zone4
+  #   mapping: *tank
+  # - source: kart@data.koordinates.com:linz/niue-tank-points-topo-150k
+  #   name: niue_tank_points_topo_150k
+  #   mapping: *tank
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-points-ant-150k
+  #   name: nz_ross_dependency_tank_points_ant_150k
+  #   mapping: *tank
 
   # -------- tower
   # Per FTM schema feedback (page 19): tower material -> subtype.
@@ -391,13 +391,13 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/niue-well-points-topo-150k
-    name: niue_well_points_topo_150k
-    mapping: *well
-  - source: kart@data.koordinates.com:linz/tokelau-well-points-topo-125k
-    name: tokelau_well_points_topo_125k
-    mapping: *well
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-well-points-topo-150k
+  #   name: niue_well_points_topo_150k
+  #   mapping: *well
+  # - source: kart@data.koordinates.com:linz/tokelau-well-points-topo-125k
+  #   name: tokelau_well_points_topo_125k
+  #   mapping: *well
 
   # -------- windmill
   # Per FTM schema feedback (page 19): windmill use -> subtype.
@@ -418,10 +418,10 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
     name: nz_chatham_island_windmill_points_topo_1250k
     mapping: *windmill
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-windmill-points-ant-150k
-    name: nz_ross_dependency_windmill_points_ant_150k
-    mapping: *windmill
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-windmill-points-ant-150k
+  #   name: nz_ross_dependency_windmill_points_ant_150k
+  #   mapping: *windmill
 
   # -------- wreck
   # Per FTM schema feedback (page 19): wreck_of -> subtype.
@@ -442,14 +442,14 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-wreck-points-topo-150k
     name: nz_chatham_island_wreck_points_topo_150k
     mapping: *wreck
-  # nzoi
-  - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
-    name: nz_auckland_island_wreck_points_topo_150k
-    mapping: *wreck
-  - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
-    name: nz_kermadec_is_wreck_points_topo_125k
-    mapping: *wreck
-  # pi
-  - source: kart@data.koordinates.com:linz/niue-wreck-points-topo-150k
-    name: niue_wreck_points_topo_150k
-    mapping: *wreck
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
+  #   name: nz_auckland_island_wreck_points_topo_150k
+  #   mapping: *wreck
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
+  #   name: nz_kermadec_is_wreck_points_topo_125k
+  #   mapping: *wreck
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-wreck-points-topo-150k
+  #   name: niue_wreck_points_topo_150k
+  #   mapping: *wreck
