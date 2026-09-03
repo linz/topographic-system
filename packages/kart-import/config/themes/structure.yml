@@ -65,10 +65,10 @@ datasets:
       name: null
       theme: structures
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-reservoir-polygons-topo-125k-zone4
-    name: cook_islands_reservoir_polygons_topo_125k_zone4
-    mapping: *reservoir
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-reservoir-polygons-topo-125k-zone4
+  #   name: cook_islands_reservoir_polygons_topo_125k_zone4
+  #   mapping: *reservoir
 
   # -------- siphon
   # nz
@@ -102,11 +102,11 @@ datasets:
       name: null
       theme: structures
       metadata: null
-  # pi
-  - source: kart@data.koordinates.com:linz/cook-islands-tank-polygons-topo-125k-zone4
-    name: cook_islands_tank_polygons_topo_125k_zone4
-    mapping: *tank
-  # ant
-  - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-polygons-ant-150k
-    name: nz_ross_dependency_tank_polygons_ant_150k
-    mapping: *tank
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-tank-polygons-topo-125k-zone4
+  #   name: cook_islands_tank_polygons_topo_125k_zone4
+  #   mapping: *tank
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-tank-polygons-ant-150k
+  #   name: nz_ross_dependency_tank_polygons_ant_150k
+  #   mapping: *tank
