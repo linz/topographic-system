@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nztopo50_carto_symbol",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "UUIDv7 of the feature"
+    },
+    "t50_fid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "id (UUID) of the feature this symbol annotates: the landuse polygon it sits within, or\nthe road centreline it labels.\n\nNull where no feature was close enough to match."
+    },
+    "type": {
+      "$ref": "#/$defs/carto_symbol_type"
+    },
+    "label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orientation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Label rotation in degrees clockwise from east. Null for symbols drawn unrotated."
+    },
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": {
+        "type": "null"
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
+  },
+  "required": ["id", "t50_fid", "created_at", "updated_at", "source_id", "type", "label", "orientation", "geometry"],
+  "additionalProperties": false,
+  "$defs": {
+    "carto_symbol_type": {
+      "type": "string",
+      "enum": ["contour_number", "golf_course", "highway_shield", "mine_opencast", "mine_training", "mine_underground"]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": {
+          "type": "number"
+        },
+        "ymin": {
+          "type": "number"
+        },
+        "xmax": {
+          "type": "number"
+        },
+        "ymax": {
+          "type": "number"
+        }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
+    }
+  }
+}
