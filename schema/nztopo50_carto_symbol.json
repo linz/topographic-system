@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "next/nztopo50_carto_symbol",
+  "$id": "nztopo50_carto_symbol",
   "type": "object",
   "properties": {
     "id": {
