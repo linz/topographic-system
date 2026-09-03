@@ -1,4 +1,9 @@
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_carto_text 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_map_sheet 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_grid 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_dms_grid 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_carto_text 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_map_sheet 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_grid 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_dms_grid 
+
+REM kart push origin dataload-release66
+
+REM - local update
+REM kart import C:\Data\toposource\topographic-product-data-target\topographic-product-data.gpkg --replace-existing --primary-key id nztopo50_carto_text
