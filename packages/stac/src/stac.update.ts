@@ -215,13 +215,14 @@ async function tryRead(u: URL): Promise<ReadResponse | null> {
 
 async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promise<T> {
   let lastError: FsError | null = null;
-  const retries = opts?.retries ?? 3;
+  const retries = opts?.retries ?? 5;
   for (let i = 0; i < retries; i++) {
     try {
       return await cb();
     } catch (e) {
       if (FsError.is(e) && e.code === 412) {
         lastError = e;
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 * i));
         continue;
       }
       throw e;
