@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers/promises';
+
 import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
 import { qMapAll } from '@linzjs/topographic-system-shared';
@@ -222,7 +224,7 @@ async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promis
     } catch (e) {
       if (FsError.is(e) && e.code === 412) {
         lastError = e;
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 * i));
+        await setTimeout(Math.random() * 50 * i);
         continue;
       }
       throw e;
