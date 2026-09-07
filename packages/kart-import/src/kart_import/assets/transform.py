@@ -143,7 +143,9 @@ def normalize_field_lifecyle(
     gdf["updated_at"] = None
 
     # Detect the primary key column
-    if "t50_fid" in gdf.columns:
+    if td.feature_key:
+        pk_col = td.feature_key
+    elif "t50_fid" in gdf.columns:
         pk_col = "t50_fid"
     elif "auto_pk" in gdf.columns:
         pk_col = "auto_pk"
