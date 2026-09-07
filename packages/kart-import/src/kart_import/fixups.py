@@ -27,6 +27,7 @@ rather than corrupting a later snapshot.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable
 from datetime import UTC
 from typing import TYPE_CHECKING, NamedTuple
@@ -399,6 +400,49 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     gdf["label"] = gdf["label"].astype("Int64").astype("string")
     return gdf
 
+def map_sheet_origin(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    bounds = gdf.geometry.bounds
+    gdf["origin_x"] = bounds["minx"].round(0).astype("Float64")
+    gdf["origin_y"] = bounds["maxy"].round(0).astype("Float64")
+    return gdf
+
+def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    trig_lookup = {}
+    for dataset in get_theme_by_name("trig_point").datasets:
+        frame = read_transform(WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}")
+        for code, id in zip(frame["code"], frame["id"], strict=True):
+            trig_lookup[code] = id
+
+    geographic_name_lookup = {}
+    for dataset in get_theme_by_name("geographic_name").datasets:
+        frame = read_transform(WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}")
+        for name, id in zip(frame["name"], frame["id"], strict=True):
+            geographic_name_lookup[name] = id
+
+    example_point_id = []
+    for example_name, example_class in zip(gdf["example_name"], gdf["example_class"], strict=True):
+        if example_class == "trig_pnt":
+            example_point_id.append(trig_lookup.get(example_name))
+        else:
+            example_point_id.append(geographic_name_lookup.get(example_name))
+
+    gdf["example_point_id"] = example_point_id
+    gdf = gdf.drop(columns=["example_name", "example_class"])
+    return gdf
+
+def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    edition = gdf["published_version"]
+    version = edition.str.extract(r"Edition\s+([0-9]+(?:\.[0-9]+)?)", expand=False)
+    year = edition.str.extract(r"Published\s+([0-9]{4})", expand=False)
+
+    gdf["published_version"] = version
+    gdf["published_at"] = year + "-01-01"
+    gdf["updated_at"] = year + "-01-01"
+    return gdf
+
 
 FIXUPS: dict[str, Fixup] = {
     "build_road_metadata": build_road_metadata,
@@ -408,4 +452,7 @@ FIXUPS: dict[str, Fixup] = {
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
+    "map_sheet_origin": map_sheet_origin,
+    "map_sheet_example_point_id": map_sheet_example_point_id,
+    "map_sheet_published": map_sheet_published,
 }

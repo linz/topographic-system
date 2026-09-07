@@ -1,0 +1,26 @@
+name: nztopo50_map_sheet
+target_repo: topographic-product-data
+target_epsg: EPSG:2193
+datasets:
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: linz_map_sheet
+    name: linz_map_sheet
+    feature_key: auto_pk
+    depends_on_themes: [trig_point, geographic_name]
+    mapping:
+      t50_fid: $
+      type: nztopo50_map_sheet
+      sheet_code: $
+      sheet_name: $
+      origin_x: { fixup: true }
+      origin_y: { fixup: true }
+      example_point_id: { fixup: true }
+      example_name: { source: $ex_name, fixup: true }
+      example_class: { source: $ex_class, fixup: true }
+      published_version: { source: $edition, fixup: true }
+      published_at: { fixup: true }
+    fixups:
+      - fn: map_sheet_origin
+      - fn: map_sheet_example_point_id
+      - fn: map_sheet_published
