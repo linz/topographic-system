@@ -28,6 +28,11 @@ export interface Ogr2OgrParquetOptions {
   sortByBbox: boolean;
 }
 
+interface KartMetadataJson extends Record<string, unknown> {
+  title?: string;
+  description?: string;
+}
+
 /** Build the `ogr2ogr` command arguments to convert a gpkg file into a parquet file. */
 export function buildOgr2OgrArgs(parquetFile: URL, gpkgFile: URL, options: Ogr2OgrParquetOptions): string[] {
   const command = [
@@ -125,7 +130,13 @@ export const ParquetCommand = command({
     await mkdir(args.tempLocation, { recursive: true });
     logger.info({ gpkgFilesToProcess: gpkgFilesToProcess.map((url: URL) => url.pathname) }, 'ToParquet:Processing');
 
-    const datasets: { dataset: string; source: URL; metadata: ParquetStacMetadata }[] = [];
+    const datasets: {
+      dataset: string;
+      source: URL;
+      metadata: ParquetStacMetadata;
+      title?: string;
+      description?: string;
+    }[] = [];
     await qMapAll(q, gpkgFilesToProcess, async (gpkgFile) => {
       const dataset = path.basename(gpkgFile.pathname, extension);
       const parquetFile = new URL(`${dataset}.parquet`, args.tempLocation);
@@ -150,7 +161,13 @@ export const ParquetCommand = command({
         },
         'ToParquet:Written',
       );
-      datasets.push({ dataset, source: parquetFile, metadata: parquetStats });
+      const metaUrl = new URL(`${dataset}.json`, gpkgFile);
+
+      const { title, description } = await fsa.readJson<KartMetadataJson>(metaUrl).catch(() => {
+        return {} as KartMetadataJson;
+      });
+
+      datasets.push({ dataset, source: parquetFile, metadata: parquetStats, title, description });
     });
 
     const todo: Promise<URL>[] = [];
@@ -162,8 +179,8 @@ export const ParquetCommand = command({
         type: 'application/vnd.apache.parquet',
         ...ds.metadata.table,
       });
-      sw.collection.title = ds.dataset; // TODO this should come from `kart meta get`
-      sw.collection.description = `topographic-system export of ${ds.dataset}`; // TODO this should come from `kart meta get`
+      sw.collection.title = ds.title ?? ds.dataset;
+      sw.collection.description = ds.description ?? `topographic-system export of ${ds.dataset}`;
       sw.collection.extent = ds.metadata.extent;
       todo.push(sw.write(args.output, q));
     }

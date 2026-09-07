@@ -194,6 +194,10 @@ describe('action.flow integration', () => {
         files.some((f) => f.href.endsWith('.gpkg')),
         `Expected .gpkg files in ${exportUrl.href}, got: ${files.map((f) => f.href).join(', ')}`,
       );
+      assert.ok(
+        files.some((f) => f.href.endsWith('.json')),
+        `Expected .json metadata files in ${exportUrl.href}, got: ${files.map((f) => f.href).join(', ')}`,
+      );
     });
 
     it('should convert gpkg to parquet and produce STAC in step 6 - to-parquet', async () => {
@@ -218,6 +222,11 @@ describe('action.flow integration', () => {
       const catalogUrl = new URL('catalog.json', outputUrl);
       const catalog = await fsa.readJson(catalogUrl);
       assert.ok(catalog, 'catalog.json should exist in output');
+
+      const collectionUrl = new URL('test_points/collection.json', outputUrl);
+      const collection = await fsa.readJson<{ title: string; description: string }>(collectionUrl);
+      assert.ok(collection.title, 'collection should have a title');
+      assert.ok(collection.description, 'collection should have a description');
     });
 
     // FIXME currently broken
