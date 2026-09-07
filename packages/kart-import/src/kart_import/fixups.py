@@ -27,7 +27,6 @@ rather than corrupting a later snapshot.
 from __future__ import annotations
 
 import logging
-import re
 from collections.abc import Callable
 from datetime import UTC
 from typing import TYPE_CHECKING, NamedTuple
@@ -400,11 +399,13 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     gdf["label"] = gdf["label"].astype("Int64").astype("string")
     return gdf
 
+
 def map_sheet_origin(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     bounds = gdf.geometry.bounds
     gdf["origin_x"] = bounds["minx"].round(0).astype("Float64")
     gdf["origin_y"] = bounds["maxy"].round(0).astype("Float64")
     return gdf
+
 
 def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     from .assets.transform import read_transform
@@ -432,6 +433,7 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
     gdf["example_point_id"] = example_point_id
     gdf = gdf.drop(columns=["example_name", "example_class"])
     return gdf
+
 
 def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     edition = gdf["published_version"]
