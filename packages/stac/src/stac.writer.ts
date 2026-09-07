@@ -1,4 +1,10 @@
 import { fsa } from '@chunkd/fs';
+import type {
+  StacExtensionUrl,
+  StacFileV2_1_0,
+  StacProjectionV2_0_0,
+  StacTableV1_3_0,
+} from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
 
@@ -16,6 +22,11 @@ function getSource(x: unknown): URL | Buffer | string | null {
   return null;
 }
 
+type StacAssetWithExtensions = StacAsset &
+  Partial<StacProjectionV2_0_0> &
+  Partial<StacTableV1_3_0> &
+  Partial<StacFileV2_1_0>;
+
 export class StacCollectionWriter {
   collection: StacCollection;
 
@@ -28,6 +39,13 @@ export class StacCollectionWriter {
     this.category = category;
     this.label = label;
     this.collection = StacBasic.collection();
+  }
+
+  extension(extension: StacExtensionUrl) {
+    this.collection.stac_extensions ??= [];
+    if (!this.collection.stac_extensions.includes(extension)) {
+      this.collection.stac_extensions.push(extension);
+    }
   }
 
   item(itemName: string): StacItem {
@@ -44,7 +62,7 @@ export class StacCollectionWriter {
     return current;
   }
 
-  itemAsset(itemName: string, assetName: string, source: URL | Buffer, asset: StacAsset) {
+  itemAsset(itemName: string, assetName: string, source: URL | Buffer, asset: StacAssetWithExtensions) {
     const item = this.item(itemName);
     item.assets ??= {};
     if (item.assets[assetName]) throw new Error(`Overriding asset on ${itemName}.${assetName}`);
@@ -52,7 +70,7 @@ export class StacCollectionWriter {
     Object.defineProperty(asset, StacSource, { enumerable: false, value: source });
   }
 
-  asset(assetName: string, source: URL, asset: StacAsset) {
+  asset(assetName: string, source: URL, asset: StacAssetWithExtensions) {
     this.collection.assets ??= {};
     if (this.collection.assets[assetName]) throw new Error(`Overriding asset on collection.${assetName}`);
     this.collection.assets[assetName] = asset;
