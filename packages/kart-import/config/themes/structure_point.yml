@@ -404,7 +404,7 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-windmill-points-topo-150k
     name: nz_windmill_points_topo_150k
-    mapping: &windmill
+    mapping:
       t50_fid: $
       type: windmill
       subtype: $use
@@ -415,9 +415,20 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
-    name: nz_chatham_island_windmill_points_topo_1250k
-    mapping: *windmill
+  # # FIXME: throws a 'Change without fid' exception
+  # - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
+  #   name: nz_chatham_island_windmill_points_topo_1250k
+  #   mapping:
+  #     t50_fid: $t250_fid # different attribute name
+  #     type: windmill
+  #     subtype: $use
+  #     tank_type: null
+  #     status: null
+  #     name: null
+  #     height: null
+  #     orientation: null
+  #     theme: structures
+  #     metadata: null
   # # ant
   # - source: kart@data.koordinates.com:linz/nz-ross-dependency-windmill-points-ant-150k
   #   name: nz_ross_dependency_windmill_points_ant_150k
