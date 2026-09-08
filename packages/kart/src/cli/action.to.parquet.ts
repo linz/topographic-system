@@ -53,6 +53,35 @@ export function buildOgr2OgrArgs(parquetFile: URL, gpkgFile: URL, options: Ogr2O
   return command.flat();
 }
 
+export interface DatasetExportInfo {
+  dataset: string;
+  source: URL;
+  metadata: ParquetStacMetadata;
+  title?: string;
+  description?: string;
+}
+
+/** Create a StacCollectionWriter populated with dataset metadata and STAC extensions. */
+export function createDatasetStac(ds: DatasetExportInfo): StacCollectionWriter {
+  const sw = new StacCollectionWriter('data', ds.dataset);
+  sw.extension(StacExtensions.file);
+  sw.extension(StacExtensions.proj);
+  sw.extension(StacExtensions.table);
+
+  sw.asset('parquet', ds.source, {
+    href: `./${ds.dataset}.parquet`,
+    roles: ['data'],
+    type: 'application/vnd.apache.parquet',
+    'proj:epsg': ds.metadata.epsg.code,
+    ...ds.metadata.table,
+  });
+  sw.collection.title = ds.title ?? ds.dataset;
+  sw.collection.description = ds.description ?? `topographic-system export of ${ds.dataset}`;
+  sw.collection.extent = ds.metadata.extent;
+
+  return sw;
+}
+
 export const ParquetCommand = command({
   name: 'to-parquet',
   description: 'Convert gpkg files in a folder to parquet format',
@@ -173,22 +202,7 @@ export const ParquetCommand = command({
 
     const todo: Promise<URL>[] = [];
     for (const ds of datasets) {
-      const sw = new StacCollectionWriter('data', ds.dataset);
-      sw.extension(StacExtensions.file);
-      sw.extension(StacExtensions.proj);
-      sw.extension(StacExtensions.table);
-
-      sw.asset('parquet', ds.source, {
-        href: `./${ds.dataset}.parquet`,
-        roles: ['data'],
-        type: 'application/vnd.apache.parquet',
-        'proj:epsg': ds.metadata.epsg.code,
-        ...ds.metadata.table,
-      });
-      sw.collection.title = ds.title ?? ds.dataset;
-      sw.collection.description = ds.description ?? `topographic-system export of ${ds.dataset}`;
-      sw.collection.extent = ds.metadata.extent;
-
+      const sw = createDatasetStac(ds);
       todo.push(sw.write(args.output, q));
     }
     const collections = await Promise.all(todo);
