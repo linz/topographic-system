@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 #wslc run --rm -it -v C:\data\temp\amcmenamin:/data -v C:\Data\toposource\schema_model:/schema kart validate-schema --schema /schema/marine_point.json /data/marine_point.parquet
-parquet_folder = r"C:\Data\temp\amcmenamin"
+parquet_folder = r"C:\Data\temp\topo-data-dev"
 #schema_folder = "/schema/next"
 schema_folder = r"C:\data\toposource\schema_model"
 data_mount = "/data"

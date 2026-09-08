@@ -4,10 +4,10 @@ import pyogrio
 
 # Read the layer from the GeoPackage file
 gpkg_path = r"C:\Data\toposource\topographic-data\topographic-data.gpkg"
-gpkg_path = r"C:\Data\toposource\topographic-data-amcmenamin\topographic-data-amcmenamin.gpkg"
+gpkg_path = r"C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg"
 #gpkg_path = r"C:\Data\topoedit\topographic-data\topographic-data.gpkg"
 output_path = r"C:\Data\temp"
-output_path = r"C:\Data\temp\amcmenamin"
+output_path = r"C:\Data\temp\topo-data-dev"
 layers = []
 #layers = ["landuse"]
 
