@@ -14,7 +14,7 @@ export interface StacProjectionV2_0_0 {
   /** PROJJSON object representing the Coordinate Reference System (CRS) that the proj:geometry and proj:bbox fields represent  */
   'proj:projjson'?: unknown;
   /** Defines the footprint of this Item. (geojson) */
-  'proj:geometry': unknown;
+  'proj:geometry'?: unknown;
   /** The affine transformation coefficients for the default grid  */
   'proj:transform'?: number[];
   /** Number of pixels in Y and X directions for the default grid */
@@ -22,7 +22,7 @@ export interface StacProjectionV2_0_0 {
   /** Coordinates representing the centroid of the Item (in lat/long)  */
   'proj:centroid'?: number[];
   /** Bounding box of the Item in the asset CRS in 2 or 3 dimensions.  */
-  'proj:bbox?': number[];
+  'proj:bbox'?: number[];
 }
 
 export interface StacTableV1_3_0Column {

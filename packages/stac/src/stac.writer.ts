@@ -23,9 +23,9 @@ function getSource(x: unknown): URL | Buffer | string | null {
 }
 
 type StacAssetWithExtensions = StacAsset &
-  Partial<StacProjectionV2_0_0> &
-  Partial<StacTableV1_3_0> &
-  Partial<StacFileV2_1_0>;
+  StacProjectionV2_0_0 &
+  StacTableV1_3_0 &
+  StacFileV2_1_0;
 
 export class StacCollectionWriter {
   collection: StacCollection;
