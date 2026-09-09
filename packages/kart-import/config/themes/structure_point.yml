@@ -292,6 +292,10 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
+    corrections:
+      - column: subtype
+        replace:
+          'tunnel ventilation': tunnel_ventilation
 
   # -------- siphon
   # nz
@@ -344,9 +348,17 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
+    corrections: &tank_type_corrections
+      - column: tank_type
+        replace:
+          'surge chamber': surge_chamber
+      - column: subtype
+        replace:
+          'watre': water # source typo, 1 feature
   - source: kart@data.koordinates.com:linz/nz-chatham-island-tank-points-topo-150k
     name: nz_chatham_island_tank_points_topo_150k
     mapping: *tank
+    corrections: *tank_type_corrections
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-tank-points-topo-125k-zone4
   #   name: cook_islands_tank_points_topo_125k_zone4
@@ -415,6 +427,10 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
+    corrections:
+      - column: subtype
+        replace:
+          'power generation': power_generation
   # # FIXME: throws a 'Change without fid' exception
   # - source: kart@data.koordinates.com:linz/nz-chatham-island-windmill-points-topo-1250k
   #   name: nz_chatham_island_windmill_points_topo_1250k
