@@ -66,9 +66,14 @@ datasets:
       temperature_indicator: null
       theme: landcover
       metadata: null
+    corrections: &lake_subtype_corrections
+      - column: subtype
+        replace:
+          'hydro-electric': hydro_electric
   - source: kart@data.koordinates.com:linz/nz-chatham-island-lake-polygons-topo-150k
     name: nz_chatham_island_lake_polygons_topo_150k
     mapping: *lake
+    corrections: *lake_subtype_corrections
   # # nzoi
   # - source: kart@data.koordinates.com:linz/nz-auckland-island-lake-polygons-topo-150k
   #   name: nz_auckland_island_lake_polygons_topo_150k
@@ -135,6 +140,11 @@ datasets:
       temperature_indicator: null
       theme: landcover
       metadata: null
+    corrections:
+      - column: subtype
+        replace:
+          'ice skating': ice_skating
+          'sewage treatment': sewage_treatment
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-pond-polygons-topo-125k-zone4
   #   name: cook_islands_pond_polygons_topo_125k_zone4
