@@ -46,6 +46,7 @@ export const LintQgisProjectCommand = command({
   async handler(args) {
     registerFileSystem();
 
+    let totalErrors: string[] = [];
     logger.info({ args }, 'LintQgis:Start');
 
     const startTime = performance.now();
@@ -57,11 +58,14 @@ export const LintQgisProjectCommand = command({
       const errors = await lint(qgisFile, LintRules, { qgisPath: path });
 
       if (errors.length > 0) {
-        for (const error of errors) logger.error({ rule: error.name, error: error.error }, 'LintQgis:Error');
-        throw new Error(
-          `QGIS project lint failed with ${errors.length} error(s):\n${errors.map((e) => `${e.name}: ${e.error}`).join('\n')}`,
-        );
+        for (const error of errors)
+          logger.error({ file: path, rule: error.name, error: error.error }, 'LintQgis:Error');
+        totalErrors.push(`${path.toString()}: ${errors.length} error(s)`);
       }
+    }
+
+    if (totalErrors.length > 0) {
+      throw new Error(`QGIS project lint failed with ${totalErrors.length} error(s):\n${totalErrors.join('\n')}`);
     }
     logger.info({ duration: performance.now() - startTime }, 'LintQgis:Completed');
   },
@@ -204,7 +208,7 @@ export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
       if (svgPath.startsWith('base64:')) continue;
 
       const targetUrl = new URL(svgPath, context.qgisPath);
-      const exists = await fsa.exists(targetUrl);
+      const exists = await fileExists(targetUrl);
       if (!exists) missingFiles.push(svgPath);
     }
 
@@ -213,5 +217,15 @@ export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
     return null;
   },
 };
+
+async function fileExists(url: URL): Promise<boolean> {
+  try {
+    const exists = await fsa.exists(url);
+    return exists;
+  } catch {
+    // noop
+  }
+  return false;
+}
 
 export const LintRules: LintRuleContext[] = [LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath];
