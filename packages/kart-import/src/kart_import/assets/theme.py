@@ -6,6 +6,7 @@ import pandas as pd
 from ..config import (
     THEME_DRIVER,
     THEME_SUFFIX,
+    THEME_WRITE_OPTIONS,
     TRANSFORM_SUFFIX,
     WORKING_THEME_DIR,
     WORKING_TRANSFORM_DIR,
@@ -191,7 +192,9 @@ def merge_theme_release(theme_name: str, release_id: int):
         # still carries the theme's columns - a geometry-only file has no `id` to key an import on.
         logger.warning(f"No data found for theme {theme.name} release {release_id}, writing empty output.")
         if not empty_gdfs:  # a theme with no datasets at all - no shape to take
-            gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(output_file, driver=THEME_DRIVER, index=False)
+            gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
+                output_file, driver=THEME_DRIVER, index=False, **THEME_WRITE_OPTIONS
+            )
             return
         gdfs = empty_gdfs
 
@@ -209,7 +212,7 @@ def merge_theme_release(theme_name: str, release_id: int):
     if "fid" in merged.columns:
         merged = merged.drop(columns=["fid"])
 
-    merged.to_file(output_file, driver=THEME_DRIVER, index=False)
+    merged.to_file(output_file, driver=THEME_DRIVER, index=False, **THEME_WRITE_OPTIONS)
 
 
 if __name__ == "__main__":

@@ -46,8 +46,14 @@ TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"
 # Merged per-theme releases, the input to `kart import`. FlatGeobuf carries each column's
 # declared type, so kart records the type we intend rather than one auto-detected from GeoJSON.
 THEME_FORMAT = env_theme_format()
-THEME_SUFFIX = ".fgb" if THEME_FORMAT == "fgb" else ".geojson"
-THEME_DRIVER = "FlatGeobuf" if THEME_FORMAT == "fgb" else "GeoJSON"
+THEME_SUFFIX = {"sqlite": ".sqlite", "fgb": ".fgb"}.get(THEME_FORMAT, ".geojson")
+THEME_DRIVER = {"sqlite": "SQLite", "fgb": "FlatGeobuf"}.get(THEME_FORMAT, "GeoJSON")
+
+THEME_WRITE_OPTIONS: dict = (
+    {"dataset_options": {"SPATIALITE": "YES"}, "layer_options": {"GEOMETRY_NAME": "geometry"}}
+    if THEME_FORMAT == "sqlite"
+    else {}
+)
 
 
 KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"

@@ -20,18 +20,19 @@ def env_transform_format() -> str:
 def env_theme_format() -> str:
     """Output format for the merged per-theme releases, the input to `kart import`.
 
-    KART_THEME_FORMAT=fgb|geojson (default fgb). FlatGeobuf declares each column's type, so
-    kart records the type the pipeline intends. Set geojson for local dev when you want a
-    human-readable merge:
+    KART_THEME_FORMAT=sqlite|fgb|geojson (default sqlite). Spatialite and FlatGeobuf both
+    declare each column's type, so kart records the type the pipeline intends; only Spatialite
+    also records the *geometry* column's name, so kart imports it as `geometry` instead of
+    defaulting to `geom`. Set geojson for local dev when you want a human-readable merge:
 
         export KART_THEME_FORMAT=geojson
 
     Dev only: GeoJSON carries no types, so kart auto-detects them from the JSON text.
     Don't import a repo built this way into anywhere that matters.
     """
-    fmt = os.getenv("KART_THEME_FORMAT", "fgb").lower()
-    if fmt not in ("fgb", "geojson"):
-        raise ValueError(f"KART_THEME_FORMAT must be 'fgb' or 'geojson', got {fmt!r}")
+    fmt = os.getenv("KART_THEME_FORMAT", "sqlite").lower()
+    if fmt not in ("sqlite", "fgb", "geojson"):
+        raise ValueError(f"KART_THEME_FORMAT must be 'sqlite' or fgb' or 'geojson', got {fmt!r}")
     return fmt
 
 
