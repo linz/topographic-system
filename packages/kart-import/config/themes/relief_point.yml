@@ -1,0 +1,75 @@
+name: relief_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- saddle
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-saddle-points-topo-150k
+    name: nz_saddle_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: saddle
+      name: $
+      elevation: $
+      height: null
+      orientation: $orientatn
+      theme: relief
+      metadata: null
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-saddle-points-ant-150k
+  #   name: nz_ross_dependency_saddle_points_ant_150k
+  #   mapping:
+  #     t50_fid: $
+  #     type: saddle
+  #     name: $
+  #     elevation: $
+  #     height: null
+  #     orientation: null
+  #     theme: relief
+  #     metadata: null
+
+  # -------- waterfall
+  # Moved from water_point.yml per FTM schema feedback (BM-1769).
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-waterfall-points-topo-150k
+    name: nz_waterfall_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: waterfall
+      name: $
+      elevation: null
+      height: $
+      # `orientatn` was added to the source schema on 2020-06-10 (release 50).
+      orientation: { source: $orientatn, since_release: 50 }
+      theme: relief
+      metadata: null
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-waterfall-points-topo-125k
+  #   name: nz_antipodes_island_waterfall_points_topo_125k
+  #   mapping: &waterfall_no_orientation
+  #     t50_fid: null # FIXME: Needs lookup
+  #     type: waterfall
+  #     name: $
+  #     elevation: null
+  #     height: $
+  #     orientation: null
+  #     theme: relief
+  #     metadata: null
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-waterfall-points-topo-150k
+  #   name: nz_auckland_island_waterfall_points_topo_150k
+  #   mapping: *waterfall_no_orientation
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-waterfall-points-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_waterfall_points_topo_150k
+  #   mapping: *waterfall_no_orientation
+  # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-waterfall-points-topo-125k-zone4
+  #   name: cook_islands_waterfall_points_topo_125k_zone4
+  #   mapping:
+  #     t50_fid: {source: $, since_release: 57}
+  #     type: waterfall
+  #     name: $
+  #     elevation: null
+  #     height: $
+  #     orientation: {source: $orientn, since_release: 57}
+  #     theme: relief
+  #     metadata: null

@@ -1,0 +1,121 @@
+name: place_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- cave
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-cave-points-topo-150k
+    name: nz_cave_points_topo_150k
+    mapping: &cave
+      t50_fid: $
+      type: cave
+      subtype: $compositn
+      name: $
+      theme: landuse
+      metadata: null
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-cave-points-topo-125k-zone4
+  #   name: cook_islands_cave_points_topo_125k_zone4
+  #   mapping: *cave
+  # - source: kart@data.koordinates.com:linz/niue-cave-points-topo-150k
+  #   name: niue_cave_points_topo_150k
+  #   mapping: *cave
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-cave-points-ant-150k
+  #   name: nz_ross_dependency_cave_points_ant_150k
+  #   mapping: *cave
+
+  # Note: cemetery points are NOT mapped here — "cemetery" is not a member of
+  # place_type. They belong to the `landcover_point` schema/theme and are
+  # mapped in landcover_point.yml instead.
+
+  # -------- grave
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-grave-points-topo-150k
+    name: nz_grave_points_topo_150k
+    mapping: &grave
+      t50_fid: $
+      type: grave
+      subtype: null
+      name: $
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-grave-points-topo-150k
+    name: nz_chatham_island_grave_points_topo_150k
+    mapping: *grave
+  # # pi
+  # - source: kart@data.koordinates.com:linz/niue-grave-points-topo-150k
+  #   name: niue_grave_points_topo_150k
+  #   mapping: *grave
+
+  # -------- historic_site
+  # Note: source has no dedicated name field for historic sites — per FTM
+  # schema feedback (BM-1806), `name` is populated from `descriptn` instead.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-historic-site-points-topo-150k
+    name: nz_historic_site_points_topo_150k
+    mapping: &historic_site
+      t50_fid: $
+      type: historic_site
+      subtype: null
+      name: $descriptn
+      theme: landuse
+      metadata: null
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
+  #   name: nz_auckland_island_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-historic-site-points-topo-125k-zone4
+  #   name: cook_islands_historic_site_points_topo_125k_zone4
+  #   mapping: *historic_site
+  # - source: kart@data.koordinates.com:linz/niue-historic-site-points-topo-150k
+  #   name: niue_historic_site_points_topo_150k
+  #   mapping: *historic_site
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-historic-site-points-ant-150k
+  #   name: nz_ross_dependency_historic_site_points_ant_150k
+  #   mapping: *historic_site
+
+  # -------- monument
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-monument-points-topo-150k
+    name: nz_monument_points_topo_150k
+    mapping: &monument
+      t50_fid: $
+      type: monument
+      subtype: null
+      name: $
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-monument-points-topo-150k
+    name: nz_chatham_island_monument_points_topo_150k
+    mapping: *monument
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-monument-points-topo-125k-zone4
+  #   name: cook_islands_monument_points_topo_125k_zone4
+  #   mapping: *monument
+  # - source: kart@data.koordinates.com:linz/tokelau-monument-points-topo-125k
+  #   name: tokelau_monument_points_topo_125k
+  #   mapping: *monument
+
+  # -------- pa
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-pa-points-topo-150k
+    name: nz_pa_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: pa
+      subtype: null
+      name: $
+      theme: landuse
+      metadata: null
+
+  # Note: mine, radar_dome, saddle and satellite_station points were removed
+  # from here — they don't belong to the place_point schema (invalid `type`
+  # values). `mine` is already handled in landuse_point.yml; `radar_dome` and
+  # `satellite_station` now live in structure_point.yml; `saddle` now lives
+  # in relief_point.yml.
