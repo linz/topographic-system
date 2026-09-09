@@ -4,19 +4,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared';
 import {
   logger,
+  parquetToStac,
   qFromArgs,
   qMapAll,
   recursiveFileSearch,
   registerFileSystem,
+  StacExtensions,
+  stringToUrlFolder,
   Url,
   UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
-import type { ParquetStacMetadata } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
-import { parquetToStac } from '@linzjs/topographic-system-shared/src/parquet.metadata.ts';
-import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
 import { StacCollectionWriter, StacUpdater } from '@linzjs/topographic-system-stac';
 import { boolean, command, flag, number, option, optional, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
@@ -50,6 +51,35 @@ export function buildOgr2OgrArgs(parquetFile: URL, gpkgFile: URL, options: Ogr2O
   ];
   if (options.sortByBbox) command.push(['-lco', 'SORT_BY_BBOX=YES']);
   return command.flat();
+}
+
+export interface DatasetExportInfo {
+  dataset: string;
+  source: URL;
+  metadata: ParquetStacMetadata;
+  title?: string;
+  description?: string;
+}
+
+/** Create a StacCollectionWriter populated with dataset metadata and STAC extensions. */
+export function createDatasetStac(ds: DatasetExportInfo): StacCollectionWriter {
+  const sw = new StacCollectionWriter('data', ds.dataset);
+  sw.extension(StacExtensions.file);
+  sw.extension(StacExtensions.proj);
+  sw.extension(StacExtensions.table);
+
+  sw.asset('parquet', ds.source, {
+    href: `./${ds.dataset}.parquet`,
+    roles: ['data'],
+    type: 'application/vnd.apache.parquet',
+    'proj:epsg': ds.metadata.epsg.code,
+    ...ds.metadata.table,
+  });
+  sw.collection.title = ds.title ?? ds.dataset;
+  sw.collection.description = ds.description ?? `topographic-system export of ${ds.dataset}`;
+  sw.collection.extent = ds.metadata.extent;
+
+  return sw;
 }
 
 export const ParquetCommand = command({
@@ -172,16 +202,7 @@ export const ParquetCommand = command({
 
     const todo: Promise<URL>[] = [];
     for (const ds of datasets) {
-      const sw = new StacCollectionWriter('data', ds.dataset);
-      sw.asset('parquet', ds.source, {
-        href: `./${ds.dataset}.parquet`,
-        roles: ['data'],
-        type: 'application/vnd.apache.parquet',
-        ...ds.metadata.table,
-      });
-      sw.collection.title = ds.title ?? ds.dataset;
-      sw.collection.description = ds.description ?? `topographic-system export of ${ds.dataset}`;
-      sw.collection.extent = ds.metadata.extent;
+      const sw = createDatasetStac(ds);
       todo.push(sw.write(args.output, q));
     }
     const collections = await Promise.all(todo);
