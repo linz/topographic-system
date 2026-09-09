@@ -22,10 +22,7 @@ function getSource(x: unknown): URL | Buffer | string | null {
   return null;
 }
 
-type StacAssetWithExtensions = StacAsset &
-  StacProjectionV2_0_0 &
-  StacTableV1_3_0 &
-  StacFileV2_1_0;
+type StacAssetWithExtensions = StacAsset & StacProjectionV2_0_0 & StacTableV1_3_0 & StacFileV2_1_0;
 
 export class StacCollectionWriter {
   collection: StacCollection;
