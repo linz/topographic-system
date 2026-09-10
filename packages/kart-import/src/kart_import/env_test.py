@@ -27,9 +27,9 @@ def test_transform_format_rejects_unknown_value(monkeypatch):
         env_transform_format()
 
 
-def test_theme_format_defaults_to_fgb(monkeypatch):
+def test_theme_format_defaults_to_sqlite(monkeypatch):
     monkeypatch.delenv("KART_THEME_FORMAT", raising=False)
-    assert env_theme_format() == "fgb"
+    assert env_theme_format() == "sqlite"
 
 
 def test_theme_format_override_is_case_insensitive(monkeypatch):
