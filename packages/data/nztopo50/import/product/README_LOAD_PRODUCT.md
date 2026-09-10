@@ -10,7 +10,7 @@ CODE is in the **product** folder
 
 # Process - Load Layers
 
-**nz_topo50_carto_text** - added via import_carto_text.py script (SRID=NZTM2000 EPSG:2193)
+**nztopo50_carto_text** - added via import_carto_text.py script (SRID=NZTM2000 EPSG:2193)
 
 The original file is exported from LAMPS as a shapefile.
 
@@ -26,13 +26,19 @@ Run: import_carto_text.py
 
 _ADD QGIS Fields_ - See Cartographic Text Post Processing and Re-Loading section below
 
-**nz_topo50_map_sheet** - added via main topographic process and copied into carto schema (SRID=NZTM2000 EPSG:2193)
+**nztopo50_map_sheet** 
+
+run import_map_sheet.py - add into carto schema (SRID=NZTM2000 EPSG:2193)
+
+This also does a lookup based on name between trig_point, geographic_name to create the example_point_id.
+
+**IMPORTANT - run after topographic data loaded and topo ids aligned.**
 
 GRIDS
 
-**nz_topo50_grid** - added via import_grids.py script (SRID=NZTM2000 EPSG:2193)
+**nztopo50_grid** - added via import_grids.py script (SRID=NZTM2000 EPSG:2193)
 
-**nz_topo50_dms_grid** - added via import_grids.py script (SRID=WGS84 EPSG:4326)
+**nztopo50_dms_grid** - added via import_grids.py script (SRID=WGS84 EPSG:4326)
 
 # Create kart import script
 
@@ -50,7 +56,8 @@ if work flow is going to load to branch and then PR into master create a branch 
 
 > Make sure it is a new branch
 
-kart init -b release64 topographic-data
+kart init -b release64 topographic-product-data
+
 
 THEN...
 
@@ -58,9 +65,17 @@ cd topographic-product-data
 
 kart remote add origin git@github.com:linz/topographic-product-data
 
-CHECK the remote is correct
+or if updating from repo
+
+kart clone git@github.com:linz/topographic-product-data
+
+kart checkout -b my-new-branch
+
+CHECK the remote is correct & on branch
 
 kart remote -v
+
+kart status
 
 Note: Current the data can be loaded in one go. Memory/Timeout ok. If more add at some point may need to follow topo-data approach and do import/push in bat file.
 
@@ -98,7 +113,7 @@ In the master GPKG - delete the nz_topo_carto_text layer
 
 > cd c:\data\topoedit\topographic-product-data
 
-> kart data rm nz_topo50_carto_text
+> kart data rm nztopo50_carto_text
 
 Python file to check and run is _process_carto_text_newfields.py_
 
@@ -112,7 +127,7 @@ Check the log and output for example in QGIS - fields were updated.
 
 **Register table with Kart**
 
-> kart add-dataset nz_topo50_carto_text -m "add carto text update"
+> kart add-dataset nztopo50_carto_text -m "add carto text update"
 
 confirm loaded ok
 

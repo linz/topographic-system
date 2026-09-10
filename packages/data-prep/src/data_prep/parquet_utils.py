@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-import geopandas as gpd
+import geopandas as gpd  # type: ignore
 
 # New Zealand coordinate reference systems used across the data-prep scripts.
 NZGD2000 = 4167  # geographic (lon/lat) CRS used for stored/interchange data
