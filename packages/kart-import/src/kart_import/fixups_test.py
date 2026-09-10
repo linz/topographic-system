@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
@@ -13,7 +14,15 @@ from . import fixups
 from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
-from .fixups import _drop_listed_empty, drop_degenerate_fences, drop_empty_residential_areas
+from .fixups import (
+    CARTO_TEXT_COLOUR,
+    CARTO_TEXT_FONT,
+    CARTO_TEXT_STYLE,
+    _drop_listed_empty,
+    carto_text_styling,
+    drop_degenerate_fences,
+    drop_empty_residential_areas,
+)
 
 
 def _gdf() -> gpd.GeoDataFrame:
@@ -391,3 +400,101 @@ def test_contour_number_orients_the_label_and_renders_the_elevation():
     # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
     assert out["orientation"].tolist() == [330, 150, 330]
     assert out["label"].tolist()[:2] == ["100", "250"]
+
+
+CARTO_TEXT_STYLING_FIELDS = (
+    "font",
+    "style",
+    "colour",
+    "size",
+    "offset",
+    "placement",
+    "textanchor",
+    "labelanchor",
+    "charplace",
+    "chardistance",
+)
+
+
+def _carto_text_gdf(rows: list[dict]) -> gpd.GeoDataFrame:
+    """A frame shaped like `normalize_fields`' output for linz_carto_text: the five decode
+    inputs typed as the schema types them, and the ten styling fields seeded null."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "text_bend": pd.array([r["bend"] for r in rows], dtype="Int32"),
+            "text_height": pd.array([r["height"] for r in rows], dtype="Float64"),
+            "text_colour": pd.array([r["colour"] for r in rows], dtype="Int32"),
+            "text_font": pd.array([r["font"] for r in rows], dtype="string"),
+            "text_placement": pd.array([r["place"] for r in rows], dtype="Int32"),
+        },
+        geometry=[Point(0, 0)] * len(rows),
+        crs="EPSG:2193",
+    )
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        gdf[field] = pd.NA
+    return gdf
+
+
+def test_carto_text_styling_fills_a_matched_key_from_the_table():
+    """A row whose derived key is in `carto_text_styling.csv` gets the table's values, the
+    decoded colour/style, and the constant font. Empty table cells stay null."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["colour"] == "black"
+    assert row["style"] == "Narrow"
+    assert row["font"] == CARTO_TEXT_FONT
+    assert row["size"] == 5.0
+    assert row["offset"] == -1.6
+    assert row["placement"] == "AL"
+    assert row["charplace"] == "StretchCharacterSpacingToFit"
+    assert pd.isna(row["textanchor"])
+    assert pd.isna(row["labelanchor"])
+    assert pd.isna(row["chardistance"])
+
+
+def test_carto_text_styling_matches_a_point_scale_height_and_strips_textanchor():
+    """`text_height` is matched to 4 dp, so the point-scale value 67.0 keys the table the same
+    way a metre-scale value does. `textanchor` comes back `left`, not the legacy `left ` - the
+    table's trailing space is stripped, so the `carto_textanchor` enum needs no `left ` member."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 67.0, "place": 31, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["style"] == "Narrow"
+    assert row["size"] == 5.5
+    assert row["offset"] == -2.0
+    assert row["textanchor"] == "left"
+    assert row["labelanchor"] == 0.8
+
+
+def test_carto_text_styling_decodes_colour_codes():
+    """`text_colour` 5 and 6 decode to warm_red / process_blue; the map itself is the contract."""
+    assert CARTO_TEXT_COLOUR == {9: "black", 5: "warm_red", 6: "process_blue"}
+    assert CARTO_TEXT_STYLE["ATTriumMou-CondItalic"] == "Narrow Italic"
+    assert CARTO_TEXT_STYLE["Courier Bold Oblique"] == "Regular"
+
+
+def test_carto_text_styling_leaves_an_unmatched_key_null():
+    """A key absent from the table (matched nothing in the legacy process either) keeps every
+    styling field null rather than inventing a value."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0014, "place": 1, "font": "ATTrium-Italic", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_odd_colour_code_stays_unstyled():
+    """An unlisted `text_colour` decodes to the black fallback, but with no table row for its
+    full key the feature is left unstyled - reproducing the legacy blank."""
+    gdf = _carto_text_gdf([{"bend": 1, "height": 15.0, "place": 1, "font": "ATTrium-Italic", "colour": 3348}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_requires_its_key_columns():
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    with pytest.raises(ValueError, match="text_font"):
+        carto_text_styling(gdf.drop(columns="text_font"), _td([], "linz_carto_text"), 66)

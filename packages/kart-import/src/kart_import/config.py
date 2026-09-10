@@ -24,6 +24,9 @@ CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
 CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 
+# Static style mappings table for the `carto_text_styling` fixup.
+CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
+
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
 
