@@ -256,6 +256,8 @@ class ThemeDataset(BaseModel):
     fixups: list[Fixup] = []
     corrections: list[Correction] = []
     joins: list[Join] = []
+    feature_key: str | None = None
+    depends_on_themes: list[str] = []
 
     @model_validator(mode="before")
     @classmethod
