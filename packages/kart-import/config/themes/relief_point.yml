@@ -1,0 +1,46 @@
+name: relief_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-height-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: height
+      name: null
+      elevation: $
+      height: null
+      orientation: null
+      theme: relief
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-height-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: height
+      name: null
+      elevation: $
+      height: null
+      orientation: null
+      theme: relief
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-saddle-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: saddle
+      name: $
+      elevation: $
+      height: null
+      # `orientatn` was added to the source schema on 2020-06-10, between release 49 (2020-02-16) and release 50.
+      orientation: { source: $orientatn, since_release: 50 }
+      theme: relief
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-sinkhole-points-topo-150k-2
+    name: nz_sinkhole_points
+    mapping:
+      t50_fid: $
+      type: sinkhole
+      name: null
+      elevation: null
+      height: null
+      orientation: null
+      theme: relief
+      metadata: null
