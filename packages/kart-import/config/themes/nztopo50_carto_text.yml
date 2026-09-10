@@ -33,6 +33,7 @@ datasets:
       labelanchor: null
       charplace: null
       chardistance: null
+      worddistance: null
       metadata: null
     fixups:
       # Reproduce the legacy CartoTextProcessor styling from the mapped text_* fields.

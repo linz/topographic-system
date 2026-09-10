@@ -273,6 +273,16 @@
         }
       ]
     },
+    "worddistance": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "metadata": {
       "anyOf": [
         {
@@ -322,6 +332,7 @@
     "labelanchor",
     "charplace",
     "chardistance",
+    "worddistance",
     "metadata",
     "geometry"
   ],

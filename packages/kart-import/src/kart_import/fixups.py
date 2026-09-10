@@ -439,7 +439,7 @@ def _carto_text_key(bend, height, place, style, colour):
 
 # Columns filled from the carto_text_styling table split by output dtype.
 _CARTO_TEXT_STRING_FIELDS = ("placement", "textanchor", "charplace")
-_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance")
+_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance", "worddistance")
 _CARTO_TEXT_KEY_INPUTS = ("text_bend", "text_height", "text_placement", "text_colour", "text_font")
 
 @cache
