@@ -283,6 +283,107 @@ def test_build_road_metadata_rejects_an_unknown_release(road_releases):
         fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 99)
 
 
+def _gaz_gdf(gazfeatids: list[int | None], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` frame: `metadata` already holds the raw gazetteer key and `name`
+    already holds the joined lookup's name column - the only inputs `build_nzgb_metadata` has."""
+    return gpd.GeoDataFrame(
+        {"metadata": gazfeatids, "name": names if names is not None else [f"NAME {g}" for g in gazfeatids]},
+        geometry=[Point(0, 0) for _ in gazfeatids],
+        crs="EPSG:4167",
+    )
+
+
+def _gaz_td(
+    name: str, lookup: str, key_column: str = "gazfeatid", fixups_cfg: list[dict] | None = None
+) -> ThemeDataset:
+    return ThemeDataset.model_validate(
+        {
+            "name": name,
+            "source": "kart@data.koordinates.com:linz/x-topo-150k",
+            "mapping": {
+                "name": f"${lookup}.name",
+                "metadata": {"source": f"${lookup}.{key_column}", "fixup": True},
+            },
+            "fixups": fixups_cfg if fixups_cfg is not None else [{"fn": "build_nzgb_metadata"}],
+        }
+    )
+
+
+def _register_lookup(monkeypatch, name: str, dataset: str) -> None:
+    from . import config as config_module
+
+    lookup = config_module.Lookup.model_validate(
+        {
+            "name": name,
+            "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": dataset},
+            "key": "t50_fid",
+            "columns": ["gazfeatid", "name"],
+        }
+    )
+    monkeypatch.setitem(config_module.LOOKUP_MAP, name, lookup)
+
+
+def test_build_nzgb_metadata_record_shape(road_releases, monkeypatch):
+    """The record shape matches `build_road_metadata`'s - only the `SourceRef` differs - built
+    entirely from the dataset's own mapping and lookup, with no per-dataset Python."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "nzgb_gazetteer",
+            "source_key_name": "gazfeatid",
+            "source_key_value": 1043221,
+            "source_table": "canal_cl",
+            "source_column": "name",
+            "source_updated_at": STAMP_66,
+            "imported_at": STAMP_66,
+        }
+    ]
+
+
+def test_build_nzgb_metadata_is_generic_across_datasets(road_releases, monkeypatch):
+    """A second dataset on a different lookup/source dataset needs no new Python - just the
+    lookup/mapping/fixups wiring `build_nzgb_metadata`'s docstring describes."""
+    _register_lookup(monkeypatch, "lake_lkp", "lake_pt")
+    td = _gaz_td("nz_lake_polygons_topo_150k", "lake_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([555]), td, 66)
+
+    record = json.loads(out["metadata"].iloc[0])[0]
+    assert record["source_table"] == "lake_pt"
+    assert record["source_key_value"] == 555
+
+
+def test_build_nzgb_metadata_rejects_a_metadata_column_not_shaped_as_a_lookup_ref(road_releases):
+    td = _gaz_td("ds", "canal_lkp")
+    td.mapping["metadata"] = {"source": None, "fixup": True}
+
+    with pytest.raises(ValueError, match="must be mapped as '\\$<lookup>.<key column>'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
+def test_build_nzgb_metadata_rejects_name_mapped_off_a_different_lookup(road_releases, monkeypatch):
+    """`name` and `metadata` disagreeing on which lookup fed them is exactly the kind of copy-paste
+    mistake the generic fixup can't otherwise catch, since it trusts `metadata`'s lookup by default."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("ds", "canal_lkp")
+    td.mapping["name"] = "$other_lkp.name"
+
+    with pytest.raises(ValueError, match="must be mapped as '\\$canal_lkp.name'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
+def test_build_nzgb_metadata_rejects_an_unknown_lookup(road_releases):
+    td = _gaz_td("ds", "no_such_lookup")
+
+    with pytest.raises(ValueError, match="unknown lookup 'no_such_lookup'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:
     return gdf.loc[gdf["name"] == "a", "status"].iloc[0]
 
