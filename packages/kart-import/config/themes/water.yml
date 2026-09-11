@@ -1,6 +1,46 @@
 name: water
 target_repo: topographic-data
 target_epsg: EPSG:4167
+lookups:
+  # -------- canal
+  - name: canal_poly_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: canal_poly
+    key: t50_fid
+    columns:
+      - gazfeatid
+      - name
+
+    # -------- lagoon
+  - name: lagoon_poly_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: lagoon_poly
+    key: t50_fid
+    columns:
+      # no `gazfeatid`
+      - name
+
+    # -------- lake
+  - name: lake_poly_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: lake_poly
+    key: t50_fid
+    columns:
+      # no `gazfeatid`
+      - name
+
+    # -------- river
+  - name: river_poly_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: river_poly
+    key: t50_fid
+    columns:
+      - gazfeatid
+      - name
 datasets:
   # -------- canal
   # nz
@@ -10,20 +50,44 @@ datasets:
       t50_fid: $
       type: canal
       subtype: null
-      name: $
+      name: $canal_poly_lkp.name
       group_name: null
       height: null
       elevation: null
       perennial: null
       temperature_indicator: null
       theme: landcover
-      metadata: null
+      metadata: { source: $canal_poly_lkp.gazfeatid, fixup: true }
+    joins:
+      - lookup: canal_poly_lkp
+        left_on: t50_fid
+    fixups:
+      - fn: build_nzgb_metadata
 
   # -------- lagoon
   # nz
   - source: kart@data.koordinates.com:linz/nz-lagoon-polygons-topo-150k
     name: nz_lagoon_polygons_topo_150k
-    mapping: &lagoon
+    mapping:
+      t50_fid: $
+      type: lagoon
+      subtype: null
+      name: $lagoon_poly_lkp.name
+      group_name: null
+      height: null
+      elevation: $
+      perennial: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+    joins:
+      - lookup: lagoon_poly_lkp
+        left_on: t50_fid
+  # Chatham Islands overlap with `lagoon_poly_lkp` is unverified, so this keeps the
+  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-lagoon-polygons-topo-150k
+    name: nz_chatham_island_lagoon_polygons_topo_150k
+    mapping:
       t50_fid: $
       type: lagoon
       subtype: null
@@ -35,9 +99,6 @@ datasets:
       temperature_indicator: null
       theme: landcover
       metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-lagoon-polygons-topo-150k
-    name: nz_chatham_island_lagoon_polygons_topo_150k
-    mapping: *lagoon
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-lagoon-polygons-topo-125k-zone3
   #   name: cook_islands_lagoon_polygons_topo_125k_zone3
@@ -54,11 +115,11 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-lake-polygons-topo-150k-2
     name: nz_lake_polygons_topo_150k_2
-    mapping: &lake
+    mapping:
       t50_fid: $
       type: lake
       subtype: $lake_use
-      name: $
+      name: $lake_poly_lkp.name
       group_name: $grp_name
       height: null
       elevation: $
@@ -70,9 +131,25 @@ datasets:
       - column: subtype
         replace:
           'hydro-electric': hydro_electric
+    joins:
+      - lookup: lake_poly_lkp
+        left_on: t50_fid
+  # Chatham Islands overlap with `lake_poly_lkp` is unverified, so this keeps the
+  # pre-lookup mapping rather than sharing the mainland entry's anchor.
   - source: kart@data.koordinates.com:linz/nz-chatham-island-lake-polygons-topo-150k
     name: nz_chatham_island_lake_polygons_topo_150k
-    mapping: *lake
+    mapping:
+      t50_fid: $
+      type: lake
+      subtype: $lake_use
+      name: $
+      group_name: $grp_name
+      height: null
+      elevation: $
+      perennial: $
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
     corrections: *lake_subtype_corrections
   # # nzoi
   # - source: kart@data.koordinates.com:linz/nz-auckland-island-lake-polygons-topo-150k
@@ -154,7 +231,28 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-river-polygons-topo-150k
     name: nz_river_polygons_topo_150k
-    mapping: &river
+    mapping:
+      t50_fid: $
+      type: river
+      subtype: null
+      name: $river_poly_lkp.name
+      group_name: null
+      height: null
+      elevation: null
+      perennial: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: { source: $river_poly_lkp.gazfeatid, fixup: true }
+    joins:
+      - lookup: river_poly_lkp
+        left_on: t50_fid
+    fixups:
+      - fn: build_nzgb_metadata
+  # Chatham Islands overlap with `river_poly_lkp` is unverified, so this keeps the
+  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-polygons-topo-150k
+    name: nz_chatham_island_river_polygons_topo_150k
+    mapping:
       t50_fid: $
       type: river
       subtype: null
@@ -166,9 +264,6 @@ datasets:
       temperature_indicator: null
       theme: landcover
       metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-polygons-topo-150k
-    name: nz_chatham_island_river_polygons_topo_150k
-    mapping: *river
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-river-polygons-topo-125k-zone4
   #   name: cook_islands_river_polygons_topo_125k_zone4

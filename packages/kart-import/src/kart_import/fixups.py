@@ -271,6 +271,64 @@ def build_road_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     )
 
 
+NZGB_GAZETTEER_SOURCE = "nzgb_gazetteer"
+NZGB_GAZETTEER_KEY_NAME = "gazfeatid"
+"""What the NZGB gazetteer calls its own key, regardless of what a lookup config names the column
+carrying it - every gazetteer-linked lookup so far has kept the same name, but the two are
+conceptually distinct (see `ROAD_NAME_FROM_AIMS`'s `road_id` vs. its local `rna_sufi`)."""
+
+
+def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Record that a dataset's `name` came from the NZGB gazetteer, keyed by its lookup's key column.
+
+    Generic across every dataset wired the way `nz_canal_polygons_topo_150k` is - a gazetteer
+    lookup joined in, its name column mapped to `name`, and its key column mapped into `metadata`:
+
+        name: $<lookup>.name
+        metadata: {source: $<lookup>.<key column>, fixup: true}
+        joins:
+          - lookup: <lookup>
+            left_on: t50_fid
+        fixups:
+          - fn: build_nzgb_metadata
+
+    The lookup name, its key column, and its source dataset are all read off `td` and the theme's
+    `lookups:`, so a new dataset needs none of the Python above - just that same wiring. A dataset
+    whose gazetteer-sourced value lands somewhere other than `name` needs its own `SourceRef` and a
+    direct `_build_source_metadata` call instead (see `build_road_metadata`).
+    """
+    from .config import LOOKUP_MAP
+
+    metadata_source = td.field_specs()["metadata"].source
+    is_lookup_ref = isinstance(metadata_source, str) and metadata_source.startswith("$")
+    lookup_name, sep, key_column = metadata_source[1:].partition(".") if is_lookup_ref else ("", "", "")
+    if not sep or not key_column:
+        raise ValueError(
+            f"{td.name}: `metadata` must be mapped as '$<lookup>.<key column>' for "
+            f"build_nzgb_metadata, got {metadata_source!r}"
+        )
+
+    name_source = td.field_specs()["name"].source
+    if name_source != f"${lookup_name}.name":
+        raise ValueError(
+            f"{td.name}: `name` must be mapped as '${lookup_name}.name' to match the gazetteer "
+            f"lookup '{lookup_name}' referenced by `metadata`, got {name_source!r}"
+        )
+
+    lookup = LOOKUP_MAP.get(lookup_name)
+    if lookup is None:
+        raise ValueError(f"{td.name}: `metadata` references unknown lookup '{lookup_name}'")
+
+    ref = SourceRef(
+        table_column="name",
+        source=NZGB_GAZETTEER_SOURCE,
+        source_key_name=NZGB_GAZETTEER_KEY_NAME,
+        source_table=lookup.source.dataset or lookup.name,
+        source_column="name",
+    )
+    return _build_source_metadata(gdf, td, release_id, td.name, ref)
+
+
 def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
     """Deterministic UUIDv7 for a part that has no source fid.
 
@@ -383,6 +441,7 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
 
 
 FIXUPS: dict[str, Fixup] = {
+    "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
