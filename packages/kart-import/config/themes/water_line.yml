@@ -1,6 +1,36 @@
 name: water_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+lookups:
+  # -------- canal
+  - name: canal_cl_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: canal_cl
+    key: t50_fid
+    columns:
+      - gazfeatid
+      - name
+
+  # -------- drain
+  - name: drain_cl_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: drain_cl
+    key: t50_fid
+    columns:
+      - gazfeatid
+      - name
+
+  # -------- river
+  - name: river_cl_lkp
+    source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: river_cl
+    key: t50_fid
+    columns:
+      - gazfeatid
+      - name
 datasets:
   # -------- canal
   # nz
@@ -9,23 +39,40 @@ datasets:
     mapping:
       t50_fid: $
       type: canal
-      name: $
+      name: $canal_cl_lkp.name
       theme: landcover
-      metadata: null
+      metadata: { source: $canal_cl_lkp.gazfeatid, fixup: true }
+    joins:
+      - lookup: canal_cl_lkp
+        left_on: t50_fid
+    fixups:
+      - fn: build_nzgb_metadata
 
   # -------- drain
   # nz
   - source: kart@data.koordinates.com:linz/nz-drain-centrelines-topo-150k
     name: nz_drain_centrelines_topo_150k
-    mapping: &drain
+    mapping:
+      t50_fid: $
+      type: drain
+      name: $drain_cl_lkp.name
+      theme: landcover
+      metadata: { source: $drain_cl_lkp.gazfeatid, fixup: true }
+    joins:
+      - lookup: drain_cl_lkp
+        left_on: t50_fid
+    fixups:
+      - fn: build_nzgb_metadata
+  # Chatham Islands overlap with `drain_cl_lkp` is unverified, so this keeps the
+  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-drain-centrelines-topo-150k
+    name: nz_chatham_island_drain_centrelines_topo_150k
+    mapping:
       t50_fid: $
       type: drain
       name: $
       theme: landcover
       metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-drain-centrelines-topo-150k
-    name: nz_chatham_island_drain_centrelines_topo_150k
-    mapping: *drain
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-drain-centrelines-topo-125k-zone4
   #   name: cook_islands_drain_centrelines_topo_125k_zone4
@@ -35,15 +82,27 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-river-centrelines-topo-150k
     name: nz_river_centrelines_topo_150k
-    mapping: &river
+    mapping:
+      t50_fid: $
+      type: river
+      name: $river_cl_lkp.name
+      theme: landcover
+      metadata: { source: $river_cl_lkp.gazfeatid, fixup: true }
+    joins:
+      - lookup: river_cl_lkp
+        left_on: t50_fid
+    fixups:
+      - fn: build_nzgb_metadata
+  # Chatham Islands overlap with `river_cl_lkp` is unverified, so this keeps the
+  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-centrelines-topo-150k
+    name: nz_chatham_island_river_centrelines_topo_150k
+    mapping:
       t50_fid: $
       type: river
       name: null
       theme: landcover
       metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-river-centrelines-topo-150k
-    name: nz_chatham_island_river_centrelines_topo_150k
-    mapping: *river
   # # nzoi
   # - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
   #   name: nz_antipodes_island_river_centrelines_topo_125k
