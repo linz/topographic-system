@@ -229,6 +229,109 @@ def test_schema_dtypes_is_empty_without_a_schema(dtype_schema_folder):
     assert schema_dtypes("no_such_theme") == {}
 
 
+# A minimal discriminated union: two `oneOf` branches disagreeing on `subtype` (a real enum in
+# `rock`, always-null in `plain`) and a `type` resolved differently in each (`const` vs. `$ref`
+# enum) — the same shape as `landcover_point.json`'s `rock_outcrop` vs. its plain point types.
+ONEOF_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [{"$ref": "#/$defs/rock"}, {"$ref": "#/$defs/plain"}],
+    "$defs": {
+        "rock": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "type": {"type": "string", "const": "rock"},
+                "subtype": {"$ref": "#/$defs/rock_subtype"},
+                "name": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            },
+            "required": ["type", "subtype"],
+        },
+        "plain": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "type": {"$ref": "#/$defs/plain_type"},
+                "subtype": {"type": "null"},
+                "name": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            },
+            "required": ["type"],
+        },
+        "rock_subtype": {"type": "string", "enum": ["big", "small"]},
+        "plain_type": {"type": "string", "enum": ["cemetery", "swamp"]},
+    },
+}
+
+
+@pytest.fixture
+def oneof_schema_folder(tmp_path, monkeypatch):
+    (tmp_path / "landcover_point.json").write_text(json.dumps(ONEOF_SCHEMA))
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
+    return tmp_path
+
+
+def _oneof_theme(mapping):
+    return Theme.model_validate(
+        {
+            "name": "landcover_point",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
+        }
+    )
+
+
+def test_oneof_valid_mapping_for_each_branch_has_no_problems(oneof_schema_folder):
+    rock = _oneof_theme({"type": "rock", "subtype": "big", "name": "$"})
+    plain = _oneof_theme({"type": "cemetery", "subtype": None, "name": "$"})
+    assert check_theme(rock) == []
+    assert check_theme(plain) == []
+
+
+def test_oneof_value_checked_against_matched_branch(oneof_schema_folder):
+    # `type: cemetery` selects the `plain` branch, whose `subtype` must be null.
+    problems = check_theme(_oneof_theme({"type": "cemetery", "subtype": "big"}))
+    assert any("'subtype: 'big''" in p for p in problems)
+
+
+def test_oneof_missing_required_column_for_matched_branch(oneof_schema_folder):
+    # `rock` requires `subtype`; a dataset mapped as `type: rock` without it is missing one.
+    problems = check_theme(_oneof_theme({"type": "rock"}))
+    assert any("missing required column 'subtype'" in p for p in problems)
+
+
+def test_oneof_unmatched_type_is_reported(oneof_schema_folder):
+    problems = check_theme(_oneof_theme({"type": "not_a_real_type"}))
+    assert any("cannot resolve a single schema branch" in p for p in problems)
+
+
+def test_oneof_missing_type_is_reported(oneof_schema_folder):
+    problems = check_theme(_oneof_theme({"subtype": "big"}))
+    assert any("cannot resolve a single schema branch" in p for p in problems)
+
+
+def test_oneof_dollar_type_is_reported(oneof_schema_folder):
+    # `type` mapped to a `$`-ref is dynamic; the branch can't be resolved statically.
+    problems = check_theme(_oneof_theme({"type": "$t"}))
+    assert any("cannot resolve a single schema branch" in p for p in problems)
+
+
+def test_oneof_strict_mode_raises(oneof_schema_folder, monkeypatch):
+    monkeypatch.setenv("KART_SCHEMA_CHECK", "strict")
+    with pytest.raises(SchemaCheckError, match="schema problem"):
+        check_theme_or_warn(_oneof_theme({"type": "not_a_real_type"}))
+
+
+def test_oneof_dtypes_merge_across_branches(oneof_schema_folder):
+    # `subtype`'s always-null `plain` branch drops out, same as a plain nullable `anyOf` does;
+    # `type` and `name` agree (as `string`) across both branches.
+    assert schema_dtypes("landcover_point") == {
+        "type": "string",
+        "subtype": "string",
+        "name": "string",
+    }
+
+
 def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
     """`$ref` is resolved by the referencing library, so a pointer into a nested property
     works. Reading the last path segment out of `$defs` would find nothing here."""
