@@ -3,7 +3,15 @@ import { describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 
-import { lint, LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath } from '../action.lint.qgis.ts';
+import {
+  emitGithubAnnotation,
+  lint,
+  LintQgisProjectCommand,
+  LintRuleDataSources,
+  LintRuleFontFamily,
+  LintRuleSvgPath,
+  toGithubPath,
+} from '../action.lint.qgis.ts';
 
 describe('action.lint.qgis', () => {
   const ctx = { qgisPath: new URL(import.meta.url) };
@@ -240,6 +248,71 @@ describe('action.lint.qgis', () => {
       assert.deepStrictEqual(errors, [
         { name: 'svg-path', error: 'SvgMarker file does not exist: "./svg/missing_marker.svg"' },
       ]);
+    });
+  });
+
+  describe('github annotations', () => {
+    it('should format and emit annotation to console.log', (t) => {
+      const logs: string[] = [];
+      t.mock.method(console, 'log', (msg: string) => logs.push(msg));
+      emitGithubAnnotation(new URL('file:///workspace/repo/style.qml'), {
+        name: 'font:family,name',
+        error: 'Font % has\nnewline',
+      });
+      assert.strictEqual(logs.length, 1);
+      assert.strictEqual(
+        logs[0],
+        `::error file=${toGithubPath(new URL('file:///workspace/repo/style.qml'))},title=font%3Afamily%2Cname::Font %25 has%0Anewline`,
+      );
+    });
+
+    it('should emit github annotation when running command under GITHUB_ACTIONS', async (t) => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const qgsPath = fsa.toUrl('memory:///workspace/test.qgs');
+      await fsa.write(
+        qgsPath,
+        '<qgis><layers><datasource>/absolute/path.parquet</datasource><provider>ogr</provider></layers></qgis>',
+      );
+
+      t.mock.property(process, 'env', { ...process.env, GITHUB_ACTIONS: 'true' });
+
+      const logs: string[] = [];
+      t.mock.method(console, 'log', (msg: string) => logs.push(msg));
+
+      await assert.rejects(
+        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [] }),
+        /QGIS project lint failed/,
+      );
+
+      const annotationLogs = logs.filter((l) => l.startsWith('::error '));
+      assert.strictEqual(annotationLogs.length, 1);
+      assert.match(annotationLogs.at(0) ?? '', /^::error file=memory:\/\/\/workspace\/test\.qgs,title=data-sources::/);
+    });
+
+    it('should not emit github annotation when GITHUB_ACTIONS is not set', async (t) => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const qgsPath = fsa.toUrl('memory:///workspace/test.qgs');
+      await fsa.write(
+        qgsPath,
+        '<qgis><layers><datasource>/absolute/path.parquet</datasource><provider>ogr</provider></layers></qgis>',
+      );
+
+      t.mock.property(process, 'env', { ...process.env, GITHUB_ACTIONS: undefined });
+
+      const logs: string[] = [];
+      t.mock.method(console, 'log', (msg: string) => logs.push(msg));
+
+      await assert.rejects(
+        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [] }),
+        /QGIS project lint failed/,
+      );
+
+      const annotationLogs = logs.filter((l) => l.startsWith('::error '));
+      assert.strictEqual(annotationLogs.length, 0);
     });
   });
 });
