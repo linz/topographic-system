@@ -1,12 +1,19 @@
 import { mkdirSync } from 'fs';
 
 import { fsa } from '@chunkd/fs';
-import { logger, qFromArgs, registerFileSystem, Url, worker } from '@linzjs/topographic-system-shared';
+import {
+  getQgisProjectMeta,
+  logger,
+  qFromArgs,
+  registerFileSystem,
+  Url,
+  worker,
+} from '@linzjs/topographic-system-shared';
 import { StacDownloader } from '@linzjs/topographic-system-stac';
 import { command, option, optional, string } from 'cmd-ts';
 
 import { pyRunner } from '../python.runner.ts';
-import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset } from '../qgis.ts';
 import type { ExportOptions } from '../stac.ts';
 import type { ExportAsset } from './export.options.ts';
 import { cache, tempLocation } from './shared.args.ts';

@@ -6,10 +6,12 @@ import { fsa, FsMemory } from '@chunkd/fs';
 import {
   emitGithubAnnotation,
   lint,
+  LintOk,
   LintQgisProjectCommand,
   LintRuleDataSources,
   LintRuleFontFamily,
   LintRuleSvgPath,
+  parseDataSource,
   toGithubPath,
 } from '../action.lint.qgis.ts';
 
@@ -24,7 +26,6 @@ describe('action.lint.qgis', () => {
             { datasource: './buildings.parquet', provider: 'ogr' },
             { datasource: './buildings.gpkg', provider: 'ogr' },
             { datasource: './buildings.geojson', provider: 'ogr' },
-            { datasource: '../buildings.parquet', provider: 'ogr' },
           ],
         },
       };
@@ -39,12 +40,25 @@ describe('action.lint.qgis', () => {
             { datasource: './test.parquet|layername=testline', provider: 'ogr' },
             { datasource: './test.gpkg|layername=testline', provider: 'ogr' },
             { datasource: './test.geojson|layername=testline', provider: 'ogr' },
-            { datasource: '../test.parquet|layername=testline', provider: 'ogr' },
           ],
         },
       };
       const errors = await lint(xml, [LintRuleDataSources], ctx);
       assert.deepStrictEqual(errors, []);
+    });
+
+    it('should error for parent relative datasource path', async () => {
+      const xml = {
+        qgis: {
+          layers: [
+            { datasource: '../buildings.parquet', provider: 'ogr' },
+            { datasource: '../test.parquet|layername=testline', provider: 'ogr' },
+          ],
+        },
+      };
+      const errors = await lint(xml, [LintRuleDataSources], ctx);
+      assert.strictEqual(errors.length, 2);
+      assert.strictEqual(errors[0]?.error, 'datasource path must be relative (start with ./): ../buildings.parquet');
     });
 
     it('should error for absolute datasource path', async () => {
@@ -123,6 +137,113 @@ describe('action.lint.qgis', () => {
       const errors = await lint(qgisFile, [LintRuleDataSources], ctx);
       assert.deepStrictEqual(errors, []);
     });
+
+    it('should validate datasources exist against a STAC catalog', async () => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const catalogUrl = fsa.toUrl('memory:///stac/catalog.json');
+      await fsa.write(
+        catalogUrl,
+        JSON.stringify({
+          stac_version: '1.0.0',
+          type: 'Catalog',
+          id: 'root',
+          description: 'Root catalog',
+          links: [
+            { rel: 'child', href: './buildings/catalog.json' },
+            { rel: 'child', href: './roads/catalog.json' },
+          ],
+        }),
+      );
+
+      const xml = {
+        qgis: {
+          layers: [
+            { datasource: './buildings.parquet', provider: 'ogr' },
+            { datasource: './roads.parquet|layername=roads', provider: 'ogr' },
+          ],
+        },
+      };
+
+      const errors = await lint(xml, [LintRuleDataSources], {
+        qgisPath: fsa.toUrl('memory:///project/test.qgs'),
+        catalog: catalogUrl,
+      });
+      assert.deepStrictEqual(errors, []);
+    });
+
+    it('should error when datasource is not found in STAC catalog', async () => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const catalogUrl = fsa.toUrl('memory:///stac/catalog.json');
+      await fsa.write(
+        catalogUrl,
+        JSON.stringify({
+          stac_version: '1.0.0',
+          type: 'Catalog',
+          id: 'root',
+          description: 'Root catalog',
+          links: [{ rel: 'child', href: './buildings/catalog.json' }],
+        }),
+      );
+
+      const xml = {
+        qgis: {
+          layers: [
+            { datasource: './buildings.parquet', provider: 'ogr' },
+            { datasource: './missing_layer.parquet', provider: 'ogr' },
+          ],
+        },
+      };
+
+      const errors = await lint(xml, [LintRuleDataSources], {
+        qgisPath: fsa.toUrl('memory:///project/test.qgs'),
+        catalog: catalogUrl,
+      });
+      assert.strictEqual(errors.length, 1);
+      assert.strictEqual(errors[0]?.name, 'data-sources');
+      assert.match(errors[0]?.error ?? '', /datasource layer 'missing_layer' not found in catalog/);
+    });
+
+    it('should pass catalog argument to lint command handler', async () => {
+      const mem = new FsMemory();
+      fsa.register('memory://', mem);
+
+      const catalogUrl = fsa.toUrl('memory:///stac/catalog.json');
+      await fsa.write(
+        catalogUrl,
+        JSON.stringify({
+          stac_version: '1.0.0',
+          type: 'Catalog',
+          id: 'root',
+          description: 'Root catalog',
+          links: [{ rel: 'child', href: './buildings/catalog.json' }],
+        }),
+      );
+
+      const qgsPath = fsa.toUrl('memory:///workspace/test.qgs');
+      await fsa.write(
+        qgsPath,
+        '<qgis><layers><datasource>./missing_layer.parquet</datasource><provider>ogr</provider></layers></qgis>',
+      );
+
+      await assert.rejects(
+        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [], catalog: catalogUrl }),
+        /QGIS project lint failed/,
+      );
+    });
+
+    it('should return LintOk when datasource is valid', async () => {
+      const res = await LintRuleDataSources.rule({ datasource: './buildings.parquet', provider: 'ogr' }, ctx);
+      assert.strictEqual(res, LintOk);
+    });
+
+    it('should return LintOk when provider is not ogr', async () => {
+      const res = await LintRuleDataSources.rule({ datasource: 'https://example.com', provider: 'wms' }, ctx);
+      assert.strictEqual(res, LintOk);
+    });
   });
 
   describe('lintFontFamilies', () => {
@@ -135,6 +256,16 @@ describe('action.lint.qgis', () => {
           error: "Font family 'Nimbus Sans Narrow' is not allowed. Allowed fonts are: Nimbus Sans LINZ",
         },
       ]);
+    });
+
+    it('should return LintOk for allowed font family and style', () => {
+      const res = LintRuleFontFamily.rule({ '@_fontFamily': 'Nimbus Sans LINZ', '@_namedStyle': 'Regular' }, ctx);
+      assert.strictEqual(res, LintOk);
+    });
+
+    it('should return LintOk when fontFamily attribute is missing', () => {
+      const res = LintRuleFontFamily.rule({}, ctx);
+      assert.strictEqual(res, LintOk);
     });
   });
 
@@ -239,6 +370,11 @@ describe('action.lint.qgis', () => {
         { name: 'svg-path', error: 'SvgMarker file does not exist: "./svg/missing_marker.svg"' },
       ]);
     });
+
+    it('should return LintOk for non-svg classes', async () => {
+      const res = await LintRuleSvgPath.rule({ '@_class': 'SimpleFill' }, ctx);
+      assert.strictEqual(res, LintOk);
+    });
   });
 
   describe('github annotations', () => {
@@ -272,7 +408,7 @@ describe('action.lint.qgis', () => {
       t.mock.method(console, 'log', (msg: string) => logs.push(msg));
 
       await assert.rejects(
-        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [] }),
+        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [], catalog: undefined }),
         /QGIS project lint failed/,
       );
 
@@ -297,12 +433,39 @@ describe('action.lint.qgis', () => {
       t.mock.method(console, 'log', (msg: string) => logs.push(msg));
 
       await assert.rejects(
-        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [] }),
+        () => LintQgisProjectCommand.handler({ qgis: qgsPath, paths: [], catalog: undefined }),
         /QGIS project lint failed/,
       );
 
       const annotationLogs = logs.filter((l) => l.startsWith('::error '));
       assert.strictEqual(annotationLogs.length, 0);
+    });
+  });
+
+  describe('parseDataSource', () => {
+    it('should parse simple parquet datasource', () => {
+      const parsed = parseDataSource('./buildings.parquet');
+      assert.deepStrictEqual(parsed, { path: './buildings.parquet', name: 'buildings', extras: [] });
+    });
+
+    it('should parse datasource with piped extras', () => {
+      const parsed = parseDataSource('./road_line.parquet|subset="lane_count" > 1|layername=road_line');
+      assert.deepStrictEqual(parsed, {
+        path: './road_line.parquet',
+        name: 'road_line',
+        extras: ['subset="lane_count" > 1', 'layername=road_line'],
+      });
+    });
+
+    it('should parse different extensions', () => {
+      assert.strictEqual(parseDataSource('./data/boundary.geojson').name, 'boundary');
+      assert.strictEqual(parseDataSource('./data/parcels.gpkg').name, 'parcels');
+      assert.strictEqual(parseDataSource('./data/meta.json').name, 'meta');
+    });
+
+    it('should handle empty or null string gracefully', () => {
+      const parsed = parseDataSource('');
+      assert.deepStrictEqual(parsed, { path: '', name: '', extras: [] });
     });
   });
 });

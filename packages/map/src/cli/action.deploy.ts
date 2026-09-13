@@ -5,6 +5,7 @@ import { basename } from 'path';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
+  getQgisProjectMeta,
   logger,
   qFromArgs,
   registerFileSystem,
@@ -23,8 +24,6 @@ import { command, multioption, option, optional, restPositionals } from 'cmd-ts'
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
-
-import { getQgisProjectMeta } from '../qgis.ts';
 
 const zstdCompressAsync = promisify(zstdCompress);
 

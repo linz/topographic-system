@@ -5,10 +5,10 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { fsa } from '@chunkd/fs';
 import type { CommandExecution, CommandExecutionResult } from '@linzjs/docker-command';
 import { Command } from '@linzjs/docker-command';
-import { logger, trace } from '@linzjs/topographic-system-shared';
+import { getQgisProjectMeta, logger, trace } from '@linzjs/topographic-system-shared';
 
 import type { ExportAsset } from './cli/export.options.ts';
-import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from './qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset } from './qgis.ts';
 import type { ExportOptions } from './stac.ts';
 
 export const BaseCommandOptions = {
