@@ -6,7 +6,6 @@ import packageJson from '../package.json' with { type: 'json' };
 import { CloneCommand } from './cli/action.clone.ts';
 import { CoastlinePolygonCommand } from './cli/action.coastline.polygon.ts';
 import { DiffCommand } from './cli/action.diff.ts';
-import { ExportHistoryCommand } from './cli/action.export.history.ts';
 import { ExportCommand } from './cli/action.export.ts';
 import { FlowCommand } from './cli/action.flow.ts';
 import { IceContourCommand } from './cli/action.ice.contour.ts';
@@ -31,7 +30,6 @@ export const cmds = {
   clone: CloneCommand,
   diff: DiffCommand,
   export: ExportCommand,
-  'export-history': ExportHistoryCommand,
   'to-parquet': ParquetCommand,
   'pr-comment': CommentCommand,
   validate: ValidateCommand,
