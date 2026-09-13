@@ -1,5 +1,6 @@
 import logging
 import shutil
+from pathlib import Path
 
 import pyogrio
 
@@ -9,6 +10,21 @@ from ..command import run_command
 from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases
 
 logger = logging.getLogger("kart_import")
+
+
+def geometry_named_vrt(theme_file: Path, dataset_name: str, source_layer: str) -> Path:
+    """Write an OGR VRT beside `theme_file` that names its geometry column `geometry`."""
+    vrt_file = theme_file.with_suffix(".vrt")
+    vrt_file.write_text(
+        "<OGRVRTDataSource>\n"
+        f'  <OGRVRTLayer name="{dataset_name}">\n'
+        f'    <SrcDataSource relativeToVRT="1">{theme_file.name}</SrcDataSource>\n'
+        f"    <SrcLayer>{source_layer}</SrcLayer>\n"
+        '    <GeometryField name="geometry" />\n'
+        "  </OGRVRTLayer>\n"
+        "</OGRVRTDataSource>\n"
+    )
+    return vrt_file
 
 
 def kart_import_theme(theme_name: str):
@@ -40,9 +56,12 @@ def kart_import_theme(theme_name: str):
             continue
 
         # `force_feature_count` because FlatGeobuf reports -1, not 0, for an empty layer.
-        if pyogrio.read_info(input_file, force_feature_count=True)["features"] == 0:
+        info = pyogrio.read_info(input_file, force_feature_count=True)
+        if info["features"] == 0:
             logger.info("Theme has no features for this release. Skipping import.", extra={"release": release.id})
             continue
+
+        import_source = geometry_named_vrt(input_file, theme_name, info["layer_name"])
 
         logger.info("Importing release", extra={"release": release.id})
 
@@ -55,7 +74,7 @@ def kart_import_theme(theme_name: str):
             "id",
             "--replace-existing",
             "--no-checkout",
-            f"OGR:{input_file}",
+            f"OGR:{import_source}",
         ]
         run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
 
