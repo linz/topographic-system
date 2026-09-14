@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn"],
+  "plugins": ["typescript", "unicorn", "import"],
   "categories": { "correctness": "error" },
   "options": { "typeAware": true },
   "env": { "builtin": true },
@@ -15,7 +15,13 @@
     ],
     "@typescript-eslint/no-unused-vars": ["error", { "caughtErrors": "none" }],
     "@typescript-eslint/consistent-type-imports": ["error", {}],
-    "@typescript-eslint/no-non-null-assertion": "error"
+    "@typescript-eslint/no-useless-default-assignment": "off",
+    "@typescript-eslint/no-non-null-assertion": "error",
+    "no-restricted-imports": [
+      "error",
+      { "patterns": [{ "group": ["@linzjs/*/**"], "message": "Import from the top-level package module instead." }] }
+    ],
+    "import/no-duplicates": ["error", {}]
   },
   "jsPlugins": []
 }

@@ -6,11 +6,7 @@ import { cache } from './shared.args.ts';
 
 export const DownloadArgs = {
   concurrency,
-  project: option({
-    type: Url,
-    long: 'project',
-    description: 'Stac Item path of QGIS Project to download.',
-  }),
+  project: option({ type: Url, long: 'project', description: 'Stac Item path of QGIS Project to download.' }),
   output: option({
     type: UrlFolder,
     long: 'output',

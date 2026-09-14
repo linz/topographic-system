@@ -117,18 +117,12 @@ describe('action.deploy', () => {
 
     assert.deepEqual(
       latestCollection.links.find((f) => f.rel === 'canonical'),
-      {
-        rel: 'canonical',
-        href: `../commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json`,
-      },
+      { rel: 'canonical', href: `../commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/collection.json` },
     );
 
     assert.deepEqual(
       commitCollection.links.find((f) => f.rel === 'latest-version'),
-      {
-        rel: 'latest-version',
-        href: `../../latest/collection.json`,
-      },
+      { rel: 'latest-version', href: `../../latest/collection.json` },
     );
   });
 

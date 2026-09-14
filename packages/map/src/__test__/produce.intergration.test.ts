@@ -234,24 +234,14 @@ describe('deploy -> produce-cover -> produce', () => {
       mapSheetDataset: 'nztopo50_map_sheet.parquet',
       cartoTextDataset: 'nztopo50_carto_text.parquet',
       assets: [
-        {
-          layout: 'nztopo50',
-          dpi: 600,
-          format: 'tiff',
-        },
+        { layout: 'nztopo50', dpi: 600, format: 'tiff' },
         {
           layout: 'nztopo50',
 
           dpi: 600,
           format: 'pdf',
         },
-        {
-          layout: 'nztopo50',
-          dpi: 30,
-          format: 'webp',
-          label: 'thumbnail',
-          role: 'thumbnail',
-        },
+        { layout: 'nztopo50', dpi: 30, format: 'webp', label: 'thumbnail', role: 'thumbnail' },
       ],
     });
 

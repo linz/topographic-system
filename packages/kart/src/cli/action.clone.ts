@@ -5,9 +5,7 @@ import { command, option, optional, positional, string } from 'cmd-ts';
 import { z } from 'zod/mini';
 import { $ } from 'zx';
 
-const EnvParser = z.object({
-  GITHUB_TOKEN: z.optional(z.string()),
-});
+const EnvParser = z.object({ GITHUB_TOKEN: z.optional(z.string()) });
 
 /** Input arguments for the `clone` command */
 export interface CloneArgs {

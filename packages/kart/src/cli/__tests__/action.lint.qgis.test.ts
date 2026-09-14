@@ -106,9 +106,7 @@ describe('action.lint.qgis', () => {
     });
 
     it('should handle deeply nested datasources', async () => {
-      const xml = {
-        a: { b: { c: { d: { datasource: '/deep.parquet', provider: 'ogr' } } } },
-      };
+      const xml = { a: { b: { c: { d: { datasource: '/deep.parquet', provider: 'ogr' } } } } };
       const errors = await lint(xml, [LintRuleDataSources], ctx);
       assert.strictEqual(errors.length, 1);
       assert.ok(errors[0]?.error.includes('/deep.parquet'));
@@ -191,10 +189,7 @@ describe('action.lint.qgis', () => {
       const mem = new FsMemory();
       fsa.register('memory://', mem);
 
-      const node = {
-        '@_class': 'SvgFill',
-        prop: [{ '@_k': 'svgFile', '@_v': './svg/missing_prop.svg' }],
-      };
+      const node = { '@_class': 'SvgFill', prop: [{ '@_k': 'svgFile', '@_v': './svg/missing_prop.svg' }] };
 
       const errors = await lint(node, [LintRuleSvgPath], { qgisPath: fsa.toUrl('memory:///project/project.qgs') });
       assert.deepStrictEqual(errors, [
@@ -203,12 +198,7 @@ describe('action.lint.qgis', () => {
     });
 
     it('should ignore non-SvgFill layers', async () => {
-      const node = {
-        '@_class': 'SimpleFill',
-        Option: {
-          Option: [{ '@_name': 'color', '@_value': '255,0,0,255' }],
-        },
-      };
+      const node = { '@_class': 'SimpleFill', Option: { Option: [{ '@_name': 'color', '@_value': '255,0,0,255' }] } };
 
       const errors = await lint(node, [LintRuleSvgPath], ctx);
       assert.deepStrictEqual(errors, []);

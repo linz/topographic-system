@@ -107,10 +107,7 @@ export const FlowCommand = command({
   args: {
     concurrency,
     worker,
-    repository: positional({
-      displayName: 'repository',
-      description: 'Repository to clone',
-    }),
+    repository: positional({ displayName: 'repository', description: 'Repository to clone' }),
     ref: option({
       type: string,
       long: 'ref',

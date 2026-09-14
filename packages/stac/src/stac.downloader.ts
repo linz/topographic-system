@@ -263,16 +263,9 @@ export class StacDownloader {
     if (cacheStat.url.pathname.endsWith('.tar') || cacheStat.url.pathname.endsWith('.tar.zst')) {
       const startExtractTime = performance.now();
       await mkdir(this.target, { recursive: true });
-      await tar.extract({
-        file: fileURLToPath(cacheStat.url),
-        cwd: fileURLToPath(this.target),
-      });
+      await tar.extract({ file: fileURLToPath(cacheStat.url), cwd: fileURLToPath(this.target) });
       logger.info(
-        {
-          destination: cacheStat.url.href,
-          ...sourceAsset,
-          duration: performance.now() - startExtractTime,
-        },
+        { destination: cacheStat.url.href, ...sourceAsset, duration: performance.now() - startExtractTime },
         'DownloadFile:Extract:Done',
       );
     } else {
@@ -280,12 +273,7 @@ export class StacDownloader {
     }
 
     logger.info(
-      {
-        destination: cacheStat.url.href,
-        ...sourceAsset,
-        cacheHit: cacheStat.hit,
-        duration: cacheStat.duration,
-      },
+      { destination: cacheStat.url.href, ...sourceAsset, cacheHit: cacheStat.hit, duration: cacheStat.duration },
       'DownloadFile:Done',
     );
 

@@ -1,9 +1,6 @@
 {
   "type": "Feature",
-  "geometry": {
-    "type": "Point",
-    "coordinates": [174.76, -41.24]
-  },
+  "geometry": { "type": "Point", "coordinates": [174.76, -41.24] },
   "properties": {
     "id": "00000000-0000-0000-0000-000000000000",
     "t50_fid": 1000000,

@@ -25,10 +25,6 @@ const cmds = {
   'produce-cover': PrepareCommand,
 };
 
-const Cli = subcommands({
-  name: 'topographic-map',
-  description: 'Deploy and export topographic maps',
-  cmds,
-});
+const Cli = subcommands({ name: 'topographic-map', description: 'Deploy and export topographic maps', cmds });
 
 void traceAndRun(Cli, cmds, packageJson.name);

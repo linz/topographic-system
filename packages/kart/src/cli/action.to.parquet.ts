@@ -114,11 +114,7 @@ export const ParquetCommand = command({
       defaultValue: () => 2 ** 15,
       defaultValueIsSerializable: true,
     }),
-    output: option({
-      type: UrlFolder,
-      long: 'output',
-      description: 'Destination for parquet files and STAC',
-    }),
+    output: option({ type: UrlFolder, long: 'output', description: 'Destination for parquet files and STAC' }),
     tempLocation: option({
       type: UrlFolder,
       long: 'temp-location',

@@ -82,12 +82,7 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
 
 async function deployProject(
   project: URL,
-  args: {
-    source: URL;
-    target: URL;
-    extras: URL[];
-    dataTag?: string;
-  },
+  args: { source: URL; target: URL; extras: URL[]; dataTag?: string },
   q: LimitFunction,
 ): Promise<URL> {
   const projectName = basename(project.href, '.qgs');
@@ -141,15 +136,8 @@ async function deployProject(
 
 export const DeployArgs = {
   concurrency,
-  project: restPositionals({
-    type: Url,
-    description: 'QGIS Project to deploy.',
-  }),
-  extras: multioption({
-    type: UrlFolders,
-    long: 'extra-assets',
-    description: 'Extra assets to be deployed',
-  }),
+  project: restPositionals({ type: Url, description: 'QGIS Project to deploy.' }),
+  extras: multioption({ type: UrlFolders, long: 'extra-assets', description: 'Extra assets to be deployed' }),
   target: option({
     type: UrlFolder,
     long: 'target',

@@ -1,14 +1,7 @@
 {
   "plugins": ["node-workspace"],
   "packages": {
-    "packages/kart": {
-      "extra-files": [
-        {
-          "path": ".github/workflows/data-review.yml",
-          "type": "generic"
-        }
-      ]
-    },
+    "packages/kart": { "extra-files": [{ "path": ".github/workflows/data-review.yml", "type": "generic" }] },
     "packages/map": {},
     "packages/schema": {},
     "packages/shared": {},
@@ -17,11 +10,7 @@
       "release-type": "python",
       "package-name": "topographic-system-validation",
       "extra-files": [
-        {
-          "path": "packages/validation/pyproject.toml",
-          "type": "toml",
-          "jsonpath": "$.project.version"
-        },
+        { "path": "packages/validation/pyproject.toml", "type": "toml", "jsonpath": "$.project.version" },
         {
           "path": "uv.lock",
           "type": "toml",
@@ -33,11 +22,7 @@
       "release-type": "python",
       "package-name": "topographic-system-data-prep",
       "extra-files": [
-        {
-          "path": "packages/data-prep/pyproject.toml",
-          "type": "toml",
-          "jsonpath": "$.project.version"
-        },
+        { "path": "packages/data-prep/pyproject.toml", "type": "toml", "jsonpath": "$.project.version" },
         {
           "path": "uv.lock",
           "type": "toml",

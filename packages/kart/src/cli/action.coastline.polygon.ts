@@ -9,16 +9,8 @@ const coastlinePolygonSchema = new URL('file:///schema/nztopo50_coastline_island
 
 export const CoastlinePolygonArgs = {
   ...DataPrepareArgs,
-  coastline: option({
-    type: Url,
-    long: 'coastline',
-    description: 'Path or s3 of coastline stac collection',
-  }),
-  island: option({
-    type: Url,
-    long: 'island',
-    description: 'Path or s3 of island stac collection',
-  }),
+  coastline: option({ type: Url, long: 'coastline', description: 'Path or s3 of coastline stac collection' }),
+  island: option({ type: Url, long: 'island', description: 'Path or s3 of island stac collection' }),
 };
 
 export const CoastlinePolygonCommand = command({

@@ -20,11 +20,7 @@ import { ValidateSchemaCommand } from './action.validate.schema.ts';
 
 export const DataPrepareArgs = {
   concurrency,
-  output: option({
-    type: UrlFolder,
-    long: 'output',
-    description: 'Path or s3 of output directory to write to',
-  }),
+  output: option({ type: UrlFolder, long: 'output', description: 'Path or s3 of output directory to write to' }),
   tempLocation: option({
     type: UrlFolder,
     long: 'temp-location',

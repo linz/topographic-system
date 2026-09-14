@@ -331,11 +331,7 @@ describe('Downloader - Resolver Support', () => {
         id: 'test-symlink',
         links: [],
         assets: {
-          data: {
-            href: './data.parquet',
-            'file:checksum': checksum,
-            'file:size': Buffer.byteLength(fileContent),
-          },
+          data: { href: './data.parquet', 'file:checksum': checksum, 'file:size': Buffer.byteLength(fileContent) },
         },
       };
 
