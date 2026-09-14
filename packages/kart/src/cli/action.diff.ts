@@ -1,7 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
@@ -170,7 +169,7 @@ async function fixHtmlDiff(ctx: GitContext): Promise<void> {
 }
 
 async function readGeojsonFile(file: URL): Promise<{ datasetName: string; fileString: string } | undefined> {
-  const datasetName = basename(file.href, '.geojson');
+  const datasetName = path.basename(file.href, '.geojson');
   const fileContent = await readFileWithRetry(file);
   const fileString = fileContent.toString('utf-8');
   const geojson = JSON.parse(fileString) as GeoJson;

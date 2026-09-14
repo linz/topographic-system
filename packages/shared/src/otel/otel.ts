@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import type { Context, Span, Tracer } from '@opentelemetry/api';
-import { trace as otelTrace } from '@opentelemetry/api';
-import { propagation, context } from '@opentelemetry/api';
+import { trace as otelTrace, propagation, context } from '@opentelemetry/api';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
