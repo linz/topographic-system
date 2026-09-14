@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
@@ -391,3 +392,60 @@ def test_contour_number_orients_the_label_and_renders_the_elevation():
     # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
     assert out["orientation"].tolist() == [330, 150, 330]
     assert out["label"].tolist()[:2] == ["100", "250"]
+
+
+def test_map_sheet_origin_uses_top_left_corner():
+    """origin_x/origin_y are the sheet polygon's top-left corner (minx, maxy), as nullable floats."""
+    gdf = gpd.GeoDataFrame(
+        {"sheet_code": ["BK37"]},
+        geometry=[Polygon([(1876000, 5586000), (1900000, 5586000), (1900000, 5622000), (1876000, 5622000)])],
+        crs="EPSG:2193",
+    )
+    out = fixups.map_sheet_origin(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["origin_x"].tolist() == [1876000.0]
+    assert out["origin_y"].tolist() == [5622000.0]
+    assert str(out["origin_x"].dtype) == "Float64"
+
+
+def test_map_sheet_published_parses_edition_and_year():
+    """The raw 'Edition X Published YYYY' string is split into the version plus a Jan-1 date (both
+    published_at and updated_at). A missing year (e.g. 'xxxx') leaves the date null."""
+    gdf = gpd.GeoDataFrame(
+        {"published_version": ["Edition 1.05 Published 2025", "Edition 1.00 Published xxxx"]},
+        geometry=[Point(0, 0), Point(1, 1)],
+        crs="EPSG:2193",
+    )
+    out = fixups.map_sheet_published(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["published_version"].tolist() == ["1.05", "1.00"]
+    assert out["published_at"].tolist()[0] == "2025-01-01"
+    assert out["published_at"].isna().tolist() == [False, True]
+    assert out["updated_at"].equals(out["published_at"])
+
+
+def test_map_sheet_example_point_id_resolves_by_class(monkeypatch):
+    """Each sheet's example point resolves to a feature id: a trig_pnt via the trig_point theme
+    (matched on `code`), anything else via the geographic_name theme (matched on `name`)."""
+    from types import SimpleNamespace
+
+    from . import config
+
+    monkeypatch.setattr(
+        config, "get_theme_by_name", lambda name: SimpleNamespace(datasets=[SimpleNamespace(name=name)])
+    )
+
+    def fake_read_transform(path):
+        if "trig_point" in str(path):
+            return pd.DataFrame({"code": ["AB01"], "id": ["trig-id"]})
+        return pd.DataFrame({"name": ["Lake Tekapo"], "id": ["name-id"]})
+
+    monkeypatch.setattr(transform, "read_transform", fake_read_transform)
+
+    gdf = gpd.GeoDataFrame(
+        {"example_name": ["AB01", "Lake Tekapo"], "example_class": ["trig_pnt", "geographic_name"]},
+        geometry=[Point(0, 0), Point(1, 1)],
+        crs="EPSG:2193",
+    )
+    out = fixups.map_sheet_example_point_id(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["example_point_id"].tolist() == ["trig-id", "name-id"]
+    assert "example_name" not in out.columns
+    assert "example_class" not in out.columns
