@@ -9,11 +9,7 @@ import { command, flag, multioption, oneOf, option } from 'cmd-ts';
 
 export const StacPushArgs = {
   concurrency,
-  source: option({
-    type: Url,
-    long: 'source',
-    description: 'Source data catalog.json',
-  }),
+  source: option({ type: Url, long: 'source', description: 'Source data catalog.json' }),
   target: option({
     type: UrlFolder,
     long: 'target',

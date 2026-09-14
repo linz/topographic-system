@@ -83,10 +83,7 @@ describe('buildOgr2OgrArgs', () => {
 describe('createDatasetStac', () => {
   const metadata = {
     epsg: { code: 2193 } as any,
-    extent: {
-      spatial: { bbox: [[170, -45, 175, -40]] },
-      temporal: { interval: [['2024-01-01T00:00:00.000Z', null]] },
-    },
+    extent: { spatial: { bbox: [[170, -45, 175, -40]] }, temporal: { interval: [['2024-01-01T00:00:00.000Z', null]] } },
     table: {
       'table:row_count': 500,
       'table:primary_geometry': 'geometry',

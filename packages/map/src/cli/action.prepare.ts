@@ -167,10 +167,7 @@ export const PrepareCommand = command({
 
     for await (const row of readParquet<TopoMapSheetParquet>(mapSheetFile.target, { decodeGeometry: true })) {
       if (args.all || mapSheets.has(row.sheet_code)) {
-        mapSheetsToCreate.push({
-          sheetCode: row.sheet_code,
-          geometry: geoJsonToWgs84(row.geometry, mapSheetProj),
-        });
+        mapSheetsToCreate.push({ sheetCode: row.sheet_code, geometry: geoJsonToWgs84(row.geometry, mapSheetProj) });
       }
     }
 
@@ -205,11 +202,7 @@ export const PrepareCommand = command({
       item.properties['linz_topographic_system:options'] = exportOptions;
 
       // Add project link
-      item.links.push({
-        rel: 'project',
-        href: stac.url.href,
-        type: 'application/json',
-      });
+      item.links.push({ rel: 'project', href: stac.url.href, type: 'application/json' });
 
       for (const s of sources) {
         const itemLink: StacLink = {

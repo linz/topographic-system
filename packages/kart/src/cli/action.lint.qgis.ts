@@ -9,15 +9,8 @@ import { XMLParser } from 'fast-xml-parser';
 const isGithubActions = () => process.env['GITHUB_ACTIONS'] === 'true';
 
 export const LintQgisProjectArgs = {
-  qgis: option({
-    type: optional(Url),
-    long: 'qgis',
-    description: 'Path to QGIS project file',
-  }),
-  paths: restPositionals({
-    type: Url,
-    description: 'QGIS projects to lint',
-  }),
+  qgis: option({ type: optional(Url), long: 'qgis', description: 'Path to QGIS project file' }),
+  paths: restPositionals({ type: Url, description: 'QGIS projects to lint' }),
 };
 
 export interface LintContext {

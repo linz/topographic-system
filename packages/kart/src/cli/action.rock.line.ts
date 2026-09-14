@@ -9,26 +9,10 @@ const rockLineSchema = new URL('file:///schema/nztopo50_rock_line.json');
 
 export const RockLineArgs = {
   ...DataPrepareArgs,
-  marine: option({
-    type: Url,
-    long: 'marine',
-    description: 'Path or s3 of marine stac collection',
-  }),
-  coastline: option({
-    type: Url,
-    long: 'coastline',
-    description: 'Path or s3 of coastline stac collection',
-  }),
-  island: option({
-    type: Url,
-    long: 'island',
-    description: 'Path or s3 of island stac collection',
-  }),
-  water: option({
-    type: Url,
-    long: 'water',
-    description: 'Path or s3 of water stac collection',
-  }),
+  marine: option({ type: Url, long: 'marine', description: 'Path or s3 of marine stac collection' }),
+  coastline: option({ type: Url, long: 'coastline', description: 'Path or s3 of coastline stac collection' }),
+  island: option({ type: Url, long: 'island', description: 'Path or s3 of island stac collection' }),
+  water: option({ type: Url, long: 'water', description: 'Path or s3 of water stac collection' }),
 };
 
 export const RockLineCommand = command({

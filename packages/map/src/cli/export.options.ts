@@ -1,13 +1,7 @@
 import type { Type } from 'cmd-ts';
 import { z } from 'zod/v4';
 
-export const ExportFormats = {
-  Pdf: 'pdf',
-  Tiff: 'tiff',
-  GeoTiff: 'geotiff',
-  Png: 'png',
-  Webp: 'webp',
-} as const;
+export const ExportFormats = { Pdf: 'pdf', Tiff: 'tiff', GeoTiff: 'geotiff', Png: 'png', Webp: 'webp' } as const;
 
 export type ExportFormat = (typeof ExportFormats)[keyof typeof ExportFormats];
 

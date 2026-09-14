@@ -32,29 +32,20 @@ export const HashWriter = {
 
   stat(buffer: string | Buffer): StacFileChecksum {
     const hash = createHash('sha256').update(buffer).digest('hex');
-    return {
-      'file:checksum': `1220` + hash,
-      'file:size': buffer.length,
-    };
+    return { 'file:checksum': `1220` + hash, 'file:size': buffer.length };
   },
 
   async file(target: URL, buffer: string | Buffer, obj: WriteOptions): Promise<StacFileChecksum> {
     const hash = createHash('sha256').update(buffer).digest('hex');
     await fsa.write(target, buffer, obj);
 
-    return {
-      'file:checksum': `1220` + hash,
-      'file:size': buffer.length,
-    };
+    return { 'file:checksum': `1220` + hash, 'file:size': buffer.length };
   },
 
   async stream(target: URL, source: URL, obj: WriteOptions): Promise<StacFileChecksum> {
     const ht = new HashTransform('sha256');
     const readStream = fsa.readStream(source).pipe(ht);
     await fsa.write(target, readStream, obj);
-    return {
-      'file:checksum': ht.multihash,
-      'file:size': ht.bytesRead,
-    };
+    return { 'file:checksum': ht.multihash, 'file:size': ht.bytesRead };
   },
 };

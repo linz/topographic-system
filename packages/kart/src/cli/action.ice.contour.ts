@@ -9,16 +9,8 @@ const iceContourSchema = new URL('file:///schema/nztopo50_ice_contour.json');
 
 export const IceContourArgs = {
   ...DataPrepareArgs,
-  contour: option({
-    type: Url,
-    long: 'contour',
-    description: 'Path or s3 of contour stac collection',
-  }),
-  landcover: option({
-    type: Url,
-    long: 'landcover',
-    description: 'Path or s3 of landcover stac collection',
-  }),
+  contour: option({ type: Url, long: 'contour', description: 'Path or s3 of contour stac collection' }),
+  landcover: option({ type: Url, long: 'landcover', description: 'Path or s3 of landcover stac collection' }),
 };
 
 export const IceContourCommand = command({

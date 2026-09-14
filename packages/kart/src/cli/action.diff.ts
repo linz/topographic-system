@@ -256,11 +256,7 @@ export const DiffCommand = command({
   async handler(args) {
     logger.info({ ref: args.diff }, 'Diff:Start');
 
-    const ctx: GitContext = {
-      repo: args.context ?? stringToUrlFolder('repo'),
-      diffRange: [],
-      output: args.output,
-    };
+    const ctx: GitContext = { repo: args.context ?? stringToUrlFolder('repo'), diffRange: [], output: args.output };
     if (args.diff.length > 0) {
       ctx.diffRange = args.diff;
     } else {

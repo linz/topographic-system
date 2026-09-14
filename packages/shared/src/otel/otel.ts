@@ -60,9 +60,7 @@ export function createOtelSdk(packageName: string): { sdk: NodeSDK; parentContex
   instrumentFsa();
   instrumentZx();
 
-  const parentContext = propagation.extract(context.active(), {
-    traceparent: process.env['TRACEPARENT'],
-  });
+  const parentContext = propagation.extract(context.active(), { traceparent: process.env['TRACEPARENT'] });
 
   const otel: Record<string, unknown> = {};
   for (const key of otelEnv) otel[key] = maskKey(process.env[key] ?? '');

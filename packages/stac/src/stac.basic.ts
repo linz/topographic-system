@@ -19,9 +19,7 @@ function createBasicStacItem(collectionId: string, id = '', date = new Date()): 
     geometry: null,
     bbox: [],
     links: [],
-    properties: {
-      datetime: date.toISOString(),
-    },
+    properties: { datetime: date.toISOString() },
     assets: {},
   };
 }
@@ -32,10 +30,7 @@ function createBasicStacCollection(id = '', date = new Date()): StacCollection {
     stac_version: '1.0.0',
     id: id,
     description: '',
-    extent: {
-      spatial: { bbox: [[0, 0, 0, 0]] },
-      temporal: { interval: [[date.toISOString(), null]] },
-    },
+    extent: { spatial: { bbox: [[0, 0, 0, 0]] }, temporal: { interval: [[date.toISOString(), null]] } },
     links: [],
     license: 'CC-BY-4.0',
     created: date,

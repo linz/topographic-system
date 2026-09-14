@@ -49,11 +49,7 @@ export class StacCollectionWriter {
     let current = this.items.get(itemName);
     if (current == null) {
       current = StacBasic.item(this.collection.id);
-      this.collection.links.push({
-        rel: 'item',
-        href: `./${itemName}.json`,
-        type: 'application/json',
-      });
+      this.collection.links.push({ rel: 'item', href: `./${itemName}.json`, type: 'application/json' });
       this.items.set(itemName, current);
     }
     return current;

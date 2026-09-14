@@ -27,11 +27,7 @@ interface FeatureAirport {
 }
 
 describe('kart.import', async () => {
-  const state = {
-    hasClone: false,
-    hasTheme: false,
-    hasKart: false,
-  };
+  const state = { hasClone: false, hasTheme: false, hasKart: false };
 
   await it('should have uv and source', async () => {
     const retUv = await tsKartImport('uv', '--version');
