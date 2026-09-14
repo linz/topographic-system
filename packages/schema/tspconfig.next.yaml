@@ -1,5 +1,10 @@
 extends: ./tspconfig.yaml
+emit:
+  - '@typespec/json-schema'
+  - '@linzjs/typespec-emitter'
 options:
   '@typespec/json-schema':
     emitter-output-dir: '{project-root}/../../schema/next'
     file-type: 'json'
+  '@linzjs/typespec-emitter':
+    typescript-output-file: '{project-root}/src/types/index.ts'
