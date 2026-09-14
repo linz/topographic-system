@@ -36,9 +36,15 @@ describe('qgis', () => {
 
     it('should only select a map sheet layer with no query', () => {
       const layersWithQuery = [
-        { name: 'layer1', source: 'data1.parquet' },
-        { name: 'layer2', source: 'my_map_sheet.parquet', options: [{ key: 'subset', value: 'some_query' }] },
-        { name: 'layer4', source: 'my_map_sheet.parquet' },
+        { name: 'layer1', source: 'data1.parquet', path: './data1.parquet', type: 'parquet' },
+        {
+          name: 'layer2',
+          source: 'my_map_sheet.parquet',
+          path: './my_map_sheet.parquet',
+          type: 'parquet',
+          options: [{ key: 'subset', value: 'some_query' }],
+        },
+        { name: 'layer4', source: 'my_map_sheet.parquet', path: './my_map_sheet.parquet', type: 'parquet' },
       ];
 
       assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer4');
@@ -46,9 +52,15 @@ describe('qgis', () => {
 
     it('should only select a map sheet layer with some options', () => {
       const layersWithQuery = [
-        { name: 'layer1', source: 'data1.parquet' },
-        { name: 'layer2', source: 'my_map_sheet.parquet', options: [{ key: 'layername', value: 'some_layer' }] },
-        { name: 'layer4', source: 'my_map_sheet.parquet' },
+        { name: 'layer1', source: 'data1.parquet', path: './data1.parquet', type: 'parquet' },
+        {
+          name: 'layer2',
+          source: 'my_map_sheet.parquet',
+          path: './my_map_sheet.parquet',
+          type: 'parquet',
+          options: [{ key: 'layername', value: 'some_layer' }],
+        },
+        { name: 'layer4', source: 'my_map_sheet.parquet', path: './my_map_sheet.parquet', type: 'parquet' },
       ];
 
       assert.equal(getQgisMapSheetDataset(layersWithQuery)?.name, 'layer2');

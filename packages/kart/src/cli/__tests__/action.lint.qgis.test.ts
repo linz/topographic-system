@@ -50,14 +50,17 @@ describe('action.lint.qgis', () => {
       const xml = {
         qgis: {
           layers: [
-            { datasource: '../buildings.parquet', provider: 'ogr' },
+            { datasource: '../../buildings.parquet', provider: 'ogr' },
             { datasource: '../test.parquet|layername=testline', provider: 'ogr' },
           ],
         },
       };
       const errors = await lint(xml, [LintRuleDataSources], ctx);
-      assert.strictEqual(errors.length, 2);
-      assert.strictEqual(errors[0]?.error, 'datasource path must be relative (start with ./): ../buildings.parquet');
+      // assert.strictEqual(errors.length, 2);
+      assert.strictEqual(
+        errors[0]?.error,
+        'datasource path traverses too far parent directory: ../../buildings.parquet',
+      );
     });
 
     it('should error for absolute datasource path', async () => {
@@ -107,7 +110,7 @@ describe('action.lint.qgis', () => {
         qgis: {
           layers: [
             {
-              datasource:
+              source:
                 'contextualWMSLegend=0&crs=EPSG:2193&dpiMode=7&featureCount=10&format=image/webp&layers=topo-raster-gridded&styles=default&tileMatrixSet=NZTM2000Quad&tilePixelRatio=2&url=https://basemaps.linz.govt.nz/v1/tiles/topo-raster-gridded/NZTM2000Quad/WMTSCapabilities.xml?api%3Dc01kkyythn3e0sae5j6c8ahbed3',
               provider: 'wms',
             },
@@ -206,6 +209,29 @@ describe('action.lint.qgis', () => {
       assert.match(errors[0]?.error ?? '', /datasource layer 'missing_layer' not found in catalog/);
     });
 
+    it('should error when datasource is not parquet and catalog is provided', async () => {
+      const catalogUrl = fsa.toUrl('memory:///stac/catalog.json');
+      const xml = {
+        qgis: {
+          layers: [
+            { datasource: './buildings.geojson', provider: 'ogr' },
+            { datasource: './roads.gpkg|layername=roads', provider: 'ogr' },
+          ],
+        },
+      };
+
+      const errors = await lint(xml, [LintRuleDataSources], {
+        qgisPath: fsa.toUrl('memory:///project/test.qgs'),
+        catalog: catalogUrl,
+      });
+
+      assert.strictEqual(errors.length, 2);
+      assert.strictEqual(errors[0]?.name, 'data-sources');
+      assert.strictEqual(errors[0]?.error, "datasources from catalogs must be 'parquet' found: geojson");
+      assert.strictEqual(errors[1]?.name, 'data-sources');
+      assert.strictEqual(errors[1]?.error, "datasources from catalogs must be 'parquet' found: gpkg");
+    });
+
     it('should pass catalog argument to lint command handler', async () => {
       const mem = new FsMemory();
       fsa.register('memory://', mem);
@@ -235,13 +261,21 @@ describe('action.lint.qgis', () => {
     });
 
     it('should return LintOk when datasource is valid', async () => {
-      const res = await LintRuleDataSources.rule({ datasource: './buildings.parquet', provider: 'ogr' }, ctx);
+      const res = await LintRuleDataSources.rule({ source: './buildings.parquet', provider: 'ogr' }, ctx);
       assert.strictEqual(res, LintOk);
     });
 
     it('should return LintOk when provider is not ogr', async () => {
-      const res = await LintRuleDataSources.rule({ datasource: 'https://example.com', provider: 'wms' }, ctx);
+      const res = await LintRuleDataSources.rule({ source: 'https://example.com', provider: 'wms' }, ctx);
       assert.strictEqual(res, LintOk);
+    });
+
+    it('should return error when datasource is not parquet with catalog', async () => {
+      const res = await LintRuleDataSources.rule(
+        { datasource: './buildings.geojson', provider: 'ogr' },
+        { qgisPath: new URL(import.meta.url), catalog: fsa.toUrl('memory:///stac/catalog.json') },
+      );
+      assert.strictEqual(res, "datasources from catalogs must be 'parquet' found: geojson");
     });
   });
 

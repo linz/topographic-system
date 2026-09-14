@@ -32,7 +32,7 @@ type LintRule = (
   node: Record<string, unknown>,
   context: LintContext,
 ) => string | LintRuleOk | Promise<string | LintRuleOk>;
-type LintRuleContext = { name: string; rule: LintRule };
+type LintRuleContext = { name: string; rule: LintRule; [key: string]: unknown };
 
 /**
  * List of Fonts to allow with their namedStyles
@@ -151,38 +151,43 @@ export const LintRuleFontFamily: LintRuleContext = {
     return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
   },
 };
-/**
- * Ensure all datasource paths in the QGIS project are relative paths.
- * Absolute paths or non-local paths will cause issues when the project is used on a different machine or environment.
- * @param node
- * @returns
- */
-export interface ParsedDataSource {
-  path: string;
-  name: string;
-  extras: string[];
+
+function getDataSource(node: Record<string, unknown>): string | null {
+  const datasource = X.string(node, 'datasource');
+  const dsProvider = X.string(node, 'provider') ?? 'ogr';
+  if (dsProvider === 'ogr' && datasource != null) return datasource;
+
+  const source = X.string(node, '@_source');
+  const srcProvider = X.string(node, '@_providerKey');
+  if (srcProvider === 'ogr' && source != null && source !== '') return source;
+
+  return null;
 }
 
+export const LintRuleDataSourcesAllowedTypes = new Set(['parquet', 'geojson', 'gpkg']);
 export const LintRuleDataSources: LintRuleContext = {
   name: 'data-sources',
   async rule(node, context) {
-    const dataSource = X.string(node, 'datasource');
+    const dataSource = getDataSource(node);
     if (dataSource == null || dataSource.trim() === '') return LintOk;
 
-    const provider = X.string(node, 'provider');
-    console.log(dataSource, provider);
-
-    if (provider !== 'ogr') return LintOk;
-
     const ctx = parseQgisLayerDef(dataSource);
-    console.log(dataSource, ctx);
     if (ctx == null) return LintOk;
 
-    if (!ctx?.source.startsWith('./')) {
-      return `datasource path must be relative (start with ./): ${dataSource}`;
+    if (!ctx.path.startsWith('./') && !ctx.path.startsWith('../')) {
+      return `datasource path must be relative (start with ./ or ../): ${dataSource}`;
     }
 
+    if (ctx.path.startsWith('../../')) {
+      return `datasource path traverses too far parent directory: ${dataSource}`;
+    }
+
+    if (!LintRuleDataSourcesAllowedTypes.has(ctx.type))
+      return `datasource type must be 'parquet', 'geojson', or 'gpkg' found: ${ctx.type}`;
+
     if (context.catalog == null) return LintOk;
+
+    if (ctx.type !== 'parquet') return `datasources from catalogs must be 'parquet' found: ${ctx.type}`;
 
     const seen = context.validLayers?.get(ctx.name);
     if (seen != null) return seen;
@@ -222,7 +227,12 @@ const X = {
   /** Attempt to read a string value from the xml  */
   string(node: Record<string, unknown>, key: string): string | undefined {
     const value = node[key];
+    if (value == null) return undefined;
     if (typeof value === 'string') return value;
+    // Support <provider encoding=utf8>ogr</provider>
+    if (typeof value === 'object' && '#text' in value) {
+      if (typeof value['#text'] === 'string') return value['#text'];
+    }
     return undefined;
   },
 };

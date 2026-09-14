@@ -3,7 +3,7 @@ import { before, describe, it } from 'node:test';
 
 import { fsa, FsMemory } from '@chunkd/fs';
 
-import { getQgisProjectMeta } from '../qgis.ts';
+import { getQgisProjectMeta, parseQgisLayerDef } from '../qgis.ts';
 
 const BaseQgsProject = `
 <qgis>
@@ -40,12 +40,25 @@ describe('qgis', () => {
         {
           name: 'road_line 2 lane highway map',
           source: 'road_line.parquet',
+          path: './road_line.parquet',
           options: [{ key: 'subset', value: '&quot;lane_count&quot; &gt; 1' }],
           type: 'parquet',
         },
-        { name: 'water', source: 'water.parquet', options: [], type: 'parquet' },
-        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', options: [], type: 'parquet' },
-        { name: 'CartoTextLayer', source: 'nztopo50_carto_text.parquet', options: [], type: 'parquet' },
+        { name: 'water', source: 'water.parquet', path: './water.parquet', options: [], type: 'parquet' },
+        {
+          name: 'MapSheetLayer',
+          source: 'nztopo50_map_sheet.parquet',
+          path: './nztopo50_map_sheet.parquet',
+          options: [],
+          type: 'parquet',
+        },
+        {
+          name: 'CartoTextLayer',
+          source: 'nztopo50_carto_text.parquet',
+          path: './nztopo50_carto_text.parquet',
+          options: [],
+          type: 'parquet',
+        },
       ]);
     });
 
@@ -59,6 +72,43 @@ describe('qgis', () => {
       const qgsUrl = fsa.toUrl('memory://test/bad_project2.qgs');
       await fsa.write(qgsUrl, '<qgis></qgis>');
       await assert.rejects(getQgisProjectMeta(qgsUrl), /Failed to parse projection from project/);
+    });
+  });
+
+  describe('parseQgisLayerDef', () => {
+    it('should parse simple layer definition', () => {
+      const def = parseQgisLayerDef('./buildings.parquet');
+      assert.deepStrictEqual(def, {
+        name: 'buildings',
+        source: 'buildings.parquet',
+        path: './buildings.parquet',
+        type: 'parquet',
+        options: [],
+      });
+    });
+
+    it('should use provided layer name', () => {
+      const def = parseQgisLayerDef('./buildings.parquet', 'Custom Buildings');
+      assert.strictEqual(def?.name, 'Custom Buildings');
+      assert.strictEqual(def?.source, 'buildings.parquet');
+    });
+
+    it('should parse layer with options and different extensions', () => {
+      const def = parseQgisLayerDef('./road_line.gpkg|subset="lane_count" > 1|layername=road_line');
+      assert.deepStrictEqual(def, {
+        name: 'road_line',
+        source: 'road_line.gpkg',
+        path: './road_line.gpkg',
+        type: 'gpkg',
+        options: [
+          { key: 'subset', value: '"lane_count" > 1' },
+          { key: 'layername', value: 'road_line' },
+        ],
+      });
+    });
+
+    it('should return undefined when layer is null or undefined', () => {
+      assert.strictEqual(parseQgisLayerDef(undefined), undefined);
     });
   });
 });
