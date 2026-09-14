@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "tspMain": "src/main.tsp",
-  "main": "src/types/types.ts",
-  "types": "src/types/types.ts",
+  "main": "src/types/index.ts",
+  "types": "src/types/index.ts",
   "exports": {
     ".": {
       "typespec": "./src/main.tsp",
+      "types": "./src/types/index.ts",
       "default": "./src/types/index.ts"
     }
   },
