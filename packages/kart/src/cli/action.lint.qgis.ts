@@ -2,7 +2,7 @@ import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { logger, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { logger, parseQgisLayerDef, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { getDataFromCatalog } from '@linzjs/topographic-system-stac';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import { XMLParser } from 'fast-xml-parser';
@@ -163,41 +163,35 @@ export interface ParsedDataSource {
   extras: string[];
 }
 
-/**
- * Extract the path, layer name and any piped extras from a QGIS datasource string.
- */
-export function parseDataSource(dataSource: string): ParsedDataSource {
-  const [path, ...extras] = (dataSource ?? '').split('|');
-  const fileName = path?.split('/').pop() ?? '';
-  const name = fileName.replace(/\.(parquet|geojson|gpkg|json)$/, '');
-  return { path: path ?? '', name, extras };
-}
-
 export const LintRuleDataSources: LintRuleContext = {
   name: 'data-sources',
   async rule(node, context) {
     const dataSource = X.string(node, 'datasource');
     if (dataSource == null || dataSource.trim() === '') return LintOk;
+
     const provider = X.string(node, 'provider');
+    console.log(dataSource, provider);
+
     if (provider !== 'ogr') return LintOk;
 
-    const { path, name } = parseDataSource(dataSource);
+    const ctx = parseQgisLayerDef(dataSource);
+    console.log(dataSource, ctx);
+    if (ctx == null) return LintOk;
 
-    if (!path.startsWith('./')) {
+    if (!ctx?.source.startsWith('./')) {
       return `datasource path must be relative (start with ./): ${dataSource}`;
     }
 
     if (context.catalog == null) return LintOk;
-    if (name === '') return LintOk;
 
-    const seen = context.validLayers?.get(name);
+    const seen = context.validLayers?.get(ctx.name);
     if (seen != null) return seen;
 
-    const loc = await getDataFromCatalog(context.catalog, name).catch(() => null);
+    const loc = await getDataFromCatalog(context.catalog, ctx.name).catch(() => null);
     const ruleResult =
-      loc == null ? `datasource layer '${name}' not found in catalog: ${context.catalog.href}` : LintOk;
+      loc == null ? `datasource layer '${ctx.name}' not found in catalog: ${context.catalog.href}` : LintOk;
 
-    context.validLayers?.set(name, ruleResult);
+    context.validLayers?.set(ctx.name, ruleResult);
     return ruleResult;
   },
 };

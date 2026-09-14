@@ -41,10 +41,11 @@ describe('qgis', () => {
           name: 'road_line 2 lane highway map',
           source: 'road_line.parquet',
           options: [{ key: 'subset', value: '&quot;lane_count&quot; &gt; 1' }],
+          type: 'parquet',
         },
-        { name: 'water', source: 'water.parquet', options: [] },
-        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', options: [] },
-        { name: 'CartoTextLayer', source: 'nztopo50_carto_text.parquet', options: [] },
+        { name: 'water', source: 'water.parquet', options: [], type: 'parquet' },
+        { name: 'MapSheetLayer', source: 'nztopo50_map_sheet.parquet', options: [], type: 'parquet' },
+        { name: 'CartoTextLayer', source: 'nztopo50_carto_text.parquet', options: [], type: 'parquet' },
       ]);
     });
 

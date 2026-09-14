@@ -11,7 +11,6 @@ import {
   LintRuleDataSources,
   LintRuleFontFamily,
   LintRuleSvgPath,
-  parseDataSource,
   toGithubPath,
 } from '../action.lint.qgis.ts';
 
@@ -439,33 +438,6 @@ describe('action.lint.qgis', () => {
 
       const annotationLogs = logs.filter((l) => l.startsWith('::error '));
       assert.strictEqual(annotationLogs.length, 0);
-    });
-  });
-
-  describe('parseDataSource', () => {
-    it('should parse simple parquet datasource', () => {
-      const parsed = parseDataSource('./buildings.parquet');
-      assert.deepStrictEqual(parsed, { path: './buildings.parquet', name: 'buildings', extras: [] });
-    });
-
-    it('should parse datasource with piped extras', () => {
-      const parsed = parseDataSource('./road_line.parquet|subset="lane_count" > 1|layername=road_line');
-      assert.deepStrictEqual(parsed, {
-        path: './road_line.parquet',
-        name: 'road_line',
-        extras: ['subset="lane_count" > 1', 'layername=road_line'],
-      });
-    });
-
-    it('should parse different extensions', () => {
-      assert.strictEqual(parseDataSource('./data/boundary.geojson').name, 'boundary');
-      assert.strictEqual(parseDataSource('./data/parcels.gpkg').name, 'parcels');
-      assert.strictEqual(parseDataSource('./data/meta.json').name, 'meta');
-    });
-
-    it('should handle empty or null string gracefully', () => {
-      const parsed = parseDataSource('');
-      assert.deepStrictEqual(parsed, { path: '', name: '', extras: [] });
     });
   });
 });
