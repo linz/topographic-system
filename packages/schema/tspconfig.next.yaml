@@ -1,4 +1,7 @@
 extends: ./tspconfig.yaml
+emit:
+  - '@typespec/json-schema'
+  - '@linzjs/typespec-emitter'
 options:
   '@typespec/json-schema':
     emitter-output-dir: '{project-root}/../../schema/next'
