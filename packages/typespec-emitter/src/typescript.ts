@@ -1,10 +1,14 @@
 import { emitFile, getDoc } from '@typespec/compiler';
-import type { Model, Enum, Union, Type } from '@typespec/compiler';
+import type { Enum, Model, Program, Type, Union } from '@typespec/compiler';
 
 import { toPascalCase } from './utils.ts';
 
+function formatPropName(name: string): string {
+  return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name) ? name : JSON.stringify(name);
+}
+
 export async function emitTypeScript(
-  program: any,
+  program: Program,
   outputFile: string,
   models: Map<string, Model>,
   enums: Map<string, Enum>,
@@ -98,7 +102,7 @@ export async function emitTypeScript(
         }
         const props: string[] = [];
         for (const prop of type.properties.values()) {
-          props.push(`${prop.name}${prop.optional ? '?' : ''}: ${getTsType(prop.type)}`);
+          props.push(`${formatPropName(prop.name)}${prop.optional ? '?' : ''}: ${getTsType(prop.type)}`);
         }
         return `{ ${props.join('; ')} }`;
       case 'ModelProperty':
@@ -158,7 +162,8 @@ export async function emitTypeScript(
           .map((l) => ` * ${l}`)
           .join('\n')}\n */\n`
       : '';
-    code += `${comment}export interface ${toPascalCase(m.name)} {\n`;
+    const extendsClause = m.baseModel?.name ? ` extends ${toPascalCase(m.baseModel.name)}` : '';
+    code += `${comment}export interface ${toPascalCase(m.name)}${extendsClause} {\n`;
     if (m.indexer) {
       const keyType = getTsType(m.indexer.key);
       const valueType = getTsType(m.indexer.value);
@@ -166,7 +171,7 @@ export async function emitTypeScript(
     }
     for (const prop of m.properties.values()) {
       const propComment = getJSDocComment(prop);
-      code += `${propComment}  ${prop.name}${prop.optional ? '?' : ''}: ${getTsType(prop.type)};\n`;
+      code += `${propComment}  ${formatPropName(prop.name)}${prop.optional ? '?' : ''}: ${getTsType(prop.type)};\n`;
     }
     code += '}\n\n';
   }
