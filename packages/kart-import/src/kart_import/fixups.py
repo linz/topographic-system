@@ -45,6 +45,7 @@ logger = logging.getLogger("kart_import")
 
 if TYPE_CHECKING:
     import geopandas as gpd
+    import pandas as pd
 
     from kart_import.config import ThemeDataset
 
@@ -704,9 +705,119 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
     )
 
 
+def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
+    """
+    Create lookup table combining trig_point and geographic_name with spatial coordinates.
+    
+    Generates lookups.example_point_ids table with geometry transformed to EPSG:2193 (NZTM),
+    enabling proximity-based matching for ambiguous place names. Combines both trig_point
+    and geographic_name sources via UNION.
+    """
+    import geopandas as gpd_
+    import pandas as pd
+
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    def read_theme(theme_name: str):
+        release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+        for dataset in get_theme_by_name(theme_name).datasets:
+            yield read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
+
+    example_ids: set[str] = set()
+    for map_sheet in read_theme("nztopo50_map_sheet"):
+        example_ids.update(map_sheet["example_point_id"].dropna().astype("string"))
+
+    named = []
+    for theme_name, name_column in (("trig_point", "code"), ("geographic_name", "name")):
+        for frame in read_theme(theme_name):
+            point = frame[["id", name_column, "geometry"]].rename(columns={name_column: "name"})
+            named.append(point.to_crs("EPSG:2193"))
+
+    points = gpd_.GeoDataFrame(pd.concat(named, ignore_index=True), geometry="geometry", crs="EPSG:2193")
+    points["id"] = points["id"].astype("string")
+    points = points[points["id"].isin(example_ids)].dropna(subset=["name"])
+    return points.reset_index(drop=True)
+
+
+def _update_carto_text_via_name(labels: pd.Series, points: gpd.GeoDataFrame) -> pd.Series:
+    """
+    Update carto_text example_point_id for unambiguous name matches.
+
+    Only updates records where a place name in carto_text matches exactly one
+    example_id in the lookup table (name appears only once geographically).
+    """
+    labels_per_name = labels.value_counts()
+    unique = points[points["name"].map(labels_per_name).eq(1)]
+    name_to_id = unique.drop_duplicates("name").set_index("name")["id"]
+    return labels.map(name_to_id).astype("string")
+
+
+def _update_carto_text_via_geom(
+    labels: pd.Series,
+    label_geometry: gpd.GeoSeries,
+    points: gpd.GeoDataFrame,
+    linked: pd.Series,
+    max_distance: float = 200.0,
+) -> pd.Series:
+    """
+    Update carto_text example_point_id for ambiguous names using spatial proximity.
+        
+    For place names that map to multiple geographic points, selects the closest
+    example_id within 200m distance using PostGIS ST_DWithin and ST_Distance.
+    Uses DISTINCT ON to ensure one match per carto_text record.
+    """
+    linked = linked.copy()
+    labels_per_name = labels.value_counts()
+    ambiguous = points[points["name"].map(labels_per_name).gt(1)]
+    if ambiguous.empty:
+        return linked
+
+    for label_index in labels.index[labels.isin(set(ambiguous["name"]))]:
+        same_name = ambiguous[ambiguous["name"] == labels.loc[label_index]]
+        distances = same_name.geometry.distance(label_geometry.loc[label_index])
+        nearest = distances.idxmin()
+        if distances.loc[nearest] <= max_distance:
+            linked.loc[label_index] = ambiguous.loc[nearest, "id"]
+    return linked
+
+
+def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Mark the carto_text label that draws each map-sheet example point.
+
+    A map sheet showcases one example point and needs the id of the label that renders it, so it
+    can find and highlight that label. 
+
+        Step 1: links a label whose text names exactly one example point;
+        Step 2: resolves a repeated name nearest example within 200 m. 
+        Every other label is left null.
+    """
+    points = _create_example_point_ids_lookup(release_id)
+    labels = gdf["full_text"]
+    label_geometry = gdf.geometry.to_crs("EPSG:2193")
+
+    linked = _update_carto_text_via_name(labels, points)
+    linked = _update_carto_text_via_geom(labels, label_geometry, points, linked)
+
+    gdf = gdf.copy()
+    gdf["example_point_id"] = linked.astype("string")
+
+    logger.info(
+        "carto_text_example_point_id",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "matched": int(linked.notna().sum()),
+            "total": len(gdf),
+        },
+    )
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
+    "carto_text_example_point_id": carto_text_example_point_id,
     "carto_text_styling": carto_text_styling,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
