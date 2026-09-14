@@ -7,9 +7,10 @@ datasets:
       url: git@github.com:linz/topographic-source-data
       dataset: linz_carto_text
     name: linz_carto_text
+    depends_on_themes: [geographic_name, trig_point]
     mapping:
       t50_fid: null
-      example_point_id: null
+      example_point_id: { fixup: true }
       full_text: $full_text
       text_bend: $text_bend
       text_char_spacing_distance: $t_c_s_d
@@ -22,19 +23,21 @@ datasets:
       text_stretch_length: $txt_s_l
       text_string: $text_strin
       text_word_spacing_distance: $t_w_s_d
-      # Styling fields: seeded null, then filled by the carto_text_styling fixup below.
-      font: null
-      style: null
-      colour: null
-      size: null
-      placement: null
-      offset: null
-      textanchor: null
-      labelanchor: null
-      charplace: null
-      chardistance: null
-      worddistance: null
+      # Styling fields: filled by the carto_text_styling fixup below.
+      font: { fixup: true }
+      style: { fixup: true }
+      colour: { fixup: true }
+      size: { fixup: true }
+      placement: { fixup: true }
+      offset: { fixup: true }
+      textanchor: { fixup: true }
+      labelanchor: { fixup: true }
+      charplace: { fixup: true }
+      chardistance: { fixup: true }
+      worddistance: { fixup: true }
       metadata: null
     fixups:
-      # Reproduce the legacy CartoTextProcessor styling from the mapped text_* fields.
+      # Populate the styling fields based on the mapped fields from carto_text_styling.csv
       - fn: carto_text_styling
+      # Resolve example_point_id from geographic_name (by name) then trig_point (by code).
+      - fn: carto_text_example_point_id
