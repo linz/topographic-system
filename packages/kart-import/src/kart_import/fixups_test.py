@@ -323,7 +323,23 @@ def _register_lookup(monkeypatch, name: str, dataset: str) -> None:
     monkeypatch.setitem(config_module.LOOKUP_MAP, name, lookup)
 
 
-def test_build_nzgb_metadata_record_shape(road_releases, monkeypatch):
+class _FrozenDatetime(datetime):
+    """Stands in for `fixups.datetime` so `build_nzgb_metadata`'s build-time stamp is deterministic."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 1, 2, 3, 4, 5, tzinfo=tz)
+
+
+BUILD_TIME_STAMP = "2026-01-02T03:04:05Z"
+
+
+@pytest.fixture
+def frozen_build_time(monkeypatch):
+    monkeypatch.setattr(fixups, "datetime", _FrozenDatetime)
+
+
+def test_build_nzgb_metadata_record_shape(road_releases, frozen_build_time, monkeypatch):
     """The record shape matches `build_road_metadata`'s - only the `SourceRef` differs - built
     entirely from the dataset's own mapping and lookup, with no per-dataset Python."""
     _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
@@ -335,26 +351,28 @@ def test_build_nzgb_metadata_record_shape(road_releases, monkeypatch):
         {
             "table_column": "name",
             "source": "nzgb_gazetteer",
-            "source_key_name": "gazfeatid",
+            "source_key_name": "feat_id",
             "source_key_value": 1043221,
-            "source_table": "canal_cl",
+            "source_table": "nzgb_gaz",
             "source_column": "name",
-            "source_updated_at": STAMP_66,
-            "imported_at": STAMP_66,
+            "source_updated_at": BUILD_TIME_STAMP,
+            "imported_at": BUILD_TIME_STAMP,
         }
     ]
 
 
 def test_build_nzgb_metadata_is_generic_across_datasets(road_releases, monkeypatch):
     """A second dataset on a different lookup/source dataset needs no new Python - just the
-    lookup/mapping/fixups wiring `build_nzgb_metadata`'s docstring describes."""
+    lookup/mapping/fixups wiring `build_nzgb_metadata`'s docstring describes. `source_table` names
+    the gazetteer itself, not the lookup, so it stays constant across datasets - it's the dataset
+    name and key value below that prove this ran against the right lookup, not a hardcoded one."""
     _register_lookup(monkeypatch, "lake_lkp", "lake_pt")
     td = _gaz_td("nz_lake_polygons_topo_150k", "lake_lkp")
 
     out = fixups.build_nzgb_metadata(_gaz_gdf([555]), td, 66)
 
     record = json.loads(out["metadata"].iloc[0])[0]
-    assert record["source_table"] == "lake_pt"
+    assert record["source_table"] == "nzgb_gaz"
     assert record["source_key_value"] == 555
 
 
