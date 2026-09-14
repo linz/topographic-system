@@ -1,7 +1,12 @@
+import { relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { fsa } from '@chunkd/fs';
 import { logger, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import { XMLParser } from 'fast-xml-parser';
+
+const isGithubActions = () => process.env['GITHUB_ACTIONS'] === 'true';
 
 export const LintQgisProjectArgs = {
   qgis: option({
@@ -58,8 +63,10 @@ export const LintQgisProjectCommand = command({
       const errors = await lint(qgisFile, LintRules, { qgisPath: path });
 
       if (errors.length > 0) {
-        for (const error of errors)
+        for (const error of errors) {
           logger.error({ file: path, rule: error.name, error: error.error }, 'LintQgis:Error');
+          if (isGithubActions()) emitGithubAnnotation(path, error);
+        }
         totalErrors.push(`${path.toString()}: ${errors.length} error(s)`);
       }
     }
@@ -229,3 +236,23 @@ async function fileExists(url: URL): Promise<boolean> {
 }
 
 export const LintRules: LintRuleContext[] = [LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath];
+
+export function toGithubPath(url: URL): string {
+  if (url.protocol === 'file:') {
+    const rootDir = process.env['GITHUB_WORKSPACE'] ?? process.cwd();
+    return relative(rootDir, fileURLToPath(url));
+  }
+  return url.toString();
+}
+
+export function emitGithubAnnotation(path: URL, error: { name: string; error: string }): void {
+  console.log(`::error file=${toGithubPath(path)},title=${escapeProperty(error.name)}::${escapeData(error.error)}`);
+}
+
+// Stolen from @actions/core
+function escapeProperty(val: string): string {
+  return val.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').replace(/:/g, '%3A').replace(/,/g, '%2C');
+}
+function escapeData(val: string): string {
+  return val.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+}
