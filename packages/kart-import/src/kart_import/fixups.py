@@ -436,13 +436,18 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 
 
 def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    edition = gdf["published_version"]
-    version = edition.str.extract(r"Edition\s+([0-9]+(?:\.[0-9]+)?)", expand=False)
-    year = edition.str.extract(r"Published\s+([0-9]{4})", expand=False)
+    import yaml
 
-    gdf["published_version"] = version
-    gdf["published_at"] = year + "-01-01"
-    gdf["updated_at"] = year + "-01-01"
+    from .config import CONFIG_DIR
+
+    edition = gdf["published_version"]
+    gdf["published_version"] = edition.str.extract(r"Edition\s+([0-9]+(?:\.[0-9]+)?)", expand=False)
+
+    with open(CONFIG_DIR / "map_sheet_published.yml") as f:
+        published = yaml.safe_load(f)
+
+    gdf["published_at"] = gdf["sheet_code"].map(published)
+    gdf["updated_at"] = gdf["sheet_code"].map(published)
     return gdf
 
 

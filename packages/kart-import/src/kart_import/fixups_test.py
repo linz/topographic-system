@@ -407,18 +407,25 @@ def test_map_sheet_origin_uses_top_left_corner():
     assert str(out["origin_x"].dtype) == "Float64"
 
 
-def test_map_sheet_published_parses_edition_and_year():
-    """The raw 'Edition X Published YYYY' string is split into the version plus a Jan-1 date (both
-    published_at and updated_at). A missing year (e.g. 'xxxx') leaves the date null."""
+def test_map_sheet_published_uses_lookup_with_edition_fallback(tmp_path, monkeypatch):
+    """`published_version` is parsed from the edition; `published_at`/`updated_at` come from the
+    per-sheet YAML lookup (keyed on sheet_code)."""
+    from . import config
+
+    (tmp_path / "map_sheet_published.yml").write_text('BK37: "2025-08-13T22:08:55Z"\n')
+    monkeypatch.setattr(config, "CONFIG_DIR", tmp_path)
+
     gdf = gpd.GeoDataFrame(
-        {"published_version": ["Edition 1.05 Published 2025", "Edition 1.00 Published xxxx"]},
-        geometry=[Point(0, 0), Point(1, 1)],
+        {
+            "sheet_code": ["BK37"],
+            "published_version": ["Edition 1.06 Published 2022"],
+        },
+        geometry=[Point(0, 0)],
         crs="EPSG:2193",
     )
     out = fixups.map_sheet_published(gdf, _td([], name="linz_map_sheet"), 66)
-    assert out["published_version"].tolist() == ["1.05", "1.00"]
-    assert out["published_at"].tolist()[0] == "2025-01-01"
-    assert out["published_at"].isna().tolist() == [False, True]
+    assert out["published_version"].tolist() == ["1.06"]
+    assert out["published_at"].tolist() == ["2025-08-13T22:08:55Z"]
     assert out["updated_at"].equals(out["published_at"])
 
 
