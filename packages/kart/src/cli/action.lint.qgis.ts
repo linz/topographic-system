@@ -2,23 +2,37 @@ import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import { logger, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { logger, parseQgisLayerDef, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { getDataFromCatalog } from '@linzjs/topographic-system-stac';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import { XMLParser } from 'fast-xml-parser';
 
 const isGithubActions = () => process.env['GITHUB_ACTIONS'] === 'true';
 
+export const LintOk = Symbol('Ok');
+type LintRuleOk = typeof LintOk;
+
 export const LintQgisProjectArgs = {
+  catalog: option({
+    type: optional(Url),
+    long: 'catalog',
+    description: 'Path or URL to root STAC catalog where dataset source parquet exists',
+  }),
   qgis: option({ type: optional(Url), long: 'qgis', description: 'Path to QGIS project file' }),
   paths: restPositionals({ type: Url, description: 'QGIS projects to lint' }),
 };
 
 export interface LintContext {
   qgisPath: URL;
+  catalog?: URL;
+  validLayers?: Map<string, string | LintRuleOk>;
 }
 
-type LintRule = (node: Record<string, unknown>, context: LintContext) => string | null | Promise<string | null>;
-type LintRuleContext = { name: string; rule: LintRule };
+type LintRule = (
+  node: Record<string, unknown>,
+  context: LintContext,
+) => string | LintRuleOk | Promise<string | LintRuleOk>;
+type LintRuleContext = { name: string; rule: LintRule; [key: string]: unknown };
 
 /**
  * List of Fonts to allow with their namedStyles
@@ -48,12 +62,13 @@ export const LintQgisProjectCommand = command({
     logger.info({ args }, 'LintQgis:Start');
 
     const startTime = performance.now();
+    const validLayers = new Map<string, string | LintRuleOk>();
 
     for (const path of [...args.paths, args.qgis]) {
       if (path == null) continue;
 
       const qgisFile = await fsa.read(path);
-      const errors = await lint(qgisFile, LintRules, { qgisPath: path });
+      const errors = await lint(qgisFile, LintRules, { qgisPath: path, catalog: args.catalog, validLayers });
 
       if (errors.length > 0) {
         for (const error of errors) {
@@ -76,6 +91,7 @@ export async function lint(
   rules: LintRuleContext[],
   context: LintContext,
 ): Promise<{ name: string; error: string }[]> {
+  context.validLayers ??= new Map();
   let errors: { name: string; error: string }[];
   if (typeof obj === 'string' || Buffer.isBuffer(obj)) {
     const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
@@ -105,7 +121,7 @@ export async function doLint(
 
   for (const rule of rules) {
     const error = await rule.rule(node as Record<string, unknown>, context);
-    if (error != null) errors.push({ name: rule.name, error });
+    if (error !== LintOk) errors.push({ name: rule.name, error });
   }
 
   for (const value of Object.values(node)) {
@@ -120,40 +136,68 @@ export const LintRuleFontFamily: LintRuleContext = {
   name: 'font-families',
   rule(node) {
     const fontFamily = X.string(node, '@_fontFamily');
-    if (fontFamily == null) return null;
+    if (fontFamily == null) return LintOk;
 
     const fontConfig = AllowedFonts[fontFamily];
     if (fontConfig == null) {
       return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
     }
 
-    if (fontConfig === true) return null; // All styles of this font are allowed
+    if (fontConfig === true) return LintOk; // All styles of this font are allowed
 
     // Default "" and null to "default"
     const fontStyle = X.string(node, '@_namedStyle') || 'default';
-    if (fontConfig.has(fontStyle)) return null; // This style of the font is allowed
+    if (fontConfig.has(fontStyle)) return LintOk; // This style of the font is allowed
     return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
   },
 };
-/**
- * Ensure all datasource paths in the QGIS project are relative paths.
- * Absolute paths or non-local paths will cause issues when the project is used on a different machine or environment.
- * @param node
- * @returns
- */
+
+function getDataSource(node: Record<string, unknown>): string | null {
+  const datasource = X.string(node, 'datasource');
+  const dsProvider = X.string(node, 'provider') ?? 'ogr';
+  if (dsProvider === 'ogr' && datasource != null) return datasource;
+
+  const source = X.string(node, '@_source');
+  const srcProvider = X.string(node, '@_providerKey');
+  if (srcProvider === 'ogr' && source != null && source !== '') return source;
+
+  return null;
+}
+
+export const LintRuleDataSourcesAllowedTypes = new Set(['parquet', 'geojson', 'gpkg']);
 export const LintRuleDataSources: LintRuleContext = {
   name: 'data-sources',
-  rule(node) {
-    const dataSource = X.string(node, 'datasource');
-    if (dataSource == null || dataSource.trim() === '') return null;
-    const provider = X.string(node, 'provider');
-    if (provider !== 'ogr') return null;
+  async rule(node, context) {
+    const dataSource = getDataSource(node);
+    if (dataSource == null || dataSource.trim() === '') return LintOk;
 
-    if (!(dataSource.startsWith('./') || dataSource.startsWith('../'))) {
+    const ctx = parseQgisLayerDef(dataSource);
+    if (ctx == null) return LintOk;
+
+    if (!ctx.path.startsWith('./') && !ctx.path.startsWith('../')) {
       return `datasource path must be relative (start with ./ or ../): ${dataSource}`;
     }
 
-    return null;
+    if (ctx.path.startsWith('../../')) {
+      return `datasource path traverses too far parent directory: ${dataSource}`;
+    }
+
+    if (!LintRuleDataSourcesAllowedTypes.has(ctx.type))
+      return `datasource type must be 'parquet', 'geojson', or 'gpkg' found: ${ctx.type}`;
+
+    if (context.catalog == null) return LintOk;
+
+    if (ctx.type !== 'parquet') return `datasources from catalogs must be 'parquet' found: ${ctx.type}`;
+
+    const seen = context.validLayers?.get(ctx.name);
+    if (seen != null) return seen;
+
+    const loc = await getDataFromCatalog(context.catalog, ctx.name).catch(() => null);
+    const ruleResult =
+      loc == null ? `datasource layer '${ctx.name}' not found in catalog: ${context.catalog.href}` : LintOk;
+
+    context.validLayers?.set(ctx.name, ruleResult);
+    return ruleResult;
   },
 };
 /**
@@ -183,7 +227,12 @@ const X = {
   /** Attempt to read a string value from the xml  */
   string(node: Record<string, unknown>, key: string): string | undefined {
     const value = node[key];
+    if (value == null) return undefined;
     if (typeof value === 'string') return value;
+    // Support <provider encoding=utf8>ogr</provider>
+    if (typeof value === 'object' && '#text' in value) {
+      if (typeof value['#text'] === 'string') return value['#text'];
+    }
     return undefined;
   },
 };
@@ -198,10 +247,10 @@ export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
   classes: new Set(['svgfill', 'svgmarker']),
   async rule(node, context) {
     const className = X.string(node, '@_class') ?? '';
-    if (!this.classes.has(className?.toLowerCase())) return null;
+    if (!this.classes.has(className?.toLowerCase())) return LintOk;
 
     const svgPaths = findSvgPaths(node);
-    if (svgPaths.size === 0) return null;
+    if (svgPaths.size === 0) return LintOk;
 
     const missingFiles: string[] = [];
     for (const svgPath of svgPaths) {
@@ -214,7 +263,7 @@ export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
 
     if (missingFiles.length > 0) return `${className} file does not exist: "${missingFiles.join(', ')}"`;
 
-    return null;
+    return LintOk;
   },
 };
 

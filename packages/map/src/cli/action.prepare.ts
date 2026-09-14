@@ -4,6 +4,7 @@ import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import {
   concurrency,
+  getQgisProjectMeta,
   isArgo,
   logger,
   parquetGeometryStats,
@@ -24,7 +25,7 @@ import {
 import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { getQgisCartoTextLayer, getQgisMapSheetDataset, getQgisProjectMeta } from '../qgis.ts';
+import { getQgisCartoTextLayer, getQgisMapSheetDataset } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
 import { FormatMultiOption } from './export.options.ts';
