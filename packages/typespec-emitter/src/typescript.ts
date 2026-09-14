@@ -132,7 +132,7 @@ export async function emitTypeScript(
   }
 
   // Generate Unions
-  const sortedUnions = Array.from(unions.values()).sort((a, b) => a.name!.localeCompare(b.name!));
+  const sortedUnions = Array.from(unions.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
   for (const u of sortedUnions) {
     const doc = getDoc(program, u);
     const comment = doc
@@ -144,7 +144,7 @@ export async function emitTypeScript(
       : '';
     const unionTypes = Array.from(u.variants.values()).map((v) => getTsType(v.type));
     const uniqueUnionTypes = Array.from(new Set(unionTypes));
-    code += `${comment}export type ${toPascalCase(u.name!)} = ${uniqueUnionTypes.join(' | ')};\n\n`;
+    code += `${comment}export type ${toPascalCase(u.name ?? '')} = ${uniqueUnionTypes.join(' | ')};\n\n`;
   }
 
   // Generate Models
