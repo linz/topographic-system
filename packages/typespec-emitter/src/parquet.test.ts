@@ -3,6 +3,8 @@ import { describe, it } from 'node:test';
 
 import type { SchemaElement } from 'hyparquet';
 
+import type { ParquetField } from './parquet.ts';
+
 /**
  * Helper function to validate that a hyparquet schema tree matches our emitted Parquet JSON schema.
  */
@@ -10,7 +12,7 @@ export function validateHyparquetSchema(
   hyparquetTree: { element: SchemaElement; children: { element: SchemaElement }[] },
   expectedSchema: {
     name: string;
-    fields: Array<{ name: string; repetition: string; physical_type?: string; logical_type?: string }>;
+    fields: ParquetField[];
   },
 ): void {
   assert.strictEqual(
@@ -25,10 +27,10 @@ export function validateHyparquetSchema(
     const actual = hyparquetColumns.get(field.name);
     assert.ok(actual, `Column "${field.name}" missing in hyparquet schema`);
 
-    assert.strictEqual(actual.repetition_type, field.repetition, `Repetition mismatch for column "${field.name}"`);
+    assert.strictEqual(actual.repetition_type, field.repetition_type, `Repetition mismatch for column "${field.name}"`);
 
-    if (field.physical_type) {
-      assert.strictEqual(actual.type, field.physical_type, `Physical type mismatch for column "${field.name}"`);
+    if (field.type) {
+      assert.strictEqual(actual.type, field.type, `Physical type mismatch for column "${field.name}"`);
     }
 
     if (field.logical_type) {
@@ -71,14 +73,14 @@ describe('Parquet Schema Emitter & Validator', () => {
       fields: [
         {
           name: 'id',
-          repetition: 'REQUIRED',
-          physical_type: 'BYTE_ARRAY',
+          repetition_type: 'REQUIRED' as const,
+          type: 'BYTE_ARRAY',
           logical_type: 'STRING',
         },
         {
           name: 'route',
-          repetition: 'OPTIONAL',
-          physical_type: 'BYTE_ARRAY',
+          repetition_type: 'OPTIONAL' as const,
+          type: 'BYTE_ARRAY',
           logical_type: 'STRING',
         },
       ],
@@ -108,14 +110,14 @@ describe('Parquet Schema Emitter & Validator', () => {
       fields: [
         {
           name: 'id',
-          repetition: 'REQUIRED',
-          physical_type: 'BYTE_ARRAY',
+          repetition_type: 'REQUIRED' as const,
+          type: 'BYTE_ARRAY',
           logical_type: 'STRING',
         },
         {
           name: 'route',
-          repetition: 'OPTIONAL',
-          physical_type: 'BYTE_ARRAY',
+          repetition_type: 'OPTIONAL' as const,
+          type: 'BYTE_ARRAY',
           logical_type: 'STRING',
         },
       ],
