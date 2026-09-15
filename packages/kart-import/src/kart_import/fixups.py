@@ -451,6 +451,34 @@ def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     return gdf
 
 
+def map_sheet_drop_index_sheets(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Drop the whole-country / whole-island index sheets, whose `sheet_code` starts with "Topo"
+    (TopoBDE00/01/02 = "50k New Zealand / North Island / South Island")."""
+    keep = ~gdf["sheet_code"].astype("string").str.startswith("Topo", na=False)
+    return gdf[keep].reset_index(drop=True)
+
+
+def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Correct `example_name` so it matches the trig_point/geographic_name lookups used by
+    `map_sheet_example_point_id` (which must run *after* this fixup). Three classes of fix:
+      - "Mt X" -> "Mount X"  (geographic names are stored with the full word)
+      - trig code remaps A0TR->A0U2, AP8Y->A4UX
+      - macron restorations Putata->Pūtata, Pohoi->Pōhoi, Rahuimokairoa->Rāhuimōkairoa"""
+    names = gdf["example_name"].astype("string").str.replace(r"^Mt\s+", "Mount ", regex=True)
+    names = names.replace(
+        {
+            "A0TR": "A0U2",
+            "AP8Y": "A4UX",
+            "Putata": "Pūtata",
+            "Pohoi": "Pōhoi",
+            "Rahuimokairoa": "Rāhuimōkairoa",
+        }
+    )
+    gdf = gdf.copy()
+    gdf["example_name"] = names
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
@@ -459,7 +487,9 @@ FIXUPS: dict[str, Fixup] = {
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
+    "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
     "map_sheet_origin": map_sheet_origin,
+    "map_sheet_example_name_fixes": map_sheet_example_name_fixes,
     "map_sheet_example_point_id": map_sheet_example_point_id,
     "map_sheet_published": map_sheet_published,
 }

@@ -456,3 +456,35 @@ def test_map_sheet_example_point_id_resolves_by_class(monkeypatch):
     assert out["example_point_id"].tolist() == ["trig-id", "name-id"]
     assert "example_name" not in out.columns
     assert "example_class" not in out.columns
+
+
+def test_map_sheet_drop_index_sheets():
+    """Index sheets (sheet_code starting 'Topo') are dropped; real sheets kept, index reset."""
+    gdf = gpd.GeoDataFrame(
+        {"sheet_code": ["BK37", "TopoBDE00", "CB10", "TopoBDE01"]},
+        geometry=[Point(i, i) for i in range(4)],
+        crs="EPSG:2193",
+    )
+    out = fixups.map_sheet_drop_index_sheets(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["sheet_code"].tolist() == ["BK37", "CB10"]
+    assert out.index.tolist() == [0, 1]
+
+
+def test_map_sheet_example_name_fixes():
+    """example_name is corrected before the example_point_id lookup: Mt->Mount, trig code remaps,
+    macron restorations; other names pass through untouched."""
+    gdf = gpd.GeoDataFrame(
+        {"example_name": ["Mt Ararat", "A0TR", "AP8Y", "Putata", "Pohoi", "Rahuimokairoa", "Wellington"]},
+        geometry=[Point(i, i) for i in range(7)],
+        crs="EPSG:2193",
+    )
+    out = fixups.map_sheet_example_name_fixes(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["example_name"].tolist() == [
+        "Mount Ararat",
+        "A0U2",
+        "A4UX",
+        "Pūtata",
+        "Pōhoi",
+        "Rāhuimōkairoa",
+        "Wellington",
+    ]

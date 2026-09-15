@@ -26,6 +26,8 @@ datasets:
       published_version: { source: $edition, fixup: true }
       published_at: { fixup: true }
     fixups:
+      - fn: map_sheet_drop_index_sheets
       - fn: map_sheet_origin
+      - fn: map_sheet_example_name_fixes
       - fn: map_sheet_example_point_id
       - fn: map_sheet_published
