@@ -10,6 +10,7 @@ import { collectTypes } from './utils.ts';
 export interface EmitterOptions {
   'json-schema-output-dir'?: string;
   'typescript-output-file'?: string;
+  'typescript-output-dir'?: string;
   'parquet-output-dir'?: string;
   'pydantic-output-file'?: string;
 }
@@ -19,6 +20,7 @@ const EmitterOptionsSchema: JSONSchemaType<EmitterOptions> = {
   properties: {
     'json-schema-output-dir': { type: 'string', nullable: true },
     'typescript-output-file': { type: 'string', nullable: true },
+    'typescript-output-dir': { type: 'string', nullable: true },
     'parquet-output-dir': { type: 'string', nullable: true },
     'pydantic-output-file': { type: 'string', nullable: true },
   },
@@ -47,15 +49,15 @@ export async function $onEmit(context: EmitContext<EmitterOptions>) {
   collectTypes(program.getGlobalNamespaceType(), models, enums, unions);
 
   // 2. Emit TypeScript Types if configured
-  if (options['typescript-output-file']) {
-    const outputFile = options['typescript-output-file'];
-    await emitTypeScript(program, outputFile, models, enums, unions);
+  const tsOutput = options['typescript-output-dir'] ?? options['typescript-output-file'];
+  if (tsOutput) {
+    await emitTypeScript(context, tsOutput, models, enums, unions);
   }
 
   // 3. Emit Parquet Schema if configured
   if (options['parquet-output-dir']) {
     const outputDir = options['parquet-output-dir'];
-    await emitParquetSchema(program, outputDir, models);
+    await emitParquetSchema(context, outputDir, models);
   }
 
   // 4. Emit Pydantic Models if configured

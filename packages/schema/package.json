@@ -11,6 +11,18 @@
       "typespec": "./src/main.tsp",
       "types": "./src/types/index.ts",
       "default": "./src/types/index.ts"
+    },
+    "./v0.3": {
+      "types": "./src/types/v0.3/index.ts",
+      "default": "./src/types/v0.3/index.ts"
+    },
+    "./v0.4": {
+      "types": "./src/types/v0.4/index.ts",
+      "default": "./src/types/v0.4/index.ts"
+    },
+    "./*": {
+      "types": "./src/types/*/index.ts",
+      "default": "./src/types/*/index.ts"
     }
   },
   "engines": {

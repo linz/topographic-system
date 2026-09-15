@@ -1,0 +1,24 @@
+{
+  "type": "message",
+  "name": "vegetation_point",
+  "fields": [
+    { "name": "id", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "created_at", "repetition_type": "REQUIRED", "type": "INT64", "logical_type": "TIMESTAMP" },
+    { "name": "updated_at", "repetition_type": "REQUIRED", "type": "INT64", "logical_type": "TIMESTAMP" },
+    { "name": "t50_fid", "repetition_type": "OPTIONAL", "type": "INT32" },
+    { "name": "type", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "theme", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "metadata", "repetition_type": "OPTIONAL", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "geometry", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY" },
+    {
+      "name": "bbox",
+      "repetition_type": "OPTIONAL",
+      "fields": [
+        { "name": "xmin", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "ymin", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "xmax", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "ymax", "repetition_type": "REQUIRED", "type": "FLOAT" }
+      ]
+    }
+  ]
+}

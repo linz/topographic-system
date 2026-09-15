@@ -1,0 +1,22 @@
+{
+  "type": "message",
+  "name": "nztopo50_sea_polygon",
+  "fields": [
+    { "name": "id", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "type", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "quadkey", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "created_at", "repetition_type": "REQUIRED", "type": "INT64", "logical_type": "TIMESTAMP" },
+    { "name": "updated_at", "repetition_type": "REQUIRED", "type": "INT64", "logical_type": "TIMESTAMP" },
+    { "name": "geometry", "repetition_type": "REQUIRED", "type": "BYTE_ARRAY" },
+    {
+      "name": "bbox",
+      "repetition_type": "OPTIONAL",
+      "fields": [
+        { "name": "xmin", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "ymin", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "xmax", "repetition_type": "REQUIRED", "type": "FLOAT" },
+        { "name": "ymax", "repetition_type": "REQUIRED", "type": "FLOAT" }
+      ]
+    }
+  ]
+}

@@ -42,6 +42,7 @@
     "metadata",
     "geometry"
   ],
+  "title": "NZ Topography Water",
   "additionalProperties": false,
   "$defs": {
     "water_type": {

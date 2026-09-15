@@ -8,6 +8,7 @@ namespace Topography;
 
 @jsonSchema("landuse_point")
 @extension("additionalProperties", false)
+@summary("NZ Topography Land Use Point")
 model landuse_point {
   ...TopographicFeature;
   type: landuse_type;
