@@ -409,6 +409,7 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     gdf["label"] = gdf["label"].astype("Int64").astype("string")
     return gdf
 
+
 CARTO_TEXT_COLOUR: dict[int, str] = {9: "black", 5: "warm_red", 6: "process_blue"}
 CARTO_TEXT_COLOUR_DEFAULT = "black"
 """`text_colour` integer code -> `colour` enum. Legacy decoded any other code to black."""
@@ -424,6 +425,7 @@ CARTO_TEXT_STYLE: dict[str, str] = {
     "Courier Bold Oblique": "Regular",
 }
 """mapping from source `text_font` values to `style` enum."""
+
 
 def _carto_text_key(bend, height, place, style, colour):
     """Join the five key columns into one string, e.g. `0|67.0000|31|Narrow|black` for looks up mapping from csv file."""
@@ -451,6 +453,7 @@ _CARTO_TEXT_STRING_FIELDS = ("placement", "textanchor", "charplace")
 _CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance", "worddistance")
 _CARTO_TEXT_KEY_INPUTS = ("text_bend", "text_height", "text_placement", "text_colour", "text_font")
 
+
 @cache
 def _carto_text_styling_table():
     """Read the carto_text_styling table from the carto_text_styling.csv file and prepare it for lookups."""
@@ -470,8 +473,7 @@ def _carto_text_styling_table():
 
 
 def carto_text_styling(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Fill the cartographic styling fields for carto_text based on the mapping from carto_text_styling.csv.
-    """
+    """Fill the cartographic styling fields for carto_text based on the mapping from carto_text_styling.csv."""
     import pandas as pd
 
     missing = set(_CARTO_TEXT_KEY_INPUTS) - set(gdf.columns)
