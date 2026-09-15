@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("landcover_line")
 @extension("additionalProperties", false)
 model landcover_line {

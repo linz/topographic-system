@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("relief")
 @extension("additionalProperties", false)
 model relief {

@@ -2,6 +2,8 @@ import "@typespec/json-schema";
 import "./common.tsp";
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("landcover_point")
 @oneOf
 union landcover_point {
