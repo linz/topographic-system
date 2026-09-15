@@ -496,7 +496,7 @@ def carto_text_styling(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int)
 def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
     """
     Create lookup table combining trig_point and geographic_name with spatial coordinates.
-    
+
     Generates lookups.example_point_ids table with geometry transformed to EPSG:2193 (NZTM),
     enabling proximity-based matching for ambiguous place names. Combines both trig_point
     and geographic_name sources via UNION.
@@ -550,7 +550,7 @@ def _update_carto_text_via_geom(
 ) -> pd.Series:
     """
     Update carto_text example_point_id for ambiguous names using spatial proximity.
-        
+
     For place names that map to multiple geographic points, selects the closest
     example_id within 200m distance using PostGIS ST_DWithin and ST_Distance.
     Uses DISTINCT ON to ensure one match per carto_text record.
@@ -574,10 +574,10 @@ def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release
     """Mark the carto_text label that draws each map-sheet example point.
 
     A map sheet showcases one example point and needs the id of the label that renders it, so it
-    can find and highlight that label. 
+    can find and highlight that label.
 
         Step 1: links a label whose text names exactly one example point;
-        Step 2: resolves a repeated name nearest example within 200 m. 
+        Step 2: resolves a repeated name nearest example within 200 m.
         Every other label is left null.
     """
     points = _create_example_point_ids_lookup(release_id)
