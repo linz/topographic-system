@@ -85,9 +85,15 @@ def schema_dir(schema_set: str | None = None) -> Path:
     base = env_schema_dir_override()
     root = Path(base) if base else REPO_ROOT / "schema"
     if schema_set == "next":
+        if (root / "release=v0.4").is_dir():
+            return root / "release=v0.4"
         return root / "next"
     if schema_set == "current":
+        if (root / "release=v0.3").is_dir():
+            return root / "release=v0.3"
         return root
+    if (root / schema_set).is_dir():
+        return root / schema_set
     raise ValueError(f"Unknown schema_set {schema_set!r}; expected 'current' or 'next'")
 
 

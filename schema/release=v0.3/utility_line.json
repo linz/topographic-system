@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "utility_line_v0.3",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "UUIDv7 of the feature" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "t50_fid": {
+      "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": {
+      "anyOf": [
+        { "type": "string", "const": "pipeline" },
+        { "type": "string", "const": "powerline" },
+        { "type": "string", "const": "telephone" }
+      ]
+    },
+    "subtype": { "anyOf": [{ "$ref": "#/$defs/utility_subtype" }, { "type": "null" }] },
+    "support_type": { "anyOf": [{ "$ref": "#/$defs/utility_supporttype" }, { "type": "null" }] },
+    "status": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "visibility": { "anyOf": [{ "$ref": "#/$defs/utility_visibility" }, { "type": "null" }] },
+    "theme": { "type": "string", "const": "utility" },
+    "metadata": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "geometry": { "description": "GeoParquet 1.1 covering geometry struct.", "not": { "type": "null" } },
+    "bbox": { "$ref": "#/$defs/BBox", "description": "GeoParquet 1.1 covering bbox struct." }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "support_type",
+    "status",
+    "visibility",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "utility_subtype": { "type": "string", "enum": ["ironsand", "sewage", "steam", "water"] },
+    "utility_supporttype": { "type": "string", "enum": ["pole", "pylon"] },
+    "utility_visibility": { "type": "string", "enum": ["underground"] },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": { "type": "number" },
+        "ymin": { "type": "number" },
+        "xmax": { "type": "number" },
+        "ymax": { "type": "number" }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
+    }
+  }
+}

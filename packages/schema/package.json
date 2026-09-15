@@ -19,13 +19,15 @@
   "scripts": {
     "check": "tsp format --check \"src/**/*.tsp\"",
     "format": "tsp format \"src/**/*.tsp\"",
-    "bundle": "tsp compile . && tsp compile src/next.tsp --config tspconfig.next.yaml && (cd ../../schema && oxfmt .) && oxfmt src"
+    "bundle": "tsp compile . && (cd ../../schema && oxfmt .) && oxfmt src"
   },
   "devDependencies": {
     "@linzjs/typespec-emitter": "^0.1.0",
-    "@types/node": "^24.10.0",
-    "@typespec/compiler": "^1.11.0",
-    "@typespec/json-schema": "^1.11.0"
+    "@types/node": "^24.10.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@typespec/compiler": "^1.15.0",
+    "@typespec/json-schema": "^1.15.0",
+    "@typespec/versioning": "^0.85.0"
+  }
 }

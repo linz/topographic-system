@@ -298,6 +298,8 @@ export type UtilityVisibility = 'underground';
 
 export type VegetationSubtype = 'coniferous' | 'non-coniferous';
 
+export type Versions = '0.3' | '0.4';
+
 export type WaterPerennial = 'dry' | 'seasonal';
 
 export type WaterSubtype =

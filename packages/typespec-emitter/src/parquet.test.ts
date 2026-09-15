@@ -10,10 +10,7 @@ import type { ParquetField } from './parquet.ts';
  */
 export function validateHyparquetSchema(
   hyparquetTree: { element: SchemaElement; children: { element: SchemaElement }[] },
-  expectedSchema: {
-    name: string;
-    fields: ParquetField[];
-  },
+  expectedSchema: { name: string; fields: ParquetField[] },
 ): void {
   assert.strictEqual(
     hyparquetTree.element.name,
@@ -26,6 +23,7 @@ export function validateHyparquetSchema(
   for (const field of expectedSchema.fields) {
     const actual = hyparquetColumns.get(field.name);
     assert.ok(actual, `Column "${field.name}" missing in hyparquet schema`);
+    if (!actual) throw new Error(`Column "${field.name}" missing in hyparquet schema`);
 
     assert.strictEqual(actual.repetition_type, field.repetition_type, `Repetition mismatch for column "${field.name}"`);
 
@@ -48,21 +46,9 @@ describe('Parquet Schema Emitter & Validator', () => {
     const mockHyparquetTree = {
       element: { name: 'railway_line', num_children: 2 },
       children: [
+        { element: { name: 'id', type: 'BYTE_ARRAY', repetition_type: 'REQUIRED', logical_type: { type: 'STRING' } } },
         {
-          element: {
-            name: 'id',
-            type: 'BYTE_ARRAY',
-            repetition_type: 'REQUIRED',
-            logical_type: { type: 'STRING' },
-          },
-        },
-        {
-          element: {
-            name: 'route',
-            type: 'BYTE_ARRAY',
-            repetition_type: 'OPTIONAL',
-            logical_type: { type: 'STRING' },
-          },
+          element: { name: 'route', type: 'BYTE_ARRAY', repetition_type: 'OPTIONAL', logical_type: { type: 'STRING' } },
         },
       ],
     };
@@ -71,18 +57,8 @@ describe('Parquet Schema Emitter & Validator', () => {
       type: 'message',
       name: 'railway_line',
       fields: [
-        {
-          name: 'id',
-          repetition_type: 'REQUIRED' as const,
-          type: 'BYTE_ARRAY',
-          logical_type: 'STRING',
-        },
-        {
-          name: 'route',
-          repetition_type: 'OPTIONAL' as const,
-          type: 'BYTE_ARRAY',
-          logical_type: 'STRING',
-        },
+        { name: 'id', repetition_type: 'REQUIRED' as const, type: 'BYTE_ARRAY', logical_type: 'STRING' },
+        { name: 'route', repetition_type: 'OPTIONAL' as const, type: 'BYTE_ARRAY', logical_type: 'STRING' },
       ],
     };
 
@@ -93,14 +69,7 @@ describe('Parquet Schema Emitter & Validator', () => {
     const mockHyparquetTree = {
       element: { name: 'railway_line', num_children: 1 },
       children: [
-        {
-          element: {
-            name: 'id',
-            type: 'BYTE_ARRAY',
-            repetition_type: 'REQUIRED',
-            logical_type: { type: 'STRING' },
-          },
-        },
+        { element: { name: 'id', type: 'BYTE_ARRAY', repetition_type: 'REQUIRED', logical_type: { type: 'STRING' } } },
       ],
     };
 
@@ -108,18 +77,8 @@ describe('Parquet Schema Emitter & Validator', () => {
       type: 'message',
       name: 'railway_line',
       fields: [
-        {
-          name: 'id',
-          repetition_type: 'REQUIRED' as const,
-          type: 'BYTE_ARRAY',
-          logical_type: 'STRING',
-        },
-        {
-          name: 'route',
-          repetition_type: 'OPTIONAL' as const,
-          type: 'BYTE_ARRAY',
-          logical_type: 'STRING',
-        },
+        { name: 'id', repetition_type: 'REQUIRED' as const, type: 'BYTE_ARRAY', logical_type: 'STRING' },
+        { name: 'route', repetition_type: 'OPTIONAL' as const, type: 'BYTE_ARRAY', logical_type: 'STRING' },
       ],
     };
 

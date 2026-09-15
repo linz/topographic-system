@@ -82,13 +82,7 @@ function getParquetFields(model: Model): ParquetField[] {
         name: fieldName,
         repetition_type: repetition,
         logical_type: 'LIST',
-        fields: [
-          {
-            name: 'list',
-            repetition_type: 'REPEATED',
-            fields: [itemField],
-          },
-        ],
+        fields: [{ name: 'list', repetition_type: 'REPEATED', fields: [itemField] }],
       });
     } else if (
       targetType.kind === 'Model' &&
@@ -96,17 +90,10 @@ function getParquetFields(model: Model): ParquetField[] {
       targetType.name !== 'Record' &&
       targetType.properties.size > 0
     ) {
-      fields.push({
-        name: fieldName,
-        repetition_type: repetition,
-        fields: getParquetFields(targetType),
-      });
+      fields.push({ name: fieldName, repetition_type: repetition, fields: getParquetFields(targetType) });
     } else {
       const mapped = mapTypeSpecToParquet(targetType);
-      const field: ParquetField = {
-        name: fieldName,
-        repetition_type: repetition,
-      };
+      const field: ParquetField = { name: fieldName, repetition_type: repetition };
       if (mapped.type) field.type = mapped.type;
       if (mapped.logical_type) field.logical_type = mapped.logical_type;
       fields.push(field);
@@ -121,15 +108,8 @@ export async function emitParquetSchema(program: Program, outputDir: string, mod
       continue;
     }
     const tableName = toSnakeCase(name);
-    const schema = {
-      type: 'message',
-      name: tableName,
-      fields: getParquetFields(model),
-    };
+    const schema = { type: 'message', name: tableName, fields: getParquetFields(model) };
     const schemaFile = resolvePath(outputDir, `${tableName}.json`);
-    await emitFile(program, {
-      path: schemaFile,
-      content: JSON.stringify(schema, null, 2) + '\n',
-    });
+    await emitFile(program, { path: schemaFile, content: JSON.stringify(schema, null, 2) + '\n' });
   }
 }

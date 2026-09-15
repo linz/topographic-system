@@ -176,8 +176,5 @@ export async function emitTypeScript(
     code += '}\n\n';
   }
 
-  await emitFile(program, {
-    path: outputFile,
-    content: code,
-  });
+  await emitFile(program, { path: outputFile, content: code });
 }

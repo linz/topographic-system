@@ -13,8 +13,5 @@ export async function emitPydanticModels(program: Program, outputFile: string, m
     }
     code += `class ${toPascalCase(name)}:\n    pass\n\n`;
   }
-  await emitFile(program, {
-    path: outputFile,
-    content: code,
-  });
+  await emitFile(program, { path: outputFile, content: code });
 }

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "structure_point_v0.4",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "UUIDv7 of the feature" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "t50_fid": {
+      "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
+      "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
+    },
+    "type": { "$ref": "#/$defs/structure_point_type" },
+    "subtype": { "anyOf": [{ "$ref": "#/$defs/structure_subtype" }, { "type": "null" }] },
+    "tank_type": { "anyOf": [{ "$ref": "#/$defs/structure_tank_type" }, { "type": "null" }] },
+    "status": { "anyOf": [{ "$ref": "#/$defs/structure_status" }, { "type": "null" }] },
+    "name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "height": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+    "orientation": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+    "theme": { "type": "string", "const": "structures" },
+    "metadata": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "geometry": { "description": "GeoParquet 1.1 covering geometry struct.", "not": { "type": "null" } },
+    "bbox": { "$ref": "#/$defs/BBox", "description": "GeoParquet 1.1 covering bbox struct." }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "type",
+    "subtype",
+    "tank_type",
+    "status",
+    "name",
+    "height",
+    "orientation",
+    "theme",
+    "metadata",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "structure_point_type": {
+      "type": "string",
+      "enum": [
+        "beacon",
+        "bivouac",
+        "buoy",
+        "chimney",
+        "dredge",
+        "flare",
+        "floodgate",
+        "gate",
+        "ladder",
+        "lighthouse",
+        "mast",
+        "radar_dome",
+        "redoubt",
+        "satellite_station",
+        "shaft",
+        "siphon",
+        "stockyard",
+        "tank",
+        "tower",
+        "well",
+        "windmill",
+        "wreck"
+      ]
+    },
+    "structure_subtype": {
+      "type": "string",
+      "enum": [
+        "building",
+        "coal",
+        "concrete",
+        "disused",
+        "fuel",
+        "historic",
+        "jetty",
+        "lake",
+        "land",
+        "lighthouse",
+        "lime",
+        "locked",
+        "plane",
+        "power_generation",
+        "rock",
+        "sea",
+        "ship",
+        "surge_chamber",
+        "tunnel_ventilation",
+        "uncovered",
+        "water"
+      ]
+    },
+    "structure_tank_type": { "type": "string", "enum": ["uncovered", "water", "surge_chamber"] },
+    "structure_status": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "dangerous",
+        "derelict",
+        "disused",
+        "historic",
+        "locked",
+        "old",
+        "private",
+        "remains",
+        "ruins",
+        "under_construction"
+      ]
+    },
+    "BBox": {
+      "type": "object",
+      "properties": {
+        "xmin": { "type": "number" },
+        "ymin": { "type": "number" },
+        "xmax": { "type": "number" },
+        "ymax": { "type": "number" }
+      },
+      "required": ["xmin", "ymin", "xmax", "ymax"],
+      "description": "GeoParquet 1.1 covering bbox struct.",
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,6 +1,6 @@
 emit:
-  - '@typespec/json-schema'
+  - '@linzjs/typespec-emitter'
 options:
-  '@typespec/json-schema':
-    emitter-output-dir: '{project-root}/../../schema'
-    file-type: 'json'
+  '@linzjs/typespec-emitter':
+    json-schema-output-dir: '{project-root}/../../schema'
+    typescript-output-file: '{project-root}/src/types/index.ts'

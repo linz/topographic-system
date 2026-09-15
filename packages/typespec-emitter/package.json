@@ -17,10 +17,13 @@
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
-    "@typespec/compiler": "^1.11.0",
-    "@typespec/json-schema": "^1.11.0"
+    "@typespec/asset-emitter": "^0.79.1",
+    "@typespec/compiler": "^1.15.0",
+    "@typespec/json-schema": "^1.15.0",
+    "@typespec/versioning": "^0.85.0"
   },
   "devDependencies": {
-    "hyparquet": "^1.24.1"
+    "hyparquet": "^1.24.1",
+    "@types/node": "^24.10.0"
   }
 }
