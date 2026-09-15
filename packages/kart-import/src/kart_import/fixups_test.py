@@ -774,3 +774,79 @@ def test_carto_text_styling_requires_its_key_columns():
     gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
     with pytest.raises(ValueError, match="text_font"):
         carto_text_styling(gdf.drop(columns="text_font"), _td([], "linz_carto_text"), 66)
+
+
+def test_carto_text_example_point_id_two_pass(monkeypatch):
+    """Only the map-sheet example points are candidates. Pass 1 links a name carried by exactly
+    one label - however far away; pass 2 sends a name shared by several labels to the nearest one
+    within 200 m, leaving > 200 m and unmatched labels null."""
+    from . import config
+    from .assets import transform as transform_mod
+
+    # The four features a map sheet nominates as its example point.
+    map_sheet = pd.DataFrame({"example_point_id": ["tp0", "gnW", "gn1153", "gn2413"]})
+    trig_point = gpd.GeoDataFrame(
+        {"id": ["tp0"], "code": ["A1AA"]},
+        geometry=[Point(1000, 2000)],
+        crs="EPSG:2193",
+    )
+    geographic_name = gpd.GeoDataFrame(
+        {"id": ["gnW", "gn1153", "gn2413"], "name": ["Windsor Point", "1153", "2413"]},
+        geometry=[Point(0, 0), Point(5000, 6000), Point(8000, 8000)],
+        crs="EPSG:2193",
+    )
+    frames = {"ms": map_sheet, "tp": trig_point, "gn": geographic_name}
+
+    def fake_theme(name):
+        dataset_name = {"nztopo50_map_sheet": "ms", "trig_point": "tp", "geographic_name": "gn"}[name]
+        return Theme(
+            name=name,
+            target_repo="r",
+            target_epsg="EPSG:2193",
+            datasets=[
+                ThemeDataset.model_validate(
+                    {"name": dataset_name, "source": "kart@data.koordinates.com:linz/x-topo-150k"}
+                )
+            ],
+        )
+
+    monkeypatch.setattr(config, "get_theme_by_name", fake_theme)
+    monkeypatch.setattr(transform_mod, "read_transform", lambda path: frames[path.stem])
+
+    gdf = gpd.GeoDataFrame(
+        {
+            "full_text": [
+                "A1AA",  # one label, on the trig -> tp0
+                "Windsor Point",  # one label, 600 m away -> gnW (name match ignores distance)
+                "1153",  # three labels -> nearest within 200 m wins
+                "1153",
+                "1153",
+                "2413",  # two labels -> nearest is 250 m away -> null
+                "2413",
+                "Nowhere",  # not an example point -> null
+            ]
+        },
+        geometry=[
+            Point(1050, 2000),
+            Point(600, 0),
+            Point(5010, 6000),  # 10 m from gn1153
+            Point(50000, 60000),
+            Point(60000, 60000),
+            Point(8250, 8000),  # 250 m from gn2413
+            Point(90000, 8000),
+            Point(0, 0),
+        ],
+        crs="EPSG:2193",
+    )
+
+    out = fixups.carto_text_example_point_id(gdf, _td([], "linz_carto_text"), 66)
+    result = list(out["example_point_id"])
+
+    assert result[0] == "tp0"
+    assert result[1] == "gnW"
+    assert result[2] == "gn1153"
+    assert pd.isna(result[3])
+    assert pd.isna(result[4])
+    assert pd.isna(result[5])
+    assert pd.isna(result[6])
+    assert pd.isna(result[7])
