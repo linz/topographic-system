@@ -26,10 +26,9 @@ rather than corrupting a later snapshot.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
 from collections.abc import Callable
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, NamedTuple
 
 logger = logging.getLogger("kart_import")
@@ -337,7 +336,7 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     if lookup is None:
         raise ValueError(f"{td.name}: `metadata` references unknown lookup '{lookup_name}'")
 
-    build_stamp = _rfc3339(datetime.now(timezone.utc))
+    build_stamp = _rfc3339(datetime.now(UTC))
 
     ref = SourceRef(
         table_column="name",
