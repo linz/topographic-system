@@ -8,7 +8,7 @@ Topographic maps are produced with [QGIS](https://github.com/qgis/qgis). All of 
 
 The map production workflow automates the production of all map sheets rendering the maps with a Headless QGIS inside of docker.
 
-![](./system.map.render.excalidraw.png)
+![](./assets/system.map.render.excalidraw.png)
 
 - [map prepare](../packages/map/README.md) - Prepare a map export run, creating immutable STAC based version of the dataset in S3, suitable for long term storage and versioning
 - [map export](../packages/map/README.md) - Export one or many map sheets from a map preperation
@@ -16,7 +16,7 @@ The map production workflow automates the production of all map sheets rendering
 
 ## Topographic Data Editing
 
-![](./system.data.edit.excalidraw.png)
+![](./assets/system.data.edit.excalidraw.png)
 
 All editable topographic data is stored as [kart](https://github.com/koordinates/kart) repositories roughly broken down into a similar groups, some large datasets (contours) are in seperate repositories due to performance impacts of their size
 
@@ -28,7 +28,7 @@ All editable topographic data is stored as [kart](https://github.com/koordinates
 
 ### Data flow
 
-![](./system.data.flow.excalidraw.png)
+![](./assets/system.data.flow.excalidraw.png)
 
 Before data is merged into these kart repositories, Github actions is used to ensure data quality and consistent map production using a standard pull request based git flow.
 
@@ -44,4 +44,4 @@ Once the data is merged into master the data is exported as geoparquet and store
 
 Data is stored as a immutable date based system, `/data/airport/year=2026/date=2026-09-03T00-00-00Z/airport.parquet`. and also a mutable latest folder `/data/airport/latest/` that points to the latest date based version. More information on the [storage structure](./storage.structure.md)
 
-![](./storage.structure.date.excalidraw.png)
+![](./assets/storage.structure.date.excalidraw.png)

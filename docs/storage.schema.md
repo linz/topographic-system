@@ -33,3 +33,56 @@ Ideally all datasets should contain three key meta fields
 - id - `uuidv7` - Unique ID with the creation time of the feature
 - created_at - `datetime` - Creation time of the feature
 - updated_at - `datetime` - Last modified time of the feature
+
+## Versioning
+
+Schemas are versioned using Typespec's versioning structure, with all versions of the schemas stored in the [schema](../packages/schema/README).
+
+CI needs to validate that the historical schemas are not being modified, updates to descriptions are allowed but changing the schema is not.
+
+## Emitters
+
+### JSON Schema
+
+JSON schemas are stored in a public https acceesiable location with the following structure:
+
+```
+/schema/latest/airport.json # points to v2.1
+/schema/release=v1.1/airport.json
+/schema/release=v1.2/airport.json
+/schema/release=v2.1/airport.json
+```
+
+### Typescript
+
+All schemas and there types are published into npm `@linzjs/topographic-schema`
+
+```typescript
+import type {Airport} from '@linzjs/topographic-schema'; // Latest
+
+const airport: Airport = { ... };
+
+import type {Airport as AirportV1_1} from '@linzjs/topographic-schema/v1.1'; // Specific version
+```
+
+### Parquet JSON
+
+JSON schema is not expressive enough to specify the parquet layout of the dataset, so a Parquet JSON is created, based off the [typespec propsal](https://github.com/microsoft/typespec/issues/10334)
+
+```json
+{
+
+  "type": "message",
+  "name": "airport",
+  "fields": [
+    { "name": "id", "repetition": "REQUIRED", "physical_type": "INT64" },
+    { "name": "created_at", "repetition": "REQUIRED", "physical_type": "INT64", "logical_type": "TIMESTAMP" },
+    { "name": "updated_at", "repetition": "OPTIONAL", "physical_type": "INT64", "logical_type": "TIMESTAMP" }
+    { "name": "name", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "STRING" },
+    { "name": "geometry", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "GEOMETRY" },
+  ],
+  "row_group_size": 8000,
+  "compression": "zstd",
+  "compression_level": 3
+}
+```
