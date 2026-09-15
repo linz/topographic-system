@@ -256,7 +256,7 @@ describe('deploy -> produce-cover -> produce', () => {
       },
     );
 
-    t.mock.method(validator, 'validateTiff', async () => {});
+    t.mock.method(validator, 'validateTiff', async () => { });
 
     await ExportCommand.handler({
       path: [new URL(`memory://target-produce-multi/topo50/BQ32.json`)],
@@ -280,42 +280,6 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.ok(updatedJson?.assets?.['pdf']);
     assert.ok(updatedJson?.assets?.['thumbnail']);
     assert.equal(updatedJson.assets['thumbnail'].href, './BQ32.thumbnail.webp');
-  });
-
-  it('should prepare directly from a .qgs project file', async () => {
-    const qgsUrl = new URL('../../assets/project/beehive.qgs', import.meta.url);
-    const targetProduceQgs = new URL('memory://target-produce-qgs/');
-
-    await PrepareCommand.handler({
-      concurrency,
-      mapSheet: ['BQ32'],
-      project: qgsUrl,
-      mapSheetDataset: undefined,
-      cartoTextDataset: undefined,
-      source: undefined,
-      output: targetProduceQgs,
-      fromFile: undefined,
-      all: false,
-      strategy: undefined,
-      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
-      cache: new URL('memory://temp-cache/'),
-      tempLocation: new URL('memory://temp-produce-qgs/'),
-      export: false,
-    });
-
-    const outputFiles = [...(await fsa.toArray(fsa.list(targetProduceQgs)))]
-      .map((f) => f.href.replace(targetProduceQgs.href, ''))
-      .sort();
-
-    assert.deepEqual(outputFiles, ['beehive/BQ32.json', 'beehive/collection.json', 'catalog.json'].sort());
-
-    const bq32Json = await fsa.readJson<StacItem>(new URL('beehive/BQ32.json', targetProduceQgs));
-    assert.strictEqual(bq32Json.properties['linz:mapsheet'], 'BQ32');
-    assert.strictEqual(bq32Json.properties['proj:epsg'], 2193);
-
-    const projectLink = bq32Json.links.find((f) => f.rel === 'project');
-    assert.ok(projectLink?.href.endsWith('/project/beehive/beehive.json'));
-    assert.strictEqual(projectLink?.type, 'application/json');
   });
 
   it('should prepare and export directly from a .qgs project file', async (t) => {
