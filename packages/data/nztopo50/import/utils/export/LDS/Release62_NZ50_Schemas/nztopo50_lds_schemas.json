@@ -1,0 +1,1168 @@
+{
+  "airport_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "beacon_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "location": "str:4",
+      "status": "str:8",
+      "type": "str:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "bivouac_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "status": "str:8",
+      "materials": "str:4",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "boatramp_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "boom_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "breakwater_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "bridge_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "constr_typ": "str:10",
+      "status": "str:8",
+      "use_1": "str:12",
+      "use_2": "str:12",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "building_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "status": "str:8",
+      "bldg_use": "str:21",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "building_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "status": "str:8",
+      "bldg_use": "str:21",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "buoy_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "cableway_industrial_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "mtlconveyd": "str:4"
+    },
+    "geometry": "LineString"
+  },
+  "cableway_people_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "restrictns": "str:6"
+    },
+    "geometry": "LineString"
+  },
+  "canal_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "canal_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "cave_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "compositn": "str:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "cemetery_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "cemetery_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "chimney_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "cliff_edge": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "coastline": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "elevation": "int32:5"
+    },
+    "geometry": "LineString"
+  },
+  "contour": {
+    "properties": {
+      "t50_fid": "int:10",
+      "definition": "str:10",
+      "designated": "str:13",
+      "nat_form": "str:10",
+      "elevation": "int32:5"
+    },
+    "geometry": "LineString"
+  },
+  "cutting_edge": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "dam_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "dam_status": "str:7",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "descriptive_text": {
+    "properties": {
+      "t50_fid": "int:10",
+      "info_disp": "str:93",
+      "size": "float:13.11"
+    },
+    "geometry": "Point"
+  },
+  "drain_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "dredge_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "status": "str:8"
+    },
+    "geometry": "Point"
+  },
+  "dredge_tailing_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "dry_dock_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "type": "str:8"
+    },
+    "geometry": "Polygon"
+  },
+  "embankment_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "embkmt_use": "str:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "exotic_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "species": "str:14"
+    },
+    "geometry": "Polygon"
+  },
+  "fastice_poly": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Polygon"
+  },
+  "fence_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "ferry_crossing_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "fish_farm_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "type": "str:8",
+      "species": "str:6"
+    },
+    "geometry": "Polygon"
+  },
+  "flare_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "floodgate_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "flume_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "ford_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "fumarole_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "gas_valve_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "gate_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "restrictns": "str:6",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "geographic_name": {
+    "properties": {
+      "t50_fid": "int:10",
+      "size": "float:13.11",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "desc_code": "str:4"
+    },
+    "geometry": "Point"
+  },
+  "geo_bore_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "golf_course_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "gravel_pit_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "grave_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "height_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "elevation": "int32:5"
+    },
+    "geometry": "Point"
+  },
+  "helipad_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "historic_site_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "descriptn": "str:80",
+      "macronated": "str:1"
+    },
+    "geometry": "Point"
+  },
+  "ice_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "island_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "grp_ascii": "str:60",
+      "grp_name": "str:60",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "grp_macron": "str:1",
+      "location": "int32:5"
+    },
+    "geometry": "Polygon"
+  },
+  "ladder_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "materials": "str:5"
+    },
+    "geometry": "LineString"
+  },
+  "ladder_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "materials": "str:5"
+    },
+    "geometry": "Point"
+  },
+  "lagoon_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "elevation": "int32:5",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "lake_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "elevation": "int32:5",
+      "grp_ascii": "str:60",
+      "grp_name": "str:60",
+      "perennial": "str:8",
+      "temperatur": "str:3",
+      "lake_use": "str:15",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "grp_macron": "str:1"
+    },
+    "geometry": "Polygon"
+  },
+  "landfill_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "mangrove_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "marine_farm_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "species": "str:7"
+    },
+    "geometry": "LineString"
+  },
+  "marine_farm_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "species": "str:7"
+    },
+    "geometry": "Polygon"
+  },
+  "mast_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "height": "float:19.11"
+    },
+    "geometry": "Point"
+  },
+  "mine_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "status": "str:9",
+      "substance": "str:10",
+      "visibility": "str:11",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "mine_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "status": "str:9",
+      "substance": "str:10",
+      "visibility": "str:11",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "monument_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "moraine_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "moraine_wall_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "mud_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "native_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "NZ-Topo-Map-Sheet": {
+    "properties": {
+      "t50_fid": "int:10",
+      "sheet_code": "str:21",
+      "sheet_name": "str:50",
+      "edition": "str:30",
+      "revised": "str:60"
+    },
+    "geometry": "Polygon"
+  },
+  "orchard_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "pa_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "pipeline_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "pipe_use": "str:8",
+      "visibility": "str:11"
+    },
+    "geometry": "LineString"
+  },
+  "pond_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "pond_use": "str:16"
+    },
+    "geometry": "Polygon"
+  },
+  "powerline_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "support_ty": "str:5"
+    },
+    "geometry": "LineString"
+  },
+  "pumice_pit_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "pylon_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "quarry_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:7",
+      "substance": "str:11"
+    },
+    "geometry": "Polygon"
+  },
+  "racetrack_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "track_type": "str:8",
+      "track_use": "str:7"
+    },
+    "geometry": "LineString"
+  },
+  "racetrack_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "track_type": "str:8",
+      "track_use": "str:7"
+    },
+    "geometry": "Polygon"
+  },
+  "radar_dome_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "railway_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:18",
+      "track_type": "str:8",
+      "rway_use": "str:6",
+      "veh_type": "str:9"
+    },
+    "geometry": "LineString"
+  },
+  "rail_station_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "rapid_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "rapid_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "redoubt_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:7"
+    },
+    "geometry": "Point"
+  },
+  "reef_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "compositn": "str:5"
+    },
+    "geometry": "Polygon"
+  },
+  "reservoir_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "lid_type": "str:7"
+    },
+    "geometry": "Polygon"
+  },
+  "residential_area_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "rifle_range_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "river_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "river_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "road_cl": {
+    "properties": {
+      "UFID": "int:10",
+      "lol_sufi": "float:20",
+      "name": "str:100",
+      "RW_lane_c": "int32:1",
+      "RW_surface": "str:10",
+      "road_access": "str:3",
+      "width": "str:1",
+      "name_id": "str:20",
+      "surface": "str:10",
+      "status": "str:18",
+      "num_lanes": "int32:1",
+      "hway_num": "str:5",
+      "way_count": "str:7"
+    },
+    "geometry": "LineString"
+  },
+  "rock_outcrop_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "display": "int32:5",
+      "elevation": "int32:5",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "rock_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "rock_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "runway_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "status": "str:7",
+      "surface": "str:6",
+      "runway_use": "str:9"
+    },
+    "geometry": "Polygon"
+  },
+  "saddle_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "elevation": "int32:5",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "sand_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "satellite_station_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "scattered_scrub_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "scree_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "scrub_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "shaft_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "shaft_use": "str:18"
+    },
+    "geometry": "Point"
+  },
+  "shelter_belt_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "shingle_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "shoal_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "showground_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "sinkhole_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "siphon_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "status": "str:3"
+    },
+    "geometry": "Point"
+  },
+  "siphon_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "status": "str:3"
+    },
+    "geometry": "Polygon"
+  },
+  "ski_lift_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "ski_tow_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "slipway_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "LineString"
+  },
+  "slip_edge": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "snow_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "soakhole_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "spillway_edge": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "sportsfield_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "spring_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "temp": "str:4"
+    },
+    "geometry": "Point"
+  },
+  "stockyard_pnt": {
+    "properties": {
+      "t50_fid": "int:10"
+    },
+    "geometry": "Point"
+  },
+  "swamp_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "swamp_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Polygon"
+  },
+  "tank_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "store_item": "str:5",
+      "tank_type": "str:13"
+    },
+    "geometry": "Point"
+  },
+  "tank_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "store_item": "str:5",
+      "tank_type": "str:13"
+    },
+    "geometry": "Polygon"
+  },
+  "telephone_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "tower_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "material": "str:8"
+    },
+    "geometry": "Point"
+  },
+  "track_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:12",
+      "track_type": "str:11",
+      "track_use": "str:10"
+    },
+    "geometry": "LineString"
+  },
+  "tree_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "trig_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "elevation": "int32:5",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75"
+    },
+    "geometry": "Point"
+  },
+  "tunnel_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:18",
+      "type": "str:7",
+      "use1": "str:12",
+      "use2": "str:12"
+    },
+    "geometry": "LineString"
+  },
+  "vineyard_poly": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "Polygon"
+  },
+  "walkwire_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "waterfall_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "height": "int32:5"
+    },
+    "geometry": "LineString"
+  },
+  "waterfall_edge": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "height": "int32:5"
+    },
+    "geometry": "LineString"
+  },
+  "waterfall_pnt": {
+    "properties": {
+      "orientatn": "float:13.11",
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "height": "int32:5"
+    },
+    "geometry": "Point"
+  },
+  "waterfall_poly": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "height": "int32:5"
+    },
+    "geometry": "Polygon"
+  },
+  "water_race_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:7"
+    },
+    "geometry": "LineString"
+  },
+  "weir_cl": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "well_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "status": "str:3"
+    },
+    "geometry": "Point"
+  },
+  "wharf_cl": {
+    "properties": {
+      "t50_fid": "int32:9",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "status": "str:8",
+      "wharf_use": "str:5"
+    },
+    "geometry": "LineString"
+  },
+  "wharf_edge": {
+    "properties": {
+      "t50_fid": "int32:9"
+    },
+    "geometry": "LineString"
+  },
+  "windmill_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "use": "str:16"
+    },
+    "geometry": "Point"
+  },
+  "wreck_pnt": {
+    "properties": {
+      "t50_fid": "int:10",
+      "name_ascii": "str:75",
+      "macronated": "str:1",
+      "name": "str:75",
+      "wreck_of": "str:6"
+    },
+    "geometry": "Point"
+  }
+}
