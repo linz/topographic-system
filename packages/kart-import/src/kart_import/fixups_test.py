@@ -235,6 +235,15 @@ def test_build_source_metadata_without_a_sentinel_keys_every_non_null(road_relea
     assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 0
 
 
+def test_build_source_metadata_leaves_a_keyed_row_with_a_null_value_null(road_releases):
+    """A row with a real key but a null looked-up value gets NULL `metadata`, not a record: the
+    record explains where `name` came from, and there is no name to explain."""
+    gdf = _road_gdf([3061525, 1771150], names=["FIRST ROAD", None])
+    out = fixups._build_source_metadata(gdf, _td([], ROADS), 66, ROADS, fixups.ROAD_NAME_FROM_AIMS)
+
+    assert out["metadata"].isna().tolist() == [False, True]
+
+
 def test_build_source_metadata_writes_the_source_ref_as_json_keys(road_releases):
     """A `SourceRef`'s field names are the record's JSON keys, so a future `build_water_metadata`
     only has to declare its own ref rather than restate the record shape."""
@@ -374,6 +383,17 @@ def test_build_nzgb_metadata_is_generic_across_datasets(road_releases, monkeypat
     record = json.loads(out["metadata"].iloc[0])[0]
     assert record["source_table"] == "nzgb_gaz"
     assert record["source_key_value"] == 555
+
+
+def test_build_nzgb_metadata_skips_a_gazfeatid_whose_name_is_null(road_releases, monkeypatch):
+    """The gazetteer lookup can match a `gazfeatid` while carrying no `name` for it. Such a row has
+    nothing to attribute, so it gets NULL `metadata` rather than a record for an absent name."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221, 999], names=["Grand Canal", None]), td, 66)
+
+    assert out["metadata"].isna().tolist() == [False, True]
 
 
 def test_build_nzgb_metadata_rejects_a_metadata_column_not_shaped_as_a_lookup_ref(road_releases):

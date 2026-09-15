@@ -2,7 +2,6 @@ name: water_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
 lookups:
-  # TODO: We only want to attach the metadata attribute if the `name` value is not null for the lookup row.
   # -------- canal
   - name: canal_cl_lkp
     source:
