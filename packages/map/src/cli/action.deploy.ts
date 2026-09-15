@@ -1,3 +1,4 @@
+import { extname } from 'node:path';
 import { promisify } from 'node:util';
 import { zstdCompress } from 'node:zlib';
 import { basename } from 'path';
@@ -20,16 +21,16 @@ import {
   StacUpdater,
   getDataFromCatalog,
 } from '@linzjs/topographic-system-stac';
-import { command, multioption, option, optional, restPositionals } from 'cmd-ts';
+import { command, multioption, option, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
+
 import { DefaultCatalog } from './shared.args.ts';
-import { extname } from 'node:path';
 
 const zstdCompressAsync = promisify(zstdCompress);
 
-const SkipAssetExtensions = new Set(['.tar', '.zip', '.qgs', '.parquet', '.geojson'])
+const SkipAssetExtensions = new Set(['.tar', '.zip', '.qgs', '.parquet', '.geojson']);
 
 async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   const tarPack = tar.pack();

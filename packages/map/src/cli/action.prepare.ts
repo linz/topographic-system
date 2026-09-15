@@ -1,4 +1,5 @@
 import { basename, parse } from 'path';
+import { fileURLToPath } from 'url';
 
 import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
@@ -20,12 +21,11 @@ import {
   getJsonToWgs84Bbox,
   StacCollectionWriter,
   StacDownloader,
-  StacUpdater
+  StacUpdater,
 } from '@linzjs/topographic-system-stac';
 import { command, flag, multioption, option, optional, restPositionals, string } from 'cmd-ts';
 import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts';
 
-import { fileURLToPath } from 'url';
 import { getQgisCartoTextLayer, getQgisMapSheetDataset } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
 import { DeployCommand } from './action.deploy.ts';
@@ -80,8 +80,12 @@ const ProduceArgs = {
     long: 'asset',
     type: FormatMultiOption,
     description: `Assets to export as key=value spec e.g. "layout=tiff-50,dpi=600,format=tiff"`,
-    defaultValue: () => makeSerializeable([parseFormatOptionString("layout=tiff-50,dpi=600,format=tiff")], "layout=tiff-50,dpi=600,format=tiff"),
-    defaultValueIsSerializable: true
+    defaultValue: () =>
+      makeSerializeable(
+        [parseFormatOptionString('layout=tiff-50,dpi=600,format=tiff')],
+        'layout=tiff-50,dpi=600,format=tiff',
+      ),
+    defaultValueIsSerializable: true,
   }),
   mapSheetDataset: option({
     type: optional(string),
@@ -119,7 +123,7 @@ const ProduceArgs = {
 };
 
 // If a project file is passed in instead of a STAC document, deploy the project first
-async function deployProject(ctx: { project: URL, tempLocation: URL, source?: URL }): Promise<URL> {
+async function deployProject(ctx: { project: URL; tempLocation: URL; source?: URL }): Promise<URL> {
   // Only QGS projects need to be deployed
   if (!ctx.project.pathname.endsWith('.qgs')) return ctx.project;
 
@@ -128,8 +132,8 @@ async function deployProject(ctx: { project: URL, tempLocation: URL, source?: UR
     project: [ctx.project],
     extras: [],
     target: ctx.tempLocation,
-    source: ctx.source ?? DefaultCatalog
-  })
+    source: ctx.source ?? DefaultCatalog,
+  });
 
   const projectName = parse(fileURLToPath(ctx.project)).name;
 
@@ -151,7 +155,7 @@ export const PrepareCommand = command({
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
     );
 
-    const projectLocation = await deployProject(args)
+    const projectLocation = await deployProject(args);
 
     const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
     if (args.strategy) {

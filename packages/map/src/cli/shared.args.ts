@@ -18,5 +18,4 @@ export const cache = option({
   defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `.cache/`)),
 });
 
-
 export const DefaultCatalog = new URL('https://d1jzh93b1t1cv.cloudfront.net/data/catalog.json');
