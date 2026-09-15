@@ -31,6 +31,14 @@ from collections.abc import Callable
 from datetime import UTC
 from typing import TYPE_CHECKING, NamedTuple
 
+from .fixups_map_sheet import (
+    map_sheet_drop_index_sheets,
+    map_sheet_example_name_fixes,
+    map_sheet_example_point_id,
+    map_sheet_origin,
+    map_sheet_published,
+)
+
 logger = logging.getLogger("kart_import")
 
 
@@ -408,4 +416,9 @@ FIXUPS: dict[str, Fixup] = {
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
+    "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
+    "map_sheet_origin": map_sheet_origin,
+    "map_sheet_example_name_fixes": map_sheet_example_name_fixes,
+    "map_sheet_example_point_id": map_sheet_example_point_id,
+    "map_sheet_published": map_sheet_published,
 }
