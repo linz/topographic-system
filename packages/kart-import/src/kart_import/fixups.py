@@ -229,6 +229,10 @@ def _build_source_metadata(
     `metadata` rather than a record asserting a link to a row that does not exist. A NULL key is
     always treated as unset.
 
+    A row whose looked-up value (`ref.table_column`) came back null also gets NULL `metadata`: a
+    provenance record explains where that column's value came from, and a null value has nothing
+    to explain.
+
     `dataset` names what the wiring was checked against, as in `_drop_listed_empty`: pointed at
     another dataset this would silently overwrite that dataset's `metadata` instead of failing.
 
@@ -247,7 +251,13 @@ def _build_source_metadata(
     # Not `errors="coerce"`: a non-numeric column here means the config wired something other than
     # the key column into `metadata`, which should fail rather than quietly produce an all-null one.
     key = pd.to_numeric(gdf["metadata"]).astype("Int32", errors="raise")
-    keyed = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+    has_key = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+
+    # Only a row whose looked-up value is present gets a record: the record explains where that
+    # value came from, so a key that resolved to a null `ref.table_column` has nothing to explain
+    # and gets NULL `metadata` instead of a record pointing at an absent value.
+    named = gdf[ref.table_column].notna()
+    keyed = has_key & named
 
     def record(key_value: int) -> str:
         # sort_keys/separators so the same key always serialises to the same bytes - two runs that
@@ -280,9 +290,8 @@ def _build_source_metadata(
             "release": release_id,
             "source": ref.source,
             "keyed": int(keyed.sum()),
-            "unlinked": int((~keyed).sum()),
-            # A key with no value to attribute: the record still says the column came from `source`.
-            f"keyed_without_{ref.table_column}": int((keyed & gdf[ref.table_column].isna()).sum()),
+            "unlinked": int((~has_key).sum()),
+            f"keyed_without_{ref.table_column}": int((has_key & ~named).sum()),
         },
     )
 
