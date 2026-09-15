@@ -1,5 +1,4 @@
 import { basename, parse } from 'path';
-import { fileURLToPath } from 'url';
 
 import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
@@ -135,7 +134,7 @@ async function deployProject(ctx: { project: URL; tempLocation: URL; source?: UR
     source: ctx.source ?? DefaultCatalog,
   });
 
-  const projectName = parse(fileURLToPath(ctx.project)).name;
+  const projectName = parse(ctx.project.pathname).name;
 
   return new URL(`${projectName}/${projectName}.json`, ctx.tempLocation);
 }
@@ -207,7 +206,7 @@ export const PrepareCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const projectName = basename(args.project.href, projectLocation.href);
+    const projectName = basename(projectLocation.pathname, '.json');
     const sw = new StacCollectionWriter('product', projectName);
     const formatsStr = exportOptions.assets.map((o) => o.label ?? o.format).join(', ');
     sw.collection.title = `Topographic System projects ${projectName} exports ${formatsStr}.`;

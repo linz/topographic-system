@@ -15,11 +15,11 @@ import {
   UrlFolders,
 } from '@linzjs/topographic-system-shared';
 import {
+  getDataFromCatalog,
   getRelativePath,
   StacCollectionWriter,
   StacGeometry,
   StacUpdater,
-  getDataFromCatalog,
 } from '@linzjs/topographic-system-stac';
 import { command, multioption, option, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';

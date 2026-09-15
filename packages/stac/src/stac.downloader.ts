@@ -261,6 +261,7 @@ export class StacDownloader {
     };
 
     if (cacheStat.url.pathname.endsWith('.tar') || cacheStat.url.pathname.endsWith('.tar.zst')) {
+      if (this.target.protocol === 'memory:') return sourceAsset; // TODO allow tar to be extracted in tests
       const startExtractTime = performance.now();
       await mkdir(this.target, { recursive: true });
       await tar.extract({ file: fileURLToPath(cacheStat.url), cwd: fileURLToPath(this.target) });

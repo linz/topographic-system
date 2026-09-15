@@ -283,7 +283,8 @@ describe('deploy -> produce-cover -> produce', () => {
   });
 
   it('should prepare and export directly from a .qgs project file', async (t) => {
-    const qgsUrl = new URL('../../assets/project/beehive.qgs', import.meta.url);
+    // const qgsUrl = new URL('../../assets/project/beehive.qgs', import.meta.url);
+    const qgsUrl = new URL('memory://target-push/qgis/topo50/latest/topo50.qgs');
     const targetProduceQgsExport = new URL('memory://target-produce-qgs-export/');
 
     t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL, sheetCode: string) => {
@@ -292,13 +293,14 @@ describe('deploy -> produce-cover -> produce', () => {
       return outputFile;
     });
 
+    console.log(await fsa.readJson(new URL('memory://source/data/catalog.json')));
     await PrepareCommand.handler({
       concurrency,
       mapSheet: ['BQ32'],
       project: qgsUrl,
       mapSheetDataset: undefined,
       cartoTextDataset: undefined,
-      source: undefined,
+      source: new URL('memory://source/data/catalog.json'),
       output: targetProduceQgsExport,
       fromFile: undefined,
       all: false,
@@ -313,8 +315,8 @@ describe('deploy -> produce-cover -> produce', () => {
       .map((f) => f.href.replace(targetProduceQgsExport.href, ''))
       .sort();
 
-    assert.ok(exportedFiles.includes('beehive/BQ32.pdf'));
-    const bq32Json = await fsa.readJson<StacItem>(new URL('beehive/BQ32.json', targetProduceQgsExport));
+    assert.ok(exportedFiles.includes('topo50/BQ32.pdf'));
+    const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduceQgsExport));
     assert.ok(bq32Json.assets?.['pdf']);
   });
 });
