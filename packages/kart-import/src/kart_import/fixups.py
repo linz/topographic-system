@@ -436,6 +436,8 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 
 
 def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Set `published_version` from the source `edition`, and `published_at`/`updated_at` from the
+    per-sheet edition history in `config/map_sheet_published.yml`"""
     import yaml
 
     from .config import CONFIG_DIR
@@ -444,10 +446,17 @@ def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     gdf["published_version"] = edition.str.extract(r"Edition\s+([0-9]+(?:\.[0-9]+)?)", expand=False)
 
     with open(CONFIG_DIR / "map_sheet_published.yml") as f:
-        published = yaml.safe_load(f)
+        history = yaml.safe_load(f)
 
-    gdf["published_at"] = gdf["sheet_code"].map(published)
-    gdf["updated_at"] = gdf["sheet_code"].map(published)
+    def pick(row):
+        versions = history.get(row["sheet_code"])
+        if not versions:
+            return None
+        return versions.get(row["published_version"]) or max(versions.values())
+
+    published_at = gdf.apply(pick, axis=1)
+    gdf["published_at"] = published_at
+    gdf["updated_at"] = published_at
     return gdf
 
 
