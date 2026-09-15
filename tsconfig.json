@@ -1,6 +1,8 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/typespec-emitter" },
+    { "path": "./packages/schema" },
     { "path": "./packages/stac" },
     { "path": "./packages/shared" },
     { "path": "./packages/kart" },
