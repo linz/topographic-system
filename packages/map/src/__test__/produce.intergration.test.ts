@@ -281,4 +281,76 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.ok(updatedJson?.assets?.['thumbnail']);
     assert.equal(updatedJson.assets['thumbnail'].href, './BQ32.thumbnail.webp');
   });
+
+  it('should prepare directly from a .qgs project file', async () => {
+    const qgsUrl = new URL('../../assets/project/beehive.qgs', import.meta.url);
+    const targetProduceQgs = new URL('memory://target-produce-qgs/');
+
+    await PrepareCommand.handler({
+      concurrency,
+      mapSheet: ['BQ32'],
+      project: qgsUrl,
+      mapSheetDataset: undefined,
+      cartoTextDataset: undefined,
+      source: undefined,
+      output: targetProduceQgs,
+      fromFile: undefined,
+      all: false,
+      strategy: undefined,
+      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
+      cache: new URL('memory://temp-cache/'),
+      tempLocation: new URL('memory://temp-produce-qgs/'),
+      export: false,
+    });
+
+    const outputFiles = [...(await fsa.toArray(fsa.list(targetProduceQgs)))]
+      .map((f) => f.href.replace(targetProduceQgs.href, ''))
+      .sort();
+
+    assert.deepEqual(outputFiles, ['beehive/BQ32.json', 'beehive/collection.json', 'catalog.json'].sort());
+
+    const bq32Json = await fsa.readJson<StacItem>(new URL('beehive/BQ32.json', targetProduceQgs));
+    assert.strictEqual(bq32Json.properties['linz:mapsheet'], 'BQ32');
+    assert.strictEqual(bq32Json.properties['proj:epsg'], 2193);
+
+    const projectLink = bq32Json.links.find((f) => f.rel === 'project');
+    assert.ok(projectLink?.href.endsWith('/project/beehive/beehive.json'));
+    assert.strictEqual(projectLink?.type, 'application/json');
+  });
+
+  it('should prepare and export directly from a .qgs project file', async (t) => {
+    const qgsUrl = new URL('../../assets/project/beehive.qgs', import.meta.url);
+    const targetProduceQgsExport = new URL('memory://target-produce-qgs-export/');
+
+    t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL, sheetCode: string) => {
+      const outputFile = new URL(`${sheetCode}.pdf`, output);
+      await fsa.write(outputFile, Buffer.from('mock pdf content'));
+      return outputFile;
+    });
+
+    await PrepareCommand.handler({
+      concurrency,
+      mapSheet: ['BQ32'],
+      project: qgsUrl,
+      mapSheetDataset: undefined,
+      cartoTextDataset: undefined,
+      source: undefined,
+      output: targetProduceQgsExport,
+      fromFile: undefined,
+      all: false,
+      strategy: undefined,
+      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
+      cache: new URL('memory://temp-cache/'),
+      tempLocation: new URL('memory://temp-produce-qgs-export/'),
+      export: true,
+    });
+
+    const exportedFiles = [...(await fsa.toArray(fsa.list(targetProduceQgsExport)))]
+      .map((f) => f.href.replace(targetProduceQgsExport.href, ''))
+      .sort();
+
+    assert.ok(exportedFiles.includes('beehive/BQ32.pdf'));
+    const bq32Json = await fsa.readJson<StacItem>(new URL('beehive/BQ32.json', targetProduceQgsExport));
+    assert.ok(bq32Json.assets?.['pdf']);
+  });
 });
