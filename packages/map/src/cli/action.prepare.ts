@@ -1,4 +1,4 @@
-import { basename } from 'path';
+import { basename, parse } from 'path';
 
 import { Projection } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
@@ -27,9 +27,10 @@ import type { GeoJSONPolygon, StacCollection, StacItem, StacLink } from 'stac-ts
 
 import { getQgisCartoTextLayer, getQgisMapSheetDataset } from '../qgis.ts';
 import { type ExportOptions } from '../stac.ts';
+import { DeployCommand } from './action.deploy.ts';
 import { ExportCommand, fromFile } from './action.export.ts';
-import { FormatMultiOption } from './export.options.ts';
-import { cache, tempLocation } from './shared.args.ts';
+import { FormatMultiOption, parseFormatOptionString } from './export.options.ts';
+import { cache, DefaultCatalog, tempLocation } from './shared.args.ts';
 
 interface SheetMetadata {
   sheetCode: string;
@@ -49,6 +50,12 @@ export function sheetCodeToPath(sheetCode: string): string {
   return sheetCode.replace(/[/,]/g, '');
 }
 
+// Hack to force a text record with quotes for default values in case command-ts fails to serialize it
+function makeSerializeable<T extends unknown>(obj: T, text: string): T {
+  (obj as Record<string, unknown>)['toString'] = () => `"${text}"`;
+  return obj;
+}
+
 const ProduceArgs = {
   concurrency,
   mapSheet: restPositionals({ type: string, displayName: 'map-sheet', description: 'Map Sheet Code to process' }),
@@ -66,12 +73,18 @@ const ProduceArgs = {
   project: option({
     type: Url,
     long: 'project',
-    description: 'Stac Item path of QGIS Project to use for generate map sheets.',
+    description: 'Path or URL of QGIS Project (.qgs) or STAC Item of QGIS Project to generate map sheets.',
   }),
   assets: multioption({
     long: 'asset',
     type: FormatMultiOption,
     description: `Assets to export as key=value spec e.g. "layout=tiff-50,dpi=600,format=tiff"`,
+    defaultValue: () =>
+      makeSerializeable(
+        [parseFormatOptionString('layout=tiff-50,dpi=600,format=tiff')],
+        'layout=tiff-50,dpi=600,format=tiff',
+      ),
+    defaultValueIsSerializable: true,
   }),
   mapSheetDataset: option({
     type: optional(string),
@@ -108,6 +121,24 @@ const ProduceArgs = {
   }),
 };
 
+// If a project file is passed in instead of a STAC document, deploy the project first
+async function deployProject(ctx: { project: URL; tempLocation: URL; source?: URL }): Promise<URL> {
+  // Only QGS projects need to be deployed
+  if (!ctx.project.pathname.endsWith('.qgs')) return ctx.project;
+
+  await DeployCommand.handler({
+    concurrency: undefined,
+    project: [ctx.project],
+    extras: [],
+    target: ctx.tempLocation,
+    source: ctx.source ?? DefaultCatalog,
+  });
+
+  const projectName = parse(ctx.project.pathname).name;
+
+  return new URL(`${projectName}/${projectName}.json`, ctx.tempLocation);
+}
+
 export const PrepareCommand = command({
   name: 'prepare',
   description: 'Read a QGIS project and mapsheet data, then generate stac files for the exports.',
@@ -123,30 +154,32 @@ export const PrepareCommand = command({
       args.fromFile != null ? args.mapSheet.concat(await fromFile(args.fromFile)) : args.mapSheet,
     );
 
+    const projectLocation = await deployProject(args);
+
     const downloader = new StacDownloader({ target: args.tempLocation, cache: args.cache, q });
     if (args.strategy) {
       downloader.resolvers.unshift(StacDownloader.Resolver.strategy(args.strategy));
       logger.info({ strategy: args.strategy }, 'Prepare: Storage strategy override set');
     }
 
-    const stac = await downloader.fetchStac<StacItem>(args.project);
-    logger.info({ project: args.project.href }, 'Download: Start');
+    const stac = await downloader.fetchStac<StacItem>(projectLocation);
+    logger.info({ project: projectLocation.href }, 'Download: Start');
 
-    const projectAssets = await downloader.fetchAssets(args.project, (asset) => asset.href.endsWith('.qgs'));
+    const projectAssets = await downloader.fetchAssets(projectLocation, (asset) => asset.href.endsWith('.qgs'));
     const qgsProject = projectAssets.find((f) => f.source.href.endsWith('.qgs'));
-    if (qgsProject == null) throw new Error(`QGIS project file not found at: ${args.project.href}`);
-    logger.info({ project: args.project.href }, 'Download: End');
+    if (qgsProject == null) throw new Error(`QGIS project file not found at: ${projectLocation.href}`);
+    logger.info({ project: projectLocation.href }, 'Download: End');
 
-    logger.info({ project: args.project.href }, 'Prepare');
+    logger.info({ project: projectLocation.href }, 'Prepare');
     const projectMeta = await getQgisProjectMeta(qgsProject.target);
     const mapSheetLayer = getQgisMapSheetDataset(projectMeta.layers, args.mapSheetDataset);
-    logger.info({ project: args.project.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
+    logger.info({ project: projectLocation.href, mapSheetLayer: mapSheetLayer.name }, 'Prepare: MapSheetLayer');
 
     const cartoTextLayer = getQgisCartoTextLayer(projectMeta.layers, args.cartoTextDataset);
-    logger.info({ project: args.project.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
+    logger.info({ project: projectLocation.href, cartoTextLayer: cartoTextLayer.name }, 'Prepare: CartoTextLayer');
 
     const sourceAssets = await downloader.fetchLinkedAssets(
-      args.project,
+      projectLocation,
       (link) => link.rel === 'dataset',
       (asset) => asset.href.endsWith(mapSheetLayer.source),
     );
@@ -173,7 +206,7 @@ export const PrepareCommand = command({
     }
 
     // Create Stac Files and upload to destination
-    const projectName = basename(args.project.href, '.json');
+    const projectName = basename(projectLocation.pathname, '.json');
     const sw = new StacCollectionWriter('product', projectName);
     const formatsStr = exportOptions.assets.map((o) => o.label ?? o.format).join(', ');
     sw.collection.title = `Topographic System projects ${projectName} exports ${formatsStr}.`;

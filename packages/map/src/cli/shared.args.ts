@@ -17,3 +17,5 @@ export const cache = option({
   description: 'Where cache files are stored, generally in /tmp/.cache',
   defaultValue: () => stringToUrlFolder(path.join(tmpdir(), `.cache/`)),
 });
+
+export const DefaultCatalog = new URL('https://d1jzh93b1t1cv.cloudfront.net/data/catalog.json');

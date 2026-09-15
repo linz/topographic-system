@@ -1,3 +1,4 @@
+import { extname } from 'node:path';
 import { promisify } from 'node:util';
 import { zstdCompress } from 'node:zlib';
 import { basename } from 'path';
@@ -14,18 +15,22 @@ import {
   UrlFolders,
 } from '@linzjs/topographic-system-shared';
 import {
+  getDataFromCatalog,
   getRelativePath,
   StacCollectionWriter,
   StacGeometry,
   StacUpdater,
-  getDataFromCatalog,
 } from '@linzjs/topographic-system-stac';
-import { command, multioption, option, optional, restPositionals } from 'cmd-ts';
+import { command, multioption, option, restPositionals } from 'cmd-ts';
 import type { LimitFunction } from 'p-limit';
 import type { StacCollection } from 'stac-ts';
 import tar from 'tar-stream';
 
+import { DefaultCatalog } from './shared.args.ts';
+
 const zstdCompressAsync = promisify(zstdCompress);
+
+const SkipAssetExtensions = new Set(['.tar', '.zip', '.qgs', '.parquet', '.geojson']);
 
 async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
   const tarPack = tar.pack();
@@ -45,8 +50,8 @@ async function buildTarBuffer(...folders: URL[]): Promise<Buffer | null> {
       const cleanPath = relPath.startsWith('./') ? relPath.slice(2) : relPath;
       const filename = decodeURIComponent(cleanPath);
       if (!filename) throw new Error(`Deploy: Invalid file path ${file.href}`);
-      if (filename.endsWith('.tar')) continue; // TODO
-      if (filename.endsWith('.qgs')) continue;
+      const extension = extname(filename).toLowerCase();
+      if (SkipAssetExtensions.has(extension)) continue;
 
       const data = await fsa.read(file);
       logger.info({ filename, size: data.byteLength }, 'Tar:Pack');
@@ -143,9 +148,11 @@ export const DeployArgs = {
     description: 'Target location to deploy the files. (eg "s3://linz-topographic/") ',
   }),
   source: option({
-    type: optional(Url),
+    type: Url,
     long: 'source',
     description: 'Source data catalog.json that contains the layers. defaults to target catalog',
+    defaultValue: () => DefaultCatalog, // NonProd data catalog
+    defaultValueIsSerializable: true,
   }),
 };
 

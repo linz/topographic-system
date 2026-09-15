@@ -281,4 +281,40 @@ describe('deploy -> produce-cover -> produce', () => {
     assert.ok(updatedJson?.assets?.['thumbnail']);
     assert.equal(updatedJson.assets['thumbnail'].href, './BQ32.thumbnail.webp');
   });
+
+  it('should prepare and export directly from a .qgs project file', async (t) => {
+    const qgisUrl = new URL('memory://target-push/qgis/topo50/latest/topo50.qgs');
+    const targetProduceQgsExport = new URL('memory://target-produce-qgs-export/');
+
+    t.mock.method(pyRunner, 'qgisExport', async (_input: URL, output: URL, sheetCode: string) => {
+      const outputFile = new URL(`${sheetCode}.pdf`, output);
+      await fsa.write(outputFile, Buffer.from('mock pdf content'));
+      return outputFile;
+    });
+
+    await PrepareCommand.handler({
+      concurrency,
+      mapSheet: ['BQ32'],
+      project: qgisUrl,
+      mapSheetDataset: undefined,
+      cartoTextDataset: undefined,
+      source: new URL('memory://source/data/catalog.json'),
+      output: targetProduceQgsExport,
+      fromFile: undefined,
+      all: false,
+      strategy: undefined,
+      assets: [{ format: 'pdf', layout: 'tiff-50', dpi: 300 }],
+      cache: new URL('memory://temp-cache/'),
+      tempLocation: new URL('memory://temp-produce-qgs-export/'),
+      export: true,
+    });
+
+    const exportedFiles = [...(await fsa.toArray(fsa.list(targetProduceQgsExport)))]
+      .map((f) => f.href.replace(targetProduceQgsExport.href, ''))
+      .sort();
+
+    assert.ok(exportedFiles.includes('topo50/BQ32.pdf'));
+    const bq32Json = await fsa.readJson<StacItem>(new URL('topo50/BQ32.json', targetProduceQgsExport));
+    assert.ok(bq32Json.assets?.['pdf']);
+  });
 });

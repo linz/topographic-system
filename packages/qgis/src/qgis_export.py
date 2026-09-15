@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 
 from qgis.core import (
+    Qgis,
     QgsApplication,
     QgsCoordinateTransform,
     QgsExpressionContextUtils,
@@ -186,11 +187,12 @@ def main():
         map_main.setExtent(bbox)
 
         # Handle magnetic info
-        mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
-        mag_info_render = render_mag_info(mag_info_raw)
+        if Qgis.hasGeographicLib():
+            mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
+            mag_info_render = render_mag_info(mag_info_raw)
 
-        for key, value in mag_info_render.items():
-            QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
+            for key, value in mag_info_render.items():
+                QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
 
         QgsExpressionContextUtils.setLayoutVariable(layout, "sheet_code", args.sheet_code)
 
