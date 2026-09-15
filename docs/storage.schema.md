@@ -71,11 +71,16 @@ JSON schema is not expressive enough to specify the parquet layout of the datase
 
 ```json
 {
-
   "type": "message",
   "name": "airport",
   "fields": [
-    { "name": "id", "repetition": "REQUIRED", "physical_type": "FIXED_LEN_BYTE_ARRAY", "type_length":16, "logical_type": "UUID" },
+    {
+      "name": "id",
+      "repetition": "REQUIRED",
+      "physical_type": "FIXED_LEN_BYTE_ARRAY",
+      "type_length": 16,
+      "logical_type": "UUID"
+    },
     { "name": "created_at", "repetition": "REQUIRED", "physical_type": "INT64", "logical_type": "TIMESTAMP_MILLIS" },
     { "name": "updated_at", "repetition": "OPTIONAL", "physical_type": "INT64", "logical_type": "TIMESTAMP_MILLIS" },
     { "name": "name", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "UTF8" },
