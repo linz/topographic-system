@@ -4,21 +4,21 @@ The topographic system is a collection of components that are used to create New
 
 ## Topographic Map Production
 
-Topographic maps are produced with [QGIS](https://github.com/qgis/qgis). All of the QGIS project files and assets are store in [linz/topographic-qgis](https://github.com/linz/topographic-qgis)
+Topographic maps are produced with [QGIS](https://github.com/qgis/qgis). All of the QGIS project files and assets are stored in [linz/topographic-qgis](https://github.com/linz/topographic-qgis)
 
 The map production workflow automates the production of all map sheets rendering the maps with a Headless QGIS inside of docker.
 
 ![](./assets/system.map.render.excalidraw.png)
 
 - [map prepare](../packages/map/README.md) - Prepare a map export run, creating immutable STAC based version of the dataset in S3, suitable for long term storage and versioning
-- [map export](../packages/map/README.md) - Export one or many map sheets from a map preperation
+- [map export](../packages/map/README.md) - Export one or many map sheets from a map preparation
 - [stac push](../packages/stac/README.md) - Push the exported assets into a STAC Catalog
 
 ## Topographic Data Editing
 
 ![](./assets/system.data.edit.excalidraw.png)
 
-All editable topographic data is stored as [kart](https://github.com/koordinates/kart) repositories roughly broken down into a similar groups, some large datasets (contours) are in seperate repositories due to performance impacts of their size
+All editable topographic data is stored as [kart](https://github.com/koordinates/kart) repositories roughly broken down into similar groups, some large datasets (contours) are in separate repositories due to performance impacts of their size
 
 ### Topographic datasets
 
@@ -34,7 +34,7 @@ Before data is merged into these kart repositories, Github actions is used to en
 
 - [map visual-diff](../packages/map/README.md) - Export NZTopo50 map sheets and diff the results
 - [kart validate](../packages/kart/README.md) - Validate parquet data matches the topographic schemas
-- [kart to-parquet](../packages/kart//README.md) - Convert and optimize the parquet datasets
+- [kart to-parquet](../packages/kart/README.md) - Convert and optimize the parquet datasets
 
 Once the data is merged into master the data is exported as geoparquet and stored into S3 for use in the [map production system](#topographic-map-production)
 

@@ -1,6 +1,6 @@
 # Dataset Schema
 
-All datasets have a corresponding schema defined as [Typespec](todo:url)
+All datasets have a corresponding schema defined as [Typespec](https://typespec.io)
 
 ## Why Typespec
 
@@ -36,7 +36,7 @@ Ideally all datasets should contain three key meta fields
 
 ## Versioning
 
-Schemas are versioned using Typespec's versioning structure, with all versions of the schemas stored in the [schema](../packages/schema/README).
+Schemas are versioned using Typespec's versioning structure, with all versions of the schemas stored in the [schema](../packages/schema/README.md).
 
 CI needs to validate that the historical schemas are not being modified, updates to descriptions are allowed but changing the schema is not.
 
@@ -44,7 +44,7 @@ CI needs to validate that the historical schemas are not being modified, updates
 
 ### JSON Schema
 
-JSON schemas are stored in a public https acceesiable location with the following structure:
+JSON schemas are stored in a public https accessible location with the following structure:
 
 ```
 /schema/latest/airport.json # points to v2.1
@@ -55,7 +55,7 @@ JSON schemas are stored in a public https acceesiable location with the followin
 
 ### Typescript
 
-All schemas and there types are published into npm `@linzjs/topographic-schema`
+All schemas and their types are published into npm `@linzjs/topographic-schema`
 
 ```typescript
 import type {Airport} from '@linzjs/topographic-schema'; // Latest
@@ -67,7 +67,7 @@ import type {Airport as AirportV1_1} from '@linzjs/topographic-schema/v1.1'; // 
 
 ### Parquet JSON
 
-JSON schema is not expressive enough to specify the parquet layout of the dataset, so a Parquet JSON is created, based off the [typespec propsal](https://github.com/microsoft/typespec/issues/10334)
+JSON schema is not expressive enough to specify the parquet layout of the dataset, so a Parquet JSON is created, based off the [typespec proposal](https://github.com/microsoft/typespec/issues/10334)
 
 ```json
 {
@@ -75,11 +75,11 @@ JSON schema is not expressive enough to specify the parquet layout of the datase
   "type": "message",
   "name": "airport",
   "fields": [
-    { "name": "id", "repetition": "REQUIRED", "physical_type": "INT64" },
-    { "name": "created_at", "repetition": "REQUIRED", "physical_type": "INT64", "logical_type": "TIMESTAMP" },
-    { "name": "updated_at", "repetition": "OPTIONAL", "physical_type": "INT64", "logical_type": "TIMESTAMP" }
-    { "name": "name", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "STRING" },
-    { "name": "geometry", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "GEOMETRY" },
+    { "name": "id", "repetition": "REQUIRED", "physical_type": "FIXED_LEN_BYTE_ARRAY", "type_length":16, "logical_type": "UUID" },
+    { "name": "created_at", "repetition": "REQUIRED", "physical_type": "INT64", "logical_type": "TIMESTAMP_MILLIS" },
+    { "name": "updated_at", "repetition": "OPTIONAL", "physical_type": "INT64", "logical_type": "TIMESTAMP_MILLIS" },
+    { "name": "name", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "UTF8" },
+    { "name": "geometry", "repetition": "REQUIRED", "physical_type": "BYTE_ARRAY", "logical_type": "GEOMETRY" }
   ],
   "row_group_size": 8000,
   "compression": "zstd",

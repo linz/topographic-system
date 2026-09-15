@@ -27,7 +27,7 @@ To keep the date based versions immutable a full ISO timestamp of the published 
 year=2026/date=2026-01-01T12_00_00Z/collection.json
 ```
 
-![Date storage structure](./storage.structure.date.excalidraw.png)
+![Date storage structure](./assets/storage.structure.date.excalidraw.png)
 
 An example structure of a vector date based versioning structure
 
@@ -59,7 +59,7 @@ example-bucket:
 
 For components that have a fixed release process such as semver or a quarterly release, it is recommended to store in a similar structure as date based versioning with the addition of `next/` to store the next development release.
 
-![Release storage structure](./storage.structure.release.excalidraw.png)
+![Release storage structure](./assets/storage.structure.release.excalidraw.png)
 
 ```yaml
 example-bucket:
