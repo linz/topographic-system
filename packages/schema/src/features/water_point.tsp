@@ -4,6 +4,8 @@ import "./water.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("water_point")
 @extension("additionalProperties", false)
 model water_point {

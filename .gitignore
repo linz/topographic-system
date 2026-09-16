@@ -19,3 +19,5 @@ target/
 .uv/
 .uv-python/
 .vscode/
+schema/
+packages/schema/src/types/

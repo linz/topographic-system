@@ -4,19 +4,42 @@
   "private": true,
   "type": "module",
   "tspMain": "src/main.tsp",
+  "main": "src/types/index.ts",
+  "types": "src/types/index.ts",
+  "exports": {
+    ".": {
+      "typespec": "./src/main.tsp",
+      "types": "./src/types/index.ts",
+      "default": "./src/types/index.ts"
+    },
+    "./v0.3": {
+      "types": "./src/types/v0.3/index.ts",
+      "default": "./src/types/v0.3/index.ts"
+    },
+    "./v0.4": {
+      "types": "./src/types/v0.4/index.ts",
+      "default": "./src/types/v0.4/index.ts"
+    },
+    "./*": {
+      "types": "./src/types/*/index.ts",
+      "default": "./src/types/*/index.ts"
+    }
+  },
   "engines": {
     "node": "^24.5.0"
   },
   "scripts": {
     "check": "tsp format --check \"src/**/*.tsp\"",
     "format": "tsp format \"src/**/*.tsp\"",
-    "bundle": "tsp compile . && tsp compile src/next.tsp --config tspconfig.next.yaml && (cd ../../schema && oxfmt .)"
+    "bundle": "tsp compile . && (cd ../../schema && oxfmt .) && oxfmt src"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
-    "@typespec/compiler": "^1.11.0"
+    "@linzjs/typespec-emitter": "^0.1.0",
+    "@types/node": "^24.10.0"
   },
   "dependencies": {
-    "@typespec/json-schema": "^1.11.0"
+    "@typespec/compiler": "^1.15.0",
+    "@typespec/json-schema": "^1.15.0",
+    "@typespec/versioning": "^0.85.0"
   }
 }

@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("descriptive_text")
 @extension("additionalProperties", false)
 model descriptive_text {

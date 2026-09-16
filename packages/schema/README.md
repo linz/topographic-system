@@ -1,80 +1,47 @@
 # Topographic System Schema Changes
 
-## Step 1
+## Versioning Model
 
-Making a change to the schema - update / add to the require yml schema constructs under **src\features\*.tsp**.
+Schema versions are managed via [`@typespec/versioning`](https://typespec.io/docs/libraries/versioning/reference).
 
-Files are updated in **NEXT** until **manual** release process which will move the tsp and json files back into the main folder.
+- Versions are defined in [`src/version.tsp`](file:///home/blacha/git/linz/topographic-system/packages/schema/src/version.tsp):
+  ```typespec
+  enum Versions {
+    v0_3: "0.3",
+    v0_4: "0.4",
+  }
+  ```
+- All feature definitions reside under [`src/features/`](file:///home/blacha/git/linz/topographic-system/packages/schema/src/features/) within `namespace Topography;`.
+- Rather than copying files into separate folders for upcoming changes, use versioning decorators such as `@added(Versions.v0_4)` or `@madeOptional(Versions.v0_4)`.
 
-**A)** copy the file(s) to change into the **src\features\next** folder
+### Example
 
-**B)** main.tsp - in next this just contains the local files - on release full file will need review (if new layer added or old ones deleted - likely to be rare). Ensure the moved file is added to **next/main.tsp**
+```typespec
+using TypeSpec.Versioning;
 
-**C)** edit file as required. IMPORTANT - the schema link needs to point to next @jsonSchema("next/railway_line")
+namespace Topography;
 
-**D)** Review check
+@jsonSchema("water")
+model Water {
+  id: string;
+  name?: string;
 
-**src\features\common.tsp** - contains the EMUMs for each field that uses them. Review if change is needed. THis now only contain widely common enums.
+  @added(Versions.v0_4)
+  new_attribute?: string;
+}
+```
 
-**src\features\main.tsp** - links the individual schema files - if removing or adding this file list need to be updated. References file under src\features.
+## Compiling & Bundling
 
-**Example element to review**
+From the repository root or the `packages/schema` directory, run:
 
-@jsonSchema("bridge_line") -> @jsonSchema("next\bridge_line")
+```bash
+npm --prefix packages/schema run bundle
+```
 
-Check fields and related allow values. Enum typically in same schema file and lowercase..
+This command executes:
 
-example -> use2: use2
-
-## Step 2
-
-Update the json files - This can be done by running the commands below
-
-create json [Note: should alway be run so nothing is missed]
-
-Run **Next**
-
-Assuming running from topographic-system folder
-
-format tsp files...
-
-> `npx tsp format "packages/schema/src/**/*.tsp"`
-
-or single file
-
-> `npx tsp format "packages/schema/src/**/place_point.tsp"`
-
-compile...
-
-> npx tsp compile ./packages/schema/src/next.tsp --config ./packages/schema/tspconfig.next.yaml
-
-Run Main - this is **when full release** is required
-
-linux
-
-> tsp compile ./packages/schema/src/features/main.tsp --config ./packages/schema/tspconfig.yaml
-
-If this does not run in your environment use npx (requires installation)
-
-> npx tsp compile ./packages/schema/src/features/main.tsp --config ./packages/schema/tspconfig.yaml
-
-depending on where you run this from, and how your tsp is installed; You may need to
-
-> npx tsp compile ./packages/schema/src/
-> or just tsp compile . (dot for current folder) should be enough.
-
-## JSON format
-
-Then move to the json output folder - topographic-system/schema/next or topographic-system/schema
-
-Then run **oxfmt** to reformat the json files
-
-Other ways of running
-
-> cd schema or cd schema/next
-
-> npx oxfmt .
-
-for help..
-
-> npx oxfmt --help
+1. `tsp compile .` using [`tspconfig.yaml`](file:///home/blacha/git/linz/topographic-system/packages/schema/tspconfig.yaml) and the custom emitter [`@linzjs/typespec-emitter`](file:///home/blacha/git/linz/topographic-system/packages/typespec-emitter).
+2. Generates versioned JSON schemas for each release into `schema/release=v{version}/*.json` (e.g., `schema/release=v0.3/`, `schema/release=v0.4/`).
+3. Generates TypeScript type definitions into [`src/types/index.ts`](file:///home/blacha/git/linz/topographic-system/packages/schema/src/types/index.ts).
+4. Automatically formats the generated JSON schema files and TypeScript types with `oxfmt`.
