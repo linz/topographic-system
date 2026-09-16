@@ -70,7 +70,11 @@ def test_map_sheet_example_point_id_resolves_by_class(monkeypatch):
     monkeypatch.setattr(transform, "read_transform", fake_read_transform)
 
     gdf = gpd.GeoDataFrame(
-        {"example_name": ["AB01", "Lake Tekapo"], "example_class": ["trig_pnt", "geographic_name"]},
+        {
+            "sheet_code": ["BK37", "BK38"],
+            "example_name": ["AB01", "Lake Tekapo"],
+            "example_class": ["trig_pnt", "geographic_name"],
+        },
         geometry=[Point(0, 0), Point(1, 1)],
         crs="EPSG:2193",
     )
@@ -78,6 +82,39 @@ def test_map_sheet_example_point_id_resolves_by_class(monkeypatch):
     assert out["example_point_id"].tolist() == ["trig-id", "name-id"]
     assert "example_name" not in out.columns
     assert "example_class" not in out.columns
+
+
+def test_map_sheet_example_point_id_raises_on_no_match(monkeypatch):
+    from types import SimpleNamespace
+
+    import pytest
+
+    from . import config
+
+    monkeypatch.setattr(
+        config, "get_theme_by_name", lambda name: SimpleNamespace(datasets=[SimpleNamespace(name=name)])
+    )
+
+    def fake_read_transform(path):
+        if "trig_point" in str(path):
+            return pd.DataFrame({"code": ["AB01"], "id": ["trig-id"]})
+        return pd.DataFrame({"name": ["Lake Tekapo"], "id": ["name-id"]})
+
+    monkeypatch.setattr(transform, "read_transform", fake_read_transform)
+
+    gdf = gpd.GeoDataFrame(
+        {
+            "sheet_code": ["BK37", "BK38"],
+            # BK38's name is absent from the geographic_name lookup -> no match
+            "example_name": ["AB01", "Nowhere"],
+            "example_class": ["trig_pnt", "geographic_name"],
+        },
+        geometry=[Point(0, 0), Point(1, 1)],
+        crs="EPSG:2193",
+    )
+    with pytest.raises(ValueError, match=r"BK38 \(geographic_name: 'Nowhere'\)") as exc:
+        fixups_map_sheet.map_sheet_example_point_id(gdf, _td([], name="linz_map_sheet"), 66)
+    assert "BK37" not in str(exc.value)
 
 
 def test_map_sheet_drop_index_sheets():

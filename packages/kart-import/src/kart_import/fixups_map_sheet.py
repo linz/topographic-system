@@ -60,11 +60,23 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
             geographic_name_lookup[name] = id
 
     example_point_id = []
-    for example_name, example_class in zip(gdf["example_name"], gdf["example_class"], strict=True):
-        if example_class == "trig_pnt":
-            example_point_id.append(trig_lookup.get(example_name))
-        else:
-            example_point_id.append(geographic_name_lookup.get(example_name))
+    unmatched = []
+    sheet_codes = gdf["sheet_code"] if "sheet_code" in gdf.columns else gdf.index.astype(str)
+    for sheet_code, example_name, example_class in zip(
+        sheet_codes, gdf["example_name"], gdf["example_class"], strict=True
+    ):
+        lookup = trig_lookup if example_class == "trig_pnt" else geographic_name_lookup
+        match = lookup.get(example_name)
+        if match is None:
+            unmatched.append((sheet_code, example_class, example_name))
+        example_point_id.append(match)
+
+    if unmatched:
+        detail = ", ".join(f"{code} ({cls}: {name!r})" for code, cls, name in unmatched)
+        raise ValueError(
+            f"{td.name}: {len(unmatched)} map sheet(s) have an example_name with no matching "
+            f"trig_point/geographic_name feature - add corrections to map_sheet_example_name_fixes: {detail}"
+        )
 
     gdf["example_point_id"] = example_point_id
     gdf = gdf.drop(columns=["example_name", "example_class"])
