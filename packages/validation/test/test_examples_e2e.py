@@ -12,8 +12,8 @@ import subprocess
 from importlib.resources import as_file
 from pathlib import Path
 
-import geopandas as gpd
-import pytest
+import geopandas as gpd  # type: ignore
+import pytest  # type: ignore
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 CONFIG_PATH = Path(__file__).parent.parent / "config" / "default_config.json"
