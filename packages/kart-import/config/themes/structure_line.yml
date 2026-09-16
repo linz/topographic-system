@@ -1,0 +1,321 @@
+name: structure_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- boatramp
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-boatramp-centrelines-topo-150k
+    name: nz_boatramp_centrelines_topo_150k
+    mapping: &boatramp
+      t50_fid: $
+      type: boatramp
+      subtype: null
+      species: null
+      status: null
+      name: $
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-boatramp-centrelines-topo-150k
+    name: nz_chatham_island_boatramp_centrelines_topo_150k
+    mapping: *boatramp
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-boatramp-centrelines-topo-125k-zone4
+  #   name: cook_islands_boatramp_centrelines_topo_125k_zone4
+  #   mapping: *boatramp
+  # - source: kart@data.koordinates.com:linz/niue-boatramp-centrelines-topo-150k
+  #   name: niue_boatramp_centrelines_topo_150k
+  #   mapping: *boatramp
+
+  # -------- boom
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-boom-centrelines-topo-150k
+    name: nz_boom_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: boom
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- breakwater
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-breakwater-centrelines-topo-150k
+    name: nz_breakwater_centrelines_topo_150k
+    mapping: &breakwater
+      t50_fid: $
+      type: breakwater
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-breakwater-centrelines-topo-150k
+    name: nz_chatham_island_breakwater_centrelines_topo_150k
+    mapping: *breakwater
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-breakwater-centrelines-topo-125k-zone4
+  #   name: cook_islands_breakwater_centrelines_topo_125k_zone4
+  #   mapping: *breakwater
+  # - source: kart@data.koordinates.com:linz/tokelau-breakwater-centrelines-topo-125k
+  #   name: tokelau_breakwater_centrelines_topo_125k
+  #   mapping: *breakwater
+
+  # -------- cableway_industrial
+  # Per FTM schema feedback (BM-1754): material_conveyed -> subtype (only
+  # case seen is coal/lime, both valid structure_subtype values).
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-cableway-industrial-centrelines-topo-150k
+    name: nz_cableway_industrial_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: cableway_industrial
+      subtype: $mtlconveyd
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- cableway_people
+  # Per FTM schema feedback (BM-1754): restrictions -> subtype (only case
+  # seen is "locked", a valid structure_subtype value).
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-cableway-people-centrelines-topo-150k
+    name: nz_cableway_people_centrelines_topo_150k
+    mapping: &cableway_people
+      t50_fid: $
+      type: cableway_people
+      subtype: $restrictns
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
+  #   name: nz_kermadec_is_cableway_people_centrelines_topo_125k
+  #   mapping: *cableway_people
+
+  # -------- dam
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-dam-centrelines-topo-150k
+    name: nz_dam_centrelines_topo_150k
+    mapping: &dam
+      t50_fid: $
+      type: dam
+      subtype: null
+      species: null
+      status: $dam_status
+      name: $
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-dam-centrelines-topo-150k
+    name: nz_chatham_island_dam_centrelines_topo_150k
+    mapping: *dam
+
+  # -------- flume
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-flume-centrelines-topo-150k
+    name: nz_flume_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: flume
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- ladder
+  # Per FTM schema feedback (page 20): ladder_upright_materials is always
+  # null in practice, so it's dropped rather than mapped to subtype.
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-ladder-centrelines-topo-150k
+    name: nz_ladder_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ladder
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- marine_farm
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-marine-farm-centrelines-topo-150k
+    name: nz_marine_farm_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: marine_farm
+      subtype: null
+      species: $
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- ski_lift
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-ski-lift-centrelines-topo-150k
+    name: nz_ski_lift_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: ski_lift
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- ski_tow
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-ski-tow-centrelines-topo-150k
+    name: nz_ski_tow_centrelines_topo_150k
+    mapping: &ski_tow
+      t50_fid: $
+      type: ski_tow
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-ski-tow-centrelines-ant-150k
+  #   name: nz_ross_dependency_ski_tow_centrelines_ant_150k
+  #   mapping: *ski_tow
+
+  # -------- slipway
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-slipway-centrelines-topo-150k
+    name: nz_slipway_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: slipway
+      subtype: null
+      species: null
+      status: null
+      name: $
+      theme: structures
+      metadata: null
+
+  # -------- spillway_edge
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-spillway-edges-topo-150k
+    name: nz_spillway_edges_topo_150k
+    mapping:
+      t50_fid: $
+      type: spillway_edge
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- walkwire
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-walkwire-centrelines-topo-150k
+    name: nz_walkwire_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: walkwire
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- water_race
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-water-race-centrelines-topo-150k
+    name: nz_water_race_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: water_race
+      subtype: null
+      species: null
+      status: $
+      name: $
+      theme: structures
+      metadata: null
+
+  # -------- weir
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-weir-centrelines-topo-150k
+    name: nz_weir_centrelines_topo_150k
+    mapping:
+      t50_fid: $
+      type: weir
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+
+  # -------- wharf
+  # Per FTM schema feedback (page 20): wharf_use -> subtype (only case seen
+  # is "jetty", a valid structure_subtype value).
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-wharf-centrelines-topo-150k
+    name: nz_wharf_centrelines_topo_150k
+    mapping: &wharf
+      t50_fid: $
+      type: wharf
+      subtype: $wharf_use
+      species: null
+      status: $
+      name: $
+      theme: structures
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-wharf-centrelines-topo-150k
+    name: nz_chatham_island_wharf_centrelines_topo_150k
+    mapping: *wharf
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone3
+  #   name: cook_islands_wharf_centrelines_topo_125k_zone3
+  #   mapping: *wharf
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-centrelines-topo-125k-zone4
+  #   name: cook_islands_wharf_centrelines_topo_125k_zone4
+  #   mapping: *wharf
+  # - source: kart@data.koordinates.com:linz/tokelau-wharf-centrelines-topo-125k
+  #   name: tokelau_wharf_centrelines_topo_125k
+  #   mapping: *wharf
+
+  # -------- wharf_edge
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-wharf-edges-topo-150k
+    name: nz_wharf_edges_topo_150k
+    mapping: &wharf_edge
+      t50_fid: $
+      type: wharf_edge
+      subtype: null
+      species: null
+      status: null
+      name: null
+      theme: structures
+      metadata: null
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-wharf-edges-topo-125k-zone4
+  #   name: cook_islands_wharf_edges_topo_125k_zone4
+  #   mapping: *wharf_edge
+  # - source: kart@data.koordinates.com:linz/niue-wharf-edges-topo-150k
+  #   name: niue_wharf_edges_topo_150k
+  #   mapping: *wharf_edge
+  # - source: kart@data.koordinates.com:linz/tokelau-wharf-edges-topo-125k
+  #   name: tokelau_wharf_edges_topo_125k
+  #   mapping: *wharf_edge
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-wharf-edges-ant-150k
+  #   name: nz_ross_dependency_wharf_edges_ant_150k
+  #   mapping: *wharf_edge
