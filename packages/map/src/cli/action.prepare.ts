@@ -52,7 +52,10 @@ export function sheetCodeToPath(sheetCode: string): string {
 
 // Hack to force a text record with quotes for default values in case command-ts fails to serialize it
 function makeSerializeable<T extends unknown>(obj: T, text: string): T {
-  (obj as Record<string, unknown>)['toString'] = () => `"${text}"`;
+  const currentProto = Object.getPrototypeOf(obj);
+  const proto = Object.create(currentProto);
+  proto.toString = () => `"${text}"`;
+  Object.setPrototypeOf(obj, proto);
   return obj;
 }
 
