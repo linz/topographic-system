@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("ferry_line")
 @extension("additionalProperties", false)
 model ferry_line {

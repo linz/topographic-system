@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("nztopo50_carto_text")
 @extension("additionalProperties", false)
 model nztopo50_carto_text {

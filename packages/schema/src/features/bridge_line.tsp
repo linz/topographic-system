@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("bridge_line")
 @extension("additionalProperties", false)
 model bridge_line {

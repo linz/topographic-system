@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("nztopo50_ice_contour")
 @extension("additionalProperties", false)
 model nztopo50_ice_contour {

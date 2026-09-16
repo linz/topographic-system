@@ -3,8 +3,11 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("water")
 @extension("additionalProperties", false)
+@summary("NZ Topography Water")
 model water {
   ...TopographicFeature;
   type: water_type;

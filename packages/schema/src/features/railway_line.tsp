@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 /**
  * All mainline railway lines are held in the Topo50 data and shown on the Topo50 printed maps.
  * Where a railway line is located close to a road, the line held in the data and shown on the printed map

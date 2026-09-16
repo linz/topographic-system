@@ -25,7 +25,7 @@ jobs:
         background: true
 
       # Remove existing schema files to ensure no dangling json schemas.
-      - run: rm -fv schema/*.json schema/next/*.json
+      - run: rm -rfv schema/release=*
 
       - run: npm ci
 

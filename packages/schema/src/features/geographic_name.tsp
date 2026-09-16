@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("geographic_name")
 @extension("additionalProperties", false)
 model geographic_name {

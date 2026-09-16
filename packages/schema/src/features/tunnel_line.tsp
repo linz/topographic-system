@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("tunnel_line")
 @extension("additionalProperties", false)
 model tunnel_line {

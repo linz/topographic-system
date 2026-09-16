@@ -1,5 +1,8 @@
 import "@typespec/json-schema";
 using TypeSpec.JsonSchema;
+
+namespace Topography;
+
 /** GeoParquet 1.1 covering bbox struct. */
 @extension("additionalProperties", false)
 model BBox {

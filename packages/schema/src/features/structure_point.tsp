@@ -4,6 +4,8 @@ import "./structure.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Topography;
+
 @jsonSchema("structure_point")
 @extension("additionalProperties", false)
 model structure_point {
