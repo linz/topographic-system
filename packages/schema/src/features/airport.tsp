@@ -17,10 +17,7 @@ namespace Topography;
 @summary("NZ Topography Airport")
 model airport {
   ...TopographicFeature;
-
-  @removed(Versions.v0_3)
   type: "airport";
-
   name: string | null;
   theme: Theme.Transport;
   ...TopographicMetadata;
