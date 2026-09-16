@@ -9,6 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
     steps:
       - uses: actions/checkout@v6
@@ -25,7 +30,7 @@ jobs:
         background: true
 
       # Remove existing schema files to ensure no dangling json schemas.
-      - run: rm -rfv schema/release=*
+      - run: rm -rfv schema/
 
       - run: npm ci
 
@@ -43,6 +48,42 @@ jobs:
 
       - wait: [check, test, python-ci]
       - run: git diff --exit-code
+
+      - name: Configure AWS Credentials
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push' && env.AWS_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@v6.2.1
+        with:
+          aws-region: ap-southeast-2
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: Push Schemas to STAC
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push' && env.AWS_ROLE_ARN != ''
+        run: |
+          RELEASES=($(ls -d schema/release=v* | sort -V))
+          LATEST="${RELEASES[-1]}"
+
+          for RELEASE_DIR in "${RELEASES[@]}"; do
+            VERSION="${RELEASE_DIR#schema/release=}"
+            if [ "$RELEASE_DIR" = "$LATEST" ]; then
+              echo "Pushing latest release $VERSION with virtual latest/..."
+              node --experimental-strip-types packages/map/src/index.ts stac-push \
+                --source="$RELEASE_DIR/collection.json" \
+                --target="${{ env.SCHEMA_S3_TARGET || 's3://linz-topographic/' }}" \
+                --category=schema \
+                --strategy="release=$VERSION" \
+                --strategy=latest \
+                --commit
+            else
+              echo "Pushing release $VERSION..."
+              node --experimental-strip-types packages/map/src/index.ts stac-push \
+                --source="$RELEASE_DIR/collection.json" \
+                --target="${{ env.SCHEMA_S3_TARGET || 's3://linz-topographic/' }}" \
+                --category=schema \
+                --strategy="release=$VERSION" \
+                --commit
+            fi
+          done
 
   build-container:
     uses: ./.github/workflows/containers.yml

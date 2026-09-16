@@ -15,6 +15,7 @@ describe('stac.storage', async () => {
 
   const latest = { type: 'latest' } as const;
   const commit = { type: 'commit', commit: 'commit' } as const;
+  const release = { type: 'release', release: 'v0.3' } as const;
   const prefix = new URL('memory://target/bucket/');
 
   describe('id', () => {
@@ -32,6 +33,12 @@ describe('stac.storage', async () => {
         );
       });
     }
+
+    it('should generate release ids and schema ids', () => {
+      assert.equal(StacStorage.id(release, { prefix, category: 'data', label: 'airport' }), 'data_airport_v0.3');
+      assert.equal(StacStorage.id(release, { prefix, category: 'schema', label: 'schema' }), 'schema_v0.3');
+      assert.equal(StacStorage.id(latest, { prefix, category: 'schema', label: 'schema' }), 'schema_latest');
+    });
   });
 
   describe('strategies', () => {
@@ -47,6 +54,17 @@ describe('stac.storage', async () => {
         { type: 'commit', commit: 'abc' },
         { type: 'latest' },
       ]);
+      pusher.strategy({ type: 'release', release: 'v0.4' });
+      assert.deepEqual(pusher.strategies, [
+        { type: 'date', date: new Date('2024-01-01') },
+        { type: 'commit', commit: 'abc' },
+        { type: 'release', release: 'v0.4' },
+        { type: 'latest' },
+      ]);
+    });
+
+    it('should parse a release strategy', () => {
+      assert.deepEqual(parseStrategy('release=v0.3'), { type: 'release', release: 'v0.3' });
     });
 
     it('should parse an ISO date strategy', () => {
@@ -76,6 +94,7 @@ describe('stac.storage', async () => {
     it('should round-trip StorageContext through StacStorage.url and storageStrategyFromLatest', () => {
       const contexts: StorageContext[] = [
         { prefix: new URL('https://d1jzh93b1t1cv.cloudfront.net/'), category: 'data', label: 'airport' },
+        { prefix: new URL('https://example.com/stac/'), category: 'schema', label: 'schema' },
         { prefix: new URL('https://example.com/stac/'), category: 'qgis', label: 'nztopo50' },
         { prefix: new URL('memory://target/bucket/'), category: 'product', label: 'nztopo50' },
       ];

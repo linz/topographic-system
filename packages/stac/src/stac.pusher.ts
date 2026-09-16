@@ -51,7 +51,8 @@ export class StacPusher {
   private static strategyPriority(s: StorageStrategy): number {
     if (s.type === 'date') return 0;
     if (s.type === 'commit') return 1;
-    return 2; // latest
+    if (s.type === 'release') return 2;
+    return 3; // latest
   }
 
   strategy(s: StorageStrategy) {
@@ -60,9 +61,13 @@ export class StacPusher {
   }
 
   async loadCatalog(catalogUrl: URL) {
-    const catalog = await fsa.readJson<StacCatalog>(catalogUrl);
+    const catalog = await fsa.readJson<StacCatalog | StacCollection>(catalogUrl);
     if (catalog == null) throw new Error(`Catalog not found or Invalid  at ${catalogUrl.href}`);
-    this.catalogs.set(catalogUrl, catalog);
+    if (catalog.type === 'Collection') {
+      await this.loadCollection(catalogUrl);
+      return;
+    }
+    this.catalogs.set(catalogUrl, catalog as StacCatalog);
     for (const link of catalog.links) {
       if (link.rel !== 'child') continue;
       if (link.href.endsWith('collection.json')) {

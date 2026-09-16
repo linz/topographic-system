@@ -4,6 +4,7 @@ import type { EmitContext, JSONSchemaType, Model, Enum, Union } from '@typespec/
 import { emitJsonSchema } from './json-schema.ts';
 import { emitParquetSchema } from './parquet.ts';
 import { emitPydanticModels } from './pydantic.ts';
+import { emitStacMetadata } from './stac.ts';
 import { emitTypeScript } from './typescript.ts';
 import { collectTypes } from './utils.ts';
 
@@ -64,5 +65,11 @@ export async function $onEmit(context: EmitContext<EmitterOptions>) {
   if (options['pydantic-output-file']) {
     const outputFile = options['pydantic-output-file'];
     await emitPydanticModels(program, outputFile, models);
+  }
+
+  // 5. Emit STAC metadata (collection.json per release and catalog.json)
+  if (options['json-schema-output-dir']) {
+    const outputDir = options['json-schema-output-dir'];
+    await emitStacMetadata(context, outputDir);
   }
 }
