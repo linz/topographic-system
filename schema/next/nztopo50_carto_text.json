@@ -8,6 +8,8 @@
       "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
     "example_point_id": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "description": "id (UUID) of the example feature."
@@ -48,12 +50,16 @@
     "labelanchor": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
     "charplace": { "anyOf": [{ "$ref": "#/$defs/carto_charplace" }, { "type": "null" }] },
     "chardistance": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+    "worddistance": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+    "metadata": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "geometry": { "description": "GeoParquet 1.1 covering geometry struct.", "not": { "type": "null" } },
     "bbox": { "$ref": "#/$defs/BBox", "description": "GeoParquet 1.1 covering bbox struct." }
   },
   "required": [
     "id",
     "t50_fid",
+    "created_at",
+    "updated_at",
     "example_point_id",
     "full_text",
     "text_bend",
@@ -77,6 +83,8 @@
     "labelanchor",
     "charplace",
     "chardistance",
+    "worddistance",
+    "metadata",
     "geometry"
   ],
   "additionalProperties": false,
@@ -97,7 +105,7 @@
     "carto_style": { "type": "string", "enum": ["", "Italic", "Narrow", "Narrow Bold", "Narrow Italic", "Regular"] },
     "carto_colour": { "type": "string", "enum": ["", "black", "process_blue", "warm_red"] },
     "carto_placement": { "type": "string", "enum": ["", "AL", "BL", "OL"] },
-    "carto_textanchor": { "type": "string", "enum": ["", "centre", "left", "left ", "left 0.62", "right"] },
+    "carto_textanchor": { "type": "string", "enum": ["", "centre", "left", "left 0.62", "right"] },
     "carto_charplace": {
       "type": "string",
       "enum": ["", "CharactersAtVertices", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"]
