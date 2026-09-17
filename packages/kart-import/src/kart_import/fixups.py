@@ -742,77 +742,78 @@ def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
     return points.reset_index(drop=True)
 
 
-def _update_carto_text_via_name(labels: pd.Series, points: gpd.GeoDataFrame) -> pd.Series:
-    """
-    Update carto_text example_point_id for unambiguous name matches.
-
-    Only updates records where a place name in carto_text matches exactly one
-    example_id in the lookup table (name appears only once geographically).
-    """
-    labels_per_name = labels.value_counts()
-    unique = points[points["name"].map(labels_per_name).eq(1)]
-    name_to_id = unique.drop_duplicates("name").set_index("name")["id"]
-    return labels.map(name_to_id).astype("string")
-
-
-def _update_carto_text_via_geom(
+def _link_example_points(
     labels: pd.Series,
     label_geometry: gpd.GeoSeries,
     points: gpd.GeoDataFrame,
-    linked: pd.Series,
     max_distance: float = 200.0,
-) -> pd.Series:
-    """
-    Update carto_text example_point_id for ambiguous names using spatial proximity.
+) -> tuple[list[str | None], list[dict]]:
+    """Link each label to its nearest example point of the same name.
 
-    For place names that map to multiple geographic points, selects the closest
-    example_id within 200m distance using PostGIS ST_DWithin and ST_Distance.
-    Uses DISTINCT ON to ensure one match per carto_text record.
+    Returns the linked point id per label (None if unlinked), and a list of match dictionaries.
     """
-    linked = linked.copy()
     labels_per_name = labels.value_counts()
-    ambiguous = points[points["name"].map(labels_per_name).gt(1)]
-    if ambiguous.empty:
-        return linked
+    points_by_name = dict(tuple(points.groupby("name")))
 
-    for label_index in labels.index[labels.isin(set(ambiguous["name"]))]:
-        same_name = ambiguous[ambiguous["name"] == labels.loc[label_index]]
-        distances = same_name.geometry.distance(label_geometry.loc[label_index])
+    linked: list[str | None] = []
+    matches: list[dict] = []
+    for index, (name, label_geom) in enumerate(zip(labels, label_geometry, strict=True)):
+        candidates = points_by_name.get(name)
+        if candidates is None:
+            linked.append(None)
+            continue
+
+        # Distance from this label to every example point sharing its name
+        distances = candidates.distance(label_geom)
         nearest = distances.idxmin()
-        if distances.loc[nearest] <= max_distance:
-            linked.loc[label_index] = ambiguous.loc[nearest, "id"]
-    return linked
+        distance = float(distances[nearest])
+
+        # keep the link if only one match, or the nearest is within the max distance
+        keep = labels_per_name[name] == 1 or distance <= max_distance
+        linked.append(candidates.at[nearest, "id"] if keep else None)
+
+        matches.append(
+            {
+                "label_index": index,
+                "name": name,
+                "labels_with_name": int(labels_per_name[name]),
+                "candidate_points": len(candidates),
+                "nearest_id": candidates.at[nearest, "id"],
+                "distance_m": round(distance, 1),
+                "linked": keep,
+            }
+        )
+    return linked, matches
 
 
 def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Mark the carto_text label that draws each map-sheet example point.
+    """Set `example_point_id` on each carto_text label to the example point it renders.
 
-    A map sheet showcases one example point and needs the id of the label that renders it, so it
-    can find and highlight that label.
-
-        Step 1: links a label whose text names exactly one example point;
-        Step 2: resolves a repeated name nearest example within 200 m.
-        Every other label is left null.
+    A map sheet highlights one example point by the id of the label drawing it. A label naming a
+    unique example point links at any distance; a shared name links to the nearest within 200 m.
     """
+    import pandas as pd
+
     points = _create_example_point_ids_lookup(release_id)
     labels = gdf["full_text"]
     label_geometry = gdf.geometry.to_crs("EPSG:2193")
 
-    linked = _update_carto_text_via_name(labels, points)
-    linked = _update_carto_text_via_geom(labels, label_geometry, points, linked)
+    linked, matches = _link_example_points(labels, label_geometry, points)
 
     gdf = gdf.copy()
-    gdf["example_point_id"] = linked.astype("string")
+    gdf["example_point_id"] = pd.Series(linked, index=gdf.index, dtype="string")
 
     logger.info(
         "carto_text_example_point_id",
         extra={
             "dataset": td.name,
             "release": release_id,
-            "matched": int(linked.notna().sum()),
+            "matched": sum(point_id is not None for point_id in linked),
             "total": len(gdf),
         },
     )
+    # Every name match and the distance behind its link/reject, for debugging the output.
+    logger.debug("carto_text_example_point_matches", extra={"dataset": td.name, "matches": matches})
     return gdf
 
 
