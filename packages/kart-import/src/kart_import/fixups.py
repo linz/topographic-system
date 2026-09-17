@@ -753,13 +753,12 @@ def _link_example_points(
     Returns the linked point id per label (None if unlinked), and a list of match dictionaries.
     """
     labels_per_name = labels.value_counts()
-    points_by_name = dict(tuple(points.groupby("name")))
 
     linked: list[str | None] = []
     matches: list[dict] = []
     for index, (name, label_geom) in enumerate(zip(labels, label_geometry, strict=True)):
-        candidates = points_by_name.get(name)
-        if candidates is None:
+        candidates = points[points["name"] == name]
+        if candidates.empty:
             linked.append(None)
             continue
 
@@ -767,10 +766,11 @@ def _link_example_points(
         distances = candidates.distance(label_geom)
         nearest = distances.idxmin()
         distance = float(distances[nearest])
+        nearest_id = str(candidates.at[nearest, "id"])
 
         # keep the link if only one match, or the nearest is within the max distance
         keep = labels_per_name[name] == 1 or distance <= max_distance
-        linked.append(candidates.at[nearest, "id"] if keep else None)
+        linked.append(nearest_id if keep else None)
 
         matches.append(
             {
@@ -778,7 +778,7 @@ def _link_example_points(
                 "name": name,
                 "labels_with_name": int(labels_per_name[name]),
                 "candidate_points": len(candidates),
-                "nearest_id": candidates.at[nearest, "id"],
+                "nearest_id": nearest_id,
                 "distance_m": round(distance, 1),
                 "linked": keep,
             }
