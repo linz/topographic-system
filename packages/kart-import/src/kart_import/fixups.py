@@ -591,6 +591,116 @@ def carto_text_styling(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int)
     return gdf
 
 
+def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
+    """
+    Create lookup table combining trig_point and geographic_name with spatial coordinates.
+
+    Generates lookups.example_point_ids table with geometry transformed to EPSG:2193 (NZTM),
+    enabling proximity-based matching for ambiguous place names. Combines both trig_point
+    and geographic_name sources via UNION.
+    """
+    import geopandas as gpd_
+    import pandas as pd
+
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    def read_theme(theme_name: str):
+        release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+        for dataset in get_theme_by_name(theme_name).datasets:
+            yield read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
+
+    example_ids: set[str] = set()
+    for map_sheet in read_theme("nztopo50_map_sheet"):
+        example_ids.update(map_sheet["example_point_id"].dropna().astype("string"))
+
+    named = []
+    for theme_name, name_column in (("trig_point", "code"), ("geographic_name", "name")):
+        for frame in read_theme(theme_name):
+            point = frame[["id", name_column, "geometry"]].rename(columns={name_column: "name"})
+            named.append(point.to_crs("EPSG:2193"))
+
+    points = gpd_.GeoDataFrame(pd.concat(named, ignore_index=True), geometry="geometry", crs="EPSG:2193")
+    points["id"] = points["id"].astype("string")
+    points = points[points["id"].isin(example_ids)].dropna(subset=["name"])
+    return points.reset_index(drop=True)
+
+
+def _link_example_points(
+    labels: pd.Series,
+    label_geometry: gpd.GeoSeries,
+    points: gpd.GeoDataFrame,
+    max_distance: float = 200.0,
+) -> tuple[list[str | None], list[dict]]:
+    """Link each label to its nearest example point of the same name.
+
+    Returns the linked point id per label (None if unlinked), and a list of match dictionaries.
+    """
+    labels_per_name = labels.value_counts()
+
+    linked: list[str | None] = []
+    matches: list[dict] = []
+    for index, (name, label_geom) in enumerate(zip(labels, label_geometry, strict=True)):
+        candidates = points[points["name"] == name]
+        if candidates.empty:
+            linked.append(None)
+            continue
+
+        # Distance from this label to every example point sharing its name
+        distances = candidates.distance(label_geom)
+        nearest = distances.idxmin()
+        distance = float(distances[nearest])
+        nearest_id = str(candidates.at[nearest, "id"])
+
+        # keep the link if only one match, or the nearest is within the max distance
+        keep = labels_per_name[name] == 1 or distance <= max_distance
+        linked.append(nearest_id if keep else None)
+
+        matches.append(
+            {
+                "label_index": index,
+                "name": name,
+                "labels_with_name": int(labels_per_name[name]),
+                "candidate_points": len(candidates),
+                "nearest_id": nearest_id,
+                "distance_m": round(distance, 1),
+                "linked": keep,
+            }
+        )
+    return linked, matches
+
+
+def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Set `example_point_id` on each carto_text label to the example point it renders.
+
+    A map sheet highlights one example point by the id of the label drawing it. A label naming a
+    unique example point links at any distance; a shared name links to the nearest within 200 m.
+    """
+    import pandas as pd
+
+    points = _create_example_point_ids_lookup(release_id)
+    labels = gdf["full_text"]
+    label_geometry = gdf.geometry.to_crs("EPSG:2193")
+
+    linked, matches = _link_example_points(labels, label_geometry, points)
+
+    gdf = gdf.copy()
+    gdf["example_point_id"] = pd.Series(linked, index=gdf.index, dtype="string")
+
+    logger.info(
+        "carto_text_example_point_id",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "matched": sum(point_id is not None for point_id in linked),
+            "total": len(gdf),
+        },
+    )
+    # Every name match and the distance behind its link/reject, for debugging the output.
+    logger.debug("carto_text_example_point_matches", extra={"dataset": td.name, "matches": matches})
+    return gdf
+
+
 def _grid_values(low: float, high: float, interval: float) -> list[float]:
     """Grid line positions covering ``low``..``high``, snapped outward to whole intervals."""
     import math
@@ -705,116 +815,6 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
         vertices=1_001,
         margin=0,
     )
-
-
-def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
-    """
-    Create lookup table combining trig_point and geographic_name with spatial coordinates.
-
-    Generates lookups.example_point_ids table with geometry transformed to EPSG:2193 (NZTM),
-    enabling proximity-based matching for ambiguous place names. Combines both trig_point
-    and geographic_name sources via UNION.
-    """
-    import geopandas as gpd_
-    import pandas as pd
-
-    from .assets.transform import read_transform
-    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
-
-    def read_theme(theme_name: str):
-        release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
-        for dataset in get_theme_by_name(theme_name).datasets:
-            yield read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
-
-    example_ids: set[str] = set()
-    for map_sheet in read_theme("nztopo50_map_sheet"):
-        example_ids.update(map_sheet["example_point_id"].dropna().astype("string"))
-
-    named = []
-    for theme_name, name_column in (("trig_point", "code"), ("geographic_name", "name")):
-        for frame in read_theme(theme_name):
-            point = frame[["id", name_column, "geometry"]].rename(columns={name_column: "name"})
-            named.append(point.to_crs("EPSG:2193"))
-
-    points = gpd_.GeoDataFrame(pd.concat(named, ignore_index=True), geometry="geometry", crs="EPSG:2193")
-    points["id"] = points["id"].astype("string")
-    points = points[points["id"].isin(example_ids)].dropna(subset=["name"])
-    return points.reset_index(drop=True)
-
-
-def _link_example_points(
-    labels: pd.Series,
-    label_geometry: gpd.GeoSeries,
-    points: gpd.GeoDataFrame,
-    max_distance: float = 200.0,
-) -> tuple[list[str | None], list[dict]]:
-    """Link each label to its nearest example point of the same name.
-
-    Returns the linked point id per label (None if unlinked), and a list of match dictionaries.
-    """
-    labels_per_name = labels.value_counts()
-
-    linked: list[str | None] = []
-    matches: list[dict] = []
-    for index, (name, label_geom) in enumerate(zip(labels, label_geometry, strict=True)):
-        candidates = points[points["name"] == name]
-        if candidates.empty:
-            linked.append(None)
-            continue
-
-        # Distance from this label to every example point sharing its name
-        distances = candidates.distance(label_geom)
-        nearest = distances.idxmin()
-        distance = float(distances[nearest])
-        nearest_id = str(candidates.at[nearest, "id"])
-
-        # keep the link if only one match, or the nearest is within the max distance
-        keep = labels_per_name[name] == 1 or distance <= max_distance
-        linked.append(nearest_id if keep else None)
-
-        matches.append(
-            {
-                "label_index": index,
-                "name": name,
-                "labels_with_name": int(labels_per_name[name]),
-                "candidate_points": len(candidates),
-                "nearest_id": nearest_id,
-                "distance_m": round(distance, 1),
-                "linked": keep,
-            }
-        )
-    return linked, matches
-
-
-def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Set `example_point_id` on each carto_text label to the example point it renders.
-
-    A map sheet highlights one example point by the id of the label drawing it. A label naming a
-    unique example point links at any distance; a shared name links to the nearest within 200 m.
-    """
-    import pandas as pd
-
-    points = _create_example_point_ids_lookup(release_id)
-    labels = gdf["full_text"]
-    label_geometry = gdf.geometry.to_crs("EPSG:2193")
-
-    linked, matches = _link_example_points(labels, label_geometry, points)
-
-    gdf = gdf.copy()
-    gdf["example_point_id"] = pd.Series(linked, index=gdf.index, dtype="string")
-
-    logger.info(
-        "carto_text_example_point_id",
-        extra={
-            "dataset": td.name,
-            "release": release_id,
-            "matched": sum(point_id is not None for point_id in linked),
-            "total": len(gdf),
-        },
-    )
-    # Every name match and the distance behind its link/reject, for debugging the output.
-    logger.debug("carto_text_example_point_matches", extra={"dataset": td.name, "matches": matches})
-    return gdf
 
 
 FIXUPS: dict[str, Fixup] = {
