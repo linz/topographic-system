@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, NamedTuple
 
 from .fixups_map_sheet import (
@@ -145,7 +145,7 @@ def drop_degenerate_roads(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: i
 
 class SourceRef(NamedTuple):
     """The constant half of a provenance record: which target column it explains, and where that
-    column's value came from. Only `source_key_value` and the two timestamps vary per row.
+    column's value came from. Only `source_key_value` varies per row.
 
     Field names are the record's JSON keys.
     """
@@ -160,6 +160,12 @@ class SourceRef(NamedTuple):
     """The table within that system, e.g. `roads`."""
     source_column: str
     """The column within that table the value was read from."""
+    source_updated_at: str | None = None
+    """RFC 3339 UTC text, or `None` to stamp both timestamps from the release date - see
+    `_build_source_metadata`. Set this only when a ref needs a different stamp, e.g. build-time
+    wall-clock rather than the release it's imported for."""
+    imported_at: str | None = None
+    """As `source_updated_at`; the two are independent so a ref can set one without the other."""
 
 
 ROAD_NAME_FROM_AIMS = SourceRef(
@@ -175,8 +181,14 @@ ROAD_SUFI_UNSET = 0
 than a null check is what separates a road whose name came from AIMS from one that has no link."""
 
 
+def _rfc3339(moment: datetime) -> str:
+    """`moment` as RFC 3339 UTC text (second precision, `Z` suffix) - the one timestamp shape every
+    provenance record uses, whether stamped from a release date or the build's wall clock."""
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _release_stamp(release_id: int) -> str:
-    """The release's own date as RFC 3339 UTC text, for a provenance timestamp."""
+    """The release's own date as an RFC 3339 UTC stamp, for a provenance timestamp."""
     from .config import get_releases
 
     release_date = next((release.date for release in get_releases() if release.id == release_id), None)
@@ -187,7 +199,7 @@ def _release_stamp(release_id: int) -> str:
     # `astimezone` on a naive value would otherwise make the output depend on the machine's TZ.
     if release_date.tzinfo is None:
         release_date = release_date.replace(tzinfo=UTC)
-    return release_date.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return _rfc3339(release_date)
 
 
 def _build_source_metadata(
@@ -217,6 +229,10 @@ def _build_source_metadata(
     `metadata` rather than a record asserting a link to a row that does not exist. A NULL key is
     always treated as unset.
 
+    A row whose looked-up value (`ref.table_column`) came back null also gets NULL `metadata`: a
+    provenance record explains where that column's value came from, and a null value has nothing
+    to explain.
+
     `dataset` names what the wiring was checked against, as in `_drop_listed_empty`: pointed at
     another dataset this would silently overwrite that dataset's `metadata` instead of failing.
 
@@ -235,13 +251,26 @@ def _build_source_metadata(
     # Not `errors="coerce"`: a non-numeric column here means the config wired something other than
     # the key column into `metadata`, which should fail rather than quietly produce an all-null one.
     key = pd.to_numeric(gdf["metadata"]).astype("Int32", errors="raise")
-    keyed = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+    has_key = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+
+    # Only a row whose looked-up value is present gets a record: the record explains where that
+    # value came from, so a key that resolved to a null `ref.table_column` has nothing to explain
+    # and gets NULL `metadata` instead of a record pointing at an absent value.
+    named = gdf[ref.table_column].notna()
+    keyed = has_key & named
 
     def record(key_value: int) -> str:
         # sort_keys/separators so the same key always serialises to the same bytes - two runs that
         # differ only in dict ordering would read as a changed feature to kart.
         return json.dumps(
-            [{**ref._asdict(), "source_key_value": key_value, "source_updated_at": stamp, "imported_at": stamp}],
+            [
+                {
+                    **ref._asdict(),
+                    "source_key_value": key_value,
+                    "source_updated_at": ref.source_updated_at or stamp,
+                    "imported_at": ref.imported_at or stamp,
+                }
+            ],
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -261,9 +290,8 @@ def _build_source_metadata(
             "release": release_id,
             "source": ref.source,
             "keyed": int(keyed.sum()),
-            "unlinked": int((~keyed).sum()),
-            # A key with no value to attribute: the record still says the column came from `source`.
-            f"keyed_without_{ref.table_column}": int((keyed & gdf[ref.table_column].isna()).sum()),
+            "unlinked": int((~has_key).sum()),
+            f"keyed_without_{ref.table_column}": int((has_key & ~named).sum()),
         },
     )
 
@@ -277,6 +305,66 @@ def build_road_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     return _build_source_metadata(
         gdf, td, release_id, "nz_road_centrelines", ROAD_NAME_FROM_AIMS, unset_key=ROAD_SUFI_UNSET
     )
+
+
+def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Record that a dataset's `name` came from the NZGB gazetteer, keyed by its lookup's key column.
+
+    Generic across every dataset wired the way `nz_canal_polygons_topo_150k` is - a gazetteer
+    lookup joined in, its name column mapped to `name`, and its key column mapped into `metadata`:
+
+        name: $<lookup>.name
+        metadata: {source: $<lookup>.<key column>, fixup: true}
+        joins:
+          - lookup: <lookup>
+            left_on: t50_fid
+        fixups:
+          - fn: build_nzgb_metadata
+
+    The lookup name, its key column, and its source dataset are all read off `td` and the theme's
+    `lookups:`, so a new dataset needs none of the Python above - just that same wiring. A dataset
+    whose gazetteer-sourced value lands somewhere other than `name` needs its own `SourceRef` and a
+    direct `_build_source_metadata` call instead (see `build_road_metadata`).
+
+    Both timestamps are stamped at build time rather than from the release date, unlike
+    `build_road_metadata` - the gazetteer lookup carries no per-record update time of its own, so
+    "when this ref was built" is the closest available proxy. Unlike a release-dated ref, this is
+    not byte-stable: rebuilding the same release later reproduces different bytes for every row.
+    """
+    from .config import LOOKUP_MAP
+
+    metadata_source = td.field_specs()["metadata"].source
+    is_lookup_ref = isinstance(metadata_source, str) and metadata_source.startswith("$")
+    lookup_name, sep, key_column = metadata_source[1:].partition(".") if is_lookup_ref else ("", "", "")
+    if not sep or not key_column:
+        raise ValueError(
+            f"{td.name}: `metadata` must be mapped as '$<lookup>.<key column>' for "
+            f"build_nzgb_metadata, got {metadata_source!r}"
+        )
+
+    name_source = td.field_specs()["name"].source
+    if name_source != f"${lookup_name}.name":
+        raise ValueError(
+            f"{td.name}: `name` must be mapped as '${lookup_name}.name' to match the gazetteer "
+            f"lookup '{lookup_name}' referenced by `metadata`, got {name_source!r}"
+        )
+
+    lookup = LOOKUP_MAP.get(lookup_name)
+    if lookup is None:
+        raise ValueError(f"{td.name}: `metadata` references unknown lookup '{lookup_name}'")
+
+    build_stamp = _rfc3339(datetime.now(UTC))
+
+    ref = SourceRef(
+        table_column="name",
+        source="nzgb_gazetteer",
+        source_key_name="feat_id",
+        source_table="nzgb_gaz",
+        source_column="name",
+        source_updated_at=build_stamp,
+        imported_at=build_stamp,
+    )
+    return _build_source_metadata(gdf, td, release_id, td.name, ref)
 
 
 def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
@@ -409,6 +497,7 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
 
 
 FIXUPS: dict[str, Fixup] = {
+    "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
