@@ -1,0 +1,124 @@
+name: landcover_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  # -------- cemetery
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-cemetery-points-topo-150k
+    name: nz_cemetery_points_topo_150k
+    mapping: &cemetery
+      t50_fid: $
+      type: cemetery
+      subtype: null
+      elevation: null
+      name: $
+      orientation: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-points-topo-150k
+    name: nz_chatham_island_cemetery_points_topo_150k
+    mapping: *cemetery
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-cemetery-points-topo-150k
+  #   name: nz_auckland_island_cemetery_points_topo_150k
+  #   mapping: *cemetery
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-cemetery-points-topo-125k-zone3
+  #   name: cook_islands_cemetery_points_topo_125k_zone3
+  #   mapping: *cemetery
+  # - source: kart@data.koordinates.com:linz/cook-islands-cemetery-points-topo-125k-zone4
+  #   name: cook_islands_cemetery_points_topo_125k_zone4
+  #   mapping: *cemetery
+  # - source: kart@data.koordinates.com:linz/tokelau-cemetery-points-topo-125k
+  #   name: tokelau_cemetery_points_topo_125k
+  #   mapping: *cemetery
+
+  # -------- fumarole
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-fumarole-points-topo-150k
+    name: nz_fumarole_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: fumarole
+      subtype: null
+      elevation: null
+      name: null
+      orientation: null
+      theme: landcover
+      metadata: null
+
+  # -------- rock_outcrop
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-rock-outcrop-points-topo-150k
+    name: nz_rock_outcrop_points_topo_150k
+    mapping:
+      t50_fid: $
+      type: rock_outcrop
+      subtype: $display
+      elevation: $
+      name: $
+      orientation: $orientatn
+      theme: landcover
+      metadata: null
+    corrections: &id001
+      - column: subtype
+        replace:
+          0: large_boulder
+          1: large_boulder
+          2: small_rock_outcrop
+          3: large_rock_outcrop
+  # # nzoi
+  # # FIXME: no `orientatn` source column for these datasets, but `orientation`
+  # # is required and non-nullable per the rock_outcrop schema variant.
+  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-outcrop-points-topo-125k
+  #   name: nz_antipodes_island_rock_outcrop_points_topo_125k
+  #   mapping: &rock_outcrop_no_orientation
+  #     t50_fid: $
+  #     type: rock_outcrop
+  #     subtype: $display
+  #     elevation: $
+  #     name: $
+  #     theme: landcover
+  #     metadata: null
+  #   corrections: *id001
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-outcrop-points-topo-150k
+  #   name: nz_auckland_island_rock_outcrop_points_topo_150k
+  #   mapping: *rock_outcrop_no_orientation
+  #   corrections: *id001
+  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-outcrop-points-topo-150k
+  #   name: nz_campbell_island_motu_ihupuku_rock_outcrop_points_topo_150k
+  #   mapping: *rock_outcrop_no_orientation
+  #   corrections: *id001
+  # # ant
+  # - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-outcrop-points-ant-150k
+  #   name: nz_ross_dependency_rock_outcrop_points_ant_150k
+  #   mapping: *rock_outcrop_no_orientation
+  #   corrections: *id001
+
+  # -------- swamp
+  # nz
+  - source: kart@data.koordinates.com:linz/nz-swamp-points-topo-150k
+    name: nz_swamp_points_topo_150k
+    mapping: &swamp
+      t50_fid: $
+      type: swamp
+      subtype: null
+      elevation: null
+      name: $
+      orientation: null
+      theme: landcover
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-swamp-points-topo-150k
+    name: nz_chatham_island_swamp_points_topo_150k
+    mapping: *swamp
+  # # nzoi
+  # - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-points-topo-150k
+  #   name: nz_auckland_island_swamp_points_topo_150k
+  #   mapping: *swamp
+  # # pi
+  # - source: kart@data.koordinates.com:linz/cook-islands-swamp-points-topo-125k-zone3
+  #   name: cook_islands_swamp_points_topo_125k_zone3
+  #   mapping: *swamp
+  # - source: kart@data.koordinates.com:linz/cook-islands-swamp-points-topo-125k-zone4
+  #   name: cook_islands_swamp_points_topo_125k_zone4
+  #   mapping: *swamp
