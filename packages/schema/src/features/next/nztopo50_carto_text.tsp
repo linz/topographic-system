@@ -7,6 +7,8 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model nztopo50_carto_text {
   ...ProductFeature;
+  created_at: utcDateTime;
+  updated_at: utcDateTime;
 
   /** id (UUID) of the example feature. */
   example_point_id: string | null;
@@ -33,6 +35,8 @@ model nztopo50_carto_text {
   labelanchor: float64 | null;
   charplace: carto_charplace | null;
   chardistance: float64 | null;
+  worddistance: float64 | null;
+  ...TopographicMetadata;
   ...GeoParquet;
 }
 
@@ -70,7 +74,6 @@ enum carto_textanchor {
   _: "",
   Centre: "centre",
   Left: "left",
-  LeftWithSpace: "left ", // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
   Left062: "left 0.62",
   Right: "right",
 }

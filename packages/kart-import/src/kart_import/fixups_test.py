@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
@@ -14,8 +15,12 @@ from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
 from .fixups import (
+    CARTO_TEXT_COLOUR,
+    CARTO_TEXT_FONT,
+    CARTO_TEXT_STYLE,
     _drop_listed_empty,
     _generate_grid_features,
+    carto_text_styling,
     drop_degenerate_fences,
     drop_empty_residential_areas,
     generate_dms_grid_features,
@@ -671,3 +676,177 @@ def test_grid_fixups_are_wired_to_their_own_settings(fn, directions, vertices, i
     lons, lats = _values(out, along_y), _values(out, along_x)
     assert (lons[0], lons[-1], lats[0], lats[-1]) == extent
     assert lats[1] - lats[0] == pytest.approx(interval)
+
+
+CARTO_TEXT_STYLING_FIELDS = (
+    "font",
+    "style",
+    "colour",
+    "size",
+    "offset",
+    "placement",
+    "textanchor",
+    "labelanchor",
+    "charplace",
+    "chardistance",
+)
+
+
+def _carto_text_gdf(rows: list[dict]) -> gpd.GeoDataFrame:
+    """A frame shaped like `normalize_fields`' output for linz_carto_text: the five decode
+    inputs typed as the schema types them, and the ten styling fields seeded null."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "text_bend": pd.array([r["bend"] for r in rows], dtype="Int32"),
+            "text_height": pd.array([r["height"] for r in rows], dtype="Float64"),
+            "text_colour": pd.array([r["colour"] for r in rows], dtype="Int32"),
+            "text_font": pd.array([r["font"] for r in rows], dtype="string"),
+            "text_placement": pd.array([r["place"] for r in rows], dtype="Int32"),
+        },
+        geometry=[Point(0, 0)] * len(rows),
+        crs="EPSG:2193",
+    )
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        gdf[field] = pd.NA
+    return gdf
+
+
+def test_carto_text_styling_fills_a_matched_key_from_the_table():
+    """A row whose derived key is in `carto_text_styling.csv` gets the table's values, the
+    decoded colour/style, and the constant font. Empty table cells stay null."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["colour"] == "black"
+    assert row["style"] == "Narrow"
+    assert row["font"] == CARTO_TEXT_FONT
+    assert row["size"] == 5.0
+    assert row["offset"] == -1.6
+    assert row["placement"] == "AL"
+    assert row["charplace"] == "StretchCharacterSpacingToFit"
+    assert pd.isna(row["textanchor"])
+    assert pd.isna(row["labelanchor"])
+    assert pd.isna(row["chardistance"])
+
+
+def test_carto_text_styling_matches_a_point_scale_height_and_strips_textanchor():
+    """`text_height` is matched to 4 dp, so the point-scale value 67.0 keys the table the same
+    way a metre-scale value does. `textanchor` comes back `left`, not the legacy `left ` - the
+    table's trailing space is stripped, so the `carto_textanchor` enum needs no `left ` member."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 67.0, "place": 31, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["style"] == "Narrow"
+    assert row["size"] == 5.5
+    assert row["offset"] == -2.0
+    assert row["textanchor"] == "left"
+    assert row["labelanchor"] == 0.8
+
+
+def test_carto_text_styling_decodes_colour_codes():
+    """`text_colour` 5 and 6 decode to warm_red / process_blue; the map itself is the contract."""
+    assert CARTO_TEXT_COLOUR == {9: "black", 5: "warm_red", 6: "process_blue"}
+    assert CARTO_TEXT_STYLE["ATTriumMou-CondItalic"] == "Narrow Italic"
+    assert CARTO_TEXT_STYLE["Courier Bold Oblique"] == "Regular"
+
+
+def test_carto_text_styling_leaves_an_unmatched_key_null():
+    """A key absent from the table (matched nothing in the legacy process either) keeps every
+    styling field null rather than inventing a value."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0014, "place": 1, "font": "ATTrium-Italic", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_odd_colour_code_stays_unstyled():
+    """An unlisted `text_colour` decodes to the black fallback, but with no table row for its
+    full key the feature is left unstyled - reproducing the legacy blank."""
+    gdf = _carto_text_gdf([{"bend": 1, "height": 15.0, "place": 1, "font": "ATTrium-Italic", "colour": 3348}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_requires_its_key_columns():
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    with pytest.raises(ValueError, match="text_font"):
+        carto_text_styling(gdf.drop(columns="text_font"), _td([], "linz_carto_text"), 66)
+
+
+def test_carto_text_example_point_id_two_pass(monkeypatch):
+    """Only the map-sheet example points are candidates. Pass 1 links a name carried by exactly
+    one label - however far away; pass 2 sends a name shared by several labels to the nearest one
+    within 200 m, leaving > 200 m and unmatched labels null."""
+    from . import config
+    from .assets import transform as transform_mod
+
+    # The four features a map sheet nominates as its example point.
+    map_sheet = pd.DataFrame({"example_point_id": ["tp0", "gnW", "gn1153", "gn2413"]})
+    trig_point = gpd.GeoDataFrame(
+        {"id": ["tp0"], "code": ["A1AA"]},
+        geometry=[Point(1000, 2000)],
+        crs="EPSG:2193",
+    )
+    geographic_name = gpd.GeoDataFrame(
+        {"id": ["gnW", "gn1153", "gn2413"], "name": ["Windsor Point", "1153", "2413"]},
+        geometry=[Point(0, 0), Point(5000, 6000), Point(8000, 8000)],
+        crs="EPSG:2193",
+    )
+    frames = {"ms": map_sheet, "tp": trig_point, "gn": geographic_name}
+
+    def fake_theme(name):
+        dataset_name = {"nztopo50_map_sheet": "ms", "trig_point": "tp", "geographic_name": "gn"}[name]
+        return Theme(
+            name=name,
+            target_repo="r",
+            target_epsg="EPSG:2193",
+            datasets=[
+                ThemeDataset.model_validate(
+                    {"name": dataset_name, "source": "kart@data.koordinates.com:linz/x-topo-150k"}
+                )
+            ],
+        )
+
+    monkeypatch.setattr(config, "get_theme_by_name", fake_theme)
+    monkeypatch.setattr(transform_mod, "read_transform", lambda path: frames[path.stem])
+
+    gdf = gpd.GeoDataFrame(
+        {
+            "full_text": [
+                "A1AA",  # one label, on the trig -> tp0
+                "Windsor Point",  # one label, 600 m away -> gnW (name match ignores distance)
+                "1153",  # three labels -> nearest within 200 m wins
+                "1153",
+                "1153",
+                "2413",  # two labels -> nearest is 250 m away -> null
+                "2413",
+                "Nowhere",  # not an example point -> null
+            ]
+        },
+        geometry=[
+            Point(1050, 2000),
+            Point(600, 0),
+            Point(5010, 6000),  # 10 m from gn1153
+            Point(50000, 60000),
+            Point(60000, 60000),
+            Point(8250, 8000),  # 250 m from gn2413
+            Point(90000, 8000),
+            Point(0, 0),
+        ],
+        crs="EPSG:2193",
+    )
+
+    out = fixups.carto_text_example_point_id(gdf, _td([], "linz_carto_text"), 66)
+    result = list(out["example_point_id"])
+
+    assert result[0] == "tp0"
+    assert result[1] == "gnW"
+    assert result[2] == "gn1153"
+    assert pd.isna(result[3])
+    assert pd.isna(result[4])
+    assert pd.isna(result[5])
+    assert pd.isna(result[6])
+    assert pd.isna(result[7])

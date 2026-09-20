@@ -29,6 +29,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from datetime import UTC, datetime
+from functools import cache
 from typing import TYPE_CHECKING, NamedTuple
 
 from .fixups_map_sheet import (
@@ -44,6 +45,7 @@ logger = logging.getLogger("kart_import")
 
 if TYPE_CHECKING:
     import geopandas as gpd
+    import pandas as pd
 
     from kart_import.config import ThemeDataset
 
@@ -496,6 +498,209 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     return gdf
 
 
+CARTO_TEXT_COLOUR: dict[int, str] = {9: "black", 5: "warm_red", 6: "process_blue"}
+CARTO_TEXT_COLOUR_DEFAULT = "black"
+"""`text_colour` integer code -> `colour` enum. Legacy decoded any other code to black."""
+
+CARTO_TEXT_FONT = "Nimbus Sans LINZ"
+CARTO_TEXT_STYLE: dict[str, str] = {
+    "ATTriumMou-Regular": "Regular",
+    "ATTriumMou-Cond": "Narrow",
+    "ATTriumMou-CondBold": "Narrow Bold",
+    "ATTriumMou-CondItalic": "Narrow Italic",
+    "ATTriumMou-Italic": "Italic",
+    "ATTrium-Italic": "Regular",
+    "Courier Bold Oblique": "Regular",
+}
+"""mapping from source `text_font` values to `style` enum."""
+
+
+def _carto_text_key(bend, height, place, style, colour):
+    """Join the five key columns into one string, e.g. `0|67.0000|31|Narrow|black` for looks up mapping from csv file."""
+    import pandas as pd
+
+    def as_text(series, decimals):
+        return series.astype("Float64").map(lambda v: f"{v:.{decimals}f}" if pd.notna(v) else pd.NA).astype("string")
+
+    parts = [
+        as_text(bend, 0),
+        as_text(height, 4),
+        as_text(place, 0),
+        style.astype("string"),
+        colour.astype("string"),
+    ]
+
+    key = parts[0]
+    for part in parts[1:]:
+        key = key.str.cat(part, sep="|", na_rep="\x00")
+    return key
+
+
+# Columns filled from the carto_text_styling table split by output dtype.
+_CARTO_TEXT_STRING_FIELDS = ("placement", "textanchor", "charplace")
+_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance", "worddistance")
+_CARTO_TEXT_KEY_INPUTS = ("text_bend", "text_height", "text_placement", "text_colour", "text_font")
+
+
+@cache
+def _carto_text_styling_table():
+    """Read the carto_text_styling table from the carto_text_styling.csv file and prepare it for lookups."""
+    import pandas as pd
+
+    from .config import CONFIG_DIR_CARTO_TEXT_STYLING
+
+    df = pd.read_csv(CONFIG_DIR_CARTO_TEXT_STYLING)
+    for column in _CARTO_TEXT_STRING_FIELDS + ("style", "colour"):
+        df[column] = df[column].astype("string").str.strip()
+    for column in _CARTO_TEXT_NUMBER_FIELDS:
+        df[column] = pd.to_numeric(df[column]).astype("Float64")
+    df["key"] = _carto_text_key(df["text_bend"], df["text_height"], df["text_placement"], df["style"], df["colour"])
+    if df["key"].duplicated().any():
+        raise ValueError("carto_text_styling.csv has duplicate composite keys")
+    return df.set_index("key")
+
+
+def carto_text_styling(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Fill the cartographic styling fields for carto_text based on the mapping from carto_text_styling.csv."""
+    import pandas as pd
+
+    missing = set(_CARTO_TEXT_KEY_INPUTS) - set(gdf.columns)
+    if missing:
+        raise ValueError(f"carto_text_styling needs columns {sorted(missing)}, absent from '{td.name}'")
+
+    table = _carto_text_styling_table()
+
+    colour = gdf["text_colour"].map(CARTO_TEXT_COLOUR).astype("string").fillna(CARTO_TEXT_COLOUR_DEFAULT)
+    style = gdf["text_font"].map(CARTO_TEXT_STYLE).astype("string")
+    key = _carto_text_key(gdf["text_bend"], gdf["text_height"], gdf["text_placement"], style, colour)
+    matched = key.isin(table.index)
+
+    gdf = gdf.copy()
+    gdf["colour"] = colour.where(matched)
+    gdf["style"] = style.where(matched)
+    gdf["font"] = pd.Series(CARTO_TEXT_FONT, index=gdf.index, dtype="string").where(matched)
+    for column in _CARTO_TEXT_STRING_FIELDS:
+        gdf[column] = key.map(table[column]).astype("string")
+    for column in _CARTO_TEXT_NUMBER_FIELDS:
+        gdf[column] = pd.to_numeric(key.map(table[column]), errors="coerce").astype("Float64")
+
+    logger.info(
+        "carto_text_styling",
+        extra={"dataset": td.name, "release": release_id, "matched": int(matched.sum()), "total": len(gdf)},
+    )
+    return gdf
+
+
+def _create_example_point_ids_lookup(release_id: int) -> gpd.GeoDataFrame:
+    """
+    Create lookup table combining trig_point and geographic_name with spatial coordinates.
+
+    Generates lookups.example_point_ids table with geometry transformed to EPSG:2193 (NZTM),
+    enabling proximity-based matching for ambiguous place names. Combines both trig_point
+    and geographic_name sources via UNION.
+    """
+    import geopandas as gpd_
+    import pandas as pd
+
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    def read_theme(theme_name: str):
+        release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+        for dataset in get_theme_by_name(theme_name).datasets:
+            yield read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
+
+    example_ids: set[str] = set()
+    for map_sheet in read_theme("nztopo50_map_sheet"):
+        example_ids.update(map_sheet["example_point_id"].dropna().astype("string"))
+
+    named = []
+    for theme_name, name_column in (("trig_point", "code"), ("geographic_name", "name")):
+        for frame in read_theme(theme_name):
+            point = frame[["id", name_column, "geometry"]].rename(columns={name_column: "name"})
+            named.append(point.to_crs("EPSG:2193"))
+
+    points = gpd_.GeoDataFrame(pd.concat(named, ignore_index=True), geometry="geometry", crs="EPSG:2193")
+    points["id"] = points["id"].astype("string")
+    points = points[points["id"].isin(example_ids)].dropna(subset=["name"])
+    return points.reset_index(drop=True)
+
+
+def _link_example_points(
+    labels: pd.Series,
+    label_geometry: gpd.GeoSeries,
+    points: gpd.GeoDataFrame,
+    max_distance: float = 200.0,
+) -> tuple[list[str | None], list[dict]]:
+    """Link each label to its nearest example point of the same name.
+
+    Returns the linked point id per label (None if unlinked), and a list of match dictionaries.
+    """
+    labels_per_name = labels.value_counts()
+
+    linked: list[str | None] = []
+    matches: list[dict] = []
+    for index, (name, label_geom) in enumerate(zip(labels, label_geometry, strict=True)):
+        candidates = points[points["name"] == name]
+        if candidates.empty:
+            linked.append(None)
+            continue
+
+        # Distance from this label to every example point sharing its name
+        distances = candidates.distance(label_geom)
+        nearest = distances.idxmin()
+        distance = float(distances[nearest])
+        nearest_id = str(candidates.at[nearest, "id"])
+
+        # keep the link if only one match, or the nearest is within the max distance
+        keep = labels_per_name[name] == 1 or distance <= max_distance
+        linked.append(nearest_id if keep else None)
+
+        matches.append(
+            {
+                "label_index": index,
+                "name": name,
+                "labels_with_name": int(labels_per_name[name]),
+                "candidate_points": len(candidates),
+                "nearest_id": nearest_id,
+                "distance_m": round(distance, 1),
+                "linked": keep,
+            }
+        )
+    return linked, matches
+
+
+def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Set `example_point_id` on each carto_text label to the example point it renders.
+
+    A map sheet highlights one example point by the id of the label drawing it. A label naming a
+    unique example point links at any distance; a shared name links to the nearest within 200 m.
+    """
+    import pandas as pd
+
+    points = _create_example_point_ids_lookup(release_id)
+    labels = gdf["full_text"]
+    label_geometry = gdf.geometry.to_crs("EPSG:2193")
+
+    linked, matches = _link_example_points(labels, label_geometry, points)
+
+    gdf = gdf.copy()
+    gdf["example_point_id"] = pd.Series(linked, index=gdf.index, dtype="string")
+
+    logger.info(
+        "carto_text_example_point_id",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "matched": sum(point_id is not None for point_id in linked),
+            "total": len(gdf),
+        },
+    )
+    # Every name match and the distance behind its link/reject, for debugging the output.
+    logger.debug("carto_text_example_point_matches", extra={"dataset": td.name, "matches": matches})
+    return gdf
+
+
 def _grid_values(low: float, high: float, interval: float) -> list[float]:
     """Grid line positions covering ``low``..``high``, snapped outward to whole intervals."""
     import math
@@ -615,6 +820,8 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 FIXUPS: dict[str, Fixup] = {
     "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
+    "carto_text_example_point_id": carto_text_example_point_id,
+    "carto_text_styling": carto_text_styling,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,
