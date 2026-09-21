@@ -1,4 +1,4 @@
-FROM ghcr.io/linz/qgis-flatpak:linz-qgis_v4.2.2_f1431d-c6b79d_build-47
+FROM ghcr.io/linz/qgis-flatpak:linz-qgis_v4.2.2_f1431d-297752_build-48
 WORKDIR /app
 
 COPY packages/map/dist/ /app/

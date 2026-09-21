@@ -13,7 +13,7 @@ import type { ExportOptions } from './stac.ts';
 
 export const BaseCommandOptions = {
   useDocker: false,
-  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_v4.2.2_f1431d-c6b79d_build-47',
+  container: 'ghcr.io/linz/qgis-flatpak:linz-qgis_v4.2.2_f1431d-297752_build-48',
 };
 
 const Python3 = new Command('python3', BaseCommandOptions);
