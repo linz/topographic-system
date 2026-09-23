@@ -60,7 +60,8 @@ datasets:
       status: $
       name: $
       height: null
-      orientation: $orientatn
+      # `orientatn` was added to the source schema on 2020-11-17 (release 51).
+      orientation: { source: $orientatn, since_release: 51 }
       theme: structures
       metadata: null
 
@@ -140,7 +141,8 @@ datasets:
       status: null
       name: null
       height: null
-      orientation: $orientatn
+      # `orientatn` was added to the source schema on 2020-11-17 (release 51).
+      orientation: { source: $orientatn, since_release: 51 }
       theme: structures
       metadata: null
 
@@ -157,7 +159,8 @@ datasets:
       status: null
       name: $
       height: null
-      orientation: $orientatn
+      # `orientatn` was added to the source schema on 2020-06-10 (release 50).
+      orientation: { source: $orientatn, since_release: 50 }
       theme: structures
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-gate-points-topo-150k

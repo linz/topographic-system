@@ -199,6 +199,18 @@ def merge_theme_release(theme_name: str, release_id: int):
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
     merged = coerce_dtypes(merged, theme.name)
 
+    # A null/empty geometry (a source data-quality issue) cannot be written to a spatially indexed
+    # FlatGeobuf and has nothing to render or index anyway, so drop it -- matching how the spatial
+    # lookup select drops geometryless rows.
+    usable = merged.geometry.notna() & ~merged.geometry.is_empty
+    dropped = int((~usable).sum())
+    if dropped:
+        logger.warning(
+            f"{theme.name} release {release_id}: dropping {dropped} feature(s) with null/empty geometry",
+            extra={"theme": theme.name, "release": release_id, "dropped": dropped},
+        )
+        merged = merged[usable].reset_index(drop=True)
+
     # Stable sorting to keep row order predictable (Note: FlatGeobuf writes in spatial-index order)
     if "id" in merged.columns:
         merged = merged.sort_values(by=["id"]).reset_index(drop=True)
