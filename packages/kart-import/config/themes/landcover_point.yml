@@ -57,7 +57,8 @@ datasets:
       subtype: $display
       elevation: $
       name: $
-      orientation: $orientatn
+      # `orientatn` was added to the source schema on 2020-06-10 (release 50).
+      orientation: { source: $orientatn, since_release: 50 }
       theme: landcover
       metadata: null
     corrections: &id001

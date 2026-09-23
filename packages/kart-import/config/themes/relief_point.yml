@@ -12,7 +12,8 @@ datasets:
       name: $
       elevation: $
       height: null
-      orientation: $orientatn
+      # `orientatn` was added to the source schema on 2020-06-10 (release 50).
+      orientation: { source: $orientatn, since_release: 50 }
       theme: relief
       metadata: null
   # # ant

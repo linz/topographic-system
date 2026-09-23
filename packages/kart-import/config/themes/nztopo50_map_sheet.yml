@@ -15,11 +15,11 @@ datasets:
       sheet_name: $
       origin_x: { fixup: true }
       origin_y: { fixup: true }
-      cover_front_origin_x: $
-      cover_front_origin_y: $
-      cover_back_origin_x: $
-      cover_back_origin_y: $
-      barcode: $
+      cover_front_origin_x: { source: $, since_release: 66 }
+      cover_front_origin_y: { source: $, since_release: 66 }
+      cover_back_origin_x: { source: $, since_release: 66 }
+      cover_back_origin_y: { source: $, since_release: 66 }
+      barcode: { source: $, since_release: 66 }
       example_point_id: { fixup: true }
       example_name: { source: $ex_name, fixup: true }
       example_class: { source: $ex_class, fixup: true }
