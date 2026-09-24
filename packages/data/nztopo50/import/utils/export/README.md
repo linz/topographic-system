@@ -41,4 +41,25 @@ Scripts for exporting spatial data to GeoParquet format.
 | File | Description |
 |------|-------------|
 | `export_from_gpkg_geoparquet.py` | Exports layers from a GeoPackage (`.gpkg`) to GeoParquet files using `geopandas` |
+| `run_export_gkpg.py` | Runs GeoPackage to GeoParquet exports for one `.gpkg` file or every `.gpkg` found under a folder |
 | `export_to_geoparquet_geopandas.py` | Exports layers from PostgreSQL to GeoParquet files using `geopandas` and `sqlalchemy` |
+
+Run from the `packages/data/nztopo50/import` folder.
+
+Export one GeoPackage:
+
+```powershell
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg C:\Data\temp\topo-parquet
+```
+
+Export every GeoPackage found in a folder and its subfolders:
+
+```powershell
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource C:\Data\temp\topo-parquet
+```
+
+Export selected layers only:
+
+```powershell
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg C:\Data\temp\topo-parquet --layers landuse road_cl
+```
