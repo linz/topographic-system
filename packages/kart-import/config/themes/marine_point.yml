@@ -54,15 +54,17 @@ datasets:
   #      name: $name
   #      theme: landcover
   #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
+    # Source has no t50_fid; generate the id from kart's auto_pk instead.
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: rock
+      subtype: null
+      name: $name
+      theme: landcover
+      metadata: null
   # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: rock
-  #      subtype: null
-  #      name: $name
-  #      theme: landcover
-  #      metadata: null
   #  - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
   #    mapping:
   #      t50_fid: $

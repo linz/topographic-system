@@ -37,15 +37,17 @@ datasets:
       size: $size
       theme: annotation
       metadata: null
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-descriptive-texts-topo-125k
+    # Source has no t50_fid; generate the id from kart's auto_pk instead.
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: descriptive_text
+      info_display: $info_disp
+      size: $size
+      theme: annotation
+      metadata: null
   # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-descriptive-texts-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: descriptive_text
-  #      info_display: $info_disp
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
   #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-descriptive-texts-topo-150k
   #    mapping:
   #      t50_fid: $

@@ -101,8 +101,10 @@ datasets:
       theme: landcover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-waterfall-points-topo-125k
+    # Source has no t50_fid; generate the id from kart's auto_pk instead.
+    feature_key: auto_pk
     mapping:
-      t50_fid: null # FIXME: Needs lookup
+      t50_fid: null
       type: waterfall
       name: $
       height: $

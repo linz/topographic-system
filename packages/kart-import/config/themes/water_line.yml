@@ -103,10 +103,18 @@ datasets:
       name: null
       theme: landcover
       metadata: null
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
-  #   name: nz_antipodes_island_river_centrelines_topo_125k
-  #   mapping: *river
+  # nzoi
+  # Antipodes source has no t50_fid and no gazetteer overlap, so this keeps the
+  # pre-lookup mapping and generates the id from kart's auto_pk.
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
+    name: nz_antipodes_island_river_centrelines_topo_125k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: river
+      name: null
+      theme: landcover
+      metadata: null
   # - source: kart@data.koordinates.com:linz/nz-auckland-island-river-centrelines-topo-150k
   #   name: nz_auckland_island_river_centrelines_topo_150k
   #   mapping: *river

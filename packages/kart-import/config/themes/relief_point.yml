@@ -29,6 +29,38 @@ datasets:
   #     theme: relief
   #     metadata: null
 
+  # -------- height
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-height-points-topo-125k
+    name: nz_antipodes_island_height_points_topo_125k
+    # Source has no t50_fid; generate the id from kart's auto_pk instead.
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: height
+      name: null
+      elevation: $
+      height: null
+      orientation: null
+      theme: relief
+      metadata: null
+
+  # -------- sinkhole
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-sinkhole-points-topo-125k
+    name: nz_antipodes_island_sinkhole_points_topo_125k
+    # Source has no t50_fid; generate the id from kart's auto_pk instead.
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: sinkhole
+      name: null
+      elevation: null
+      height: null
+      orientation: null
+      theme: relief
+      metadata: null
+
   # -------- waterfall
   # Moved from water_point.yml per FTM schema feedback (BM-1769).
   # nz
