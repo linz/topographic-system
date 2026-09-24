@@ -31,10 +31,14 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-native-polygons-topo-150k
     name: nz_chatham_island_native_polygons_topo_150k
     mapping: *native
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-native-polygons-topo-150k
+    name: nz_auckland_island_native_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *native
+      t50_fid: null
   # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-native-polygons-topo-150k
-  #   name: nz_auckland_island_native_polygons_topo_150k
-  #   mapping: *native
   # - source: kart@data.koordinates.com:linz/nz-kermadec-is-native-polygons-topo-125k
   #   name: nz_kermadec_is_native_polygons_topo_125k
   #   mapping: *native

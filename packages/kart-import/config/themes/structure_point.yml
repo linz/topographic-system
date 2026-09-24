@@ -472,10 +472,14 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-wreck-points-topo-150k
     name: nz_chatham_island_wreck_points_topo_150k
     mapping: *wreck
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
+    name: nz_auckland_island_wreck_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *wreck
+      t50_fid: null
   # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-wreck-points-topo-150k
-  #   name: nz_auckland_island_wreck_points_topo_150k
-  #   mapping: *wreck
   # - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
   #   name: nz_kermadec_is_wreck_points_topo_125k
   #   mapping: *wreck

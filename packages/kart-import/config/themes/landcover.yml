@@ -73,14 +73,16 @@ datasets:
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-sand-polygons-topo-125k
     name: nz_antipodes_island_sand_polygons_topo_125k
-    # Source has no t50_fid; generate the id from kart's auto_pk instead.
     feature_key: auto_pk
     mapping:
       <<: *sand
       t50_fid: null
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-sand-polygons-topo-150k
-  #   name: nz_auckland_island_sand_polygons_topo_150k
-  #   mapping: *sand
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-sand-polygons-topo-150k
+    name: nz_auckland_island_sand_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *sand
+      t50_fid: null
   # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-sand-polygons-topo-150k
   #   name: nz_campbell_island_motu_ihupuku_sand_polygons_topo_150k
   #   mapping: *sand
@@ -133,7 +135,6 @@ datasets:
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-shingle-polygons-topo-125k
     name: nz_antipodes_island_shingle_polygons_topo_125k
-    # Source has no t50_fid; generate the id from kart's auto_pk instead.
     feature_key: auto_pk
     mapping:
       <<: *shingle
@@ -155,14 +156,16 @@ datasets:
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-swamp-polygons-topo-125k
     name: nz_antipodes_island_swamp_polygons_topo_125k
-    # Source has no t50_fid; generate the id from kart's auto_pk instead.
     feature_key: auto_pk
     mapping:
       <<: *swamp
       t50_fid: null
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-polygons-topo-150k
-  #   name: nz_auckland_island_swamp_polygons_topo_150k
-  #   mapping: *swamp
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-polygons-topo-150k
+    name: nz_auckland_island_swamp_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *swamp
+      t50_fid: null
   # - source: kart@data.koordinates.com:linz/nz-kermadec-is-swamp-polygons-topo-125k
   #   name: nz_kermadec_is_swamp_polygons_topo_125k
   #   mapping: *swamp

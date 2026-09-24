@@ -18,10 +18,13 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-points-topo-150k
     name: nz_chatham_island_cemetery_points_topo_150k
     mapping: *cemetery
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-cemetery-points-topo-150k
-  #   name: nz_auckland_island_cemetery_points_topo_150k
-  #   mapping: *cemetery
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-cemetery-points-topo-150k
+    name: nz_auckland_island_cemetery_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *cemetery
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-cemetery-points-topo-125k-zone3
   #   name: cook_islands_cemetery_points_topo_125k_zone3
@@ -112,10 +115,13 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-chatham-island-swamp-points-topo-150k
     name: nz_chatham_island_swamp_points_topo_150k
     mapping: *swamp
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-points-topo-150k
-  #   name: nz_auckland_island_swamp_points_topo_150k
-  #   mapping: *swamp
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-swamp-points-topo-150k
+    name: nz_auckland_island_swamp_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *swamp
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-swamp-points-topo-125k-zone3
   #   name: cook_islands_swamp_points_topo_125k_zone3

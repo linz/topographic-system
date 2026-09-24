@@ -116,6 +116,19 @@ datasets:
         where:
           subtype: 'police station'
           t50_fid: 5448451
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-is-building-points-topo-150k
+    name: nz_auckland_is_building_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: building
+      subtype: $bldg_use
+      status: $status
+      name: $name
+      orientation: null
+      theme: buildings
+      metadata: null
   # needs t50_fid backfilled
   #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-points-topo-125k
   #    mapping:

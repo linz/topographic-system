@@ -151,10 +151,23 @@ datasets:
       theme: landcover
       metadata: null
     corrections: *lake_subtype_corrections
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-lake-polygons-topo-150k
-  #   name: nz_auckland_island_lake_polygons_topo_150k
-  #   mapping: *lake
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-lake-polygons-topo-150k
+    name: nz_auckland_island_lake_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: lake
+      subtype: $lake_use
+      name: $
+      group_name: $grp_name
+      height: null
+      elevation: $
+      perennial: $
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+    corrections: *lake_subtype_corrections
   # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-lake-polygons-topo-150k
   #   name: nz_campbell_island_motu_ihupuku_lake_polygons_topo_150k
   #   mapping: *lake

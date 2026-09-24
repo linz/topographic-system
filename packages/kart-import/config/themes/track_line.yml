@@ -53,17 +53,18 @@ datasets:
       # (BM-1783); snake_cased here as the legacy loader did. `routeroute` is a source typo
       # (1 feature, release 63).
       - { column: track_type, replace: { 'poled route': poled_route, routeroute: route } }
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: track
+      name: $
+      status: $
+      track_type: $
+      subtype: $track_use
+      theme: transport
+      metadata: null
   # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: track
-  #      name: $
-  #      status: $
-  #      track_type: $
-  #      subtype: $track_use
-  #      theme: transport
-  #      metadata: null
   #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-track-centrelines-topo-150k
   #    mapping:
   #      t50_fid: $

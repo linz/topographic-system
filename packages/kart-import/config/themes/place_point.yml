@@ -61,10 +61,14 @@ datasets:
       name: $descriptn
       theme: landuse
       metadata: null
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
+    name: nz_auckland_island_historic_site_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *historic_site
+      t50_fid: null
   # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
-  #   name: nz_auckland_island_historic_site_points_topo_150k
-  #   mapping: *historic_site
   # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
   #   name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
   #   mapping: *historic_site
