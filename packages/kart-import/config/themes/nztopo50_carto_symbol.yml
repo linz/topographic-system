@@ -33,11 +33,13 @@ datasets:
       - lookup: landuse
         predicate: within
     mapping:
-      source_id: $landuse.id
+      metadata: { source: $landuse.id, fixup: true }
       type: golf_course
       label: null
       orientation: null
       t50_fid: null
+    fixups:
+      - fn: build_carto_symbol_metadata
 
   - source:
       url: git@github.com:linz/topographic-source-data
@@ -47,11 +49,13 @@ datasets:
       - lookup: landuse
         predicate: within
     mapping:
-      source_id: $landuse.id
+      metadata: { source: $landuse.id, fixup: true }
       type: $mine_vis
       t50_fid: null
       label: null
       orientation: null
+    fixups:
+      - fn: build_carto_symbol_metadata
     corrections:
       - column: type
         replace:
@@ -68,11 +72,13 @@ datasets:
         predicate: nearest
         max_distance: 1
     mapping:
-      source_id: $road_line.id
+      metadata: { source: $road_line.id, fixup: true }
       type: highway_shield
       label: $road_line.highway_number
       orientation: null
       t50_fid: null
+    fixups:
+      - fn: build_carto_symbol_metadata
 
   - source:
       url: git@github.com:linz/topographic-source-data
@@ -84,7 +90,7 @@ datasets:
         max_distance: 20
         chop: 64
     mapping:
-      source_id: $contour.id
+      metadata: { source: $contour.id, fixup: true }
       type: contour_number
       label: $contour.elevation
       orientation: $orientation
@@ -92,3 +98,4 @@ datasets:
       t50_fid: null
     fixups:
       - fn: contour_number
+      - fn: build_carto_symbol_metadata

@@ -434,6 +434,70 @@ def test_build_nzgb_metadata_rejects_an_unknown_lookup(road_releases):
         fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
 
 
+CARTO_SYMBOL_KEY = "11111111-1111-1111-1111-111111111111"
+
+
+def _carto_symbol_gdf(feature_ids: list[str | None]) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` frame: `metadata` already holds the joined feature's UUID."""
+    return gpd.GeoDataFrame({"metadata": feature_ids}, geometry=[Point(0, 0) for _ in feature_ids], crs="EPSG:2193")
+
+
+def _carto_symbol_td(monkeypatch, lookup: str, repo: str) -> ThemeDataset:
+    """A carto_symbol dataset mapping `$<lookup>.id` into `metadata`, with that lookup registered."""
+    from . import config as config_module
+
+    monkeypatch.setitem(
+        config_module.LOOKUP_MAP,
+        lookup,
+        config_module.Lookup(
+            name=lookup, source={"url": f"git@github.com:linz/{repo}", "dataset": lookup}, columns=["id"], geometry=True
+        ),
+    )
+    return ThemeDataset.model_validate(
+        {
+            "name": "sym",
+            "source": "kart@data.koordinates.com:linz/x-topo-150k",
+            "mapping": {"metadata": {"source": f"${lookup}.id", "fixup": True}},
+        }
+    )
+
+
+def test_build_carto_symbol_metadata_record_shape(road_releases, frozen_build_time, monkeypatch):
+    """A plain link: `table_column` null and the UUID key stored as a JSON string."""
+    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": None,
+            "source": "topographic_data",
+            "source_key_name": "id",
+            "source_key_value": CARTO_SYMBOL_KEY,
+            "source_table": "landuse",
+            "source_column": "id",
+            "source_updated_at": BUILD_TIME_STAMP,
+            "imported_at": BUILD_TIME_STAMP,
+        }
+    ]
+
+
+def test_build_carto_symbol_metadata_source_is_the_lookups_repo(road_releases, monkeypatch):
+    td = _carto_symbol_td(monkeypatch, "contour", "topographic-contour-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0])[0]["source"] == "topographic_contour_data"
+
+
+def test_build_carto_symbol_metadata_leaves_unmatched_symbols_null(road_releases, monkeypatch):
+    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY, None]), td, 66)
+
+    assert out["metadata"].isna().tolist() == [False, True]
+
+
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:
     return gdf.loc[gdf["name"] == "a", "status"].iloc[0]
 
