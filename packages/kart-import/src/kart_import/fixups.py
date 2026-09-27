@@ -252,6 +252,7 @@ def _build_source_metadata(
 
     stamp = _release_stamp(release_id)
 
+    key: pd.Series
     if numeric_key:
         # Not `errors="coerce"`: a non-numeric column here means the config wired something other
         # than the key column into `metadata`, which should fail rather than quietly produce an

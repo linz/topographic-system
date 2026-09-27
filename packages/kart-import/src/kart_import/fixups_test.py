@@ -450,7 +450,10 @@ def _carto_symbol_td(monkeypatch, lookup: str, repo: str) -> ThemeDataset:
         config_module.LOOKUP_MAP,
         lookup,
         config_module.Lookup(
-            name=lookup, source={"url": f"git@github.com:linz/{repo}", "dataset": lookup}, columns=["id"], geometry=True
+            name=lookup,
+            source=config_module.Source(url=f"git@github.com:linz/{repo}", dataset=lookup),
+            columns=["id"],
+            geometry=True,
         ),
     )
     return ThemeDataset.model_validate(
