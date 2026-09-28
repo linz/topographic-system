@@ -2,7 +2,6 @@
 
 All datasets have a corresponding schema defined as [TypeSpec](https://typespec.io), These schemas are critical in ensuring the dataset structure is aligned to LINZ best practices and that all data published is aligned to the schema itself, The schemas also store valuable metadata about the dataset
 
-
 ## Why TypeSpec
 
 TypeSpec allows us to create the schema once then export it into the many formats we use:
