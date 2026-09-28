@@ -1,6 +1,7 @@
 # Dataset Schema
 
-All datasets have a corresponding schema defined as [TypeSpec](https://typespec.io)
+All datasets have a corresponding schema defined as [TypeSpec](https://typespec.io), These schemas are critical in ensuring the dataset structure is aligned to LINZ best practices and that all data published is aligned to the schema itself, The schemas also store valuable metadata about the dataset
+
 
 ## Why TypeSpec
 
@@ -97,5 +98,3 @@ kart meta set ${dataset_name} schema ${schema_host}/schema/release=v0.0.1/${data
 # Get the schema for a dataset
 kart meta get ${dataset_name} schema
 ```
-
-These schemas are critical in ensuring the dataset structure is aligned to LINZ best practices and that all data published is aligned to the schema itself, The schemas also store valuable metadata about the dataset
