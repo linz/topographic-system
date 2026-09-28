@@ -7,7 +7,7 @@ Key components across all storage structures
 - `latest/` The latest "released" copy of the component,
 - `next/` (Optional) The next release,
 - `/thumbnail.webp` - (Optional) A image representation of the component
-- `/covering.geojson` - (Optional) A complex feature representing a detailed
+- `/covering.geojson` - (Optional) A complex feature representing a detailed coverage geometry
 
 A component may opt into multiple storage structures, such as both "date" and "pull_request" where merging to master deploys the "date" structure and pull requests deploy the "pull_request" structure.
 

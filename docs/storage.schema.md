@@ -1,10 +1,10 @@
 # Dataset Schema
 
-All datasets have a corresponding schema defined as [Typespec](https://typespec.io)
+All datasets have a corresponding schema defined as [TypeSpec](https://typespec.io)
 
-## Why Typespec
+## Why TypeSpec
 
-Typespec allows us to create the schema once, and export it into many formats we use:
+TypeSpec allows us to create the schema once then export it into the many formats we use:
 
 - JSONSchema - Defines the shape of the data
 - Parquet - Physical storage format
@@ -35,21 +35,21 @@ JSON schemas are stored in a public https accessible location with basic STAC me
 ```yml
 /schema/catalog.json # Root catalog pointing to every release
 /schema/latest/collection.json # Links to all schemas within latest (airport, building, etc)
-/schema/latest/airport.json # points to v2.1
+/schema/latest/airport.json # Same as v2.1
 
-/schema/release=v1.1/collection.json
-/schema/release=v1.1/airport.json
+/schema/version=v1.1/collection.json
+/schema/version=v1.1/airport.json
 
-/schema/release=v1.2/collection.json
-/schema/release=v1.2/airport.json
+/schema/version=v1.2/collection.json
+/schema/version=v1.2/airport.json
 
-/schema/release=v2.1/collection.json
-/schema/release=v2.1/airport.json
+/schema/version=v2.1/collection.json
+/schema/version=v2.1/airport.json
 ```
 
 ### Typescript
 
-All schemas and their types are published into npm `@linzjs/topographic-schema`
+All schemas and their types are published to npm as `@linzjs/topographic-schema`
 
 ```typescript
 import type {Airport} from '@linzjs/topographic-schema'; // Latest
