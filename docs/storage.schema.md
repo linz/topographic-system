@@ -92,7 +92,7 @@ Datasets are attached to their schemas using `kart meta`
 
 ```bash
 # Set the schema for a dataset
-kart meta set ${dataset_name} schema ${schema_host}/schema/release=v0.0.1/${dataset_name}.json
+kart meta set ${dataset_name} schema ${schema_host}/schema/version=v2.1/${dataset_name}.json
 
 # Get the schema for a dataset
 kart meta get ${dataset_name} schema
