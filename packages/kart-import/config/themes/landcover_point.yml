@@ -1,20 +1,35 @@
 name: landcover_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  cemetery: &cemetery
+    t50_fid: $
+    type: cemetery
+    subtype: null
+    elevation: null
+    name: $
+    orientation: null
+    theme: landcover
+    metadata: null
+  swamp: &swamp
+    t50_fid: $
+    type: swamp
+    subtype: null
+    elevation: null
+    name: $
+    orientation: null
+    theme: landcover
+    metadata: null
+
 datasets:
   # -------- cemetery
   # nz
   - source: kart@data.koordinates.com:linz/nz-cemetery-points-topo-150k
     name: nz_cemetery_points_topo_150k
-    mapping: &cemetery
-      t50_fid: $
-      type: cemetery
-      subtype: null
-      elevation: null
-      name: $
-      orientation: null
-      theme: landcover
-      metadata: null
+    mapping: *cemetery
   - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-points-topo-150k
     name: nz_chatham_island_cemetery_points_topo_150k
     mapping: *cemetery
@@ -103,15 +118,7 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-swamp-points-topo-150k
     name: nz_swamp_points_topo_150k
-    mapping: &swamp
-      t50_fid: $
-      type: swamp
-      subtype: null
-      elevation: null
-      name: $
-      orientation: null
-      theme: landcover
-      metadata: null
+    mapping: *swamp
   - source: kart@data.koordinates.com:linz/nz-chatham-island-swamp-points-topo-150k
     name: nz_chatham_island_swamp_points_topo_150k
     mapping: *swamp

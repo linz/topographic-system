@@ -1,6 +1,17 @@
 name: water_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  river: &river
+    t50_fid: $
+    type: river
+    name: null
+    theme: landcover
+    metadata: null
+
 lookups:
   # -------- canal
   - name: canal_cl_lkp
@@ -93,44 +104,42 @@ datasets:
         left_on: t50_fid
     fixups:
       - fn: build_nzgb_metadata
-  # Chatham Islands overlap with `river_cl_lkp` is unverified, so this keeps the
-  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  # Chatham Islands overlap with `river_cl_lkp` is unverified, so this shares the
+  # pre-lookup `river` anchor rather than the mainland entry's lookup mapping.
   - source: kart@data.koordinates.com:linz/nz-chatham-island-river-centrelines-topo-150k
     name: nz_chatham_island_river_centrelines_topo_150k
-    mapping:
-      t50_fid: $
-      type: river
-      name: null
-      theme: landcover
-      metadata: null
+    mapping: *river
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-river-centrelines-topo-125k
     name: nz_antipodes_island_river_centrelines_topo_125k
     feature_key: auto_pk
     mapping:
+      <<: *river
       t50_fid: null
-      type: river
-      name: null
-      theme: landcover
-      metadata: null
   - source: kart@data.koordinates.com:linz/nz-auckland-island-river-centrelines-topo-150k
     name: nz_auckland_island_river_centrelines_topo_150k
     feature_key: auto_pk
     mapping:
+      <<: *river
       t50_fid: null
-      type: river
-      name: null
-      theme: landcover
-      metadata: null
-  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-river-centrelines-topo-150k
-  #   name: nz_campbell_island_motu_ihupuku_river_centrelines_topo_150k
-  #   mapping: *river
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-river-centrelines-topo-125k
-  #   name: nz_kermadec_is_river_centrelines_topo_125k
-  #   mapping: *river
-  # - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-river-centrelines-topo-125k
-  #   name: nz_snares_island_tini_heke_river_centrelines_topo_125k
-  #   mapping: *river
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-river-centrelines-topo-125k
+    name: nz_snares_island_tini_heke_river_centrelines_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *river
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-river-centrelines-topo-150k
+    name: nz_campbell_island_motu_ihupuku_river_centrelines_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *river
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-river-centrelines-topo-125k
+    name: nz_kermadec_is_river_centrelines_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *river
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-river-centrelines-topo-125k-zone3
   #   name: cook_islands_river_centrelines_topo_125k_zone3

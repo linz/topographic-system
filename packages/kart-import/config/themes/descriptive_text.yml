@@ -1,6 +1,18 @@
 name: descriptive_text
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  descriptive_text: &descriptive_text
+    t50_fid: $
+    type: descriptive_text
+    info_display: $info_disp
+    size: $size
+    theme: annotation
+    metadata: null
+
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-descriptive-texts-topo-150k-zone3
@@ -30,68 +42,37 @@ datasets:
   #      theme: annotation
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-descriptive-texts-topo-150k
-    mapping:
-      t50_fid: $
-      type: descriptive_text
-      info_display: $info_disp
-      size: $size
-      theme: annotation
-      metadata: null
+    mapping: *descriptive_text
+  # nzoi
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-descriptive-texts-topo-125k
     feature_key: auto_pk
     mapping:
+      <<: *descriptive_text
       t50_fid: null
-      type: descriptive_text
-      info_display: $info_disp
-      size: $size
-      theme: annotation
-      metadata: null
   - source: kart@data.koordinates.com:linz/nz-auckland-island-descriptive-texts-topo-150k
     feature_key: auto_pk
     mapping:
+      <<: *descriptive_text
       t50_fid: null
-      type: descriptive_text
-      info_display: $info_disp
-      size: $size
-      theme: annotation
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-descriptive-texts-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: descriptive_text
-  #      info_display: $info_disp
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-descriptive-texts-topo-150k
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-descriptive-texts-topo-125k
+    feature_key: auto_pk
     mapping:
-      t50_fid: $
-      type: descriptive_text
-      info_display: $info_disp
-      size: $size
-      theme: annotation
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-descriptive-texts-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: descriptive_text
-  #      info_display: $info_disp
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
+      <<: *descriptive_text
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-descriptive-texts-topo-150k
+    feature_key: auto_pk
+    mapping:
+      <<: *descriptive_text
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-descriptive-texts-topo-150k
+    mapping: *descriptive_text
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-descriptive-texts-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *descriptive_text
+      t50_fid: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-descriptive-texts-ant-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: descriptive_text
-  #      info_display: $info_disp
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-descriptive-texts-topo-125k
   #    mapping:
   #      t50_fid: $
   #      type: descriptive_text

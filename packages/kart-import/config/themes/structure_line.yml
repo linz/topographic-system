@@ -1,6 +1,20 @@
 name: structure_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  cableway_people: &cableway_people
+    t50_fid: $
+    type: cableway_people
+    subtype: $restrictns
+    species: null
+    status: null
+    name: null
+    theme: structures
+    metadata: null
+
 datasets:
   # -------- boatramp
   # nz
@@ -86,19 +100,14 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-cableway-people-centrelines-topo-150k
     name: nz_cableway_people_centrelines_topo_150k
-    mapping: &cableway_people
-      t50_fid: $
-      type: cableway_people
-      subtype: $restrictns
-      species: null
-      status: null
-      name: null
-      theme: structures
-      metadata: null
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
-  #   name: nz_kermadec_is_cableway_people_centrelines_topo_125k
-  #   mapping: *cableway_people
+    mapping: *cableway_people
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-cableway-people-centrelines-topo-125k
+    name: nz_kermadec_is_cableway_people_centrelines_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *cableway_people
+      t50_fid: null
 
   # -------- dam
   # nz

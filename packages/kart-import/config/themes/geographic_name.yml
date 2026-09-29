@@ -1,6 +1,19 @@
 name: geographic_name
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  geographic_name: &geographic_name
+    t50_fid: $
+    type: geographic_name
+    name: $name
+    desc_code: $desc_code
+    size: $size
+    theme: annotation
+    metadata: null
+
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone3
@@ -33,85 +46,42 @@ datasets:
   #      theme: annotation
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-geographic-names-topo-150k
-    mapping:
-      t50_fid: $
-      type: geographic_name
-      name: $name
-      desc_code: $desc_code
-      size: $size
-      theme: annotation
-      metadata: null
+    mapping: *geographic_name
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-geographic-names-topo-125k
     feature_key: auto_pk
     mapping:
+      <<: *geographic_name
       t50_fid: null
-      type: geographic_name
-      name: $name
-      desc_code: $desc_code
-      size: $size
-      theme: annotation
-      metadata: null
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-auckland-island-geographic-names-topo-150k
     feature_key: auto_pk
     mapping:
+      <<: *geographic_name
       t50_fid: null
-      type: geographic_name
-      name: $name
-      desc_code: $desc_code
-      size: $size
-      theme: annotation
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: geographic_name
-  #      name: $name
-  #      desc_code: $desc_code
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
-  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: geographic_name
-  #      name: $name
-  #      desc_code: $desc_code
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
-  - source: kart@data.koordinates.com:linz/nz-chatham-island-geographic-names-topo-150k
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-geographic-names-topo-125k
+    feature_key: auto_pk
     mapping:
-      t50_fid: $
-      type: geographic_name
-      name: $name
-      desc_code: $desc_code
-      size: $size
-      theme: annotation
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-geographic-names-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: geographic_name
-  #      name: $name
-  #      desc_code: $desc_code
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
+      <<: *geographic_name
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *geographic_name
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
+    feature_key: auto_pk
+    mapping:
+      <<: *geographic_name
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-geographic-names-topo-150k
+    mapping: *geographic_name
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-geographic-names-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *geographic_name
+      t50_fid: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-geographic-names-ant-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: geographic_name
-  #      name: $name
-  #      desc_code: $desc_code
-  #      size: $size
-  #      theme: annotation
-  #      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-geographic-names-topo-125k
   #    mapping:
   #      t50_fid: $
   #      type: geographic_name

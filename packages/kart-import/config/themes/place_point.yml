@@ -1,6 +1,18 @@
 name: place_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  historic_site: &historic_site
+    t50_fid: $
+    type: historic_site
+    subtype: null
+    name: $descriptn
+    theme: landuse
+    metadata: null
+
 datasets:
   # -------- cave
   # nz
@@ -54,13 +66,7 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-historic-site-points-topo-150k
     name: nz_historic_site_points_topo_150k
-    mapping: &historic_site
-      t50_fid: $
-      type: historic_site
-      subtype: null
-      name: $descriptn
-      theme: landuse
-      metadata: null
+    mapping: *historic_site
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-auckland-island-historic-site-points-topo-150k
     name: nz_auckland_island_historic_site_points_topo_150k
@@ -68,10 +74,12 @@ datasets:
     mapping:
       <<: *historic_site
       t50_fid: null
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
-  #   name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
-  #   mapping: *historic_site
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-historic-site-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_historic_site_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *historic_site
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-historic-site-points-topo-125k-zone4
   #   name: cook_islands_historic_site_points_topo_125k_zone4

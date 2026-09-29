@@ -1,6 +1,22 @@
 name: structure_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  wreck: &wreck
+    t50_fid: $
+    type: wreck
+    subtype: $wreck_of
+    tank_type: null
+    status: null
+    name: $
+    height: null
+    orientation: null
+    theme: structures
+    metadata: null
+
 datasets:
   # -------- beacon
   # Per FTM schema feedback (page 19): raw `type` column distinguishes plain
@@ -458,17 +474,7 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-wreck-points-topo-150k
     name: nz_wreck_points_topo_150k
-    mapping: &wreck
-      t50_fid: $
-      type: wreck
-      subtype: $wreck_of
-      tank_type: null
-      status: null
-      name: $
-      height: null
-      orientation: null
-      theme: structures
-      metadata: null
+    mapping: *wreck
   - source: kart@data.koordinates.com:linz/nz-chatham-island-wreck-points-topo-150k
     name: nz_chatham_island_wreck_points_topo_150k
     mapping: *wreck
@@ -479,10 +485,12 @@ datasets:
     mapping:
       <<: *wreck
       t50_fid: null
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
-  #   name: nz_kermadec_is_wreck_points_topo_125k
-  #   mapping: *wreck
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-wreck-points-topo-125k
+    name: nz_kermadec_is_wreck_points_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *wreck
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/niue-wreck-points-topo-150k
   #   name: niue_wreck_points_topo_150k

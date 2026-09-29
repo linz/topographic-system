@@ -1,6 +1,25 @@
 name: marine
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  rock: &rock
+    t50_fid: $
+    type: rock
+    subtype: null
+    name: $
+    theme: landcover
+    metadata: null
+  shoal: &shoal
+    t50_fid: $
+    type: shoal
+    subtype: null
+    name: $
+    theme: landcover
+    metadata: null
+
 datasets:
   # -------- mangrove
   # nz
@@ -46,13 +65,7 @@ datasets:
   # nz
   - source: kart@data.koordinates.com:linz/nz-rock-polygons-topo-150k
     name: nz_rock_polygons_topo_150k
-    mapping: &rock
-      t50_fid: $
-      type: rock
-      subtype: null
-      name: $
-      theme: landcover
-      metadata: null
+    mapping: *rock
   - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-polygons-topo-150k
     name: nz_chatham_island_rock_polygons_topo_150k
     mapping: *rock
@@ -69,37 +82,49 @@ datasets:
     mapping:
       <<: *rock
       t50_fid: null
-  # - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-polygons-topo-125k
-  #   name: nz_bounty_islands_rock_polygons_topo_125k
-  #   mapping: *rock
-  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-polygons-topo-150k
-  #   name: nz_campbell_island_motu_ihupuku_rock_polygons_topo_150k
-  #   mapping: *rock
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-polygons-topo-125k
-  #   name: nz_kermadec_is_rock_polygons_topo_125k
-  #   mapping: *rock
-  # - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-rock-polygons-topo-125k
-  #   name: nz_snares_island_tini_heke_rock_polygons_topo_125k
-  #   mapping: *rock
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-rock-polygons-topo-125k
+    name: nz_snares_island_tini_heke_rock_polygons_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-polygons-topo-125k
+    name: nz_bounty_islands_rock_polygons_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_rock_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-polygons-topo-125k
+    name: nz_kermadec_is_rock_polygons_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock
+      t50_fid: null
 
   # -------- shoal
   # nz
   - source: kart@data.koordinates.com:linz/nz-shoal-polygons-topo-150k
     name: nz_shoal_polygons_topo_150k
-    mapping: &shoal
-      t50_fid: $
-      type: shoal
-      subtype: null
-      name: $
-      theme: landcover
-      metadata: null
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-shoal-polygons-topo-150k
-  #   name: nz_campbell_island_motu_ihupuku_shoal_polygons_topo_150k
-  #   mapping: *shoal
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-shoal-polygons-topo-125k
-  #   name: nz_kermadec_is_shoal_polygons_topo_125k
-  #   mapping: *shoal
+    mapping: *shoal
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-shoal-polygons-topo-150k
+    name: nz_campbell_island_motu_ihupuku_shoal_polygons_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *shoal
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-shoal-polygons-topo-125k
+    name: nz_kermadec_is_shoal_polygons_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *shoal
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-shoal-polygons-topo-125k-zone3
   #   name: cook_islands_shoal_polygons_topo_125k_zone3

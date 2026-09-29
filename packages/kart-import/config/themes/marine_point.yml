@@ -1,24 +1,24 @@
 name: marine_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  rock_point: &rock_point
+    t50_fid: $
+    type: rock
+    # Source carries no composition attribute, so the subtype stays null.
+    subtype: null
+    name: $name
+    theme: landcover
+    metadata: null
+
 datasets:
   - source: kart@data.koordinates.com:linz/nz-rock-points-topo-150k
-    mapping:
-      t50_fid: $
-      type: rock
-      # Source carries no composition attribute, so the subtype stays null.
-      subtype: null
-      name: $name
-      theme: landcover
-      metadata: null
+    mapping: *rock_point
   - source: kart@data.koordinates.com:linz/nz-chatham-island-rock-points-topo-150k
-    mapping:
-      t50_fid: $
-      type: rock
-      subtype: null
-      name: $name
-      theme: landcover
-      metadata: null
+    mapping: *rock_point
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone3
   #    name: cook_islands_rock_points_zone3
@@ -57,46 +57,28 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
     feature_key: auto_pk
     mapping:
+      <<: *rock_point
       t50_fid: null
-      type: rock
-      subtype: null
-      name: $name
-      theme: landcover
-      metadata: null
   - source: kart@data.koordinates.com:linz/nz-auckland-island-rock-points-topo-150k
     feature_key: auto_pk
     mapping:
+      <<: *rock_point
       t50_fid: null
-      type: rock
-      subtype: null
-      name: $name
-      theme: landcover
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: rock
-  #      subtype: null
-  #      name: $name
-  #      theme: landcover
-  #      metadata: null
-  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: rock
-  #      subtype: null
-  #      name: $name
-  #      theme: landcover
-  #      metadata: null
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: rock
-  #      subtype: null
-  #      name: $name
-  #      theme: landcover
-  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-points-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock_point
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-rock-points-topo-150k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock_point
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-rock-points-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *rock_point
+      t50_fid: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-rock-points-ant-150k
   #    mapping:

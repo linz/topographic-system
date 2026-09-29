@@ -50,16 +50,16 @@ datasets:
       surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
       theme: transport
       metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-runway-polygons-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: runway
-  #      subtype: $runway_use
-  #      status: $status
-  #      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
-  #      theme: transport
-  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-runway-polygons-topo-125k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: runway
+      subtype: $runway_use
+      status: $status
+      surface: { source: $surface, default: grass } # legacy null_update: grass where NULL
+      theme: transport
+      metadata: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-runway-polygons-ant-150k
   #    mapping:

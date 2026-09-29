@@ -78,16 +78,16 @@ datasets:
       name: $name
       theme: buildings
       metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-polygons-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: building
-  #      subtype: $bldg_use
-  #      status: $status
-  #      name: $name
-  #      theme: buildings
-  #      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-polygons-topo-125k
+    feature_key: auto_pk
+    mapping:
+      t50_fid: null
+      type: building
+      subtype: $bldg_use
+      status: $status
+      name: $name
+      theme: buildings
+      metadata: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-building-polygons-topo-125k
   #    mapping:
