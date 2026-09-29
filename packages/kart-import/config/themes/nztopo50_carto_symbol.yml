@@ -7,25 +7,21 @@ lookups:
     source:
       url: git@github.com:linz/topographic-data
       dataset: landuse
-    # topographic-data's landuse schema renamed `topo_id` to `id` at its release-66 snapshot; older
-    # snapshots carry the same value under `topo_id`, so fall back to it to keep the id on a rename.
-    columns: [{ name: id, aliases: [topo_id] }]
+    columns: [id]
     geometry: true
 
   - name: contour
     source:
       url: git@github.com:linz/topographic-contour-data
       dataset: contour
-    # Older contour snapshots carry the id under `topo_id`; fall back to it after the rename to `id`.
-    columns: [{ name: id, aliases: [topo_id] }, elevation]
+    columns: [id, elevation]
     geometry: true
 
   - name: road_line
     source:
       url: git@github.com:linz/topographic-data
       dataset: road_line
-    # Older road_line snapshots carry the id under `topo_id`; fall back to it after the rename to `id`.
-    columns: [{ name: id, aliases: [topo_id] }, highway_number]
+    columns: [id, highway_number]
     geometry: true
 
 datasets:
