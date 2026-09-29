@@ -1,6 +1,18 @@
 name: island
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  island: &island
+    t50_fid: $
+    type: island
+    name: $name
+    group_name: $grp_name
+    theme: landcover
+    metadata: null
+
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone3
@@ -30,55 +42,40 @@ datasets:
   #      theme: landcover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-island-polygons-topo-150k
+    mapping: *island
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-polygons-topo-125k
+    feature_key: auto_pk
     mapping:
-      t50_fid: $
-      type: island
-      name: $name
-      group_name: $grp_name
-      theme: landcover
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-antipodes-island-polygons-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: island
-  #      name: $name
-  #      group_name: $grp_name
-  #      theme: landcover
-  #      metadata: null
-  #  - source: kart@data.koordinates.com:linz/nz-auckland-island-island-polygons-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: island
-  #      name: $name
-  #      group_name: $grp_name
-  #      theme: landcover
-  #      metadata: null
-  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-island-polygons-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: island
-  #      name: $name
-  #      group_name: $grp_name
-  #      theme: landcover
-  #      metadata: null
+      <<: *island
+      t50_fid: null
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-island-polygons-topo-150k
+    feature_key: auto_pk
+    mapping:
+      <<: *island
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-island-polygons-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *island
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-island-polygons-topo-150k
+    feature_key: auto_pk
+    mapping:
+      <<: *island
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-polygons-topo-125k
+    feature_key: auto_pk
+    mapping:
+      <<: *island
+      t50_fid: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-island-polygons-topo-150k
+    mapping: *island
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-island-polygons-topo-125k
+    feature_key: auto_pk
     mapping:
-      t50_fid: $
-      type: island
-      name: $name
-      group_name: $grp_name
-      theme: landcover
-      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-island-polygons-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: island
-  #      name: $name
-  #      group_name: $grp_name
-  #      theme: landcover
-  #      metadata: null
+      <<: *island
+      t50_fid: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-island-polygons-ant-150k
   #    mapping:
@@ -86,15 +83,6 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: null
-  #      theme: landcover
-  #      metadata: null
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-island-polygons-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: island
-  #      name: $name
-  #      group_name: $grp_name
   #      theme: landcover
   #      metadata: null
   # Only keep NZ datasets for initial load.

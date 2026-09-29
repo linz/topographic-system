@@ -1,6 +1,20 @@
 name: building_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  building_point: &building_point
+    t50_fid: $
+    type: building
+    subtype: $bldg_use
+    status: $status
+    name: $name
+    orientation: null
+    theme: buildings
+    metadata: null
+
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-building-points-topo-125k-zone3
@@ -81,27 +95,8 @@ datasets:
       - { column: subtype, set: null, where: { t50_fid: 7862766, subtype: 'research station' } }
       - { column: subtype, set: null, where: { t50_fid: 7862767, subtype: 'research station' } }
       - { column: subtype, set: null, where: { t50_fid: 7862768, subtype: 'research station' } }
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-building-points-topo-150k
-  #    mapping:
-  #      t50_fid: $
-  #      type: building
-  #      subtype: $bldg_use
-  #      status: $status
-  #      name: $name
-  #      orientation: null
-  #      theme: buildings
-  #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-building-points-topo-150k
-    mapping:
-      t50_fid: $
-      type: building
-      subtype: $bldg_use
-      status: $status
-      name: $name
-      orientation: null
-      theme: buildings
-      metadata: null
+    mapping: *building_point
     corrections:
       - column: subtype
         replace:
@@ -116,17 +111,35 @@ datasets:
         where:
           subtype: 'police station'
           t50_fid: 5448451
-  # needs t50_fid backfilled
-  #  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-points-topo-125k
-  #    mapping:
-  #      t50_fid: $
-  #      type: building
-  #      subtype: $bldg_use
-  #      status: $status
-  #      name: $name
-  #      orientation: null
-  #      theme: buildings
-  #      metadata: null
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-auckland-is-building-points-topo-150k
+    name: nz_auckland_is_building_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *building_point
+      t50_fid: null
+    corrections:
+      - column: subtype
+        replace:
+          'research centre': research_centre
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-building-points-topo-150k
+    name: nz_campbell_island_motu_ihupuku_building_points_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *building_point
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-building-points-topo-125k
+    name: nz_kermadec_is_building_points_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *building_point
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-building-points-topo-125k
+    name: nz_snares_island_tini_heke_building_points_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *building_point
+      t50_fid: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-building-points-ant-150k
   #    mapping:

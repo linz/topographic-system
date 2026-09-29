@@ -1,41 +1,65 @@
 name: relief_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+
+# Reusable mappings, referenced by datasets below via YAML aliases (*name).
+# `_mappings` is not part of the theme schema; the config loader ignores it.
+_mappings:
+  cliff_edge: &cliff_edge
+    t50_fid: $
+    type: cliff_edge
+    subtype: null
+    name: null
+    height: null
+    theme: relief
+    metadata: null
+
 datasets:
   # -------- cliff_edge
   # nz
   - source: kart@data.koordinates.com:linz/nz-cliff-edges-topo-150k
     name: nz_cliff_edges_topo_150k
-    mapping: &cliff_edge
-      t50_fid: $
-      type: cliff_edge
-      subtype: null
-      name: null
-      height: null
-      theme: relief
-      metadata: null
+    mapping: *cliff_edge
   - source: kart@data.koordinates.com:linz/nz-chatham-island-cliff-edges-topo-150k
     name: nz_chatham_island_cliff_edges_topo_150k
     mapping: *cliff_edge
-  # # nzoi
-  # - source: kart@data.koordinates.com:linz/nz-antipodes-island-cliff-edges-topo-125k
-  #   name: nz_antipodes_island_cliff_edges_topo_125k
-  #   mapping: *cliff_edge
-  # - source: kart@data.koordinates.com:linz/nz-auckland-island-cliff-edges-topo-150k
-  #   name: nz_auckland_island_cliff_edges_topo_150k
-  #   mapping: *cliff_edge
-  # - source: kart@data.koordinates.com:linz/nz-bounty-islands-cliff-edges-topo-125k
-  #   name: nz_bounty_islands_cliff_edges_topo_125k
-  #   mapping: *cliff_edge
-  # - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-cliff-edges-topo-150k
-  #   name: nz_campbell_island_motu_ihupuku_cliff_edges_topo_150k
-  #   mapping: *cliff_edge
-  # - source: kart@data.koordinates.com:linz/nz-kermadec-is-cliff-edges-topo-125k
-  #   name: nz_kermadec_is_cliff_edges_topo_125k
-  #   mapping: *cliff_edge
-  # - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-cliff-edges-topo-125k
-  #   name: nz_snares_island_tini_heke_cliff_edges_topo_125k
-  #   mapping: *cliff_edge
+  # nzoi
+  - source: kart@data.koordinates.com:linz/nz-antipodes-island-cliff-edges-topo-125k
+    name: nz_antipodes_island_cliff_edges_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-auckland-island-cliff-edges-topo-150k
+    name: nz_auckland_island_cliff_edges_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-cliff-edges-topo-125k
+    name: nz_snares_island_tini_heke_cliff_edges_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-bounty-islands-cliff-edges-topo-125k
+    name: nz_bounty_islands_cliff_edges_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-cliff-edges-topo-150k
+    name: nz_campbell_island_motu_ihupuku_cliff_edges_topo_150k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
+  - source: kart@data.koordinates.com:linz/nz-kermadec-is-cliff-edges-topo-125k
+    name: nz_kermadec_is_cliff_edges_topo_125k
+    feature_key: auto_pk
+    mapping:
+      <<: *cliff_edge
+      t50_fid: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-cliff-edges-topo-125k-zone4
   #   name: cook_islands_cliff_edges_topo_125k_zone4
