@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     import geopandas as gpd
     import pandas as pd
 
-    from kart_import.config import ThemeDataset
+    from kart_import.config import Lookup, ThemeDataset
 
 # (gdf, td, release_id) -> gdf
 Fixup = Callable[["gpd.GeoDataFrame", "ThemeDataset", int], "gpd.GeoDataFrame"]
@@ -152,8 +152,9 @@ class SourceRef(NamedTuple):
     Field names are the record's JSON keys.
     """
 
-    table_column: str
-    """The target column whose value this record accounts for."""
+    table_column: str | None
+    """The target column whose value this record accounts for, or `None` for a plain link to the
+    source feature."""
     source: str
     """The external system, e.g. `linz_aims`."""
     source_key_name: str
@@ -211,6 +212,7 @@ def _build_source_metadata(
     dataset: str,
     ref: SourceRef,
     unset_key: int | None = None,
+    numeric_key: bool = True,
 ) -> gpd.GeoDataFrame:
     """Rewrite `metadata` from the raw external keys it is carrying into provenance records.
 
@@ -238,8 +240,8 @@ def _build_source_metadata(
     `dataset` names what the wiring was checked against, as in `_drop_listed_empty`: pointed at
     another dataset this would silently overwrite that dataset's `metadata` instead of failing.
 
-    Keys are assumed numeric (`road_id` and NZGB's `feat_id` both are). A text-keyed source is
-    where this would need to grow a coercion choice.
+    Keys are numeric by default (`road_id` and NZGB's `feat_id` both are); pass `numeric_key=False`
+    for a text key such as a feature UUID.
     """
     import json
 
@@ -250,18 +252,23 @@ def _build_source_metadata(
 
     stamp = _release_stamp(release_id)
 
-    # Not `errors="coerce"`: a non-numeric column here means the config wired something other than
-    # the key column into `metadata`, which should fail rather than quietly produce an all-null one.
-    key = pd.to_numeric(gdf["metadata"]).astype("Int32", errors="raise")
+    key: pd.Series
+    if numeric_key:
+        # Not `errors="coerce"`: a non-numeric column here means the config wired something other
+        # than the key column into `metadata`, which should fail rather than quietly produce an
+        # all-null one.
+        key = pd.to_numeric(gdf["metadata"]).astype("Int32", errors="raise")
+    else:
+        key = gdf["metadata"].astype("string")
     has_key = key.notna() if unset_key is None else key.notna() & (key != unset_key)
 
     # Only a row whose looked-up value is present gets a record: the record explains where that
     # value came from, so a key that resolved to a null `ref.table_column` has nothing to explain
-    # and gets NULL `metadata` instead of a record pointing at an absent value.
-    named = gdf[ref.table_column].notna()
-    keyed = has_key & named
+    # and gets NULL `metadata` instead of a record pointing at an absent value. A plain link has
+    # no value to check.
+    keyed = has_key if ref.table_column is None else has_key & gdf[ref.table_column].notna()
 
-    def record(key_value: int) -> str:
+    def record(key_value: int | str) -> str:
         # sort_keys/separators so the same key always serialises to the same bytes - two runs that
         # differ only in dict ordering would read as a changed feature to kart.
         return json.dumps(
@@ -293,7 +300,7 @@ def _build_source_metadata(
             "source": ref.source,
             "keyed": int(keyed.sum()),
             "unlinked": int((~has_key).sum()),
-            f"keyed_without_{ref.table_column}": int((has_key & ~named).sum()),
+            f"keyed_without_{ref.table_column}": int((has_key & ~keyed).sum()),
         },
     )
 
@@ -333,27 +340,14 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     "when this ref was built" is the closest available proxy. Unlike a release-dated ref, this is
     not byte-stable: rebuilding the same release later reproduces different bytes for every row.
     """
-    from .config import LOOKUP_MAP
-
-    metadata_source = td.field_specs()["metadata"].source
-    is_lookup_ref = isinstance(metadata_source, str) and metadata_source.startswith("$")
-    lookup_name, sep, key_column = metadata_source[1:].partition(".") if is_lookup_ref else ("", "", "")
-    if not sep or not key_column:
-        raise ValueError(
-            f"{td.name}: `metadata` must be mapped as '$<lookup>.<key column>' for "
-            f"build_nzgb_metadata, got {metadata_source!r}"
-        )
+    lookup, _ = _metadata_lookup(td, "build_nzgb_metadata")
 
     name_source = td.field_specs()["name"].source
-    if name_source != f"${lookup_name}.name":
+    if name_source != f"${lookup.name}.name":
         raise ValueError(
-            f"{td.name}: `name` must be mapped as '${lookup_name}.name' to match the gazetteer "
-            f"lookup '{lookup_name}' referenced by `metadata`, got {name_source!r}"
+            f"{td.name}: `name` must be mapped as '${lookup.name}.name' to match the gazetteer "
+            f"lookup '{lookup.name}' referenced by `metadata`, got {name_source!r}"
         )
-
-    lookup = LOOKUP_MAP.get(lookup_name)
-    if lookup is None:
-        raise ValueError(f"{td.name}: `metadata` references unknown lookup '{lookup_name}'")
 
     build_stamp = _rfc3339(datetime.now(UTC))
 
@@ -367,6 +361,51 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
         imported_at=build_stamp,
     )
     return _build_source_metadata(gdf, td, release_id, td.name, ref)
+
+
+def _metadata_lookup(td: ThemeDataset, fixup: str) -> tuple[Lookup, str]:
+    """The lookup and key column that `metadata` is mapped from, as `$<lookup>.<key column>`."""
+    from .config import LOOKUP_MAP
+
+    metadata_source = td.field_specs()["metadata"].source
+    is_lookup_ref = isinstance(metadata_source, str) and metadata_source.startswith("$")
+    lookup_name, sep, key_column = metadata_source[1:].partition(".") if is_lookup_ref else ("", "", "")
+    if not sep or not key_column:
+        raise ValueError(
+            f"{td.name}: `metadata` must be mapped as '$<lookup>.<key column>' for {fixup}, got {metadata_source!r}"
+        )
+
+    lookup = LOOKUP_MAP.get(lookup_name)
+    if lookup is None:
+        raise ValueError(f"{td.name}: `metadata` references unknown lookup '{lookup_name}'")
+    return lookup, key_column
+
+
+def build_carto_symbol_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Link a carto symbol to the feature it annotates, keyed by that feature's UUID.
+
+        metadata: {source: $<lookup>.id, fixup: true}
+        fixups:
+          - fn: build_carto_symbol_metadata
+
+    A plain link (`table_column` null), since the symbol copies no value from the feature. `source`
+    is the lookup's repo, e.g. `topographic-contour-data` -> `topographic_contour_data`. Stamped at
+    build time like `build_nzgb_metadata`, so not byte-stable across rebuilds.
+    """
+    lookup, key_column = _metadata_lookup(td, "build_carto_symbol_metadata")
+    repo = lookup.source.url.rsplit("/", 1)[-1]
+
+    build_stamp = _rfc3339(datetime.now(UTC))
+    ref = SourceRef(
+        table_column=None,
+        source=repo.replace("-", "_"),
+        source_key_name=key_column,
+        source_table=lookup.source.dataset or lookup.name,
+        source_column=key_column,
+        source_updated_at=build_stamp,
+        imported_at=build_stamp,
+    )
+    return _build_source_metadata(gdf, td, release_id, td.name, ref, numeric_key=False)
 
 
 def _split_id(parent_id: str, dataset_name: str, parent_fid, part_index: int) -> str:
@@ -818,6 +857,7 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 
 
 FIXUPS: dict[str, Fixup] = {
+    "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
     "carto_text_example_point_id": carto_text_example_point_id,
