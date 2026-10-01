@@ -28,9 +28,10 @@ logger = logging.getLogger("kart_import")
 
 def select_spatial_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> gpd.GeoDataFrame:
     """The selected columns + geometry, for a lookup joined by spatial predicate."""
-    for col in lookup.columns:
-        if col not in gdf.columns:
-            raise KeyError(f"Lookup '{lookup.name}' source column '{col}' not found")
+    missing = [col for col in lookup.columns if col not in gdf.columns]
+    if missing:
+        logger.warning(f"Lookup '{lookup.name}' source columns {missing} not found; filling with null")
+        gdf = gdf.assign(**{col: None for col in missing})
 
     out = gdf[[*lookup.columns, gdf.geometry.name]].copy()
     usable = out.geometry.notna() & ~out.geometry.is_empty
