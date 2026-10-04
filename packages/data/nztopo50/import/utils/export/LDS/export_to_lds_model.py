@@ -1,10 +1,47 @@
 # This script exports nz topographic data model to LDS shapefiles
 # It reads layer information and field mappings from excel files and
 # uses the schema json to force the field formats
+import json
+import logging
 import os
+
 import geopandas as gpd  # type: ignore
 import pandas as pd
-import json
+
+TYPE_SELECTION_ALIASES = {
+    ("landuse", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
+    ("structure_point", "beacon"): ["beacon", "lighthouse"],
+}
+
+TRACK_USE_BY_TYPE = {
+    "horse_track": "horse",
+    "vehicle_track": "vehicle",
+    "cycle_track": "cycle",
+    "dog_track": "dog",
+}
+
+DISPLAY_BY_SUBTYPE = {
+    "large_boulder": "1",
+    "small_rock_outcrop": "2",
+    "large_rock_outcrop": "3",
+}
+
+ROAD_LDS_FIELDS = [
+    ("UFID", "t50_fid"),
+    ("lol_sufi", "rna_sufi"),
+    ("name", "name"),
+    ("RW_lane_c", "rw_lane_count"),
+    ("RW_surface", "rw_surface"),
+    ("road_access", "road_access"),
+    ("width", "width_indicator"),
+    ("name_id", "name_id"),
+    ("surface", "surface"),
+    ("status", "status"),
+    ("num_lanes", "lane_count"),
+    ("hway_num", "highway_number"),
+    ("way_count", "way_count"),
+    ("geometry", "geometry"),
+]
 
 
 class ExportToLDSModel:
@@ -17,6 +54,7 @@ class ExportToLDSModel:
         contour_database,
         product_database,
         output_folder,
+        source_format="gpkg",
     ):
         self.excel_file = layer_info_excel
         self.field_mappings_excel = field_mappings_excel
@@ -25,11 +63,44 @@ class ExportToLDSModel:
         self.contour_database = contour_database
         self.product_database = product_database
         self.output_folder = output_folder
+        self.source_format = source_format.lower()
+        if self.source_format not in {"gpkg", "parquet"}:
+            raise ValueError(f"Unsupported source format: {source_format}")
+        os.makedirs(self.output_folder, exist_ok=True)
+        self.logger = self.create_logger()
         self.layers_info = self.load_layers_info()
+        self.layer_source_counts = {}
+        for layer_info in self.layers_info.values():
+            layer_name = layer_info[3].lower()
+            self.layer_source_counts[layer_name] = (
+                self.layer_source_counts.get(layer_name, 0) + 1
+            )
         self.field_names, self.mapped_names = self.load_field_mapping(
             field_mappings_excel
         )
         self.schemas = self.read_schema(master_schema_file)
+
+    def create_logger(self):
+        logger = logging.getLogger(f"{__name__}.{id(self)}")
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        handler = logging.FileHandler(
+            os.path.join(self.output_folder, "export_to_lds_model.log"),
+            mode="w",
+            encoding="utf-8",
+        )
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        )
+        logger.addHandler(handler)
+        logger.info("LDS export started using %s source data", self.source_format)
+        return logger
+
+    def close_logger(self):
+        for handler in self.logger.handlers[:]:
+            handler.flush()
+            handler.close()
+            self.logger.removeHandler(handler)
 
     def is_macronated(self, word):
         macronated_maori_vowels = {"ā", "ē", "ī", "ō", "ū", "è"}
@@ -82,19 +153,30 @@ class ExportToLDSModel:
         }
         return "".join(macron_map.get(char, char) for char in text)
 
-    def read_source_data(self, format, layer_name, feature_type):
-        layer = gpd.read_file(
-            self.database, layer=layer_name, where=f"feature_type = '{feature_type}'"
+    def read_source_data(self, format, layer_name, feature_type, database=None):
+        database = database or self.database
+        selection_types = TYPE_SELECTION_ALIASES.get(
+            (layer_name, feature_type), [feature_type]
         )
+        where = None
+        if self.layer_source_counts.get(layer_name, 0) > 1:
+            quoted_types = ", ".join(
+                f"'{value.replace(chr(39), chr(39) * 2)}'"
+                for value in selection_types
+            )
+            where = f'"type" IN ({quoted_types})'
+
         if format.lower() == "gpkg":
             layer = gpd.read_file(
-                self.database,
+                database,
                 layer=layer_name,
-                where=f"feature_type = '{feature_type}'",
+                where=where,
             )
         elif format.lower() == "parquet":
-            database = os.path.join(self.database, f"{layer}.parquet")
-            layer = gpd.read_parquet(database, where=f"feature_type = '{feature_type}'")
+            parquet_file = os.path.join(database, f"{layer_name}.parquet")
+            layer = gpd.read_parquet(parquet_file)
+            if where is not None:
+                layer = layer[layer["type"].isin(selection_types)]
         else:
             raise ValueError(f"Unsupported format: {format}")
         return layer
@@ -107,7 +189,9 @@ class ExportToLDSModel:
             shp_name = row.shp_name
             theme = row.theme
             dataset = row.dataset
-            feature_type = row.feature_type
+            feature_type = getattr(row, "type", None)
+            if feature_type is None:
+                feature_type = row.feature_type
             layer_name = row.layer_name
             layer_list = [object_name, theme, feature_type, layer_name, dataset]
             layers_info[shp_name] = layer_list
@@ -127,15 +211,127 @@ class ExportToLDSModel:
 
             field_names[filename].append(field_name)
             mapped_names[filename].append(mapped_name)
+
+        field_names["road_cl"] = [field for field, _mapped in ROAD_LDS_FIELDS]
+        mapped_names["road_cl"] = [mapped for _field, mapped in ROAD_LDS_FIELDS]
         return field_names, mapped_names
 
     def read_schema(self, schema_file):
-        with open(schema_file, "r") as f:
+        with open(schema_file) as f:
             schema_dict = json.load(f)
         return schema_dict
 
     def read_schema_layer(self, layer_name):
-        return self.schemas.get(layer_name, {})
+        schema = self.schemas.get(layer_name)
+        if schema is None:
+            raise KeyError(f"No LDS schema found for {layer_name}")
+        return schema
+
+    def metadata_source_key(self, metadata, key_name):
+        if metadata is None or metadata is pd.NA:
+            return None
+        if isinstance(metadata, bytes):
+            metadata = metadata.decode("utf-8")
+        if isinstance(metadata, str):
+            if not metadata.strip():
+                return None
+            try:
+                metadata = json.loads(metadata)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        if isinstance(metadata, dict):
+            metadata = [metadata]
+        if not isinstance(metadata, (list, tuple)):
+            return None
+        for item in metadata:
+            if isinstance(item, dict) and item.get("source_key_name") == key_name:
+                return item.get("source_key_value")
+        return None
+
+    def restore_source_fields(self, layer, layer_name, feature_type):
+        """Recreate source columns removed by model normalization."""
+        layer = layer.copy()
+
+        if "substance_extracted" in layer:
+            layer["substance"] = layer["substance_extracted"]
+
+        if layer_name in {"building", "building_point"}:
+            layer["building_use"] = layer["subtype"]
+        elif layer_name == "bridge_line":
+            layer["bridge_use"] = layer["type"]
+            layer["bridge_use2"] = layer["subtype"]
+        elif layer_name == "landcover_point":
+            layer["display"] = layer["subtype"].map(DISPLAY_BY_SUBTYPE)
+        elif layer_name in {"landuse", "landuse_line"}:
+            layer["landuse_type"] = layer["subtype"]
+            layer["landuse_use"] = layer["type"].map(TRACK_USE_BY_TYPE)
+        elif layer_name == "landuse_point":
+            layer["place_type"] = layer["subtype"]
+        elif layer_name in {"marine", "marine_point"}:
+            layer["composition"] = layer["subtype"]
+        elif layer_name == "place_point":
+            layer["composition"] = layer["subtype"]
+            if feature_type == "historic_site":
+                layer["description"] = layer["name"]
+        elif layer_name == "railway_line":
+            layer["railway_use"] = layer["subtype"]
+        elif layer_name == "relief_line" and feature_type == "embankment":
+            layer["relief_use"] = layer["subtype"]
+        elif layer_name == "road_line" and "metadata" in layer:
+            layer["rna_sufi"] = pd.to_numeric(
+                layer["metadata"].map(
+                    lambda value: self.metadata_source_key(value, "road_id")
+                ),
+                errors="coerce",
+            )
+        elif layer_name == "runway":
+            layer["runway_use"] = layer["subtype"]
+        elif layer_name == "structure":
+            if feature_type == "tank":
+                layer["structure_type"] = layer["tank_type"]
+                layer["stored_item"] = layer["subtype"]
+            else:
+                layer["structure_type"] = layer["subtype"]
+        elif layer_name == "structure_line":
+            if feature_type == "cableway_industrial":
+                layer["material_conveyed"] = layer["subtype"]
+            elif feature_type == "cableway_people":
+                layer["restrictions"] = layer["subtype"]
+            elif feature_type == "wharf":
+                layer["structure_use"] = layer["subtype"]
+        elif layer_name == "structure_point":
+            if feature_type == "beacon":
+                layer["location"] = layer["subtype"]
+                layer["structure_type"] = layer["type"].where(
+                    layer["type"] == "lighthouse"
+                )
+            elif feature_type in {"bivouac", "tower"}:
+                layer["material"] = layer["subtype"]
+            elif feature_type == "gate":
+                layer["restrictions"] = layer["subtype"]
+            elif feature_type in {"shaft", "windmill"}:
+                layer["structure_use"] = layer["subtype"]
+            elif feature_type == "tank":
+                layer["stored_item"] = layer["subtype"]
+                layer["structure_type"] = layer["tank_type"]
+            elif feature_type == "wreck":
+                layer["wreck_of"] = layer["subtype"]
+        elif layer_name == "tunnel_line":
+            layer["tunnel_type"] = layer["construction_type"]
+            layer["tunnel_use"] = layer["type"]
+            layer["tunnel_use2"] = layer["subtype"]
+        elif layer_name == "track_line":
+            layer["track_use"] = layer["subtype"]
+        elif layer_name == "utility_line" and feature_type == "pipeline":
+            layer["infrastructure_use"] = layer["subtype"]
+        elif layer_name == "vegetation":
+            layer["species"] = layer["subtype"]
+        elif layer_name == "water":
+            layer["water_use"] = layer["subtype"]
+            if "temperature_indicator" in layer:
+                layer["temperature"] = layer["temperature_indicator"]
+
+        return layer
 
     def check_names(self, mapped_names, layer, feature_type):
         # historic_site special case - only has description field. In reality all current historic_site names are not macronated = (N)
@@ -175,6 +371,11 @@ class ExportToLDSModel:
         return layer
 
     def reorder_columns(self, layer, mapped_names, field_names):
+        # Removed source fields that cannot be reconstructed are emitted as null.
+        for mapped_name in mapped_names:
+            if mapped_name != "geometry" and mapped_name not in layer.columns:
+                layer[mapped_name] = None
+
         # Drop fields not in mapped_names and rename to field_names
         # Keep only fields that are in mapped_names
         fields_to_keep = [
@@ -185,9 +386,12 @@ class ExportToLDSModel:
         # Create rename mapping from mapped_names to field_names
         rename_mapping = {}
         for i, mapped_name in enumerate(mapped_names):
-            if mapped_name in layer.columns and i < len(field_names):
-                if mapped_name != field_names[i]:
-                    rename_mapping[mapped_name] = field_names[i]
+            if (
+                mapped_name in layer.columns
+                and i < len(field_names)
+                and mapped_name != field_names[i]
+            ):
+                rename_mapping[mapped_name] = field_names[i]
 
         # Apply renaming
         if rename_mapping:
@@ -260,88 +464,117 @@ class ExportToLDSModel:
             "kiln_pnt",
             "plantation_poly",
         }
-        if shape_name in skip:
-            return True
-        return False
+        return shape_name in skip
 
-    def process_layers(self):
+    def process_layers(self, single_file=None):
         processed_layers = []
-        # debug temp
-        # docontinue = True
-        for shp_name, layer_info in self.layers_info.items():
+        layer_items = self.layers_info.items()
+        if single_file:
+            selected_name = os.path.splitext(os.path.basename(single_file))[0].lower()
+            layer_items = [
+                (shp_name, layer_info)
+                for shp_name, layer_info in layer_items
+                if shp_name.lower() == selected_name
+            ]
+            if not layer_items:
+                message = f"Unknown LDS output file: {single_file}"
+                self.logger.error(message)
+                self.close_logger()
+                raise ValueError(message)
+            self.logger.info("Processing only %s", selected_name)
+
+        for shp_name, layer_info in layer_items:
             start_time = pd.Timestamp.now()
             object_name, theme, feature_type, layer_name, dataset = layer_info
 
             if self.skip_unknown_nodata_layers(shp_name):
-                print(f"Skipping unknown/no data layer: {shp_name}")
+                message = f"Skipping unknown/no data layer: {shp_name}"
+                print(message)
+                self.logger.warning(message)
                 continue
 
-            processed_layers.append(feature_type)
             layer_name = layer_name.lower()
             shp_path = os.path.join(self.output_folder, f"{shp_name}.shp").lower()
             field_names = self.field_names.get(shp_name, [])
             mapped_names = self.mapped_names.get(shp_name, [])
 
             if layer_name == "contour" and os.path.exists(self.contour_database):
-                layer = gpd.read_file(
-                    self.contour_database,
-                    layer=layer_name,
-                    where=f"feature_type = '{feature_type}'",
-                )
+                database = self.contour_database
             elif layer_name in ["nz_topo50_map_sheet"] and os.path.exists(
                 self.product_database
             ):
-                layer = gpd.read_file(
-                    self.product_database,
-                    layer=layer_name,
-                    where=f"feature_type = '{feature_type}'",
-                )
+                database = self.product_database
             else:
-                layer = gpd.read_file(
-                    self.database,
-                    layer=layer_name,
-                    where=f"feature_type = '{feature_type}'",
+                database = self.database
+
+            try:
+                layer = self.read_source_data(
+                    self.source_format, layer_name, feature_type, database=database
                 )
+            except Exception:
+                message = (
+                    f"Unable to open {database}, layer {layer_name}, "
+                    f"type {feature_type}; skipping {shp_name}"
+                )
+                print(message)
+                self.logger.exception(message)
+                continue
+
+            layer = self.restore_source_fields(layer, layer_name, feature_type)
             if "name" in mapped_names or feature_type == "historic_site":
                 layer = self.check_names(mapped_names, layer, feature_type)
 
+            if feature_type == "tree":
+                layer = self.tree_locations_special_case(layer)
             layer = self.reorder_columns(layer, mapped_names, field_names)
             layer.to_crs(2193, inplace=True)
-            schema = self.read_schema_layer(layer_name)
-            if layer_name == "tree_locations":
-                layer = self.tree_locations_special_case(layer)
+            schema = self.read_schema_layer(shp_name)
             layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
+            processed_layers.append(feature_type)
             end_time = pd.Timestamp.now()
             print(
                 f"Exported: {layer_name} of type {feature_type} to {shp_name}: {end_time - start_time}"
+            )
+            self.logger.info(
+                "Exported %s type %s to %s in %s",
+                layer_name,
+                feature_type,
+                shp_name,
+                end_time - start_time,
             )
 
             if layer_name == "ice":
                 shp_path = shp_path.replace("ice", "snow")
                 layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
                 print(f"Exported: {layer_name} to {shp_path}")
+                self.logger.info("Exported %s to %s", layer_name, shp_path)
 
         print(f"Processed layers: {len(processed_layers)}")
+        self.logger.info("LDS export finished; processed %s layers", len(processed_layers))
+        self.close_logger()
 
 
 if __name__ == "__main__":
     model_folder = r"C:\Data\Model"
-    master_schema_file = (
-        r"C:\Data\Topo50\Release62_NZ50_Schemas\nztopo50_lds_schemas.json"
+    script_folder = os.path.dirname(os.path.abspath(__file__))
+    master_schema_file = os.path.join(
+        script_folder, "Release62_NZ50_Schemas", "nztopo50_lds_schemas.json"
     )
 
     layer_info_excel = os.path.join(model_folder, "layers_info.xlsx")
     field_mappings_excel = os.path.join(model_folder, "lds_field_mapping.xlsx")
 
-    source_folder = r"C:\Data\toposource\topographic-data"
-    source_folder = r"C:\Data\topoedit\topographic-data"
-    database = os.path.join(source_folder, "topographic-data.gpkg")
+    # For GeoPackage sources, use source_format="gpkg" and set each value to
+    # its .gpkg file. For GeoParquet, use source_format="parquet" and set each
+    # value to a folder containing one <model_layer_name>.parquet file per layer.
+    source_format = "parquet"
+    database = r"C:\Data\temp\topographic-data"
+    contour_database = r"C:\Data\temp\topographic-contour-data"
+    product_database = r"C:\Data\temp\topographic-product-data"
 
-    contour_folder = r"C:\Data\topoedit\contours"
-    contour_database = os.path.join(contour_folder, "contours.gpkg")
-
-    product_folder = r"C:\Data\topoedit\topographic-carto-data"
-    product_database = os.path.join(product_folder, "topographic-carto-data.gpkg")
+    # Set to an LDS output name such as "road_cl" or "road_cl.shp".
+    # Use None to process every configured output file.
+    single_file = None
 
     output_folder = r"C:\Data\topo50\export\lds_model"
     output_folder = r"C:\temp\export\lds_model"
@@ -357,7 +590,8 @@ if __name__ == "__main__":
         contour_database,
         product_database,
         output_folder,
+        source_format=source_format,
     )
-    exporter.process_layers()
+    exporter.process_layers(single_file=single_file)
     end_time = pd.Timestamp.now()
     print(f"Processing time: {end_time - start_time}")

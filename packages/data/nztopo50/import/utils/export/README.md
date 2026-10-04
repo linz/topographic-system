@@ -33,6 +33,49 @@ Scripts for exporting data to the LINZ Data Service (LDS) shapefile format.
 | `export_to_lds_model.py` | Exports NZ Topo50 layers from PostgreSQL to LDS-format shapefiles using layer info, field mappings, and a master schema JSON |
 | `Release62_NZ50_Schemas/nztopo50_lds_schemas.json` | Master schema file defining field formats for Release 62 NZ Topo50 LDS shapefiles |
 
+#### Export LDS shapefiles from GeoParquet
+
+`export_to_lds_model.py` expects one GeoParquet file per consolidated model
+layer. Each filename must match the model layer name, for example
+`landuse.parquet`, `road_line.parquet`, and `structure_point.parquet`.
+
+In the script's `__main__` block, set:
+
+```python
+source_format = "parquet"
+database = r"C:\Data\temp\topo-parquet\topographic-data"
+contour_database = r"C:\Data\temp\topo-parquet\topographic-contour-data"
+product_database = r"C:\Data\temp\topo-parquet\topographic-product-data"
+```
+
+Each setting is a directory, not a `.parquet` filename. Generate the source
+directories from the three model GeoPackages with:
+
+```powershell
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-data\topographic-data.gpkg C:\Data\temp\topo-parquet\topographic-data
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-contour-data\topographic-contour-data.gpkg C:\Data\temp\topo-parquet\topographic-contour-data
+uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-product-data\topographic-product-data.gpkg C:\Data\temp\topo-parquet\topographic-product-data
+```
+
+Then run the LDS exporter:
+
+```powershell
+uv run python utils\export\LDS\export_to_lds_model.py
+```
+
+To process one LDS output only, set `single_file` in the script's `__main__`
+block. The value is the output shapefile name, with or without `.shp`:
+
+```python
+single_file = "road_cl"
+```
+
+Set `single_file = None` to process every output.
+
+The exporter filters consolidated multi-type layers in memory. Missing or
+unreadable parquet files are written to `export_to_lds_model.log` in the output
+directory and skipped.
+
 ---
 
 ### `parquet/`
