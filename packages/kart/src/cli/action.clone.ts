@@ -5,9 +5,7 @@ import { command, option, optional, positional, string } from 'cmd-ts';
 import { z } from 'zod/mini';
 import { $ } from 'zx';
 
-const EnvParser = z.object({
-  GITHUB_TOKEN: z.optional(z.string()),
-});
+const EnvParser = z.object({ GITHUB_TOKEN: z.optional(z.string()) });
 
 /** Input arguments for the `clone` command */
 export interface CloneArgs {
@@ -76,7 +74,9 @@ export interface CloneContext {
  */
 export function buildCloneContext(args: CloneArgs, token?: string): CloneContext {
   const target = args.output ?? stringToUrlFolder('repo');
-  const ref = args.ref ?? 'master';
+  // `||` not `??`: callers pass `--ref ""` when a workflow has no head ref (eg a push to master),
+  // and an empty ref must fall back to master rather than reaching `kart fetch origin ''`.
+  const ref = args.ref || 'master';
 
   const repoUrl = new URL(args.repository, 'https://github.com/');
 

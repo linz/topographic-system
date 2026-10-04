@@ -1,16 +1,14 @@
 import { pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
-import type cmdts from 'cmd-ts';
 import type { Type } from 'cmd-ts';
-import type { StacCollection } from 'stac-ts';
 
 /**
  * Parse an input parameter as a URL.
  *
  * If it looks like a file path, it will be converted using `pathToFileURL`.
  **/
-export const Url: cmdts.Type<string, URL> = {
+export const Url: Type<string, URL> = {
   from(str) {
     try {
       return Promise.resolve(new URL(str));
@@ -27,7 +25,7 @@ export const Url: cmdts.Type<string, URL> = {
  * Any search parameters or hash will be removed, and a trailing slash added
  * to the path section if it's not present.
  **/
-export const UrlFolder: cmdts.Type<string, URL> = {
+export const UrlFolder: Type<string, URL> = {
   async from(str) {
     const url = await Url.from(str);
     url.search = '';
@@ -37,7 +35,7 @@ export const UrlFolder: cmdts.Type<string, URL> = {
   },
 };
 
-export const UrlFolders: cmdts.Type<string[], URL[]> = {
+export const UrlFolders: Type<string[], URL[]> = {
   async from(str) {
     return await Promise.all(str.map((m) => UrlFolder.from(m)));
   },
@@ -73,13 +71,4 @@ export function stringToUrlFolder(str: string): URL {
   const url = fsa.toUrl(str);
   if (url.pathname.endsWith('/')) return url;
   return new URL(url.href + '/');
-}
-
-/**
- * Resolve a collection URL to its canonical location, if it declares one
- **/
-export async function getCanonical(url: URL): Promise<URL> {
-  const collection = await fsa.readJson<StacCollection>(url);
-  const canonicalLink = collection.links.find((link) => link.rel === 'canonical');
-  return canonicalLink ? new URL(canonicalLink.href, url) : url;
 }

@@ -5,6 +5,7 @@ from kart_import.log import log_context
 
 from ..command import run_command
 from ..config import OUTPUT_DIR, get_themes
+from ..git.linearise import linearise
 
 logger = logging.getLogger("kart_import")
 
@@ -26,7 +27,8 @@ def kart_import_repo(repo_name: str):
 
     repo_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Initializing Git repo", extra={"target": str(repo_dir)})
-    run_command(["git", "init", "."], cwd=str(repo_dir))
+    # -b master so HEAD tracks the branch linearise builds, whatever init.defaultBranch is
+    run_command(["git", "init", "-b", "master", "."], cwd=str(repo_dir))
     run_command(["git", "config", "commit.gpgsign", "false"], cwd=str(repo_dir))
 
     # Enable cone-mode sparse checkout to speed up pulls and simulate --no-checkout
@@ -42,21 +44,24 @@ def kart_import_repo(repo_name: str):
         logger.info("Fetching bundle", extra={"bundle": str(bundle_file), "theme": theme.name})
         run_command(["git", "fetch", str(bundle_file), f"master:{theme.name}"], cwd=str(repo_dir))
 
-    result = run_command(["git", "log", "--all", "--format=%at|%H"], cwd=str(repo_dir))
+    # Keep the branch each commit came from, so the replay knows which subtree it owns
+    dated = []
+    for theme in themes:
+        result = run_command(["git", "log", theme.name, "--format=%at|%H"], cwd=str(repo_dir))
+        for line in result.strip().split("\n"):
+            if line:
+                dated.append((line, theme.name))
 
     # Sort lines by timestamp (the first column) and extract the commit hash
-    commits = []
-    for line in sorted(result.strip().split("\n")):
-        if line:
-            commits.append(line.split("|")[1])
+    commits = [(theme_name, line.split("|")[1]) for line, theme_name in sorted(dated)]
 
-    logger.info(f"Cherry-picking {len(commits)} commits to create a chronologically ordered linear history")
+    logger.info(f"Replaying {len(commits)} commits to create a chronologically ordered linear history")
 
-    # Cherry-pick all commits into the current master branch sequentially
     if not commits:
         raise Exception("No commits found")
 
-    run_command(["git", "cherry-pick"] + commits, cwd=str(repo_dir))
+    # The themes are disjoint, so this needs no merging -- see kart_import.git.linearise
+    linearise(repo_dir, commits)
 
     # Clean up the temporary fetched branches
     for theme in themes:

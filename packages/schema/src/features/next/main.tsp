@@ -17,6 +17,7 @@ import "./landuse_line.tsp";
 import "./landuse_point.tsp";
 import "./marine.tsp";
 import "./marine_point.tsp";
+import "./nztopo50_carto_symbol.tsp";
 import "./nztopo50_carto_text.tsp";
 import "./nztopo50_coastline_island.tsp";
 import "./nztopo50_dms_grid.tsp";

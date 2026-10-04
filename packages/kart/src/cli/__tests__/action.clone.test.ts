@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { stringToUrlFolder } from '@linzjs/topographic-system-shared/src/url.ts';
+import { stringToUrlFolder } from '@linzjs/topographic-system-shared';
 
 import { buildCloneContext } from '../action.clone.ts';
 
@@ -15,6 +15,12 @@ describe('buildCloneContext', () => {
 
   it('should default ref to master', () => {
     const ctx = buildCloneContext({ repository: 'linz/topographic-data' });
+
+    assert.strictEqual(ctx.ref, 'master');
+  });
+
+  it('should default an empty ref to master', () => {
+    const ctx = buildCloneContext({ repository: 'linz/topographic-data', ref: '' });
 
     assert.strictEqual(ctx.ref, 'master');
   });

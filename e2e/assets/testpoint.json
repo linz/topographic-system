@@ -3,19 +3,13 @@
   "$id": "testpoint",
   "type": "object",
   "properties": {
-    "topo_id": {
-      "type": "string"
-    },
+    "topo_id": { "type": "string" },
     "created_date": {},
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null",
-      "not": {
-        "type": "null"
-      }
+      "not": { "type": "null" }
     },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
-    }
+    "bbox": { "$ref": "#/$defs/BBox" }
   },
   "required": ["topo_id", "geometry"],
   "additionalProperties": false,
@@ -23,18 +17,10 @@
     "BBox": {
       "type": "object",
       "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
+        "xmin": { "type": "number" },
+        "ymin": { "type": "number" },
+        "xmax": { "type": "number" },
+        "ymax": { "type": "number" }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
       "description": "GeoParquet 1.1 covering bbox struct."

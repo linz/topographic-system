@@ -2,6 +2,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { fsa } from '@chunkd/fs';
 import {
   logger,
   stringToUrlFolder,
@@ -9,9 +10,10 @@ import {
   gitContext,
   qFromArgs,
   qMapAll,
+  registerFileSystem,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { command, flag, option, optional, restPositionals, string } from 'cmd-ts';
+import { command, flag, option, restPositionals, string } from 'cmd-ts';
 import { $ } from 'zx';
 
 type KartDiffOutput = Record<string, number>;
@@ -43,6 +45,10 @@ export function buildKartExportArgs(dataset: string, outputPath: string, ref: st
   ].flat();
 }
 
+export function buildKartMetaArgs(dataset: string, ref: string, context?: URL): string[] {
+  return [gitContext(context), 'meta', 'get', dataset, ['--ref', ref], ['-o', 'json']].flat();
+}
+
 export const ExportCommand = command({
   name: 'export',
   description: 'Export a kart repository and fetch a specific commit',
@@ -55,6 +61,7 @@ export const ExportCommand = command({
       description:
         'Run as if git was started in <path> instead of the current working directory see git -C for more details',
       defaultValue: () => stringToUrlFolder('repo'),
+      defaultValueIsSerializable: true,
     }),
     output: option({
       type: UrlFolder,
@@ -63,15 +70,17 @@ export const ExportCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(tmpdir(), 'kart', 'export')),
     }),
     ref: option({
-      type: optional(string),
+      type: string,
       long: 'ref',
       description: 'Commit SHA or branch to export (default: FETCH_HEAD)',
       defaultValue: () => 'FETCH_HEAD',
+      defaultValueIsSerializable: true,
     }),
     changed: flag({
       long: 'changed-datasets-only',
       description: 'Export only datasets changed compared to master (default: false)',
       defaultValue: () => false,
+      defaultValueIsSerializable: true,
     }),
     datasets: restPositionals({
       type: string,
@@ -79,6 +88,7 @@ export const ExportCommand = command({
     }),
   },
   async handler(args) {
+    registerFileSystem();
     const ref = args.ref ?? 'FETCH_HEAD';
     logger.info({ ref, datasets: args.datasets }, 'Export:Start');
     const q = qFromArgs(args);
@@ -101,11 +111,14 @@ export const ExportCommand = command({
     const datasetsToProcess = selectExportDatasets(existing, args.datasets, changedKeys);
     logger.info({ worker: args.worker, datasetsToProcess }, 'Export:DatasetsToProcess');
 
-    await qMapAll(
-      q,
-      datasetsToProcess,
-      (dataset) => $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`,
-    );
+    await qMapAll(q, datasetsToProcess, async (dataset) => {
+      await $`kart ${buildKartExportArgs(dataset, exportDir, ref, args.context)}`;
+
+      const metaJson = await $`kart ${buildKartMetaArgs(dataset, ref, args.context)}`.json();
+      if (metaJson[dataset] != null) {
+        await fsa.write(new URL(`${dataset}.json`, args.output), JSON.stringify(metaJson[dataset], null, 2));
+      }
+    });
 
     logger.info('Export:Completed');
   },

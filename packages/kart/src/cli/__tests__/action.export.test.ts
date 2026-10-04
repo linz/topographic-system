@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { buildKartExportArgs, selectExportDatasets } from '../action.export.ts';
+import { buildKartExportArgs, buildKartMetaArgs, selectExportDatasets } from '../action.export.ts';
 
 describe('selectExportDatasets', () => {
   it('should export all existing datasets when none are requested and not changed-only', () => {
@@ -92,5 +92,26 @@ describe('buildKartExportArgs', () => {
       'abc123def456',
       '/tmp/output/buildings.gpkg',
     ]);
+  });
+});
+
+describe('buildKartMetaArgs', () => {
+  it('should build args without context', () => {
+    assert.deepStrictEqual(buildKartMetaArgs('buildings', 'master'), [
+      'meta',
+      'get',
+      'buildings',
+      '--ref',
+      'master',
+      '-o',
+      'json',
+    ]);
+  });
+
+  it('should build args with context', () => {
+    assert.deepStrictEqual(
+      buildKartMetaArgs('buildings', 'feat/my-feature-branch', new URL('file:///tmp/repo-path/')),
+      ['-C', '/tmp/repo-path/', 'meta', 'get', 'buildings', '--ref', 'feat/my-feature-branch', '-o', 'json'],
+    );
   });
 });

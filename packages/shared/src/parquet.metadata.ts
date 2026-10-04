@@ -9,24 +9,22 @@ import { DEFAULT_PARSERS } from 'hyparquet/src/convert.js';
 import type { MinMaxType } from 'hyparquet/src/types.js';
 import type { Extents } from 'stac-ts';
 
-export interface ColumnStats {
-  name: string;
-  type: string;
+import type { StacTableV1_3_0, StacTableV1_3_0Column } from './stac.extensions.ts';
 
-  min: string | number | boolean;
-  max: string | number | boolean;
-
-  null_count: number;
+export interface ColumnStats extends StacTableV1_3_0Column {
+  min?: string | number | boolean;
+  max?: string | number | boolean;
+  null_count?: number;
 }
 
-export interface RowGroupColumnStats {
-  'table:row_count': number;
-  'table:columns': Partial<ColumnStats>[];
+export interface RowGroupColumnStats extends StacTableV1_3_0 {
+  'table:columns': ColumnStats[];
 }
 
 export interface ParquetStacMetadata {
   table: RowGroupColumnStats;
   extent: Extents;
+  epsg: Epsg;
 }
 
 export async function parquetToStac(assetFile: URL): Promise<ParquetStacMetadata> {
@@ -55,11 +53,13 @@ export async function readParquetMetadata(assetFile: URL): Promise<FileMetaData>
 
 interface BasicProjJson {
   /** CRS is optional and defaults to 4326 */
-  crs?: { id: { code: number } };
+  crs: { id: { code: number } };
   bbox: number[];
 }
 
-export async function parquetGeometryStats(parquetMetadata: FileMetaData): Promise<{ bbox: number[]; epsg: Epsg }> {
+export async function parquetGeometryStats(
+  parquetMetadata: FileMetaData,
+): Promise<{ bbox: number[]; epsg: Epsg; column: string }> {
   const geom = parquetMetadata.key_value_metadata?.find((f) => f.key === 'geo');
   if (geom == null) throw new Error('Unable to find geometry metadata in parquet file');
   const geomMeta = JSON.parse(geom.value ?? '{}') as { columns: Record<string, BasicProjJson>; primary_column: string };
@@ -69,15 +69,15 @@ export async function parquetGeometryStats(parquetMetadata: FileMetaData): Promi
   const code = geometry.crs?.id?.code ?? 4326;
   const epsg = await ProjectionLoader.load(code); // validate the epsg code
   const bbox = geometry.bbox;
-  return { bbox, epsg };
+  return { bbox, epsg, column: geomMeta.primary_column };
 }
 
 export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaData): Promise<ParquetStacMetadata> {
-  const tableStats: Record<string, Partial<ColumnStats>> = {};
+  const tableStats: Record<string, ColumnStats> = {};
 
   let createDateKey: string | null = null;
 
-  const { bbox, epsg } = await parquetGeometryStats(parquetMetadata);
+  const { bbox, epsg, column } = await parquetGeometryStats(parquetMetadata);
   const proj = Projection.get(epsg);
 
   for (const rg of parquetMetadata.row_groups) {
@@ -105,13 +105,14 @@ export async function mapParquetMetadataToStacStats(parquetMetadata: FileMetaDat
   const wsg84Bbox = proj.boundsToWgs84BoundingBox(bounds);
   extents.spatial = { bbox: [wsg84Bbox] };
 
-  return {
-    table: {
-      'table:row_count': Number(parquetMetadata.num_rows),
-      'table:columns': Object.values(tableStats),
-    },
-    extent: extents as Extents,
+  const table: RowGroupColumnStats = {
+    'table:row_count': Number(parquetMetadata.num_rows),
+    'table:columns': Object.values(tableStats),
+    'table:primary_geometry': column,
   };
+  if (createDateKey != null) table['table:primary_datetime'] = createDateKey;
+
+  return { table, extent: extents as Extents, epsg };
 }
 
 /**

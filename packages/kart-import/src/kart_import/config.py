@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_releases, env_themes, env_transform_format
+from .env import env_releases, env_theme_format, env_themes, env_transform_format
 from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -23,6 +23,9 @@ CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 CONFIG_DIR_THEMES = CONFIG_DIR / "themes"
 CONFIG_DIR_RELEASE = CONFIG_DIR / "topo50_release.yml"
 CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
+
+# Static style mappings table for the `carto_text_styling` fixup.
+CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 
 # source/ — raw Kart repos and GeoJSON release snapshots
 SOURCE_DIR = DATA_DIR / "source"
@@ -42,6 +45,12 @@ OUTPUT_DIR = DATA_DIR / "output"
 # Format of the working/transform intermediates (GeoParquet by default)
 TRANSFORM_FORMAT = env_transform_format()
 TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"
+
+# Merged per-theme releases, the input to `kart import`. FlatGeobuf carries each column's
+# declared type, so kart records the type we intend rather than one auto-detected from GeoJSON.
+THEME_FORMAT = env_theme_format()
+THEME_SUFFIX = ".fgb" if THEME_FORMAT == "fgb" else ".geojson"
+THEME_DRIVER = "FlatGeobuf" if THEME_FORMAT == "fgb" else "GeoJSON"
 
 
 KOORDINATES_PREFIX = "kart@data.koordinates.com:linz/"
@@ -188,8 +197,9 @@ class Lookup(BaseModel):
 
     source: Source
     name: str = ""
-    key: str
+    key: str = ""
     columns: list[str] = []
+    geometry: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -198,16 +208,48 @@ class Lookup(BaseModel):
             data["name"] = get_dataset_name(Source.model_validate(data["source"]))
         return data
 
+    @model_validator(mode="after")
+    def check_key(self):
+        if not self.geometry and not self.key:
+            raise ValueError(f"lookup '{self.name}' needs a 'key' (or 'geometry: true' for a spatial lookup)")
+        if self.geometry and self.key:
+            raise ValueError(f"spatial lookup '{self.name}' must not set 'key'; it matches by predicate")
+        return self
+
+
+SPATIAL_PREDICATES = ("within", "nearest")
+
 
 class Join(BaseModel):
-    """Left-join a prepared `Lookup`'s columns onto a dataset, matched on a key."""
+    """Join a prepared `Lookup`'s columns onto a dataset, matched on a key (`left_on`) or
+    by geometry (`predicate`, against a `geometry: true` lookup)."""
 
     lookup: str
     """Name of the `Lookup` to join in."""
-    left_on: str
+    left_on: str = ""
     """Column on this dataset's source matched against the lookup's `key`."""
     columns: list[str] | None = None
     """Subset of the lookup's columns to bring in; `None` brings all of them."""
+    predicate: str = ""
+    """Spatial match: `within` or `nearest`."""
+    chop: int | None = None
+    """`nearest` only: split lookup linework into pieces of at most this many segments first."""
+    max_distance: float | None = None
+    """`nearest` only: ignore lookup features further away than this."""
+
+    @model_validator(mode="after")
+    def check_form(self):
+        if bool(self.left_on) == bool(self.predicate):
+            raise ValueError(f"join on lookup '{self.lookup}' needs exactly one of 'left_on' or 'predicate'")
+        if self.predicate and self.predicate not in SPATIAL_PREDICATES:
+            raise ValueError(
+                f"join on lookup '{self.lookup}' has unknown predicate '{self.predicate}'; "
+                f"expected one of {', '.join(SPATIAL_PREDICATES)}"
+            )
+        for field in ("max_distance", "chop"):
+            if getattr(self, field) is not None and self.predicate != "nearest":
+                raise ValueError(f"join on lookup '{self.lookup}' sets '{field}', which needs 'predicate: nearest'")
+        return self
 
 
 class ThemeDataset(BaseModel):
@@ -217,6 +259,8 @@ class ThemeDataset(BaseModel):
     fixups: list[Fixup] = []
     corrections: list[Correction] = []
     joins: list[Join] = []
+    feature_key: str | None = None
+    depends_on_themes: list[str] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -381,6 +425,16 @@ def _validate_dataset_joins(
                     f"requests unknown columns {unknown}; "
                     f"lookup exposes: {sorted(lookup.columns)}"
                 )
+        if join.predicate and not lookup.geometry:
+            raise ValueError(
+                f"Dataset {dataset.name} joins lookup '{join.lookup}' by predicate "
+                f"'{join.predicate}', but that lookup is not declared 'geometry: true'"
+            )
+        if join.left_on and lookup.geometry:
+            raise ValueError(
+                f"Dataset {dataset.name} joins spatial lookup '{join.lookup}' on "
+                f"'{join.left_on}', but a 'geometry: true' lookup keeps no key; use 'predicate'"
+            )
         joined[join.lookup] = set(join.columns) if join.columns is not None else set(lookup.columns)
     return joined
 

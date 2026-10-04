@@ -13,3 +13,5 @@ export async function validateTiff(url: URL, epsg: number): Promise<void> {
 
   await tiff.source.close?.();
 }
+
+export const validator = { validateTiff };

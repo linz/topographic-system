@@ -13,6 +13,6 @@ model nztopo50_grid {
 }
 
 enum grid_direction {
-  X: "x",
-  Y: "y",
+  Easting: "easting",
+  Northing: "northing",
 }

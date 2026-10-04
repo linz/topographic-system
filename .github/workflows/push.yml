@@ -56,7 +56,8 @@ jobs:
     uses: ./.github/workflows/visual-diff.yml
     with:
       environment: nonprod #TODO: Enable prod when data is read "${{ startsWith(github.event.pull_request.title, 'chore: release') && 'prod' || 'nonprod' }}"
-      map_version: 'git-${{ github.sha }}'
+      # `github.sha` is the ephemeral merge commit on pull requests, use the head commit instead
+      map_version: 'git-${{ github.event.pull_request.head.sha || github.sha }}'
       project: https://d1jzh93b1t1cv.cloudfront.net/qgis/nztopo50/latest/nztopo50.json
     secrets: inherit
 
@@ -70,7 +71,7 @@ jobs:
       environment: nonprod
       changed_datasets_only: false
       output: file:///tmp/topographic-data/
-      kart_version: 'git-${{ github.sha }}'
+      kart_version: 'git-${{ github.event.pull_request.head.sha || github.sha }}'
 
   test-end-2-end:
     needs: build-container
@@ -89,8 +90,8 @@ jobs:
       - run: |
           node e2e/index.ts \
             --verbose \
-            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
-            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
+            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.event.pull_request.head.sha || github.sha }} \
+            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.event.pull_request.head.sha || github.sha }}
 
   test-end-2-end-kart-import:
     needs: build-container
@@ -109,5 +110,5 @@ jobs:
       - run: |
           node e2e/index.import.ts \
             --verbose \
-            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.sha }} \
-            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.sha }}
+            --container-kart=ghcr.io/linz/topographic-system/kart:git-${{ github.event.pull_request.head.sha || github.sha }} \
+            --container-map=ghcr.io/linz/topographic-system/map:git-${{ github.event.pull_request.head.sha || github.sha }}

@@ -33,6 +33,8 @@ model nztopo50_carto_text {
   labelanchor: float64 | null;
   charplace: carto_charplace | null;
   chardistance: float64 | null;
+  worddistance: float64 | null;
+  ...TopographicMetadata;
   ...GeoParquet;
 }
 
@@ -56,7 +58,7 @@ enum carto_colour {
   _: "",
   Black: "black",
   ProcessBlue: "process_blue",
-  Red: "red",
+  Red: "warm_red",
 }
 
 enum carto_placement {

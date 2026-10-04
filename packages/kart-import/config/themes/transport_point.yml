@@ -1,0 +1,33 @@
+name: transport_point
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-ford-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: ford
+      name: $
+      theme: transport
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-ford-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: ford
+      name: $
+      theme: transport
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-helipad-points-topo-150k
+    mapping:
+      t50_fid: $
+      type: helipad
+      name: null
+      theme: transport
+      metadata: null
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-helipad-points-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: helipad
+  #      name: null
+  #      theme: transport
+  #      metadata: null

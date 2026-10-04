@@ -6,6 +6,7 @@ from .env import (
     env_schema_check_mode,
     env_schema_dir_override,
     env_schema_set,
+    env_theme_format,
     env_transform_format,
 )
 
@@ -24,6 +25,22 @@ def test_transform_format_rejects_unknown_value(monkeypatch):
     monkeypatch.setenv("KART_TRANSFORM_FORMAT", "shapefile")
     with pytest.raises(ValueError, match="parquet"):
         env_transform_format()
+
+
+def test_theme_format_defaults_to_fgb(monkeypatch):
+    monkeypatch.delenv("KART_THEME_FORMAT", raising=False)
+    assert env_theme_format() == "fgb"
+
+
+def test_theme_format_override_is_case_insensitive(monkeypatch):
+    monkeypatch.setenv("KART_THEME_FORMAT", "GeoJSON")
+    assert env_theme_format() == "geojson"
+
+
+def test_theme_format_rejects_unknown_value(monkeypatch):
+    monkeypatch.setenv("KART_THEME_FORMAT", "gpkg")
+    with pytest.raises(ValueError, match="fgb"):
+        env_theme_format()
 
 
 @pytest.mark.parametrize("env_fn,var", [(env_push_to_master, "KART_PUSH_MASTER"), (env_push_force, "KART_PUSH_FORCE")])

@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import pandas as pd
@@ -15,13 +16,17 @@ def _to_nzgd2000(geom):
 
 def run_coastline_polygon(tmp_path: Path, coastline_lines, island_polygons, island_names=None) -> gpd.GeoDataFrame:
     coastline_gdf = gpd.GeoDataFrame(
-        {"created_at": [date(2020, 1, 1)] * len(coastline_lines), "geometry": coastline_lines},
+        {"created_at": ["2020-01-01"] * len(coastline_lines), "geometry": coastline_lines},
         crs=NZGD2000,
     )
     coastline_path = tmp_path / "coastline.parquet"
     coastline_gdf.to_parquet(coastline_path)
 
-    island_attrs = {"geometry": island_polygons}
+    island_attrs = {
+        "created_at": "2020-01-01T00:00:00+00:00",
+        "updated_at": "2020-01-01T00:00:00+00:00",
+        "geometry": island_polygons,
+    }
     if island_names is not None:
         island_attrs["name"] = island_names
     island_gdf = gpd.GeoDataFrame(island_attrs, crs=NZGD2000)
@@ -96,8 +101,8 @@ def _gdf_with_created_at(created_at):
 
 
 def test_earliest_created_at_returns_min():
-    gdf = _gdf_with_created_at([date(2020, 5, 1), date(2018, 3, 2), date(2022, 12, 31)])
-    assert earliest_created_at(gdf) == date(2018, 3, 2)
+    gdf = _gdf_with_created_at(["2020-05-01", "2018-03-02", "2022-12-31"])
+    assert earliest_created_at(gdf) == datetime(2018, 3, 2, tzinfo=ZoneInfo("UTC"))
 
 
 def test_earliest_created_at_missing_column_raises():
@@ -113,5 +118,5 @@ def test_earliest_created_at_all_missing_values_raises():
 
 
 def test_earliest_created_at_ignores_unparseable_values():
-    gdf = _gdf_with_created_at(["not-a-date", date(2019, 7, 4)])
-    assert earliest_created_at(gdf) == date(2019, 7, 4)
+    gdf = _gdf_with_created_at(["not-a-date", "2019-07-04"])
+    assert earliest_created_at(gdf) == datetime(2019, 7, 4, tzinfo=ZoneInfo("UTC"))

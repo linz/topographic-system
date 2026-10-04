@@ -1,24 +1,16 @@
-import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { coastlinePolygon } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const coastlinePolygonName = 'nztopo50_coastline_island';
-const coastlinePolygonSchema = new URL('file:///schema/coastline_polygon.json');
+const coastlinePolygonSchema = new URL('file:///schema/nztopo50_coastline_island.json');
 
 export const CoastlinePolygonArgs = {
   ...DataPrepareArgs,
-  coastline: option({
-    type: Url,
-    long: 'coastline',
-    description: 'Path or s3 of coastline stac collection',
-  }),
-  island: option({
-    type: Url,
-    long: 'island',
-    description: 'Path or s3 of island stac collection',
-  }),
+  coastline: option({ type: Url, long: 'coastline', description: 'Path or s3 of coastline stac collection' }),
+  island: option({ type: Url, long: 'island', description: 'Path or s3 of island stac collection' }),
 };
 
 export const CoastlinePolygonCommand = command({
@@ -27,13 +19,11 @@ export const CoastlinePolygonCommand = command({
   args: CoastlinePolygonArgs,
   async handler(args) {
     registerFileSystem();
-    const coastlineUrl = await getCanonical(args.coastline);
-    const islandUrl = await getCanonical(args.island);
 
     await prepareData({
       name: coastlinePolygonName,
       label: 'coastline polygon',
-      sources: [coastlineUrl, islandUrl],
+      sources: [args.coastline, args.island],
       run: ([coastline, island], output) => coastlinePolygon(coastline, island, output),
       output: args.output,
       tempLocation: args.tempLocation,

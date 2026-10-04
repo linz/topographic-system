@@ -8,8 +8,7 @@
   "tabWidth": 2,
   "endOfLine": "lf",
   "sortPackageJson": false,
+  "objectWrap": "collapse",
   "ignorePatterns": ["CHANGELOG.md", "pyproject.toml"],
-  "experimentalSortImports": {
-    "newlinesBetweenGroups": true
-  }
+  "experimentalSortImports": { "newlinesBetweenGroups": true }
 }

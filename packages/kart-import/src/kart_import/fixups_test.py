@@ -1,24 +1,40 @@
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import geopandas as gpd
+import numpy as np
+import pandas as pd
 import pytest
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry.base import BaseGeometry
+from shapely.wkt import loads
 
 from . import fixups
 from .assets import fid_lifecycle, transform
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .fixups import (
+    CARTO_TEXT_COLOUR,
+    CARTO_TEXT_FONT,
+    CARTO_TEXT_STYLE,
+    _drop_listed_empty,
+    _generate_grid_features,
+    carto_text_styling,
+    drop_degenerate_fences,
+    drop_empty_residential_areas,
+    generate_dms_grid_features,
+    generate_nztm_grid_features,
+)
 
 
 def _gdf() -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame({"name": ["Broken", "OK"]}, geometry=[Point(0, 0), Point(1, 1)], crs="EPSG:4326")
 
 
-def _td(fixups_cfg: list[dict]) -> ThemeDataset:
+def _td(fixups_cfg: list[dict], name: str = "t") -> ThemeDataset:
     return ThemeDataset.model_validate(
-        {"name": "t", "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
+        {"name": name, "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
     )
 
 
@@ -54,16 +70,435 @@ def test_apply_fixups_applies_to_all_releases_when_unset(monkeypatch):
     assert seen == [99]
 
 
-def test_match_fids_handles_int_and_float_dtypes():
+LINE_EMPTY = loads("LINESTRING EMPTY")
+LINE_REAL = LineString([(174.0, -41.0), (174.1, -41.1)])
+POLY_EMPTY = loads("POLYGON EMPTY")
+POLY_REAL = Polygon([(175.0, -39.0), (175.1, -39.0), (175.1, -39.1), (175.0, -39.0)])
+DEGENERATE_FENCE_FIDS = [7640059, 7640098, 7704786, 7704787]
+FENCES = "nz_fence_centrelines"
+RESIDENTIAL = "nz_residential_area_polygons"
+
+DS = "ds"
+LISTED = {1, 2}
+
+
+def _fid_gdf(rows: list[tuple[float, BaseGeometry | None]]) -> gpd.GeoDataFrame:
+    """A (t50_fid, geometry) frame, the only two columns the drop fixups look at.
+
+    A `None` geometry is a case under test (it fails the FlatGeobuf write like an empty one does).
+    An object array rather than a plain list because that is how geopandas holds missing geometry,
+    and the only geometry-sequence form the stubs admit a `None` into.
+    """
+    return gpd.GeoDataFrame(
+        {"t50_fid": [fid for fid, _ in rows]},
+        geometry=np.array([geom for _, geom in rows], dtype=object),
+        crs="EPSG:4167",
+    )
+
+
+@pytest.mark.parametrize(
+    "rows, survivors",
+    [
+        # The gate: a listed fid repaired upstream is kept rather than dropped by a stale list.
+        ([(1, LINE_REAL), (9, LINE_REAL)], [1, 9]),
+        # Deliberately narrow: an unlisted empty geometry is left to fail loudly at the
+        # FlatGeobuf write rather than being silently swallowed here.
+        ([(9, LINE_EMPTY), (8, LINE_REAL)], [9, 8]),
+        # The plain drop path, on one listed fid, is `test_drop_listed_empty_drops_every_missing_form`.
+        ([(1, LINE_EMPTY), (2, LINE_EMPTY), (9, LINE_REAL)], [9]),
+        ([(8, LINE_REAL), (9, LINE_REAL)], [8, 9]),
+    ],
+    ids=[
+        "listed-but-repaired-kept",
+        "unlisted-empty-kept",
+        "every-listed-dropped",
+        "nothing-listed-is-a-noop",
+    ],
+)
+def test_drop_listed_empty(rows, survivors):
+    out = _drop_listed_empty(_fid_gdf(rows), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == survivors
+    # theme.py concatenates with ignore_index, but a gappy index would still surface in any
+    # positional lookup downstream.
+    assert out.index.tolist() == list(range(len(survivors)))
+
+
+@pytest.mark.parametrize("geom", [LINE_EMPTY, POLY_EMPTY, None], ids=["empty-line", "empty-polygon", "null"])
+def test_drop_listed_empty_drops_every_missing_form(geom):
+    """All three reach the FlatGeobuf write as a NULL geometry, whatever the feature type, so the
+    fixups need no per-geometry handling. `None` is what a source publishing a null produces;
+    the empties are what `set_precision` leaves behind when a feature rounds away."""
+    out = _drop_listed_empty(_fid_gdf([(1, geom), (9, LINE_REAL)]), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == [9]
+
+
+@pytest.mark.parametrize("cast", [int, float], ids=["int", "float"])
+def test_drop_listed_empty_matches_either_fid_dtype(cast):
     """pyogrio may read an integer t50_fid as float; matching must work for both."""
-    rows = [{"fid": 10}, {"fid": 20}, {"fid": 30}]
-    for cast in (int, float):
-        gdf = gpd.GeoDataFrame(
-            {"fid": [cast(r["fid"]) for r in rows]},
-            geometry=[Point(0, 0)] * len(rows),
-            crs="EPSG:4326",
-        )
-        assert fixups._match_fids(gdf, {10, 30}).tolist() == [True, False, True]
+    out = _drop_listed_empty(_fid_gdf([(cast(1), LINE_EMPTY), (cast(9), LINE_REAL)]), _td([], DS), DS, LISTED)
+    assert out["t50_fid"].tolist() == [cast(9)]
+
+
+def test_drop_listed_empty_rejects_wrong_dataset():
+    """A fid list matches nothing on another dataset, so a miswired fixup would otherwise pass as
+    a successful no-op build."""
+    with pytest.raises(ValueError, match=f"fixup for dataset '{DS}' applied to 'other_dataset'"):
+        _drop_listed_empty(_fid_gdf([(9, LINE_REAL)]), _td([], "other_dataset"), DS, LISTED)
+
+
+def test_drop_degenerate_fences_targets_its_own_fids():
+    """Wiring, the one thing the generic tests above cannot check: that this fixup hands
+    `_drop_listed_empty` the hand-checked fids and the dataset they were checked against."""
+    rows = [(fid, LINE_EMPTY) for fid in DEGENERATE_FENCE_FIDS] + [(123, LINE_REAL)]
+    out = drop_degenerate_fences(_fid_gdf(rows), _td([], FENCES), 60)
+    assert out["t50_fid"].tolist() == [123]
+
+
+def test_drop_empty_residential_areas_targets_its_own_fid():
+    """As above. `None` is the form release 51 actually ships for residential area 6753838."""
+    out = drop_empty_residential_areas(_fid_gdf([(6753838, None), (123, POLY_REAL)]), _td([], RESIDENTIAL), 51)
+    assert out["t50_fid"].tolist() == [123]
+
+
+ROADS = "nz_road_centrelines"
+RELEASE_66 = Release(id=66, date=datetime(2024, 5, 16, 21, 4, 22, tzinfo=UTC))
+STAMP_66 = "2024-05-16T21:04:22Z"
+
+
+def _road_gdf(sufis: list[int], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` road frame: `metadata` already holds the raw `$rna_sufi` values,
+    which is the only input `build_road_metadata` has (see its docstring)."""
+    return gpd.GeoDataFrame(
+        {"metadata": sufis, "name": names if names is not None else [f"ROAD {s}" for s in sufis]},
+        geometry=[LineString([(174.0, -41.0), (174.1, -41.1)]) for _ in sufis],
+        crs="EPSG:4167",
+    )
+
+
+@pytest.fixture
+def road_releases(monkeypatch):
+    from . import config as config_module
+
+    monkeypatch.setattr(config_module, "get_releases", lambda: [RELEASE_66])
+
+
+def test_build_road_metadata_record_shape(road_releases):
+    """The record the Postgres loader builds with `jsonb_build_array`, as JSON text."""
+    out = fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "linz_aims",
+            "source_key_name": "road_id",
+            "source_key_value": 3061525,
+            "source_table": "roads",
+            "source_column": "name",
+            "source_updated_at": STAMP_66,
+            "imported_at": STAMP_66,
+        }
+    ]
+
+
+def test_build_road_metadata_leaves_unlinked_roads_null(road_releases):
+    """`rna_sufi` 0 is "no AIMS road" - 60,210 of release 66's 153,518 rows. A record for road_id 0
+    would assert a link to an AIMS road that does not exist."""
+    out = fixups.build_road_metadata(_road_gdf([3061525, 0, 1771150]), _td([], ROADS), 66)
+
+    assert out["metadata"].isna().tolist() == [False, True, False]
+
+
+def test_build_road_metadata_stamps_the_release_not_the_wall_clock(road_releases):
+    """Both timestamps are the release date. A build-time stamp would change the bytes of every
+    record on every rebuild, so kart would see all ~93k features as modified each run."""
+    out = fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 66)
+
+    record = json.loads(out["metadata"].iloc[0])[0]
+    assert record["source_updated_at"] == record["imported_at"] == STAMP_66
+
+
+def test_build_road_metadata_is_byte_stable(road_releases):
+    """Same input -> same bytes, keys sorted and separators fixed: dict ordering drift would read
+    as a changed feature downstream."""
+    gdf = _road_gdf([3061525, 3061525])
+    first = fixups.build_road_metadata(gdf, _td([], ROADS), 66)["metadata"]
+    second = fixups.build_road_metadata(gdf, _td([], ROADS), 66)["metadata"]
+
+    assert first.iloc[0] == first.iloc[1] == second.iloc[0]  # repeated sufi and repeated run agree
+    assert first.iloc[0].startswith('[{"imported_at":')  # sorted keys, no whitespace
+
+
+def test_build_road_metadata_does_not_mutate_its_input(road_releases):
+    """`transform` reassigns the returned frame, but a fixup that edited in place would also have
+    rewritten the caller's copy - and the raw sufi values are unrecoverable once overwritten."""
+    gdf = _road_gdf([3061525])
+    fixups.build_road_metadata(gdf, _td([], ROADS), 66)
+
+    assert gdf["metadata"].tolist() == [3061525]
+
+
+def test_build_source_metadata_without_a_sentinel_keys_every_non_null(road_releases):
+    """`unset_key=None` - the shape a source with no "no link" sentinel needs, so only a NULL key
+    means unlinked. Exercised through the shared helper because road's sufi always has one."""
+    gdf = _road_gdf([0, 7, None])
+    out = fixups._build_source_metadata(gdf, _td([], ROADS), 66, ROADS, fixups.ROAD_NAME_FROM_AIMS)
+
+    assert out["metadata"].isna().tolist() == [False, False, True]  # 0 is a real key here
+    assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 0
+
+
+def test_build_source_metadata_leaves_a_keyed_row_with_a_null_value_null(road_releases):
+    """A row with a real key but a null looked-up value gets NULL `metadata`, not a record: the
+    record explains where `name` came from, and there is no name to explain."""
+    gdf = _road_gdf([3061525, 1771150], names=["FIRST ROAD", None])
+    out = fixups._build_source_metadata(gdf, _td([], ROADS), 66, ROADS, fixups.ROAD_NAME_FROM_AIMS)
+
+    assert out["metadata"].isna().tolist() == [False, True]
+
+
+def test_build_source_metadata_writes_the_source_ref_as_json_keys(road_releases):
+    """A `SourceRef`'s field names are the record's JSON keys, so a future `build_water_metadata`
+    only has to declare its own ref rather than restate the record shape."""
+    ref = fixups.SourceRef(
+        table_column="name",
+        source="nzgb_gazetteer",
+        source_key_name="feat_id",
+        source_table="nzgb_gaz",
+        source_column="name",
+    )
+    out = fixups._build_source_metadata(_road_gdf([12345]), _td([], ROADS), 66, ROADS, ref)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "nzgb_gazetteer",
+            "source_key_name": "feat_id",
+            "source_key_value": 12345,
+            "source_table": "nzgb_gaz",
+            "source_column": "name",
+            "source_updated_at": STAMP_66,
+            "imported_at": STAMP_66,
+        }
+    ]
+
+
+def test_build_road_metadata_rejects_wrong_dataset(road_releases):
+    """Miswired to another dataset this would silently overwrite that dataset's `metadata`."""
+    with pytest.raises(ValueError, match=f"fixup for dataset '{ROADS}' applied to 'other_dataset'"):
+        fixups.build_road_metadata(_road_gdf([3061525]), _td([], "other_dataset"), 66)
+
+
+def test_build_road_metadata_rejects_a_non_sufi_metadata_column(road_releases):
+    """`metadata` not holding numbers means the config mapped something other than `$rna_sufi`
+    into it; coercing would quietly yield an all-null column instead."""
+    gdf = _road_gdf([3061525])
+    gdf["metadata"] = ["not a sufi"]
+
+    with pytest.raises((ValueError, TypeError)):
+        fixups.build_road_metadata(gdf, _td([], ROADS), 66)
+
+
+def test_build_road_metadata_rejects_an_unknown_release(road_releases):
+    """No release date means no stamp; falling back to `now()` is exactly what this avoids."""
+    with pytest.raises(LookupError, match="release 99 is not in the release config"):
+        fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 99)
+
+
+def _gaz_gdf(gazfeatids: list[int | None], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` frame: `metadata` already holds the raw gazetteer key and `name`
+    already holds the joined lookup's name column - the only inputs `build_nzgb_metadata` has."""
+    return gpd.GeoDataFrame(
+        {"metadata": gazfeatids, "name": names if names is not None else [f"NAME {g}" for g in gazfeatids]},
+        geometry=[Point(0, 0) for _ in gazfeatids],
+        crs="EPSG:4167",
+    )
+
+
+def _gaz_td(
+    name: str, lookup: str, key_column: str = "gazfeatid", fixups_cfg: list[dict] | None = None
+) -> ThemeDataset:
+    return ThemeDataset.model_validate(
+        {
+            "name": name,
+            "source": "kart@data.koordinates.com:linz/x-topo-150k",
+            "mapping": {
+                "name": f"${lookup}.name",
+                "metadata": {"source": f"${lookup}.{key_column}", "fixup": True},
+            },
+            "fixups": fixups_cfg if fixups_cfg is not None else [{"fn": "build_nzgb_metadata"}],
+        }
+    )
+
+
+def _register_lookup(monkeypatch, name: str, dataset: str) -> None:
+    from . import config as config_module
+
+    lookup = config_module.Lookup.model_validate(
+        {
+            "name": name,
+            "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": dataset},
+            "key": "t50_fid",
+            "columns": ["gazfeatid", "name"],
+        }
+    )
+    monkeypatch.setitem(config_module.LOOKUP_MAP, name, lookup)
+
+
+class _FrozenDatetime(datetime):
+    """Stands in for `fixups.datetime` so `build_nzgb_metadata`'s build-time stamp is deterministic."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 1, 2, 3, 4, 5, tzinfo=tz)
+
+
+BUILD_TIME_STAMP = "2026-01-02T03:04:05Z"
+
+
+@pytest.fixture
+def frozen_build_time(monkeypatch):
+    monkeypatch.setattr(fixups, "datetime", _FrozenDatetime)
+
+
+def test_build_nzgb_metadata_record_shape(road_releases, frozen_build_time, monkeypatch):
+    """The record shape matches `build_road_metadata`'s - only the `SourceRef` differs - built
+    entirely from the dataset's own mapping and lookup, with no per-dataset Python."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": "name",
+            "source": "nzgb_gazetteer",
+            "source_key_name": "feat_id",
+            "source_key_value": 1043221,
+            "source_table": "nzgb_gaz",
+            "source_column": "name",
+            "source_updated_at": BUILD_TIME_STAMP,
+            "imported_at": BUILD_TIME_STAMP,
+        }
+    ]
+
+
+def test_build_nzgb_metadata_is_generic_across_datasets(road_releases, monkeypatch):
+    """A second dataset on a different lookup/source dataset needs no new Python - just the
+    lookup/mapping/fixups wiring `build_nzgb_metadata`'s docstring describes. `source_table` names
+    the gazetteer itself, not the lookup, so it stays constant across datasets - it's the dataset
+    name and key value below that prove this ran against the right lookup, not a hardcoded one."""
+    _register_lookup(monkeypatch, "lake_lkp", "lake_pt")
+    td = _gaz_td("nz_lake_polygons_topo_150k", "lake_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([555]), td, 66)
+
+    record = json.loads(out["metadata"].iloc[0])[0]
+    assert record["source_table"] == "nzgb_gaz"
+    assert record["source_key_value"] == 555
+
+
+def test_build_nzgb_metadata_skips_a_gazfeatid_whose_name_is_null(road_releases, monkeypatch):
+    """The gazetteer lookup can match a `gazfeatid` while carrying no `name` for it. Such a row has
+    nothing to attribute, so it gets NULL `metadata` rather than a record for an absent name."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221, 999], names=["Grand Canal", None]), td, 66)
+
+    assert out["metadata"].isna().tolist() == [False, True]
+
+
+def test_build_nzgb_metadata_rejects_a_metadata_column_not_shaped_as_a_lookup_ref(road_releases):
+    td = _gaz_td("ds", "canal_lkp")
+    td.mapping["metadata"] = {"source": None, "fixup": True}
+
+    with pytest.raises(ValueError, match="must be mapped as '\\$<lookup>.<key column>'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
+def test_build_nzgb_metadata_rejects_name_mapped_off_a_different_lookup(road_releases, monkeypatch):
+    """`name` and `metadata` disagreeing on which lookup fed them is exactly the kind of copy-paste
+    mistake the generic fixup can't otherwise catch, since it trusts `metadata`'s lookup by default."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("ds", "canal_lkp")
+    td.mapping["name"] = "$other_lkp.name"
+
+    with pytest.raises(ValueError, match="must be mapped as '\\$canal_lkp.name'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
+def test_build_nzgb_metadata_rejects_an_unknown_lookup(road_releases):
+    td = _gaz_td("ds", "no_such_lookup")
+
+    with pytest.raises(ValueError, match="unknown lookup 'no_such_lookup'"):
+        fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
+
+
+CARTO_SYMBOL_KEY = "11111111-1111-1111-1111-111111111111"
+
+
+def _carto_symbol_gdf(feature_ids: list[str | None]) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` frame: `metadata` already holds the joined feature's UUID."""
+    return gpd.GeoDataFrame({"metadata": feature_ids}, geometry=[Point(0, 0) for _ in feature_ids], crs="EPSG:2193")
+
+
+def _carto_symbol_td(monkeypatch, lookup: str, repo: str) -> ThemeDataset:
+    """A carto_symbol dataset mapping `$<lookup>.id` into `metadata`, with that lookup registered."""
+    from . import config as config_module
+
+    monkeypatch.setitem(
+        config_module.LOOKUP_MAP,
+        lookup,
+        config_module.Lookup(
+            name=lookup,
+            source=config_module.Source(url=f"git@github.com:linz/{repo}", dataset=lookup),
+            columns=["id"],
+            geometry=True,
+        ),
+    )
+    return ThemeDataset.model_validate(
+        {
+            "name": "sym",
+            "source": "kart@data.koordinates.com:linz/x-topo-150k",
+            "mapping": {"metadata": {"source": f"${lookup}.id", "fixup": True}},
+        }
+    )
+
+
+def test_build_carto_symbol_metadata_record_shape(road_releases, frozen_build_time, monkeypatch):
+    """A plain link: `table_column` null and the UUID key stored as a JSON string."""
+    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0]) == [
+        {
+            "table_column": None,
+            "source": "topographic_data",
+            "source_key_name": "id",
+            "source_key_value": CARTO_SYMBOL_KEY,
+            "source_table": "landuse",
+            "source_column": "id",
+            "source_updated_at": BUILD_TIME_STAMP,
+            "imported_at": BUILD_TIME_STAMP,
+        }
+    ]
+
+
+def test_build_carto_symbol_metadata_source_is_the_lookups_repo(road_releases, monkeypatch):
+    td = _carto_symbol_td(monkeypatch, "contour", "topographic-contour-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0])[0]["source"] == "topographic_contour_data"
+
+
+def test_build_carto_symbol_metadata_leaves_unmatched_symbols_null(road_releases, monkeypatch):
+    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY, None]), td, 66)
+
+    assert out["metadata"].isna().tolist() == [False, True]
 
 
 def _status_of_a(gdf: gpd.GeoDataFrame) -> str:
@@ -148,3 +583,337 @@ def test_non_fixup_dataset_still_reuses_shared_source(tmp_path, monkeypatch):
 
     out66 = transform.transform_dataset_release("ds", 66)
     assert os.path.islink(out66)
+
+
+def _contour_number_gdf() -> gpd.GeoDataFrame:
+    """Two labels on the same contour direction, with downhill on opposite sides, plus one
+    whose nearest-contour join found nothing so `label` is null."""
+    return gpd.GeoDataFrame(
+        {
+            "orientation": [np.radians(30), np.radians(30), np.radians(30)],  # radians CCW from east
+            "cont_rota": [150.0, 330.0, 150.0],  # degrees CW from north, downhill, either side
+            "label": [100.0, 250.0, np.nan],
+        },
+        geometry=[Point(1600000, 5400000)] * 3,
+        crs="EPSG:2193",
+    )
+
+
+def test_contour_number_orients_the_label_and_renders_the_elevation():
+    """The tangent is radians counter-clockwise from east and the renderer wants degrees
+    clockwise from east, so an unflipped label comes out as `-degrees(orientation)`. Where
+    downhill sits on the other side of the contour the label is turned 180 degrees to keep
+    the digits facing uphill."""
+    out = fixups.contour_number(_contour_number_gdf(), _td([], name="contour_number"), 66)
+
+    # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
+    assert out["orientation"].tolist() == [330, 150, 330]
+    assert out["label"].tolist()[:2] == ["100", "250"]
+
+
+GRID = "nztopo50_grid"
+DMS_GRID = "nztopo50_dms_grid"
+
+# A 2x3 grid, small enough to assert line by line: eastings [0, 10], northings [0, 10, 20].
+TINY = {
+    "bounds": (0.0, 0.0, 10.0, 20.0),
+    "directions": ("easting", "northing"),
+    "interval": 10.0,
+    "crs": "EPSG:2193",
+    "vertices": 2,
+    "margin": 0,
+}
+
+
+def _grid_gdf(crs: str = "EPSG:2193", rows: list[tuple[str, float, str]] | None = None) -> gpd.GeoDataFrame:
+    """The source grid; only its CRS is read, so `rows` proves nothing else reaches the output."""
+    rows = rows or []
+    return gpd.GeoDataFrame(
+        {
+            "id": [fid for _, _, fid in rows],
+            "t50_fid": [None] * len(rows),
+            "direction": [d for d, _, _ in rows],
+            "value": [v for _, v, _ in rows],
+        },
+        geometry=np.array([LINE_REAL] * len(rows), dtype=object),
+        crs=crs,
+    )
+
+
+def _tiny(gdf: gpd.GeoDataFrame | None = None, *, release_id: int = 66, name: str = GRID, **overrides):
+    return _generate_grid_features(
+        _grid_gdf() if gdf is None else gdf, _td([], name), release_id, **{**TINY, **overrides}
+    )
+
+
+def _values(out: gpd.GeoDataFrame, direction: str) -> list[float]:
+    return sorted(out.loc[out["direction"] == direction, "value"])
+
+
+@pytest.mark.parametrize(
+    "direction, values, held, swept",
+    [
+        ("easting", [0.0, 10.0, 20.0], 1, [0.0, 10.0]),
+        ("northing", [0.0, 10.0], 0, [0.0, 20.0]),
+    ],
+)
+def test_grid_lines_run_along_their_named_axis(direction, values, held, swept):
+    """`direction` names the axis a line runs along, both wound low to high; get it backwards and
+    every coordinate pair transposes."""
+    lines = (out := _tiny())[out["direction"] == direction]
+    assert lines["value"].tolist() == values
+    for value, geom in zip(lines["value"], lines.geometry, strict=True):
+        coords = list(zip(*geom.coords, strict=True))
+        assert set(coords[held]) == {value}
+        assert list(coords[1 - held]) == swept
+
+
+@pytest.mark.parametrize(
+    "bounds, margin, eastings, northings",
+    [
+        ((0.0, 0.0, 10.0, 20.0), 0, [0.0, 10.0], [0.0, 10.0, 20.0]),
+        ((1.0, 1.0, 19.0, 9.0), 0, [0.0, 10.0, 20.0], [0.0, 10.0]),
+        ((1.0, 1.0, 19.0, 9.0), 1, [-10.0, 0.0, 10.0, 20.0, 30.0], [-10.0, 0.0, 10.0, 20.0]),
+    ],
+    ids=["aligned", "snapped-outward", "margin"],
+)
+def test_grid_extent_snaps_outward_and_honours_margin(bounds, margin, eastings, northings):
+    """Snapping is always outward, so no sheet falls outside the ruling."""
+    out = _tiny(bounds=bounds, margin=margin)
+    assert (_values(out, "northing"), _values(out, "easting")) == (eastings, northings)
+
+
+def test_grid_ids_ignore_the_source_and_the_release():
+    """Ids depend only on dataset and position, so a rebuild is a geometry diff, not id churn."""
+    out = _tiny(_grid_gdf(rows=[("easting", 0.0, "id-from-source")]))
+    assert out["id"].tolist() == _tiny(release_id=30)["id"].tolist()
+    assert "id-from-source" not in out["id"].tolist()
+
+
+def test_grid_ids_are_unique_and_namespaced_per_dataset():
+    """Both grids rule lines at the same `value`, so the dataset name must be in the hash."""
+    nztm, dms = _tiny(name=GRID), _tiny(name=DMS_GRID)
+    assert nztm["id"].nunique() == len(nztm)
+    assert set(nztm["id"]).isdisjoint(dms["id"])
+
+
+def test_grid_output_shape():
+    out = _tiny()
+    assert out.columns.tolist() == ["id", "t50_fid", "direction", "value", "geometry"]
+    assert out["t50_fid"].isna().all()
+    assert out.index.tolist() == list(range(len(out)))  # theme.py does positional lookups
+    assert out.geometry.is_valid.all()
+
+
+def test_grid_is_reprojected_into_the_source_crs_with_every_vertex():
+    """Ruled in the grid's own CRS, handed back in the release's, densification intact."""
+    out = _tiny(crs="EPSG:4326", bounds=(174.0, -41.0, 175.0, -40.0), interval=0.5, vertices=7)
+    assert out.crs.to_epsg() == 2193
+    assert {len(g.coords) for g in out.geometry} == {7}
+
+
+def test_grid_densified_lines_bow_once_reprojected():
+    """Why `vertices` exists: a projected parallel is a curve, and two points would cut its chord."""
+    out = _tiny(crs="EPSG:4326", bounds=(174.0, -42.0, 176.0, -40.0), interval=2.0, vertices=101)
+    parallel = out.loc[out["direction"] == "easting"].geometry.iloc[0]
+    chord = LineString([parallel.coords[0], parallel.coords[-1]])
+    assert parallel.hausdorff_distance(chord) > 100  # metres of bow, in EPSG:2193
+
+
+@pytest.mark.parametrize(
+    "fn, directions, vertices, interval, extent",
+    [
+        (
+            generate_nztm_grid_features,
+            ("easting", "northing"),
+            2,
+            1_000.0,
+            (1_083_000, 2_093_000, 4_721_000, 6_235_000),
+        ),
+        (generate_dms_grid_features, ("longitude", "latitude"), 1_001, 1 / 60, (166.0, 180.0, -48.0, -34.0)),
+    ],
+    ids=["nztm", "dms"],
+)
+def test_grid_fixups_are_wired_to_their_own_settings(fn, directions, vertices, interval, extent):
+    """The one thing the tests above cannot see: a swap between these bare settings."""
+    out = fn(_grid_gdf(), _td([], GRID), 66)
+    assert out.crs.to_epsg() == 2193  # the source frame's CRS, whatever the grid is ruled in
+    assert {len(g.coords) for g in out.geometry} == {vertices}
+    along_x, along_y = directions
+    lons, lats = _values(out, along_y), _values(out, along_x)
+    assert (lons[0], lons[-1], lats[0], lats[-1]) == extent
+    assert lats[1] - lats[0] == pytest.approx(interval)
+
+
+CARTO_TEXT_STYLING_FIELDS = (
+    "font",
+    "style",
+    "colour",
+    "size",
+    "offset",
+    "placement",
+    "textanchor",
+    "labelanchor",
+    "charplace",
+    "chardistance",
+)
+
+
+def _carto_text_gdf(rows: list[dict]) -> gpd.GeoDataFrame:
+    """A frame shaped like `normalize_fields`' output for linz_carto_text: the five decode
+    inputs typed as the schema types them, and the ten styling fields seeded null."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "text_bend": pd.array([r["bend"] for r in rows], dtype="Int32"),
+            "text_height": pd.array([r["height"] for r in rows], dtype="Float64"),
+            "text_colour": pd.array([r["colour"] for r in rows], dtype="Int32"),
+            "text_font": pd.array([r["font"] for r in rows], dtype="string"),
+            "text_placement": pd.array([r["place"] for r in rows], dtype="Int32"),
+        },
+        geometry=[Point(0, 0)] * len(rows),
+        crs="EPSG:2193",
+    )
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        gdf[field] = pd.NA
+    return gdf
+
+
+def test_carto_text_styling_fills_a_matched_key_from_the_table():
+    """A row whose derived key is in `carto_text_styling.csv` gets the table's values, the
+    decoded colour/style, and the constant font. Empty table cells stay null."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["colour"] == "black"
+    assert row["style"] == "Narrow"
+    assert row["font"] == CARTO_TEXT_FONT
+    assert row["size"] == 5.0
+    assert row["offset"] == -1.6
+    assert row["placement"] == "AL"
+    assert row["charplace"] == "StretchCharacterSpacingToFit"
+    assert pd.isna(row["textanchor"])
+    assert pd.isna(row["labelanchor"])
+    assert pd.isna(row["chardistance"])
+
+
+def test_carto_text_styling_matches_a_point_scale_height_and_strips_textanchor():
+    """`text_height` is matched to 4 dp, so the point-scale value 67.0 keys the table the same
+    way a metre-scale value does. `textanchor` comes back `left`, not the legacy `left ` - the
+    table's trailing space is stripped, so the `carto_textanchor` enum needs no `left ` member."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 67.0, "place": 31, "font": "ATTriumMou-Cond", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    assert row["style"] == "Narrow"
+    assert row["size"] == 5.5
+    assert row["offset"] == -2.0
+    assert row["textanchor"] == "left"
+    assert row["labelanchor"] == 0.8
+
+
+def test_carto_text_styling_decodes_colour_codes():
+    """`text_colour` 5 and 6 decode to warm_red / process_blue; the map itself is the contract."""
+    assert CARTO_TEXT_COLOUR == {9: "black", 5: "warm_red", 6: "process_blue"}
+    assert CARTO_TEXT_STYLE["ATTriumMou-CondItalic"] == "Narrow Italic"
+    assert CARTO_TEXT_STYLE["Courier Bold Oblique"] == "Regular"
+
+
+def test_carto_text_styling_leaves_an_unmatched_key_null():
+    """A key absent from the table (matched nothing in the legacy process either) keeps every
+    styling field null rather than inventing a value."""
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0014, "place": 1, "font": "ATTrium-Italic", "colour": 9}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_odd_colour_code_stays_unstyled():
+    """An unlisted `text_colour` decodes to the black fallback, but with no table row for its
+    full key the feature is left unstyled - reproducing the legacy blank."""
+    gdf = _carto_text_gdf([{"bend": 1, "height": 15.0, "place": 1, "font": "ATTrium-Italic", "colour": 3348}])
+    row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
+
+    for field in CARTO_TEXT_STYLING_FIELDS:
+        assert pd.isna(row[field]), field
+
+
+def test_carto_text_styling_requires_its_key_columns():
+    gdf = _carto_text_gdf([{"bend": 0, "height": 0.0012, "place": 1, "font": "ATTriumMou-Cond", "colour": 9}])
+    with pytest.raises(ValueError, match="text_font"):
+        carto_text_styling(gdf.drop(columns="text_font"), _td([], "linz_carto_text"), 66)
+
+
+def test_carto_text_example_point_id_two_pass(monkeypatch):
+    """Only the map-sheet example points are candidates. Pass 1 links a name carried by exactly
+    one label - however far away; pass 2 sends a name shared by several labels to the nearest one
+    within 200 m, leaving > 200 m and unmatched labels null."""
+    from . import config
+    from .assets import transform as transform_mod
+
+    # The four features a map sheet nominates as its example point.
+    map_sheet = pd.DataFrame({"example_point_id": ["tp0", "gnW", "gn1153", "gn2413"]})
+    trig_point = gpd.GeoDataFrame(
+        {"id": ["tp0"], "code": ["A1AA"]},
+        geometry=[Point(1000, 2000)],
+        crs="EPSG:2193",
+    )
+    geographic_name = gpd.GeoDataFrame(
+        {"id": ["gnW", "gn1153", "gn2413"], "name": ["Windsor Point", "1153", "2413"]},
+        geometry=[Point(0, 0), Point(5000, 6000), Point(8000, 8000)],
+        crs="EPSG:2193",
+    )
+    frames = {"ms": map_sheet, "tp": trig_point, "gn": geographic_name}
+
+    def fake_theme(name):
+        dataset_name = {"nztopo50_map_sheet": "ms", "trig_point": "tp", "geographic_name": "gn"}[name]
+        return Theme(
+            name=name,
+            target_repo="r",
+            target_epsg="EPSG:2193",
+            datasets=[
+                ThemeDataset.model_validate(
+                    {"name": dataset_name, "source": "kart@data.koordinates.com:linz/x-topo-150k"}
+                )
+            ],
+        )
+
+    monkeypatch.setattr(config, "get_theme_by_name", fake_theme)
+    monkeypatch.setattr(transform_mod, "read_transform", lambda path: frames[path.stem])
+
+    gdf = gpd.GeoDataFrame(
+        {
+            "full_text": [
+                "A1AA",  # one label, on the trig -> tp0
+                "Windsor Point",  # one label, 600 m away -> gnW (name match ignores distance)
+                "1153",  # three labels -> nearest within 200 m wins
+                "1153",
+                "1153",
+                "2413",  # two labels -> nearest is 250 m away -> null
+                "2413",
+                "Nowhere",  # not an example point -> null
+            ]
+        },
+        geometry=[
+            Point(1050, 2000),
+            Point(600, 0),
+            Point(5010, 6000),  # 10 m from gn1153
+            Point(50000, 60000),
+            Point(60000, 60000),
+            Point(8250, 8000),  # 250 m from gn2413
+            Point(90000, 8000),
+            Point(0, 0),
+        ],
+        crs="EPSG:2193",
+    )
+
+    out = fixups.carto_text_example_point_id(gdf, _td([], "linz_carto_text"), 66)
+    result = list(out["example_point_id"])
+
+    assert result[0] == "tp0"
+    assert result[1] == "gnW"
+    assert result[2] == "gn1153"
+    assert pd.isna(result[3])
+    assert pd.isna(result[4])
+    assert pd.isna(result[5])
+    assert pd.isna(result[6])
+    assert pd.isna(result[7])

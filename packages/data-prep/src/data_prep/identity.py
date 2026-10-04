@@ -5,7 +5,8 @@ The reproducible UUIDv7 generation mirrors kart-import's ``uuid7`` module.
 
 import hashlib
 import uuid
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import pandas as pd
@@ -25,11 +26,17 @@ def reproducible_uuid7(timestamp_ms: int, text: str) -> uuid.UUID:
     return uuid.UUID(bytes=bytes(uuid_bytes))
 
 
-def earliest_created_at(gdf: gpd.GeoDataFrame) -> date:
-    """Return the earliest ``created_at`` date in the source."""
+def earliest_created_at(gdf: gpd.GeoDataFrame) -> datetime:
+    """Return the earliest ``created_at`` as a UTC-aware datetime in the source."""
     if "created_at" not in gdf.columns:
         raise ValueError("Source has no created_at column; cannot derive a stable created_at.")
     created_at = pd.to_datetime(gdf["created_at"], errors="coerce").dropna()
     if created_at.empty:
         raise ValueError("Source has no valid created_at values; cannot derive a stable created_at.")
-    return created_at.min().date()
+    min_ts = created_at.min()
+    # Normalise to UTC regardless of whether the source carries timezone info.
+    if min_ts.tzinfo is None:
+        min_ts = min_ts.tz_localize(ZoneInfo("UTC"))
+    else:
+        min_ts = min_ts.tz_convert(ZoneInfo("UTC"))
+    return min_ts.to_pydatetime()

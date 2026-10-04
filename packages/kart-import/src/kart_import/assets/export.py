@@ -1,6 +1,9 @@
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+import geopandas as gpd
 
 from ..command import run_command
 from ..config import (
@@ -24,6 +27,49 @@ class CommitData:
     releases: list[int]
 
 
+def link_release_export(source_file: Path, dataset_name: str, release_id: int) -> None:
+    """Point a release's export at the (commit-named, possibly shared) file it resolves to."""
+    release_output_dir = WORKING_EXPORTS_DIR / f"release_{release_id}"
+    release_output_dir.mkdir(parents=True, exist_ok=True)
+    release_output_file = release_output_dir / f"{dataset_name}.json"
+
+    # `is_symlink` as well as `exists`: a link left dangling by a deleted target reads as
+    # non-existent, and `symlink` would then fail with EEXIST.
+    if release_output_file.exists() or release_output_file.is_symlink():
+        release_output_file.unlink()
+    os.symlink(os.path.relpath(source_file, release_output_dir), release_output_file)
+
+
+def export_empty_releases(dataset_name: str, release_ids: list[int]) -> None:
+    """Give releases that predate the source repo's first commit an empty export.
+
+    The `export` rule declares one output per release for every dataset, so a dataset whose repo
+    starts partway through the release series (nz_trig_points: first commit 2019-07-09, after
+    release 46's cutoff) would fail the rule with outputs that can never exist. An empty layer
+    states the truth - the dataset had no features then - and lets transform and theme carry that
+    emptiness through. Matches how `export_lookup` treats releases predating a lookup.
+
+    One shared file for all such releases, symlinked like the commit exports.
+    """
+    if not release_ids:
+        return
+
+    empty_file = WORKING_EXPORTS_DIR / dataset_name / "empty.json"
+    empty_file.parent.mkdir(parents=True, exist_ok=True)
+    if not empty_file.exists():
+        gpd.GeoDataFrame({"geometry": gpd.GeoSeries([], crs="EPSG:4326")}).to_file(
+            empty_file, driver="GeoJSON", index=False
+        )
+
+    for release_id in release_ids:
+        link_release_export(empty_file, dataset_name, release_id)
+
+    logger.info(
+        "source predates these releases, exported empty",
+        extra={"dataset": dataset_name, "releases": release_ids},
+    )
+
+
 def export_dataset_releases(dataset_name: str):
     td = get_source_entry(dataset_name)
 
@@ -35,10 +81,12 @@ def export_dataset_releases(dataset_name: str):
     kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
+    releases_before_first_commit: list[int] = []
 
     for release in releases:
         res = get_release_commit(repo_dir, release.until)
         if res is None:
+            releases_before_first_commit.append(release.id)
             continue
         commit, commit_time = res
         if commit not in commit_to_releases:
@@ -65,20 +113,18 @@ def export_dataset_releases(dataset_name: str):
             run_command(cmd, cwd=str(repo_dir))
 
         for release_id in info.releases:
-            release_output_dir = WORKING_EXPORTS_DIR / f"release_{release_id}"
-            release_output_dir.mkdir(parents=True, exist_ok=True)
-            release_output_file = release_output_dir / f"{dataset_name}.json"
-
-            if release_output_file.exists():
-                release_output_file.unlink()
-            os.symlink(os.path.relpath(target_commit_file, release_output_dir), release_output_file)
-            logger.info("link", extra={"release": release_id, "commit": commit, "commit_time": info.commit_time[0:10]})
+            link_release_export(target_commit_file, dataset_name, release_id)
+            logger.info(
+                "link", extra={"release": release_id, "commit": info.commit, "commit_time": info.commit_time[0:10]}
+            )
 
     run_in_thread_pool(
         func=process_export_release,
         items=list(commit_to_releases.values()),
         thread_count=4,
     )
+
+    export_empty_releases(dataset_name, releases_before_first_commit)
 
     representative_dir = WORKING_EXPORTS_DIR / f"release_{releases[-1].id}"
     return str(representative_dir / f"{dataset_name}.json")

@@ -26,7 +26,8 @@ jobs:
 
             const environment = isMaster ? "prod" : "";
 
-            const newTags = ["git-${{ github.sha }}"];
+            // `github.sha` is the ephemeral merge commit on pull requests, use the head commit instead
+            const newTags = ["git-${{ github.event.pull_request.head.sha || github.sha }}"];
             if (isPullRequest) newTags.push("pr-${{ github.event.number }}");
             if (isMaster) newTags.push("latest");
 
@@ -140,7 +141,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           build-args: |
-            GIT_HASH=${{ github.sha }}
+            GIT_HASH=${{ github.event.pull_request.head.sha || github.sha }}
             GIT_VERSION=${{ steps.version.outputs.version }} 
             GITHUB_RUN_ID=${{ github.run_id}}
 

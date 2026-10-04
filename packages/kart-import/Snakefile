@@ -4,6 +4,7 @@ from kart_import.config import (
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
+    THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
 )
@@ -79,6 +80,8 @@ rule export_lookup:
 # 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
 rule prepare_lookup:
     input:
+        # clone must be present: prepare reads each commit's declared schema from it.
+        cloned = "data/source/{lookup}/.cloned",
         exported = "data/working/export/lookup/{lookup}",
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
@@ -91,6 +94,8 @@ rule prepare_lookup:
 rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
+        # clone must be present: transform reads the source's declared schema from it.
+        cloned = "data/source/{dataset}/.cloned",
         exported = "data/working/export/release_{release}/{dataset}.json",
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
@@ -104,6 +109,11 @@ rule transform:
         lookup_clones = lambda wildcards: [
             f"data/source/{join.lookup}/.cloned"
             for join in DATASET_MAP[wildcards.dataset].joins
+        ],
+        example_deps = lambda wildcards: [
+            f"data/working/transform/release_{wildcards.release}/{ds.name}{TRANSFORM_SUFFIX}"
+            for theme_name in DATASET_MAP[wildcards.dataset].depends_on_themes
+            for ds in THEME_MAP[theme_name].datasets
         ]
     output:
         transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
@@ -120,14 +130,14 @@ rule theme_release:
             for ds in THEME_MAP[wildcards.theme].datasets
         ]
     output:
-        merged = "data/working/theme/release_{release}/{theme}.geojson"
+        merged = "data/working/theme/release_{release}/{theme}" + THEME_SUFFIX
     shell:
         "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
 rule kart_theme:
     input:
         themes = lambda wildcards: [
-            f"data/working/theme/release_{r.id}/{wildcards.theme}.geojson"
+            f"data/working/theme/release_{r.id}/{wildcards.theme}{THEME_SUFFIX}"
             for r in RELEASES
         ]
     output:
@@ -193,7 +203,7 @@ workflow.rule(name="bundle_all")(
 
 for t in THEMES:
     workflow.rule(name=f"theme_{t.name}")(
-        workflow.input([f"data/working/theme/release_{r.id}/{t.name}.geojson" for r in RELEASES])(
+        workflow.input([f"data/working/theme/release_{r.id}/{t.name}{THEME_SUFFIX}" for r in RELEASES])(
             workflow.run(lambda *args, **kwargs: None)
         )
     )

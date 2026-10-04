@@ -17,9 +17,27 @@ def env_transform_format() -> str:
     return fmt
 
 
+def env_theme_format() -> str:
+    """Output format for the merged per-theme releases, the input to `kart import`.
+
+    KART_THEME_FORMAT=fgb|geojson (default fgb). FlatGeobuf declares each column's type, so
+    kart records the type the pipeline intends. Set geojson for local dev when you want a
+    human-readable merge:
+
+        export KART_THEME_FORMAT=geojson
+
+    Dev only: GeoJSON carries no types, so kart auto-detects them from the JSON text.
+    Don't import a repo built this way into anywhere that matters.
+    """
+    fmt = os.getenv("KART_THEME_FORMAT", "fgb").lower()
+    if fmt not in ("fgb", "geojson"):
+        raise ValueError(f"KART_THEME_FORMAT must be 'fgb' or 'geojson', got {fmt!r}")
+    return fmt
+
+
 def env_themes() -> set[str] | None:
     """
-    Limit the number of themes to be processed and loaded based off a comma seperated env var
+    Limit the number of themes to be processed and loaded based off a comma separated env var
 
     KART_IMPORT_THEME=airport,vegetation
     """
@@ -31,7 +49,7 @@ def env_themes() -> set[str] | None:
 
 def env_releases() -> set[str] | None:
     """
-    Limit the number of releases to be processed and loaded based off a comma seperated env var
+    Limit the number of releases to be processed and loaded based off a comma separated env var
 
     KART_IMPORT_RELEASE=66,65,64
     """
@@ -42,7 +60,10 @@ def env_releases() -> set[str] | None:
 
 
 def env_schema_set() -> str:
-    """Which schema set the static schema check validates a theme's mapping against.
+    """Which schema set is read for a theme.
+
+    Selects the set for *both* the static check of a theme's mapping at config-load time,
+    and the dtypes `theme.coerce_dtypes` forces onto the merged frame at write time.
 
     KART_SCHEMA_SET=current|next (default current):
     ``current`` -> ``schema/`` ; ``next`` -> ``schema/next/``.

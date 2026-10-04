@@ -1,16 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./build/"
-  },
+  "compilerOptions": { "rootDir": "./src", "outDir": "./build/" },
   "include": ["src/"],
-  "references": [
-    {
-      "path": "../stac"
-    },
-    {
-      "path": "../shared"
-    }
-  ]
+  "references": [{ "path": "../stac" }, { "path": "../shared" }]
 }

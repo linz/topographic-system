@@ -18,6 +18,10 @@ async function findCli(): Promise<string> {
 
 async function cli(...args: (string | string[])[]): Promise<string> {
   const result = await $`node ${cliLocation} ${args.flat()}`;
+  if (process.argv.includes('--debug')) {
+    console.log(result.stdout);
+    console.log(result.stderr);
+  }
   if (result.exitCode !== 0) throw new Error('Error running CLI');
   return result.stdout;
 }
@@ -138,11 +142,9 @@ describe('QGIS Process', () => {
       await cli(
         'prepare',
         ['--project', fileURLToPath(new URL('target-deploy-push/qgis/beehive/latest/beehive.json', tempLocation))],
-        ['--layout', 'tiff-50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
-        ['--format', 'png'],
-        ['--dpi', '200'],
+        ['--asset', 'layout=tiff-50,dpi=200,format=png'],
         'BQ31',
       );
 

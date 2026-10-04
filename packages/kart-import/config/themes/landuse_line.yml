@@ -1,0 +1,40 @@
+name: landuse_line
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-racetrack-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      # legacy: type <- track_use, normalised to <use>_track below; racetrack where null
+      type: { source: $track_use, default: racetrack }
+      name: $
+      subtype: $track_type
+      theme: landuse
+      metadata: null
+    corrections:
+      # `trainin` (2 features, releases 60-61) is a truncated `training` sitting in the use
+      # column with no track_type of its own - it is a subtype, not a use.
+      - { column: subtype, set: training, where: { type: trainin } }
+      - column: type
+        replace:
+          horse: horse_track
+          vehicle: vehicle_track
+          cycle: cycle_track
+          dog: dog_track
+          trainin: racetrack
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-racetrack-centrelines-topo-150k
+    mapping:
+      t50_fid: $
+      # legacy: type <- track_use, normalised to <use>_track below; racetrack where null
+      type: { source: $track_use, default: racetrack }
+      name: $
+      subtype: $track_type
+      theme: landuse
+      metadata: null
+    corrections:
+      - column: type
+        replace:
+          horse: horse_track
+          vehicle: vehicle_track
+          cycle: cycle_track
+          dog: dog_track

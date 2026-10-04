@@ -3,18 +3,18 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
+  canCommentOnPr,
+  concurrency,
   logger,
   qFromArgs,
   qMapAll,
   recursiveFileSearch,
-  UrlFolder,
   stringToUrlFolder,
   Url,
-  canCommentOnPr,
-  concurrency,
+  UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
-import { boolean, command, flag, number, option, optional, positional, string } from 'cmd-ts';
+import { boolean, command, flag, number, option, positional, string } from 'cmd-ts';
 
 import { CloneCommand } from './action.clone.ts';
 import { DiffCommand } from './action.diff.ts';
@@ -107,15 +107,13 @@ export const FlowCommand = command({
   args: {
     concurrency,
     worker,
-    repository: positional({
-      displayName: 'repository',
-      description: 'Repository to clone',
-    }),
+    repository: positional({ displayName: 'repository', description: 'Repository to clone' }),
     ref: option({
-      type: optional(string),
+      type: string,
       long: 'ref',
       description: 'Branch ref to checkout (default: master)',
       defaultValue: () => 'master',
+      defaultValueIsSerializable: true,
     }),
     output: option({
       type: UrlFolder,
@@ -159,7 +157,7 @@ export const FlowCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(baseOutputLocation, 'export')),
     }),
     exportRef: option({
-      type: optional(string),
+      type: string,
       long: 'export-ref',
       description: 'Ref to export',
       defaultValue: () => 'FETCH_HEAD',
@@ -168,14 +166,14 @@ export const FlowCommand = command({
 
     // To-parquet args
     compression: option({
-      type: optional(string),
+      type: string,
       long: 'compression',
       description: 'Parquet compression type',
       defaultValue: () => 'zstd',
       defaultValueIsSerializable: true,
     }),
     compressionLevel: option({
-      type: optional(number),
+      type: number,
       long: 'compression-level',
       description: 'Parquet compression level',
       defaultValue: () => 17,
@@ -188,7 +186,7 @@ export const FlowCommand = command({
       onMissing: () => true,
     }),
     rowGroupSize: option({
-      type: optional(number),
+      type: number,
       long: 'row-group-size',
       description: 'Parquet row group size',
       defaultValue: () => 4096,

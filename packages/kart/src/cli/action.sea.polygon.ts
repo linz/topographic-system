@@ -1,11 +1,11 @@
-import { getCanonical, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { seaPolygon } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const seaPolygonName = 'nztopo50_sea_polygon';
-const seaPolygonSchema = new URL('file:///schema/sea_polygon.json');
+const seaPolygonSchema = new URL('file:///schema/nztopo50_sea_polygon.json');
 
 export const SeaPolygonArgs = {
   ...DataPrepareArgs,
@@ -22,12 +22,11 @@ export const SeaPolygonCommand = command({
   args: SeaPolygonArgs,
   async handler(args) {
     registerFileSystem();
-    const coastlineUrl = await getCanonical(args.coastline);
 
     await prepareData({
       name: seaPolygonName,
       label: 'sea polygon',
-      sources: [coastlineUrl],
+      sources: [args.coastline],
       run: ([coastline], output) => seaPolygon(coastline, output),
       output: args.output,
       tempLocation: args.tempLocation,

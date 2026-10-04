@@ -129,8 +129,11 @@ def generate_lifecycle(dataset_name: str):
     last_commit = EMPTY_TREE
 
     # Determine which field to use as the feature identifier
-    mapping_result = get_mapping_commit(repo_dir, dataset_id)
-    if mapping_result:
+    feature_key = get_dataset_by_name(dataset_name).feature_key
+    if feature_key:
+        fid_field = feature_key
+        logger.info(f"Using configured feature_key {feature_key!r} for {dataset_name}")
+    elif get_mapping_commit(repo_dir, dataset_id):
         fid_field = "t50_fid"
         logger.info(f"Using t50_fid for {dataset_name}")
     else:

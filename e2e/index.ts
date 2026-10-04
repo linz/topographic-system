@@ -125,8 +125,7 @@ describe('topographic-system.e2e', async () => {
         ['--project', '/target/bucket/qgis/topo-test/latest/topo-test.json'], // TODO allow collection.json
         ['--output', '/target/produce/'],
         ['--map-sheet-dataset', 'testmapsheet.parquet'],
-        ['--format', 'png'],
-        ['--dpi', '120'],
+        ['--asset', 'layout=tiff-50,format=png,dpi=120'],
         'BQ26',
         'BQ27',
       );

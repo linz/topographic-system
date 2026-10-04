@@ -21,10 +21,10 @@ type FakeRowGroup = Record<string, FakeColumn>;
  * statistics, standing in for a real parquet file so the min/max aggregation is testable
  * without a binary fixture.
  */
-function fakeMeta(rowGroups: FakeRowGroup[]): FileMetaData {
+function fakeMeta(rowGroups: FakeRowGroup[], code = 4326, primaryColumn = 'geometry'): FileMetaData {
   const geo = JSON.stringify({
-    primary_column: 'geometry',
-    columns: { geometry: { bbox: [170, -45, 175, -40], crs: { id: { code: 4326 } } } },
+    primary_column: primaryColumn,
+    columns: { [primaryColumn]: { bbox: [170, -45, 175, -40], crs: { id: { code } } } },
   });
   const meta = {
     num_rows: BigInt(rowGroups.length),
@@ -118,5 +118,45 @@ describe('mapParquetMetadataToStacStats min/max', () => {
 
     assert.strictEqual(col.min, 'bridge');
     assert.strictEqual(col.max, 'stream');
+  });
+
+  it('includes the STAC table metadata fields used by the collection writer', async () => {
+    const meta = fakeMeta([
+      {
+        geometry: { type: 'BINARY', stats: { min: 'geom-a', max: 'geom-z' } },
+        create_date: {
+          type: 'BYTE_ARRAY',
+          stats: { min: new Date('2024-06-01T00:00:00.000Z'), max: new Date('2024-06-03T00:00:00.000Z') },
+        },
+        t50_fid: { type: 'INT32', stats: { min: 1, max: 5 } },
+      },
+      {
+        geometry: { type: 'BINARY', stats: { min: 'geom-b', max: 'geom-y' } },
+        create_date: {
+          type: 'BYTE_ARRAY',
+          stats: { min: new Date('2024-05-20T00:00:00.000Z'), max: new Date('2024-06-02T00:00:00.000Z') },
+        },
+        t50_fid: { type: 'INT32', stats: { min: 6, max: 10 } },
+      },
+    ]);
+
+    const result = await mapParquetMetadataToStacStats(meta);
+    assert.strictEqual(result.epsg.code, 4326);
+    assert.strictEqual(result.table['table:row_count'], 2);
+    assert.strictEqual(result.table['table:primary_geometry'], 'geometry');
+    assert.strictEqual(result.table['table:primary_datetime'], 'create_date');
+    assert.strictEqual(result.table['table:columns'].find((c) => c.name === 't50_fid')?.min, 1);
+    assert.strictEqual(result.table['table:columns'].find((c) => c.name === 't50_fid')?.max, 10);
+    assert.deepStrictEqual(result.extent.temporal.interval, [['2024-05-20T00:00:00.000Z', '2024-06-03T00:00:00.000Z']]);
+  });
+
+  it('omits primary_datetime when no date column exists and captures custom epsg and primary geometry', async () => {
+    const meta = fakeMeta([fid(1, 10)], 2193, 'geom');
+    const result = await mapParquetMetadataToStacStats(meta);
+
+    assert.strictEqual(result.epsg.code, 2193);
+    assert.strictEqual(result.table['table:row_count'], 1);
+    assert.strictEqual(result.table['table:primary_geometry'], 'geom');
+    assert.strictEqual(result.table['table:primary_datetime'], undefined);
   });
 });

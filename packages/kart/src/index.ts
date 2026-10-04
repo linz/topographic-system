@@ -37,17 +37,9 @@ export const cmds = {
   'stac-push': StacPushCommand,
   'validate-schema': ValidateSchemaCommand,
   'lint-qgis': LintQgisProjectCommand,
-  'data-prep': subcommands({
-    name: 'data-prep',
-    description: 'Prepare derived data layers',
-    cmds: dataPrepCmds,
-  }),
+  'data-prep': subcommands({ name: 'data-prep', description: 'Prepare derived data layers', cmds: dataPrepCmds }),
 };
 
-const Cli = subcommands({
-  name: 'topographic-system',
-  description: '',
-  cmds,
-});
+const Cli = subcommands({ name: 'topographic-system', description: '', cmds });
 
 void traceAndRun(Cli, cmds, packageJson.name);
