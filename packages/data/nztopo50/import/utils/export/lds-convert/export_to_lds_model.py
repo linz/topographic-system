@@ -1,9 +1,9 @@
-# This script exports nz topographic data model to LDS shapefiles
-# It reads layer information and field mappings from excel files and
-# uses the schema json to force the field formats
+# This script exports the NZ Topo50 data model to LDS shapefiles.
+# Per-source JSON configs define target layers, field mappings, and formats.
 import json
 import logging
 import os
+from pathlib import Path
 
 import geopandas as gpd  # type: ignore
 import pandas as pd
@@ -26,39 +26,17 @@ DISPLAY_BY_SUBTYPE = {
     "large_rock_outcrop": "3",
 }
 
-ROAD_LDS_FIELDS = [
-    ("UFID", "t50_fid"),
-    ("lol_sufi", "rna_sufi"),
-    ("name", "name"),
-    ("RW_lane_c", "rw_lane_count"),
-    ("RW_surface", "rw_surface"),
-    ("road_access", "road_access"),
-    ("width", "width_indicator"),
-    ("name_id", "name_id"),
-    ("surface", "surface"),
-    ("status", "status"),
-    ("num_lanes", "lane_count"),
-    ("hway_num", "highway_number"),
-    ("way_count", "way_count"),
-    ("geometry", "geometry"),
-]
-
-
 class ExportToLDSModel:
     def __init__(
         self,
-        layer_info_excel,
-        field_mappings_excel,
-        master_schema_file,
+        config_directory,
         database,
         contour_database,
         product_database,
         output_folder,
         source_format="gpkg",
     ):
-        self.excel_file = layer_info_excel
-        self.field_mappings_excel = field_mappings_excel
-        self.master_schema_file = master_schema_file
+        self.config_directory = Path(config_directory)
         self.database = database
         self.contour_database = contour_database
         self.product_database = product_database
@@ -68,17 +46,90 @@ class ExportToLDSModel:
             raise ValueError(f"Unsupported source format: {source_format}")
         os.makedirs(self.output_folder, exist_ok=True)
         self.logger = self.create_logger()
-        self.layers_info = self.load_layers_info()
-        self.layer_source_counts = {}
-        for layer_info in self.layers_info.values():
-            layer_name = layer_info[3].lower()
-            self.layer_source_counts[layer_name] = (
-                self.layer_source_counts.get(layer_name, 0) + 1
+        (
+            self.layers_info,
+            self.layer_source_counts,
+            self.field_names,
+            self.mapped_names,
+            self.schemas,
+        ) = self.load_configs(self.config_directory)
+
+    @staticmethod
+    def create_fiona_schema(target_config):
+        properties = {}
+        geometry_mapping_count = 0
+        for field_mapping in target_config["field_mappings"]:
+            target_field = field_mapping["target_field"]
+            target_type = field_mapping["target_type"]
+            if target_field == "geometry":
+                geometry_mapping_count += 1
+                if target_type != target_config["geometry_type"]:
+                    raise ValueError(
+                        f"Geometry mapping for {target_config['target_layer']} "
+                        "does not match geometry_type"
+                    )
+                continue
+            if target_field in properties:
+                raise ValueError(
+                    f"Duplicate target field {target_field} in "
+                    f"{target_config['target_layer']}"
+                )
+            properties[target_field] = target_type
+
+        if geometry_mapping_count != 1:
+            raise ValueError(
+                f"Expected one geometry mapping for "
+                f"{target_config['target_layer']}, found {geometry_mapping_count}"
             )
-        self.field_names, self.mapped_names = self.load_field_mapping(
-            field_mappings_excel
+        return {
+            "properties": properties,
+            "geometry": target_config["geometry_type"],
+        }
+
+    def load_configs(self, config_directory):
+        config_files = sorted(config_directory.glob("*.json"))
+        if not config_files:
+            raise ValueError(f"No LDS config files found in {config_directory}")
+
+        layers_info = {}
+        layer_source_counts = {}
+        field_names = {}
+        mapped_names = {}
+        schemas = {}
+
+        for config_file in config_files:
+            with config_file.open(encoding="utf-8") as file:
+                config = json.load(file)
+            source_layer = config["source_layer"].lower()
+            if config_file.stem.lower() != source_layer:
+                raise ValueError(
+                    f"Config filename {config_file.name} does not match "
+                    f"source_layer {source_layer}"
+                )
+
+            targets = config["targets"]
+            layer_source_counts[source_layer] = len(targets)
+            for target in targets:
+                target_layer = target["target_layer"]
+                if target_layer in layers_info:
+                    raise ValueError(f"Duplicate LDS target layer: {target_layer}")
+
+                layers_info[target_layer] = [target["feature_type"], source_layer]
+                field_names[target_layer] = [
+                    mapping["target_field"] for mapping in target["field_mappings"]
+                ]
+                mapped_names[target_layer] = [
+                    mapping["source_field"] for mapping in target["field_mappings"]
+                ]
+                schemas[target_layer] = self.create_fiona_schema(target)
+
+        return (
+            layers_info,
+            layer_source_counts,
+            field_names,
+            mapped_names,
+            schemas,
         )
-        self.schemas = self.read_schema(master_schema_file)
 
     def create_logger(self):
         logger = logging.getLogger(f"{__name__}.{id(self)}")
@@ -181,46 +232,6 @@ class ExportToLDSModel:
             raise ValueError(f"Unsupported format: {format}")
         return layer
 
-    def load_layers_info(self):
-        source = pd.read_excel(self.excel_file, sheet_name="Sheet1")
-        layers_info = {}
-        for row in source.itertuples():
-            object_name = row.object_name
-            shp_name = row.shp_name
-            theme = row.theme
-            dataset = row.dataset
-            feature_type = getattr(row, "type", None)
-            if feature_type is None:
-                feature_type = row.feature_type
-            layer_name = row.layer_name
-            layer_list = [object_name, theme, feature_type, layer_name, dataset]
-            layers_info[shp_name] = layer_list
-        return layers_info
-
-    def load_field_mapping(self, mapping_file):
-        df = pd.read_excel(mapping_file)
-        field_names = {}
-        mapped_names = {}
-        for row in df.itertuples(index=False):
-            filename = row.filename
-            field_name = row.field_name
-            mapped_name = row.mapped_name
-            if filename not in field_names:
-                field_names[filename] = []
-                mapped_names[filename] = []
-
-            field_names[filename].append(field_name)
-            mapped_names[filename].append(mapped_name)
-
-        field_names["road_cl"] = [field for field, _mapped in ROAD_LDS_FIELDS]
-        mapped_names["road_cl"] = [mapped for _field, mapped in ROAD_LDS_FIELDS]
-        return field_names, mapped_names
-
-    def read_schema(self, schema_file):
-        with open(schema_file) as f:
-            schema_dict = json.load(f)
-        return schema_dict
-
     def read_schema_layer(self, layer_name):
         schema = self.schemas.get(layer_name)
         if schema is None:
@@ -305,7 +316,11 @@ class ExportToLDSModel:
                 layer["structure_type"] = layer["type"].where(
                     layer["type"] == "lighthouse"
                 )
-            elif feature_type in {"bivouac", "tower"}:
+            elif feature_type == "bivouac":
+                layer["material"] = layer["subtype"].where(
+                    layer["subtype"] != "building"
+                )
+            elif feature_type == "tower":
                 layer["material"] = layer["subtype"]
             elif feature_type == "gate":
                 layer["restrictions"] = layer["subtype"]
@@ -326,6 +341,10 @@ class ExportToLDSModel:
             layer["infrastructure_use"] = layer["subtype"]
         elif layer_name == "vegetation":
             layer["species"] = layer["subtype"]
+            if feature_type == "exotic":
+                layer["species"] = layer["species"].where(
+                    layer["species"] != "coniferous"
+                )
         elif layer_name == "water":
             layer["water_use"] = layer["subtype"]
             if "temperature_indicator" in layer:
@@ -419,6 +438,17 @@ class ExportToLDSModel:
 
         return layer
 
+    def restore_lds_string_values(self, layer, schema):
+        layer = layer.copy()
+        for field_name, field_type in schema["properties"].items():
+            if field_type.startswith("str") and field_name in layer.columns:
+                layer[field_name] = layer[field_name].map(
+                    lambda value: value.replace("_", " ")
+                    if isinstance(value, str)
+                    else value
+                )
+        return layer
+
     def tree_locations_special_case(self, layer):
         layer["macronated"] = "N"
         layer["name"] = ""
@@ -485,7 +515,7 @@ class ExportToLDSModel:
 
         for shp_name, layer_info in layer_items:
             start_time = pd.Timestamp.now()
-            object_name, theme, feature_type, layer_name, dataset = layer_info
+            feature_type, layer_name = layer_info
 
             if self.skip_unknown_nodata_layers(shp_name):
                 message = f"Skipping unknown/no data layer: {shp_name}"
@@ -529,6 +559,7 @@ class ExportToLDSModel:
             layer = self.reorder_columns(layer, mapped_names, field_names)
             layer.to_crs(2193, inplace=True)
             schema = self.read_schema_layer(shp_name)
+            layer = self.restore_lds_string_values(layer, schema)
             layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
             processed_layers.append(feature_type)
             end_time = pd.Timestamp.now()
@@ -543,7 +574,7 @@ class ExportToLDSModel:
                 end_time - start_time,
             )
 
-            if layer_name == "ice":
+            if feature_type == "ice":
                 shp_path = shp_path.replace("ice", "snow")
                 layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
                 print(f"Exported: {layer_name} to {shp_path}")
@@ -555,20 +586,14 @@ class ExportToLDSModel:
 
 
 if __name__ == "__main__":
-    model_folder = r"C:\Data\Model"
     script_folder = os.path.dirname(os.path.abspath(__file__))
-    master_schema_file = os.path.join(
-        script_folder, "Release62_NZ50_Schemas", "nztopo50_lds_schemas.json"
-    )
-
-    layer_info_excel = os.path.join(model_folder, "layers_info.xlsx")
-    field_mappings_excel = os.path.join(model_folder, "lds_field_mapping.xlsx")
+    config_directory = os.path.join(script_folder, "topo50_schemas", "config")
 
     # For GeoPackage sources, use source_format="gpkg" and set each value to
     # its .gpkg file. For GeoParquet, use source_format="parquet" and set each
     # value to a folder containing one <model_layer_name>.parquet file per layer.
     source_format = "parquet"
-    database = r"C:\Data\temp\topographic-data"
+    database = r"C:\Data\temp\topographic-data-dev"
     contour_database = r"C:\Data\temp\topographic-contour-data"
     product_database = r"C:\Data\temp\topographic-product-data"
 
@@ -583,9 +608,7 @@ if __name__ == "__main__":
 
     start_time = pd.Timestamp.now()
     exporter = ExportToLDSModel(
-        layer_info_excel,
-        field_mappings_excel,
-        master_schema_file,
+        config_directory,
         database,
         contour_database,
         product_database,

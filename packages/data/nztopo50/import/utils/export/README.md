@@ -30,8 +30,23 @@ Scripts for exporting data to the LINZ Data Service (LDS) shapefile format.
 | File | Description |
 |------|-------------|
 | `create_lds_field_map.py` | Reads field definitions from shapefiles and exports a JSON field map to enforce consistent field types during LDS export |
-| `export_to_lds_model.py` | Exports NZ Topo50 layers from PostgreSQL to LDS-format shapefiles using layer info, field mappings, and a master schema JSON |
-| `Release62_NZ50_Schemas/nztopo50_lds_schemas.json` | Master schema file defining field formats for Release 62 NZ Topo50 LDS shapefiles |
+| `create_lds_config.py` | Merges layer routing, field mappings, and LDS schemas into one logical mapping JSON file per source model layer |
+| `export_to_lds_model.py` | Exports NZ Topo50 layers to LDS-format shapefiles using the per-source JSON configs |
+| `topo50_schemas/nztopo50_lds_schemas.json` | Master schema used only to generate the per-source configs |
+
+Generate the logical source-layer mapping files without modifying the master
+schema JSON:
+
+```powershell
+uv run python utils\export\LDS\create_lds_config.py C:\Data\Model\layers_info.xlsx C:\Data\Model\lds_field_mapping.xlsx utils\export\LDS\topo50_schemas\nztopo50_lds_schemas.json utils\export\LDS\topo50_schemas\config
+```
+
+Each file under `topo50_schemas/config` represents one consolidated
+source model layer. Its `targets` array contains the LDS output layers,
+feature-type discriminator, geometry type, and ordered
+source-to-target field mappings with the Fiona target type. The exporter builds
+the Fiona `properties` and `geometry` schema dynamically from this information;
+it does not read the Excel workbooks or master schema JSON at runtime.
 
 #### Export LDS shapefiles from GeoParquet
 

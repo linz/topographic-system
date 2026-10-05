@@ -1,0 +1,53 @@
+{
+  "source_layer": "island",
+  "targets": [
+    {
+      "target_layer": "island_poly",
+      "schema_key": "island_poly",
+      "feature_type": "island",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "grp_ascii",
+          "target_field": "grp_ascii",
+          "target_type": "str:60"
+        },
+        {
+          "source_field": "group_name",
+          "target_field": "grp_name",
+          "target_type": "str:60"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "grp_macron",
+          "target_field": "grp_macron",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

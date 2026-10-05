@@ -1,0 +1,153 @@
+{
+  "source_layer": "structure",
+  "targets": [
+    {
+      "target_layer": "dry_dock_poly",
+      "schema_key": "dry_dock_poly",
+      "feature_type": "dry_dock",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "structure_type",
+          "target_field": "type",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "fish_farm_poly",
+      "schema_key": "fish_farm_poly",
+      "feature_type": "fish_farm",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "structure_type",
+          "target_field": "type",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "species",
+          "target_field": "species",
+          "target_type": "str:6"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "marine_farm_poly",
+      "schema_key": "marine_farm_poly",
+      "feature_type": "marine_farm",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "species",
+          "target_field": "species",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "reservoir_poly",
+      "schema_key": "reservoir_poly",
+      "feature_type": "reservoir",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "lid_type",
+          "target_field": "lid_type",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "siphon_poly",
+      "schema_key": "siphon_poly",
+      "feature_type": "siphon",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:3"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "tank_poly",
+      "schema_key": "tank_poly",
+      "feature_type": "tank",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "stored_item",
+          "target_field": "store_item",
+          "target_type": "str:5"
+        },
+        {
+          "source_field": "structure_type",
+          "target_field": "tank_type",
+          "target_type": "str:13"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "source_layer": "landcover_line",
+  "targets": [
+    {
+      "target_layer": "dredge_tailing_cl",
+      "schema_key": "dredge_tailing_cl",
+      "feature_type": "dredge_tailing",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

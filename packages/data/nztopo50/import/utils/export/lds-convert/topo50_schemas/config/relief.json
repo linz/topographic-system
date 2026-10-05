@@ -1,0 +1,76 @@
+{
+  "source_layer": "relief",
+  "targets": [
+    {
+      "target_layer": "rapid_poly",
+      "schema_key": "rapid_poly",
+      "feature_type": "rapid",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "waterfall_poly",
+      "schema_key": "waterfall_poly",
+      "feature_type": "waterfall",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "height",
+          "target_field": "height",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}
