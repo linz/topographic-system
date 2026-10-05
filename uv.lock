@@ -1521,6 +1521,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "referencing" },
     { name = "snakemake" },
+    { name = "topographic-system-data-prep" },
 ]
 
 [package.metadata]
@@ -1533,6 +1534,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "referencing", specifier = ">=0.37.0" },
     { name = "snakemake", specifier = ">=8.0.0" },
+    { name = "topographic-system-data-prep", editable = "packages/data-prep" },
 ]
 
 [[package]]

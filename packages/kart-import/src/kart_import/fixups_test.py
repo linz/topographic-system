@@ -25,6 +25,7 @@ from .fixups import (
     drop_empty_residential_areas,
     generate_dms_grid_features,
     generate_nztm_grid_features,
+    generate_sea_polygon,
 )
 
 
@@ -676,6 +677,83 @@ def test_grid_fixups_are_wired_to_their_own_settings(fn, directions, vertices, i
     lons, lats = _values(out, along_y), _values(out, along_x)
     assert (lons[0], lons[-1], lats[0], lats[-1]) == extent
     assert lats[1] - lats[0] == pytest.approx(interval)
+
+
+def _seed_sea_transforms(tmp_path, monkeypatch):
+    """Seed release_66 coastline + island transforms and point the config at them.
+
+    A single closed coastline loop around a name-reference point (so `coastline_polygon` can name the
+    land) plus one offshore island, both written as this release's transform outputs.
+    """
+    from data_prep.coastline_polygon import NAME_REFERENCE_POINTS
+    from data_prep.parquet_utils import NZGD2000, NZTM2000
+    from shapely.geometry import box
+
+    _name, (px, py) = next(iter(NAME_REFERENCE_POINTS.items()))
+    land_box = box(px - 100_000, py - 100_000, px + 100_000, py + 100_000)
+    coastline_line = gpd.GeoSeries([LineString(land_box.exterior.coords)], crs=NZTM2000).to_crs(NZGD2000).iloc[0]
+    island_poly = (
+        gpd.GeoSeries([box(px + 250_000, py - 250_000, px + 260_000, py - 240_000)], crs=NZTM2000)
+        .to_crs(NZGD2000)
+        .iloc[0]
+    )
+
+    release_dir = tmp_path / "release_66"
+    release_dir.mkdir()
+
+    ts = "2020-01-01T00:00:00+00:00"
+    gpd.GeoDataFrame(
+        {"id": ["c1"], "created_at": [ts], "updated_at": [ts], "t50_fid": [1], "type": ["coastline"]},
+        geometry=[coastline_line],
+        crs=NZGD2000,
+    ).to_parquet(release_dir / "nz_coastlines.parquet")
+    gpd.GeoDataFrame(
+        {
+            "id": ["i1"],
+            "created_at": [ts],
+            "updated_at": [ts],
+            "t50_fid": [None],
+            "type": ["island"],
+            "name": ["Test Island"],
+            "group_name": [None],
+        },
+        geometry=[island_poly],
+        crs=NZGD2000,
+    ).to_parquet(release_dir / "nz_islands.parquet")
+
+    def theme(name, dataset):
+        return Theme.model_validate(
+            {
+                "name": name,
+                "target_repo": "x",
+                "target_epsg": "EPSG:4167",
+                "datasets": [{"name": dataset, "source": "kart@data.koordinates.com:linz/x-topo-150k"}],
+            }
+        )
+
+    themes = {"coastline": theme("coastline", "nz_coastlines"), "island": theme("island", "nz_islands")}
+    monkeypatch.setattr("kart_import.config.WORKING_TRANSFORM_DIR", tmp_path)
+    monkeypatch.setattr("kart_import.config.get_theme_by_name", lambda name: themes[name])
+
+
+def test_generate_sea_polygon_builds_moana_from_transforms(tmp_path, monkeypatch):
+    _seed_sea_transforms(tmp_path, monkeypatch)
+
+    placeholder = gpd.GeoDataFrame({"x": [0]}, geometry=[Point(0, 0)], crs="EPSG:4167")
+    out = generate_sea_polygon(placeholder, _td([{"fn": "generate_sea_polygon"}], "moana"), 66)
+
+    assert not out.empty
+    assert set(out["type"].unique()) == {"moana"}
+    assert out.crs.to_epsg() == 4167
+    assert (out.geometry.geom_type == "Polygon").all()
+    assert out["t50_fid"].isna().all()
+    assert (out["theme"] == "landcover").all()
+    # every moana feature carries a derived identity and timestamps
+    for column in ("id", "created_at", "updated_at"):
+        assert out[column].notna().all()
+    # attributes that don't apply to the sea are left NULL
+    for column in ("subtype", "name", "group_name", "height", "elevation", "perennial", "temperature_indicator"):
+        assert out[column].isna().all()
 
 
 CARTO_TEXT_STYLING_FIELDS = (
