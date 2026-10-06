@@ -49,7 +49,7 @@
           "target_type": "int:10"
         },
         {
-          "source_field": "location",
+          "source_field": "subtype",
           "target_field": "location",
           "target_type": "str:4"
         },

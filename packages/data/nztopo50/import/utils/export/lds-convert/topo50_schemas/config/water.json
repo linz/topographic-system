@@ -104,12 +104,12 @@
           "target_type": "str:8"
         },
         {
-          "source_field": "temperature",
+          "source_field": "temperature_indicator",
           "target_field": "temperatur",
           "target_type": "str:3"
         },
         {
-          "source_field": "water_use",
+          "source_field": "subtype",
           "target_field": "lake_use",
           "target_type": "str:15"
         },
@@ -167,7 +167,7 @@
           "target_type": "str:75"
         },
         {
-          "source_field": "water_use",
+          "source_field": "subtype",
           "target_field": "pond_use",
           "target_type": "str:16"
         },

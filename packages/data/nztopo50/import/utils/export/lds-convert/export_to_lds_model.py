@@ -286,6 +286,9 @@ class ExportToLDSModel:
                 layer["description"] = layer["name"]
         elif layer_name == "railway_line":
             layer["railway_use"] = layer["subtype"]
+            layer["vehicle_type"] = layer["vehicle_type"].where(
+                layer["vehicle_type"] != "train"
+            )
         elif layer_name == "relief_line" and feature_type == "embankment":
             layer["relief_use"] = layer["subtype"]
         elif layer_name == "road_line" and "metadata" in layer:
@@ -312,7 +315,6 @@ class ExportToLDSModel:
                 layer["structure_use"] = layer["subtype"]
         elif layer_name == "structure_point":
             if feature_type == "beacon":
-                layer["location"] = layer["subtype"]
                 layer["structure_type"] = layer["type"].where(
                     layer["type"] == "lighthouse"
                 )
@@ -331,6 +333,8 @@ class ExportToLDSModel:
                 layer["structure_type"] = layer["tank_type"]
             elif feature_type == "wreck":
                 layer["wreck_of"] = layer["subtype"]
+        elif layer_name == "trig_point":
+            layer["name"] = layer["code"]
         elif layer_name == "tunnel_line":
             layer["tunnel_type"] = layer["construction_type"]
             layer["tunnel_use"] = layer["type"]
@@ -440,6 +444,10 @@ class ExportToLDSModel:
 
     def restore_lds_string_values(self, layer, schema):
         layer = layer.copy()
+        if "lake_use" in layer.columns:
+            layer["lake_use"] = layer["lake_use"].replace(
+                {"hydro_electric": "hydro-electric"}
+            )
         for field_name, field_type in schema["properties"].items():
             if field_type.startswith("str") and field_name in layer.columns:
                 layer[field_name] = layer[field_name].map(
