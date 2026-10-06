@@ -695,9 +695,7 @@ def _seed_sea_transforms(tmp_path, monkeypatch):
     # Just off the coast: its dataset bounds overlap the mainland coastline extent (so the per-dataset
     # offshore filter keeps it) while it lies outside the land polygon itself (a real offshore island).
     island_poly = (
-        gpd.GeoSeries([box(px + 95_000, py + 50_000, px + 130_000, py + 60_000)], crs=NZTM2000)
-        .to_crs(NZGD2000)
-        .iloc[0]
+        gpd.GeoSeries([box(px + 95_000, py + 50_000, px + 130_000, py + 60_000)], crs=NZTM2000).to_crs(NZGD2000).iloc[0]
     )
 
     release_dir = tmp_path / "release_66"

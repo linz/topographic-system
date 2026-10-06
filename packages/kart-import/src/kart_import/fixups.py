@@ -878,7 +878,6 @@ def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: in
             pd.concat(sea_frames, ignore_index=True), geometry="geometry", crs=sea_frames[0].crs
         ).reset_index(drop=True)
 
-
     target_crs = gdf.crs
     if target_crs is not None:
         sea = sea.to_crs(target_crs)
