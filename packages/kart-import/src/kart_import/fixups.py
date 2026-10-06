@@ -827,7 +827,6 @@ def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: in
 
     import geopandas as gpd_
     import pandas as pd
-    import shapely
     from data_prep import coastline_polygon, sea_polygon
     from data_prep.parquet_utils import NZGD2000
 
@@ -846,29 +845,39 @@ def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: in
         return merged.to_crs(NZGD2000)
 
     coastline = read_theme("coastline")
-    mainland_extent = shapely.box(*coastline.total_bounds)
-    island_frames = [
-        read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}").to_crs(NZGD2000)
-        for dataset in get_theme_by_name("island").datasets
-    ]
-    offshore = [frame for frame in island_frames if shapely.box(*frame.total_bounds).intersects(mainland_extent)]
-    island = gpd_.GeoDataFrame(pd.concat(offshore, ignore_index=True), geometry="geometry", crs=NZGD2000)
+    # Every offshore island group (including the Chatham Islands) is merged into the land before it is
+    # inverted, so the sea surrounds them all, not just the mainland.
+    island = read_theme("island")
 
     with tempfile.TemporaryDirectory() as tmp_name:
         tmp = Path(tmp_name)
         coastline_path = tmp / "coastline.parquet"
         island_path = tmp / "island.parquet"
         coastline_polygon_path = tmp / "coastline_polygon.parquet"
-        sea_polygon_path = tmp / "sea_polygon.parquet"
 
         coastline.to_parquet(coastline_path)
         island.to_parquet(island_path)
 
-        # Existing data-prep scripts, unchanged: lines -> land polygons -> inverted per-tile sea.
+        # Existing data-prep scripts, unchanged: lines + island polygons -> merged land polygons.
         coastline_polygon.run(coastline_path, island_path, coastline_polygon_path)
-        sea_polygon.run(coastline_polygon_path, sea_polygon_path)
+        land = gpd_.read_parquet(coastline_polygon_path)
 
-        sea = gpd_.read_parquet(sea_polygon_path).reset_index(drop=True)
+        bounds = land.geometry.bounds
+        mid_longitude = (bounds["minx"] + bounds["maxx"]) / 2
+        sea_frames = []
+        for side, side_land in (("west", land[mid_longitude >= 0]), ("east", land[mid_longitude < 0])):
+            if side_land.empty:
+                continue
+            side_land_path = tmp / f"land_{side}.parquet"
+            side_sea_path = tmp / f"sea_{side}.parquet"
+            side_land.to_parquet(side_land_path)
+            sea_polygon.run(side_land_path, side_sea_path)
+            sea_frames.append(gpd_.read_parquet(side_sea_path))
+
+        sea = gpd_.GeoDataFrame(
+            pd.concat(sea_frames, ignore_index=True), geometry="geometry", crs=sea_frames[0].crs
+        ).reset_index(drop=True)
+
 
     target_crs = gdf.crs
     if target_crs is not None:

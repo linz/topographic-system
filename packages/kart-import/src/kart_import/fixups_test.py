@@ -692,8 +692,10 @@ def _seed_sea_transforms(tmp_path, monkeypatch):
     _name, (px, py) = next(iter(NAME_REFERENCE_POINTS.items()))
     land_box = box(px - 100_000, py - 100_000, px + 100_000, py + 100_000)
     coastline_line = gpd.GeoSeries([LineString(land_box.exterior.coords)], crs=NZTM2000).to_crs(NZGD2000).iloc[0]
+    # Just off the coast: its dataset bounds overlap the mainland coastline extent (so the per-dataset
+    # offshore filter keeps it) while it lies outside the land polygon itself (a real offshore island).
     island_poly = (
-        gpd.GeoSeries([box(px + 250_000, py - 250_000, px + 260_000, py - 240_000)], crs=NZTM2000)
+        gpd.GeoSeries([box(px + 95_000, py + 50_000, px + 130_000, py + 60_000)], crs=NZTM2000)
         .to_crs(NZGD2000)
         .iloc[0]
     )
