@@ -7,7 +7,7 @@ datasets:
       t50_fid: $
       type: mine
       subtype: $visibility
-      status:
+      status: $
       name: $
       substance_extracted: $substance
       theme: landuse
