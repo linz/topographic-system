@@ -25,6 +25,7 @@ enum water_type {
   Drain: "drain",
   Lagoon: "lagoon",
   Lake: "lake",
+  Moana: "moana",
   Pond: "pond",
   River: "river",
   Soakhole: "soakhole",
