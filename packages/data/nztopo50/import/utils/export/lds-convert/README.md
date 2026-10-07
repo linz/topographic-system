@@ -133,6 +133,9 @@ For each LDS target, the exporter:
 Current special reverse mappings include:
 
 - Road `rna_sufi` recovered from the `road_id` value in metadata.
+- Defaulted runway surface `grass` restored to null.
+- Tunnel use corrections reversed, including swapped `vehicle`/`livestock`,
+  `foot_traffic` spacing, and the source spelling `ivestock`.
 - Bivouac material `building` restored to null.
 - Defaulted exotic species `coniferous` restored to null.
 - Tree name exceptions retained for known `t50_fid` values.

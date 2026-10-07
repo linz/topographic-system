@@ -1,6 +1,6 @@
 {
   "source_layer": "trig_point",
-          "source_field": "name_ascii",
+  "targets": [
     {
       "target_layer": "trig_pnt",
       "schema_key": "trig_pnt",

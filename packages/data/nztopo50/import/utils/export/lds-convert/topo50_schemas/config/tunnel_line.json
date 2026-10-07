@@ -38,12 +38,12 @@
           "target_type": "str:7"
         },
         {
-          "source_field": "tunnel_use",
+          "source_field": "type",
           "target_field": "use1",
           "target_type": "str:12"
         },
         {
-          "source_field": "tunnel_use2",
+          "source_field": "subtype",
           "target_field": "use2",
           "target_type": "str:12"
         },

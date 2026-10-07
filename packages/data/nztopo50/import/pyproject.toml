@@ -21,6 +21,7 @@ dependencies = [
     "obstore",
     "pyarrow>=24.0.0",
     "fastjsonschema>=2.22.1",
+    "pystac[validation]",
 ]
 
 [dependency-groups]

@@ -300,6 +300,7 @@ class ExportToLDSModel:
             )
         elif layer_name == "runway":
             layer["runway_use"] = layer["subtype"]
+            layer["surface"] = layer["surface"].where(layer["surface"] != "grass")
         elif layer_name == "structure":
             if feature_type == "tank":
                 layer["structure_type"] = layer["tank_type"]
@@ -336,9 +337,17 @@ class ExportToLDSModel:
         elif layer_name == "trig_point":
             layer["name"] = layer["code"]
         elif layer_name == "tunnel_line":
-            layer["tunnel_type"] = layer["construction_type"]
-            layer["tunnel_use"] = layer["type"]
-            layer["tunnel_use2"] = layer["subtype"]
+            swapped_uses = (layer["type"] == "vehicle") & (
+                layer["subtype"] == "livestock"
+            )
+            layer.loc[swapped_uses, "type"] = "livestock"
+            layer.loc[swapped_uses, "subtype"] = "vehicle"
+            layer["type"] = layer["type"].replace(
+                {"foot_traffic": "foot traffic"}
+            )
+            layer["subtype"] = layer["subtype"].replace(
+                {"livestock": "ivestock"}
+            )
         elif layer_name == "track_line":
             layer["track_use"] = layer["subtype"]
         elif layer_name == "utility_line" and feature_type == "pipeline":
