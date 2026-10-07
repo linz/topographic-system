@@ -17,6 +17,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "referencing>=0.37.0",
     "snakemake>=8.0.0",
+    "topographic-system-data-prep",
 ]
 
 [build-system]

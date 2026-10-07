@@ -856,6 +856,99 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
     )
 
 
+def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Derive the moana (sea) polygons for the water layer from coastline and islands.
+    Runs the existing data-prep scripts: the coastline_polygon.py and sea_polygon.py
+    Produce same sea polygons into water layer
+    """
+    import tempfile
+    from pathlib import Path
+
+    import geopandas as gpd_
+    import pandas as pd
+    from data_prep import coastline_polygon, sea_polygon
+    from data_prep.parquet_utils import NZGD2000
+
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+
+    def read_theme(theme_name: str) -> gpd_.GeoDataFrame:
+        frames = [
+            read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
+            for dataset in get_theme_by_name(theme_name).datasets
+        ]
+        merged = gpd_.GeoDataFrame(pd.concat(frames, ignore_index=True), geometry="geometry", crs=frames[0].crs)
+        # data-prep asserts NZGD2000 inputs; the water/coastline/island themes store EPSG:4167 already.
+        return merged.to_crs(NZGD2000)
+
+    coastline = read_theme("coastline")
+    # Every offshore island group (including the Chatham Islands) is merged into the land before it is
+    # inverted, so the sea surrounds them all, not just the mainland.
+    island = read_theme("island")
+
+    with tempfile.TemporaryDirectory() as tmp_name:
+        tmp = Path(tmp_name)
+        coastline_path = tmp / "coastline.parquet"
+        island_path = tmp / "island.parquet"
+        coastline_polygon_path = tmp / "coastline_polygon.parquet"
+
+        coastline.to_parquet(coastline_path)
+        island.to_parquet(island_path)
+
+        # Existing data-prep scripts, unchanged: lines + island polygons -> merged land polygons.
+        coastline_polygon.run(coastline_path, island_path, coastline_polygon_path)
+        land = gpd_.read_parquet(coastline_polygon_path)
+
+        bounds = land.geometry.bounds
+        mid_longitude = (bounds["minx"] + bounds["maxx"]) / 2
+        sea_frames = []
+        for side, side_land in (("west", land[mid_longitude >= 0]), ("east", land[mid_longitude < 0])):
+            if side_land.empty:
+                continue
+            side_land_path = tmp / f"land_{side}.parquet"
+            side_sea_path = tmp / f"sea_{side}.parquet"
+            side_land.to_parquet(side_land_path)
+            sea_polygon.run(side_land_path, side_sea_path)
+            sea_frames.append(gpd_.read_parquet(side_sea_path))
+
+        sea = gpd_.GeoDataFrame(
+            pd.concat(sea_frames, ignore_index=True), geometry="geometry", crs=sea_frames[0].crs
+        ).reset_index(drop=True)
+
+    target_crs = gdf.crs
+    if target_crs is not None:
+        sea = sea.to_crs(target_crs)
+    count = len(sea)
+    result = gpd_.GeoDataFrame(
+        {
+            "id": sea["id"].astype("string").to_numpy(),
+            "created_at": sea["created_at"].to_numpy(),
+            "updated_at": sea["updated_at"].to_numpy(),
+            "t50_fid": [None] * count,
+            "type": "moana",
+            "subtype": [None] * count,
+            "name": [None] * count,
+            "group_name": [None] * count,
+            "height": [None] * count,
+            "elevation": [None] * count,
+            "perennial": [None] * count,
+            "temperature_indicator": [None] * count,
+            "theme": "landcover",
+            "metadata": [None] * count,
+        },
+        geometry=sea.geometry.to_numpy(),
+        crs=target_crs,
+    )
+
+    logger.info(
+        "generate_sea_polygon",
+        extra={"dataset": td.name, "release": release_id, "features": count},
+    )
+    return result
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
@@ -868,6 +961,7 @@ FIXUPS: dict[str, Fixup] = {
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "generate_dms_grid_features": generate_dms_grid_features,
     "generate_nztm_grid_features": generate_nztm_grid_features,
+    "generate_sea_polygon": generate_sea_polygon,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
