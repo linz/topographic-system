@@ -5,7 +5,10 @@
   "properties": {
     "id": { "type": "string", "description": "UUIDv7 of the feature" },
     "t50_fid": {
-      "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
+      "anyOf": [
+        { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        { "type": "null" }
+      ],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
     "type": { "type": "string", "const": "nztopo50_map_sheet" },
@@ -13,17 +16,35 @@
     "sheet_name": { "type": "string" },
     "origin_x": { "type": "number" },
     "origin_y": { "type": "number" },
-    "cover_front_origin_x": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-    "cover_front_origin_y": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-    "cover_back_origin_x": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-    "cover_back_origin_y": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-    "example_point_id": { "type": "string", "description": "id (UUID) of the example feature." },
+    "cover_front_origin_x": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }]
+    },
+    "cover_front_origin_y": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }]
+    },
+    "cover_back_origin_x": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }]
+    },
+    "cover_back_origin_y": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }]
+    },
+    "example_point_id": {
+      "type": "string",
+      "description": "id (UUID) of the example feature."
+    },
     "published_version": { "type": "string" },
     "published_at": { "type": "string", "format": "date-time" },
     "barcode": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "created_at": { "type": "string", "format": "date-time" },
     "updated_at": { "type": "string", "format": "date-time" },
-    "geometry": { "description": "GeoParquet 1.1 covering geometry struct.", "not": { "type": "null" } },
-    "bbox": { "$ref": "#/$defs/BBox", "description": "GeoParquet 1.1 covering bbox struct." }
+    "geometry": {
+      "description": "GeoParquet 1.1 covering geometry struct.",
+      "not": { "type": "null" }
+    },
+    "bbox": {
+      "$ref": "#/$defs/BBox",
+      "description": "GeoParquet 1.1 covering bbox struct."
+    }
   },
   "required": [
     "id",
@@ -41,6 +62,7 @@
     "published_version",
     "published_at",
     "barcode",
+    "created_at",
     "updated_at",
     "geometry"
   ],
