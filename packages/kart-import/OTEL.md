@@ -2,13 +2,7 @@
 
 `kart-import` includes OpenTelemetry (OTel) instrumentation for distributed tracing and log export across Snakemake workflow executions and asset tasks.
 
----
-
 ## Local Setup
-
-To view traces locally, choose either **otel-desktop-viewer** (no Docker required) or **Jaeger** (Docker).
-
-### Option `otel-desktop-viewer` (Recommended for lightweight local use)
 
 1. **Install:**
    ```bash
@@ -21,8 +15,6 @@ To view traces locally, choose either **otel-desktop-viewer** (no Docker require
    ```
    * OTLP HTTP receiver: `http://localhost:4318`
    * Web UI: opens automatically at [http://localhost:8000](http://localhost:8000)
-
----
 
 ## Running Jobs
 
