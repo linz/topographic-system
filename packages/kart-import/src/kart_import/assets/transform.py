@@ -332,17 +332,15 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             with log_context(action="apply_joins"):
                 gdf = apply_joins(gdf, td, release_id)
 
-        with log_context(action="normalize_field_lifecyle"):
+        with log_context(action="normalize"):
             gdf = normalize_field_lifecyle(
                 gdf,
                 td,
                 lifecycle_data,
             )
 
-        with log_context(action="normalize_projection"):
             gdf = normalize_projection(gdf, td, theme.target_epsg)
 
-        with log_context(action="normalize_fields"):
             gdf = normalize_fields(gdf, td, release_id)
 
         if td.corrections:

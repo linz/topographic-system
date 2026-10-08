@@ -12,10 +12,9 @@ from kart_import.config import (
 import atexit
 import os
 import sys
-import threading
 
 from kart_import.log import get_tracer
-from opentelemetry.trace import StatusCode, set_span_in_context
+from opentelemetry.trace import StatusCode
 
 # Load configuration details from the Python package
 THEMES = get_themes()
@@ -46,58 +45,9 @@ os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 RUN_ID = run_trace_id
 
 
-# --- Mid-level grouping spans: theme > dataset > release --------------------
-# `transform` jobs run one per (dataset, release) as a separate `uv run` subprocess,
-# all parented directly on the root span via the global TRACEPARENT env var above.
-# That makes a theme with several datasets and dozens of releases a flat wall of
-# sibling spans. These spans group them: one per theme, one per dataset within it.
-_span_lock = threading.Lock()
-_theme_spans: dict[str, object] = {}
-_dataset_spans: dict[str, object] = {}
-
-
-def _traceparent_for(span) -> str:
-    ctx = span.get_span_context()
-    return f"00-{format(ctx.trace_id, '032x')}-{format(ctx.span_id, '016x')}-01"
-
-
-def get_dataset_traceparent(dataset: str) -> str:
-    """
-    Lazily creates the theme and dataset grouping spans the first time a transform
-    job for `dataset` is scheduled, and returns the traceparent header for the dataset
-    span so that job's subprocess parents under it instead of directly under the run's
-    root span.
-    """
-    theme = DATASET_TO_THEME_MAP[dataset]
-    with _span_lock:
-        theme_span = _theme_spans.get(theme.name)
-        if theme_span is None:
-            theme_span = tracer.start_span(
-                f"theme: {theme.name}",
-                context=set_span_in_context(root_span),
-                attributes={"theme": theme.name},
-            )
-            _theme_spans[theme.name] = theme_span
-
-        dataset_span = _dataset_spans.get(dataset)
-        if dataset_span is None:
-            dataset_span = tracer.start_span(
-                f"transform: {dataset}",
-                context=set_span_in_context(theme_span),
-                attributes={"theme": theme.name, "dataset": dataset},
-            )
-            _dataset_spans[dataset] = dataset_span
-
-        return _traceparent_for(dataset_span)
-
-
 def _end_root_span(status_code=None, description=""):
     # The tracer provider flushes/shuts down on its own atexit handler (see log.py);
-    # this only needs to end the spans so that handler has something to export.
-    with _span_lock:
-        for span in list(_dataset_spans.values()) + list(_theme_spans.values()):
-            if span.is_recording():
-                span.end()
+    # this only needs to end the span so that handler has something to export.
     if root_span.is_recording():
         if status_code is not None:
             root_span.set_status(status_code, description)
@@ -194,12 +144,8 @@ rule transform:
         ]
     output:
         transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
-    params:
-        # Overrides the process-wide TRACEPARENT (set above) just for this job, so it
-        # nests under its theme/dataset grouping span instead of the run's root span.
-        traceparent = lambda wildcards: get_dataset_traceparent(wildcards.dataset)
     shell:
-        "TRACEPARENT={params.traceparent} uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
+        "uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
 
 
 # 5. THEME RELEASE (Merges datasets for a single release)

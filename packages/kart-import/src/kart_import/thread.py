@@ -60,7 +60,10 @@ def run_in_thread_pool(
         token = attach(parent_otel_context)
 
         ctx_kwargs: dict[str, Any] = {"action": getattr(func, "__name__", "worker"), "threadId": thread_id}
-        if isinstance(item, (str, int)):
+        commit = getattr(item, "commit", None)
+        if isinstance(commit, str):
+            ctx_kwargs["commit"] = commit[:8]
+        elif isinstance(item, (str, int)):
             ctx_kwargs["item"] = str(item)[:12]
 
         try:
