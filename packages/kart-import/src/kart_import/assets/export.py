@@ -109,8 +109,9 @@ def export_dataset_releases(dataset_name: str):
                 extra={"commit": info.commit, "releases": info.releases, "file": str(target_commit_file)},
             )
 
-            cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(target_commit_file)]
-            run_command(cmd, cwd=str(repo_dir))
+            with log_context(action="kart_export", commit=info.commit[:8]):
+                cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(target_commit_file)]
+                run_command(cmd, cwd=str(repo_dir))
 
         for release_id in info.releases:
             link_release_export(target_commit_file, dataset_name, release_id)
