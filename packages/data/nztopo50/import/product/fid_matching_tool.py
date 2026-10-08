@@ -49,8 +49,20 @@ LAYER_PAIRS = [
 			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
 			lamps_layer="linz_road_cl",
 		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lagoon_polygons-topo-150k\nz-lagoon_polygons-topo-150k.gpkg",
+			lds_layer="nz_lagoon_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="lagoon_poly",
+		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lake_polygons-topo-150k\nz-lake_polygons-topo-150k.gpkg",
+			lds_layer="nz_lake_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="lake_poly",
+		),
+		
 ]
-
 
 def read_layer(path: str, layer_name: str) -> gpd.GeoDataFrame:
 	"""Read a geospatial layer and require the matching identifier."""
@@ -60,8 +72,9 @@ def read_layer(path: str, layer_name: str) -> gpd.GeoDataFrame:
 	print(f"{layer_name} header after read: {list(layer.columns)}")
 	if "t50_fid" not in layer.columns:
 		raise ValueError(f"Layer {layer_name!r} does not contain t50_fid")
-	layer["t50_fid"] = pd.to_numeric(layer["t50_fid"], errors="raise").astype(
-		"Int64"
+	layer["t50_fid"] = (
+		pd.to_numeric(layer["t50_fid"], errors="raise")
+		.astype("Int64")
 	)
 	return layer
 
@@ -80,9 +93,19 @@ def match_layer_pair(pair: LayerPair) -> tuple[
 
 	if lds["t50_fid"].duplicated().any():
 		raise ValueError(f"LDS layer {pair.lds_layer!r} has duplicate t50_fid values")
-	if lamps["t50_fid"].duplicated().any():
-		raise ValueError(
-			f"LAMPS layer {pair.lamps_layer!r} has duplicate t50_fid values"
+	duplicate_lamps_mask = lamps["t50_fid"].duplicated()
+	if duplicate_lamps_mask.any():
+		next_lamps_fid = int(lamps["t50_fid"].max()) + 1
+		duplicate_lamps_indices = lamps.index[duplicate_lamps_mask]
+		new_lamps_fids = range(
+			next_lamps_fid,
+			next_lamps_fid + len(duplicate_lamps_indices),
+		)
+		lamps.loc[duplicate_lamps_indices, "t50_fid"] = list(new_lamps_fids)
+		print(
+			f"Renumbered {len(duplicate_lamps_indices)} duplicate LAMPS "
+			f"t50_fid values in {pair.lamps_layer!r}, starting at "
+			f"{next_lamps_fid}"
 		)
 
 	lds = lds.rename_geometry("lds_geometry").rename(
