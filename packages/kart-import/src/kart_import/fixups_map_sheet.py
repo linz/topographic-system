@@ -27,7 +27,8 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
     `map_sheet_example_point_id` (which must run *after* this fixup). Three classes of fix:
       - "Mt X" -> "Mount X"  (geographic names are stored with the full word)
       - trig code remaps A0TR->A0U2, AP8Y->A4UX
-      - macron restorations Putata->Pūtata, Pohoi->Pōhoi, Rahuimokairoa->Rāhuimōkairoa"""
+      - macron restorations Putata->Pūtata, Pohoi->Pōhoi, Rahuimokairoa->Rāhuimōkairoa
+      - spelling Mount Treacey->Mount Treacy (gazetteer renamed it in release 66)"""
     names = gdf["example_name"].astype("string").str.replace(r"^Mt\s+", "Mount ", regex=True)
     names = names.replace(
         {
@@ -36,6 +37,7 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
             "Putata": "Pūtata",
             "Pohoi": "Pōhoi",
             "Rahuimokairoa": "Rāhuimōkairoa",
+            "Mount Treacey": "Mount Treacy",
         }
     )
     gdf = gdf.copy()
