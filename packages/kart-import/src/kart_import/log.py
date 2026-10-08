@@ -32,13 +32,28 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 def _default_service_name() -> str:
     """Derive a service name from how this process was invoked, e.g. "clone" for
     `python -m kart_import.assets.clone` or "snakemake" for the `snakemake` CLI."""
-    return Path(sys.argv[0]).stem if sys.argv and sys.argv[0] else "kart-import"
+    # When invoked via `python -m <module>`, runpy sets __main__'s __spec__ before
+    # executing its code, so it's already available while this module is imported.
+    main_spec = getattr(sys.modules.get("__main__"), "__spec__", None)
+    if main_spec and main_spec.name:
+        return main_spec.name.split(".")[-1]
+
+    if sys.argv and sys.argv[0] and not sys.argv[0].startswith("-"):
+        return Path(sys.argv[0]).stem
+
+    return "kart-import"
 
 
 def _format_span_name(kwargs: dict[str, Any]) -> str:
     """Build a span name from the action and the primary entity it targets, e.g. "transform: fence [r5]"."""
     action = kwargs.get("action")
-    entity = kwargs.get("dataset") or kwargs.get("theme") or kwargs.get("repo") or kwargs.get("lookup") or kwargs.get("commit")
+    entity = (
+        kwargs.get("dataset")
+        or kwargs.get("theme")
+        or kwargs.get("repo")
+        or kwargs.get("lookup")
+        or kwargs.get("commit")
+    )
     release = kwargs.get("release")
 
     name = f"{action}: {entity}" if action and entity else action or entity or "task"
@@ -70,9 +85,7 @@ def log_context(**kwargs):
             span.set_attributes(span_attrs)
             yield
     finally:
-        logging.getLogger("kart_import").info(
-            span_name, extra={"duration": round(time.perf_counter() - start_time, 4)}
-        )
+        logging.getLogger("kart_import").info(span_name, extra={"duration": round(time.perf_counter() - start_time, 4)})
         detach(token)
 
 

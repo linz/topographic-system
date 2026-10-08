@@ -353,8 +353,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             with log_context(action="apply_fixups"):
                 gdf = apply_fixups(gdf, td, release_id)
 
-        with log_context(action="write_transform"):
-            write_transform(gdf, output_file)
+        write_transform(gdf, output_file)
     return output_file
 
 
