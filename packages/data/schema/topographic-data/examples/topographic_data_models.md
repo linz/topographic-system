@@ -430,7 +430,7 @@ Generated model for Nztopo50CartoText.
 | text_word_spacing_distance | Optional[integer] | yes | required |  |  |  |
 | font | Optional[string] | yes | required |  |  | enum: '', 'Nimbus Sans LINZ' |
 | style | Optional[string] | yes | required |  |  | enum: '', 'Italic', 'Narrow', 'Narrow Bold', 'Narrow Italic', 'Regular' |
-| colour | Optional[string] | yes | required |  |  | enum: '', 'black', 'process_blue', 'red' |
+| colour | Optional[string] | yes | required |  |  | enum: '', 'black', 'process_blue', 'warm_red' |
 | size | Optional[number] | yes | required |  |  |  |
 | placement | Optional[string] | yes | required |  |  | enum: '', 'AL', 'BL', 'OL' |
 | offset | Optional[number] | yes | required |  |  |  |

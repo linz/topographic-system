@@ -566,7 +566,7 @@ class Nztopo50CartoText(BaseTopoModel):
     text_word_spacing_distance: Optional[int] = Field(...)
     font: Optional[Literal['', 'Nimbus Sans LINZ']] = Field(...)
     style: Optional[Literal['', 'Italic', 'Narrow', 'Narrow Bold', 'Narrow Italic', 'Regular']] = Field(...)
-    colour: Optional[Literal['', 'black', 'process_blue', 'red']] = Field(...)
+    colour: Optional[Literal['', 'black', 'process_blue', 'warm_red']] = Field(...)
     size: Optional[float] = Field(...)
     placement: Optional[Literal['', 'AL', 'BL', 'OL']] = Field(...)
     offset: Optional[float] = Field(...)
