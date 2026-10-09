@@ -1,0 +1,64 @@
+{
+  "source_layer": "utility_point",
+  "targets": [
+    {
+      "target_layer": "gas_valve_pnt",
+      "schema_key": "gas_valve_pnt",
+      "feature_type": "gas_valve",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "geo_bore_pnt",
+      "schema_key": "geo_bore_pnt",
+      "feature_type": "geo_bore",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "pylon_pnt",
+      "schema_key": "pylon_pnt",
+      "feature_type": "pylon",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}

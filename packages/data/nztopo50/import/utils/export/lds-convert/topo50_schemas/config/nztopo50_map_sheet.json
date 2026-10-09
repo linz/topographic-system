@@ -1,0 +1,43 @@
+{
+  "source_layer": "nztopo50_map_sheet",
+  "targets": [
+    {
+      "target_layer": "linz_map_sheet",
+      "schema_key": "NZ-Topo-Map-Sheet",
+      "feature_type": "nztopo50_map_sheet",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "sheet_code",
+          "target_field": "sheet_code",
+          "target_type": "str:21"
+        },
+        {
+          "source_field": "sheet_name",
+          "target_field": "sheet_name",
+          "target_type": "str:50"
+        },
+        {
+          "source_field": "edition",
+          "target_field": "edition",
+          "target_type": "str:30"
+        },
+        {
+          "source_field": "revised",
+          "target_field": "revised",
+          "target_type": "str:60"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

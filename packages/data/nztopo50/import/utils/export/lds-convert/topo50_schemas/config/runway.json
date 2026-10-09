@@ -1,0 +1,38 @@
+{
+  "source_layer": "runway",
+  "targets": [
+    {
+      "target_layer": "runway_poly",
+      "schema_key": "runway_poly",
+      "feature_type": "runway",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "surface",
+          "target_field": "surface",
+          "target_type": "str:6"
+        },
+        {
+          "source_field": "runway_use",
+          "target_field": "runway_use",
+          "target_type": "str:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

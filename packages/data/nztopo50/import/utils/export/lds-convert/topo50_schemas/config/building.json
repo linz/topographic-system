@@ -1,0 +1,48 @@
+{
+  "source_layer": "building",
+  "targets": [
+    {
+      "target_layer": "building_poly",
+      "schema_key": "building_poly",
+      "feature_type": "building",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "building_use",
+          "target_field": "bldg_use",
+          "target_type": "str:21"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

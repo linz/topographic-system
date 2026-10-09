@@ -1,0 +1,563 @@
+{
+  "source_layer": "structure_point",
+  "targets": [
+    {
+      "target_layer": "radar_dome_pnt",
+      "schema_key": "radar_dome_pnt",
+      "feature_type": "radar_dome",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "satellite_station_pnt",
+      "schema_key": "satellite_station_pnt",
+      "feature_type": "satellite_station",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "beacon_pnt",
+      "schema_key": "beacon_pnt",
+      "feature_type": "beacon",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "subtype",
+          "target_field": "location",
+          "target_type": "str:4"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "structure_type",
+          "target_field": "type",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "bivouac_pnt",
+      "schema_key": "bivouac_pnt",
+      "feature_type": "bivouac",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "material",
+          "target_field": "materials",
+          "target_type": "str:4"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "buoy_pnt",
+      "schema_key": "buoy_pnt",
+      "feature_type": "buoy",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "chimney_pnt",
+      "schema_key": "chimney_pnt",
+      "feature_type": "chimney",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "dredge_pnt",
+      "schema_key": "dredge_pnt",
+      "feature_type": "dredge",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "flare_pnt",
+      "schema_key": "flare_pnt",
+      "feature_type": "flare",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "floodgate_pnt",
+      "schema_key": "floodgate_pnt",
+      "feature_type": "floodgate",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "gate_pnt",
+      "schema_key": "gate_pnt",
+      "feature_type": "gate",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "restrictions",
+          "target_field": "restrictns",
+          "target_type": "str:6"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "ladder_pnt",
+      "schema_key": "ladder_pnt",
+      "feature_type": "ladder",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "material",
+          "target_field": "materials",
+          "target_type": "str:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "mast_pnt",
+      "schema_key": "mast_pnt",
+      "feature_type": "mast",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "height",
+          "target_field": "height",
+          "target_type": "float:19.11"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "redoubt_pnt",
+      "schema_key": "redoubt_pnt",
+      "feature_type": "redoubt",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "shaft_pnt",
+      "schema_key": "shaft_pnt",
+      "feature_type": "shaft",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "structure_use",
+          "target_field": "shaft_use",
+          "target_type": "str:18"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "siphon_pnt",
+      "schema_key": "siphon_pnt",
+      "feature_type": "siphon",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:3"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "stockyard_pnt",
+      "schema_key": "stockyard_pnt",
+      "feature_type": "stockyard",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "tank_pnt",
+      "schema_key": "tank_pnt",
+      "feature_type": "tank",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "stored_item",
+          "target_field": "store_item",
+          "target_type": "str:5"
+        },
+        {
+          "source_field": "structure_type",
+          "target_field": "tank_type",
+          "target_type": "str:13"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "tower_pnt",
+      "schema_key": "tower_pnt",
+      "feature_type": "tower",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "material",
+          "target_field": "material",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "well_pnt",
+      "schema_key": "well_pnt",
+      "feature_type": "well",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:3"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "windmill_pnt",
+      "schema_key": "windmill_pnt",
+      "feature_type": "windmill",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "structure_use",
+          "target_field": "use",
+          "target_type": "str:16"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "wreck_pnt",
+      "schema_key": "wreck_pnt",
+      "feature_type": "wreck",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "wreck_of",
+          "target_field": "wreck_of",
+          "target_type": "str:6"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}
