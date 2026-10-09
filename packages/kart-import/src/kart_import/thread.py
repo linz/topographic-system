@@ -46,11 +46,17 @@ def run_in_thread_pool(
     func: Callable[[T], R],
     items: Iterable[T],
     thread_count: int = 4,
+    trace_items: bool = True,
 ) -> list[R]:
     """Runs a function in parallel over an iterable of items using a ThreadPoolExecutor.
 
     Bypasses KeyboardInterrupt / SIGINT hangs by polling futures individually and
     forcefully aborting the thread pool upon receiving Ctrl+C.
+
+    Each item gets its own span/log line named after `func`, unless `trace_items` is False - set
+    that when `func` already opens its own properly-named `log_context` per item, so the item
+    isn't traced twice under a redundant, generically-named span (e.g. the function's name, or
+    `<lambda>` for an inline one).
     """
 
     parent_otel_context = get_current()
@@ -59,14 +65,17 @@ def run_in_thread_pool(
         thread_id = _get_clean_thread_id()
         token = attach(parent_otel_context)
 
-        ctx_kwargs: dict[str, Any] = {"action": getattr(func, "__name__", "worker"), "threadId": thread_id}
-        commit = getattr(item, "commit", None)
-        if isinstance(commit, str):
-            ctx_kwargs["commit"] = commit[:8]
-        elif isinstance(item, (str, int)):
-            ctx_kwargs["item"] = str(item)[:12]
-
         try:
+            if not trace_items:
+                return func(item)
+
+            ctx_kwargs: dict[str, Any] = {"action": getattr(func, "__name__", "worker"), "threadId": thread_id}
+            commit = getattr(item, "commit", None)
+            if isinstance(commit, str):
+                ctx_kwargs["commit"] = commit[:8]
+            elif isinstance(item, (str, int)):
+                ctx_kwargs["item"] = str(item)[:12]
+
             with log_context(**ctx_kwargs):
                 return func(item)
         finally:
