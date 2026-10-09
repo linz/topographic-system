@@ -329,35 +329,27 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             raise ValueError("source frame has no projection")
 
         if td.joins:
-            start_time = time.perf_counter()
-            gdf = apply_joins(gdf, td, release_id)
-            logger.info("apply_joins", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_joins"):
+                gdf = apply_joins(gdf, td, release_id)
 
-        start_time = time.perf_counter()
-        gdf = normalize_field_lifecyle(
-            gdf,
-            td,
-            lifecycle_data,
-        )
-        logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        with log_context(action="normalize"):
+            gdf = normalize_field_lifecyle(
+                gdf,
+                td,
+                lifecycle_data,
+            )
 
-        start_time = time.perf_counter()
-        gdf = normalize_projection(gdf, td, theme.target_epsg)
-        logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_projection(gdf, td, theme.target_epsg)
 
-        start_time = time.perf_counter()
-        gdf = normalize_fields(gdf, td, release_id)
-        logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_fields(gdf, td, release_id)
 
         if td.corrections:
-            start_time = time.perf_counter()
-            gdf = apply_corrections(gdf, td)
-            logger.info("apply_corrections", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_corrections"):
+                gdf = apply_corrections(gdf, td)
 
         if td.fixups:
-            start_time = time.perf_counter()
-            gdf = apply_fixups(gdf, td, release_id)
-            logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_fixups"):
+                gdf = apply_fixups(gdf, td, release_id)
 
         write_transform(gdf, output_file)
     return output_file

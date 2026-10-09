@@ -58,8 +58,16 @@ def run_in_thread_pool(
     def worker_wrapper(item: T) -> R:
         thread_id = _get_clean_thread_id()
         token = attach(parent_otel_context)
+
+        ctx_kwargs: dict[str, Any] = {"action": getattr(func, "__name__", "worker"), "threadId": thread_id}
+        commit = getattr(item, "commit", None)
+        if isinstance(commit, str):
+            ctx_kwargs["commit"] = commit[:8]
+        elif isinstance(item, (str, int)):
+            ctx_kwargs["item"] = str(item)[:12]
+
         try:
-            with log_context(threadId=thread_id):
+            with log_context(**ctx_kwargs):
                 return func(item)
         finally:
             detach(token)

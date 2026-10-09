@@ -9,8 +9,12 @@ from kart_import.config import (
     LOOKUP_TO_THEME_MAP,
 )
 
+import atexit
 import os
-import uuid
+import sys
+
+from kart_import.log import get_tracer
+from opentelemetry.trace import StatusCode
 
 # Load configuration details from the Python package
 THEMES = get_themes()
@@ -18,16 +22,39 @@ RELEASES = get_releases()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
 
-# Generate a single Trace ID for this entire Snakemake run so all distributed logs link together
-if "TRACEPARENT" not in os.environ:
-    run_trace_id = uuid.uuid4().hex
-    run_span_id = uuid.uuid4().hex[:16]
-    os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
+# Start root span for this Snakemake run so all distributed jobs and logs link together
+tracer = get_tracer("kart_import")
+target_args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+workflow_target = " ".join(target_args) if target_args else "all"
+
+root_span = tracer.start_span(
+    f"snakemake: {workflow_target}",
+    attributes={
+        "workflow.target": workflow_target,
+        "workflow.args": " ".join(sys.argv[1:]),
+    },
+)
+span_ctx = root_span.get_span_context()
+run_trace_id = format(span_ctx.trace_id, "032x")
+run_span_id = format(span_ctx.span_id, "016x")
+os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 
 # Per-invocation run id (the trace id, whether generated above or inherited). Used to
 # scope log files so each run's logs live in their own directory and match the `TraceId`
 # embedded in every JSON log record. `ls -t logs/bundle/` finds the latest run.
-RUN_ID = os.environ["TRACEPARENT"].split("-")[1]
+RUN_ID = run_trace_id
+
+
+def _end_root_span(status_code=None, description=""):
+    # The tracer provider flushes/shuts down on its own atexit handler (see log.py);
+    # this only needs to end the span so that handler has something to export.
+    if root_span.is_recording():
+        if status_code is not None:
+            root_span.set_status(status_code, description)
+        root_span.end()
+
+
+atexit.register(_end_root_span)
 
 
 # TARGETS
@@ -239,3 +266,11 @@ workflow.rule(name="push_all")(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
+
+
+onsuccess:
+    _end_root_span(StatusCode.OK)
+
+
+onerror:
+    _end_root_span(StatusCode.ERROR, "Snakemake execution failed")

@@ -97,7 +97,7 @@ def export_dataset_releases(dataset_name: str):
             )
         commit_to_releases[commit].releases.append(release.id)
 
-    def process_export_release(info: CommitData):
+    def export_release(info: CommitData):
         target_commit = WORKING_EXPORTS_DIR / dataset_name
         target_commit.mkdir(parents=True, exist_ok=True)
 
@@ -119,7 +119,7 @@ def export_dataset_releases(dataset_name: str):
             )
 
     run_in_thread_pool(
-        func=process_export_release,
+        func=export_release,
         items=list(commit_to_releases.values()),
         thread_count=4,
     )
