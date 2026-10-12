@@ -110,6 +110,7 @@ module directly to bypass snakemake:
 ```shell
 uv run snakemake --cores=4 data/working/transform/release_66/nz_airport_polygons.parquet --quiet | npx pjl
 uv run python -m kart_import.assets.transform nz_airport_polygons 66
+uv run python -m kart_import.assets.transform nz_airport_polygons
 ```
 
 ### Releases resolve to commits

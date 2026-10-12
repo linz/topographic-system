@@ -117,13 +117,13 @@ rule prepare_lookup:
         "uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
-# 4. TRANSFORM
+# 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool 
 rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
         # clone must be present: transform reads the source's declared schema from it.
         cloned = "data/source/{dataset}/.cloned",
-        exported = "data/working/export/release_{release}/{dataset}.json",
+        exported = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES],
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
@@ -138,14 +138,15 @@ rule transform:
             for join in DATASET_MAP[wildcards.dataset].joins
         ],
         example_deps = lambda wildcards: [
-            f"data/working/transform/release_{wildcards.release}/{ds.name}{TRANSFORM_SUFFIX}"
+            f"data/working/transform/release_{r.id}/{ds.name}{TRANSFORM_SUFFIX}"
             for theme_name in DATASET_MAP[wildcards.dataset].depends_on_themes
             for ds in THEME_MAP[theme_name].datasets
+            for r in RELEASES
         ]
     output:
-        transformed = "data/working/transform/release_{release}/{dataset}" + TRANSFORM_SUFFIX
+        transformed = [f"data/working/transform/release_{r.id}/{{dataset}}" + TRANSFORM_SUFFIX for r in RELEASES]
     shell:
-        "uv run python -m kart_import.assets.transform {wildcards.dataset} {wildcards.release}"
+        "uv run python -m kart_import.assets.transform {wildcards.dataset}"
 
 
 # 5. THEME RELEASE (Merges datasets for a single release)

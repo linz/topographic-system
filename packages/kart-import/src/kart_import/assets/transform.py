@@ -29,6 +29,7 @@ from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
+from ..thread import run_in_thread_pool
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
@@ -355,11 +356,29 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     return output_file
 
 
+def transform_dataset_all_releases(dataset_name: str, thread_count: int = 4) -> None:
+    """
+    Transform every release of one dataset inside a thread pool.
+    """
+
+    def transform_release(release: Release) -> None:
+        # Named (not a lambda) and wrapped in its own span so each release still traces as its own
+        # "transform: dataset [rN]", matching the span a dedicated `uv run` process used to open.
+        with log_context(action="transform", dataset=dataset_name, release=release.id):
+            transform_dataset_release(dataset_name, release.id)
+
+    run_in_thread_pool(func=transform_release, items=get_releases(), thread_count=thread_count, trace_items=False)
+
+
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 3:
-        print("Usage: python -m kart_import.assets.transform <dataset_name> <release_id>")
+    if len(sys.argv) == 3:
+        with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
+            transform_dataset_release(sys.argv[1], int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        with log_context(action="transform", dataset=sys.argv[1]):
+            transform_dataset_all_releases(sys.argv[1])
+    else:
+        print("Usage: python -m kart_import.assets.transform <dataset_name> [release_id]")
         sys.exit(1)
-    with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
-        transform_dataset_release(sys.argv[1], int(sys.argv[2]))
