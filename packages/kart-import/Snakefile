@@ -69,8 +69,9 @@ rule all:
 rule clone:
     output:
         cloned = "data/source/{dataset}/.cloned"
+    threads: 1
     shell:
-        "uv run python -m kart_import.assets.clone {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.dataset}"
 
 
 # 2. LIFECYCLE
@@ -80,8 +81,9 @@ rule lifecycle:
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
+    threads: 4
     shell:
-        "uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
 # 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
@@ -90,8 +92,9 @@ rule export:
         cloned = "data/source/{dataset}/.cloned"
     output:
         files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
+    threads: 4
     shell:
-        "uv run python -m kart_import.assets.export {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.export {wildcards.dataset}"
 
 
 # 3b. EXPORT LOOKUP (one export of full lookup source per distinct commit across releases; not per release)
@@ -101,7 +104,7 @@ rule export_lookup:
     output:
         exported = directory("data/working/export/lookup/{lookup}")
     shell:
-        "uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
+        "OTEL_SERVICE_NAME=export_lookup uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
 
 
 # 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
@@ -114,7 +117,7 @@ rule prepare_lookup:
     output:
         prepared = directory("data/working/lookup/{lookup}")
     shell:
-        "uv run python -m kart_import.assets.prepare {wildcards.lookup}"
+        "OTEL_SERVICE_NAME=prepare_lookup uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
 # 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool 
@@ -145,8 +148,9 @@ rule transform:
         ]
     output:
         transformed = [f"data/working/transform/release_{r.id}/{{dataset}}" + TRANSFORM_SUFFIX for r in RELEASES]
+    threads: 8
     shell:
-        "uv run python -m kart_import.assets.transform {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=transform uv run python -m kart_import.assets.transform {wildcards.dataset}"
 
 
 # 5. THEME RELEASE (Merges datasets for a single release)
@@ -160,7 +164,7 @@ rule theme_release:
     output:
         merged = "data/working/theme/release_{release}/{theme}" + THEME_SUFFIX
     shell:
-        "uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
+        "OTEL_SERVICE_NAME=theme_release uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
 
 rule kart_theme:
     input:
@@ -171,7 +175,7 @@ rule kart_theme:
     output:
         imported = "data/output/{theme}.bundle"
     shell:
-        "uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
+        "OTEL_SERVICE_NAME=kart_theme uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
 
 rule kart_repo:
     input:
@@ -182,7 +186,7 @@ rule kart_repo:
     output:
         imported = "data/output/{repo}/.imported"
     shell:
-        "uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
+        "OTEL_SERVICE_NAME=kart_repo uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
 # 6. PUSH (push a built target repo to its GitHub remote - a release-named branch by default)
@@ -192,7 +196,7 @@ rule push:
     output:
         pushed = "data/output/{repo}/.pushed"
     shell:
-        "uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
+        "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
 # 7. UTILITY BUNDLE RULE
@@ -205,8 +209,9 @@ rule bundle:
         #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
         # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
         f"logs/bundle/{RUN_ID}/{{dataset}}.log"
+    threads: 4
     shell:
-        "uv run python -m kart_import.assets.bundle {wildcards.dataset} > {log} 2>&1"
+        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle {wildcards.dataset} > {log} 2>&1"
 
 
 
@@ -227,6 +232,12 @@ workflow.rule(name="bundle_all")(
     workflow.input([f"data/source/{name}/.bundle_created" for name in DATASET_MAP])(
         workflow.run(lambda *args, **kwargs: None)
     )
+)
+
+workflow.rule(name="lifecycle_all")(
+    workflow.input(
+        [f"data/working/lifecycle/{name}_release{RELEASES[0].id}-{RELEASES[-1].id}.json" for name in DATASET_MAP]
+    )(workflow.run(lambda *args, **kwargs: None))
 )
 
 for t in THEMES:
