@@ -8,6 +8,17 @@ from pathlib import Path
 import geopandas as gpd  # type: ignore
 import pandas as pd
 
+"""
+Utility functions and classes for exporting NZ Topo50 data to LDS shapefiles.
+Coded against schema 0.3
+
+Additional changes not implemented for later schema versions.
+BM-1904, 1905, 1906,1907, 1908,1909
+
+"""
+
+
+
 TYPE_SELECTION_ALIASES = {
     ("landuse", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
     ("structure_point", "beacon"): ["beacon", "lighthouse"],

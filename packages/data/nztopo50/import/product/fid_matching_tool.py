@@ -50,19 +50,19 @@ LAYER_PAIRS = [
 			lamps_layer="linz_road_cl",
 		),
 		LayerPair(
-			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lagoon_polygons-topo-150k\nz-lagoon_polygons-topo-150k.gpkg",
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lagoon-polygons-topo-150k\nz-lagoon-polygons-topo-150k.gpkg",
 			lds_layer="nz_lagoon_polygons_topo_150k",
 			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
 			lamps_layer="lagoon_poly",
 		),
 		LayerPair(
-			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lake_polygons-topo-150k\nz-lake_polygons-topo-150k.gpkg",
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lake-polygons-topo-150k-2\nz-lake-polygons-topo-150k-2.gpkg",
 			lds_layer="nz_lake_polygons_topo_150k",
 			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
 			lamps_layer="lake_poly",
 		),
-		
 ]
+
 
 def read_layer(path: str, layer_name: str) -> gpd.GeoDataFrame:
 	"""Read a geospatial layer and require the matching identifier."""
