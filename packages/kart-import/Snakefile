@@ -82,7 +82,7 @@ rule lifecycle:
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
-    threads: 1
+    threads: 4
     shell:
         "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
