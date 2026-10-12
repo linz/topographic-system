@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
-from ..config import Join, Release, Source, ThemeDataset
+from ..config import EXPORT_SUFFIX, Join, Release, Source, ThemeDataset
 from ..kart_types import coerce_integer_columns
 from . import transform
 from .transform import find_canonical_release, normalize_fields, transform_dataset_all_releases
@@ -17,12 +17,12 @@ def _releases(*ids: int) -> list[Release]:
 
 def _link_shared_source(root, dataset_name: str, release_ids: list[int]) -> None:
     """Point each release's export at one shared commit file (what export's symlinking produces)."""
-    commit_file = root / f"{dataset_name}_commit.json"
+    commit_file = root / f"{dataset_name}_commit{EXPORT_SUFFIX}"
     commit_file.write_text("{}")
     for r in release_ids:
         d = root / f"release_{r}"
         d.mkdir()
-        (d / f"{dataset_name}.json").symlink_to(commit_file)
+        (d / f"{dataset_name}{EXPORT_SUFFIX}").symlink_to(commit_file)
 
 
 def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch):

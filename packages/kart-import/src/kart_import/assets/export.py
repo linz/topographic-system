@@ -7,6 +7,8 @@ import geopandas as gpd
 
 from ..command import run_command
 from ..config import (
+    EXPORT_FORMAT,
+    EXPORT_SUFFIX,
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
     get_releases,
@@ -27,11 +29,26 @@ class CommitData:
     releases: list[int]
 
 
+def read_export(path: Path) -> gpd.GeoDataFrame:
+    """Read an export written by `export_dataset_releases`/`export_lookup` (see EXPORT_FORMAT)."""
+    if EXPORT_FORMAT == "parquet":
+        return gpd.read_parquet(path)
+    return gpd.read_file(path, engine="pyogrio", use_arrow=True)
+
+
+def write_export(gdf: gpd.GeoDataFrame, path: Path) -> None:
+    """Write an export in the configured format (see EXPORT_FORMAT)."""
+    if EXPORT_FORMAT == "parquet":
+        gdf.to_parquet(path, index=False)
+    else:
+        gdf.to_file(path, driver="GeoJSON", index=False)
+
+
 def link_release_export(source_file: Path, dataset_name: str, release_id: int) -> None:
     """Point a release's export at the (commit-named, possibly shared) file it resolves to."""
     release_output_dir = WORKING_EXPORTS_DIR / f"release_{release_id}"
     release_output_dir.mkdir(parents=True, exist_ok=True)
-    release_output_file = release_output_dir / f"{dataset_name}.json"
+    release_output_file = release_output_dir / f"{dataset_name}{EXPORT_SUFFIX}"
 
     # `is_symlink` as well as `exists`: a link left dangling by a deleted target reads as
     # non-existent, and `symlink` would then fail with EEXIST.
@@ -54,12 +71,10 @@ def export_empty_releases(dataset_name: str, release_ids: list[int]) -> None:
     if not release_ids:
         return
 
-    empty_file = WORKING_EXPORTS_DIR / dataset_name / "empty.json"
+    empty_file = WORKING_EXPORTS_DIR / dataset_name / f"empty{EXPORT_SUFFIX}"
     empty_file.parent.mkdir(parents=True, exist_ok=True)
     if not empty_file.exists():
-        gpd.GeoDataFrame({"geometry": gpd.GeoSeries([], crs="EPSG:4326")}).to_file(
-            empty_file, driver="GeoJSON", index=False
-        )
+        write_export(gpd.GeoDataFrame({"geometry": gpd.GeoSeries([], crs="EPSG:4326")}), empty_file)
 
     for release_id in release_ids:
         link_release_export(empty_file, dataset_name, release_id)
@@ -101,11 +116,11 @@ def export_dataset_releases(dataset_name: str):
         target_commit = WORKING_EXPORTS_DIR / dataset_name
         target_commit.mkdir(parents=True, exist_ok=True)
 
-        target_commit_file = target_commit / f"{info.commit_time[:10]}_{info.commit}.json"
+        target_commit_file = target_commit / f"{info.commit_time[:10]}_{info.commit}{EXPORT_SUFFIX}"
 
         if not target_commit_file.exists():
             logger.info(
-                f"Exporting {dataset_name} to GeoJSON",
+                f"Exporting {dataset_name} to {EXPORT_FORMAT}",
                 extra={"commit": info.commit, "releases": info.releases, "file": str(target_commit_file)},
             )
 
@@ -127,7 +142,7 @@ def export_dataset_releases(dataset_name: str):
     export_empty_releases(dataset_name, releases_before_first_commit)
 
     representative_dir = WORKING_EXPORTS_DIR / f"release_{releases[-1].id}"
-    return str(representative_dir / f"{dataset_name}.json")
+    return str(representative_dir / f"{dataset_name}{EXPORT_SUFFIX}")
 
 
 def export_lookup(lookup_name: str) -> str:
@@ -156,19 +171,19 @@ def export_lookup(lookup_name: str) -> str:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for commit, commit_time in commits.items():
-        output_file = output_dir / f"{commit}.json"
+        output_file = output_dir / f"{commit}{EXPORT_SUFFIX}"
         if output_file.exists():
             continue
         logger.info(
-            f"Exporting lookup {lookup_name} to GeoJSON",
+            f"Exporting lookup {lookup_name} to {EXPORT_FORMAT}",
             extra={"commit": commit, "commit_time": commit_time[:10], "file": str(output_file)},
         )
         cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
         run_command(cmd, cwd=str(repo_dir))
 
     # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
-    referenced = {f"{commit}.json" for commit in commits}
-    for stale in output_dir.glob("*.json"):
+    referenced = {f"{commit}{EXPORT_SUFFIX}" for commit in commits}
+    for stale in output_dir.glob(f"*{EXPORT_SUFFIX}"):
         if stale.name not in referenced:
             logger.info("pruning stale lookup export", extra={"lookup": lookup_name, "file": stale.name})
             stale.unlink()

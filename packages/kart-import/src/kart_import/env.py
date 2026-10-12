@@ -17,6 +17,21 @@ def env_transform_format() -> str:
     return fmt
 
 
+def env_export_format() -> str:
+    """Output format for the per-commit source exports, the input to transform.
+
+    KART_EXPORT_FORMAT=parquet|geojson (default parquet). GeoParquet exports and reads back far
+    faster than GeoJSON for a large dataset; set geojson for local dev when you want
+    human-readable exports, or if your `kart` binary doesn't support Parquet export:
+
+        export KART_EXPORT_FORMAT=geojson
+    """
+    fmt = os.getenv("KART_EXPORT_FORMAT", "parquet").lower()
+    if fmt not in ("parquet", "geojson"):
+        raise ValueError(f"KART_EXPORT_FORMAT must be 'parquet' or 'geojson', got {fmt!r}")
+    return fmt
+
+
 def env_theme_format() -> str:
     """Output format for the merged per-theme releases, the input to `kart import`.
 
