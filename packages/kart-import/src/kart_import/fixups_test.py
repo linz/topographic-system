@@ -997,3 +997,23 @@ def test_carto_text_example_point_id_two_pass(monkeypatch):
     assert pd.isna(result[5])
     assert pd.isna(result[6])
     assert pd.isna(result[7])
+
+
+def test_polygonize_boundaries_joins_sheet_pieces_into_areas():
+    gdf = gpd.GeoDataFrame(
+        {"id": ["b", "a", "c"], "type": ["restricted_area", "restricted_area", "restricted_area"]},
+        geometry=[
+            LineString([(1, 0), (0, 0), (0, 1), (1, 1)]),
+            LineString([(1, 1), (2, 1), (2, 0), (1, 0)]),
+            LineString([(5, 0), (6, 0), (5, 1), (5, 0)]),
+        ],
+        crs="EPSG:4167",
+    )
+
+    out = fixups.polygonize_boundaries(gdf, _td([]), 70).sort_values("id").reset_index(drop=True)
+
+    assert out["id"].tolist() == ["a", "c"]
+    assert out.geom_type.tolist() == ["Polygon", "Polygon"]
+    assert out.geometry[0].area == pytest.approx(2)
+    assert out.geometry[1].area == pytest.approx(0.5)
+    assert out["type"].tolist() == ["restricted_area", "restricted_area"]
