@@ -1,11 +1,14 @@
 
 
+import argparse
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 
 import geopandas as gpd
 import pandas as pd
+import pyogrio
 
 OUTPUT_DIRECTORY = Path(r"C:\Temp\export")
 
@@ -44,11 +47,12 @@ LAYER_PAIRS = [
 			lamps_layer="river_cl",
 		),
 		LayerPair(
-			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-road-centrelines-topo-150k\nz-road-centrelines-topo-150k.gpkg",
-			lds_layer="nz_road_centrelines_topo_150k",
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-river-polygons-topo-150k\nz-river-polygons-topo-150k.gpkg",
+			lds_layer="nz_river_polygons_topo_150k",
 			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
-			lamps_layer="linz_road_cl",
+			lamps_layer="river_poly",
 		),
+
 		LayerPair(
 			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lagoon-polygons-topo-150k\nz-lagoon-polygons-topo-150k.gpkg",
 			lds_layer="nz_lagoon_polygons_topo_150k",
@@ -61,12 +65,20 @@ LAYER_PAIRS = [
 			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
 			lamps_layer="lake_poly",
 		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-road-centrelines-topo-150k\nz-road-centrelines-topo-150k.gpkg",
+			lds_layer="nz_road_centrelines_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="linz_road_cl",
+		),
 ]
-
 
 def read_layer(path: str, layer_name: str) -> gpd.GeoDataFrame:
 	"""Read a geospatial layer and require the matching identifier."""
 	layer = gpd.read_file(path, layer=layer_name, fid_as_index=True)
+	if layer.index.name != "fid":
+		raise ValueError(f"Layer {layer_name!r} does not expose its feature ID")
+	layer["_source_fid"] = layer.index
 	if "t50_fid" not in layer.columns and layer.index.name == "fid":
 		layer["t50_fid"] = layer.index
 	print(f"{layer_name} header after read: {list(layer.columns)}")
@@ -109,10 +121,16 @@ def match_layer_pair(pair: LayerPair) -> tuple[
 		)
 
 	lds = lds.rename_geometry("lds_geometry").rename(
-		columns={"t50_fid": "lds_t50_fid"}
+		columns={
+			"t50_fid": "lds_t50_fid",
+			"_source_fid": "lds_source_fid",
+		}
 	)
 	lamps = lamps.rename_geometry("lamps_geometry").rename(
-		columns={"t50_fid": "lamps_t50_fid"}
+		columns={
+			"t50_fid": "lamps_t50_fid",
+			"_source_fid": "lamps_source_fid",
+		}
 	)
 	print(f"{pair.lds_layer} header before join: {list(lds.columns)}")
 	print(f"{pair.lamps_layer} header before join: {list(lamps.columns)}")
@@ -189,6 +207,7 @@ def write_matched_geoparquet(
 		{
 			"lds_fid": matched["lds_t50_fid"],
 			"lamps_fid": matched["lamps_t50_fid"],
+			"auto_pk": matched["lamps_source_fid"].astype("Int64"),
 			"name": first_available_column(
 				matched, ["name_lds", "name_lamps", "name"]
 			),
@@ -217,7 +236,15 @@ def match_unmatched_geometry(
 	lds_only: gpd.GeoDataFrame, lamps_only: gpd.GeoDataFrame
 ) -> gpd.GeoDataFrame:
 	"""Match unmatched LAMPS features using geometry-type-specific spatial rules."""
-	output_columns = ["lds_fid", "lamps_fid", "name", "gazfeatid", "geometry"]
+	output_columns = [
+		"lds_t50_fid",
+		"lamps_t50_fid",
+		"lamps_source_fid",
+		"auto_pk",
+		"name",
+		"gazfeatid",
+		"geometry",
+	]
 	if lds_only.empty or lamps_only.empty:
 		return gpd.GeoDataFrame(
 			columns=output_columns,
@@ -264,8 +291,10 @@ def match_unmatched_geometry(
 			lamps_row = lamps_only.loc[lamps_index]
 			records.append(
 				{
-					"lds_fid": lds_row["lds_t50_fid"],
-					"lamps_fid": lamps_row["lamps_t50_fid"],
+					"lds_t50_fid": lds_row["lds_t50_fid"],
+					"lamps_t50_fid": lamps_row["lamps_t50_fid"],
+					"lamps_source_fid": lamps_row["lamps_source_fid"],
+					"auto_pk": lamps_row["lamps_source_fid"],
 					"name": row_value(
 						lamps_row, ["name_lamps", "name"]
 					),
@@ -278,14 +307,170 @@ def match_unmatched_geometry(
 			used_lamps_indices.add(lamps_index)
 			break
 
-	return gpd.GeoDataFrame(
+	output = gpd.GeoDataFrame(
 		records,
 		columns=output_columns,
 		geometry="geometry",
 		crs=lds_only.crs,
 	)
+	output["auto_pk"] = pd.to_numeric(output["auto_pk"], errors="raise").astype(
+		"Int64"
+	)
+	return output
+
+
+def quote_identifier(identifier: str) -> str:
+	return f'"{identifier.replace(chr(34), chr(34) * 2)}"'
+
+
+def register_spatial_trigger_functions(connection: sqlite3.Connection) -> None:
+	"""Support GeoPackage RTree triggers during non-geometry SQLite updates."""
+	connection.create_function(
+		"ST_IsEmpty",
+		1,
+		lambda geometry: 1 if geometry is None else 0,
+		deterministic=True,
+	)
+
+
+def load_spatial_updates(
+	pair: LayerPair, output_directory: Path
+) -> tuple[str, list[tuple[int, int]]]:
+	output_path = output_directory / f"{pair.lamps_layer}_matched_spatial.parquet"
+	if not output_path.exists():
+		raise FileNotFoundError(f"Spatial match output not found: {output_path}")
+
+	mapping = pd.read_parquet(
+		output_path,
+		columns=["lds_t50_fid", "auto_pk"],
+	)
+	if mapping.isna().any().any():
+		raise ValueError(f"Null auto_pk or LDS identifier in {output_path}")
+	if mapping["auto_pk"].duplicated().any():
+		raise ValueError(f"Duplicate auto_pk values in {output_path}")
+
+	updates = [
+		(int(row.lds_t50_fid), int(row.auto_pk))
+		for row in mapping.itertuples(index=False)
+	]
+	info = pyogrio.read_info(pair.lamps_db, layer=pair.lamps_layer)
+	key_column = str(info["fid_column"])
+	if key_column not in {"fid", "auto_pk"}:
+		raise ValueError(
+			f"Layer {pair.lamps_layer!r} uses unsupported feature ID "
+			f"column {key_column!r}; expected 'fid' or 'auto_pk'"
+		)
+	if "t50_fid" not in info["fields"]:
+		raise ValueError(f"Layer {pair.lamps_layer!r} has no t50_fid column")
+	return key_column, updates
+
+
+def validate_source_keys(
+	connection: sqlite3.Connection,
+	layer_name: str,
+	key_column: str,
+	updates: list[tuple[int, int]],
+) -> None:
+	if not updates:
+		return
+
+	source_keys = [source_key for _, source_key in updates]
+	matched_source_keys: set[int] = set()
+	quoted_key_column = quote_identifier(key_column)
+	for start in range(0, len(source_keys), 900):
+		chunk = source_keys[start : start + 900]
+		placeholders = ", ".join("?" for _ in chunk)
+		rows = connection.execute(
+			f"SELECT {quoted_key_column} "
+			f"FROM {quote_identifier(layer_name)} "
+			f"WHERE {quoted_key_column} IN ({placeholders})",
+			chunk,
+		).fetchall()
+		matched_source_keys.update(int(row[0]) for row in rows)
+
+	missing = set(source_keys) - matched_source_keys
+	if missing:
+		raise ValueError(
+			f"Layer {layer_name!r} is missing {len(missing)} "
+			f"{key_column} value(s)"
+		)
+
+
+def update_source_fids(
+	pairs: list[LayerPair], output_directory: Path, *, dry_run: bool
+) -> None:
+	pairs_by_database: dict[Path, list[LayerPair]] = {}
+	for pair in pairs:
+		pairs_by_database.setdefault(Path(pair.lamps_db), []).append(pair)
+
+	for database_path, database_pairs in pairs_by_database.items():
+		plans: list[tuple[LayerPair, str, list[tuple[int, int]]]] = []
+		with sqlite3.connect(database_path) as connection:
+			register_spatial_trigger_functions(connection)
+			for pair in database_pairs:
+				key_column, updates = load_spatial_updates(pair, output_directory)
+				validate_source_keys(
+					connection, pair.lamps_layer, key_column, updates
+				)
+				plans.append((pair, key_column, updates))
+
+			for pair, key_column, updates in plans:
+				if not dry_run and updates:
+					cursor = connection.executemany(
+						f"UPDATE {quote_identifier(pair.lamps_layer)} "
+						"SET t50_fid = ? "
+						f"WHERE {quote_identifier(key_column)} = ?",
+						updates,
+					)
+					if cursor.rowcount != len(updates):
+						raise RuntimeError(
+							f"Updated {cursor.rowcount} of {len(updates)} rows in "
+							f"{pair.lamps_layer!r}"
+						)
+				print(
+					f"{'Would update' if dry_run else 'Updated'} {len(updates)} "
+					f"t50_fid value(s) in {pair.lamps_layer!r} using "
+					f"{key_column}"
+				)
+
+	print("Source update dry run complete." if dry_run else "Source update complete.")
+
+
+def parse_args() -> argparse.Namespace:
+	parser = argparse.ArgumentParser(
+		description="Match LDS and LAMPS features and optionally update source t50_fid values."
+	)
+	parser.add_argument(
+		"--skip-matching",
+		action="store_true",
+		help="Use existing spatial-match Parquet files instead of regenerating them.",
+	)
+	parser.add_argument(
+		"--update-source-fids",
+		action="store_true",
+		help="Update LAMPS t50_fid values from the spatial-match outputs.",
+	)
+	parser.add_argument(
+		"--dry-run-source-update",
+		action="store_true",
+		help="Validate and report source updates without changing the GeoPackage.",
+	)
+	args = parser.parse_args()
+	if args.skip_matching and not args.update_source_fids:
+		parser.error("--skip-matching requires --update-source-fids")
+	if args.dry_run_source_update and not args.update_source_fids:
+		parser.error("--dry-run-source-update requires --update-source-fids")
+	return args
 
 
 if __name__ == "__main__":
-	process_pairs(LAYER_PAIRS, OUTPUT_DIRECTORY)
+	args = parse_args()
+	if not args.skip_matching:
+		process_pairs(LAYER_PAIRS, OUTPUT_DIRECTORY)
+	if args.update_source_fids:
+		update_source_fids(
+			LAYER_PAIRS,
+			OUTPUT_DIRECTORY,
+			dry_run=args.dry_run_source_update,
+		)
 
