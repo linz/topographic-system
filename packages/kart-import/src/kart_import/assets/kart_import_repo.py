@@ -35,19 +35,30 @@ def kart_import_repo(repo_name: str):
     run_command(["git", "sparse-checkout", "init", "--cone"], cwd=str(repo_dir))
     run_command(["git", "sparse-checkout", "set"], cwd=str(repo_dir))
 
-    # Fetch all bundles into separate branches
+    # Fetch every bundle's per-release refs into a namespace scoped to that theme (several themes
+    # can share one target repo, so the namespace keeps their refs from colliding). The bundle's
+    # own schema-stub commit (see kart_import_theme) isn't tagged as a release ref, so it's never
+    # fetched here.
     for theme in themes:
         bundle_file = OUTPUT_DIR / f"{theme.name}.bundle"
         if not bundle_file.exists():
             raise Exception(f"Bundle file not found: {bundle_file}")
 
         logger.info("Fetching bundle", extra={"bundle": str(bundle_file), "theme": theme.name})
-        run_command(["git", "fetch", str(bundle_file), f"master:{theme.name}"], cwd=str(repo_dir))
+        run_command(
+            ["git", "fetch", str(bundle_file), f"refs/heads/release/*:refs/heads/{theme.name}/release/*"],
+            cwd=str(repo_dir),
+        )
 
-    # Keep the branch each commit came from, so the replay knows which subtree it owns
+    # Keep the ref each commit came from, so the replay knows which subtree it owns. Read each
+    # ref's own tip directly (not `git log`): sibling release refs for the same theme all share
+    # that theme's schema-stub commit as a common ancestor, so walking history would double-count it.
     dated = []
     for theme in themes:
-        result = run_command(["git", "log", theme.name, "--format=%at|%H"], cwd=str(repo_dir))
+        result = run_command(
+            ["git", "for-each-ref", "--format=%(authordate:unix)|%(objectname)", f"refs/heads/{theme.name}/release/"],
+            cwd=str(repo_dir),
+        )
         for line in result.strip().split("\n"):
             if line:
                 dated.append((line, theme.name))
@@ -63,9 +74,15 @@ def kart_import_repo(repo_name: str):
     # The themes are disjoint, so this needs no merging -- see kart_import.git.linearise
     linearise(repo_dir, commits)
 
-    # Clean up the temporary fetched branches
+    # Clean up the temporary fetched refs -- only `master` (the branch linearise just built) should
+    # survive for kart_push_repo to push.
     for theme in themes:
-        run_command(["git", "branch", "-D", theme.name], cwd=str(repo_dir))
+        refs = run_command(
+            ["git", "for-each-ref", "--format=%(refname)", f"refs/heads/{theme.name}/"], cwd=str(repo_dir)
+        ).strip()
+        for ref in refs.split("\n"):
+            if ref:
+                run_command(["git", "update-ref", "-d", ref], cwd=str(repo_dir))
 
     # Touch the .imported marker for snakemake
     imported_marker.touch()
