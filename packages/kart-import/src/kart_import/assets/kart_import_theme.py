@@ -231,8 +231,10 @@ def kart_import_theme(theme_name: str, thread_count: int = 4) -> str:
         )
         stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
 
+        # Gives every release -- this run and every future rebuild -- the same column ids, so
+        # `kart diff`/`kart log` show real per-release changes rather than "schema replaced" on
+        # every rebuild. See kart_import.git.schema_ids for why this is safe to do after the fact.
         seed_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name, env=schema_env)
-        run_command(["git", "update-ref", "refs/heads/master", seed_commit], cwd=str(repo_dir))
         shutil.rmtree(worker_root, ignore_errors=True)
 
         logger.info(f"Importing {len(pending)} release(s) in parallel", extra={"thread_count": thread_count})
