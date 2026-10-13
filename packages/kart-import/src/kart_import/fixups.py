@@ -479,6 +479,39 @@ def split_multipart_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id
     return gpd_.GeoDataFrame(out, geometry="geometry", crs=gdf.crs)
 
 
+def polygonize_boundaries(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Rebuild areas from boundary linework, e.g. LAMPS `site_bdy`."""
+    import geopandas as gpd_
+    from shapely import distance, line_interpolate_point, polygonize_full, unary_union
+
+    if gdf.empty:
+        return gdf
+
+    noded = unary_union(gdf.geometry.to_numpy())
+    polygons, cuts, dangles, invalid = polygonize_full([noded])
+    if not (cuts.is_empty and dangles.is_empty and invalid.is_empty):
+        raise ValueError(f"{td.name}: boundary linework does not close into polygons in release {release_id}")
+
+    # A piece belongs to the polygon whose outline it lies on, judged at its midpoint; the tolerance
+    # absorbs the 1e-8 degree precision grid the frame is already snapped to.
+    tolerance = 1e-7
+    midpoints = line_interpolate_point(gdf.geometry.to_numpy(), 0.5, normalized=True)
+    rows = []
+    for polygon in polygons.geoms:
+        on_boundary = gdf[distance(midpoints, polygon.boundary) < tolerance]
+        if on_boundary.empty:
+            raise ValueError(f"{td.name}: polygonized area has no source boundary in release {release_id}")
+        row = on_boundary.sort_values("id").iloc[0].copy()
+        row["geometry"] = polygon
+        rows.append(row)
+
+    logger.info(
+        "polygonize boundaries",
+        extra={"dataset": td.name, "release": release_id, "lines": len(gdf), "polygons": len(rows)},
+    )
+    return gpd_.GeoDataFrame(rows, columns=gdf.columns, crs=gdf.crs).set_geometry("geometry").reset_index(drop=True)
+
+
 def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Drop the zero-length nz_track_centrelines features."""
     return _drop_listed_empty(
@@ -979,6 +1012,7 @@ FIXUPS: dict[str, Fixup] = {
     "generate_dms_grid_features": generate_dms_grid_features,
     "generate_nztm_grid_features": generate_nztm_grid_features,
     "generate_sea_polygon": generate_sea_polygon,
+    "polygonize_boundaries": polygonize_boundaries,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
