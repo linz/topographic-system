@@ -1,21 +1,16 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("marine")
 @extension("additionalProperties", false)
 model marine {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "mangrove" | "reef" | "rock" | "shoal";
-  name?: string | null;
-  composition?: Topo.CompositionEnum | null;
-
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+  subtype: composition_subtype | null;
+  name: string | null;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
 }

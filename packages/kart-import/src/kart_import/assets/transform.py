@@ -2,14 +2,17 @@ import fcntl
 import json
 import logging
 import os
+import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
 import geopandas as gpd
+import pandas as pd
 
 from ..config import (
+    SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_EXPORTS_DIR,
@@ -22,11 +25,17 @@ from ..config import (
 )
 from ..corrections import apply_corrections
 from ..fixups import FIXUPS
+from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
+from ..kart_types import coerce_integer_columns
 from ..log import log_context
+from ..thread import run_in_thread_pool
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
+
+NORMALIZED_LIFECYCLE_COLUMNS = ("id", "created_at", "updated_at")
+"""The columns `normalize_fields` prepends to every dataset's mapped fields."""
 
 
 def write_transform(gdf: gpd.GeoDataFrame, output_file: Path) -> None:
@@ -86,7 +95,7 @@ def normalize_projection(gdf: gpd.GeoDataFrame, td: ThemeDataset, target_epsg: s
     return gdf
 
 
-def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFrame:
+def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     new_data = {
         "id": gdf["id"],
         "created_at": gdf["created_at"],
@@ -100,7 +109,19 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset) -> gpd.GeoDataFram
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
             if source_col not in gdf.columns:
-                raise KeyError(f"Source column not found: {source_col} in {td.name}")
+                if spec.since_release is None or release_id >= spec.since_release:
+                    raise KeyError(f"Source column not found: {source_col} in {td.name}")
+                logger.info(
+                    "source_column_absent",
+                    extra={
+                        "dataset": td.name,
+                        "column": source_col,
+                        "release": release_id,
+                        "since_release": spec.since_release,
+                    },
+                )
+                new_data[target_field] = spec.default
+                continue
             values = gdf[source_col]
             if spec.default is not None:
                 values = values.fillna(spec.default)
@@ -123,7 +144,9 @@ def normalize_field_lifecyle(
     gdf["updated_at"] = None
 
     # Detect the primary key column
-    if "t50_fid" in gdf.columns:
+    if td.feature_key:
+        pk_col = td.feature_key
+    elif "t50_fid" in gdf.columns:
         pk_col = "t50_fid"
     elif "auto_pk" in gdf.columns:
         pk_col = "auto_pk"
@@ -145,6 +168,29 @@ def normalize_field_lifecyle(
     gdf["id"] = primary_key.map(get_feature_id)
 
     return gdf
+
+
+def empty_transform(td: ThemeDataset, target_epsg: str) -> gpd.GeoDataFrame:
+    """A zero-row frame carrying the theme's target columns and CRS.
+
+    A source with no features has nothing to normalise, and the column-wise steps would each raise
+    on the columns an empty export doesn't have (no `t50_fid` to key the lifecycle on, no mapped
+    source columns). Emitting the shape they would have produced keeps the emptiness flowing
+    through to `theme.py`.
+    """
+    columns = [*NORMALIZED_LIFECYCLE_COLUMNS, *td.field_specs()]
+    return gpd.GeoDataFrame({col: pd.Series([], dtype="object") for col in columns}, geometry=[], crs=target_epsg)
+
+
+def _source_commit(input_file: Path) -> str | None:
+    """The commit an export was made from, per the `{date}_{commit}` name `export` gave the file,
+    or None for a name that carries no commit (an export not built from one).
+
+    Read off the symlink target rather than re-resolved from the release, so the schema we look up
+    is the one that actually produced this file even if the source repo has since advanced.
+    """
+    commit = input_file.resolve().stem.rpartition("_")[2]
+    return commit if re.fullmatch(r"[0-9a-f]{40}", commit) else None
 
 
 def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int) -> tuple:
@@ -260,49 +306,79 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
+        if gdf.empty:
+            # Either the source repo starts after this release (see `export_empty_releases`) or
+            # the layer was genuinely empty at that commit.
+            logger.info("source has no features, writing empty transform")
+            write_transform(empty_transform(td, theme.target_epsg), output_file)
+            return output_file
+
+        # Before the joins: a key that widened to float64 on read has to be an integer again by
+        # the time it meets the lookup's, which is upstream of any target-schema coercion.
+        commit = _source_commit(input_file)
+        if commit is None:
+            logger.warning("no commit in export name; declared types not restored", extra={"file": str(input_file)})
+        else:
+            repo_dir = SOURCE_DIR / dataset_name
+            gdf = coerce_integer_columns(
+                gdf,
+                get_dataset_schema(repo_dir, td.source.dataset or get_kart_dataset_id(repo_dir), commit),
+                context=f"dataset {dataset_name!r} at {commit}",
+            )
+
         if gdf.crs is None:
             raise ValueError("source frame has no projection")
 
         if td.joins:
-            start_time = time.perf_counter()
-            gdf = apply_joins(gdf, td, release_id)
-            logger.info("apply_joins", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_joins"):
+                gdf = apply_joins(gdf, td, release_id)
 
-        start_time = time.perf_counter()
-        gdf = normalize_field_lifecyle(
-            gdf,
-            td,
-            lifecycle_data,
-        )
-        logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        with log_context(action="normalize"):
+            gdf = normalize_field_lifecyle(
+                gdf,
+                td,
+                lifecycle_data,
+            )
 
-        start_time = time.perf_counter()
-        gdf = normalize_projection(gdf, td, theme.target_epsg)
-        logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_projection(gdf, td, theme.target_epsg)
 
-        start_time = time.perf_counter()
-        gdf = normalize_fields(gdf, td)
-        logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_fields(gdf, td, release_id)
 
         if td.corrections:
-            start_time = time.perf_counter()
-            gdf = apply_corrections(gdf, td)
-            logger.info("apply_corrections", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_corrections"):
+                gdf = apply_corrections(gdf, td)
 
         if td.fixups:
-            start_time = time.perf_counter()
-            gdf = apply_fixups(gdf, td, release_id)
-            logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_fixups"):
+                gdf = apply_fixups(gdf, td, release_id)
 
         write_transform(gdf, output_file)
     return output_file
 
 
+def transform_dataset_all_releases(dataset_name: str, thread_count: int = 4) -> None:
+    """
+    Transform every release of one dataset inside a thread pool.
+    """
+
+    def transform_release(release: Release) -> None:
+        # Named (not a lambda) and wrapped in its own span so each release still traces as its own
+        # "transform: dataset [rN]", matching the span a dedicated `uv run` process used to open.
+        with log_context(action="transform", dataset=dataset_name, release=release.id):
+            transform_dataset_release(dataset_name, release.id)
+
+    run_in_thread_pool(func=transform_release, items=get_releases(), thread_count=thread_count, trace_items=False)
+
+
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 3:
-        print("Usage: python -m kart_import.assets.transform <dataset_name> <release_id>")
+    if len(sys.argv) == 3:
+        with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
+            transform_dataset_release(sys.argv[1], int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        with log_context(action="transform", dataset=sys.argv[1]):
+            transform_dataset_all_releases(sys.argv[1])
+    else:
+        print("Usage: python -m kart_import.assets.transform <dataset_name> [release_id]")
         sys.exit(1)
-    with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
-        transform_dataset_release(sys.argv[1], int(sys.argv[2]))

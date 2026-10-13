@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import geopandas as gpd
 import pandas as pd
 import pytest
+import shapely
 from shapely.geometry import Point
 
 from . import config, joins
@@ -190,16 +191,39 @@ def test_resolve_lookup_commit_errors_on_bad_clone(tmp_path, monkeypatch, make_c
         joins._resolve_lookup_commit("road_lkp", 66)
 
 
-def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
-    """prepare_lookup slims every per-commit export into a parquet named by commit."""
+def test_select_lookup_columns_keeps_a_nullable_integer_key(monkeypatch):
+    """numpy has no nullable integer, so copying values out that way returns an `Int64` key as
+    float64 - the type prepare exists to remove."""
+    gdf = gpd.GeoDataFrame(
+        {"t50_fid": pd.array([1, None, 3], dtype="Int64"), "width": ["a", "b", "c"]},
+        geometry=[Point(0, 0)] * 3,
+        crs="EPSG:4326",
+    )
+
+    out = prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"]))
+
+    assert out["t50_fid"].dtype == "Int64"
+    assert out["t50_fid"].tolist() == [1, 3]  # null key still dropped
+
+
+def _export_lookup_dir(tmp_path, monkeypatch, schema):
+    """A prepare_lookup environment: registered lookup, isolated dirs, fixed schema."""
     monkeypatch.setitem(
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
+    monkeypatch.setattr(prepare, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(prepare, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(prepare, "get_dataset_schema", lambda *_: schema)
 
     export_dir = tmp_path / "export" / "lookup" / "road_lkp"
     export_dir.mkdir(parents=True)
+    return export_dir
+
+
+def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
+    """prepare_lookup slims every per-commit export into a parquet named by commit."""
+    export_dir = _export_lookup_dir(tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "integer"}])
     gpd.GeoDataFrame(
         {"t50_fid": [1, 2], "width": ["WIDE", "NARROW"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326"
     ).to_file(export_dir / "abc123.json", driver="GeoJSON")
@@ -210,3 +234,115 @@ def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
     out = pd.read_parquet(out_dir / "abc123.parquet")  # keyed by commit
     assert list(out.columns) == ["t50_fid", "width"]  # slimmed to key + selected columns
     assert sorted(out["width"]) == ["NARROW", "WIDE"]
+
+
+def test_prepare_lookup_restores_a_key_the_export_turned_into_a_float(tmp_path, monkeypatch):
+    """The road_lkp case end to end: `numeric(10, 0)` exported as REAL, read back float64. The
+    parquet must hold the declared integer, or the join against an int-keyed source is a type
+    mismatch."""
+    export_dir = _export_lookup_dir(
+        tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0}]
+    )
+    gpd.GeoDataFrame(
+        {"t50_fid": [3197173.0, 7874815.0], "width": ["WIDE", "NARROW"]},
+        geometry=[Point(0, 0)] * 2,
+        crs="EPSG:4326",
+    ).to_file(export_dir / "abc123.json", driver="GeoJSON")
+    assert gpd.read_file(export_dir / "abc123.json")["t50_fid"].dtype == "float64"  # what the export really gives us
+
+    prepare.prepare_lookup("road_lkp")
+
+    out = pd.read_parquet(tmp_path / "lookup" / "road_lkp" / "abc123.parquet")
+    assert out["t50_fid"].dtype == "Int64"  # parquet carries it, so the join sees an integer
+    assert out["t50_fid"].tolist() == [3197173, 7874815]
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [["t50_fid", "width"], ["width", "width"]],
+    ids=["key-among-columns", "repeated-column"],
+)
+def test_select_lookup_columns_tolerates_a_repeated_column(columns):
+    """Nothing in `Lookup` forbids either, and a duplicate label makes the key ambiguous."""
+    gdf = gpd.GeoDataFrame({"t50_fid": [1, 2], "width": ["a", "b"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326")
+
+    out = prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=columns))
+
+    assert list(out.columns) == ["t50_fid", "width"]
+
+
+def test_apply_joins_within_attaches_the_containing_feature(tmp_path, monkeypatch):
+    """A spatial lookup is matched by predicate rather than key."""
+    monkeypatch.setitem(
+        config.LOOKUP_MAP, "landuse", Lookup(name="landuse", source=_SRC, columns=["id"], geometry=True)
+    )
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    (tmp_path / "landuse").mkdir()
+    gpd.GeoDataFrame(
+        {"id": ["LU-1", "LU-2"]},
+        geometry=[shapely.box(0, 0, 10, 10), shapely.box(20, 20, 30, 30)],
+        crs="EPSG:2193",
+    ).to_parquet(tmp_path / "landuse" / "abc123.parquet")
+
+    td = ThemeDataset(
+        name="golf_sym",
+        source=Source(url="git@github.com:linz/topographic-source-data", dataset="golf_sym"),
+        joins=[Join(lookup="landuse", predicate="within")],
+    )
+    points = gpd.GeoDataFrame(
+        {"auto_pk": [1, 2, 3]},
+        geometry=[Point(5, 5), Point(25, 25), Point(50, 50)],
+        crs="EPSG:2193",
+    )
+
+    out = joins.apply_joins(points, td, 66)
+
+    assert len(out) == 3
+    assert out["landuse.id"].tolist()[:2] == ["LU-1", "LU-2"]
+    assert pd.isna(out["landuse.id"].iloc[2])
+    assert isinstance(out, gpd.GeoDataFrame) and out.crs == "EPSG:2193"
+
+
+def test_apply_joins_nearest_respects_max_distance(tmp_path, monkeypatch):
+    """`nearest` takes the closest lookup feature, and `max_distance` (in the source CRS units)
+    bounds how far it will reach before giving up and leaving the columns null."""
+    monkeypatch.setitem(
+        config.LOOKUP_MAP, "contour", Lookup(name="contour", source=_SRC, columns=["elevation"], geometry=True)
+    )
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
+    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    (tmp_path / "contour").mkdir()
+    gpd.GeoDataFrame(
+        {"elevation": [100, 200]},
+        geometry=[shapely.LineString([(0, 0), (100, 0)]), shapely.LineString([(0, 40), (100, 40)])],
+        crs="EPSG:2193",
+    ).to_parquet(tmp_path / "contour" / "abc123.parquet")
+
+    td = ThemeDataset(
+        name="contour_number",
+        source=Source(url="git@github.com:linz/topographic-source-data", dataset="contour_number"),
+        joins=[Join(lookup="contour", predicate="nearest", max_distance=20)],
+    )
+    points = gpd.GeoDataFrame(
+        {"auto_pk": [1, 2, 3]},
+        geometry=[Point(50, 2), Point(50, 38), Point(200, 0)],  # 2m, 2m, and 100m past both lines
+        crs="EPSG:2193",
+    )
+
+    out = joins.apply_joins(points, td, 66)
+
+    assert len(out) == 3  # one row in, one row out
+    assert out["contour.elevation"].tolist()[:2] == [100, 200]
+    assert pd.isna(out["contour.elevation"].iloc[2])  # past max_distance
+    assert out.crs == "EPSG:2193"
+
+
+def test_chop_splits_linework_without_losing_segments():
+    line = shapely.LineString([(x, 0) for x in range(11)])
+    out = joins.chop(gpd.GeoDataFrame({"elevation": [100]}, geometry=[line], crs="EPSG:2193"), stride=4)
+
+    assert len(out) == 3  # 4 + 4 + 2, so 3 segments
+    assert out["elevation"].tolist() == [100, 100, 100]
+    assert sum(shapely.get_num_coordinates(g) - 1 for g in out.geometry) == 10
+    assert out.crs == "EPSG:2193"

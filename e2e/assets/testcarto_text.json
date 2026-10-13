@@ -3,49 +3,18 @@
   "$id": "testcarto_text",
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string"
-    },
+    "id": { "type": "string" },
     "example_point_id": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
       "description": "id of the example feature in testtrig_point (or geographic_name)."
     },
-    "text_string": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "full_text": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
+    "text_string": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "full_text": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "geometry": {
       "description": "WKB geometry. Validation only checks presence + non-null",
-      "not": {
-        "type": "null"
-      }
+      "not": { "type": "null" }
     },
-    "bbox": {
-      "$ref": "#/$defs/BBox"
-    }
+    "bbox": { "$ref": "#/$defs/BBox" }
   },
   "required": ["id", "geometry"],
   "additionalProperties": false,
@@ -53,18 +22,10 @@
     "BBox": {
       "type": "object",
       "properties": {
-        "xmin": {
-          "type": "number"
-        },
-        "ymin": {
-          "type": "number"
-        },
-        "xmax": {
-          "type": "number"
-        },
-        "ymax": {
-          "type": "number"
-        }
+        "xmin": { "type": "number" },
+        "ymin": { "type": "number" },
+        "xmax": { "type": "number" },
+        "ymax": { "type": "number" }
       },
       "required": ["xmin", "ymin", "xmax", "ymax"],
       "description": "GeoParquet 1.1 covering bbox struct."

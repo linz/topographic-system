@@ -15,8 +15,8 @@ on:
         description: 'URL of the project stac item to run visual diff on.'
         required: true
         type: string
-      data:
-        description: 'Optional path to download the source data for the project, that override the default data from project.'
+      strategy:
+        description: 'Optional storage strategy to filter data collections, e.g. "commit=abc123" or "date=2026-05-19T22-18-14.595Z".'
         type: string
 
 jobs:
@@ -51,7 +51,8 @@ jobs:
           visual-diff \
           --output $PWD/.artifacts/visual-snapshots \
           --project ${{ inputs.project }} \
-          ${{ inputs.data && format('--data {0}', inputs.data) || '' }}
+          ${{ inputs.catalog && format('--catalog {0}', inputs.catalog) || '' }} \
+          ${{ inputs.strategy && format('--strategy {0}', inputs.strategy) || '' }}
 
       - name: Save snapshots
         uses: linz/action-visual-snapshot@v2.2

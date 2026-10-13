@@ -1,21 +1,21 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("utility_point")
 @extension("additionalProperties", false)
 model utility_point {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "gas_valve" | "geo_bore" | "pylon";
-  name?: string | null;
-  orientation?: float64 | null;
+  ...TopographicFeature;
+  type: utility_point_type;
+  orientation: float64 | null;
+  theme: Theme.Utility;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum utility_point_type {
+  GasValve: "gas_valve",
+  GeoBore: "geo_bore",
+  Pylon: "pylon",
 }

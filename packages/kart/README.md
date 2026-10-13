@@ -9,8 +9,7 @@
 - [To Parquet cli](#to-parquet-cli)
 - [PR Comment cli](#pr-comment-cli)
 - [Validate cli](#validate-cli)
-- [Contour with Landcover cli](#contour-with-landcover-cli)
-- [Coastline Polygon cli](#coastline-polygon-cli)
+- [Data Prep cli](#data-prep-cli)
 - [Version cli](#version-cli)
 - [Sample GitHub Actions Workflow](#sample-github-actions-workflow)
 
@@ -162,20 +161,54 @@ docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-sou
 docker run -it --rm -e ENVIRONMENT="nonprod" -e AWS_PROFILE -e AWS_REGION=ap-southeast-2 -v /tmp/docker:/tmp -v ~/.aws:/root/.aws:ro kart validate --export-parquet --verbose --bbox 174.711,-41.349,175.04,-41.17  --output-dir /tmp/kart/validation/
 ```
 
-## Ice Contour cli
+## Data Prep cli
 
-Enrich contour data with landcover information to create ice contour. Requires paths to contour and landcover parquet files and an output path. This is generally invoked through Argo Workflows.
+Build derived data layers. These commands are grouped under the `data-prep` subcommand:
 
 ```
-docker run -it --rm -v /tmp/docker:/tmp kart ice-contour --contour ./contour.parquet --landcover ./landcover.parquet --output ./output.parquet
+docker run -it --rm -v /tmp/docker:/tmp kart data-prep <command> [options]
 ```
 
-## Coastline Polygon cli
+Each command downloads its source STAC collection parquet assets, runs the relevant python cli, validates the output against a JSON schema, then writes and publishes a STAC collection. A command is skipped when the latest output is already derived from the same source versions.
+
+Common options:
+
+- `--output` (required) Path or s3 of the output catalog directory.
+- `--schema` Path to the JSON schema to validate the output against (defaults per command).
+- `--temp-location` Where temporary files are stored (defaults to a `/tmp/...` folder).
+- `--cache` Optional local cache for versioned source assets (defaults to `./.cache`).
+- `--concurrency` Concurrency limit for parallel processing.
+
+### ice-contour
+
+Enrich contour data with landcover information to create ice contour. Requires the `contour` and `landcover` STAC collections (local path or s3) and an output directory.
+
+```
+docker run -it --rm -v /tmp/docker:/tmp kart data-prep ice-contour --contour ./contour/collection.json --landcover ./landcover/collection.json --output ./output/
+```
+
+### coastline-polygon
 
 Build the coastlines and islands polygon layer: convert the coastline lines into land polygons, drop island polygons that fall within the main land, and merge with the other island polygons. Requires the `coastline` and `island` STAC collections (local path or s3) and an output directory.
 
 ```
-docker run -it --rm -v /tmp/docker:/tmp kart coastline-polygon --coastline ./coastline/collection.json --island ./island/collection.json --output ./output/
+docker run -it --rm -v /tmp/docker:/tmp kart data-prep coastline-polygon --coastline ./coastline/collection.json --island ./island/collection.json --output ./output/
+```
+
+### rock-line
+
+Build the rock line layer from the marine, coastline, island and water STAC collections (local path or s3) and an output directory.
+
+```
+docker run -it --rm -v /tmp/docker:/tmp kart data-prep rock-line --marine ./marine/collection.json --coastline ./coastline/collection.json --island ./island/collection.json --water ./water/collection.json --output ./output/
+```
+
+### sea-polygon
+
+Build the sea (moana) polygons for the water layer by inverting the derived coastline polygon (land) layer. Requires the `coastline` polygon STAC collection (local path or s3) and an output directory.
+
+```
+docker run -it --rm -v /tmp/docker:/tmp kart data-prep sea-polygon --coastline ./coastline-polygon/collection.json --output ./output/
 ```
 
 ## Version cli

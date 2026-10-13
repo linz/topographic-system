@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 
 from qgis.core import (
+    Qgis,
     QgsApplication,
     QgsCoordinateTransform,
     QgsExpressionContextUtils,
@@ -18,6 +19,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtGui import QFontDatabase  # type: ignore[import-not-found]
 from utils.calculate_mag_info import calculate_mag_info
+from utils.example_grid_reference import set_example_grid_reference
 from utils.render_mag_info import render_mag_info
 
 os.environ.update({"QT_QPA_PLATFORM": "offscreen"})
@@ -33,6 +35,7 @@ class ExportArgs:
     dpi: int
     sheet_code: str
     excluded_layers: set
+    carto_text_layer_name: str
 
 
 def parse_excluded_layer_names(excluded_layer_names: str) -> set:
@@ -69,10 +72,17 @@ def parse_args() -> ExportArgs:
         help="Name of the layer that contains sheet polygons.",
     )
     parser.add_argument(
+        "--carto-text-layer-name",
+        type=str,
+        dest="carto_text_layer_name",
+        required=True,
+        help="Name of the carto text layer that supplies example point labels.",
+    )
+    parser.add_argument(
         "--format",
         type=str,
         dest="export_format",
-        choices=["pdf", "tiff", "geotiff", "png"],
+        choices=["pdf", "tiff", "geotiff", "png", "webp"],
         required=True,
         help="Export format.",
     )
@@ -114,6 +124,7 @@ def parse_args() -> ExportArgs:
         dpi=parsed.dpi,
         sheet_code=parsed.sheet_code,
         excluded_layers=excluded_layers,
+        carto_text_layer_name=parsed.carto_text_layer_name,
     )
 
 
@@ -176,11 +187,16 @@ def main():
         map_main.setExtent(bbox)
 
         # Handle magnetic info
-        mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
-        mag_info_render = render_mag_info(mag_info_raw)
+        if Qgis.hasGeographicLib():
+            mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
+            mag_info_render = render_mag_info(mag_info_raw)
 
-        for key, value in mag_info_render.items():
-            QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
+            for key, value in mag_info_render.items():
+                QgsExpressionContextUtils.setLayoutVariable(layout, key, value)
+
+        QgsExpressionContextUtils.setLayoutVariable(layout, "sheet_code", args.sheet_code)
+
+        set_example_grid_reference(layout, feature, map_main, project, args.carto_text_layer_name)
 
         # Generate outputs
         exporter = QgsLayoutExporter(layout)
@@ -192,8 +208,8 @@ def main():
             pdf_settings.dpi = args.dpi
             pdf_settings.rasterizeWholeImage = False
             export_result = exporter.exportToPdf(output_file, pdf_settings)
-        elif args.export_format in ["tiff", "geotiff", "png"]:
-            ext = "tiff" if args.export_format in ["tiff", "geotiff"] else "png"
+        elif args.export_format in ["tiff", "geotiff", "png", "webp"]:
+            ext = "tiff" if args.export_format in ["tiff", "geotiff"] else args.export_format
             output_file = os.path.join(args.file_output_path, f"{args.sheet_code}.{ext}")
             img_settings = QgsLayoutExporter.ImageExportSettings()
             img_settings.dpi = args.dpi

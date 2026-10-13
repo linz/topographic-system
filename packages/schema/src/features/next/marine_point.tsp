@@ -8,6 +8,7 @@ using TypeSpec.JsonSchema;
 model marine_point {
   ...TopographicFeature;
   type: "rock";
+  subtype: composition_subtype | null;
   name: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;

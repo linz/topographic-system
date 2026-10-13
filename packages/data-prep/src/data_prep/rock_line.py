@@ -10,15 +10,29 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 
 from data_prep.identity import earliest_created_at, reproducible_uuid7
-from data_prep.parquet_utils import write_parquet
+from data_prep.parquet_utils import NZGD2000, read_and_project, write_parquet
 
 logger = logging.getLogger(__name__)
+
+OUTPUT_COLUMNS = [
+    "id",
+    "created_at",
+    "updated_at",
+    "t50_fid",
+    "marine_id",
+    "type",
+    "name",
+    "subtype",
+    "metadata",
+    "geometry",
+]
 
 
 # Mask buffer is a metric operation, so buffer in NZTM2000(projected metres) instead of NZGD2000(geographic degrees)
@@ -26,17 +40,6 @@ logger = logging.getLogger(__name__)
 # Even though Chathams/Kermadecs sit outside NZTM2000, it gives us a smaller error of about 0.009m
 # As we are working out if rock line sits on a shoreline rather than a measurement, that sub-cm distortion is acceptable
 LINE_TOL_M = 1.0
-NZTM2000 = 2193
-NZGD2000 = 4167
-
-
-def read_and_project(path: Path, **read_kwargs) -> gpd.GeoDataFrame:
-    gdf = gpd.read_parquet(path, **read_kwargs)
-    epsg = gdf.crs.to_epsg() if gdf.crs else None
-    if epsg != NZGD2000:
-        raise ValueError(f"{path} must be NZGD2000 (EPSG:{NZGD2000}), got EPSG:{epsg}")
-
-    return gdf.to_crs(NZTM2000)
 
 
 def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: Path, output_path: Path) -> None:
@@ -65,10 +68,16 @@ def run(marine_path: Path, coastline_path: Path, island_path: Path, water_path: 
 
     # Derive a reproducible UUIDv7 from the source timestamp and the geometry.
     source_created_at = earliest_created_at(rock_gdf)
+    produced_at = datetime.now(UTC)
     timestamp_ms = int(pd.Timestamp(source_created_at).timestamp() * 1000)
     rock_line_clip_gdf["id"] = [
         str(reproducible_uuid7(timestamp_ms, f"rock_line/{geom.wkb_hex}")) for geom in rock_line_clip_gdf.geometry
     ]
+
+    # Ensure required schema properties exist with expected shapes and types.
+    rock_line_clip_gdf["created_at"] = source_created_at.isoformat()
+    rock_line_clip_gdf["updated_at"] = produced_at.isoformat()
+    rock_line_clip_gdf = rock_line_clip_gdf.reindex(columns=OUTPUT_COLUMNS)
 
     write_parquet(rock_line_clip_gdf, output_path)
 

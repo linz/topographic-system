@@ -1,24 +1,34 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("utility_line")
 @extension("additionalProperties", false)
 model utility_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "pipeline" | "powerline" | "telephone";
-  utility_use?: Topo.UtilityUseEnum | null;
-  support_type?: Topo.SupportTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  visibility?: Topo.VisibilityEnum | null;
+  subtype: utility_subtype | null;
+  support_type: utility_supporttype | null;
+  status: string | null;
+  visibility: utility_visibility | null;
+  theme: Theme.Utility;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum utility_subtype {
+  Ironsand: "ironsand",
+  Sewage: "sewage",
+  Steam: "steam",
+  Water: "water",
+}
 
-  bbox?: Topo.BBox;
+enum utility_supporttype {
+  Pole: "pole",
+  Pylon: "pylon",
+}
+
+enum utility_visibility {
+  Underground: "underground",
 }

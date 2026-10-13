@@ -14,6 +14,7 @@ from .config import (
     get_repo_remote,
     validate_theme_joins,
 )
+from .fixups import FIXUPS
 
 
 def _theme_with_join(join_columns):
@@ -201,13 +202,15 @@ def test_fixups_default_to_empty():
 
 
 def test_fixup_is_parsed():
+    # Any registered fixup will do; naming one couples this to whatever repairs happen to exist.
+    fn = next(iter(FIXUPS))
     td = ThemeDataset.model_validate(
         {
             "source": "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k",
-            "fixups": [{"fn": "change_type_to_none", "releases": [64, 65]}],
+            "fixups": [{"fn": fn, "releases": [64, 65]}],
         }
     )
-    assert td.fixups[0].fn == "change_type_to_none"
+    assert td.fixups[0].fn == fn
     assert td.fixups[0].releases == [64, 65]
 
 

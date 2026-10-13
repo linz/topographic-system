@@ -1,0 +1,20 @@
+name: coastline
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-coastlines-topo-150k
+    name: nz_coastlines
+    mapping:
+      t50_fid: $
+      type: coastline
+      elevation: $elevation
+      theme: landcover
+      metadata: null
+  # Only keep NZ datasets for initial load.
+  #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-coastlines-ant-150k
+  #    mapping:
+  #      t50_fid: $
+  #      type: coastline
+  #      elevation: $elevation
+  #      theme: landcover
+  #      metadata: null

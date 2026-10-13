@@ -1,0 +1,177 @@
+name: landuse
+target_repo: topographic-data
+target_epsg: EPSG:4167
+datasets:
+  - source: kart@data.koordinates.com:linz/nz-cemetery-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-cemetery-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: cemetery
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-golf-course-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: golf_course
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-golf-course-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: golf_course
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-gravel-pit-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: gravel_pit
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-landfill-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: landfill
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-mine-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: mine
+      subtype: $visibility
+      status: $
+      name: $
+      substance_extracted: $substance
+      theme: landuse
+      metadata: null
+    corrections:
+      - { column: status, replace: { historic: old } }
+  - source: kart@data.koordinates.com:linz/nz-pumice-pit-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: pumice_pit
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-quarry-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: quarry
+      subtype: null
+      status: $
+      name: $
+      substance_extracted: $substance
+      theme: landuse
+      metadata: null
+    corrections:
+      - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
+  - source: kart@data.koordinates.com:linz/nz-chatham-island-quarry-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: quarry
+      subtype: null
+      status: $
+      name: $
+      substance_extracted: $substance
+      theme: landuse
+      metadata: null
+    corrections:
+      - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
+  - source: kart@data.koordinates.com:linz/nz-racetrack-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: { source: $track_use, default: racetrack }
+      subtype: $track_type
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+    corrections:
+      - column: type
+        replace:
+          horse: horse_track
+          vehicle: vehicle_track
+          cycle: cycle_track
+          dog: dog_track
+  - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: rifle_range
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-showground-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: showground
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-sportsfield-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: sportsfield
+      subtype: null
+      status: null
+      name: $
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-orchard-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: orchard
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+  - source: kart@data.koordinates.com:linz/nz-vineyard-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: vineyard
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null

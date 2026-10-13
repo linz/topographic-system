@@ -43,6 +43,7 @@ enum building_subtype {
   PowerGeneration: "power_generation",
   Prison: "prison",
   PrivateHut: "private_hut",
+  ResearchCentre: "research_centre",
   SaltWorks: "salt_works",
   School: "school",
   ShingleWorks: "shingle_works",

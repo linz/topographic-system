@@ -1,10 +1,12 @@
+import { setTimeout } from 'node:timers/promises';
+
 import type { ReadResponse, WriteOptions } from '@chunkd/fs';
 import { fsa, FsError } from '@chunkd/fs';
 import { qMapAll } from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacCatalog, StacCollection, StacItem } from 'stac-ts';
 
-import { CacheControl } from './cache.ts';
+import { getCacheControl } from './cache.ts';
 import { StacIs } from './geo.ts';
 import type { StacFileChecksum } from './hash.writer.ts';
 import { HashWriter } from './hash.writer.ts';
@@ -193,7 +195,7 @@ export const StacUpdater = {
       const ret = cb(source == null ? null : JSON.parse(String(source)));
       if (ret == null) return;
 
-      const flags: WriteOptions = { contentType: 'application/json', cacheControl: CacheControl.StacJson };
+      const flags: WriteOptions = { contentType: 'application/json', cacheControl: getCacheControl(url) };
       if (StacIs.item(ret)) flags.contentType = 'application/geo+json';
 
       if (source == null) flags.ifNoneMatch = '*';
@@ -215,13 +217,14 @@ async function tryRead(u: URL): Promise<ReadResponse | null> {
 
 async function retryWrite<T>(cb: () => Promise<T>, opts?: StacReadWrite): Promise<T> {
   let lastError: FsError | null = null;
-  const retries = opts?.retries ?? 3;
+  const retries = opts?.retries ?? 5;
   for (let i = 0; i < retries; i++) {
     try {
       return await cb();
     } catch (e) {
       if (FsError.is(e) && e.code === 412) {
         lastError = e;
+        await setTimeout(Math.random() * 50 * i);
         continue;
       }
       throw e;
@@ -251,7 +254,7 @@ function catalogContext(root: URL, catalogUrl: URL): { id: string; title: string
     return {
       id: idParts.join('_'),
       title: `${idParts.at(-1)}`,
-      description: `${idParts.at(-1)!} catalog for LINZ Topographic`,
+      description: `${idParts.at(-1)} catalog for LINZ Topographic`,
     };
   }
 

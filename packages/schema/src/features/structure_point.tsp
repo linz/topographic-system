@@ -1,50 +1,46 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
+import "./structure.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("structure_point")
 @extension("additionalProperties", false)
 model structure_point {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "beacon"
-    | "bivouac"
-    | "buoy"
-    | "chimney"
-    | "dredge"
-    | "flare"
-    | "floodgate"
-    | "gate"
-    | "ladder"
-    | "mast"
-    | "redoubt"
-    | "shaft"
-    | "siphon"
-    | "stockyard"
-    | "tank"
-    | "tower"
-    | "well"
-    | "windmill"
-    | "wreck";
-  structure_use?: Topo.StructureUseEnum | null;
-  tank_type?: "uncovered" | "water" | "surge chamber" | null;
-  subtype?: Topo.StructureSubTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
-  location?: Topo.LocationEnum | null;
-  height?: float64 | null;
-  orientation?: float64 | null;
-  material?: Topo.MaterialEnum | null;
-  restrictions?: Topo.RestrictionsEnum | null;
-  stored_item?: Topo.StoredItemEnum | null;
-  wreck_of?: Topo.WreckOfEnum | null;
+  ...TopographicFeature;
+  type: structure_point_type;
+  subtype: structure_subtype | null;
+  tank_type: structure_tank_type | null;
+  status: structure_status | null;
+  name: string | null;
+  height: float64 | null;
+  orientation: float64 | null;
+  theme: Theme.Structures;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum structure_point_type {
+  Beacon: "beacon",
+  Bivouac: "bivouac",
+  Buoy: "buoy",
+  Chimney: "chimney",
+  Dredge: "dredge",
+  Flare: "flare",
+  Floodgate: "floodgate",
+  Gate: "gate",
+  Ladder: "ladder",
+  Lighthouse: "lighthouse",
+  Mast: "mast",
+  RadarDome: "radar_dome",
+  Redoubt: "redoubt",
+  SatelliteStation: "satellite_station",
+  Shaft: "shaft",
+  Siphon: "siphon",
+  Stockyard: "stockyard",
+  Tank: "tank",
+  Tower: "tower",
+  Well: "well",
+  Windmill: "windmill",
+  Wreck: "wreck",
 }

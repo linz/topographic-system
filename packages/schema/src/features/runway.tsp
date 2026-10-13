@@ -1,22 +1,32 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("runway")
 @extension("additionalProperties", false)
 model runway {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
+  ...TopographicFeature;
   type: "runway";
-  runway_use?: Topo.RunwayUseEnum | null;
-  status?: Topo.StatusEnum | null;
-  surface?: Topo.SurfaceEnum | null;
+  subtype: runway_subtype | null;
+  status: runway_status | null;
+  surface: runway_surface | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum runway_subtype {
+  Aerodrome: "aerodrome",
+  Airport: "airport",
+  Airstrip: "airstrip",
+}
 
-  bbox?: Topo.BBox;
+enum runway_status {
+  Disused: "disused",
+}
+
+enum runway_surface {
+  Grass: "grass",
+  Sealed: "sealed",
 }

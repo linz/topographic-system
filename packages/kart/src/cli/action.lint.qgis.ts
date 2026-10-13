@@ -1,20 +1,38 @@
+import { relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { fsa } from '@chunkd/fs';
-import { logger, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { logger, parseQgisLayerDef, registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { getDataFromCatalog } from '@linzjs/topographic-system-stac';
 import { command, option, optional, restPositionals } from 'cmd-ts';
 import { XMLParser } from 'fast-xml-parser';
 
+const isGithubActions = () => process.env['GITHUB_ACTIONS'] === 'true';
+
+export const LintOk = Symbol('Ok');
+type LintRuleOk = typeof LintOk;
+
 export const LintQgisProjectArgs = {
-  qgis: option({
+  catalog: option({
     type: optional(Url),
-    long: 'qgis',
-    description: 'Path to QGIS project file',
+    long: 'catalog',
+    description: 'Path or URL to root STAC catalog where dataset source parquet exists',
   }),
-  paths: restPositionals({
-    type: Url,
-    description: 'QGIS projects to lint',
-  }),
+  qgis: option({ type: optional(Url), long: 'qgis', description: 'Path to QGIS project file' }),
+  paths: restPositionals({ type: Url, description: 'QGIS projects to lint' }),
 };
-type LintRule = (node: Record<string, unknown>) => string | null;
+
+export interface LintContext {
+  qgisPath: URL;
+  catalog?: URL;
+  validLayers?: Map<string, string | LintRuleOk>;
+}
+
+type LintRule = (
+  node: Record<string, unknown>,
+  context: LintContext,
+) => string | LintRuleOk | Promise<string | LintRuleOk>;
+type LintRuleContext = { name: string; rule: LintRule; [key: string]: unknown };
 
 /**
  * List of Fonts to allow with their namedStyles
@@ -33,8 +51,6 @@ const AllowedFonts: Record<string, true | Set<string>> = {
   ]),
 };
 
-const LintRules: LintRule[] = [lintDataSources, lintFontFamilies];
-
 export const LintQgisProjectCommand = command({
   name: 'lint-qgis',
   description: 'Lint QGIS Project',
@@ -42,85 +58,243 @@ export const LintQgisProjectCommand = command({
   async handler(args) {
     registerFileSystem();
 
+    let totalErrors: string[] = [];
     logger.info({ args }, 'LintQgis:Start');
 
     const startTime = performance.now();
+    const validLayers = new Map<string, string | LintRuleOk>();
 
     for (const path of [...args.paths, args.qgis]) {
       if (path == null) continue;
 
       const qgisFile = await fsa.read(path);
-      const errors = lint(qgisFile, LintRules);
+      const errors = await lint(qgisFile, LintRules, { qgisPath: path, catalog: args.catalog, validLayers });
 
       if (errors.length > 0) {
-        for (const error of errors) logger.error({ error }, 'LintQgis:Error');
-        throw new Error(`QGIS project lint failed with ${errors.length} error(s):\n${errors.join('\n')}`);
+        for (const error of errors) {
+          logger.error({ file: path, rule: error.name, error: error.error }, 'LintQgis:Error');
+          if (isGithubActions()) emitGithubAnnotation(path, error);
+        }
+        totalErrors.push(`${path.toString()}: ${errors.length} error(s)`);
       }
+    }
+
+    if (totalErrors.length > 0) {
+      throw new Error(`QGIS project lint failed with ${totalErrors.length} error(s):\n${totalErrors.join('\n')}`);
     }
     logger.info({ duration: performance.now() - startTime }, 'LintQgis:Completed');
   },
 });
 
-export function lint(obj: string | Buffer | Record<string, unknown>, rules: LintRule[]): string[] {
+export async function lint(
+  obj: string | Buffer | Record<string, unknown>,
+  rules: LintRuleContext[],
+  context: LintContext,
+): Promise<{ name: string; error: string }[]> {
+  context.validLayers ??= new Map();
+  let errors: { name: string; error: string }[];
   if (typeof obj === 'string' || Buffer.isBuffer(obj)) {
     const parser = new XMLParser({ ignoreAttributes: false, processEntities: false });
     const qgisXml = parser.parse(obj);
-    return doLint(qgisXml, rules, []);
+    errors = await doLint(qgisXml, rules, [], context);
+  } else {
+    errors = await doLint(obj, rules, [], context);
   }
 
-  return doLint(obj, rules, []);
+  // Deduplicate by name + error combination
+  const seen = new Set<string>();
+  return errors.filter((e) => {
+    const key = `${e.name}:${e.error}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
-export function doLint(node: unknown, rules: LintRule[], errors: string[]): string[] {
+export async function doLint(
+  node: unknown,
+  rules: LintRuleContext[],
+  errors: { name: string; error: string }[],
+  context: LintContext,
+): Promise<{ name: string; error: string }[]> {
   if (node == null) return errors;
 
   for (const rule of rules) {
-    const error = rule(node as Record<string, unknown>);
-    if (error != null) errors.push(error);
+    const error = await rule.rule(node as Record<string, unknown>, context);
+    if (error !== LintOk) errors.push({ name: rule.name, error });
   }
 
   for (const value of Object.values(node)) {
     if (value == null) continue;
     if (typeof value !== 'object') continue;
-    doLint(value, rules, errors);
+    await doLint(value, rules, errors, context);
   }
 
   return errors;
 }
+export const LintRuleFontFamily: LintRuleContext = {
+  name: 'font-families',
+  rule(node) {
+    const fontFamily = X.string(node, '@_fontFamily');
+    if (fontFamily == null) return LintOk;
 
-export function lintFontFamilies(node: Record<string, unknown>): string | null {
-  const fontFamily = node['@_fontFamily'] as string | undefined;
-  if (fontFamily == null) return null;
+    const fontConfig = AllowedFonts[fontFamily];
+    if (fontConfig == null) {
+      return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
+    }
 
-  const fontConfig = AllowedFonts[fontFamily];
-  if (fontConfig == null) {
-    return `Font family '${fontFamily}' is not allowed. Allowed fonts are: ${Object.keys(AllowedFonts).join(', ')}`;
-  }
+    if (fontConfig === true) return LintOk; // All styles of this font are allowed
 
-  if (fontConfig === true) return null; // All styles of this font are allowed
+    // Default "" and null to "default"
+    const fontStyle = X.string(node, '@_namedStyle') || 'default';
+    if (fontConfig.has(fontStyle)) return LintOk; // This style of the font is allowed
+    return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
+  },
+};
 
-  // Default "" and null to "default"
-  const fontStyle = (node['@_namedStyle'] || 'default') as string;
-  if (fontConfig.has(fontStyle)) return null; // This style of the font is allowed
-  return `Font Style '${fontFamily}' does not allow '${fontStyle}'. Allowed style are: ${Array.from(fontConfig).join(', ')}`;
-}
+function getDataSource(node: Record<string, unknown>): string | null {
+  const datasource = X.string(node, 'datasource');
+  const dsProvider = X.string(node, 'provider') ?? 'ogr';
+  if (dsProvider === 'ogr' && datasource != null) return datasource;
 
-/**
- * Ensure all datasource paths in the QGIS project are relative paths.
- * Absolute paths or non-local paths will cause issues when the project is used on a different machine or environment.
- * @param node
- * @returns
- */
-export function lintDataSources(node: Record<string, unknown>): string | null {
-  const dataSource = node['datasource'] as string | undefined;
-  if (dataSource == null || dataSource === '') return null;
-  const provider = node['provider'] as string | undefined;
-  if (provider == null) return null;
-  if (provider !== 'ogr') return null;
-
-  if (!(dataSource.startsWith('./') || dataSource.startsWith('../'))) {
-    return `datasource path must be relative (start with ./ or ../): ${dataSource}`;
-  }
+  const source = X.string(node, '@_source');
+  const srcProvider = X.string(node, '@_providerKey');
+  if (srcProvider === 'ogr' && source != null && source !== '') return source;
 
   return null;
+}
+
+export const LintRuleDataSourcesAllowedTypes = new Set(['parquet', 'geojson', 'gpkg']);
+export const LintRuleDataSources: LintRuleContext = {
+  name: 'data-sources',
+  async rule(node, context) {
+    const dataSource = getDataSource(node);
+    if (dataSource == null || dataSource.trim() === '') return LintOk;
+
+    const ctx = parseQgisLayerDef(dataSource);
+    if (ctx == null) return LintOk;
+
+    if (!ctx.path.startsWith('./') && !ctx.path.startsWith('../')) {
+      return `datasource path must be relative (start with ./ or ../): ${dataSource}`;
+    }
+
+    if (ctx.path.startsWith('../../')) {
+      return `datasource path traverses too far parent directory: ${dataSource}`;
+    }
+
+    if (!LintRuleDataSourcesAllowedTypes.has(ctx.type))
+      return `datasource type must be 'parquet', 'geojson', or 'gpkg' found: ${ctx.type}`;
+
+    if (context.catalog == null) return LintOk;
+
+    if (ctx.type !== 'parquet') return `datasources from catalogs must be 'parquet' found: ${ctx.type}`;
+
+    const seen = context.validLayers?.get(ctx.name);
+    if (seen != null) return seen;
+
+    const loc = await getDataFromCatalog(context.catalog, ctx.name).catch(() => null);
+    const ruleResult =
+      loc == null ? `datasource layer '${ctx.name}' not found in catalog: ${context.catalog.href}` : LintOk;
+
+    context.validLayers?.set(ctx.name, ruleResult);
+    return ruleResult;
+  },
+};
+/**
+ * Helper to recursively extract SVG file paths from an SVGFill | SvgMarker symbol layer node.
+ */
+export function findSvgPaths(obj: Record<string, unknown>, paths = new Set<string>()): Set<string> {
+  if (obj == null || typeof obj !== 'object') return paths;
+
+  if (Array.isArray(obj)) {
+    for (const item of obj) findSvgPaths(item, paths);
+    return paths;
+  }
+
+  const rec = obj as Record<string, unknown>;
+  for (const value of Object.values(rec)) {
+    if (value == null) continue;
+    if (typeof value === 'object') findSvgPaths(value as Record<string, unknown>, paths);
+    if (typeof value === 'string') {
+      if (value.endsWith('.svg')) paths.add(value);
+    }
+  }
+  return paths;
+}
+
+/** Xml helper utils */
+const X = {
+  /** Attempt to read a string value from the xml  */
+  string(node: Record<string, unknown>, key: string): string | undefined {
+    const value = node[key];
+    if (value == null) return undefined;
+    if (typeof value === 'string') return value;
+    // Support <provider encoding=utf8>ogr</provider>
+    if (typeof value === 'object' && '#text' in value) {
+      if (typeof value['#text'] === 'string') return value['#text'];
+    }
+    return undefined;
+  },
+};
+
+/**
+ * Ensure all SVG file paths referenced in SVG Fills exist.
+ * @param node
+ * @param context
+ */
+export const LintRuleSvgPath: LintRuleContext & { classes: Set<string> } = {
+  name: 'svg-path',
+  classes: new Set(['svgfill', 'svgmarker']),
+  async rule(node, context) {
+    const className = X.string(node, '@_class') ?? '';
+    if (!this.classes.has(className?.toLowerCase())) return LintOk;
+
+    const svgPaths = findSvgPaths(node);
+    if (svgPaths.size === 0) return LintOk;
+
+    const missingFiles: string[] = [];
+    for (const svgPath of svgPaths) {
+      if (svgPath.startsWith('base64:')) continue;
+
+      const targetUrl = new URL(svgPath, context.qgisPath);
+      const exists = await fileExists(targetUrl);
+      if (!exists) missingFiles.push(svgPath);
+    }
+
+    if (missingFiles.length > 0) return `${className} file does not exist: "${missingFiles.join(', ')}"`;
+
+    return LintOk;
+  },
+};
+
+async function fileExists(url: URL): Promise<boolean> {
+  try {
+    const exists = await fsa.exists(url);
+    return exists;
+  } catch {
+    // noop
+  }
+  return false;
+}
+
+export const LintRules: LintRuleContext[] = [LintRuleDataSources, LintRuleFontFamily, LintRuleSvgPath];
+
+export function toGithubPath(url: URL): string {
+  if (url.protocol === 'file:') {
+    const rootDir = process.env['GITHUB_WORKSPACE'] ?? process.cwd();
+    return relative(rootDir, fileURLToPath(url));
+  }
+  return url.toString();
+}
+
+export function emitGithubAnnotation(path: URL, error: { name: string; error: string }): void {
+  console.log(`::error file=${toGithubPath(path)},title=${escapeProperty(error.name)}::${escapeData(error.error)}`);
+}
+
+// Stolen from @actions/core
+function escapeProperty(val: string): string {
+  return val.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').replace(/:/g, '%3A').replace(/,/g, '%2C');
+}
+function escapeData(val: string): string {
+  return val.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 }

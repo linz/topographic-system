@@ -1,30 +1,26 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("landcover")
 @extension("additionalProperties", false)
 model landcover {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "ice"
-    | "moraine"
-    | "moraine_wall"
-    | "mud"
-    | "rapid"
-    | "sand"
-    | "scree"
-    | "shingle"
-    | "swamp";
-  subtype?: Topo.SubTypeEnum | null;
-  name?: string | null;
+  ...TopographicFeature;
+  type: landcover_type;
+  name: string | null;
+  theme: Theme.Landcover;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum landcover_type {
+  Ice: "ice",
+  Moraine: "moraine",
+  MoraineWall: "moraine_wall",
+  Mud: "mud",
+  Sand: "sand",
+  Scree: "scree",
+  Shingle: "shingle",
+  Swamp: "swamp",
 }

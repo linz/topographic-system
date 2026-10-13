@@ -4,10 +4,7 @@
     {
       "type": "Feature",
       "properties": { "name": "The Beehive" },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [174.7767, -41.2784]
-      }
+      "geometry": { "type": "Point", "coordinates": [174.7767, -41.2784] }
     }
   ]
 }

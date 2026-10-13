@@ -169,11 +169,7 @@ export const ValidateCommand = command({
   name: 'validate',
   description: 'Run topographic data validation',
   args: {
-    output: option({
-      type: UrlFolder,
-      long: 'output',
-      description: 'Destination for validation results',
-    }),
+    output: option({ type: UrlFolder, long: 'output', description: 'Destination for validation results' }),
     mode: option({
       type: string,
       long: 'mode',

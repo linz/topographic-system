@@ -1,24 +1,51 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("bridge_line")
 @extension("additionalProperties", false)
 model bridge_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "bridge";
-  bridge_use?: Topo.BridgeUseEnum | null;
-  bridge_use2?: Topo.BridgeUse2Enum | null;
-  construction_type?: Topo.ConstructionTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
+  ...TopographicFeature;
+  type: bridge_type | null;
+  subtype: bridge_subtype | null;
+  construction_type: construction_type | null;
+  status: status | null;
+  name: string | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum bridge_type {
+  Cablecar: "cablecar",
+  Farm: "farm",
+  FootTraffic: "foot_traffic",
+  Train: "train",
+  Vehicle: "vehicle",
+}
 
-  bbox?: Topo.BBox;
+enum bridge_subtype {
+  FootTraffic: "foot_traffic",
+  Train: "train",
+}
+
+enum construction_type {
+  Suspension: "suspension",
+  Swing: "swing",
+  Trestle: "trestle",
+}
+
+enum status {
+  Closed: "closed",
+  Dangerous: "dangerous",
+  Derelict: "derelict",
+  Disused: "disused",
+  Historic: "historic",
+  Locked: "locked",
+  Old: "old",
+  Private: "private",
+  Remains: "remains",
+  Ruins: "ruins",
+  UnderConstruction: "under_construction",
 }

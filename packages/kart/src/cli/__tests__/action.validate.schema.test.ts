@@ -7,13 +7,7 @@ import type { ErrorAggregate } from '../action.validate.schema.ts';
 import { collapseErrors, errorSample, MaxErrorSamples, summariseErrors } from '../action.validate.schema.ts';
 
 function error(partial: Partial<ErrorObject>): ErrorObject {
-  return {
-    instancePath: '',
-    schemaPath: '#',
-    keyword: 'type',
-    params: {},
-    ...partial,
-  } as ErrorObject;
+  return { instancePath: '', schemaPath: '#', keyword: 'type', params: {}, ...partial } as ErrorObject;
 }
 
 // The three errors AJV emits for one bad value under `anyOf: [enum, null]`.

@@ -43,7 +43,7 @@ model ProductFeature {
 }
 
 model TopographicMetadata {
-  metadata: DataSource[] | null;
+  metadata: string | null;
 }
 @extension("additionalProperties", false)
 model DataSource {
@@ -75,6 +75,13 @@ model DataSource {
 enum metadata_source {
   NZGBGazetteer: "nzgb_gazetteer",
   LINZAIMS: "linz_aims",
+}
+
+enum composition_subtype {
+  Coral: "coral",
+  Limestone: "limestone",
+  Pumice: "pumice",
+  Rock: "rock",
 }
 
 enum Theme {

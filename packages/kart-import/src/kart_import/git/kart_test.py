@@ -1,3 +1,4 @@
+import json
 import subprocess
 
 import pytest
@@ -84,3 +85,49 @@ def test_source_ref_falls_back_to_head_without_remote(tmp_path):
 def test_ref_has_dataset(tmp_path, ref, dataset, expected):
     _, clone = _origin_and_clone(tmp_path)
     assert kart.ref_has_dataset(clone, ref, dataset) is expected
+
+
+SCHEMA = [
+    {"name": "auto_pk", "dataType": "integer", "size": 64},
+    {"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0},
+]
+
+
+def _dataset_repo(tmp_path, dataset="linz_road_cl", schema=SCHEMA):
+    """A repo laid out the way kart repostructure v3 stores a dataset's schema."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "master")
+    meta = repo / dataset / ".table-dataset" / "meta"
+    meta.mkdir(parents=True)
+    (meta / "schema.json").write_text(json.dumps(schema))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "schema")
+    return repo
+
+
+def test_get_dataset_schema_reads_the_commit_not_a_checkout(tmp_path):
+    """A blob in the commit: no working copy needed, and addressable by sha, so each exported
+    commit is typed with the schema it actually had."""
+    repo = _dataset_repo(tmp_path)
+    sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=str(repo), check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+    assert kart.get_dataset_schema(repo, "linz_road_cl", sha) == tuple(SCHEMA)
+    assert kart.get_dataset_schema(repo, "linz_road_cl", "HEAD") == tuple(SCHEMA)  # refs work too
+
+
+@pytest.mark.parametrize(
+    "dataset, ref",
+    [
+        ("no_such_dataset", "HEAD"),  # dataset not in this repo (wrong clone)
+        ("linz_road_cl", "no_such_ref"),  # commit not present (stale/shallow clone)
+    ],
+    ids=["missing-dataset", "missing-ref"],
+)
+def test_get_dataset_schema_raises_when_the_blob_is_absent(tmp_path, dataset, ref):
+    """A missing schema must not read as 'nothing declared', silently skipping every restoration."""
+    repo = _dataset_repo(tmp_path)
+    with pytest.raises(FileNotFoundError, match="no kart schema at"):
+        kart.get_dataset_schema(repo, dataset, ref)

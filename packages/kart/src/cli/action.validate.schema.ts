@@ -1,5 +1,6 @@
 import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
+import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
@@ -121,6 +122,7 @@ export const ValidateSchemaCommand = command({
   async handler(args) {
     const q = qFromArgs(args);
     const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
+    addFormats.default(ajv);
 
     const schemaContent = await loadSchema(args.schema);
     const validate = ajv.compile(schemaContent);

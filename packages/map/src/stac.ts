@@ -1,10 +1,8 @@
 import type { StacItem } from 'stac-ts';
 
-import { type ExportFormat } from './cli/action.prepare.ts';
+import type { ExportAsset } from './cli/export.options.ts';
 
 export interface ExportOptions {
-  /** layout name used for export, must exist in the QGIS project */
-  layout: string;
   /**
    * map sheet dataset name used for export
    *
@@ -13,10 +11,18 @@ export interface ExportOptions {
    * @example "nztopo50_map_sheet.parquet"
    */
   mapSheetDataset: string;
-  /** Creation Format  */
-  format: ExportFormat;
-  /** Creation dpi */
-  dpi: number;
+  /**
+   * carto text dataset name used for export
+   *
+   * This is the dataset name of the dataset as it appears in the stac item json.
+   *
+   * @example "nztopo50_carto_text.parquet"
+   */
+  cartoTextDataset: string;
+
+  /** Assets to create */
+  assets: ExportAsset[];
+
   /** Optional list of layer names to exclude from export */
   excludeLayers?: string[];
 }

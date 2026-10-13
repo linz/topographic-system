@@ -1,24 +1,41 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("tunnel_line")
 @extension("additionalProperties", false)
 model tunnel_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "tunnel";
-  tunnel_use?: Topo.TunnelUseEnum | null;
-  tunnel_use2?: Topo.TunnelUse2Enum | null;
-  subtype?: Topo.TunnelSubTypeEnum | null;
-  status?: Topo.StatusEnum | null;
-  name?: string | null;
+  ...TopographicFeature;
+  type: tunnel_type;
+  subtype: "livestock" | null;
+  construction_type: tunnel_construction_type | null;
+  status: tunnel_status | null;
+  name: string | null;
+  theme: Theme.Transport;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum tunnel_construction_type {
+  Natural: "natural",
+  Manmade: "manmade",
+}
 
-  bbox?: Topo.BBox;
+enum tunnel_type {
+  Cablecar: "cablecar",
+  FootTraffic: "foot_traffic",
+  Livestock: "livestock",
+  River: "river",
+  Train: "train",
+  Tram: "tram",
+  Vehicle: "vehicle",
+}
+
+enum tunnel_status {
+  Closed: "closed",
+  Historic: "historic",
+  Disused: "disused",
+  Derelict: "derelict",
+  UnderConstruction: "under_construction",
 }

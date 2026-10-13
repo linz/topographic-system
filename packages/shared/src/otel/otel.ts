@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import type { Context, Span, Tracer } from '@opentelemetry/api';
-import { trace as otelTrace } from '@opentelemetry/api';
-import { propagation, context } from '@opentelemetry/api';
+import { trace as otelTrace, propagation, context } from '@opentelemetry/api';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -61,9 +60,7 @@ export function createOtelSdk(packageName: string): { sdk: NodeSDK; parentContex
   instrumentFsa();
   instrumentZx();
 
-  const parentContext = propagation.extract(context.active(), {
-    traceparent: process.env['TRACEPARENT'],
-  });
+  const parentContext = propagation.extract(context.active(), { traceparent: process.env['TRACEPARENT'] });
 
   const otel: Record<string, unknown> = {};
   for (const key of otelEnv) otel[key] = maskKey(process.env[key] ?? '');

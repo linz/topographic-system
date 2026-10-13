@@ -1,29 +1,33 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("relief_line")
 @extension("additionalProperties", false)
 model relief_line {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type:
-    | "cliff_edge"
-    | "cutting_edge"
-    | "embankment"
-    | "rapid"
-    | "slip_edge"
-    | "waterfall"
-    | "waterfall_edge";
-  relief_use?: Topo.ReliefUseEnum | null;
-  name?: string | null;
-  height?: float64 | null;
+  ...TopographicFeature;
+  type: relief_line_type;
+  subtype: relief_line_subtype | null;
+  name: string | null;
+  height: float64 | null;
+  theme: Theme.Relief;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
+enum relief_line_type {
+  CliffEdge: "cliff_edge",
+  CuttingEdge: "cutting_edge",
+  Embankment: "embankment",
+  Rapid: "rapid",
+  SlipEdge: "slip_edge",
+  Waterfall: "waterfall",
+  WaterfallEdge: "waterfall_edge",
+  Seawall: "seawall",
+}
 
-  bbox?: Topo.BBox;
+enum relief_line_subtype {
+  Causeway: "causeway",
+  Stopbank: "stopbank",
 }

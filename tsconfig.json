@@ -1,20 +1,10 @@
 {
   "files": [],
   "references": [
-    {
-      "path": "./packages/stac"
-    },
-    {
-      "path": "./packages/shared"
-    },
-    {
-      "path": "./packages/kart"
-    },
-    {
-      "path": "./packages/map"
-    },
-    {
-      "path": "./e2e"
-    }
+    { "path": "./packages/stac" },
+    { "path": "./packages/shared" },
+    { "path": "./packages/kart" },
+    { "path": "./packages/map" },
+    { "path": "./e2e" }
   ]
 }

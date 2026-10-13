@@ -1,22 +1,25 @@
 import "@typespec/json-schema";
-import "../common.tsp";
+import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
 @jsonSchema("relief_point")
 @extension("additionalProperties", false)
 model relief_point {
-  ...Topo.TopoIdentity;
-  ...Topo.AuditFields;
-  t50_fid?: unknown /* int64; hyparquet returns BigInt */;
-  type: "height" | "sinkhole";
-  name?: string | null;
-  display?: Topo.DisplayEnum | null;
-  elevation?: int32 | null;
+  ...TopographicFeature;
+  type: relief_point_type;
+  name: string | null;
+  elevation: int32 | null;
+  height: float64 | null;
+  orientation: float64 | null;
+  theme: Theme.Relief;
+  ...TopographicMetadata;
+  ...GeoParquet;
+}
 
-  /** WKB geometry. Validation only checks presence + non-null; semantic checks live elsewhere. */
-  @extension("not", #{ type: "null" })
-  geometry: unknown;
-
-  bbox?: Topo.BBox;
+enum relief_point_type {
+  Height: "height",
+  Saddle: "saddle",
+  Sinkhole: "sinkhole",
+  Waterfall: "waterfall",
 }

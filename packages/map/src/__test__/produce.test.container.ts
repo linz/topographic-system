@@ -18,6 +18,10 @@ async function findCli(): Promise<string> {
 
 async function cli(...args: (string | string[])[]): Promise<string> {
   const result = await $`node ${cliLocation} ${args.flat()}`;
+  if (process.argv.includes('--debug')) {
+    console.log(result.stdout);
+    console.log(result.stderr);
+  }
   if (result.exitCode !== 0) throw new Error('Error running CLI');
   return result.stdout;
 }
@@ -69,12 +73,16 @@ describe('QGIS Process', () => {
     const qgisProject = new URL('../../assets/project/beehive.qgs', import.meta.url);
     const qgisData = new URL('../../assets/project/beehive.geojson', import.meta.url);
     const topo50Data = new URL('../../assets/project/nztopo50_map_sheet.parquet', import.meta.url);
+    const cartoTextData = new URL('../../assets/project/nztopo50_carto_text.parquet', import.meta.url);
+    const trigPointData = new URL('../../assets/project/trig_point.parquet', import.meta.url);
     const fonts = new URL('../../assets/fonts/', import.meta.url);
 
     await fsa.write(new URL('source/project/beehive.qgs', tempLocation), fsa.readStream(qgisProject));
 
     await writeLatestAsset('beehive.geojson', qgisData);
     await writeLatestAsset('nztopo50_map_sheet.parquet', topo50Data);
+    await writeLatestAsset('nztopo50_carto_text.parquet', cartoTextData);
+    await writeLatestAsset('trig_point.parquet', trigPointData);
 
     await it('deploy', async () => {
       // Deploy the QGIS project into local files
@@ -134,11 +142,9 @@ describe('QGIS Process', () => {
       await cli(
         'prepare',
         ['--project', fileURLToPath(new URL('target-deploy-push/qgis/beehive/latest/beehive.json', tempLocation))],
-        ['--layout', 'tiff-50'],
         ['--temp-location', fileURLToPath(new URL('temp-produce-cover/', tempLocation))],
         ['--output', fileURLToPath(new URL('target-produce/working/', tempLocation))],
-        ['--format', 'png'],
-        ['--dpi', '200'],
+        ['--asset', 'layout=tiff-50,dpi=200,format=png'],
         'BQ31',
       );
 

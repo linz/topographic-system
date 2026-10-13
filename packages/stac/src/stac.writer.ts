@@ -1,8 +1,14 @@
 import { fsa } from '@chunkd/fs';
+import type {
+  StacExtensionUrl,
+  StacFileV2_1_0,
+  StacProjectionV2_0_0,
+  StacTableV1_3_0,
+} from '@linzjs/topographic-system-shared';
 import type { LimitFunction } from 'p-limit';
 import type { StacAsset, StacCollection, StacItem } from 'stac-ts';
 
-import { CacheControl } from './cache.ts';
+import { getCacheControl } from './cache.ts';
 import { StacGeometry } from './geo.ts';
 import { HashWriter } from './hash.writer.ts';
 import { StacBasic } from './stac.basic.ts';
@@ -15,6 +21,8 @@ function getSource(x: unknown): URL | Buffer | string | null {
   if (StacSource in x) return x[StacSource] as URL;
   return null;
 }
+
+type StacAssetWithExtensions = StacAsset & StacProjectionV2_0_0 & StacTableV1_3_0 & StacFileV2_1_0;
 
 export class StacCollectionWriter {
   collection: StacCollection;
@@ -30,21 +38,24 @@ export class StacCollectionWriter {
     this.collection = StacBasic.collection();
   }
 
+  extension(extension: StacExtensionUrl) {
+    this.collection.stac_extensions ??= [];
+    if (!this.collection.stac_extensions.includes(extension)) {
+      this.collection.stac_extensions.push(extension);
+    }
+  }
+
   item(itemName: string): StacItem {
     let current = this.items.get(itemName);
     if (current == null) {
       current = StacBasic.item(this.collection.id);
-      this.collection.links.push({
-        rel: 'item',
-        href: `./${itemName}.json`,
-        type: 'application/json',
-      });
+      this.collection.links.push({ rel: 'item', href: `./${itemName}.json`, type: 'application/json' });
       this.items.set(itemName, current);
     }
     return current;
   }
 
-  itemAsset(itemName: string, assetName: string, source: URL | Buffer, asset: StacAsset) {
+  itemAsset(itemName: string, assetName: string, source: URL | Buffer, asset: StacAssetWithExtensions) {
     const item = this.item(itemName);
     item.assets ??= {};
     if (item.assets[assetName]) throw new Error(`Overriding asset on ${itemName}.${assetName}`);
@@ -52,7 +63,7 @@ export class StacCollectionWriter {
     Object.defineProperty(asset, StacSource, { enumerable: false, value: source });
   }
 
-  asset(assetName: string, source: URL, asset: StacAsset) {
+  asset(assetName: string, source: URL, asset: StacAssetWithExtensions) {
     this.collection.assets ??= {};
     if (this.collection.assets[assetName]) throw new Error(`Overriding asset on collection.${assetName}`);
     this.collection.assets[assetName] = asset;
@@ -72,7 +83,7 @@ export class StacCollectionWriter {
       const target = new URL(asset.href, baseUrl);
       const source = getSource(asset);
       if (source == null) continue; // TODO should this throw?
-      todo.push(q(() => HashWriter.writeStac(asset, target, source, { cacheControl: CacheControl.Asset })));
+      todo.push(q(() => HashWriter.writeStac(asset, target, source, { cacheControl: getCacheControl(target) })));
     }
 
     await Promise.all(todo);
@@ -102,7 +113,7 @@ export class StacCollectionWriter {
           if (targetLink == null) throw new Error(`item: ${itemName} is not found in collection`);
 
           await HashWriter.writeStac(targetLink, itemUrl, JSON.stringify(targetItem, null, 2), {
-            cacheControl: CacheControl.StacJson,
+            cacheControl: getCacheControl(itemUrl),
           });
         });
       }),
@@ -115,7 +126,7 @@ export class StacCollectionWriter {
 
     await fsa.write(collectionUrl, JSON.stringify(targetCollection, null, 2), {
       contentType: 'application/json',
-      cacheControl: CacheControl.StacJson,
+      cacheControl: getCacheControl(collectionUrl),
     });
 
     return collectionUrl;

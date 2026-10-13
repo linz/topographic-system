@@ -5,7 +5,8 @@ requires-python = ">=3.12"
 
 dependencies = [
     "pyarrow",
-    "geopandas"
+    "geopandas",
+    "morecantile"
 ]
 
 [dependency-groups]

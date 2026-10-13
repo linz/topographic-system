@@ -15,6 +15,7 @@ export const BaseQgsProject = `
   <layer-tree-layer name="road_line 2 lane highway map" source="./road_line.parquet|subset=&quot;lane_count&quot; &gt; 1"></layer-tree-layer>
   <layer-tree-layer name="water" source="./water.parquet"></layer-tree-layer>
   <layer-tree-layer name="MapSheetLayer" source="./nztopo50_map_sheet.parquet"></layer-tree-layer>
+  <layer-tree-layer name="CartoTextLayer" source="./nztopo50_carto_text.parquet"></layer-tree-layer>
 </layer-tree-group>
 `.trim();
 
@@ -22,9 +23,10 @@ const bbox = {
   water: [[166.0, -47.5, 179.0, -34.0]],
   road_line: [[-177.3, -44.7, -175.5, -43.3]],
   nztopo50_map_sheet: [[166.0, -47.5, 179.0, -34.0]],
+  nztopo50_carto_text: [[166.0, -47.5, 179.0, -34.0]],
 };
 
-const layers = ['road_line', 'water', 'nztopo50_map_sheet'] as const;
+const layers = ['road_line', 'water', 'nztopo50_map_sheet', 'nztopo50_carto_text'] as const;
 
 export async function writeBaseLayers(rootCatalog: URL): Promise<URL> {
   const limit = pLimit(1);
