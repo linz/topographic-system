@@ -16,7 +16,7 @@
   "required": ["id", "t50_fid", "direction", "value", "geometry"],
   "additionalProperties": false,
   "$defs": {
-    "grid_direction": { "type": "string", "enum": ["x", "y"] },
+    "grid_direction": { "type": "string", "enum": ["easting", "northing"] },
     "BBox": {
       "type": "object",
       "properties": {

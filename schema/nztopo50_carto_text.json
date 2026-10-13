@@ -8,6 +8,8 @@
       "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
     "example_point_id": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "description": "id (UUID) of the example feature."
@@ -56,6 +58,8 @@
   "required": [
     "id",
     "t50_fid",
+    "created_at",
+    "updated_at",
     "example_point_id",
     "full_text",
     "text_bend",

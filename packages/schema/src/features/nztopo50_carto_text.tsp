@@ -7,6 +7,8 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model nztopo50_carto_text {
   ...ProductFeature;
+  created_at: utcDateTime;
+  updated_at: utcDateTime;
 
   /** id (UUID) of the example feature. */
   example_point_id: string | null;
