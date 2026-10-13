@@ -174,6 +174,7 @@ rule kart_theme:
         ]
     output:
         imported = "data/output/{theme}.bundle"
+    threads: 8
     shell:
         "OTEL_SERVICE_NAME=kart_theme uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
 
