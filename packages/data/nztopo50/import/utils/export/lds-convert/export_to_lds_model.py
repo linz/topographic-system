@@ -1,5 +1,7 @@
 # This script exports the NZ Topo50 data model to LDS shapefiles.
 # Per-source JSON configs define target layers, field mappings, and formats.
+
+# NOTE: Currently only topographic data is supported.
 import json
 import logging
 import os
@@ -13,7 +15,8 @@ Utility functions and classes for exporting NZ Topo50 data to LDS shapefiles.
 Coded against schema 0.3
 
 Additional changes not implemented for later schema versions.
-BM-1904, 1905, 1906,1907, 1908,1909
+BM-1904 , 1905- cartotext, 1906-added sub field ignore,1907 - , 1908,
+1909 - main impact - require lookup for geographic_names
 
 """
 
