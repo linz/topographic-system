@@ -12,6 +12,7 @@ dependencies = [
     "openpyxl",
     "graphviz",
     "matplotlib",
+    "json-schema-for-humans>=1.5.1",
 ]
 
 [build-system]
