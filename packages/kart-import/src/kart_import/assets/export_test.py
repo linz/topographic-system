@@ -1,3 +1,5 @@
+import pytest
+
 from .. import export_paths
 from ..export_paths import export_filename
 from . import export
@@ -50,3 +52,24 @@ def test_link_release_export_replaces_a_dangling_link(tmp_path, monkeypatch):
     export.link_release_export(target, "ds", 30)
 
     assert (tmp_path / "release_30" / export_filename("ds")).resolve() == target
+
+
+def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
+    """A dataset added partway through a shared source repo's history (`site_bdy` in
+    topographic-source-data) isn't in the commits earlier releases resolve to, so those releases get
+    the empty export rather than a failing `kart export`."""
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
+    monkeypatch.setattr(export, "is_kart", lambda _: True)
+    monkeypatch.setattr(export, "get_source_entry", lambda _: SimpleNamespace(source=SimpleNamespace(dataset="ds")))
+    monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=None) for r in (66, 67)])
+    monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("before", "2026-09-14"))
+    monkeypatch.setattr(export, "ref_has_dataset", lambda *_: False)
+    monkeypatch.setattr(export, "run_command", lambda *_, **__: pytest.fail("must not kart export"))
+
+    export.export_dataset_releases("ds")
+
+    assert (tmp_path / "release_66" / "ds.json").resolve().name == "empty.json"
+    assert (tmp_path / "release_67" / "ds.json").resolve().name == "empty.json"

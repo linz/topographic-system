@@ -15,7 +15,7 @@ from ..export_paths import (
     lookup_commit_file,
     lookup_dir,
 )
-from ..git.kart import get_kart_dataset_id, is_kart
+from ..git.kart import get_kart_dataset_id, is_kart, ref_has_dataset
 from ..git.release import get_release_commit
 from ..log import log_context
 from ..thread import run_in_thread_pool
@@ -105,6 +105,9 @@ def export_dataset_releases(dataset_name: str):
             releases_before_first_commit.append(release.id)
             continue
         commit, commit_time = res
+        if not ref_has_dataset(repo_dir, commit, kart_dataset_id):
+            releases_before_first_commit.append(release.id)
+            continue
         if commit not in commit_to_releases:
             commit_to_releases[commit] = CommitData(
                 commit=commit,
