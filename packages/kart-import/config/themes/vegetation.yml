@@ -55,7 +55,7 @@ datasets:
     feature_key: auto_pk
     mapping:
       <<: *native
-      t50_fid: null
+      t50_fid: { source: $, since_release: 67 }
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-native-polygons-topo-125k
     name: nz_kermadec_is_native_polygons_topo_125k
     feature_key: auto_pk
@@ -108,7 +108,7 @@ datasets:
     feature_key: auto_pk
     mapping:
       <<: *scrub
-      t50_fid: null
+      t50_fid: { source: $, since_release: 67 }
   - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-scrub-polygons-topo-150k
     name: nz_campbell_island_motu_ihupuku_scrub_polygons_topo_150k
     feature_key: auto_pk

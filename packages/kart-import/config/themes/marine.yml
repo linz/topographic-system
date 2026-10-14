@@ -87,7 +87,7 @@ datasets:
     feature_key: auto_pk
     mapping:
       <<: *rock
-      t50_fid: null
+      t50_fid: { source: $, since_release: 67 }
   - source: kart@data.koordinates.com:linz/nz-bounty-islands-rock-polygons-topo-125k
     name: nz_bounty_islands_rock_polygons_topo_125k
     feature_key: auto_pk
