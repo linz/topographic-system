@@ -23,3 +23,20 @@ The results are:
 **generate_model_html.py** - creates a html version of the schema. Uses the pydantic model.
 
 In **examples** folder is output HTML and MD version and a example openAPI 3.0.3 version
+
+### Using generate-schema-doc
+
+https://github.com/coveooss/json-schema-for-humans
+pip install json-schema-for-humans
+or uv add json-schema-for-humans
+
+uv run generate-schema-doc C:\Data\toposource\schema_model C:\Temp\reports --config template_name=js 
+
+js_offline
+
+uv run generate-schema-doc C:\Data\toposource\schema_model C:\Temp\reports --config template_name=md 
+
+md_nested
+
+Best to use config file if multiple config required
+uv run generate-schema-doc C:\Data\toposource\schema_model C:\Temp\reports --config topographic-data\config\json-schema-for-humans.yaml  

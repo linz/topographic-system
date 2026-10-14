@@ -1,0 +1,6 @@
+description_is_markdown: false
+expand_buttons: true
+show_breadcrumbs: true
+template_name: js
+show_toc: false
+with_footer: true
