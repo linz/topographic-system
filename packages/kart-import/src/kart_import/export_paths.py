@@ -1,10 +1,3 @@
-"""Where a per-commit source export lives, for a dataset or a lookup (see `assets.export`).
-
-Pure path construction, no I/O: importing this costs nothing beyond `config` (no geopandas, no
-kart/git subprocess wrappers), so anything that just needs to know a filename - the Snakefile,
-tests, a future inspection script - can depend on it without pulling in the export machinery.
-"""
-
 from pathlib import Path
 
 from .config import EXPORT_SUFFIX, WORKING_EXPORTS_DIR

@@ -17,7 +17,7 @@ from ..export_paths import export_filename, lookup_dir
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
-from .export import read_export
+from .export import gpd_read
 
 logger = logging.getLogger("kart_import")
 
@@ -92,7 +92,7 @@ def prepare_lookup(lookup_name: str) -> Path:
         output_file = output_dir / f"{commit}.parquet"
 
         start_time = time.perf_counter()
-        gdf = read_export(input_file)
+        gdf = gpd_read(input_file)
         out = select_lookup_columns(gdf, lookup)
         out = coerce_integer_columns(
             out,

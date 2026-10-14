@@ -30,9 +30,9 @@ class CommitData:
     releases: list[int]
 
 
-def read_export(path: Path) -> gpd.GeoDataFrame:
-    """Read an export written by `export_dataset_releases`/`export_lookup` (see EXPORT_FORMAT)."""
-    if EXPORT_FORMAT == "parquet":
+def gpd_read(path: Path) -> gpd.GeoDataFrame:
+    """Read a GeoDataFrame from `path, Parquet files need a different reader than GeoJSON, and geopandas doesn't auto-detect by suffix."""
+    if path.suffix == ".parquet":
         return gpd.read_parquet(path)
     return gpd.read_file(path, engine="pyogrio", use_arrow=True)
 

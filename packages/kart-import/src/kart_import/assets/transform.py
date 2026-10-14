@@ -30,7 +30,7 @@ from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
-from .export import read_export
+from .export import gpd_read
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
@@ -304,7 +304,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             lifecycle_data = json.load(f)
 
         start_time = time.perf_counter()
-        gdf = read_export(input_file)
+        gdf = gpd_read(input_file)
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if gdf.empty:

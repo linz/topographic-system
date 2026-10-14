@@ -23,7 +23,7 @@ def test_export_empty_releases_is_readable_as_an_empty_frame(tmp_path, monkeypat
 
     export.export_empty_releases("ds", [30])
 
-    gdf = export.read_export(tmp_path / "release_30" / export_filename("ds"))
+    gdf = export.gpd_read(tmp_path / "release_30" / export_filename("ds"))
     assert gdf.empty
 
 
