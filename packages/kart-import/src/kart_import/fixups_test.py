@@ -11,8 +11,8 @@ from shapely.geometry.base import BaseGeometry
 from shapely.wkt import loads
 
 from . import fixups
-from .assets import fid_lifecycle, transform
-from .assets.export import EXPORT_SUFFIX, write_export
+from .assets import export, fid_lifecycle, transform
+from .assets.export import export_filename, write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
 from .fixups import (
@@ -530,7 +530,7 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
     monkeypatch.setattr(transform, "get_releases", lambda: releases)
-    monkeypatch.setattr(transform, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(transform, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
     monkeypatch.setattr(fid_lifecycle, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
 
@@ -541,11 +541,11 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
     )
     exp60 = tmp_path / "export" / "release_60"
     exp60.mkdir(parents=True)
-    src_file = exp60 / f"ds{EXPORT_SUFFIX}"
+    src_file = exp60 / export_filename("ds")
     write_export(src, src_file)
     exp66 = tmp_path / "export" / "release_66"
     exp66.mkdir(parents=True)
-    (exp66 / f"ds{EXPORT_SUFFIX}").symlink_to(src_file)  # shared source commit
+    (exp66 / export_filename("ds")).symlink_to(src_file)  # shared source commit
 
     lifecycle_dir = tmp_path / "lifecycle"
     lifecycle_dir.mkdir()

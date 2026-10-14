@@ -8,9 +8,9 @@ import geopandas as gpd
 from ..command import run_command
 from ..config import (
     EXPORT_FORMAT,
-    EXPORT_SUFFIX,
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
+    export_filename,
     get_releases,
     get_source_entry,
 )
@@ -27,6 +27,30 @@ class CommitData:
     commit: str
     commit_time: str
     releases: list[int]
+
+
+def dataset_release_file(dataset_name: str, release_id: int) -> Path:
+    """Where a release's export is linked for a dataset (see `link_release_export`)."""
+    return WORKING_EXPORTS_DIR / f"release_{release_id}" / export_filename(dataset_name)
+
+
+def dataset_commit_file(dataset_name: str, commit: str, commit_time: str) -> Path:
+    """The per-commit source export for a dataset, shared by every release that resolves to it."""
+    return WORKING_EXPORTS_DIR / dataset_name / export_filename(f"{commit_time[:10]}_{commit}")
+
+
+def dataset_empty_file(dataset_name: str) -> Path:
+    """The shared placeholder for releases predating a dataset's first commit (see `export_empty_releases`)."""
+    return WORKING_EXPORTS_DIR / dataset_name / export_filename("empty")
+
+
+def lookup_dir(lookup_name: str) -> Path:
+    return WORKING_EXPORTS_DIR / "lookup" / lookup_name
+
+
+def lookup_commit_file(lookup_name: str, commit: str) -> Path:
+    """The per-commit source export for a lookup, shared by every release that resolves to it."""
+    return lookup_dir(lookup_name) / export_filename(commit)
 
 
 def read_export(path: Path) -> gpd.GeoDataFrame:
@@ -46,9 +70,9 @@ def write_export(gdf: gpd.GeoDataFrame, path: Path) -> None:
 
 def link_release_export(source_file: Path, dataset_name: str, release_id: int) -> None:
     """Point a release's export at the (commit-named, possibly shared) file it resolves to."""
-    release_output_dir = WORKING_EXPORTS_DIR / f"release_{release_id}"
+    release_output_file = dataset_release_file(dataset_name, release_id)
+    release_output_dir = release_output_file.parent
     release_output_dir.mkdir(parents=True, exist_ok=True)
-    release_output_file = release_output_dir / f"{dataset_name}{EXPORT_SUFFIX}"
 
     # `is_symlink` as well as `exists`: a link left dangling by a deleted target reads as
     # non-existent, and `symlink` would then fail with EEXIST.
@@ -71,7 +95,7 @@ def export_empty_releases(dataset_name: str, release_ids: list[int]) -> None:
     if not release_ids:
         return
 
-    empty_file = WORKING_EXPORTS_DIR / dataset_name / f"empty{EXPORT_SUFFIX}"
+    empty_file = dataset_empty_file(dataset_name)
     empty_file.parent.mkdir(parents=True, exist_ok=True)
     if not empty_file.exists():
         write_export(gpd.GeoDataFrame({"geometry": gpd.GeoSeries([], crs="EPSG:4326")}), empty_file)
@@ -113,10 +137,8 @@ def export_dataset_releases(dataset_name: str):
         commit_to_releases[commit].releases.append(release.id)
 
     def export_release(info: CommitData):
-        target_commit = WORKING_EXPORTS_DIR / dataset_name
-        target_commit.mkdir(parents=True, exist_ok=True)
-
-        target_commit_file = target_commit / f"{info.commit_time[:10]}_{info.commit}{EXPORT_SUFFIX}"
+        target_commit_file = dataset_commit_file(dataset_name, info.commit, info.commit_time)
+        target_commit_file.parent.mkdir(parents=True, exist_ok=True)
 
         if not target_commit_file.exists():
             logger.info(
@@ -141,8 +163,7 @@ def export_dataset_releases(dataset_name: str):
 
     export_empty_releases(dataset_name, releases_before_first_commit)
 
-    representative_dir = WORKING_EXPORTS_DIR / f"release_{releases[-1].id}"
-    return str(representative_dir / f"{dataset_name}{EXPORT_SUFFIX}")
+    return str(dataset_release_file(dataset_name, releases[-1].id))
 
 
 def export_lookup(lookup_name: str) -> str:
@@ -167,11 +188,11 @@ def export_lookup(lookup_name: str) -> str:
             commit, commit_time = res
             commits.setdefault(commit, commit_time)
 
-    output_dir = WORKING_EXPORTS_DIR / "lookup" / lookup_name
+    output_dir = lookup_dir(lookup_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for commit, commit_time in commits.items():
-        output_file = output_dir / f"{commit}{EXPORT_SUFFIX}"
+        output_file = lookup_commit_file(lookup_name, commit)
         if output_file.exists():
             continue
         logger.info(
@@ -182,8 +203,8 @@ def export_lookup(lookup_name: str) -> str:
         run_command(cmd, cwd=str(repo_dir))
 
     # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
-    referenced = {f"{commit}{EXPORT_SUFFIX}" for commit in commits}
-    for stale in output_dir.glob(f"*{EXPORT_SUFFIX}"):
+    referenced = {export_filename(commit) for commit in commits}
+    for stale in output_dir.glob(export_filename("*")):
         if stale.name not in referenced:
             logger.info("pruning stale lookup export", extra={"lookup": lookup_name, "file": stale.name})
             stale.unlink()

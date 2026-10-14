@@ -8,7 +8,7 @@ from shapely.geometry import Point
 
 from . import config, joins
 from .assets import export, prepare
-from .assets.export import EXPORT_SUFFIX, write_export
+from .assets.export import export_filename, write_export
 from .config import Join, Lookup, Source, ThemeDataset
 
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")
@@ -213,7 +213,7 @@ def _export_lookup_dir(tmp_path, monkeypatch, schema):
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
     monkeypatch.setattr(prepare, "SOURCE_DIR", tmp_path / "source")
-    monkeypatch.setattr(prepare, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
     monkeypatch.setattr(prepare, "get_dataset_schema", lambda *_: schema)
 
@@ -228,7 +228,7 @@ def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
     gdf = gpd.GeoDataFrame(
         {"t50_fid": [1, 2], "width": ["WIDE", "NARROW"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326"
     )
-    write_export(gdf, export_dir / f"abc123{EXPORT_SUFFIX}")
+    write_export(gdf, export_dir / export_filename("abc123"))
 
     out_dir = prepare.prepare_lookup("road_lkp")
 
@@ -242,7 +242,7 @@ def test_prepare_lookup_restores_a_key_the_export_turned_into_a_float(tmp_path, 
     """The road_lkp case end to end: a GeoJSON export turns `numeric(10, 0)` into a REAL, read back
     as float64 -- still possible via KART_EXPORT_FORMAT=geojson. The parquet prepare_lookup writes
     must hold the declared integer regardless, or the join against an int-keyed source mismatches."""
-    monkeypatch.setattr(prepare, "EXPORT_SUFFIX", ".json")
+    monkeypatch.setattr(config, "EXPORT_SUFFIX", ".json")
     monkeypatch.setattr(export, "EXPORT_FORMAT", "geojson")
     export_dir = _export_lookup_dir(
         tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0}]

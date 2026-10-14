@@ -12,11 +12,9 @@ import geopandas as gpd
 import pandas as pd
 
 from ..config import (
-    EXPORT_SUFFIX,
     SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
-    WORKING_EXPORTS_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
@@ -31,7 +29,7 @@ from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
-from .export import read_export
+from .export import dataset_release_file, read_export
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
@@ -202,7 +200,7 @@ def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int)
     between releases independently of the source). A join-free dataset fingerprints on its source
     alone, preserving the original source-only dedup behaviour.
     """
-    source_file = (WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}{EXPORT_SUFFIX}").resolve()
+    source_file = dataset_release_file(dataset_name, release_id).resolve()
     return (source_file, join_fingerprint(td, release_id))
 
 
@@ -216,7 +214,7 @@ def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int,
     """
     target = _transform_fingerprint(dataset_name, td, release_id)
     for release in releases:
-        input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}{EXPORT_SUFFIX}"
+        input_file = dataset_release_file(dataset_name, release.id)
         if input_file.exists() and _transform_fingerprint(dataset_name, td, release.id) == target:
             return release.id
     raise LookupError(f"No release found for source file: {dataset_name} (release {release_id})")
@@ -249,7 +247,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     theme, td = get_theme_and_dataset(dataset_name)
     releases = get_releases()
 
-    input_file = WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}{EXPORT_SUFFIX}"
+    input_file = dataset_release_file(dataset_name, release_id)
     if not input_file.exists():
         raise FileNotFoundError(f"'export' file missing: {input_file}")
 

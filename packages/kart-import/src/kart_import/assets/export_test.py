@@ -1,5 +1,5 @@
 from . import export
-from .export import EXPORT_SUFFIX
+from .export import export_filename
 
 
 def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
@@ -10,7 +10,7 @@ def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
 
     export.export_empty_releases("ds", [30, 31, 32])
 
-    links = [tmp_path / f"release_{r}" / f"ds{EXPORT_SUFFIX}" for r in (30, 31, 32)]
+    links = [tmp_path / f"release_{r}" / export_filename("ds") for r in (30, 31, 32)]
     assert all(link.is_symlink() for link in links)
     assert len({link.resolve() for link in links}) == 1  # one file behind all three
 
@@ -22,7 +22,7 @@ def test_export_empty_releases_is_readable_as_an_empty_frame(tmp_path, monkeypat
 
     export.export_empty_releases("ds", [30])
 
-    gdf = export.read_export(tmp_path / "release_30" / f"ds{EXPORT_SUFFIX}")
+    gdf = export.read_export(tmp_path / "release_30" / export_filename("ds"))
     assert gdf.empty
 
 
@@ -39,7 +39,7 @@ def test_link_release_export_replaces_a_dangling_link(tmp_path, monkeypatch):
     """Snakemake deletes the outputs of a failed job, so a rerun can find a link whose target is
     gone. Such a link reads as non-existent, and `symlink` onto it would fail with EEXIST."""
     monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
-    target = tmp_path / "ds" / f"commit{EXPORT_SUFFIX}"
+    target = tmp_path / "ds" / export_filename("commit")
     target.parent.mkdir()
     target.write_text("{}")
 
@@ -48,4 +48,4 @@ def test_link_release_export_replaces_a_dangling_link(tmp_path, monkeypatch):
     target.write_text("{}")
     export.link_release_export(target, "ds", 30)
 
-    assert (tmp_path / "release_30" / f"ds{EXPORT_SUFFIX}").resolve() == target
+    assert (tmp_path / "release_30" / export_filename("ds")).resolve() == target
