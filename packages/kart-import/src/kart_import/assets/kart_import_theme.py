@@ -83,7 +83,7 @@ def kart_import_theme(theme_name: str):
                 "kart",
                 "import",
                 "--message",
-                "schema stub",
+                f"schema for {theme_name}",
                 "--primary-key",
                 "id",
                 "--replace-existing",

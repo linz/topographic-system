@@ -2,7 +2,20 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from .schema_ids import _stable_column_id, assign_stable_column_ids
+
+
+@pytest.fixture(autouse=True)
+def _git_identity(monkeypatch):
+    """`assign_stable_column_ids` commits via plumbing with no explicit identity, so it needs one
+    in the environment -- unlike `_commit_schema`'s porcelain `git commit`, which can be pinned
+    independently of the ambient environment via its own `env=`."""
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Test")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "test@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Test")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "test@example.com")
 
 
 def git(repo, *args: str) -> str:
@@ -17,8 +30,7 @@ def _commit_schema(repo: Path, theme: str, columns: list[dict]) -> str:
     (schema_dir / "schema.json").write_text(json.dumps(columns))
     git(repo, "init", "-b", "master", ".")
     git(repo, "add", "-A")
-    # A restricted, minimal env (no inherited $HOME) so a machine-wide `commit.gpgsign` config
-    # can't be picked up and demand a passphrase this non-interactive test can't supply.
+    # A restricted, minimal env (no inherited $HOME)
     subprocess.run(
         ["git", "commit", "-m", "schema stub"],
         cwd=str(repo),
