@@ -14,6 +14,12 @@ from ..git.schema_ids import assign_stable_column_ids
 
 logger = logging.getLogger("kart_import")
 
+PATH_STRUCTURE_ARGS = [
+    "--path-encoding", "hex",
+    "--path-branches", "256",
+    "--path-levels", "2",
+]
+
 
 def geometry_named_vrt(theme_file: Path, dataset_name: str, source_layer: str) -> Path:
     """Write an OGR VRT beside `theme_file` that names its geometry column `geometry`."""
@@ -88,6 +94,7 @@ def kart_import_theme(theme_name: str):
                 "id",
                 "--replace-existing",
                 "--no-checkout",
+                *PATH_STRUCTURE_ARGS,
                 f"OGR:{geometry_named_vrt(stub_file, theme_name, theme_name)}",
             ],
             cwd=str(repo_dir),
@@ -117,6 +124,7 @@ def kart_import_theme(theme_name: str):
             "id",
             "--replace-existing",
             "--no-checkout",
+            *PATH_STRUCTURE_ARGS,
             f"OGR:{import_source}",
         ]
         run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
