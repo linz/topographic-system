@@ -26,6 +26,7 @@ from ..corrections import apply_corrections
 from ..export_paths import dataset_release_file
 from ..fixups import FIXUPS
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
+from ..hashing import HASH_SUFFIX, write_hash_sidecar
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
@@ -289,6 +290,10 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             raise FileNotFoundError(f"failed to wait for target: {target_transformed_file}")
 
         os.symlink(os.path.relpath(target_transformed_file, output_dir), output_file)
+        # Mirror the hash sidecar too, so a reader of this release's output never has to resolve
+        # the symlink or re-hash the (potentially large) file just to compare it to another release.
+        target_hash_file = target_transformed_file.with_name(target_transformed_file.name + HASH_SUFFIX)
+        os.symlink(os.path.relpath(target_hash_file, output_dir), output_file.with_name(output_file.name + HASH_SUFFIX))
         logger.info("symlinked")
         return output_file
 
@@ -312,6 +317,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             # the layer was genuinely empty at that commit.
             logger.info("source has no features, writing empty transform")
             write_transform(empty_transform(td, theme.target_epsg), output_file)
+            write_hash_sidecar(output_file)
             return output_file
 
         # Before the joins: a key that widened to float64 on read has to be an integer again by
@@ -354,6 +360,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
                 gdf = apply_fixups(gdf, td, release_id)
 
         write_transform(gdf, output_file)
+        write_hash_sidecar(output_file)
     return output_file
 
 
