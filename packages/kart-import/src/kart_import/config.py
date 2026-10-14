@@ -46,13 +46,6 @@ OUTPUT_DIR = DATA_DIR / "output"
 EXPORT_FORMAT = env_export_format()
 EXPORT_SUFFIX = ".parquet" if EXPORT_FORMAT == "parquet" else ".json"
 
-
-def export_filename(stem: str) -> str:
-    """The filename for a per-commit source export (see EXPORT_FORMAT); every reader/writer of
-    an export, in Python or the Snakefile, builds the name through this rather than appending
-    EXPORT_SUFFIX itself."""
-    return f"{stem}{EXPORT_SUFFIX}"
-
 # Format of the working/transform intermediates (GeoParquet by default)
 TRANSFORM_FORMAT = env_transform_format()
 TRANSFORM_SUFFIX = ".parquet" if TRANSFORM_FORMAT == "parquet" else ".json"

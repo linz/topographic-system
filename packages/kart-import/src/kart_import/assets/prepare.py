@@ -12,17 +12,12 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import (
-    SOURCE_DIR,
-    WORKING_LOOKUP_DIR,
-    Lookup,
-    export_filename,
-    get_lookup_by_name,
-)
+from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name
+from ..export_paths import export_filename, lookup_dir
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
-from .export import lookup_dir, read_export
+from .export import read_export
 
 logger = logging.getLogger("kart_import")
 

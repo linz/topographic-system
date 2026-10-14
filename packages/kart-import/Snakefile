@@ -7,8 +7,8 @@ from kart_import.config import (
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
-    export_filename,
 )
+from kart_import.export_paths import export_filename
 
 import atexit
 import os

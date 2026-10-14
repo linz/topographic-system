@@ -5,9 +5,11 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
-from ..config import Join, Release, Source, ThemeDataset, export_filename
+from .. import export_paths
+from ..config import Join, Release, Source, ThemeDataset
+from ..export_paths import export_filename
 from ..kart_types import coerce_integer_columns
-from . import export, transform
+from . import transform
 from .transform import find_canonical_release, normalize_fields, transform_dataset_all_releases
 
 
@@ -26,7 +28,7 @@ def _link_shared_source(root, dataset_name: str, release_ids: list[int]) -> None
 
 
 def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch):
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     releases = _releases(1, 2, 3)
     _link_shared_source(tmp_path, "ds", [1, 2, 3])  # all three share one source export
     td = ThemeDataset(

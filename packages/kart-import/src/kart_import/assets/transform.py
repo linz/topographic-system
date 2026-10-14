@@ -23,13 +23,14 @@ from ..config import (
     get_themes,
 )
 from ..corrections import apply_corrections
+from ..export_paths import dataset_release_file
 from ..fixups import FIXUPS
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
-from .export import dataset_release_file, read_export
+from .export import read_export
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")

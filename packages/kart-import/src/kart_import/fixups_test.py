@@ -10,11 +10,12 @@ from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.wkt import loads
 
-from . import fixups
-from .assets import export, fid_lifecycle, transform
-from .assets.export import export_filename, write_export
+from . import export_paths, fixups
+from .assets import fid_lifecycle, transform
+from .assets.export import write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .export_paths import export_filename
 from .fixups import (
     CARTO_TEXT_COLOUR,
     CARTO_TEXT_FONT,
@@ -530,7 +531,7 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
     monkeypatch.setattr(transform, "get_releases", lambda: releases)
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(transform, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
     monkeypatch.setattr(fid_lifecycle, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
 

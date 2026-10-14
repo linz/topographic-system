@@ -6,13 +6,14 @@ from pathlib import Path
 import geopandas as gpd
 
 from ..command import run_command
-from ..config import (
-    EXPORT_FORMAT,
-    SOURCE_DIR,
-    WORKING_EXPORTS_DIR,
+from ..config import EXPORT_FORMAT, SOURCE_DIR, get_releases, get_source_entry
+from ..export_paths import (
+    dataset_commit_file,
+    dataset_empty_file,
+    dataset_release_file,
     export_filename,
-    get_releases,
-    get_source_entry,
+    lookup_commit_file,
+    lookup_dir,
 )
 from ..git.kart import get_kart_dataset_id, is_kart
 from ..git.release import get_release_commit
@@ -27,30 +28,6 @@ class CommitData:
     commit: str
     commit_time: str
     releases: list[int]
-
-
-def dataset_release_file(dataset_name: str, release_id: int) -> Path:
-    """Where a release's export is linked for a dataset (see `link_release_export`)."""
-    return WORKING_EXPORTS_DIR / f"release_{release_id}" / export_filename(dataset_name)
-
-
-def dataset_commit_file(dataset_name: str, commit: str, commit_time: str) -> Path:
-    """The per-commit source export for a dataset, shared by every release that resolves to it."""
-    return WORKING_EXPORTS_DIR / dataset_name / export_filename(f"{commit_time[:10]}_{commit}")
-
-
-def dataset_empty_file(dataset_name: str) -> Path:
-    """The shared placeholder for releases predating a dataset's first commit (see `export_empty_releases`)."""
-    return WORKING_EXPORTS_DIR / dataset_name / export_filename("empty")
-
-
-def lookup_dir(lookup_name: str) -> Path:
-    return WORKING_EXPORTS_DIR / "lookup" / lookup_name
-
-
-def lookup_commit_file(lookup_name: str, commit: str) -> Path:
-    """The per-commit source export for a lookup, shared by every release that resolves to it."""
-    return lookup_dir(lookup_name) / export_filename(commit)
 
 
 def read_export(path: Path) -> gpd.GeoDataFrame:

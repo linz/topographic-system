@@ -1,12 +1,13 @@
+from .. import export_paths
+from ..export_paths import export_filename
 from . import export
-from .export import export_filename
 
 
 def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
     """The `export` rule declares an output per release, so a dataset whose repo starts partway
     through the series needs a file for the releases predating it. One shared file, symlinked like
     the commit exports, so the transform fingerprint normalises them once."""
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
 
     export.export_empty_releases("ds", [30, 31, 32])
 
@@ -18,7 +19,7 @@ def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
 def test_export_empty_releases_is_readable_as_an_empty_frame(tmp_path, monkeypatch):
     """What transform reads back, and what makes it emit an empty transform rather than pushing
     a featureless frame through the column-wise normalisers."""
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
 
     export.export_empty_releases("ds", [30])
 
@@ -28,7 +29,7 @@ def test_export_empty_releases_is_readable_as_an_empty_frame(tmp_path, monkeypat
 
 def test_export_empty_releases_with_no_releases_writes_nothing(tmp_path, monkeypatch):
     """The normal case: a dataset covering every release must not gain a stray empty export."""
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
 
     export.export_empty_releases("ds", [])
 
@@ -38,7 +39,7 @@ def test_export_empty_releases_with_no_releases_writes_nothing(tmp_path, monkeyp
 def test_link_release_export_replaces_a_dangling_link(tmp_path, monkeypatch):
     """Snakemake deletes the outputs of a failed job, so a rerun can find a link whose target is
     gone. Such a link reads as non-existent, and `symlink` onto it would fail with EEXIST."""
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     target = tmp_path / "ds" / export_filename("commit")
     target.parent.mkdir()
     target.write_text("{}")
