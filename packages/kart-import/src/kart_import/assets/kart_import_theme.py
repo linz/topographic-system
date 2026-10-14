@@ -93,9 +93,7 @@ def kart_import_theme(theme_name: str):
             cwd=str(repo_dir),
         )
         stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
-        # Gives every rebuild of this theme the same column ids, so `kart diff`/`kart log` show
-        # real changes rather than "schema replaced" when compared against a previous bundle. See
-        # kart_import.git.schema_ids for why this is safe to do after the fact.
+
         stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name)
         run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
 
