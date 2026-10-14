@@ -1,6 +1,8 @@
 import logging
 import shutil
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import pyogrio
 
@@ -8,6 +10,7 @@ from kart_import.log import log_context
 
 from ..command import run_command
 from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases
+from ..git.schema_ids import assign_stable_column_ids
 
 logger = logging.getLogger("kart_import")
 
@@ -27,6 +30,19 @@ def geometry_named_vrt(theme_file: Path, dataset_name: str, source_layer: str) -
     return vrt_file
 
 
+def _write_schema_stub(theme_name: str, sample_file: Path, info: Mapping[str, Any], stub_file: Path) -> None:
+    """Writes a zero-row file with `sample_file`'s columns and geometry type, so importing it
+    establishes the theme's Kart schema without needing a real release's data.
+
+    `geometry_type` has to be passed through explicitly: an empty GeoDataFrame can't infer one from
+    its (absent) geometries, and the resulting "Unknown" type wouldn't match what every real
+    release's import declares -- which would mint a second, different schema instead of reusing
+    this one.
+    """
+    stub = pyogrio.read_dataframe(sample_file, where="1=0")
+    pyogrio.write_dataframe(stub, stub_file, layer=theme_name, driver="FlatGeobuf", geometry_type=info["geometry_type"])
+
+
 def kart_import_theme(theme_name: str):
     repo_dir = OUTPUT_DIR / "theme" / theme_name
     bundle_file = OUTPUT_DIR / f"{theme_name}.bundle"
@@ -43,13 +59,8 @@ def kart_import_theme(theme_name: str):
     # -b master so the bundle's branch matches what kart_import_repo fetches
     run_command(["kart", "init", "-b", "master", "."], cwd=str(repo_dir))
 
+    pending = []
     for release in releases:
-        # Set commit date using standard Git environment variables
-        env = {
-            "GIT_AUTHOR_DATE": release.until.isoformat(),
-            "GIT_COMMITTER_DATE": release.until.isoformat(),
-        }
-
         input_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
         if not input_file.exists():
             logger.warning(f"Theme file not found: {input_file}. Skipping import.")
@@ -60,6 +71,40 @@ def kart_import_theme(theme_name: str):
         if info["features"] == 0:
             logger.info("Theme has no features for this release. Skipping import.", extra={"release": release.id})
             continue
+
+        pending.append((release, input_file, info))
+
+    if pending:
+        _, stub_sample_file, stub_info = pending[0]
+        stub_file = stub_sample_file.with_name(f"_schema_stub{THEME_SUFFIX}")
+        _write_schema_stub(theme_name, stub_sample_file, stub_info, stub_file)
+        run_command(
+            [
+                "kart",
+                "import",
+                "--message",
+                "schema stub",
+                "--primary-key",
+                "id",
+                "--replace-existing",
+                "--no-checkout",
+                f"OGR:{geometry_named_vrt(stub_file, theme_name, theme_name)}",
+            ],
+            cwd=str(repo_dir),
+        )
+        stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
+        # Gives every rebuild of this theme the same column ids, so `kart diff`/`kart log` show
+        # real changes rather than "schema replaced" when compared against a previous bundle. See
+        # kart_import.git.schema_ids for why this is safe to do after the fact.
+        stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name)
+        run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
+
+    for release, input_file, info in pending:
+        # Set commit date using standard Git environment variables
+        env = {
+            "GIT_AUTHOR_DATE": release.until.isoformat(),
+            "GIT_COMMITTER_DATE": release.until.isoformat(),
+        }
 
         import_source = geometry_named_vrt(input_file, theme_name, info["layer_name"])
 
