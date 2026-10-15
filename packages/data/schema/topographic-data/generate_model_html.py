@@ -43,6 +43,14 @@ def _schema_ref_to_name(ref: str) -> str:
     return ref.rsplit("/", 1)[-1] if "/" in ref else ref
 
 
+def _display_model_name(model_name: str) -> str:
+    """Add spaces to the PascalCase model name used in visible HTML labels."""
+    display_name = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", model_name)
+    return display_name.replace("Landcover", "Land Cover").replace(
+        "Landuse", "Land Use"
+    ).replace("Land Cover Point Core Types", "Land Cover Point")
+
+
 def _schema_fragment_type_to_text(schema_fragment: dict[str, Any]) -> str:
     ref = schema_fragment.get("$ref")
     if isinstance(ref, str):
@@ -195,6 +203,7 @@ def _collect_model_rows(model_class: type[BaseModel]) -> tuple[str, list[dict[st
 
 def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
     doc, field_rows = _collect_model_rows(model_class)
+    display_name = _display_model_name(model_name)
     rows: list[str] = []
 
     for field_row in field_rows:
@@ -215,8 +224,8 @@ def _render_model_section(model_name: str, model_class: type[BaseModel]) -> str:
 
     return (
         f"<section id=\"{html.escape(model_name)}\">"
-        f"<h2>{html.escape(model_name)}</h2>"
-        f"<p>{html.escape(doc)}</p>"
+        f"<h2>{html.escape(display_name)}</h2>"
+        f"<p>{html.escape(doc.replace(model_name, display_name))}</p>"
         "<table>"
         "<thead><tr>"
         "<th>Field</th><th>Type</th><th>Required</th><th>Default</th>"
@@ -283,7 +292,7 @@ def build_html(models_file: Path, output_file: Path) -> None:
 
     model_items = non_bbox_items
     toc_items = [
-        f'<li><a href="#{html.escape(name)}">{html.escape(name)}</a></li>'
+        f'<li><a href="#{html.escape(name)}">{html.escape(_display_model_name(name))}</a></li>'
         for name, _ in non_bbox_items
     ]
     if bbox_models:
@@ -401,7 +410,7 @@ def build_html(models_file: Path, output_file: Path) -> None:
       <p class="meta">Total models: {len(non_bbox_items) + (1 if bbox_models else 0)}</p>
     </header>
     <nav>
-      <h2>Models</h2>
+      <h2>Layers</h2>
       <ul>{''.join(toc_items)}</ul>
     </nav>
     {''.join(sections)}
