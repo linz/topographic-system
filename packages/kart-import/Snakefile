@@ -200,7 +200,17 @@ rule push:
         "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
-# 7. UTILITY BUNDLE RULE
+# 7. UTILITY PULL RULE (refresh an already-cloned source if it's behind the published bundle)
+rule pull:
+    input:
+        cloned = "data/source/{dataset}/.cloned"
+    output:
+        pulled = "data/source/{dataset}/.pulled"
+    shell:
+        "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.dataset}"
+
+
+# 8. UTILITY BUNDLE RULE
 rule bundle:
     output:
         sentinel = "data/source/{dataset}/.bundle_created"
@@ -231,6 +241,12 @@ workflow.rule(name="clone_all")(
 
 workflow.rule(name="bundle_all")(
     workflow.input([f"data/source/{name}/.bundle_created" for name in DATASET_MAP])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
+workflow.rule(name="pull_all")(
+    workflow.input([f"data/source/{name}/.pulled" for name in DATASET_MAP])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
