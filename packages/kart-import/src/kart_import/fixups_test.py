@@ -10,10 +10,12 @@ from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.wkt import loads
 
-from . import fixups
+from . import export_paths, fixups
 from .assets import fid_lifecycle, transform
+from .assets.export import write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .export_paths import export_filename
 from .fixups import (
     CARTO_TEXT_COLOUR,
     CARTO_TEXT_FONT,
@@ -529,7 +531,7 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
     monkeypatch.setattr(transform, "get_releases", lambda: releases)
-    monkeypatch.setattr(transform, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(transform, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
     monkeypatch.setattr(fid_lifecycle, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
 
@@ -540,11 +542,11 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
     )
     exp60 = tmp_path / "export" / "release_60"
     exp60.mkdir(parents=True)
-    src_file = exp60 / "ds.json"
-    src.to_file(src_file, driver="GeoJSON")
+    src_file = exp60 / export_filename("ds")
+    write_export(src, src_file)
     exp66 = tmp_path / "export" / "release_66"
     exp66.mkdir(parents=True)
-    (exp66 / "ds.json").symlink_to(src_file)  # shared source commit
+    (exp66 / export_filename("ds")).symlink_to(src_file)  # shared source commit
 
     lifecycle_dir = tmp_path / "lifecycle"
     lifecycle_dir.mkdir()

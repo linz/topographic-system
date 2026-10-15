@@ -8,6 +8,7 @@ from kart_import.config import (
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
 )
+from kart_import.export_paths import export_filename
 
 import atexit
 import os
@@ -91,7 +92,7 @@ rule export:
     input:
         cloned = "data/source/{dataset}/.cloned"
     output:
-        files = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES]
+        files = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES]
     threads: 4
     shell:
         "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.export {wildcards.dataset}"
@@ -126,7 +127,7 @@ rule transform:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
         # clone must be present: transform reads the source's declared schema from it.
         cloned = "data/source/{dataset}/.cloned",
-        exported = [f"data/working/export/release_{r.id}/{{dataset}}.json" for r in RELEASES],
+        exported = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES],
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []

@@ -12,16 +12,12 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import (
-    SOURCE_DIR,
-    WORKING_EXPORTS_DIR,
-    WORKING_LOOKUP_DIR,
-    Lookup,
-    get_lookup_by_name,
-)
+from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name
+from ..export_paths import export_filename, lookup_dir
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
+from .export import gpd_read
 
 logger = logging.getLogger("kart_import")
 
@@ -76,7 +72,7 @@ def prepare_lookup(lookup_name: str) -> Path:
     repo_dir = SOURCE_DIR / lookup_name
     kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
 
-    input_dir = WORKING_EXPORTS_DIR / "lookup" / lookup_name
+    input_dir = lookup_dir(lookup_name)
     if not input_dir.exists():
         raise FileNotFoundError(f"no exported lookup {lookup_name!r} at {input_dir}")
 
@@ -85,18 +81,18 @@ def prepare_lookup(lookup_name: str) -> Path:
 
     # Drop parquets whose source export no longer exists (commit pruned upstream by export_lookup),
     # so orphaned commits don't accumulate on disk across runs.
-    valid_commits = {input_file.stem for input_file in input_dir.glob("*.json")}
+    valid_commits = {input_file.stem for input_file in input_dir.glob(export_filename("*"))}
     for stale in output_dir.glob("*.parquet"):
         if stale.stem not in valid_commits:
             logger.info("pruning stale prepared lookup", extra={"lookup": lookup_name, "file": stale.name})
             stale.unlink()
 
-    for input_file in sorted(input_dir.glob("*.json")):
+    for input_file in sorted(input_dir.glob(export_filename("*"))):
         commit = input_file.stem
         output_file = output_dir / f"{commit}.parquet"
 
         start_time = time.perf_counter()
-        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+        gdf = gpd_read(input_file)
         out = select_lookup_columns(gdf, lookup)
         out = coerce_integer_columns(
             out,

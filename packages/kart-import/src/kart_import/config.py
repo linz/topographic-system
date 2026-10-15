@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_releases, env_theme_format, env_themes, env_transform_format
+from .env import env_export_format, env_releases, env_theme_format, env_themes, env_transform_format
 from .schema_check import check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -41,6 +41,10 @@ WORKING_LOOKUP_DIR = WORKING_DIR / "lookup"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
+
+# Per-commit source exports, the input to transform (GeoParquet by default)
+EXPORT_FORMAT = env_export_format()
+EXPORT_SUFFIX = ".parquet" if EXPORT_FORMAT == "parquet" else ".json"
 
 # Format of the working/transform intermediates (GeoParquet by default)
 TRANSFORM_FORMAT = env_transform_format()
