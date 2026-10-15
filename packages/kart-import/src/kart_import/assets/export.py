@@ -168,16 +168,18 @@ def export_lookup(lookup_name: str) -> str:
     output_dir = lookup_dir(lookup_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for commit, commit_time in commits.items():
+    def export_commit(commit: str) -> None:
         output_file = lookup_commit_file(lookup_name, commit)
         if output_file.exists():
-            continue
+            return
         logger.info(
             f"Exporting lookup {lookup_name} to {EXPORT_FORMAT}",
-            extra={"commit": commit, "commit_time": commit_time[:10], "file": str(output_file)},
+            extra={"commit": commit, "commit_time": commits[commit][:10], "file": str(output_file)},
         )
         cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
         run_command(cmd, cwd=str(repo_dir))
+
+    run_in_thread_pool(func=export_commit, items=list(commits), thread_count=4)
 
     # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
     referenced = {export_filename(commit) for commit in commits}
