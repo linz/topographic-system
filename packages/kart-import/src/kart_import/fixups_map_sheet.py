@@ -9,9 +9,18 @@ if TYPE_CHECKING:
 
 
 def map_sheet_origin(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    bounds = gdf.geometry.bounds
-    gdf["origin_x"] = bounds["minx"].round(0).astype("Float64")
-    gdf["origin_y"] = bounds["maxy"].round(0).astype("Float64")
+    """`origin_x`/`origin_y` are the sheet's top-left corner in the projection it is drawn in (`epsg`),
+    not the stored CRS (e.g. offshore island sheets are drawn in their own TM2000)."""
+    import pandas as pd
+
+    origin_x = pd.Series(index=gdf.index, dtype="Float64")
+    origin_y = pd.Series(index=gdf.index, dtype="Float64")
+    for epsg, sheets in gdf.groupby("epsg"):
+        bounds = sheets.geometry.to_crs(epsg=int(epsg)).bounds
+        origin_x[sheets.index] = bounds["minx"].round(0)
+        origin_y[sheets.index] = bounds["maxy"].round(0)
+    gdf["origin_x"] = origin_x
+    gdf["origin_y"] = origin_y
     return gdf
 
 
