@@ -1,4 +1,7 @@
+import hashlib
 import logging
+import os
+from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
@@ -9,6 +12,7 @@ from ..config import (
     TRANSFORM_SUFFIX,
     WORKING_THEME_DIR,
     WORKING_TRANSFORM_DIR,
+    get_releases,
     get_theme_by_name,
 )
 from ..log import log_context
@@ -151,6 +155,54 @@ def untyped_columns(merged: gpd.GeoDataFrame) -> list[str]:
     ]
 
 
+def _theme_hash_file(theme_name: str, release_id: int) -> Path:
+    """Sidecar path holding the SHA-256 of a release's merged theme file.
+
+    Read back by `kart_import_theme` too, so it can skip importing a release without resolving
+    a possibly long chain of dedup symlinks.
+    """
+    return WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}.sha256"
+
+
+def _hash_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _dedupe_unchanged_release(theme_name: str, release_id: int, output_file: Path) -> None:
+    """Replace `output_file` with a symlink to the previous release's theme file when the two
+    hash identical, so an unchanged release doesn't carry its own duplicate copy.
+
+    Hashed once, right after writing, rather than comparing bytes against the previous file:
+    cheaper when that file is large, and the digest doubles as the signal `kart_import_theme`
+    reads back to skip importing this release.
+    """
+    digest = _hash_file(output_file)
+    _theme_hash_file(theme_name, release_id).write_text(digest)
+
+    releases = get_releases()
+    ids = [r.id for r in releases]
+    index = ids.index(release_id)
+    if index == 0:
+        return
+
+    previous_id = releases[index - 1].id
+    previous_hash_file = _theme_hash_file(theme_name, previous_id)
+    if not previous_hash_file.exists() or previous_hash_file.read_text() != digest:
+        return
+
+    previous_file = WORKING_THEME_DIR / f"release_{previous_id}" / f"{theme_name}{THEME_SUFFIX}"
+    output_file.unlink()
+    os.symlink(os.path.relpath(previous_file, output_file.parent), output_file)
+    logger.info(
+        f"{theme_name}: release {release_id} unchanged from release {previous_id}, deduplicated",
+        extra={"theme": theme_name, "release": release_id, "previous_release": previous_id},
+    )
+
+
 def merge_theme_release(theme_name: str, release_id: int):
     theme = get_theme_by_name(theme_name)
 
@@ -161,7 +213,10 @@ def merge_theme_release(theme_name: str, release_id: int):
     output_file = release_dir / f"{theme.name}{THEME_SUFFIX}"
     gdfs = []
 
-    if output_file.exists():
+    # `is_symlink` as well as `exists`: a stale dedup symlink (see `_dedupe_unchanged_release`)
+    # left dangling by a deleted target reads as non-existent, and a later `symlink` call would
+    # then fail with EEXIST.
+    if output_file.exists() or output_file.is_symlink():
         output_file.unlink()
 
     missing = []
@@ -198,6 +253,7 @@ def merge_theme_release(theme_name: str, release_id: int):
             gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
                 output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS
             )
+            _dedupe_unchanged_release(theme.name, release_id, output_file)
             return
         gdfs = empty_gdfs
 
@@ -227,6 +283,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         merged = merged.drop(columns=["fid"])
 
     merged.to_file(output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS)
+    _dedupe_unchanged_release(theme.name, release_id, output_file)
 
 
 if __name__ == "__main__":

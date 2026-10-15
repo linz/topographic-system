@@ -83,6 +83,16 @@ def kart_import_theme(theme_name: str):
             logger.warning(f"Theme file not found: {input_file}. Skipping import.")
             continue
 
+        # `merge_theme_release` symlinks a release's theme file to the previous release's when
+        # the two hash identical (see `_dedupe_unchanged_release`), so the symlink itself is the
+        # signal: this release is guaranteed to already be imported, no need to read or diff it.
+        if input_file.is_symlink():
+            logger.info(
+                "Theme unchanged from the previous imported release. Skipping import.",
+                extra={"release": release.id},
+            )
+            continue
+
         # `force_feature_count` because FlatGeobuf reports -1, not 0, for an empty layer.
         info = pyogrio.read_info(input_file, force_feature_count=True)
         if info["features"] == 0:
