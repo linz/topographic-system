@@ -13,7 +13,7 @@
           "target_type": "int32:9"
         },
         {
-          "source_field": "species",
+          "source_field": "subtype",
           "target_field": "species",
           "target_type": "str:14"
         },
