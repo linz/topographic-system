@@ -74,8 +74,8 @@ enum carto_textanchor {
   _: "",
   Centre: "centre",
   Left: "left",
-  Left062: "left 0.62",
-  Right: "right",
+  Start: "start",
+  End: "end",
 }
 
 enum carto_charplace {
