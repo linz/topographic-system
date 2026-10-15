@@ -154,18 +154,20 @@ rule transform:
         "OTEL_SERVICE_NAME=transform uv run python -m kart_import.assets.transform {wildcards.dataset}"
 
 
-# 5. THEME RELEASE (Merges datasets for a single release)
+# 5. THEME RELEASE (every release of one theme, run together in one process with a thread pool)
 rule theme_release:
     input:
         config = "config/themes/{theme}.yml",
         transformed = lambda wildcards: [
-            f"data/working/transform/release_{wildcards.release}/{ds.name}{TRANSFORM_SUFFIX}"
+            f"data/working/transform/release_{r.id}/{ds.name}{TRANSFORM_SUFFIX}"
+            for r in RELEASES
             for ds in THEME_MAP[wildcards.theme].datasets
         ]
     output:
-        merged = "data/working/theme/release_{release}/{theme}" + THEME_SUFFIX
+        merged = [f"data/working/theme/release_{r.id}/{{theme}}" + THEME_SUFFIX for r in RELEASES]
+    threads: 4
     shell:
-        "OTEL_SERVICE_NAME=theme_release uv run python -m kart_import.assets.theme {wildcards.theme} {wildcards.release}"
+        "OTEL_SERVICE_NAME=theme_release uv run python -m kart_import.assets.theme {wildcards.theme}"
 
 rule kart_theme:
     input:

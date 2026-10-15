@@ -12,11 +12,13 @@ from ..config import (
     TRANSFORM_SUFFIX,
     WORKING_THEME_DIR,
     WORKING_TRANSFORM_DIR,
+    Release,
     get_releases,
     get_theme_by_name,
 )
 from ..log import log_context
 from ..schema_check import RFC3339_STRING, schema_dtypes
+from ..thread import run_in_thread_pool
 from .transform import read_transform
 
 logger = logging.getLogger("kart_import")
@@ -156,11 +158,7 @@ def untyped_columns(merged: gpd.GeoDataFrame) -> list[str]:
 
 
 def _theme_hash_file(theme_name: str, release_id: int) -> Path:
-    """Sidecar path holding the SHA-256 of a release's merged theme file.
-
-    Read back by `kart_import_theme` too, so it can skip importing a release without resolving
-    a possibly long chain of dedup symlinks.
-    """
+    """Sidecar path holding the SHA-256 of a release's merged theme file."""
     return WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}.sha256"
 
 
@@ -172,35 +170,45 @@ def _hash_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _dedupe_unchanged_release(theme_name: str, release_id: int, output_file: Path) -> None:
-    """Replace `output_file` with a symlink to the previous release's theme file when the two
-    hash identical, so an unchanged release doesn't carry its own duplicate copy.
+def _write_theme_hash(theme_name: str, release_id: int, output_file: Path) -> None:
+    """Hash `output_file` right after writing it and persist the digest alongside it.
 
-    Hashed once, right after writing, rather than comparing bytes against the previous file:
-    cheaper when that file is large, and the digest doubles as the signal `kart_import_theme`
-    reads back to skip importing this release.
+    Deliberately just the hash, not a comparison against the previous release: `merge_theme_all_
+    releases` runs every release's merge concurrently, so there's no guarantee the previous
+    release's digest even exists yet. The comparison is `dedupe_theme_releases`'s job, run
+    sequentially once every release has finished.
     """
-    digest = _hash_file(output_file)
-    _theme_hash_file(theme_name, release_id).write_text(digest)
+    _theme_hash_file(theme_name, release_id).write_text(_hash_file(output_file))
 
-    releases = get_releases()
-    ids = [r.id for r in releases]
-    index = ids.index(release_id)
-    if index == 0:
-        return
 
-    previous_id = releases[index - 1].id
-    previous_hash_file = _theme_hash_file(theme_name, previous_id)
-    if not previous_hash_file.exists() or previous_hash_file.read_text() != digest:
-        return
+def dedupe_theme_releases(theme_name: str) -> None:
+    """Symlink each release's theme file to the previous release's when their hashes match.
 
-    previous_file = WORKING_THEME_DIR / f"release_{previous_id}" / f"{theme_name}{THEME_SUFFIX}"
-    output_file.unlink()
-    os.symlink(os.path.relpath(previous_file, output_file.parent), output_file)
-    logger.info(
-        f"{theme_name}: release {release_id} unchanged from release {previous_id}, deduplicated",
-        extra={"theme": theme_name, "release": release_id, "previous_release": previous_id},
-    )
+    Walked oldest-first over every configured release, after `merge_theme_all_releases`'s thread
+    pool has fully joined, so every digest `_write_theme_hash` wrote is already on disk -- the
+    ordering this needs doesn't have to fight the parallel merge for it.
+    """
+    previous_id: int | None = None
+    previous_hash: str | None = None
+
+    for release in get_releases():
+        hash_file = _theme_hash_file(theme_name, release.id)
+        if not hash_file.exists():
+            previous_id = previous_hash = None
+            continue
+
+        digest = hash_file.read_text()
+        if digest == previous_hash:
+            output_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
+            previous_file = WORKING_THEME_DIR / f"release_{previous_id}" / f"{theme_name}{THEME_SUFFIX}"
+            output_file.unlink()
+            os.symlink(os.path.relpath(previous_file, output_file.parent), output_file)
+            logger.info(
+                f"{theme_name}: release {release.id} unchanged from release {previous_id}, deduplicated",
+                extra={"theme": theme_name, "release": release.id, "previous_release": previous_id},
+            )
+
+        previous_id, previous_hash = release.id, digest
 
 
 def merge_theme_release(theme_name: str, release_id: int):
@@ -213,9 +221,9 @@ def merge_theme_release(theme_name: str, release_id: int):
     output_file = release_dir / f"{theme.name}{THEME_SUFFIX}"
     gdfs = []
 
-    # `is_symlink` as well as `exists`: a stale dedup symlink (see `_dedupe_unchanged_release`)
-    # left dangling by a deleted target reads as non-existent, and a later `symlink` call would
-    # then fail with EEXIST.
+    # `is_symlink` as well as `exists`: a stale dedup symlink (see `dedupe_theme_releases`) left
+    # dangling by a deleted target reads as non-existent, and a later `symlink` call would then
+    # fail with EEXIST.
     if output_file.exists() or output_file.is_symlink():
         output_file.unlink()
 
@@ -253,7 +261,7 @@ def merge_theme_release(theme_name: str, release_id: int):
             gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
                 output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS
             )
-            _dedupe_unchanged_release(theme.name, release_id, output_file)
+            _write_theme_hash(theme.name, release_id, output_file)
             return
         gdfs = empty_gdfs
 
@@ -283,14 +291,36 @@ def merge_theme_release(theme_name: str, release_id: int):
         merged = merged.drop(columns=["fid"])
 
     merged.to_file(output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS)
-    _dedupe_unchanged_release(theme.name, release_id, output_file)
+    _write_theme_hash(theme.name, release_id, output_file)
+
+
+def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
+    """Merge every release of one theme inside a thread pool, then dedupe across them.
+
+    One process (and one OTel trace) for the whole theme instead of Snakemake spawning one
+    process per release: at today's release count that's dozens of python startups and
+    `load_from_yaml()` config reloads this avoids paying more than once.
+    """
+
+    def merge_release(release: Release) -> None:
+        # Named (not a lambda) and wrapped in its own span so each release still traces as its own
+        # "theme: <theme> [rN]", matching the span a dedicated `uv run` process used to open.
+        with log_context(action="theme", theme=theme_name, release=release.id):
+            merge_theme_release(theme_name, release.id)
+
+    run_in_thread_pool(func=merge_release, items=get_releases(), thread_count=thread_count, trace_items=False)
+    dedupe_theme_releases(theme_name)
 
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 3:
-        print("Usage: python -m kart_import.assets.theme <theme_name> <release_id>")
+    if len(sys.argv) == 3:
+        with log_context(action="theme", theme=sys.argv[1], release=int(sys.argv[2])):
+            merge_theme_release(sys.argv[1], int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        with log_context(action="theme", theme=sys.argv[1]):
+            merge_theme_all_releases(sys.argv[1])
+    else:
+        print("Usage: python -m kart_import.assets.theme <theme_name> [release_id]")
         sys.exit(1)
-    with log_context(action="theme", theme=sys.argv[1], release=int(sys.argv[2])):
-        merge_theme_release(sys.argv[1], int(sys.argv[2]))
