@@ -105,7 +105,7 @@
     "carto_style": { "type": "string", "enum": ["", "Italic", "Narrow", "Narrow Bold", "Narrow Italic", "Regular"] },
     "carto_colour": { "type": "string", "enum": ["", "black", "process_blue", "warm_red"] },
     "carto_placement": { "type": "string", "enum": ["", "AL", "BL", "OL"] },
-    "carto_textanchor": { "type": "string", "enum": ["", "centre", "left", "left 0.62", "right"] },
+    "carto_textanchor": { "type": "string", "enum": ["", "centre", "left", "start", "end"] },
     "carto_charplace": {
       "type": "string",
       "enum": ["", "CharactersAtVertices", "StretchCharacterSpacingToFit", "StretchWordSpacingToFit"]
