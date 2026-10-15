@@ -13,6 +13,7 @@ from ..config import (
     WORKING_THEME_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
+    Theme,
     get_releases,
     get_theme_by_name,
 )
@@ -181,12 +182,36 @@ def _write_theme_hash(theme_name: str, release_id: int, output_file: Path) -> No
     _theme_hash_file(theme_name, release_id).write_text(_hash_file(output_file))
 
 
+def _symlink_theme_file(theme_name: str, release_id: int, source_id: int) -> None:
+    """Point release `release_id`'s theme file, and its hash sidecar, at release `source_id`'s.
+
+    The hash sidecar is a real copy (not symlinked): it's a few bytes of text, and keeping it a
+    plain file means reading any release's digest never has to chase a chain of symlinks back to
+    wherever the data actually lives.
+    """
+    output_file = WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}"
+    source_file = WORKING_THEME_DIR / f"release_{source_id}" / f"{theme_name}{THEME_SUFFIX}"
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    # `is_symlink` as well as `exists`: a stale symlink left dangling by a deleted target reads as
+    # non-existent, and a later `symlink` call would then fail with EEXIST.
+    if output_file.exists() or output_file.is_symlink():
+        output_file.unlink()
+    os.symlink(os.path.relpath(source_file, output_file.parent), output_file)
+
+    _theme_hash_file(theme_name, release_id).write_text(_theme_hash_file(theme_name, source_id).read_text())
+
+
 def dedupe_theme_releases(theme_name: str) -> None:
     """Symlink each release's theme file to the previous release's when their hashes match.
 
     Walked oldest-first over every configured release, after `merge_theme_all_releases`'s thread
     pool has fully joined, so every digest `_write_theme_hash` wrote is already on disk -- the
     ordering this needs doesn't have to fight the parallel merge for it.
+
+    This catches output-identical releases `_theme_input_signature` didn't (different transform
+    bytes that still merge to the same result); releases it already caught just redo an
+    already-correct symlink here, which is harmless.
     """
     previous_id: int | None = None
     previous_hash: str | None = None
@@ -199,16 +224,31 @@ def dedupe_theme_releases(theme_name: str) -> None:
 
         digest = hash_file.read_text()
         if digest == previous_hash:
-            output_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
-            previous_file = WORKING_THEME_DIR / f"release_{previous_id}" / f"{theme_name}{THEME_SUFFIX}"
-            output_file.unlink()
-            os.symlink(os.path.relpath(previous_file, output_file.parent), output_file)
+            _symlink_theme_file(theme_name, release.id, previous_id)
             logger.info(
                 f"{theme_name}: release {release.id} unchanged from release {previous_id}, deduplicated",
                 extra={"theme": theme_name, "release": release.id, "previous_release": previous_id},
             )
 
         previous_id, previous_hash = release.id, digest
+
+
+def _theme_input_signature(theme: Theme, release_id: int) -> str | None:
+    """Combined hash of every dataset's transform file feeding this release's merge.
+
+    None when a dataset's transform output is missing, so the caller falls through to a real
+    merge attempt (and its own, better-targeted missing-input error) instead of silently
+    skipping. Two releases with the same signature are guaranteed to merge to the same output:
+    the merge is a pure function of these files plus the theme config/schema, neither of which
+    varies by release.
+    """
+    parts = []
+    for dataset in theme.datasets:
+        transform_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}"
+        if not transform_path.exists():
+            return None
+        parts.append(f"{dataset.name}:{_hash_file(transform_path)}")
+    return hashlib.sha256("\n".join(parts).encode()).hexdigest()
 
 
 def merge_theme_release(theme_name: str, release_id: int):
@@ -300,7 +340,34 @@ def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
     One process (and one OTel trace) for the whole theme instead of Snakemake spawning one
     process per release: at today's release count that's dozens of python startups and
     `load_from_yaml()` config reloads this avoids paying more than once.
+
+    A release whose transform inputs are identical to an earlier one's skips the merge
+    entirely (symlinked straight to that release's output) instead of redoing the read/concat/
+    coerce work just to discover, via `dedupe_theme_releases`, that the result matches too.
     """
+    theme = get_theme_by_name(theme_name)
+    releases = get_releases()
+
+    # Hashing (I/O-bound, one release independent of another) is worth spreading across the pool
+    # too; only the sequential pass below -- comparing a release's signature to the one before it
+    # -- actually needs releases in order.
+    signatures = run_in_thread_pool(
+        func=lambda release: _theme_input_signature(theme, release.id),
+        items=releases,
+        thread_count=thread_count,
+        trace_items=False,
+    )
+
+    to_merge: list[Release] = []
+    symlink_from: dict[int, int] = {}
+    anchor_id: int | None = None
+    anchor_signature: str | None = None
+    for release, signature in zip(releases, signatures):
+        if signature is not None and signature == anchor_signature:
+            symlink_from[release.id] = anchor_id
+        else:
+            to_merge.append(release)
+            anchor_id, anchor_signature = release.id, signature
 
     def merge_release(release: Release) -> None:
         # Named (not a lambda) and wrapped in its own span so each release still traces as its own
@@ -308,7 +375,15 @@ def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
         with log_context(action="theme", theme=theme_name, release=release.id):
             merge_theme_release(theme_name, release.id)
 
-    run_in_thread_pool(func=merge_release, items=get_releases(), thread_count=thread_count, trace_items=False)
+    run_in_thread_pool(func=merge_release, items=to_merge, thread_count=thread_count, trace_items=False)
+
+    for release_id, source_id in symlink_from.items():
+        _symlink_theme_file(theme_name, release_id, source_id)
+        logger.info(
+            f"{theme_name}: release {release_id} has the same inputs as release {source_id}, skipped merging",
+            extra={"theme": theme_name, "release": release_id, "source_release": source_id},
+        )
+
     dedupe_theme_releases(theme_name)
 
 
