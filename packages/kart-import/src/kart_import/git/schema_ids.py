@@ -13,7 +13,7 @@ def _stable_column_id(theme_name: str, column_name: str) -> str:
     return str(uuid.uuid5(_NAMESPACE, f"{theme_name}:{column_name}"))
 
 
-def assign_stable_column_ids(repo_dir: Path, commit: str, theme_name: str) -> str:
+def assign_stable_column_ids(repo_dir: Path, commit: str, theme_name: str, env: dict | None = None) -> str:
     """Gives a dataset's Kart schema stable column ids across independent pipeline runs.
 
     `kart import --replace-existing` mints a fresh random uuid4 for every column whenever there's no
@@ -47,4 +47,6 @@ def assign_stable_column_ids(repo_dir: Path, commit: str, theme_name: str) -> st
         )
         new_tree = run_command(["git", "write-tree"], cwd=str(repo_dir), env=index_env).strip()
 
-    return run_command(["git", "commit-tree", new_tree, "-m", f"feat: schema {theme_name}"], cwd=str(repo_dir)).strip()
+    return run_command(
+        ["git", "commit-tree", new_tree, "-m", f"feat: schema {theme_name}"], cwd=str(repo_dir), env=env
+    ).strip()

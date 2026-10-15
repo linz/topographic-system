@@ -1,6 +1,7 @@
 import logging
 import shutil
 from collections.abc import Mapping
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -15,9 +16,12 @@ from ..git.schema_ids import assign_stable_column_ids
 logger = logging.getLogger("kart_import")
 
 PATH_STRUCTURE_ARGS = [
-    "--path-encoding", "hex",
-    "--path-branches", "256",
-    "--path-levels", "2",
+    "--path-encoding",
+    "hex",
+    "--path-branches",
+    "256",
+    "--path-levels",
+    "2",
 ]
 
 
@@ -81,9 +85,16 @@ def kart_import_theme(theme_name: str):
         pending.append((release, input_file, info))
 
     if pending:
-        _, stub_sample_file, stub_info = pending[0]
+        first_release, stub_sample_file, stub_info = pending[0]
         stub_file = stub_sample_file.with_name(f"_schema_stub{THEME_SUFFIX}")
         _write_schema_stub(theme_name, stub_sample_file, stub_info, stub_file)
+
+        # Must sort chronologically before the first real release commit: kart_import_repo
+        # merges themes by commit date, and an unpinned (wall-clock "now") date here would
+        # otherwise land this commit wherever "now" falls among the release dates.
+        schema_date = (first_release.until - timedelta(seconds=1)).isoformat()
+        schema_env = {"GIT_AUTHOR_DATE": schema_date, "GIT_COMMITTER_DATE": schema_date}
+
         run_command(
             [
                 "kart",
@@ -98,10 +109,11 @@ def kart_import_theme(theme_name: str):
                 f"OGR:{geometry_named_vrt(stub_file, theme_name, theme_name)}",
             ],
             cwd=str(repo_dir),
+            env=schema_env,
         )
         stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
 
-        stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name)
+        stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name, env=schema_env)
         run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
 
     for release, input_file, info in pending:
