@@ -74,9 +74,8 @@ enum carto_textanchor {
   _: "",
   Centre: "centre",
   Left: "left",
-  LeftWithSpace: "left ", // Note trailing space; not a typo. TODO: Need to fix source data to remove this.
-  Left062: "left 0.62",
-  Right: "right",
+  Start: "start",
+  End: "end",
 }
 
 enum carto_charplace {
