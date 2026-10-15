@@ -15,8 +15,16 @@ Utility functions and classes for exporting NZ Topo50 data to LDS shapefiles.
 Coded against schema 0.3
 
 Additional changes not implemented for later schema versions.
-BM-1904 , 1905- cartotext, 1906-added sub field ignore,1907 - , 1908,
+BM-1904 , 
+1905- cartotext, 
+1906-added sub field ignore,
+1907 - , 
+1908,
 1909 - main impact - require lookup for geographic_names
+1914 - track_line: move subtype to type and track_type to subtype
+1915 - trig_point: move trig_type to type
+1916 - fields redesigned larger restructure - contour: use type for index, contour, supplementary and depression
+1917 - runway: move subtype to type and surface to subtype
 
 """
 

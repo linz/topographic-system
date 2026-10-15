@@ -13,7 +13,7 @@ packages/data/nztopo50/import
 | Path | Purpose |
 |---|---|
 | `export_to_lds_model.py` | Reads model GeoPackages or GeoParquet files and writes LDS shapefiles |
-| `match_exports.py` | Compares sampled export attributes against Release 66 Kart GeoPackages |
+| `match_exports.py` | Compares sampled export attributes against latest Kart GeoPackages |
 | `topo50_schemas/nztopo50_lds_schemas.json` | Master LDS field and geometry definitions used to generate configs |
 | `topo50_schemas/config/*.json` | Runtime routing, field mapping, and Fiona schema information, grouped by source model layer |
 | `../lds-tools/create_lds_config.py` | Regenerates runtime configs from the legacy workbooks and master schema |
@@ -142,35 +142,40 @@ Current special reverse mappings include:
 
 ## Compare an Export
 
-`match_exports.py` uses the Release 66 Kart source tree as master data. It
+`match_exports.py` uses the LDS direct export tree as the reference data. It
 recursively discovers each single-layer GeoPackage and maps its Kart layer name
 to the corresponding LDS shapefile through `core/layers_info.csv`.
 
 Default paths are:
 
 ```text
-Master: C:\Data\Topo50\kart-source\Release66_NZ50
-Source: C:\Temp\export\lds_model
+LDS direct export: C:\Data\Topo50\kart-source\latest
+New LDS shapefiles: C:\Temp\export\lds_model
 ```
+
+These paths can be overridden with `--lds-direct-export-folder` and
+`--new-lds-shapefiles-folder`.
 
 Run a comparison with common noise suppressed:
 
 ```powershell
-uv run python utils\export\lds-convert\match_exports.py --skip-source-id-missing --first-value-mismatch-only
+uv run python utils\export\lds-convert\match_exports.py --skip-shp-file-id-missing --first-value-mismatch-only
 ```
 
 The comparator:
 
 - Matches records by `t50_fid`, not row position.
-- Compares all rows when the master layer has fewer than 101 rows.
+- Includes the GeoPackage native feature ID in the comparison columns when that
+  column is named `t50_fid`.
+- Compares all rows when the LDS direct export layer has fewer than 101 rows.
 - Otherwise compares a deterministic 10% sample.
 - Logs missing/extra layers and fields, duplicate IDs, missing IDs, read errors,
   and field value mismatches.
 - Records start, end, and elapsed time.
 
 `--first-value-mismatch-only` logs only the first occurrence of the same
-layer/field/master-value/source-value mismatch pattern. All occurrences remain
-included in mismatch totals.
+layer/field/LDS-direct-export-value/shp-file-value mismatch pattern. All
+occurrences remain included in mismatch totals.
 
 The comparison log is:
 
