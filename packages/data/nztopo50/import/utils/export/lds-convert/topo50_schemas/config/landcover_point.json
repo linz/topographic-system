@@ -1,0 +1,137 @@
+{
+  "source_layer": "landcover_point",
+  "targets": [
+    {
+      "target_layer": "fumarole_pnt",
+      "schema_key": "fumarole_pnt",
+      "feature_type": "fumarole",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "rock_outcrop_pnt",
+      "schema_key": "rock_outcrop_pnt",
+      "feature_type": "rock_outcrop",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "display",
+          "target_field": "display",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "elevation",
+          "target_field": "elevation",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "cemetery_pnt",
+      "schema_key": "cemetery_pnt",
+      "feature_type": "cemetery",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "swamp_pnt",
+      "schema_key": "swamp_pnt",
+      "feature_type": "swamp",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}

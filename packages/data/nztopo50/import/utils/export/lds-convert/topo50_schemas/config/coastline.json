@@ -1,0 +1,28 @@
+{
+  "source_layer": "coastline",
+  "targets": [
+    {
+      "target_layer": "coastline",
+      "schema_key": "coastline",
+      "feature_type": "coastline",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "elevation",
+          "target_field": "elevation",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

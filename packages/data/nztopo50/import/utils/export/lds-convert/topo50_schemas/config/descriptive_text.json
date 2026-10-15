@@ -1,0 +1,33 @@
+{
+  "source_layer": "descriptive_text",
+  "targets": [
+    {
+      "target_layer": "descriptive_text",
+      "schema_key": "descriptive_text",
+      "feature_type": "descriptive_text",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "info_display",
+          "target_field": "info_disp",
+          "target_type": "str:93"
+        },
+        {
+          "source_field": "size",
+          "target_field": "size",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "source_layer": "relief_line",
+  "targets": [
+    {
+      "target_layer": "cliff_edge",
+      "schema_key": "cliff_edge",
+      "feature_type": "cliff_edge",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "cutting_edge",
+      "schema_key": "cutting_edge",
+      "feature_type": "cutting_edge",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "embankment_cl",
+      "schema_key": "embankment_cl",
+      "feature_type": "embankment",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "relief_use",
+          "target_field": "embkmt_use",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "slip_edge",
+      "schema_key": "slip_edge",
+      "feature_type": "slip_edge",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "rapid_cl",
+      "schema_key": "rapid_cl",
+      "feature_type": "rapid",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "waterfall_cl",
+      "schema_key": "waterfall_cl",
+      "feature_type": "waterfall",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "height",
+          "target_field": "height",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "waterfall_edge",
+      "schema_key": "waterfall_edge",
+      "feature_type": "waterfall_edge",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "height",
+          "target_field": "height",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

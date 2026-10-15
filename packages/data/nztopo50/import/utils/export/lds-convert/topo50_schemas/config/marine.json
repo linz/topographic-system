@@ -1,0 +1,127 @@
+{
+  "source_layer": "marine",
+  "targets": [
+    {
+      "target_layer": "mangrove_poly",
+      "schema_key": "mangrove_poly",
+      "feature_type": "mangrove",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "reef_poly",
+      "schema_key": "reef_poly",
+      "feature_type": "reef",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "composition",
+          "target_field": "compositn",
+          "target_type": "str:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "rock_poly",
+      "schema_key": "rock_poly",
+      "feature_type": "rock",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "shoal_poly",
+      "schema_key": "shoal_poly",
+      "feature_type": "shoal",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}
