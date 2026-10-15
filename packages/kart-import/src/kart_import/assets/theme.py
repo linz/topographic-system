@@ -223,7 +223,7 @@ def dedupe_theme_releases(theme_name: str) -> None:
             continue
 
         digest = hash_file.read_text()
-        if digest == previous_hash:
+        if digest == previous_hash and previous_id is not None:
             _symlink_theme_file(theme_name, release.id, previous_id)
             logger.info(
                 f"{theme_name}: release {release.id} unchanged from release {previous_id}, deduplicated",
@@ -299,7 +299,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         logger.warning(f"No data found for theme {theme.name} release {release_id}, writing empty output.")
         if not empty_gdfs:  # a theme with no datasets at all - no shape to take
             gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
-                output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS
+                output_file, driver=THEME_DRIVER, index=False, layer_options=THEME_LAYER_OPTIONS
             )
             _write_theme_hash(theme.name, release_id, output_file)
             return
@@ -330,7 +330,7 @@ def merge_theme_release(theme_name: str, release_id: int):
     if "fid" in merged.columns:
         merged = merged.drop(columns=["fid"])
 
-    merged.to_file(output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS)
+    merged.to_file(output_file, driver=THEME_DRIVER, index=False, layer_options=THEME_LAYER_OPTIONS)
     _write_theme_hash(theme.name, release_id, output_file)
 
 
@@ -360,14 +360,13 @@ def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
 
     to_merge: list[Release] = []
     symlink_from: dict[int, int] = {}
-    anchor_id: int | None = None
-    anchor_signature: str | None = None
-    for release, signature in zip(releases, signatures):
-        if signature is not None and signature == anchor_signature:
-            symlink_from[release.id] = anchor_id
+    anchor: tuple[int, str] | None = None
+    for release, signature in zip(releases, signatures, strict=True):
+        if signature is not None and anchor is not None and signature == anchor[1]:
+            symlink_from[release.id] = anchor[0]
         else:
             to_merge.append(release)
-            anchor_id, anchor_signature = release.id, signature
+            anchor = (release.id, signature) if signature is not None else None
 
     def merge_release(release: Release) -> None:
         # Named (not a lambda) and wrapped in its own span so each release still traces as its own
