@@ -50,7 +50,14 @@ def _write_schema_stub(theme_name: str, sample_file: Path, info: Mapping[str, An
     this one.
     """
     stub = pyogrio.read_dataframe(sample_file, where="1=0")
-    pyogrio.write_dataframe(stub, stub_file, layer=theme_name, driver="FlatGeobuf", geometry_type=info["geometry_type"])
+    pyogrio.write_dataframe(
+        stub,
+        stub_file,
+        layer=theme_name,
+        driver="FlatGeobuf",
+        geometry_type=info["geometry_type"],
+        layer_options={"SPATIAL_INDEX": "NO"},
+    )
 
 
 def kart_import_theme(theme_name: str):

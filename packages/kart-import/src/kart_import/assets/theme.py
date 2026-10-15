@@ -21,6 +21,10 @@ LIFECYCLE_COLUMNS = ("created_at", "updated_at")
 """Pipeline-managed timestamps. Normalised here rather than left to the schema so a theme with
 no schema still emits the same RFC 3339 text as one with a schema."""
 
+# Building the packed R-tree on write got too slow for the larger themes; kart reads sequentially
+# and never uses it, so there's nothing it buys this pipeline.
+THEME_LAYER_OPTIONS = {"SPATIAL_INDEX": "NO"} if THEME_DRIVER == "FlatGeobuf" else {}
+
 
 _NULLABLE_PREFIXES = {"i": "Int", "u": "UInt", "f": "Float"}
 
@@ -191,7 +195,9 @@ def merge_theme_release(theme_name: str, release_id: int):
         # still carries the theme's columns - a geometry-only file has no `id` to key an import on.
         logger.warning(f"No data found for theme {theme.name} release {release_id}, writing empty output.")
         if not empty_gdfs:  # a theme with no datasets at all - no shape to take
-            gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(output_file, driver=THEME_DRIVER, index=False)
+            gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
+                output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS
+            )
             return
         gdfs = empty_gdfs
 
@@ -199,9 +205,8 @@ def merge_theme_release(theme_name: str, release_id: int):
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
     merged = coerce_dtypes(merged, theme.name)
 
-    # A null/empty geometry (a source data-quality issue) cannot be written to a spatially indexed
-    # FlatGeobuf and has nothing to render or index anyway, so drop it -- matching how the spatial
-    # lookup select drops geometryless rows.
+    # A null/empty geometry (a source data-quality issue) has nothing to render or index anyway,
+    # so drop it -- matching how the spatial lookup select drops geometryless rows.
     usable = merged.geometry.notna() & ~merged.geometry.is_empty
     dropped = int((~usable).sum())
     if dropped:
@@ -211,7 +216,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         )
         merged = merged[usable].reset_index(drop=True)
 
-    # Stable sorting to keep row order predictable (Note: FlatGeobuf writes in spatial-index order)
+    # Stable sorting to keep row order predictable
     if "id" in merged.columns:
         merged = merged.sort_values(by=["id"]).reset_index(drop=True)
 
@@ -221,7 +226,7 @@ def merge_theme_release(theme_name: str, release_id: int):
     if "fid" in merged.columns:
         merged = merged.drop(columns=["fid"])
 
-    merged.to_file(output_file, driver=THEME_DRIVER, index=False)
+    merged.to_file(output_file, driver=THEME_DRIVER, index=False, **THEME_LAYER_OPTIONS)
 
 
 if __name__ == "__main__":
