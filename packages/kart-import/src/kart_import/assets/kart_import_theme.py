@@ -134,29 +134,30 @@ def kart_import_theme(theme_name: str):
         run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
 
     for release, input_file, info in pending:
-        # Set commit date using standard Git environment variables
-        env = {
-            "GIT_AUTHOR_DATE": release.until.isoformat(),
-            "GIT_COMMITTER_DATE": release.until.isoformat(),
-        }
+        with log_context(action="kart_import", theme=theme_name, release=release.id):
+            # Set commit date using standard Git environment variables
+            env = {
+                "GIT_AUTHOR_DATE": release.until.isoformat(),
+                "GIT_COMMITTER_DATE": release.until.isoformat(),
+            }
 
-        import_source = geometry_named_vrt(input_file, theme_name, info["layer_name"])
+            import_source = geometry_named_vrt(input_file, theme_name, info["layer_name"])
 
-        logger.info("Importing release", extra={"release": release.id})
+            logger.info("Importing release", extra={"release": release.id})
 
-        cmd = [
-            "kart",
-            "import",
-            "--message",
-            f"import {theme_name} for release {release.id}",
-            "--primary-key",
-            "id",
-            "--replace-existing",
-            "--no-checkout",
-            *PATH_STRUCTURE_ARGS,
-            f"OGR:{import_source}",
-        ]
-        run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
+            cmd = [
+                "kart",
+                "import",
+                "--message",
+                f"import {theme_name} for release {release.id}",
+                "--primary-key",
+                "id",
+                "--replace-existing",
+                "--no-checkout",
+                *PATH_STRUCTURE_ARGS,
+                f"OGR:{import_source}",
+            ]
+            run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
 
     run_command(["kart", "git", "bundle", "create", str(bundle_file), "--all"], cwd=str(repo_dir))
     logger.info("All releases imported")
