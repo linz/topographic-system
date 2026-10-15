@@ -47,4 +47,6 @@ def assign_stable_column_ids(repo_dir: Path, commit: str, theme_name: str) -> st
         )
         new_tree = run_command(["git", "write-tree"], cwd=str(repo_dir), env=index_env).strip()
 
-    return run_command(["git", "commit-tree", new_tree, "-m", "stable column ids"], cwd=str(repo_dir)).strip()
+    return run_command(
+        ["git", "commit-tree", new_tree, "-m", f"feat: schema {theme_name}"], cwd=str(repo_dir)
+    ).strip()
