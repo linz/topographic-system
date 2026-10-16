@@ -139,7 +139,7 @@ datasets:
     feature_key: auto_pk
     mapping:
       <<: *building_point
-      t50_fid: null
+      t50_fid: { source: $, since_release: 67 }
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-building-points-ant-150k
   #    mapping:

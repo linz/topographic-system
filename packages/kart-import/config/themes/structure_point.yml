@@ -31,7 +31,7 @@ datasets:
     mapping: &beacon
       t50_fid: $
       type: beacon
-      subtype: $type
+      subtype: $location
       tank_type: null
       status: $
       name: $
