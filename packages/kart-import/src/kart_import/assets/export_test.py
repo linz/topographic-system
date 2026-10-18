@@ -60,7 +60,7 @@ def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
     the empty export rather than a failing `kart export`."""
     from types import SimpleNamespace
 
-    monkeypatch.setattr(export, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
     monkeypatch.setattr(export, "get_source_entry", lambda _: SimpleNamespace(source=SimpleNamespace(dataset="ds")))
@@ -71,5 +71,5 @@ def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
 
     export.export_dataset_releases("ds")
 
-    assert (tmp_path / "release_66" / "ds.json").resolve().name == "empty.json"
-    assert (tmp_path / "release_67" / "ds.json").resolve().name == "empty.json"
+    assert (tmp_path / "release_66" / export_filename("ds")).resolve().name == export_filename("empty")
+    assert (tmp_path / "release_67" / export_filename("ds")).resolve().name == export_filename("empty")
