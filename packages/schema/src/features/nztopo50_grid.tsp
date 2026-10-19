@@ -9,7 +9,16 @@ namespace Linz.Topography;
 @jsonSchema("nztopo50_grid")
 @extension("additionalProperties", false)
 model nztopo50_grid {
-  ...ProductFeature;
+  /** UUIDv7 of the feature */
+  id: string;
+
+  /**
+   * Reference topo50 feature ID.
+   *
+   * Removed from v0.4 (BM-1908).
+   */
+  @removed(Versions.v0_4)
+  t50_fid: uint32 | null;
 
   @added(Versions.v0_4)
   created_at: utcDateTime;
