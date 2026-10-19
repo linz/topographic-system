@@ -63,9 +63,18 @@ class ShapefileExportComparator:
             self.logger.removeHandler(handler)
 
     @staticmethod
-    def values_match(lds_direct_export_value, shp_file_value):
+    def values_match(field, lds_direct_export_value, shp_file_value):
         lds_direct_export_is_null = bool(pd.isna(lds_direct_export_value))
         shp_file_is_null = bool(pd.isna(shp_file_value))
+        if field == "rna_sufi" and (
+            lds_direct_export_is_null != shp_file_is_null
+        ):
+            non_null_value = (
+                shp_file_value
+                if lds_direct_export_is_null
+                else lds_direct_export_value
+            )
+            return non_null_value == 0
         if lds_direct_export_is_null or shp_file_is_null:
             return lds_direct_export_is_null and shp_file_is_null
         return lds_direct_export_value == shp_file_value
@@ -244,7 +253,7 @@ class ShapefileExportComparator:
             for field in compare_fields:
                 lds_direct_export_value = lds_direct_export_row[field]
                 shp_file_value = shp_file_row[field]
-                if self.values_match(lds_direct_export_value, shp_file_value):
+                if self.values_match(field, lds_direct_export_value, shp_file_value):
                     continue
 
                 mismatch_count += 1

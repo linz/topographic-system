@@ -73,6 +73,59 @@ LAYER_PAIRS = [
 		),
 ]
 
+LAYER_PAIRS = [
+	LayerPair(
+		lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-canal-centrelines-topo-150k\nz-canal-centrelines-topo-150k.gpkg",
+		lds_layer="nz_canal_centrelines_topo_150k",
+		lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+		lamps_layer="canal_cl",
+	),
+	LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-canal-polygons-topo-150k\nz-canal-polygons-topo-150k.gpkg",
+			lds_layer="nz_canal_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="canal_poly",
+		),
+	LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-drain-centrelines-topo-150k\nz-drain-centrelines-topo-150k.gpkg",
+			lds_layer="nz_drain_centrelines_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="drain_cl",
+		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-river-centrelines-topo-150k\nz-river-centrelines-topo-150k.gpkg",
+			lds_layer="nz_river_centrelines_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="river_cl",
+		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-river-polygons-topo-150k\nz-river-polygons-topo-150k.gpkg",
+			lds_layer="nz_river_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="river_poly",
+		),
+
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lagoon-polygons-topo-150k\nz-lagoon-polygons-topo-150k.gpkg",
+			lds_layer="nz_lagoon_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="lagoon_poly",
+		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-lake-polygons-topo-150k-2\nz-lake-polygons-topo-150k-2.gpkg",
+			lds_layer="nz_lake_polygons_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="lake_poly",
+		),
+		LayerPair(
+			lds_db=r"C:\Data\Topo50\kart-source\Latest\nz-road-centrelines-topo-150k\nz-road-centrelines-topo-150k.gpkg",
+			lds_layer="nz_road_centrelines_topo_150k",
+			lamps_db=r"C:\Data\Topo50\kart-topographic-source-data\topographic-source-data\topographic-source-data.gpkg",
+			lamps_layer="linz_road_cl",
+		),
+]
+
+
 def read_layer(path: str, layer_name: str) -> gpd.GeoDataFrame:
 	"""Read a geospatial layer and require the matching identifier."""
 	layer = gpd.read_file(path, layer=layer_name, fid_as_index=True)
@@ -270,10 +323,10 @@ def match_unmatched_geometry(
 			query_geometry = lds_geometry.interpolate(0.5, normalized=True).buffer(1)
 			predicate = "intersects"
 		elif lds_geometry.geom_type in {"Polygon", "MultiPolygon"}:
-			query_geometry = lds_geometry
-			predicate = "contains"
+			query_geometry = lds_geometry.representative_point()
+			predicate = "within"
 		else:
-			query_geometry = lds_geometry
+			query_geometry = lds_geometry.buffer(1)
 			predicate = "intersects"
 
 		candidate_positions = lamps_spatial_index.query(

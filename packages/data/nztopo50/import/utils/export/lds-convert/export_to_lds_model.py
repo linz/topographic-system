@@ -27,7 +27,7 @@ BM-1904 ,
 1917 - runway: move subtype to type and surface to subtype
 
 """
-
+# TODO on live version - need to deal with snow_poly - this is created from ice_poly but fid need to be grabbed from the origin snow_poly
 
 
 TYPE_SELECTION_ALIASES = {
@@ -47,6 +47,9 @@ DISPLAY_BY_SUBTYPE = {
     "small_rock_outcrop": "2",
     "large_rock_outcrop": "3",
 }
+
+TUNNEL_SWAPPED_USE_FIDS = {6066307, 7745273, 8344640, 8499056, 8525734}
+TUNNEL_IVESTOCK_FIDS = {6066314}
 
 class ExportToLDSModel:
     def __init__(
@@ -288,6 +291,9 @@ class ExportToLDSModel:
         if "substance_extracted" in layer:
             layer["substance"] = layer["substance_extracted"]
 
+        if layer_name in {"landuse", "landuse_point"} and "status" in layer:
+            layer["status"] = layer["status"].replace({"old": "historic"})
+
         if layer_name in {"building", "building_point"}:
             layer["building_use"] = layer["subtype"]
         elif layer_name == "bridge_line":
@@ -320,6 +326,7 @@ class ExportToLDSModel:
                 ),
                 errors="coerce",
             )
+            layer["rna_sufi"] = layer["rna_sufi"].mask(layer["rna_sufi"] == 0)
         elif layer_name == "runway":
             layer["runway_use"] = layer["subtype"]
             layer["surface"] = layer["surface"].where(layer["surface"] != "grass")
@@ -359,27 +366,24 @@ class ExportToLDSModel:
         elif layer_name == "trig_point":
             layer["name"] = layer["code"]
         elif layer_name == "tunnel_line":
-            swapped_uses = (layer["type"] == "vehicle") & (
-                layer["subtype"] == "livestock"
-            )
+            swapped_uses = layer["t50_fid"].isin(TUNNEL_SWAPPED_USE_FIDS)
             layer.loc[swapped_uses, "type"] = "livestock"
             layer.loc[swapped_uses, "subtype"] = "vehicle"
             layer["type"] = layer["type"].replace(
                 {"foot_traffic": "foot traffic"}
             )
-            layer["subtype"] = layer["subtype"].replace(
-                {"livestock": "ivestock"}
-            )
+            ivestock_uses = layer["t50_fid"].isin(TUNNEL_IVESTOCK_FIDS)
+            layer.loc[ivestock_uses, "subtype"] = "ivestock"
         elif layer_name == "track_line":
             layer["track_use"] = layer["subtype"]
         elif layer_name == "utility_line" and feature_type == "pipeline":
             layer["infrastructure_use"] = layer["subtype"]
         elif layer_name == "vegetation":
-            layer["species"] = layer["subtype"]
             if feature_type == "exotic":
-                layer["species"] = layer["species"].where(
-                    layer["species"] != "coniferous"
+                layer["subtype"] = layer["subtype"].where(
+                    layer["subtype"] != "coniferous"
                 )
+            layer["species"] = layer["subtype"]
         elif layer_name == "water":
             layer["water_use"] = layer["subtype"]
             if "temperature_indicator" in layer:

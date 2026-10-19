@@ -23,7 +23,7 @@
           "target_type": "str:8"
         },
         {
-          "source_field": "building_use",
+          "source_field": "subtype",
           "target_field": "bldg_use",
           "target_type": "str:21"
         },
