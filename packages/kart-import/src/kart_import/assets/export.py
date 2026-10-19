@@ -7,7 +7,7 @@ from pathlib import Path
 import geopandas as gpd
 
 from ..command import run_command
-from ..config import EXPORT_FORMAT, SOURCE_DIR, get_releases, get_source_entry
+from ..config import EXPORT_FORMAT, SOURCE_DIR, get_dataset_by_name, get_releases, get_source_entry
 from ..export_paths import (
     dataset_commit_file,
     dataset_empty_file,
@@ -135,10 +135,10 @@ def resolve_release_commits(dataset_name: str) -> tuple[dict[str, CommitData], l
 
 def backfilled_release_ids(dataset_name: str) -> set[int]:
     """Releases of a `backfill` dataset that reuse its earliest export rather than their own."""
-    commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
-    if not get_source_entry(dataset_name).backfill or not commit_to_releases:
+    if not get_dataset_by_name(dataset_name).backfill:
         return set()
-    return set(releases_before_first_commit)
+    commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
+    return set(releases_before_first_commit) if commit_to_releases else set()
 
 
 def export_dataset_releases(dataset_name: str):
