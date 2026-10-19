@@ -8,18 +8,30 @@
       "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
     "direction": { "$ref": "#/$defs/dms_direction" },
+    "value_axis": {
+      "$ref": "#/$defs/dms_axis",
+      "description": "Axis that `value` measures, in WGS84 (EPSG:4326) decimal degrees."
+    },
     "value": { "type": "number" },
+    "metadata": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "geometry": { "description": "GeoParquet 1.1 covering geometry struct.", "not": { "type": "null" } },
     "bbox": { "$ref": "#/$defs/BBox", "description": "GeoParquet 1.1 covering bbox struct." }
   },
-  "required": ["id", "t50_fid", "direction", "value", "geometry"],
+  "required": ["id", "t50_fid", "created_at", "updated_at", "direction", "value_axis", "value", "metadata", "geometry"],
   "additionalProperties": false,
   "$defs": {
     "dms_direction": {
       "type": "string",
       "enum": ["latitude", "longitude"],
       "description": "Named for the axis the line runs along: a `longitude` line holds a latitude, and vice versa."
+    },
+    "dms_axis": {
+      "type": "string",
+      "enum": ["latitude", "longitude"],
+      "description": "WGS84 (EPSG:4326) axis that a DMS grid line's `value` measures."
     },
     "BBox": {
       "type": "object",
