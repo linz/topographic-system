@@ -149,6 +149,13 @@ def _import_release_worker(repo_dir: Path, seed_commit: str, theme_name: str, it
     worker_dir.mkdir(parents=True)
     try:
         run_command(["kart", "init", "-b", "master", "."], cwd=str(worker_dir))
+        # Every worker redirects its writes into `repo_dir`'s shared object store via
+        # `GIT_OBJECT_DIRECTORY` below, so `gc.auto`'s loose-object count there reflects every
+        # worker combined, not just this one. Left enabled, any worker could decide to repack that
+        # shared store while others are still writing to it. Disabled per worker (not just once on
+        # `repo_dir`) since it's each worker's own local config, read from its own `.git`, that
+        # `gc.auto` consults before every command.
+        run_command(["git", "config", "gc.auto", "0"], cwd=str(worker_dir))
 
         env = {
             "GIT_OBJECT_DIRECTORY": str(repo_dir / ".kart" / "objects"),
@@ -200,6 +207,9 @@ def kart_import_theme(theme_name: str, thread_count: int = 4) -> str:
     logger.info("Initializing Kart repo", extra={"target": str(repo_dir)})
     # -b master so the bundle's branch matches what kart_import_repo fetches
     run_command(["kart", "init", "-b", "master", "."], cwd=str(repo_dir))
+    # See the matching call in `_import_release_worker`: this repo's object store is the one every
+    # worker writes into, so it must never repack while a worker is mid-write either.
+    run_command(["git", "config", "gc.auto", "0"], cwd=str(repo_dir))
 
     pending = _pending_releases(theme_name, get_releases())
     if pending:
