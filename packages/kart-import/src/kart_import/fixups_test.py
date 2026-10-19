@@ -430,6 +430,19 @@ def test_build_nzgb_metadata_rejects_name_mapped_off_a_different_lookup(road_rel
         fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
 
 
+def test_build_nzgb_metadata_accepts_name_read_straight_from_source(road_releases, monkeypatch):
+    """Datasets whose LDS `name` already mirrors the gazetteer read it with `$` instead of the
+    lookup, so a t50_fid that misses the join keeps its source name. `metadata` still links the
+    feature to its gazetteer record via the lookup key, so a record is still built."""
+    _register_lookup(monkeypatch, "drain_lkp", "drain_cl")
+    td = _gaz_td("nz_drain_centrelines_topo_150k", "drain_lkp")
+    td.mapping["name"] = "$"
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 1043221
+
+
 def test_build_nzgb_metadata_rejects_an_unknown_lookup(road_releases):
     td = _gaz_td("ds", "no_such_lookup")
 

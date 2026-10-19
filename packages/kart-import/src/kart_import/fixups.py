@@ -343,10 +343,11 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     lookup, _ = _metadata_lookup(td, "build_nzgb_metadata")
 
     name_source = td.field_specs()["name"].source
-    if name_source != f"${lookup.name}.name":
+    if name_source not in (f"${lookup.name}.name", "$"):
         raise ValueError(
-            f"{td.name}: `name` must be mapped as '${lookup.name}.name' to match the gazetteer "
-            f"lookup '{lookup.name}' referenced by `metadata`, got {name_source!r}"
+            f"{td.name}: `name` must be mapped as '${lookup.name}.name' (from the gazetteer lookup) "
+            f"or '$' (the source name the gazetteer mirrors) to match the `metadata` lookup "
+            f"'{lookup.name}', got {name_source!r}"
         )
 
     build_stamp = _rfc3339(datetime.now(UTC))

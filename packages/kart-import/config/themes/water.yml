@@ -31,27 +31,6 @@ lookups:
     key: t50_fid
     columns:
       - gazfeatid
-      - name
-
-    # -------- lagoon
-  - name: lagoon_poly_lkp
-    source:
-      url: git@github.com:linz/topographic-source-data
-      dataset: lagoon_poly
-    key: t50_fid
-    columns:
-      # no `gazfeatid`
-      - name
-
-    # -------- lake
-  - name: lake_poly_lkp
-    source:
-      url: git@github.com:linz/topographic-source-data
-      dataset: lake_poly
-    key: t50_fid
-    columns:
-      # no `gazfeatid`
-      - name
 
     # -------- river
   - name: river_poly_lkp
@@ -71,7 +50,7 @@ datasets:
       t50_fid: $
       type: canal
       subtype: null
-      name: $canal_poly_lkp.name
+      name: $
       group_name: null
       height: null
       elevation: null
@@ -93,7 +72,7 @@ datasets:
       t50_fid: $
       type: lagoon
       subtype: null
-      name: $lagoon_poly_lkp.name
+      name: $
       group_name: null
       height: null
       elevation: $
@@ -101,11 +80,7 @@ datasets:
       temperature_indicator: null
       theme: landcover
       metadata: null
-    joins:
-      - lookup: lagoon_poly_lkp
-        left_on: t50_fid
-  # Chatham Islands overlap with `lagoon_poly_lkp` is unverified, so this keeps the
-  # pre-lookup mapping rather than sharing the mainland entry's anchor.
+  # Chatham lagoon reads `name` straight from source, same as the mainland entry.
   - source: kart@data.koordinates.com:linz/nz-chatham-island-lagoon-polygons-topo-150k
     name: nz_chatham_island_lagoon_polygons_topo_150k
     mapping:
@@ -140,7 +115,7 @@ datasets:
       t50_fid: $
       type: lake
       subtype: $lake_use
-      name: $lake_poly_lkp.name
+      name: $
       group_name: $grp_name
       height: null
       elevation: $
@@ -149,11 +124,7 @@ datasets:
       theme: landcover
       metadata: null
     corrections: *lake_subtype_corrections
-    joins:
-      - lookup: lake_poly_lkp
-        left_on: t50_fid
-  # Chatham Islands overlap with `lake_poly_lkp` is unverified, so this shares the
-  # pre-lookup `lake` anchor rather than the mainland entry's lookup mapping.
+  # Chatham lake shares the `*lake` anchor (name read straight from source), same as mainland.
   - source: kart@data.koordinates.com:linz/nz-chatham-island-lake-polygons-topo-150k
     name: nz_chatham_island_lake_polygons_topo_150k
     mapping: *lake

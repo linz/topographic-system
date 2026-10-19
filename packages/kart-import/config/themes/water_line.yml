@@ -21,7 +21,6 @@ lookups:
     key: t50_fid
     columns:
       - gazfeatid
-      - name
 
   # -------- drain
   - name: drain_cl_lkp
@@ -31,7 +30,6 @@ lookups:
     key: t50_fid
     columns:
       - gazfeatid
-      - name
 
   # -------- river
   - name: river_cl_lkp
@@ -50,7 +48,7 @@ datasets:
     mapping:
       t50_fid: $
       type: canal
-      name: $canal_cl_lkp.name
+      name: $
       theme: landcover
       metadata: { source: $canal_cl_lkp.gazfeatid, fixup: true }
     joins:
@@ -66,7 +64,7 @@ datasets:
     mapping:
       t50_fid: $
       type: drain
-      name: $drain_cl_lkp.name
+      name: $
       theme: landcover
       metadata: { source: $drain_cl_lkp.gazfeatid, fixup: true }
     joins:

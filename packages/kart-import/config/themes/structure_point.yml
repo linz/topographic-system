@@ -30,7 +30,7 @@ datasets:
     name: nz_beacon_points_topo_150k
     mapping: &beacon
       t50_fid: $
-      type: beacon
+      type: { source: $type, default: beacon }
       subtype: $location
       tank_type: null
       status: $
