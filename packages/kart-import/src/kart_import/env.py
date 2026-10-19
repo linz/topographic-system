@@ -169,3 +169,15 @@ def env_bundle_s3_url() -> str:
     if not s3_uri.endswith("/"):
         s3_uri += "/"
     return s3_uri
+
+
+def env_commit_split_bytes() -> int:
+    """Max new pack bytes one linearised commit may introduce before it's split into several
+    same-release commits, so `kart_push_repo`'s per-commit pushes never alone exceed GitHub's
+    push pack limit (see `kart_import.git.linearise`).
+
+    KART_COMMIT_SPLIT_BYTES=1500000000 (default 1.5 GB)
+
+        export KART_COMMIT_SPLIT_BYTES=500000000
+    """
+    return int(os.getenv("KART_COMMIT_SPLIT_BYTES", "1500000000"))
