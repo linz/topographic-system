@@ -8,6 +8,7 @@ datasets:
     name: linz_map_sheet
     feature_key: auto_pk
     depends_on_themes: [trig_point, geographic_name]
+    backfill: true
     mapping:
       t50_fid: $
       type: nztopo50_map_sheet

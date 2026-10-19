@@ -406,6 +406,10 @@ datasets:
     fixups: # release-aware Python repairs registered in `kart_import.fixups.FIXUPS`
       - fn: map_sheet_origin
         releases: [64, 65] # omit `releases` to apply the fixup to every release
+    # `backfill`: releases predating the source's first commit reuse its earliest export instead of
+    # an empty layer, and each release is transformed on its own so fixups can rewind it
+    # (e.g. `map_sheet_published` picks the edition published by the release's date)
+    backfill: true
 ```
 
 ## Left Join Example
