@@ -32,7 +32,7 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
       - "Mt X" -> "Mount X"  (geographic names are stored with the full word)
       - trig code remaps A0TR->A0U2, AP8Y->A4UX
       - macron restorations Putata->Pūtata, Pohoi->Pōhoi, Rahuimokairoa->Rāhuimōkairoa
-      - spelling Mount Treacey->Mount Treacy (gazetteer renamed it in release 66)"""
+    Gazetteer renames, which only hold from some release on, are in `GAZETTEER_RENAMES`."""
     names = gdf["example_name"].astype("string").str.replace(r"^Mt\s+", "Mount ", regex=True)
     names = names.replace(
         {
@@ -41,12 +41,22 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
             "Putata": "Pūtata",
             "Pohoi": "Pōhoi",
             "Rahuimokairoa": "Rāhuimōkairoa",
-            "Mount Treacey": "Mount Treacy",
         }
     )
     gdf = gdf.copy()
     gdf["example_name"] = names
     return gdf
+
+
+# Gazetteer renames, old name -> new. Releases from before a rename still carry the old name.
+GAZETTEER_RENAMES = {
+    "Mount Treacey": "Mount Treacy",  # release 67
+}
+
+
+def gazetteer_name(name: str, known) -> str:
+    """`name` if `known` has it, else its gazetteer rename (if any)."""
+    return name if name in known else GAZETTEER_RENAMES.get(name, name)
 
 
 def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
@@ -73,7 +83,7 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
         sheet_codes, gdf["example_name"], gdf["example_class"], strict=True
     ):
         lookup = trig_lookup if example_class == "trig_pnt" else geographic_name_lookup
-        match = lookup.get(example_name)
+        match = lookup.get(gazetteer_name(example_name, lookup))
         if match is None:
             unmatched.append((sheet_code, example_class, example_name))
         example_point_id.append(match)
