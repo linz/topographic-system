@@ -835,13 +835,14 @@ CARTO_TEXT_STYLING_FIELDS = (
     "textanchor",
     "labelanchor",
     "charplace",
-    "chardistance",
+    "char_distance",
+    "word_distance",
 )
 
 
 def _carto_text_gdf(rows: list[dict]) -> gpd.GeoDataFrame:
     """A frame shaped like `normalize_fields`' output for linz_carto_text: the five decode
-    inputs typed as the schema types them, and the ten styling fields seeded null."""
+    inputs typed as the schema types them, and the eleven styling fields seeded null."""
     gdf = gpd.GeoDataFrame(
         {
             "text_bend": pd.array([r["bend"] for r in rows], dtype="Int32"),
@@ -873,7 +874,8 @@ def test_carto_text_styling_fills_a_matched_key_from_the_table():
     assert row["charplace"] == "StretchCharacterSpacingToFit"
     assert pd.isna(row["textanchor"])
     assert pd.isna(row["labelanchor"])
-    assert pd.isna(row["chardistance"])
+    assert pd.isna(row["char_distance"])
+    assert pd.isna(row["word_distance"])
 
 
 def test_carto_text_styling_matches_a_point_scale_height_and_strips_textanchor():

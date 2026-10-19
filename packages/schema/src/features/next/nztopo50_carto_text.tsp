@@ -34,8 +34,8 @@ model nztopo50_carto_text {
   textanchor: carto_textanchor | null;
   labelanchor: float64 | null;
   charplace: carto_charplace | null;
-  chardistance: float64 | null;
-  worddistance: float64 | null;
+  char_distance: float64 | null;
+  word_distance: float64 | null;
   ...TopographicMetadata;
   ...GeoParquet;
 }
