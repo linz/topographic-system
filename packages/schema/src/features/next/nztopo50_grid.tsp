@@ -6,7 +6,9 @@ using TypeSpec.JsonSchema;
 @jsonSchema("next/nztopo50_grid")
 @extension("additionalProperties", false)
 model nztopo50_grid {
-  ...ProductFeature;
+  /** UUIDv7 of the feature */
+  id: string;
+
   created_at: utcDateTime;
   updated_at: utcDateTime;
   direction: grid_direction;

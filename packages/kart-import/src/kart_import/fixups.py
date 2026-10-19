@@ -867,7 +867,6 @@ def _generate_grid_features(
     return gpd_.GeoDataFrame(
         {
             "id": ids,
-            "t50_fid": [None] * len(lines),
             "direction": [direction for direction, _, _ in lines],
             "value": [value for _, value, _ in lines],
         },

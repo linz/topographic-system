@@ -702,8 +702,7 @@ def test_grid_ids_are_unique_and_namespaced_per_dataset():
 
 def test_grid_output_shape():
     out = _tiny()
-    assert out.columns.tolist() == ["id", "t50_fid", "direction", "value", "geometry"]
-    assert out["t50_fid"].isna().all()
+    assert out.columns.tolist() == ["id", "direction", "value", "geometry"]
     assert out.index.tolist() == list(range(len(out)))  # theme.py does positional lookups
     assert out.geometry.is_valid.all()
 
