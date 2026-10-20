@@ -246,3 +246,5 @@ def test_theme_with_only_empty_datasets_writes_an_empty_output(tmp_path, monkeyp
     # Not geometry alone: `kart import --primary-key id` reads the schema, so a placeholder
     # without the theme's columns fails the import it was written to keep unblocked.
     assert "id" in info["fields"]
+
+

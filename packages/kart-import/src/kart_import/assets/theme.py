@@ -17,6 +17,7 @@ from ..config import (
     get_releases,
     get_theme_by_name,
 )
+from ..hashing import HASH_SUFFIX, read_hash_sidecar, sha256_file, write_hash_sidecar
 from ..log import log_context
 from ..schema_check import RFC3339_STRING, schema_dtypes
 from ..thread import run_in_thread_pool
@@ -28,8 +29,11 @@ LIFECYCLE_COLUMNS = ("created_at", "updated_at")
 """Pipeline-managed timestamps. Normalised here rather than left to the schema so a theme with
 no schema still emits the same RFC 3339 text as one with a schema."""
 
-# Building the packed R-tree on write got too slow for the larger themes; kart reads sequentially
-# and never uses it, so there's nothing it buys this pipeline.
+# FlatGeobuf builds a spatial index (every feature packed into a Hilbert R-tree) by default, which
+# this throwaway intermediate has no use for -- `kart_import_theme` reads it exactly once, straight
+# through via an OGR VRT, and `kart import` builds its own spatial index in the repo it writes to.
+# Skipping it is pure upside: on a real `contour` release (485k features, ~2.4GB) it cut the write
+# from 6.1s to 4.6s. GeoJSON (the non-fgb THEME_FORMAT) has no such option.
 THEME_LAYER_OPTIONS = {"SPATIAL_INDEX": "NO"} if THEME_DRIVER == "FlatGeobuf" else {}
 
 
@@ -158,20 +162,7 @@ def untyped_columns(merged: gpd.GeoDataFrame) -> list[str]:
     ]
 
 
-def _theme_hash_file(theme_name: str, release_id: int) -> Path:
-    """Sidecar path holding the SHA-256 of a release's merged theme file."""
-    return WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}.sha256"
-
-
-def _hash_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _write_theme_hash(theme_name: str, release_id: int, output_file: Path) -> None:
+def _write_theme_hash(output_file: Path) -> None:
     """Hash `output_file` right after writing it and persist the digest alongside it.
 
     Deliberately just the hash, not a comparison against the previous release: `merge_theme_all_
@@ -179,7 +170,7 @@ def _write_theme_hash(theme_name: str, release_id: int, output_file: Path) -> No
     release's digest even exists yet. The comparison is `dedupe_theme_releases`'s job, run
     sequentially once every release has finished.
     """
-    _theme_hash_file(theme_name, release_id).write_text(_hash_file(output_file))
+    write_hash_sidecar(output_file)
 
 
 def _symlink_theme_file(theme_name: str, release_id: int, source_id: int) -> None:
@@ -199,7 +190,9 @@ def _symlink_theme_file(theme_name: str, release_id: int, source_id: int) -> Non
         output_file.unlink()
     os.symlink(os.path.relpath(source_file, output_file.parent), output_file)
 
-    _theme_hash_file(theme_name, release_id).write_text(_theme_hash_file(theme_name, source_id).read_text())
+    output_hash_file = output_file.with_name(output_file.name + HASH_SUFFIX)
+    source_hash_file = source_file.with_name(source_file.name + HASH_SUFFIX)
+    output_hash_file.write_text(source_hash_file.read_text())
 
 
 def dedupe_theme_releases(theme_name: str) -> None:
@@ -217,12 +210,12 @@ def dedupe_theme_releases(theme_name: str) -> None:
     previous_hash: str | None = None
 
     for release in get_releases():
-        hash_file = _theme_hash_file(theme_name, release.id)
-        if not hash_file.exists():
+        output_file = WORKING_THEME_DIR / f"release_{release.id}" / f"{theme_name}{THEME_SUFFIX}"
+        digest = read_hash_sidecar(output_file)
+        if digest is None:
             previous_id = previous_hash = None
             continue
 
-        digest = hash_file.read_text()
         if digest == previous_hash and previous_id is not None:
             _symlink_theme_file(theme_name, release.id, previous_id)
             logger.info(
@@ -236,6 +229,10 @@ def dedupe_theme_releases(theme_name: str) -> None:
 def _theme_input_signature(theme: Theme, release_id: int) -> str | None:
     """Combined hash of every dataset's transform file feeding this release's merge.
 
+    Reads the hash sidecar `transform_dataset_release` leaves next to each dataset's transform
+    output (falling back to hashing the file directly if one isn't there) rather than always
+    re-reading the, potentially large, transformed file here just to compare it.
+
     None when a dataset's transform output is missing, so the caller falls through to a real
     merge attempt (and its own, better-targeted missing-input error) instead of silently
     skipping. Two releases with the same signature are guaranteed to merge to the same output:
@@ -247,7 +244,8 @@ def _theme_input_signature(theme: Theme, release_id: int) -> str | None:
         transform_path = WORKING_TRANSFORM_DIR / f"release_{release_id}" / f"{dataset.name}{TRANSFORM_SUFFIX}"
         if not transform_path.exists():
             return None
-        parts.append(f"{dataset.name}:{_hash_file(transform_path)}")
+        digest = read_hash_sidecar(transform_path) or sha256_file(transform_path)
+        parts.append(f"{dataset.name}:{digest}")
     return hashlib.sha256("\n".join(parts).encode()).hexdigest()
 
 
@@ -301,7 +299,7 @@ def merge_theme_release(theme_name: str, release_id: int):
             gpd.GeoDataFrame(geometry=[], crs=theme.target_epsg).to_file(
                 output_file, driver=THEME_DRIVER, index=False, layer_options=THEME_LAYER_OPTIONS
             )
-            _write_theme_hash(theme.name, release_id, output_file)
+            _write_theme_hash(output_file)
             return
         gdfs = empty_gdfs
 
@@ -331,7 +329,7 @@ def merge_theme_release(theme_name: str, release_id: int):
         merged = merged.drop(columns=["fid"])
 
     merged.to_file(output_file, driver=THEME_DRIVER, index=False, layer_options=THEME_LAYER_OPTIONS)
-    _write_theme_hash(theme.name, release_id, output_file)
+    _write_theme_hash(output_file)
 
 
 def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
