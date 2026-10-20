@@ -611,7 +611,7 @@ def _carto_text_key(bend, height, place, style, colour):
 
 # Columns filled from the carto_text_styling table split by output dtype.
 _CARTO_TEXT_STRING_FIELDS = ("placement", "textanchor", "charplace")
-_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance", "worddistance")
+_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "char_distance", "word_distance")
 _CARTO_TEXT_KEY_INPUTS = ("text_bend", "text_height", "text_placement", "text_colour", "text_font")
 
 
@@ -868,7 +868,6 @@ def _generate_grid_features(
     return gpd_.GeoDataFrame(
         {
             "id": ids,
-            "t50_fid": [None] * len(lines),
             "direction": [direction for direction, _, _ in lines],
             "value": [value for _, value, _ in lines],
         },
