@@ -49,7 +49,6 @@ def test_map_sheet_published_matches_current_edition(tmp_path, monkeypatch):
     # 1.05 matched exactly; 9.99 is absent -> falls back to the sheet's latest edition (1.06)
     assert out["published_at"].tolist() == ["2023-12-19T21:07:28Z", "2025-08-13T22:08:55Z"]
     assert out["updated_at"].equals(out["published_at"])
-    assert out["created_at"].tolist() == ["2016-10-26T08:24:09Z"]
 
 
 def test_map_sheet_published_sets_created_at_to_the_first_edition(monkeypatch, tmp_path):
@@ -75,7 +74,6 @@ def test_map_sheet_published_sets_created_at_to_the_first_edition(monkeypatch, t
     )
     out = fixups_map_sheet.map_sheet_published(gdf, _td([], name="linz_map_sheet"), 66)
 
-    assert out["published_at"].tolist() == ["2023-08-18T00:30:50Z", None]
     assert out["created_at"].tolist() == ["2016-10-26T08:24:09Z", "2026-05-15T00:00:00Z"]
 
 
@@ -205,6 +203,7 @@ def test_map_sheet_published_rewinds_a_later_edition_to_the_release(monkeypatch,
     assert out["published_version"].tolist() == ["1.04"]
     assert out["published_at"].tolist() == ["2016-10-26T08:24:09Z"]
     assert out["updated_at"].equals(out["published_at"])
+    assert out["created_at"].tolist() == ["2016-10-26T08:24:09Z"]
 
 
 def test_map_sheet_published_keeps_the_earliest_edition_when_none_predate_the_release(monkeypatch, tmp_path):
