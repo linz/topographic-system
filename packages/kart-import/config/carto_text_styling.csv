@@ -1,4 +1,4 @@
-text_bend,text_height,text_placement,style,colour,size,offset,placement,textanchor,labelanchor,charplace,chardistance,worddistance
+text_bend,text_height,text_placement,style,colour,size,offset,placement,text_anchor,label_anchor,char_place,char_distance,word_distance
 0,0.0012,1,Narrow,black,5.0,-1.6,AL,,,StretchCharacterSpacingToFit,,
 0,0.0012,2,Italic,process_blue,5.0,,OL,,,StretchCharacterSpacingToFit,,
 0,0.0012,31,Narrow,black,5.0,-1.6,AL,,,StretchCharacterSpacingToFit,,

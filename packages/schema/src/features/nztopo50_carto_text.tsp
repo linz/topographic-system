@@ -31,11 +31,11 @@ model nztopo50_carto_text {
   size: float64 | null;
   placement: carto_placement | null;
   offset: float64 | null;
-  textanchor: carto_textanchor | null;
-  labelanchor: float64 | null;
-  charplace: carto_charplace | null;
-  chardistance: float64 | null;
-  worddistance: float64 | null;
+  text_anchor: carto_textanchor | null;
+  label_anchor: float64 | null;
+  char_place: carto_charplace | null;
+  char_distance: float64 | null;
+  word_distance: float64 | null;
   ...TopographicMetadata;
   ...GeoParquet;
 }

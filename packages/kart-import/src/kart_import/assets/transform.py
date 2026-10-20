@@ -110,6 +110,10 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
             if source_col not in gdf.columns:
+                # A column renamed across source history is read from the first present alias
+                # (an older spelling), so no release loses the data.
+                source_col = next((alias for alias in spec.aliases if alias in gdf.columns), source_col)
+            if source_col not in gdf.columns:
                 if spec.since_release is None or release_id >= spec.since_release:
                     raise KeyError(f"Source column not found: {source_col} in {td.name}")
                 logger.info(

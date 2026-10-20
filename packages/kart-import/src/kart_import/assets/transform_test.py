@@ -135,6 +135,28 @@ def test_since_release_maps_present_column_in_earlier_release():
     assert out["orientation"].tolist() == [90.0]
 
 
+def _alias_td() -> ThemeDataset:
+    return _td({"text_colour": {"source": "$text_colour", "aliases": ["text_colou"]}})
+
+
+def test_alias_reads_renamed_column_when_canonical_present():
+    """A snapshot with the modern column name reads it directly, ignoring the alias."""
+    out = normalize_fields(_gdf([{"text_colour": "black"}]), _alias_td(), 67)
+    assert out["text_colour"].tolist() == ["black"]
+
+
+def test_alias_falls_back_to_older_column_spelling():
+    """A snapshot that still uses the truncated name is read via the alias, so no release loses data."""
+    out = normalize_fields(_gdf([{"text_colou": "black"}]), _alias_td(), 30)
+    assert out["text_colour"].tolist() == ["black"]
+
+
+def test_alias_missing_everywhere_still_raises():
+    """When neither the canonical name nor any alias is present, it's an error, not a silent null."""
+    with pytest.raises(Exception, match="Source column not found"):
+        normalize_fields(_gdf([{}]), _alias_td(), 67)
+
+
 def test_since_release_honours_default_for_earlier_release():
     spec = {"orientation": {"source": "$orientatn", "since_release": 49, "default": 0}}
     out = normalize_fields(_gdf([{}]), _td(spec), 48)
