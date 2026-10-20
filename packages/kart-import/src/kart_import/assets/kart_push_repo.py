@@ -41,7 +41,7 @@ def release_checkpoints(repo_dir: Path) -> list[tuple[int, str]]:
     for line in log.splitlines():
         sha, _, subject = line.partition(" ")
         word, _, release = subject.partition(" ")
-        if word == "release" and release.isdigit():
+        if word == "release:" and release.isdigit():
             checkpoints.append((int(release), sha))
 
     if not checkpoints:

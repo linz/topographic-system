@@ -28,7 +28,7 @@ def make_theme_repo(
         (repo / theme / ".table-dataset" / "feature").write_text(content)
         git(repo, "add", "-A")
         subject = (
-            f"import {theme} for release {release_ids[index]}" if release_ids else f"import {theme} at {timestamp}"
+            f"feat({theme}): import release {release_ids[index]}" if release_ids else f"import {theme} at {timestamp}"
         )
         subprocess.run(
             ["git", "commit", "-m", subject],
@@ -149,12 +149,12 @@ def test_linearise_closes_each_release_with_a_marker(tmp_path):
     linearise(repo, commits)
 
     assert git(repo, "log", "--reverse", "--format=%s", "master").splitlines() == [
-        "import airport for release 30",
-        "import island for release 30",
-        "release 30",
-        "import airport for release 31",
-        "import island for release 31",
-        "release 31",
+        "feat(airport): import release 30",
+        "feat(island): import release 30",
+        "release: 30",
+        "feat(airport): import release 31",
+        "feat(island): import release 31",
+        "release: 31",
     ]
 
 

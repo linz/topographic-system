@@ -14,12 +14,12 @@ MODULE = "kart_import.assets.kart_push_repo"
 
 # Two releases, two themes each, each closed by its `linearise` marker. Oldest commit first.
 LOG = (
-    "aaa1 import airport for release 64\n"
-    "aaa2 import road_line for release 64\n"
-    "aaa3 release 64\n"
-    "bbb1 import airport for release 66\n"
-    "bbb2 import road_line for release 66\n"
-    "bbb3 release 66\n"
+    "aaa1 feat(airport): import release 64\n"
+    "aaa2 feat(road_line): import release 64\n"
+    "aaa3 release: 64\n"
+    "bbb1 feat(airport): import release 66\n"
+    "bbb2 feat(road_line): import release 66\n"
+    "bbb3 release: 66\n"
 )
 
 
@@ -67,8 +67,8 @@ def test_release_checkpoints_takes_each_release_marker(monkeypatch, tmp_path):
 
 
 def test_release_checkpoints_ignores_theme_commits(monkeypatch, tmp_path):
-    """ "import <theme> for release <id>" ends in a release too, but is not where one ends."""
-    env = _setup(monkeypatch, tmp_path, log="aaa1 import airport for release 64\n")
+    """ "feat(<theme>): import release <id>" ends in a release too, but is not where one ends."""
+    env = _setup(monkeypatch, tmp_path, log="aaa1 feat(airport): import release 64\n")
 
     with pytest.raises(ValueError, match="No release markers found"):
         release_checkpoints(env.repo_dir)
