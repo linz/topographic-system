@@ -33,7 +33,7 @@
           "target_type": "str:18"
         },
         {
-          "source_field": "tunnel_type",
+          "source_field": "construction_type",
           "target_field": "type",
           "target_type": "str:7"
         },

@@ -29,6 +29,10 @@ BM-1904 ,
 """
 # TODO on live version - need to deal with snow_poly - this is created from ice_poly but fid need to be grabbed from the origin snow_poly
 
+# note: we null out 3 mainland research stations so question do we return them like tree names
+#- { column: subtype, set: null, where: { t50_fid: 7862766, subtype: 'research station' } }
+#- { column: subtype, set: null, where: { t50_fid: 7862767, subtype: 'research station' } }
+#- { column: subtype, set: null, where: { t50_fid: 7862768, subtype: 'research station' } }
 
 TYPE_SELECTION_ALIASES = {
     ("landuse", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
@@ -43,9 +47,9 @@ TRACK_USE_BY_TYPE = {
 }
 
 DISPLAY_BY_SUBTYPE = {
-    "large_boulder": "1",
-    "small_rock_outcrop": "2",
-    "large_rock_outcrop": "3",
+    "large_boulder": 1,
+    "small_rock_outcrop": 2,
+    "large_rock_outcrop": 3,
 }
 
 TUNNEL_SWAPPED_USE_FIDS = {6066307, 7745273, 8344640, 8499056, 8525734}
@@ -290,9 +294,6 @@ class ExportToLDSModel:
 
         if "substance_extracted" in layer:
             layer["substance"] = layer["substance_extracted"]
-
-        if layer_name in {"landuse", "landuse_point"} and "status" in layer:
-            layer["status"] = layer["status"].replace({"old": "historic"})
 
         if layer_name in {"building", "building_point"}:
             layer["building_use"] = layer["subtype"]

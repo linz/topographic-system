@@ -36,7 +36,7 @@
           "target_type": "int:10"
         },
         {
-          "source_field": "subtype",
+          "source_field": "display",
           "target_field": "display",
           "target_type": "int32:5"
         },
