@@ -193,8 +193,12 @@ class Lookup(BaseModel):
     emitted datasets via a join (the "prepare" step).
 
     `key` is the join key kept in the prepared table.
-    `columns` lists the source columns to expose.
-    Each column accessed namespaced as `<lookup name>.<column>`
+    `columns` lists the source columns to expose. Each entry is either a plain
+    column name or a dict `{name: <col>, aliases: [<old col>, ...]}`: when the
+    named column is absent from a source snapshot (e.g. an older schema that
+    since renamed it), the first present alias is read and surfaced under
+    `name`, so a rename never loses data. Each column accessed namespaced as
+    `<lookup name>.<column>`.
     The lookup is cloned + exported like a dataset, then prepared (slimmed).
     It is NOT emitted as theme features.
     """
@@ -203,13 +207,32 @@ class Lookup(BaseModel):
     name: str = ""
     key: str = ""
     columns: list[str] = []
+    column_aliases: dict[str, list[str]] = {}
+    """Column name -> fallback source column names (older schemas); derived from `columns` entries."""
     geometry: bool = False
 
     @model_validator(mode="before")
     @classmethod
     def populate_name(cls, data):
-        if isinstance(data, dict) and data.get("source") and not data.get("name"):
-            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+        if isinstance(data, dict):
+            if data.get("source") and not data.get("name"):
+                data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+            cols = data.get("columns")
+            if isinstance(cols, list):
+                names: list[str] = []
+                aliases: dict[str, list[str]] = {}
+                for entry in cols:
+                    if isinstance(entry, dict):
+                        name = entry.get("name")
+                        if not name:
+                            raise ValueError(f"lookup column entry {entry!r} needs a 'name'")
+                        names.append(name)
+                        if entry.get("aliases"):
+                            aliases[name] = list(entry["aliases"])
+                    else:
+                        names.append(entry)
+                data["columns"] = names
+                data["column_aliases"] = aliases
         return data
 
     @model_validator(mode="after")

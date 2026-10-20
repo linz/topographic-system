@@ -11,7 +11,10 @@ lookups:
       dataset: linz_road_cl
     key: t50_fid
     columns:
-      - road_acces # spelling as per source data
+      # Source modernised the truncated name to `road_access` at release 67; older
+      # snapshots still expose `road_acces`, read via the alias so no release loses data.
+      - name: road_access
+        aliases: [road_acces]
       - width
 datasets:
   - source: kart@data.koordinates.com:linz/nz-road-centrelines-topo-150k
@@ -25,7 +28,7 @@ datasets:
       highway_number: $hway_num
       way_count: $way_count
       hierarchy: null
-      road_access: $road_lkp.road_acces
+      road_access: $road_lkp.road_access
       width_indicator: $road_lkp.width
       theme: transport
       # Carries `rna_sufi` (the AIMS road id) into the column `build_road_metadata` then rewrites
