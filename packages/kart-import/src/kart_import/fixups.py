@@ -479,6 +479,39 @@ def split_multipart_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id
     return gpd_.GeoDataFrame(out, geometry="geometry", crs=gdf.crs)
 
 
+def polygonize_boundaries(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Rebuild areas from boundary linework, e.g. LAMPS `site_bdy`."""
+    import geopandas as gpd_
+    from shapely import distance, line_interpolate_point, polygonize_full, unary_union
+
+    if gdf.empty:
+        return gdf
+
+    noded = unary_union(gdf.geometry.to_numpy())
+    polygons, cuts, dangles, invalid = polygonize_full([noded])
+    if not (cuts.is_empty and dangles.is_empty and invalid.is_empty):
+        raise ValueError(f"{td.name}: boundary linework does not close into polygons in release {release_id}")
+
+    # A piece belongs to the polygon whose outline it lies on, judged at its midpoint; the tolerance
+    # absorbs the 1e-8 degree precision grid the frame is already snapped to.
+    tolerance = 1e-7
+    midpoints = line_interpolate_point(gdf.geometry.to_numpy(), 0.5, normalized=True)
+    rows = []
+    for polygon in polygons.geoms:
+        on_boundary = gdf[distance(midpoints, polygon.boundary) < tolerance]
+        if on_boundary.empty:
+            raise ValueError(f"{td.name}: polygonized area has no source boundary in release {release_id}")
+        row = on_boundary.sort_values("id").iloc[0].copy()
+        row["geometry"] = polygon
+        rows.append(row)
+
+    logger.info(
+        "polygonize boundaries",
+        extra={"dataset": td.name, "release": release_id, "lines": len(gdf), "polygons": len(rows)},
+    )
+    return gpd_.GeoDataFrame(rows, columns=gdf.columns, crs=gdf.crs).set_geometry("geometry").reset_index(drop=True)
+
+
 def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Drop the zero-length nz_track_centrelines features."""
     return _drop_listed_empty(
@@ -709,16 +742,33 @@ def _link_example_points(
     return linked, matches
 
 
+# Label text -> example point name, for labels whose printed spelling differs from the gazetteer's.
+# Only consulted when the printed text matches no example point, so a release that still carries
+# the old spelling keeps matching it directly.
+CARTO_TEXT_NAME_ALIASES = {
+    "Mount Treacey": "Mount Treacy",  # gazetteer renamed it in release 66
+}
+
+
 def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Set `example_point_id` on each carto_text label to the example point it renders.
 
     A map sheet highlights one example point by the id of the label drawing it. A label naming a
     unique example point links at any distance; a shared name links to the nearest within 200 m.
+    A label whose text matches no example point is retried under `CARTO_TEXT_NAME_ALIASES`.
     """
     import pandas as pd
 
     points = _create_example_point_ids_lookup(release_id)
-    labels = gdf["full_text"]
+    known_names = set(points["name"])
+
+    def match_name(text):
+        if text in known_names:
+            return text
+        # No example point carries this text: try the gazetteer's spelling, if one is known.
+        return CARTO_TEXT_NAME_ALIASES.get(text, text)
+
+    labels = gdf["full_text"].map(match_name)
     label_geometry = gdf.geometry.to_crs("EPSG:2193")
 
     linked, matches = _link_example_points(labels, label_geometry, points)
@@ -856,6 +906,99 @@ def generate_dms_grid_features(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
     )
 
 
+def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Derive the moana (sea) polygons for the water layer from coastline and islands.
+    Runs the existing data-prep scripts: the coastline_polygon.py and sea_polygon.py
+    Produce same sea polygons into water layer
+    """
+    import tempfile
+    from pathlib import Path
+
+    import geopandas as gpd_
+    import pandas as pd
+    from data_prep import coastline_polygon, sea_polygon
+    from data_prep.parquet_utils import NZGD2000
+
+    from .assets.transform import read_transform
+    from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
+
+    release_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
+
+    def read_theme(theme_name: str) -> gpd_.GeoDataFrame:
+        frames = [
+            read_transform(release_dir / f"{dataset.name}{TRANSFORM_SUFFIX}")
+            for dataset in get_theme_by_name(theme_name).datasets
+        ]
+        merged = gpd_.GeoDataFrame(pd.concat(frames, ignore_index=True), geometry="geometry", crs=frames[0].crs)
+        # data-prep asserts NZGD2000 inputs; the water/coastline/island themes store EPSG:4167 already.
+        return merged.to_crs(NZGD2000)
+
+    coastline = read_theme("coastline")
+    # Every offshore island group (including the Chatham Islands) is merged into the land before it is
+    # inverted, so the sea surrounds them all, not just the mainland.
+    island = read_theme("island")
+
+    with tempfile.TemporaryDirectory() as tmp_name:
+        tmp = Path(tmp_name)
+        coastline_path = tmp / "coastline.parquet"
+        island_path = tmp / "island.parquet"
+        coastline_polygon_path = tmp / "coastline_polygon.parquet"
+
+        coastline.to_parquet(coastline_path)
+        island.to_parquet(island_path)
+
+        # Existing data-prep scripts, unchanged: lines + island polygons -> merged land polygons.
+        coastline_polygon.run(coastline_path, island_path, coastline_polygon_path)
+        land = gpd_.read_parquet(coastline_polygon_path)
+
+        bounds = land.geometry.bounds
+        mid_longitude = (bounds["minx"] + bounds["maxx"]) / 2
+        sea_frames = []
+        for side, side_land in (("west", land[mid_longitude >= 0]), ("east", land[mid_longitude < 0])):
+            if side_land.empty:
+                continue
+            side_land_path = tmp / f"land_{side}.parquet"
+            side_sea_path = tmp / f"sea_{side}.parquet"
+            side_land.to_parquet(side_land_path)
+            sea_polygon.run(side_land_path, side_sea_path)
+            sea_frames.append(gpd_.read_parquet(side_sea_path))
+
+        sea = gpd_.GeoDataFrame(
+            pd.concat(sea_frames, ignore_index=True), geometry="geometry", crs=sea_frames[0].crs
+        ).reset_index(drop=True)
+
+    target_crs = gdf.crs
+    if target_crs is not None:
+        sea = sea.to_crs(target_crs)
+    count = len(sea)
+    result = gpd_.GeoDataFrame(
+        {
+            "id": sea["id"].astype("string").to_numpy(),
+            "created_at": sea["created_at"].to_numpy(),
+            "updated_at": sea["updated_at"].to_numpy(),
+            "t50_fid": [None] * count,
+            "type": "moana",
+            "subtype": [None] * count,
+            "name": [None] * count,
+            "group_name": [None] * count,
+            "height": [None] * count,
+            "elevation": [None] * count,
+            "perennial": [None] * count,
+            "temperature_indicator": [None] * count,
+            "theme": "landcover",
+            "metadata": [None] * count,
+        },
+        geometry=sea.geometry.to_numpy(),
+        crs=target_crs,
+    )
+
+    logger.info(
+        "generate_sea_polygon",
+        extra={"dataset": td.name, "release": release_id, "features": count},
+    )
+    return result
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
@@ -868,6 +1011,8 @@ FIXUPS: dict[str, Fixup] = {
     "drop_empty_residential_areas": drop_empty_residential_areas,
     "generate_dms_grid_features": generate_dms_grid_features,
     "generate_nztm_grid_features": generate_nztm_grid_features,
+    "generate_sea_polygon": generate_sea_polygon,
+    "polygonize_boundaries": polygonize_boundaries,
     "split_multipart_features": split_multipart_features,
     "contour_number": contour_number,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,

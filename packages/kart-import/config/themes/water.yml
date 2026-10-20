@@ -291,3 +291,28 @@ datasets:
   # - source: kart@data.koordinates.com:linz/cook-islands-river-polygons-topo-125k-zone4
   #   name: cook_islands_river_polygons_topo_125k_zone4
   #   mapping: *river
+
+  # -------- moana (sea)
+  # The sea is not a source layer; it is derived from this release's coastline and
+  # island themes. `generate_sea_polygon` runs the existing data-prep coastline->land
+  # and land->sea scripts, so `depends_on_themes` holds this transform back until those
+  # themes are transformed for the same release. The source below is only cloned to feed
+  # the pipeline - every row and column it produces is replaced by the fixup (see the
+  # nztopo50_grid theme for the same generated-dataset pattern).
+  - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
+    name: moana
+    depends_on_themes: [coastline, island]
+    mapping:
+      t50_fid: null
+      type: moana
+      subtype: null
+      name: null
+      group_name: null
+      height: null
+      elevation: null
+      perennial: null
+      temperature_indicator: null
+      theme: landcover
+      metadata: null
+    fixups:
+      - fn: generate_sea_polygon

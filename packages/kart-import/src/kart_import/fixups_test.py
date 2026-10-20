@@ -10,10 +10,12 @@ from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.wkt import loads
 
-from . import fixups
+from . import export_paths, fixups
 from .assets import fid_lifecycle, transform
+from .assets.export import write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
+from .export_paths import export_filename
 from .fixups import (
     CARTO_TEXT_COLOUR,
     CARTO_TEXT_FONT,
@@ -25,6 +27,7 @@ from .fixups import (
     drop_empty_residential_areas,
     generate_dms_grid_features,
     generate_nztm_grid_features,
+    generate_sea_polygon,
 )
 
 
@@ -528,7 +531,7 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
     monkeypatch.setattr(transform, "get_releases", lambda: releases)
-    monkeypatch.setattr(transform, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(transform, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
     monkeypatch.setattr(fid_lifecycle, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
 
@@ -539,11 +542,11 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
     )
     exp60 = tmp_path / "export" / "release_60"
     exp60.mkdir(parents=True)
-    src_file = exp60 / "ds.json"
-    src.to_file(src_file, driver="GeoJSON")
+    src_file = exp60 / export_filename("ds")
+    write_export(src, src_file)
     exp66 = tmp_path / "export" / "release_66"
     exp66.mkdir(parents=True)
-    (exp66 / "ds.json").symlink_to(src_file)  # shared source commit
+    (exp66 / export_filename("ds")).symlink_to(src_file)  # shared source commit
 
     lifecycle_dir = tmp_path / "lifecycle"
     lifecycle_dir.mkdir()
@@ -745,6 +748,83 @@ def test_grid_fixups_are_wired_to_their_own_settings(fn, directions, vertices, i
     assert lats[1] - lats[0] == pytest.approx(interval)
 
 
+def _seed_sea_transforms(tmp_path, monkeypatch):
+    """Seed release_66 coastline + island transforms and point the config at them.
+
+    A single closed coastline loop around a name-reference point (so `coastline_polygon` can name the
+    land) plus one offshore island, both written as this release's transform outputs.
+    """
+    from data_prep.coastline_polygon import NAME_REFERENCE_POINTS
+    from data_prep.parquet_utils import NZGD2000, NZTM2000
+    from shapely.geometry import box
+
+    _name, (px, py) = next(iter(NAME_REFERENCE_POINTS.items()))
+    land_box = box(px - 100_000, py - 100_000, px + 100_000, py + 100_000)
+    coastline_line = gpd.GeoSeries([LineString(land_box.exterior.coords)], crs=NZTM2000).to_crs(NZGD2000).iloc[0]
+    # Just off the coast: its dataset bounds overlap the mainland coastline extent (so the per-dataset
+    # offshore filter keeps it) while it lies outside the land polygon itself (a real offshore island).
+    island_poly = (
+        gpd.GeoSeries([box(px + 95_000, py + 50_000, px + 130_000, py + 60_000)], crs=NZTM2000).to_crs(NZGD2000).iloc[0]
+    )
+
+    release_dir = tmp_path / "release_66"
+    release_dir.mkdir()
+
+    ts = "2020-01-01T00:00:00+00:00"
+    gpd.GeoDataFrame(
+        {"id": ["c1"], "created_at": [ts], "updated_at": [ts], "t50_fid": [1], "type": ["coastline"]},
+        geometry=[coastline_line],
+        crs=NZGD2000,
+    ).to_parquet(release_dir / "nz_coastlines.parquet")
+    gpd.GeoDataFrame(
+        {
+            "id": ["i1"],
+            "created_at": [ts],
+            "updated_at": [ts],
+            "t50_fid": [None],
+            "type": ["island"],
+            "name": ["Test Island"],
+            "group_name": [None],
+        },
+        geometry=[island_poly],
+        crs=NZGD2000,
+    ).to_parquet(release_dir / "nz_islands.parquet")
+
+    def theme(name, dataset):
+        return Theme.model_validate(
+            {
+                "name": name,
+                "target_repo": "x",
+                "target_epsg": "EPSG:4167",
+                "datasets": [{"name": dataset, "source": "kart@data.koordinates.com:linz/x-topo-150k"}],
+            }
+        )
+
+    themes = {"coastline": theme("coastline", "nz_coastlines"), "island": theme("island", "nz_islands")}
+    monkeypatch.setattr("kart_import.config.WORKING_TRANSFORM_DIR", tmp_path)
+    monkeypatch.setattr("kart_import.config.get_theme_by_name", lambda name: themes[name])
+
+
+def test_generate_sea_polygon_builds_moana_from_transforms(tmp_path, monkeypatch):
+    _seed_sea_transforms(tmp_path, monkeypatch)
+
+    placeholder = gpd.GeoDataFrame({"x": [0]}, geometry=[Point(0, 0)], crs="EPSG:4167")
+    out = generate_sea_polygon(placeholder, _td([{"fn": "generate_sea_polygon"}], "moana"), 66)
+
+    assert not out.empty
+    assert set(out["type"].unique()) == {"moana"}
+    assert out.crs.to_epsg() == 4167
+    assert (out.geometry.geom_type == "Polygon").all()
+    assert out["t50_fid"].isna().all()
+    assert (out["theme"] == "landcover").all()
+    # every moana feature carries a derived identity and timestamps
+    for column in ("id", "created_at", "updated_at"):
+        assert out[column].notna().all()
+    # attributes that don't apply to the sea are left NULL
+    for column in ("subtype", "name", "group_name", "height", "elevation", "perennial", "temperature_indicator"):
+        assert out[column].isna().all()
+
+
 CARTO_TEXT_STYLING_FIELDS = (
     "font",
     "style",
@@ -917,3 +997,23 @@ def test_carto_text_example_point_id_two_pass(monkeypatch):
     assert pd.isna(result[5])
     assert pd.isna(result[6])
     assert pd.isna(result[7])
+
+
+def test_polygonize_boundaries_joins_sheet_pieces_into_areas():
+    gdf = gpd.GeoDataFrame(
+        {"id": ["b", "a", "c"], "type": ["restricted_area", "restricted_area", "restricted_area"]},
+        geometry=[
+            LineString([(1, 0), (0, 0), (0, 1), (1, 1)]),
+            LineString([(1, 1), (2, 1), (2, 0), (1, 0)]),
+            LineString([(5, 0), (6, 0), (5, 1), (5, 0)]),
+        ],
+        crs="EPSG:4167",
+    )
+
+    out = fixups.polygonize_boundaries(gdf, _td([]), 70).sort_values("id").reset_index(drop=True)
+
+    assert out["id"].tolist() == ["a", "c"]
+    assert out.geom_type.tolist() == ["Polygon", "Polygon"]
+    assert out.geometry[0].area == pytest.approx(2)
+    assert out.geometry[1].area == pytest.approx(0.5)
+    assert out["type"].tolist() == ["restricted_area", "restricted_area"]

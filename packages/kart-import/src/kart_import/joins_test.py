@@ -6,9 +6,11 @@ import pytest
 import shapely
 from shapely.geometry import Point
 
-from . import config, joins
-from .assets import prepare
+from . import config, export_paths, joins
+from .assets import export, prepare
+from .assets.export import write_export
 from .config import Join, Lookup, Source, ThemeDataset
+from .export_paths import export_filename
 
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")
 
@@ -212,7 +214,7 @@ def _export_lookup_dir(tmp_path, monkeypatch, schema):
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
     monkeypatch.setattr(prepare, "SOURCE_DIR", tmp_path / "source")
-    monkeypatch.setattr(prepare, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
     monkeypatch.setattr(prepare, "get_dataset_schema", lambda *_: schema)
 
@@ -224,9 +226,10 @@ def _export_lookup_dir(tmp_path, monkeypatch, schema):
 def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
     """prepare_lookup slims every per-commit export into a parquet named by commit."""
     export_dir = _export_lookup_dir(tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "integer"}])
-    gpd.GeoDataFrame(
+    gdf = gpd.GeoDataFrame(
         {"t50_fid": [1, 2], "width": ["WIDE", "NARROW"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326"
-    ).to_file(export_dir / "abc123.json", driver="GeoJSON")
+    )
+    write_export(gdf, export_dir / export_filename("abc123"))
 
     out_dir = prepare.prepare_lookup("road_lkp")
 
@@ -237,9 +240,11 @@ def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
 
 
 def test_prepare_lookup_restores_a_key_the_export_turned_into_a_float(tmp_path, monkeypatch):
-    """The road_lkp case end to end: `numeric(10, 0)` exported as REAL, read back float64. The
-    parquet must hold the declared integer, or the join against an int-keyed source is a type
-    mismatch."""
+    """The road_lkp case end to end: a GeoJSON export turns `numeric(10, 0)` into a REAL, read back
+    as float64 -- still possible via KART_EXPORT_FORMAT=geojson. The parquet prepare_lookup writes
+    must hold the declared integer regardless, or the join against an int-keyed source mismatches."""
+    monkeypatch.setattr(export_paths, "EXPORT_SUFFIX", ".json")
+    monkeypatch.setattr(export, "EXPORT_FORMAT", "geojson")
     export_dir = _export_lookup_dir(
         tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0}]
     )

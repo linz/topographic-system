@@ -106,6 +106,7 @@ describe('kart.import', async () => {
       'import airport for release 32',
       'import airport for release 31',
       'import airport for release 30',
+      'feat: schema airport\n',
     ]);
 
     // The types kart recorded are the point of importing FlatGeobuf rather than GeoJSON, so

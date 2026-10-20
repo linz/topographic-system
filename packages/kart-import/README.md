@@ -62,6 +62,7 @@ in everything they need, so `all` on its own builds the lot.
 | `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
 | `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
 | `bundle_all`                            | `data/source/<dataset>/.bundle_created`      | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
+| `pull_all`                              | `data/source/<dataset>/.pulled`              | refresh already-cloned sources that have fallen behind the published bundle                       |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot
@@ -110,6 +111,7 @@ module directly to bypass snakemake:
 ```shell
 uv run snakemake --cores=4 data/working/transform/release_66/nz_airport_polygons.parquet --quiet | npx pjl
 uv run python -m kart_import.assets.transform nz_airport_polygons 66
+uv run python -m kart_import.assets.transform nz_airport_polygons
 ```
 
 ### Releases resolve to commits

@@ -38,7 +38,7 @@
   "$defs": {
     "water_type": {
       "type": "string",
-      "enum": ["canal", "drain", "lagoon", "lake", "pond", "river", "soakhole", "spring", "waterfall"]
+      "enum": ["canal", "drain", "lagoon", "lake", "moana", "pond", "river", "soakhole", "spring", "waterfall"]
     },
     "water_temperature_indicator": { "type": "string", "enum": ["cold", "hot"] },
     "BBox": {

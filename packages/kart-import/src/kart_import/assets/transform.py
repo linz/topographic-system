@@ -15,7 +15,6 @@ from ..config import (
     SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
-    WORKING_EXPORTS_DIR,
     WORKING_TRANSFORM_DIR,
     Release,
     Theme,
@@ -24,11 +23,14 @@ from ..config import (
     get_themes,
 )
 from ..corrections import apply_corrections
+from ..export_paths import dataset_release_file
 from ..fixups import FIXUPS
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
+from ..thread import run_in_thread_pool
+from .export import gpd_read
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
@@ -199,7 +201,7 @@ def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int)
     between releases independently of the source). A join-free dataset fingerprints on its source
     alone, preserving the original source-only dedup behaviour.
     """
-    source_file = (WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}.json").resolve()
+    source_file = dataset_release_file(dataset_name, release_id).resolve()
     return (source_file, join_fingerprint(td, release_id))
 
 
@@ -213,7 +215,7 @@ def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int,
     """
     target = _transform_fingerprint(dataset_name, td, release_id)
     for release in releases:
-        input_file = WORKING_EXPORTS_DIR / f"release_{release.id}" / f"{dataset_name}.json"
+        input_file = dataset_release_file(dataset_name, release.id)
         if input_file.exists() and _transform_fingerprint(dataset_name, td, release.id) == target:
             return release.id
     raise LookupError(f"No release found for source file: {dataset_name} (release {release_id})")
@@ -246,7 +248,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     theme, td = get_theme_and_dataset(dataset_name)
     releases = get_releases()
 
-    input_file = WORKING_EXPORTS_DIR / f"release_{release_id}" / f"{dataset_name}.json"
+    input_file = dataset_release_file(dataset_name, release_id)
     if not input_file.exists():
         raise FileNotFoundError(f"'export' file missing: {input_file}")
 
@@ -302,7 +304,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             lifecycle_data = json.load(f)
 
         start_time = time.perf_counter()
-        gdf = gpd.read_file(input_file, engine="pyogrio", use_arrow=True)
+        gdf = gpd_read(input_file)
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if gdf.empty:
@@ -329,45 +331,55 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             raise ValueError("source frame has no projection")
 
         if td.joins:
-            start_time = time.perf_counter()
-            gdf = apply_joins(gdf, td, release_id)
-            logger.info("apply_joins", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_joins"):
+                gdf = apply_joins(gdf, td, release_id)
 
-        start_time = time.perf_counter()
-        gdf = normalize_field_lifecyle(
-            gdf,
-            td,
-            lifecycle_data,
-        )
-        logger.info("normalize_field_lifecyle", extra={"duration": round(time.perf_counter() - start_time, 4)})
+        with log_context(action="normalize"):
+            gdf = normalize_field_lifecyle(
+                gdf,
+                td,
+                lifecycle_data,
+            )
 
-        start_time = time.perf_counter()
-        gdf = normalize_projection(gdf, td, theme.target_epsg)
-        logger.info("normalize_projection", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_projection(gdf, td, theme.target_epsg)
 
-        start_time = time.perf_counter()
-        gdf = normalize_fields(gdf, td, release_id)
-        logger.info("normalize_fields", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            gdf = normalize_fields(gdf, td, release_id)
 
         if td.corrections:
-            start_time = time.perf_counter()
-            gdf = apply_corrections(gdf, td)
-            logger.info("apply_corrections", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_corrections"):
+                gdf = apply_corrections(gdf, td)
 
         if td.fixups:
-            start_time = time.perf_counter()
-            gdf = apply_fixups(gdf, td, release_id)
-            logger.info("apply_fixups", extra={"duration": round(time.perf_counter() - start_time, 4)})
+            with log_context(action="apply_fixups"):
+                gdf = apply_fixups(gdf, td, release_id)
 
         write_transform(gdf, output_file)
     return output_file
 
 
+def transform_dataset_all_releases(dataset_name: str, thread_count: int = 4) -> None:
+    """
+    Transform every release of one dataset inside a thread pool.
+    """
+
+    def transform_release(release: Release) -> None:
+        # Named (not a lambda) and wrapped in its own span so each release still traces as its own
+        # "transform: dataset [rN]", matching the span a dedicated `uv run` process used to open.
+        with log_context(action="transform", dataset=dataset_name, release=release.id):
+            transform_dataset_release(dataset_name, release.id)
+
+    run_in_thread_pool(func=transform_release, items=get_releases(), thread_count=thread_count, trace_items=False)
+
+
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 3:
-        print("Usage: python -m kart_import.assets.transform <dataset_name> <release_id>")
+    if len(sys.argv) == 3:
+        with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
+            transform_dataset_release(sys.argv[1], int(sys.argv[2]))
+    elif len(sys.argv) == 2:
+        with log_context(action="transform", dataset=sys.argv[1]):
+            transform_dataset_all_releases(sys.argv[1])
+    else:
+        print("Usage: python -m kart_import.assets.transform <dataset_name> [release_id]")
         sys.exit(1)
-    with log_context(action="transform", dataset=sys.argv[1], release=sys.argv[2]):
-        transform_dataset_release(sys.argv[1], int(sys.argv[2]))

@@ -23,6 +23,7 @@ model nztopo50_map_sheet {
   published_version: string;
   published_at: utcDateTime;
   barcode: string | null;
+  created_at: utcDateTime;
   updated_at: utcDateTime;
   ...GeoParquet;
 }

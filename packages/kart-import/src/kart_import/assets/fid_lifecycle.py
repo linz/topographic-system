@@ -177,5 +177,5 @@ if __name__ == "__main__":
         print("Usage: python -m kart_import.assets.fid_lifecycle <dataset_name>")
         sys.exit(1)
 
-    with log_context(action="export", dataset=sys.argv[1]):
+    with log_context(action="lifecycle", dataset=sys.argv[1]):
         generate_lifecycle(sys.argv[1])

@@ -1,4 +1,4 @@
-FROM ghcr.io/linz/action-kart:v0.5.1
+FROM ghcr.io/linz/action-kart:v0.5.1-3-g8c71777
 
 # Copy the validation python code into kart cli and install
 COPY packages/validation /packages/validation

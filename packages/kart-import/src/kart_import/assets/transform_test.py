@@ -5,10 +5,12 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
+from .. import export_paths
 from ..config import Join, Release, Source, ThemeDataset
+from ..export_paths import export_filename
 from ..kart_types import coerce_integer_columns
 from . import transform
-from .transform import find_canonical_release, normalize_fields
+from .transform import find_canonical_release, normalize_fields, transform_dataset_all_releases
 
 
 def _releases(*ids: int) -> list[Release]:
@@ -17,16 +19,16 @@ def _releases(*ids: int) -> list[Release]:
 
 def _link_shared_source(root, dataset_name: str, release_ids: list[int]) -> None:
     """Point each release's export at one shared commit file (what export's symlinking produces)."""
-    commit_file = root / f"{dataset_name}_commit.json"
+    commit_file = root / export_filename(f"{dataset_name}_commit")
     commit_file.write_text("{}")
     for r in release_ids:
         d = root / f"release_{r}"
         d.mkdir()
-        (d / f"{dataset_name}.json").symlink_to(commit_file)
+        (d / export_filename(dataset_name)).symlink_to(commit_file)
 
 
 def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch):
-    monkeypatch.setattr(transform, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     releases = _releases(1, 2, 3)
     _link_shared_source(tmp_path, "ds", [1, 2, 3])  # all three share one source export
     td = ThemeDataset(
@@ -43,6 +45,19 @@ def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch
     monkeypatch.setattr(transform, "join_fingerprint", lambda td, rid: ("old",) if rid < 3 else ("new",))
     assert find_canonical_release("ds", td, 3, releases) == 3
     assert find_canonical_release("ds", td, 2, releases) == 1
+
+
+def test_transform_dataset_all_releases_transforms_every_release(monkeypatch):
+    monkeypatch.setattr(transform, "get_releases", lambda: _releases(1, 2, 3))
+
+    calls: list[tuple[str, int]] = []
+    monkeypatch.setattr(
+        transform, "transform_dataset_release", lambda name, release_id: calls.append((name, release_id))
+    )
+
+    transform_dataset_all_releases("ds", thread_count=2)
+
+    assert sorted(calls) == [("ds", 1), ("ds", 2), ("ds", 3)]
 
 
 def _gdf(rows: list[dict]) -> gpd.GeoDataFrame:

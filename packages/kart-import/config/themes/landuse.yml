@@ -175,3 +175,18 @@ datasets:
       substance_extracted: null
       theme: landuse
       metadata: null
+  - source:
+      url: git@github.com:linz/topographic-source-data
+      dataset: site_bdy
+    name: site_bdy
+    mapping:
+      t50_fid: null
+      type: restricted_area
+      subtype: null
+      status: null
+      name: null
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+    fixups:
+      - fn: polygonize_boundaries

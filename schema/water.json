@@ -46,7 +46,7 @@
   "$defs": {
     "water_type": {
       "type": "string",
-      "enum": ["canal", "drain", "lagoon", "lake", "pond", "river", "soakhole", "spring", "waterfall"]
+      "enum": ["canal", "drain", "lagoon", "lake", "moana", "pond", "river", "soakhole", "spring", "waterfall"]
     },
     "water_subtype": {
       "type": "string",
