@@ -109,6 +109,7 @@ class FieldSpec(BaseModel):
         topo_id: null                 # create the column populated with NULL
         name: {source: $, default: "Unknown"}   # default when the value is NULL
         orientation: {source: $orientatn, since_release: 49}  # column absent before release 49
+        text_colour: {source: $text_colour, aliases: [text_colou]}  # read an older column spelling when the renamed one is absent
 
     An unlisted source column is dropped.
     """
@@ -123,6 +124,9 @@ class FieldSpec(BaseModel):
     """This column's final value is modified by a dataset fixup, skip static schema check."""
     since_release: int | None = None
     """Earlier releases emit NULL for a missing column instead of failing."""
+    aliases: list[str] = []
+    """Fallback source columns (older spellings) read when the primary source column is absent,
+    so a column renamed across source history never loses data."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":
