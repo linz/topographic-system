@@ -49,6 +49,34 @@ def test_map_sheet_published_matches_current_edition(tmp_path, monkeypatch):
     # 1.05 matched exactly; 9.99 is absent -> falls back to the sheet's latest edition (1.06)
     assert out["published_at"].tolist() == ["2023-12-19T21:07:28Z", "2025-08-13T22:08:55Z"]
     assert out["updated_at"].equals(out["published_at"])
+    assert out["created_at"].tolist() == ["2016-10-26T08:24:09Z"]
+
+
+def test_map_sheet_published_sets_created_at_to_the_first_edition(monkeypatch, tmp_path):
+    """created_at is when the sheet was first published, the same whichever edition a release has;
+    a sheet with no edition history keeps the created_at it came in with."""
+    from datetime import UTC, datetime
+
+    from . import config
+
+    (tmp_path / "map_sheet_published.yml").write_text(
+        'BK37:\n  "1.04": "2016-10-26T08:24:09Z"\n  "1.06": "2023-08-18T00:30:50Z"\n'
+    )
+    monkeypatch.setattr(config, "CONFIG_DIR", tmp_path)
+    monkeypatch.setattr(config, "get_releases", lambda: [config.Release(id=66, date=datetime(2026, 4, 23, tzinfo=UTC))])
+    gdf = gpd.GeoDataFrame(
+        {
+            "sheet_code": ["BK37", "ZZ99"],
+            "published_version": ["Edition 1.06 Published 2023", "Edition 1.00 Published 2026"],
+            "created_at": ["2026-05-15T00:00:00Z", "2026-05-15T00:00:00Z"],
+        },
+        geometry=[Point(0, 0), Point(1, 1)],
+        crs="EPSG:2193",
+    )
+    out = fixups_map_sheet.map_sheet_published(gdf, _td([], name="linz_map_sheet"), 66)
+
+    assert out["published_at"].tolist() == ["2023-08-18T00:30:50Z", None]
+    assert out["created_at"].tolist() == ["2016-10-26T08:24:09Z", "2026-05-15T00:00:00Z"]
 
 
 def test_map_sheet_example_point_id_resolves_by_class(monkeypatch):

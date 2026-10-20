@@ -110,7 +110,8 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 
 def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Set `published_version` from the source `edition`, and `published_at`/`updated_at` from the
-    per-sheet edition history in `config/map_sheet_published.yml`.
+    per-sheet edition history in `config/map_sheet_published.yml`. `created_at` is the sheet's first
+    edition, in place of when it first appeared in the source repo.
 
     A sheet whose edition was published after this release (a `backfill` release carrying a later
     export) is rewound to the latest edition published by the release's date. A sheet with no
@@ -154,4 +155,9 @@ def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     gdf["published_version"] = [version for version, _ in picked]
     gdf["published_at"] = published_at
     gdf["updated_at"] = published_at
+    created_at = gdf["created_at"] if "created_at" in gdf.columns else [None] * len(gdf)
+    gdf["created_at"] = [
+        min(history[code].values()) if history.get(code) else at
+        for code, at in zip(gdf["sheet_code"], created_at, strict=True)
+    ]
     return gdf
