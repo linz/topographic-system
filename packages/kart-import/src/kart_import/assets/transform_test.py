@@ -47,6 +47,16 @@ def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch
     assert find_canonical_release("ds", td, 2, releases) == 1
 
 
+def test_find_canonical_release_never_shares_a_backfill_dataset(tmp_path, monkeypatch):
+    """Backfilled releases reuse one export, but fixups rewind each to its own release."""
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    releases = _releases(1, 2, 3)
+    _link_shared_source(tmp_path, "ds", [1, 2, 3])
+    td = ThemeDataset(name="ds", source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"), backfill=True)
+
+    assert [find_canonical_release("ds", td, r.id, releases) for r in releases] == [1, 2, 3]
+
+
 def test_transform_dataset_all_releases_transforms_every_release(monkeypatch):
     monkeypatch.setattr(transform, "get_releases", lambda: _releases(1, 2, 3))
 
