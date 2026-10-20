@@ -192,7 +192,7 @@ def make_bucketed_theme_repo(
         (feature_dir / name).write_text(content)
     git(repo, "add", "-A")
     subprocess.run(
-        ["git", "commit", "-m", f"import {theme} for release {release_id}"],
+        ["git", "commit", "-m", f"feat({theme}): import release {release_id}"],
         cwd=str(repo),
         capture_output=True,
         check=True,
@@ -227,11 +227,11 @@ def test_linearise_splits_an_oversized_commit(tmp_path):
     linearise(combined, [("contour", sha)], threshold=100)
 
     subjects = git(combined, "log", "--reverse", "--format=%s", "master").splitlines()
-    assert subjects[-1] == "release 30"
+    assert subjects[-1] == "release: 30"
     import_subjects = subjects[:-1]
     assert len(import_subjects) > 1, "the commit should actually have been split"
     for i, subject in enumerate(import_subjects, start=1):
-        assert subject == f"import contour for release 30 (part {i}/{len(import_subjects)})"
+        assert subject == f"feat(contour): import release 30 (part {i}/{len(import_subjects)})"
 
     # the full tree still matches what one unsplit commit would have produced
     for name, content in buckets.items():
@@ -243,9 +243,7 @@ def test_linearise_split_keeps_release_boundaries_correct(tmp_path):
     """Splitting a release's import must not disturb where the release marker lands."""
     buckets = {"00": _incompressible(200), "01": _incompressible(200)}
     repo30, sha30 = make_bucketed_theme_repo(tmp_path, "contour", 30, buckets, timestamp="1700000100")
-    repo31, sha31 = make_bucketed_theme_repo(
-        tmp_path, "contour", 31, {"00": "small change"}, timestamp="1700000200"
-    )
+    repo31, sha31 = make_bucketed_theme_repo(tmp_path, "contour", 31, {"00": "small change"}, timestamp="1700000200")
 
     combined = tmp_path / "combined"
     combined.mkdir()
@@ -256,11 +254,11 @@ def test_linearise_split_keeps_release_boundaries_correct(tmp_path):
     linearise(combined, [("contour", sha30), ("contour", sha31)], threshold=100)
 
     subjects = git(combined, "log", "--reverse", "--format=%s", "master").splitlines()
-    marker = subjects.index("release 30")
+    marker = subjects.index("release: 30")
     assert marker > 0, "release 30 should have been split, not replayed as a single commit"
-    assert all(s.startswith("import contour for release 30 (part ") for s in subjects[:marker])
+    assert all(s.startswith("feat(contour): import release 30 (part ") for s in subjects[:marker])
     # the marker still closes release 30 exactly once, right before release 31's own (unsplit) import
-    assert subjects[marker + 1 :] == ["import contour for release 31", "release 31"]
+    assert subjects[marker + 1 :] == ["feat(contour): import release 31", "release: 31"]
 
 
 def test_linearise_does_not_split_under_threshold(tmp_path):
@@ -276,6 +274,6 @@ def test_linearise_does_not_split_under_threshold(tmp_path):
     linearise(combined, [("contour", sha)], threshold=1_500_000_000)
 
     assert git(combined, "log", "--reverse", "--format=%s", "master").splitlines() == [
-        "import contour for release 30",
-        "release 30",
+        "feat(contour): import release 30",
+        "release: 30",
     ]

@@ -197,7 +197,9 @@ def _collect_units(
         child_old = old_children.get(child_name)
         if child_old == child_sha:
             continue
-        units.extend(_collect_units(repo_dir, reader, f"{path}/{child_name}", child_mode, child_old, child_sha, threshold))
+        units.extend(
+            _collect_units(repo_dir, reader, f"{path}/{child_name}", child_mode, child_old, child_sha, threshold)
+        )
     return units
 
 
