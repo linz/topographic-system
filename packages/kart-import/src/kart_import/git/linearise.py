@@ -5,7 +5,7 @@ no merging: `git fast-import` restacks each commit's subtree by SHA. `git cherry
 would three-way merge and rewrite the index per commit -- work proportional to the whole
 repo -- and would stamp a new committer date, so rebuilds would not be reproducible.
 
-Each release is closed with an empty `release <id>` commit, so the interleaved history reads
+Each release is closed with an empty `release: <id>` commit, so the interleaved history reads
 by release rather than by whichever theme happened to sort last.
 
 Only `M` lines are emitted, so deletions are never replayed. That is safe because a theme
@@ -108,9 +108,9 @@ def _check_disjoint(owners: dict[str, tuple[str, str]], name: str, mode: str, sh
 
 
 def _release(message: bytes) -> bytes | None:
-    """Release id out of a `kart_import_theme` subject: "import <theme> for release <id>"."""
+    """Release id out of a `kart_import_theme` subject: "feat(<theme>): import release <id>"."""
     subject = message.partition(b"\n")[0]
-    _, marker, release = subject.rpartition(b" for release ")
+    _, marker, release = subject.rpartition(b" release ")
     return release if marker and release.isdigit() else None
 
 
@@ -169,7 +169,7 @@ def linearise(repo_dir: Path | str, commits: list[tuple[str, str]], branch: str 
             if found and release is not None and found != release:
                 mark += 1
                 assert dates
-                _write_commit(stream, branch, mark, *dates, b"release " + release + b"\n")
+                _write_commit(stream, branch, mark, *dates, b"release: " + release + b"\n")
                 stream.write(b"\n")
             if found:
                 release = found
@@ -185,7 +185,7 @@ def linearise(repo_dir: Path | str, commits: list[tuple[str, str]], branch: str 
         if release is not None:
             mark += 1
             assert dates
-            _write_commit(stream, branch, mark, *dates, b"release " + release + b"\n")
+            _write_commit(stream, branch, mark, *dates, b"release: " + release + b"\n")
             stream.write(b"\n")
 
         stream.write(b"done\n")

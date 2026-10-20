@@ -149,7 +149,7 @@ def kart_import_theme(theme_name: str):
                 "kart",
                 "import",
                 "--message",
-                f"import {theme_name} for release {release.id}",
+                f"feat({theme_name}): import release {release.id}",
                 "--primary-key",
                 "id",
                 "--replace-existing",

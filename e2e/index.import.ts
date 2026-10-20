@@ -103,10 +103,10 @@ describe('kart.import', async () => {
     const commits = JSON.parse(retLog.buffer().toString()).map((m: { message: string }) => m.message) as string[];
 
     assert.deepEqual(commits, [
-      'import airport for release 32',
-      'import airport for release 31',
-      'import airport for release 30',
-      'feat: schema airport\n',
+      'feat(airport): import release 32',
+      'feat(airport): import release 31',
+      'feat(airport): import release 30',
+      'feat(airport): import schema\n',
     ]);
 
     // The types kart recorded are the point of importing FlatGeobuf rather than GeoJSON, so
