@@ -292,6 +292,7 @@ class ThemeDataset(BaseModel):
     joins: list[Join] = []
     feature_key: str | None = None
     depends_on_themes: list[str] = []
+    backfill: bool = False
 
     @model_validator(mode="before")
     @classmethod

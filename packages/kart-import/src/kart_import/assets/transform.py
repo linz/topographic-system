@@ -203,10 +203,11 @@ def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int)
     be produced once and shared. Combines the resolved source export (already shared across
     releases by commit via export symlinks) with the join lookup commits (which can advance
     between releases independently of the source). A join-free dataset fingerprints on its source
-    alone, preserving the original source-only dedup behaviour.
+    alone, preserving the original source-only dedup behaviour. A `backfill` dataset never shares:
+    its releases reuse one export but fixups rewind each to its own release.
     """
     source_file = dataset_release_file(dataset_name, release_id).resolve()
-    return (source_file, join_fingerprint(td, release_id))
+    return (source_file, join_fingerprint(td, release_id), release_id if td.backfill else None)
 
 
 def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int, releases: list[Release]) -> int:

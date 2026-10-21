@@ -1,12 +1,13 @@
 import logging
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 import geopandas as gpd
 
 from ..command import run_command
-from ..config import EXPORT_FORMAT, SOURCE_DIR, get_releases, get_source_entry
+from ..config import EXPORT_FORMAT, SOURCE_DIR, get_dataset_by_name, get_releases, get_source_entry
 from ..export_paths import (
     dataset_commit_file,
     dataset_empty_file,
@@ -86,10 +87,23 @@ def export_empty_releases(dataset_name: str, release_ids: list[int]) -> None:
     )
 
 
-def export_dataset_releases(dataset_name: str):
-    td = get_source_entry(dataset_name)
+def backfill_releases(commit_to_releases: dict[str, CommitData], release_ids: list[int]) -> list[int]:
+    """Hand the releases predating the source to its earliest commit, so they share its export.
+    Returns the releases still left without data: all of them when there is no commit at all."""
+    if not release_ids or not commit_to_releases:
+        return release_ids
+    earliest = min(commit_to_releases.values(), key=lambda c: datetime.fromisoformat(c.commit_time))
+    earliest.releases[:0] = release_ids
+    logger.info(
+        "source predates these releases, backfilled from earliest commit",
+        extra={"commit": earliest.commit, "releases": release_ids},
+    )
+    return []
 
-    releases = get_releases()
+
+def resolve_release_commits(dataset_name: str) -> tuple[dict[str, CommitData], list[int]]:
+    """Each release's source commit, grouped by commit, plus the releases predating the dataset."""
+    td = get_source_entry(dataset_name)
 
     repo_dir = SOURCE_DIR / dataset_name
     if not is_kart(repo_dir):
@@ -99,7 +113,7 @@ def export_dataset_releases(dataset_name: str):
     commit_to_releases: dict[str, CommitData] = {}
     releases_before_first_commit: list[int] = []
 
-    for release in releases:
+    for release in get_releases():
         res = get_release_commit(repo_dir, release.until)
         if res is None:
             releases_before_first_commit.append(release.id)
@@ -115,6 +129,26 @@ def export_dataset_releases(dataset_name: str):
                 releases=[],
             )
         commit_to_releases[commit].releases.append(release.id)
+
+    return commit_to_releases, releases_before_first_commit
+
+
+def backfilled_release_ids(dataset_name: str) -> set[int]:
+    """Releases of a `backfill` dataset that reuse its earliest export rather than their own."""
+    if not get_dataset_by_name(dataset_name).backfill:
+        return set()
+    commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
+    return set(releases_before_first_commit) if commit_to_releases else set()
+
+
+def export_dataset_releases(dataset_name: str):
+    td = get_source_entry(dataset_name)
+    releases = get_releases()
+    repo_dir = SOURCE_DIR / dataset_name
+    commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
+    kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
+    if getattr(td, "backfill", False):
+        releases_before_first_commit = backfill_releases(commit_to_releases, releases_before_first_commit)
 
     def export_release(info: CommitData):
         target_commit_file = dataset_commit_file(dataset_name, info.commit, info.commit_time)
