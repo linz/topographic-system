@@ -430,6 +430,19 @@ def test_build_nzgb_metadata_rejects_name_mapped_off_a_different_lookup(road_rel
         fixups.build_nzgb_metadata(_gaz_gdf([1]), td, 66)
 
 
+def test_build_nzgb_metadata_accepts_name_read_straight_from_source(road_releases, monkeypatch):
+    """Datasets whose LDS `name` already mirrors the gazetteer read it with `$` instead of the
+    lookup, so a t50_fid that misses the join keeps its source name. `metadata` still links the
+    feature to its gazetteer record via the lookup key, so a record is still built."""
+    _register_lookup(monkeypatch, "drain_lkp", "drain_cl")
+    td = _gaz_td("nz_drain_centrelines_topo_150k", "drain_lkp")
+    td.mapping["name"] = "$"
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221]), td, 66)
+
+    assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 1043221
+
+
 def test_build_nzgb_metadata_rejects_an_unknown_lookup(road_releases):
     td = _gaz_td("ds", "no_such_lookup")
 
@@ -832,10 +845,10 @@ CARTO_TEXT_STYLING_FIELDS = (
     "size",
     "offset",
     "placement",
-    "textanchor",
-    "labelanchor",
-    "charplace",
-    "chardistance",
+    "text_anchor",
+    "label_anchor",
+    "char_place",
+    "char_distance",
 )
 
 
@@ -870,24 +883,24 @@ def test_carto_text_styling_fills_a_matched_key_from_the_table():
     assert row["size"] == 5.0
     assert row["offset"] == -1.6
     assert row["placement"] == "AL"
-    assert row["charplace"] == "StretchCharacterSpacingToFit"
-    assert pd.isna(row["textanchor"])
-    assert pd.isna(row["labelanchor"])
-    assert pd.isna(row["chardistance"])
+    assert row["char_place"] == "StretchCharacterSpacingToFit"
+    assert pd.isna(row["text_anchor"])
+    assert pd.isna(row["label_anchor"])
+    assert pd.isna(row["char_distance"])
 
 
-def test_carto_text_styling_matches_a_point_scale_height_and_strips_textanchor():
+def test_carto_text_styling_matches_a_point_scale_height_and_strips_text_anchor():
     """`text_height` is matched to 4 dp, so the point-scale value 67.0 keys the table the same
-    way a metre-scale value does. `textanchor` comes back `left`, not the legacy `left ` - the
-    table's trailing space is stripped, so the `carto_textanchor` enum needs no `left ` member."""
+    way a metre-scale value does. The table's string cells are stripped of surrounding whitespace,
+    so `text_anchor` comes back as the clean `carto_textanchor` value (`start`)."""
     gdf = _carto_text_gdf([{"bend": 0, "height": 67.0, "place": 31, "font": "ATTriumMou-Cond", "colour": 9}])
     row = carto_text_styling(gdf, _td([], "linz_carto_text"), 66).iloc[0]
 
     assert row["style"] == "Narrow"
     assert row["size"] == 5.5
     assert row["offset"] == -2.0
-    assert row["textanchor"] == "left"
-    assert row["labelanchor"] == 0.8
+    assert row["text_anchor"] == "start"
+    assert row["label_anchor"] == 0.0
 
 
 def test_carto_text_styling_decodes_colour_codes():

@@ -33,6 +33,7 @@ from functools import cache
 from typing import TYPE_CHECKING, NamedTuple
 
 from .fixups_map_sheet import (
+    gazetteer_name,
     map_sheet_drop_index_sheets,
     map_sheet_example_name_fixes,
     map_sheet_example_point_id,
@@ -343,10 +344,11 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     lookup, _ = _metadata_lookup(td, "build_nzgb_metadata")
 
     name_source = td.field_specs()["name"].source
-    if name_source != f"${lookup.name}.name":
+    if name_source not in (f"${lookup.name}.name", "$"):
         raise ValueError(
-            f"{td.name}: `name` must be mapped as '${lookup.name}.name' to match the gazetteer "
-            f"lookup '{lookup.name}' referenced by `metadata`, got {name_source!r}"
+            f"{td.name}: `name` must be mapped as '${lookup.name}.name' (from the gazetteer lookup) "
+            f"or '$' (the source name the gazetteer mirrors) to match the `metadata` lookup "
+            f"'{lookup.name}', got {name_source!r}"
         )
 
     build_stamp = _rfc3339(datetime.now(UTC))
@@ -609,8 +611,8 @@ def _carto_text_key(bend, height, place, style, colour):
 
 
 # Columns filled from the carto_text_styling table split by output dtype.
-_CARTO_TEXT_STRING_FIELDS = ("placement", "textanchor", "charplace")
-_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "labelanchor", "chardistance", "worddistance")
+_CARTO_TEXT_STRING_FIELDS = ("placement", "text_anchor", "char_place")
+_CARTO_TEXT_NUMBER_FIELDS = ("size", "offset", "label_anchor", "char_distance", "word_distance")
 _CARTO_TEXT_KEY_INPUTS = ("text_bend", "text_height", "text_placement", "text_colour", "text_font")
 
 
@@ -742,33 +744,18 @@ def _link_example_points(
     return linked, matches
 
 
-# Label text -> example point name, for labels whose printed spelling differs from the gazetteer's.
-# Only consulted when the printed text matches no example point, so a release that still carries
-# the old spelling keeps matching it directly.
-CARTO_TEXT_NAME_ALIASES = {
-    "Mount Treacey": "Mount Treacy",  # gazetteer renamed it in release 66
-}
-
-
 def carto_text_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Set `example_point_id` on each carto_text label to the example point it renders.
 
     A map sheet highlights one example point by the id of the label drawing it. A label naming a
     unique example point links at any distance; a shared name links to the nearest within 200 m.
-    A label whose text matches no example point is retried under `CARTO_TEXT_NAME_ALIASES`.
+    A label still printing a name the gazetteer has since renamed matches under the new name.
     """
     import pandas as pd
 
     points = _create_example_point_ids_lookup(release_id)
     known_names = set(points["name"])
-
-    def match_name(text):
-        if text in known_names:
-            return text
-        # No example point carries this text: try the gazetteer's spelling, if one is known.
-        return CARTO_TEXT_NAME_ALIASES.get(text, text)
-
-    labels = gdf["full_text"].map(match_name)
+    labels = gdf["full_text"].map(lambda text: gazetteer_name(text, known_names))
     label_geometry = gdf.geometry.to_crs("EPSG:2193")
 
     linked, matches = _link_example_points(labels, label_geometry, points)

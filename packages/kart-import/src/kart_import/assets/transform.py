@@ -110,6 +110,10 @@ def normalize_fields(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -
         if isinstance(source, str) and source.startswith("$"):
             source_col = target_field if source == "$" else source[1:]
             if source_col not in gdf.columns:
+                # A column renamed across source history is read from the first present alias
+                # (an older spelling), so no release loses the data.
+                source_col = next((alias for alias in spec.aliases if alias in gdf.columns), source_col)
+            if source_col not in gdf.columns:
                 if spec.since_release is None or release_id >= spec.since_release:
                     raise KeyError(f"Source column not found: {source_col} in {td.name}")
                 logger.info(
@@ -199,10 +203,11 @@ def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int)
     be produced once and shared. Combines the resolved source export (already shared across
     releases by commit via export symlinks) with the join lookup commits (which can advance
     between releases independently of the source). A join-free dataset fingerprints on its source
-    alone, preserving the original source-only dedup behaviour.
+    alone, preserving the original source-only dedup behaviour. A `backfill` dataset never shares:
+    its releases reuse one export but fixups rewind each to its own release.
     """
     source_file = dataset_release_file(dataset_name, release_id).resolve()
-    return (source_file, join_fingerprint(td, release_id))
+    return (source_file, join_fingerprint(td, release_id), release_id if td.backfill else None)
 
 
 def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int, releases: list[Release]) -> int:

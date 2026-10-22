@@ -109,6 +109,7 @@ class FieldSpec(BaseModel):
         topo_id: null                 # create the column populated with NULL
         name: {source: $, default: "Unknown"}   # default when the value is NULL
         orientation: {source: $orientatn, since_release: 49}  # column absent before release 49
+        text_colour: {source: $text_colour, aliases: [text_colou]}  # read an older column spelling when the renamed one is absent
 
     An unlisted source column is dropped.
     """
@@ -123,6 +124,9 @@ class FieldSpec(BaseModel):
     """This column's final value is modified by a dataset fixup, skip static schema check."""
     since_release: int | None = None
     """Earlier releases emit NULL for a missing column instead of failing."""
+    aliases: list[str] = []
+    """Fallback source columns (older spellings) read when the primary source column is absent,
+    so a column renamed across source history never loses data."""
 
     @classmethod
     def parse(cls, value: Any) -> "FieldSpec":
@@ -193,8 +197,12 @@ class Lookup(BaseModel):
     emitted datasets via a join (the "prepare" step).
 
     `key` is the join key kept in the prepared table.
-    `columns` lists the source columns to expose.
-    Each column accessed namespaced as `<lookup name>.<column>`
+    `columns` lists the source columns to expose. Each entry is either a plain
+    column name or a dict `{name: <col>, aliases: [<old col>, ...]}`: when the
+    named column is absent from a source snapshot (e.g. an older schema that
+    since renamed it), the first present alias is read and surfaced under
+    `name`, so a rename never loses data. Each column accessed namespaced as
+    `<lookup name>.<column>`.
     The lookup is cloned + exported like a dataset, then prepared (slimmed).
     It is NOT emitted as theme features.
     """
@@ -203,13 +211,32 @@ class Lookup(BaseModel):
     name: str = ""
     key: str = ""
     columns: list[str] = []
+    column_aliases: dict[str, list[str]] = {}
+    """Column name -> fallback source column names (older schemas); derived from `columns` entries."""
     geometry: bool = False
 
     @model_validator(mode="before")
     @classmethod
     def populate_name(cls, data):
-        if isinstance(data, dict) and data.get("source") and not data.get("name"):
-            data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+        if isinstance(data, dict):
+            if data.get("source") and not data.get("name"):
+                data["name"] = get_dataset_name(Source.model_validate(data["source"]))
+            cols = data.get("columns")
+            if isinstance(cols, list):
+                names: list[str] = []
+                aliases: dict[str, list[str]] = {}
+                for entry in cols:
+                    if isinstance(entry, dict):
+                        name = entry.get("name")
+                        if not name:
+                            raise ValueError(f"lookup column entry {entry!r} needs a 'name'")
+                        names.append(name)
+                        if entry.get("aliases"):
+                            aliases[name] = list(entry["aliases"])
+                    else:
+                        names.append(entry)
+                data["columns"] = names
+                data["column_aliases"] = aliases
         return data
 
     @model_validator(mode="after")
@@ -265,6 +292,7 @@ class ThemeDataset(BaseModel):
     joins: list[Join] = []
     feature_key: str | None = None
     depends_on_themes: list[str] = []
+    backfill: bool = False
 
     @model_validator(mode="before")
     @classmethod

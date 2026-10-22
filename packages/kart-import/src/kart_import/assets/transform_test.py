@@ -47,6 +47,16 @@ def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch
     assert find_canonical_release("ds", td, 2, releases) == 1
 
 
+def test_find_canonical_release_never_shares_a_backfill_dataset(tmp_path, monkeypatch):
+    """Backfilled releases reuse one export, but fixups rewind each to its own release."""
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    releases = _releases(1, 2, 3)
+    _link_shared_source(tmp_path, "ds", [1, 2, 3])
+    td = ThemeDataset(name="ds", source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"), backfill=True)
+
+    assert [find_canonical_release("ds", td, r.id, releases) for r in releases] == [1, 2, 3]
+
+
 def test_transform_dataset_all_releases_transforms_every_release(monkeypatch):
     monkeypatch.setattr(transform, "get_releases", lambda: _releases(1, 2, 3))
 
@@ -133,6 +143,28 @@ def test_since_release_maps_present_column_in_earlier_release():
     """Presence wins over the release gate, so a boundary set too late loses no data."""
     out = normalize_fields(_gdf([{"orientatn": 90.0}]), _since_td(), 30)
     assert out["orientation"].tolist() == [90.0]
+
+
+def _alias_td() -> ThemeDataset:
+    return _td({"text_colour": {"source": "$text_colour", "aliases": ["text_colou"]}})
+
+
+def test_alias_reads_renamed_column_when_canonical_present():
+    """A snapshot with the modern column name reads it directly, ignoring the alias."""
+    out = normalize_fields(_gdf([{"text_colour": "black"}]), _alias_td(), 67)
+    assert out["text_colour"].tolist() == ["black"]
+
+
+def test_alias_falls_back_to_older_column_spelling():
+    """A snapshot that still uses the truncated name is read via the alias, so no release loses data."""
+    out = normalize_fields(_gdf([{"text_colou": "black"}]), _alias_td(), 30)
+    assert out["text_colour"].tolist() == ["black"]
+
+
+def test_alias_missing_everywhere_still_raises():
+    """When neither the canonical name nor any alias is present, it's an error, not a silent null."""
+    with pytest.raises(Exception, match="Source column not found"):
+        normalize_fields(_gdf([{}]), _alias_td(), 67)
 
 
 def test_since_release_honours_default_for_earlier_release():

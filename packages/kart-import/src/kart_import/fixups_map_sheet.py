@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import geopandas as gpd
 
     from kart_import.config import ThemeDataset
+
+logger = logging.getLogger("kart_import")
 
 
 def map_sheet_origin(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
@@ -28,7 +32,7 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
       - "Mt X" -> "Mount X"  (geographic names are stored with the full word)
       - trig code remaps A0TR->A0U2, AP8Y->A4UX
       - macron restorations Putata->Pūtata, Pohoi->Pōhoi, Rahuimokairoa->Rāhuimōkairoa
-      - spelling Mount Treacey->Mount Treacy (gazetteer renamed it in release 66)"""
+    Gazetteer renames, which only hold from some release on, are in `GAZETTEER_RENAMES`."""
     names = gdf["example_name"].astype("string").str.replace(r"^Mt\s+", "Mount ", regex=True)
     names = names.replace(
         {
@@ -37,7 +41,6 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
             "Putata": "Pūtata",
             "Pohoi": "Pōhoi",
             "Rahuimokairoa": "Rāhuimōkairoa",
-            "Mount Treacey": "Mount Treacy",
         }
     )
     gdf = gdf.copy()
@@ -45,7 +48,19 @@ def map_sheet_example_name_fixes(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
     return gdf
 
 
+# Gazetteer renames, old name -> new. Releases from before a rename still carry the old name.
+GAZETTEER_RENAMES = {
+    "Mount Treacey": "Mount Treacy",  # release 67
+}
+
+
+def gazetteer_name(name: str, known) -> str:
+    """`name` if `known` has it, else its gazetteer rename (if any)."""
+    return name if name in known else GAZETTEER_RENAMES.get(name, name)
+
+
 def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    from .assets.export import backfilled_release_ids
     from .assets.transform import read_transform
     from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
 
@@ -68,17 +83,25 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
         sheet_codes, gdf["example_name"], gdf["example_class"], strict=True
     ):
         lookup = trig_lookup if example_class == "trig_pnt" else geographic_name_lookup
-        match = lookup.get(example_name)
+        match = lookup.get(gazetteer_name(example_name, lookup))
         if match is None:
             unmatched.append((sheet_code, example_class, example_name))
         example_point_id.append(match)
 
     if unmatched:
         detail = ", ".join(f"{code} ({cls}: {name!r})" for code, cls, name in unmatched)
-        raise ValueError(
-            f"{td.name}: {len(unmatched)} map sheet(s) have an example_name with no matching "
-            f"trig_point/geographic_name feature - add corrections to map_sheet_example_name_fixes: {detail}"
-        )
+        if td.backfill and release_id in backfilled_release_ids(td.name):
+            # The example names are from the earliest source commit; this release's trig points and
+            # geographic names can predate them, so leave the link empty rather than fail.
+            logger.warning(
+                "backfilled map sheet example_name has no match, example_point_id left empty",
+                extra={"dataset": td.name, "release": release_id, "unmatched": detail},
+            )
+        else:
+            raise ValueError(
+                f"{td.name}: {len(unmatched)} map sheet(s) have an example_name with no matching "
+                f"trig_point/geographic_name feature - add corrections to map_sheet_example_name_fixes: {detail}"
+            )
 
     gdf["example_point_id"] = example_point_id
     gdf = gdf.drop(columns=["example_name", "example_class"])
@@ -87,10 +110,15 @@ def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_
 
 def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """Set `published_version` from the source `edition`, and `published_at`/`updated_at` from the
-    per-sheet edition history in `config/map_sheet_published.yml`"""
+    per-sheet edition history in `config/map_sheet_published.yml`. `created_at` is the sheet's first
+    edition, in place of when it first appeared in the source repo.
+
+    A sheet whose edition was published after this release (a `backfill` release carrying a later
+    export) is rewound to the latest edition published by the release's date. A sheet with no
+    edition that early keeps its earliest known one."""
     import yaml
 
-    from .config import CONFIG_DIR
+    from .config import CONFIG_DIR, get_releases
 
     edition = gdf["published_version"]
     gdf["published_version"] = edition.str.extract(r"Edition\s+([0-9]+(?:\.[0-9]+)?)", expand=False)
@@ -98,13 +126,38 @@ def map_sheet_published(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
     with open(CONFIG_DIR / "map_sheet_published.yml") as f:
         history = yaml.safe_load(f)
 
+    release = next((r for r in get_releases() if r.id == release_id), None)
+    cutoff = release.date.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if release else None
+    too_early = []
+
     def pick(row):
         versions = history.get(row["sheet_code"])
         if not versions:
-            return None
-        return versions.get(row["published_version"]) or max(versions.values())
+            return row["published_version"], None
+        version = row["published_version"]
+        published_at = versions.get(version) or max(versions.values())
+        if cutoff is None or published_at <= cutoff:
+            return version, published_at
+        earlier = [(at, ed) for ed, at in versions.items() if at <= cutoff]
+        if not earlier:
+            too_early.append(row["sheet_code"])
+            earlier = [min((at, ed) for ed, at in versions.items())]
+        published_at, version = max(earlier)
+        return version, published_at
 
-    published_at = gdf.apply(pick, axis=1)
+    picked = [pick(row) for _, row in gdf.iterrows()]
+    if too_early:
+        logger.warning(
+            "map sheet has no edition published by this release, kept its earliest",
+            extra={"dataset": td.name, "release": release_id, "sheets": too_early},
+        )
+    published_at = [at for _, at in picked]
+    gdf["published_version"] = [version for version, _ in picked]
     gdf["published_at"] = published_at
     gdf["updated_at"] = published_at
+    created_at = gdf["created_at"] if "created_at" in gdf.columns else [None] * len(gdf)
+    gdf["created_at"] = [
+        min(history[code].values()) if history.get(code) else at
+        for code, at in zip(gdf["sheet_code"], created_at, strict=True)
+    ]
     return gdf
