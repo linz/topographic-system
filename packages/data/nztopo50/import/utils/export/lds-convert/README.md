@@ -162,6 +162,15 @@ Run a comparison with common noise suppressed:
 uv run python utils\export\lds-convert\match_exports.py --skip-shp-file-id-missing --first-value-mismatch-only
 ```
 
+Compare every record in only the `road_cl` layer:
+
+```powershell
+uv run python utils\export\lds-convert\match_exports.py --layer road_cl --sample-fraction 1
+```
+
+`--layer` accepts the LDS shapefile name with or without the `.shp` suffix and
+matches it case-insensitively.
+
 The comparator:
 
 - Matches records by `t50_fid`, not row position.

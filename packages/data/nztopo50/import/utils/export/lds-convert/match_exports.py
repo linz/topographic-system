@@ -28,6 +28,7 @@ class ShapefileExportComparator:
         new_lds_shapefiles_folder,
         *,
         layer_info=layer_info_file,
+        layer=None,
         skip_shp_file_id_missing=False,
         first_value_mismatch_only=False,
         sample_fraction=SAMPLE_FRACTION,
@@ -37,6 +38,7 @@ class ShapefileExportComparator:
         self.lds_direct_export_folder = Path(lds_direct_export_folder)
         self.new_lds_shapefiles_folder = Path(new_lds_shapefiles_folder)
         self.layer_info = Path(layer_info)
+        self.layer = Path(layer).stem.lower() if layer else None
         self.log_file = self.new_lds_shapefiles_folder / "match_exports.log"
         self.skip_shp_file_id_missing = skip_shp_file_id_missing
         self.first_value_mismatch_only = first_value_mismatch_only
@@ -109,6 +111,8 @@ class ShapefileExportComparator:
         for gpkg_path in sorted(self.lds_direct_export_folder.rglob("*.gpkg")):
             layers = pyogrio.list_layers(gpkg_path)
             if len(layers) != 1:
+                if self.layer is not None:
+                    continue
                 discovery_mismatches += 1
                 self.logger.error(
                     "LDS_DIRECT_EXPORT_GPKG_LAYER_COUNT path=%s layer_count=%s",
@@ -120,12 +124,16 @@ class ShapefileExportComparator:
             kart_layer = str(layers[0][0])
             target_layer = target_by_kart_layer.get(kart_layer.lower())
             if target_layer is None:
+                if self.layer is not None:
+                    continue
                 discovery_mismatches += 1
                 self.logger.error(
                     "LDS_DIRECT_EXPORT_LAYER_UNMAPPED path=%s kart_layer=%s",
                     gpkg_path,
                     kart_layer,
                 )
+                continue
+            if self.layer is not None and target_layer != self.layer:
                 continue
             if target_layer in lds_direct_export_layers:
                 existing_path, _existing_layer = lds_direct_export_layers[target_layer]
@@ -292,10 +300,11 @@ class ShapefileExportComparator:
         self.logger.info(
             "COMPARISON_STARTED start=%s lds_direct_export_folder=%s "
             "new_lds_shapefiles_folder=%s "
-            "skip_shp_file_id_missing=%s first_value_mismatch_only=%s",
+            "layer=%s skip_shp_file_id_missing=%s first_value_mismatch_only=%s",
             start_time.isoformat(),
             self.lds_direct_export_folder,
             self.new_lds_shapefiles_folder,
+            self.layer,
             self.skip_shp_file_id_missing,
             self.first_value_mismatch_only,
         )
@@ -306,6 +315,7 @@ class ShapefileExportComparator:
         shp_file_layers = {
             path.stem.lower(): path
             for path in self.new_lds_shapefiles_folder.glob("*.shp")
+            if self.layer is None or path.stem.lower() == self.layer
         }
 
         missing_layers = sorted(
@@ -376,6 +386,10 @@ def parse_args():
         default=new_lds_shapefiles_folder,
     )
     parser.add_argument("--layer-info", type=Path, default=layer_info_file)
+    parser.add_argument(
+        "--layer",
+        help="Compare only this LDS shapefile layer (with or without .shp)",
+    )
     parser.add_argument("--skip-shp-file-id-missing", action="store_true")
     parser.add_argument(
         "--first-value-mismatch-only",
@@ -398,6 +412,7 @@ if __name__ == "__main__":
         args.lds_direct_export_folder,
         args.new_lds_shapefiles_folder,
         layer_info=args.layer_info,
+        layer=args.layer,
         skip_shp_file_id_missing=args.skip_shp_file_id_missing,
         first_value_mismatch_only=args.first_value_mismatch_only,
         sample_fraction=args.sample_fraction,
