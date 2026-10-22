@@ -16,7 +16,7 @@ def _td(fixups_cfg: list[dict], name: str = "t") -> ThemeDataset:
 def test_map_sheet_origin_uses_top_left_corner():
     """origin_x/origin_y are the sheet polygon's top-left corner (minx, maxy), as nullable floats."""
     gdf = gpd.GeoDataFrame(
-        {"sheet_code": ["BK37"]},
+        {"sheet_code": ["BK37"], "epsg": [2193]},
         geometry=[Polygon([(1876000, 5586000), (1900000, 5586000), (1900000, 5622000), (1876000, 5622000)])],
         crs="EPSG:2193",
     )
@@ -24,6 +24,27 @@ def test_map_sheet_origin_uses_top_left_corner():
     assert out["origin_x"].tolist() == [1876000.0]
     assert out["origin_y"].tolist() == [5622000.0]
     assert str(out["origin_x"].dtype) == "Float64"
+
+
+def test_map_sheet_origin_uses_the_sheet_projection():
+    """Sheets stored in NZGD2000 lat/long get their origin in the projection they are drawn in:
+    NZTM for the mainland, Auckland Islands TM2000 for Snares."""
+    bk37 = gpd.GeoSeries(
+        [Polygon([(1876000, 5586000), (1900000, 5586000), (1900000, 5622000), (1876000, 5622000)])], crs="EPSG:2193"
+    )
+    si01 = gpd.GeoSeries(
+        [Polygon([(3536000, 4668000), (3548000, 4668000), (3548000, 4686000), (3536000, 4686000)])], crs="EPSG:3788"
+    )
+    gdf = gpd.GeoDataFrame(
+        {"sheet_code": ["BK37", "SI01"], "epsg": [2193, 3788]},
+        geometry=[bk37.to_crs("EPSG:4167").iloc[0], si01.to_crs("EPSG:4167").iloc[0]],
+        crs="EPSG:4167",
+    )
+    # stored as the transform leaves it: lat/long at 1e-8 degree precision
+    gdf.geometry = gdf.geometry.set_precision(1e-8)
+    out = fixups_map_sheet.map_sheet_origin(gdf, _td([], name="linz_map_sheet"), 66)
+    assert out["origin_x"].tolist() == [1876000.0, 3536000.0]
+    assert out["origin_y"].tolist() == [5622000.0, 4686000.0]
 
 
 def test_map_sheet_published_matches_current_edition(tmp_path, monkeypatch):
