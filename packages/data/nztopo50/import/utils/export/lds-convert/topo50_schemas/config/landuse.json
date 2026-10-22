@@ -1,0 +1,379 @@
+{
+  "source_layer": "landuse",
+  "targets": [
+    {
+      "target_layer": "cemetery_poly",
+      "schema_key": "cemetery_poly",
+      "feature_type": "cemetery",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "golf_course_poly",
+      "schema_key": "golf_course_poly",
+      "feature_type": "golf_course",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "gravel_pit_poly",
+      "schema_key": "gravel_pit_poly",
+      "feature_type": "gravel_pit",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "landfill_poly",
+      "schema_key": "landfill_poly",
+      "feature_type": "landfill",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "mine_poly",
+      "schema_key": "mine_poly",
+      "feature_type": "mine",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:9"
+        },
+        {
+          "source_field": "substance",
+          "target_field": "substance",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "landuse_type",
+          "target_field": "visibility",
+          "target_type": "str:11"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "pumice_pit_poly",
+      "schema_key": "pumice_pit_poly",
+      "feature_type": "pumice_pit",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "quarry_poly",
+      "schema_key": "quarry_poly",
+      "feature_type": "quarry",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "substance",
+          "target_field": "substance",
+          "target_type": "str:11"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "racetrack_poly",
+      "schema_key": "racetrack_poly",
+      "feature_type": "racetrack",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "landuse_type",
+          "target_field": "track_type",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "landuse_use",
+          "target_field": "track_use",
+          "target_type": "str:7"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "rifle_range_poly",
+      "schema_key": "rifle_range_poly",
+      "feature_type": "rifle_range",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "showground_poly",
+      "schema_key": "showground_poly",
+      "feature_type": "showground",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "sportsfield_poly",
+      "schema_key": "sportsfield_poly",
+      "feature_type": "sportsfield",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "orchard_poly",
+      "schema_key": "orchard_poly",
+      "feature_type": "orchard",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    },
+    {
+      "target_layer": "vineyard_poly",
+      "schema_key": "vineyard_poly",
+      "feature_type": "vineyard",
+      "geometry_type": "Polygon",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Polygon"
+        }
+      ]
+    }
+  ]
+}

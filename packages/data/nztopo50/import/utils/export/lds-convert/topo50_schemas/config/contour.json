@@ -1,0 +1,43 @@
+{
+  "source_layer": "contour",
+  "targets": [
+    {
+      "target_layer": "contour",
+      "schema_key": "contour",
+      "feature_type": "contour",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "definition",
+          "target_field": "definition",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "designation",
+          "target_field": "designated",
+          "target_type": "str:13"
+        },
+        {
+          "source_field": "formation",
+          "target_field": "nat_form",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "elevation",
+          "target_field": "elevation",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}
