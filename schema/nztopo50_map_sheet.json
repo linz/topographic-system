@@ -11,12 +11,7 @@
     "type": { "type": "string", "const": "nztopo50_map_sheet" },
     "sheet_code": { "type": "string" },
     "sheet_name": { "type": "string" },
-    "epsg": {
-      "type": "integer",
-      "minimum": -2147483648,
-      "maximum": 2147483647,
-      "description": "EPSG code of the projection the sheet is drawn in. `origin_x`/`origin_y` are in this projection."
-    },
+    "epsg": { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 },
     "origin_x": { "type": "number" },
     "origin_y": { "type": "number" },
     "cover_front_origin_x": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
