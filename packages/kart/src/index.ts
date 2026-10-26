@@ -1,5 +1,5 @@
 import { traceAndRun } from '@linzjs/topographic-system-shared';
-import { StacPushCommand } from '@linzjs/topographic-system-stac';
+import { StacCatalogCommand, StacPushCommand } from '@linzjs/topographic-system-stac';
 import { subcommands } from 'cmd-ts';
 
 import packageJson from '../package.json' with { type: 'json' };
@@ -35,6 +35,7 @@ export const cmds = {
   validate: ValidateCommand,
   version: VersionCommand,
   'stac-push': StacPushCommand,
+  'stac-catalog': StacCatalogCommand,
   'validate-schema': ValidateSchemaCommand,
   'lint-qgis': LintQgisProjectCommand,
   'data-prep': subcommands({ name: 'data-prep', description: 'Prepare derived data layers', cmds: dataPrepCmds }),

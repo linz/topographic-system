@@ -21,6 +21,7 @@ export { StacGeometry } from './geo.ts';
 export { StacBasic } from './stac.basic.ts';
 export { StacPusher } from './stac.pusher.ts';
 export { StacPushCommand } from './cli/action.stac.push.ts';
+export { StacCatalogCommand } from './cli/action.stac.catalog.ts';
 export { getRelativePath } from './stac.paths.ts';
 export type { StacFileChecksum } from './hash.writer.ts';
 export { StacDownloader, getDataFromCatalog, readCatalog } from './stac.downloader.ts';

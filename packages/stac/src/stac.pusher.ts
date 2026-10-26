@@ -147,6 +147,11 @@ export class StacPusher {
       // Load item links and make relative if possible.
       for (const link of item.links) {
         if (link.rel === 'self' || link.rel === 'collection') continue;
+        // An item's parent is its collection in the target layout, regardless of where the source linked it.
+        if (link.rel === 'parent') {
+          link.href = './collection.json';
+          continue;
+        }
         const relativeLink = getRelativePath(new URL(link.href, itemUrl), targetItemUrl);
         link.href = relativeLink;
       }
