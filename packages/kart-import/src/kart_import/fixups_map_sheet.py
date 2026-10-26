@@ -19,7 +19,8 @@ def map_sheet_origin(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -
 
     origin_x = pd.Series(index=gdf.index, dtype="Float64")
     origin_y = pd.Series(index=gdf.index, dtype="Float64")
-    for epsg, sheets in gdf.groupby("epsg"):
+    for epsg in gdf["epsg"].unique():
+        sheets = gdf[gdf["epsg"] == epsg]
         bounds = sheets.geometry.to_crs(epsg=int(epsg)).bounds
         origin_x[sheets.index] = bounds["minx"].round(0)
         origin_y[sheets.index] = bounds["maxy"].round(0)
