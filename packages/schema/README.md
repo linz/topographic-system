@@ -1,5 +1,8 @@
 # Topographic System Schema Changes
 
+> For how to organize models into namespaces as new datasets (Addressing, Property,
+> BuildingOutlines, ...) are added, see [docs/namespaces.md](./docs/namespaces.md).
+
 ## Step 1
 
 Making a change to the schema - update / add to the require yml schema constructs under **src\features\*.tsp**.
