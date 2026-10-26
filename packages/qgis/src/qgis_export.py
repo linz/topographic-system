@@ -181,9 +181,10 @@ def main():
         topo_sheet_layer = matching_layers[0]
         feature = find_sheet_feature(topo_sheet_layer, args.sheet_code)
 
-        # Draw the sheet in its own projection (`epsg`): sheets are stored in lat/long, but the mainland is
-        # drawn in NZTM and offshore islands in their own TM2000
-        sheet_crs = QgsCoordinateReferenceSystem.fromEpsgId(int(feature["epsg"]))
+        if topo_sheet_layer.fields().indexOf("epsg") >= 0 and feature["epsg"]:
+            sheet_crs = QgsCoordinateReferenceSystem.fromEpsgId(int(feature["epsg"]))
+        else:
+            sheet_crs = map_main.crs()
         map_main.setCrs(sheet_crs)
 
         # Set map item extents
