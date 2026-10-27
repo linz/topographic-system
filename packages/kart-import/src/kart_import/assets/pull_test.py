@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from ..config import Source
-from .pull import pull_dataset
+from .pull import pull_repo
 
 SHA = "a" * 40  # local clone is up to date with the published bundle
 SHA_OLD = "b" * 40  # local clone's HEAD, now behind the published bundle
@@ -33,7 +33,14 @@ def env(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
-    monkeypatch.setattr(f"{MODULE}.DATASET_MAP", {DATASET: MagicMock(source=Source(url="kart@example.com:linz/test"))})
+    repos = {DATASET: [SimpleNamespace(source=Source(url="kart@example.com:linz/test"))]}
+
+    def get_source_repo(name):
+        if name not in repos:
+            raise LookupError(f"No source repo named {name!r}")
+        return repos[name]
+
+    monkeypatch.setattr(f"{MODULE}.get_source_repo", get_source_repo)
     monkeypatch.setattr(f"{MODULE}.run_command", mocks.run_command)
     monkeypatch.setattr(f"{MODULE}.fetch_bundle_head", mocks.fetch_bundle_head)
 
@@ -45,7 +52,7 @@ def _cmds(env) -> list[list[str]]:
 
 
 def test_missing_local_clone_is_skipped(env):
-    pull_dataset(DATASET)
+    pull_repo(DATASET)
 
     assert not any(cmd[:2] == ["kart", "pull"] for cmd in _cmds(env))
     assert (env.target_dir / ".pulled").exists()
@@ -56,7 +63,7 @@ def test_clone_matching_bundle_is_left_alone(env):
     env.fetch_bundle_head.return_value = SHA
     env.state.local_head = SHA
 
-    pull_dataset(DATASET)
+    pull_repo(DATASET)
 
     assert not any(cmd[:2] == ["kart", "pull"] for cmd in _cmds(env))
     assert (env.target_dir / ".pulled").exists()
@@ -67,7 +74,7 @@ def test_clone_behind_bundle_pulls_from_source(env):
     env.fetch_bundle_head.return_value = SHA
     env.state.local_head = SHA_OLD
 
-    pull_dataset(DATASET)
+    pull_repo(DATASET)
 
     cmds = _cmds(env)
     assert ["git", "remote", "set-url", "origin", "kart@example.com:linz/test"] in cmds
@@ -82,11 +89,11 @@ def test_bundle_head_unknown_still_pulls(env):
     env.fetch_bundle_head.return_value = None
     env.state.local_head = SHA
 
-    pull_dataset(DATASET)
+    pull_repo(DATASET)
 
     assert ["kart", "pull"] in _cmds(env)
 
 
-def test_unknown_dataset_raises(env):
-    with pytest.raises(ValueError, match="Dataset not found"):
-        pull_dataset("does_not_exist")
+def test_unknown_repo_raises(env):
+    with pytest.raises(LookupError, match="No source repo"):
+        pull_repo("does_not_exist")

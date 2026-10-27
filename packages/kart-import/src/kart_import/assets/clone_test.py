@@ -2,16 +2,16 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from .clone import clone_dataset
+from .clone import clone_repo
 
-DATASET = "testmapsheet"
+REPO = "topographic-source-data"
 MODULE = "kart_import.assets.clone"
 
 
 def _setup(monkeypatch, tmp_path, *, has_dataset: bool):
     source_dir = tmp_path / "source"
     source_dir.mkdir()
-    target_dir = source_dir / DATASET
+    target_dir = source_dir / REPO
 
     def run_command(cmd, cwd=None, **kwargs):
         if cmd[:2] == ["git", "clone"]:
@@ -23,10 +23,11 @@ def _setup(monkeypatch, tmp_path, *, has_dataset: bool):
     monkeypatch.setattr(f"{MODULE}.run_command", rc)
     monkeypatch.setattr(f"{MODULE}.env_use_bundle", lambda: False)  # exercise the direct-clone path
     monkeypatch.setattr(
-        f"{MODULE}.get_source_entry",
-        lambda name: SimpleNamespace(
-            source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset="linz_map_sheet")
-        ),
+        f"{MODULE}.get_source_repo",
+        lambda name: [
+            SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=ds))
+            for ds in ("linz_map_sheet", "golf_sym")
+        ],
     )
     monkeypatch.setattr(f"{MODULE}._clone_has_dataset", lambda td, wanted: has_dataset)
     return SimpleNamespace(target_dir=target_dir, run_command=rc)
@@ -40,7 +41,7 @@ def test_existing_clone_with_dataset_is_reused(monkeypatch, tmp_path):
     env = _setup(monkeypatch, tmp_path, has_dataset=True)
     (env.target_dir / ".git").mkdir(parents=True)
 
-    clone_dataset(DATASET)
+    clone_repo(REPO)
 
     assert not any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env.run_command))  # reused, no re-clone
     assert (env.target_dir / ".cloned").exists()
@@ -50,7 +51,19 @@ def test_existing_clone_without_dataset_is_recloned(monkeypatch, tmp_path):
     env = _setup(monkeypatch, tmp_path, has_dataset=False)
     (env.target_dir / ".git").mkdir(parents=True)
 
-    clone_dataset(DATASET)
+    clone_repo(REPO)
 
     assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env.run_command))  # wrong repo --> re-cloned
     assert (env.target_dir / ".cloned").exists()
+
+
+def test_clone_must_contain_every_dataset_sourced_from_it(monkeypatch, tmp_path):
+    """A shared clone is only reusable if it holds all of the datasets configured against it."""
+    from . import clone
+
+    monkeypatch.setattr(f"{MODULE}.source_ref", lambda repo_dir: "origin/master")
+    monkeypatch.setattr(f"{MODULE}.ref_has_dataset", lambda repo_dir, ref, ds: ds == "linz_map_sheet")
+
+    assert clone._clone_has_dataset(tmp_path, ["linz_map_sheet"])
+    assert not clone._clone_has_dataset(tmp_path, ["linz_map_sheet", "golf_sym"])
+    assert clone._clone_has_dataset(tmp_path, [])  # single-dataset koordinates repo

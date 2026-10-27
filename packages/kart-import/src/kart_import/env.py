@@ -147,7 +147,7 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
-def env_bundle_url(dataset_name: str) -> str:
+def env_bundle_url(repo_name: str) -> str:
     """
     Location to git bundles stored for easy access
 
@@ -156,7 +156,7 @@ def env_bundle_url(dataset_name: str) -> str:
     base_url = os.getenv("GIT_BUNDLE_URL", "https://d1jzh93b1t1cv.cloudfront.net/source/")
     if not base_url.endswith("/"):
         base_url += "/"
-    return f"{base_url}{dataset_name}.bundle"
+    return f"{base_url}{repo_name}.bundle"
 
 
 def env_bundle_s3_url() -> str:
