@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import pytest
@@ -175,3 +176,104 @@ def test_linearise_without_release_subjects_adds_no_markers(tmp_path):
     linearise(repo, commits)
 
     assert git(repo, "log", "--format=%s", "master").splitlines() == ["import airport at 1700000100"]
+
+
+def make_bucketed_theme_repo(
+    tmp_path, theme: str, release_id: int, buckets: dict[str, str], timestamp: str = "1700000100"
+):
+    """A theme repo whose one commit writes several files under `<theme>/.table-dataset/feature/`,
+    shaped like kart's own hash-bucketed feature layout, so a tiny `threshold` can split it."""
+    repo = tmp_path / f"theme_{theme}_{release_id}"
+    feature_dir = repo / theme / ".table-dataset" / "feature"
+    feature_dir.mkdir(parents=True)
+    git(repo, "init", "-b", "master", ".")
+    (repo / ".kart.repostructure.version").write_text("3\n")
+    for name, content in buckets.items():
+        (feature_dir / name).write_text(content)
+    git(repo, "add", "-A")
+    subprocess.run(
+        ["git", "commit", "-m", f"feat({theme}): import release {release_id}"],
+        cwd=str(repo),
+        capture_output=True,
+        check=True,
+        env={
+            "PATH": "/usr/bin:/bin",
+            "GIT_AUTHOR_DATE": f"{timestamp} +0000",
+            "GIT_COMMITTER_DATE": f"{timestamp} +0000",
+            "GIT_AUTHOR_NAME": "Test",
+            "GIT_AUTHOR_EMAIL": "test@example.com",
+            "GIT_COMMITTER_NAME": "Test",
+            "GIT_COMMITTER_EMAIL": "test@example.com",
+        },
+    )
+    return repo, git(repo, "rev-parse", "HEAD")
+
+
+def _incompressible(nbytes: int) -> str:
+    """Content that won't shrink under pack compression, so its packed size stays predictable."""
+    return os.urandom(nbytes).hex()
+
+
+def test_linearise_splits_an_oversized_commit(tmp_path):
+    """A commit whose new data exceeds `threshold` is replayed as several same-release commits."""
+    buckets = {"00": _incompressible(200), "01": _incompressible(200), "02": _incompressible(200)}
+    repo, sha = make_bucketed_theme_repo(tmp_path, "contour", 30, buckets)
+
+    combined = tmp_path / "combined"
+    combined.mkdir()
+    git(combined, "init", "-b", "master", ".")
+    git(combined, "fetch", str(repo), "master:contour")
+
+    linearise(combined, [("contour", sha)], threshold=100)
+
+    subjects = git(combined, "log", "--reverse", "--format=%s", "master").splitlines()
+    assert subjects[-1] == "release: 30"
+    import_subjects = subjects[:-1]
+    assert len(import_subjects) > 1, "the commit should actually have been split"
+    for i, subject in enumerate(import_subjects, start=1):
+        assert subject == f"feat(contour): import release 30 (part {i}/{len(import_subjects)})"
+
+    # the full tree still matches what one unsplit commit would have produced
+    for name, content in buckets.items():
+        assert git(combined, "show", f"master:contour/.table-dataset/feature/{name}") == content
+    assert git(combined, "show", "master:.kart.repostructure.version") == "3"
+
+
+def test_linearise_split_keeps_release_boundaries_correct(tmp_path):
+    """Splitting a release's import must not disturb where the release marker lands."""
+    buckets = {"00": _incompressible(200), "01": _incompressible(200)}
+    repo30, sha30 = make_bucketed_theme_repo(tmp_path, "contour", 30, buckets, timestamp="1700000100")
+    repo31, sha31 = make_bucketed_theme_repo(tmp_path, "contour", 31, {"00": "small change"}, timestamp="1700000200")
+
+    combined = tmp_path / "combined"
+    combined.mkdir()
+    git(combined, "init", "-b", "master", ".")
+    git(combined, "fetch", str(repo30), "master:contour30")
+    git(combined, "fetch", str(repo31), "master:contour31")
+
+    linearise(combined, [("contour", sha30), ("contour", sha31)], threshold=100)
+
+    subjects = git(combined, "log", "--reverse", "--format=%s", "master").splitlines()
+    marker = subjects.index("release: 30")
+    assert marker > 0, "release 30 should have been split, not replayed as a single commit"
+    assert all(s.startswith("feat(contour): import release 30 (part ") for s in subjects[:marker])
+    # the marker still closes release 30 exactly once, right before release 31's own (unsplit) import
+    assert subjects[marker + 1 :] == ["feat(contour): import release 31", "release: 31"]
+
+
+def test_linearise_does_not_split_under_threshold(tmp_path):
+    """Small, everyday commits replay exactly as before -- unsplit, message untouched."""
+    buckets = {"00": "tiny"}
+    repo, sha = make_bucketed_theme_repo(tmp_path, "contour", 30, buckets)
+
+    combined = tmp_path / "combined"
+    combined.mkdir()
+    git(combined, "init", "-b", "master", ".")
+    git(combined, "fetch", str(repo), "master:contour")
+
+    linearise(combined, [("contour", sha)], threshold=1_500_000_000)
+
+    assert git(combined, "log", "--reverse", "--format=%s", "master").splitlines() == [
+        "feat(contour): import release 30",
+        "release: 30",
+    ]
