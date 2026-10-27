@@ -34,17 +34,16 @@ JSON schemas are stored in a public https accessible location with basic STAC me
 
 ```yml
 /schema/catalog.json # Root catalog pointing to every release
-/schema/latest/collection.json # Links to all schemas within latest (airport, building, etc)
-/schema/latest/airport.json # Same as v2.1
+/schema/latest/collection.json # Links to all schemas within latest (airport, building, etc), assets reference the latest release=v{version} directory
 
-/schema/version=v1.1/collection.json
-/schema/version=v1.1/airport.json
+/schema/release=v1.1/collection.json
+/schema/release=v1.1/airport.json
 
-/schema/version=v1.2/collection.json
-/schema/version=v1.2/airport.json
+/schema/release=v1.2/collection.json
+/schema/release=v1.2/airport.json
 
-/schema/version=v2.1/collection.json
-/schema/version=v2.1/airport.json
+/schema/release=v2.1/collection.json
+/schema/release=v2.1/airport.json
 ```
 
 ### Typescript

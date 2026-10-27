@@ -8,11 +8,26 @@ import { getChildNamespaces, resolveNamespace } from './utils.ts';
 /** Namespace products (e.g. `NzTopo50`, `NzTopo250`) live as direct children of this namespace. */
 export const ROOT_NAMESPACE = 'Linz.Topography';
 
+/** Name of the mutable "latest release" directory nested inside a versioned namespace directory. */
+export const LATEST_DIR = 'latest';
+
+/** Builds the `namespace={dottedPath}` directory segment — the one place this format is defined. */
+function namespaceSegment(dottedPath: string): string {
+  return `namespace=${dottedPath}`;
+}
+
+/** Builds the `release=v{version}` directory segment — the one place this format is defined. */
+function releaseSegment(versionStr: string): string {
+  return `release=v${versionStr}`;
+}
+
 export interface EmissionUnit {
   /** Output path fragment relative to an emitter's output root, including any release segment. */
   path: string;
-  /** `path` without the trailing `release=v{version}` segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
+  /** `path` without the trailing release segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
   namespaceDir: string;
+  /** The release directory segment itself (e.g. `release=v1`), set only when versioned. */
+  releaseDir?: string;
   versionStr?: string;
   productName?: string;
   /** Dotted, lowercased namespace path (e.g. `linz.topography.nztopo50`), set only when `Linz.Topography` was resolved. */
@@ -36,7 +51,7 @@ function planNamespace(ns: any, rootDottedPath: string | undefined): EmissionUni
   const products = getChildNamespaces(ns);
 
   if (products.length === 0) {
-    const namespaceDir = rootDottedPath ? `namespace=${rootDottedPath}` : '';
+    const namespaceDir = rootDottedPath ? namespaceSegment(rootDottedPath) : '';
     return [{ path: namespaceDir, namespaceDir, ns, namespacePath: rootDottedPath }];
   }
 
@@ -44,13 +59,13 @@ function planNamespace(ns: any, rootDottedPath: string | undefined): EmissionUni
 
   // The root's own (shared) types get a standalone unit too, alongside each product.
   if (rootDottedPath) {
-    const namespaceDir = `namespace=${rootDottedPath}`;
+    const namespaceDir = namespaceSegment(rootDottedPath);
     units.push({ path: namespaceDir, namespaceDir, ns, namespacePath: rootDottedPath, ownOnly: true });
   }
 
   for (const product of products) {
     const namespacePath = rootDottedPath ? `${rootDottedPath}.${product.name.toLowerCase()}` : undefined;
-    const namespaceDir = namespacePath ? `namespace=${namespacePath}` : product.name.toLowerCase();
+    const namespaceDir = namespaceSegment(namespacePath ?? product.name.toLowerCase());
     units.push({
       path: namespaceDir,
       namespaceDir,
@@ -86,9 +101,9 @@ export function planEmission(program: Program): EmissionUnit[] {
     for (const snapshot of mutators.snapshots) {
       const versionStr = String(snapshot.version.value ?? snapshot.version.name);
       const { type: mutatedNs } = unsafe_mutateSubgraphWithNamespace(program, [snapshot.mutator], targetNs);
-      const releaseDir = `release=v${versionStr}`;
+      const releaseDir = releaseSegment(versionStr);
       for (const unit of planNamespace(mutatedNs, rootDottedPath)) {
-        units.push({ ...unit, versionStr, path: joinPaths(unit.namespaceDir, releaseDir) });
+        units.push({ ...unit, versionStr, releaseDir, path: joinPaths(unit.namespaceDir, releaseDir) });
       }
     }
     return units;

@@ -3,7 +3,7 @@ import { emitFile, joinPaths, resolvePath } from '@typespec/compiler';
 import { getId } from '@typespec/json-schema';
 
 import type { EmissionUnit } from './plan.ts';
-import { planEmission } from './plan.ts';
+import { LATEST_DIR, planEmission, unitOutputDir } from './plan.ts';
 import { getChildNamespaces } from './utils.ts';
 
 /** Collects `@jsonSchema` ids declared directly on `ns` (no recursion into sub-namespaces). */
@@ -42,18 +42,26 @@ async function emitCollection(
   program: Program,
   assetNames: string[],
   outputDir: string,
-  opts: { id: string; title: string; description: string; rootHref: string },
+  opts: {
+    id: string;
+    title: string;
+    description: string;
+    rootHref: string;
+    parentHref: string;
+    assetHrefPrefix?: string;
+  },
 ): Promise<void> {
+  const assetHrefPrefix = opts.assetHrefPrefix ?? './';
   const assets: Record<string, { href: string; title: string; type: string; roles: string[] }> = {};
   for (const name of assetNames) {
     assets[name] = {
-      href: `./${name}.json`,
+      href: `${assetHrefPrefix}${name}.json`,
       title: `${name} JSON Schema`,
       type: 'application/schema+json',
       roles: ['schema'],
     };
     assets[`${name}_parquet`] = {
-      href: `./${name}.parquet.json`,
+      href: `${assetHrefPrefix}${name}.parquet.json`,
       title: `${name} Parquet Schema`,
       type: 'application/json',
       roles: ['schema'],
@@ -73,7 +81,7 @@ async function emitCollection(
     },
     links: [
       { rel: 'root', href: opts.rootHref, type: 'application/json' },
-      { rel: 'parent', href: opts.rootHref, type: 'application/json' },
+      { rel: 'parent', href: opts.parentHref, type: 'application/json' },
       { rel: 'self', href: './collection.json', type: 'application/json' },
     ],
     assets,
@@ -125,28 +133,61 @@ export async function emitStacMetadata(context: EmitContext<any>, outputDir: str
     const first = nsUnits[0];
     if (!first) continue;
     const { id, title, description } = describeNamespace(first);
-    const namespaceOutputDir = joinPaths(outputDir, namespaceDir);
+    const namespaceOutputDir = unitOutputDir(outputDir, namespaceDir);
+
+    // An unversioned unit's collection lives directly in `namespaceOutputDir`: with only one
+    // namespace there's no wrapping catalog above it (it IS the root); otherwise its parent and
+    // root are both the single top-level catalog one directory up.
+    const unversionedHref = isFlat ? './collection.json' : '../catalog.json';
+    // A versioned unit's collection lives one directory deeper, inside `release=vX/` (or
+    // `latest/`): its parent is always the namespace's own catalog one directory up, but its
+    // root is that same catalog only when it's also the top (isFlat) — otherwise root is the
+    // actual top-level catalog two directories up.
+    const versionedParentHref = '../catalog.json';
+    const versionedRootHref = isFlat ? '../catalog.json' : '../../catalog.json';
 
     const releaseChildren: Array<{ rel: string; href: string; title: string; type: string }> = [];
+    let latestUnit: EmissionUnit | undefined;
     for (const unit of nsUnits) {
       const assetNames = assetNamesForUnit(program, unit);
-      const rootHref = unit.versionStr != null ? '../catalog.json' : isFlat ? './collection.json' : '../catalog.json';
+      const isVersioned = unit.versionStr != null;
 
-      await emitCollection(program, assetNames, joinPaths(outputDir, unit.path), {
-        id: unit.versionStr != null ? `${id}_v${unit.versionStr}` : id,
-        title: unit.versionStr != null ? `${title} — Release v${unit.versionStr}` : title,
+      await emitCollection(program, assetNames, unitOutputDir(outputDir, unit.path), {
+        id: isVersioned ? `${id}_v${unit.versionStr}` : id,
+        title: isVersioned ? `${title} — Release v${unit.versionStr}` : title,
         description,
-        rootHref,
+        parentHref: isVersioned ? versionedParentHref : unversionedHref,
+        rootHref: isVersioned ? versionedRootHref : unversionedHref,
       });
 
-      if (unit.versionStr != null) {
+      if (isVersioned && unit.releaseDir) {
         releaseChildren.push({
           rel: 'child',
-          href: `./release=v${unit.versionStr}/collection.json`,
+          href: `./${unit.releaseDir}/collection.json`,
           title: `Release v${unit.versionStr}`,
           type: 'application/json',
         });
+        // `planEmission` walks versioning snapshots oldest-first, so the last unit is the latest release.
+        latestUnit = unit;
       }
+    }
+
+    if (latestUnit && latestUnit.releaseDir) {
+      const latestAssetNames = assetNamesForUnit(program, latestUnit);
+      await emitCollection(program, latestAssetNames, joinPaths(namespaceOutputDir, LATEST_DIR), {
+        id: `${id}_latest`,
+        title: `${title} — Latest`,
+        description,
+        parentHref: versionedParentHref,
+        rootHref: versionedRootHref,
+        assetHrefPrefix: `../${latestUnit.releaseDir}/`,
+      });
+      releaseChildren.unshift({
+        rel: 'child',
+        href: `./${LATEST_DIR}/collection.json`,
+        title: 'Latest',
+        type: 'application/json',
+      });
     }
 
     let entryFile = 'collection.json';
