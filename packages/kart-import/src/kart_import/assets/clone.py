@@ -47,11 +47,15 @@ def clone_repo(repo_name: str) -> None:
         )
         shutil.rmtree(target_dir)
 
-    # Use the bundle if we can to prevent extra pulls
+    # Use the bundle if we can to prevent extra pulls, then catch up with the real source
+    # repo since the published bundle may be stale.
     if env_use_bundle():
         bundle_target = SOURCE_DIR / f"{repo_name}.bundle"
         try:
             download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
+            logger.info(f"{repo_name}: seeded from bundle; pulling latest from source.")
+            run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
+            run_command(["kart", "pull"], cwd=str(target_dir))
             if _clone_has_dataset(target_dir, wanted):
                 return
             logger.warning(
@@ -64,6 +68,8 @@ def clone_repo(repo_name: str) -> None:
             logger.warning(
                 f"Failed to download and clone from bundle for {repo_name}: {e}. Falling back to direct git clone."
             )
+            if target_dir.exists():
+                shutil.rmtree(target_dir)
 
     # switched to `git clone`. `kart` supports git repos since v0.17.1
     run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])

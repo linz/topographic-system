@@ -4,14 +4,13 @@ from ..command import run_command
 from ..config import SOURCE_DIR, get_source_repo
 from ..git.kart import is_kart
 from ..log import log_context
-from .bundle import fetch_bundle_head
 
 logger = logging.getLogger("kart_import")
 
 """
-Keep an already-cloned local source repo current, cheaply: compare the published bundle's
-HEAD sha (one small ranged HTTP read, see `fetch_bundle_head`) against the local clone's
-HEAD, and only hit the real source with a `kart pull` when they've diverged.
+Keep an already-cloned local source repo current by pulling directly from the real source.
+Bundles are only a fast path for the initial clone; `pull_all` always goes straight to the
+source repo so it never trusts a bundle that may be stale.
 """
 
 
@@ -27,19 +26,7 @@ def pull_repo(repo_name: str) -> None:
         sentinel.touch()
         return
 
-    bundle_head_sha = fetch_bundle_head(repo_name)
-    local_head_sha = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir), check_error=False).strip()
-
-    if bundle_head_sha and local_head_sha and bundle_head_sha == local_head_sha:
-        logger.info(f"{repo_name} already matches the published bundle ({local_head_sha}).")
-        sentinel.touch()
-        return
-
-    logger.info(
-        f"{repo_name}: local clone ({local_head_sha[:8] if local_head_sha else 'unknown'}) is behind "
-        f"the published bundle ({bundle_head_sha[:8] if bundle_head_sha else 'unknown'}); pulling latest.",
-        extra={"path": str(target_dir)},
-    )
+    logger.info(f"{repo_name}: pulling latest from source.", extra={"path": str(target_dir)})
     run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
     run_command(["kart", "pull"], cwd=str(target_dir))
 
