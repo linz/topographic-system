@@ -10,6 +10,7 @@ model nztopo50_map_sheet {
   type: "nztopo50_map_sheet";
   sheet_code: string;
   sheet_name: string;
+  epsg: int32;
   origin_x: float64;
   origin_y: float64;
   cover_front_origin_x: float64 | null;
