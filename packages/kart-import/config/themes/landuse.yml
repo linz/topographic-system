@@ -121,10 +121,10 @@ datasets:
     corrections:
       - column: type
         replace:
-          horse: horse_track
-          vehicle: vehicle_track
-          cycle: cycle_track
-          dog: dog_track
+          horse: horse_racetrack
+          vehicle: vehicle_racetrack
+          cycle: cycle_racetrack
+          dog: dog_racetrack
   - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
     mapping:
       t50_fid: $
