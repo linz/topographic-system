@@ -6,9 +6,9 @@ from ..command import run_command
 from ..env import env_bundle_url
 
 
-def download_bundle(dataset_name: str, target_path: Path) -> None:
+def download_bundle(repo_name: str, target_path: Path) -> None:
     """Download a git bundle from CloudFront to a local path."""
-    url = env_bundle_url(dataset_name)
+    url = env_bundle_url(repo_name)
     with urllib.request.urlopen(url) as response, open(target_path, "wb") as f:
         shutil.copyfileobj(response, f)
 
@@ -18,11 +18,11 @@ def clone_from_bundle(bundle_path: Path, target_dir: Path) -> None:
     run_command(["git", "clone", str(bundle_path), str(target_dir), "--no-checkout"])
 
 
-def download_and_clone_from_bundle(bundle_target: Path, dataset_name: str, target_dir: Path) -> None:
+def download_and_clone_from_bundle(bundle_target: Path, repo_name: str, target_dir: Path) -> None:
     """Download a git bundle from CloudFront to a local path and clone it into target_dir."""
     sentinel = target_dir / ".cloned"
     try:
-        download_bundle(dataset_name, bundle_target)
+        download_bundle(repo_name, bundle_target)
         clone_from_bundle(bundle_target, target_dir)
         sentinel.touch()
         return

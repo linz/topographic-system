@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from ..config import Source
-from .bundle import bundle_dataset, fetch_bundle_head
+from .bundle import bundle_repo, fetch_bundle_head
 
 SHA = "a" * 40  # up-to-date (bundle == remote)
 SHA_OLD = "b" * 40  # stale bundle SHA
@@ -61,7 +61,7 @@ def test_fetch_bundle_head_raises_without_head(monkeypatch, payload):
 
 @pytest.fixture
 def env(tmp_path, monkeypatch):
-    """Patches all `bundle_dataset` collaborators and exposes them as attributes."""
+    """Patches all `bundle_repo` collaborators and exposes them as attributes."""
     source_dir = tmp_path / "source"
     source_dir.mkdir()
 
@@ -91,11 +91,12 @@ def env(tmp_path, monkeypatch):
         download_and_clone_from_bundle=MagicMock(),
         run_in_thread_pool=MagicMock(return_value=[]),
         should_pull=MagicMock(return_value=True),
+        repos={DATASET: [SimpleNamespace(name=DATASET, source=Source(url="kart@example.com:linz/test"))]},
     )
 
     monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
     monkeypatch.setattr(f"{MODULE}.WORKING_EXPORTS_DIR", tmp_path / "exports")
-    monkeypatch.setattr(f"{MODULE}.DATASET_MAP", {DATASET: MagicMock(source=Source(url="kart@example.com:linz/test"))})
+    monkeypatch.setattr(f"{MODULE}.get_source_repo", lambda name: mocks.repos[name])
     monkeypatch.setattr(f"{MODULE}.get_kart_dataset_id", MagicMock(return_value="ds_id"))
     monkeypatch.setattr(f"{MODULE}.env_bundle_s3_url", MagicMock(return_value=S3_URL))
     for name in (
@@ -118,7 +119,7 @@ def test_skip_when_bundle_matches_remote(env):
     env.fetch_bundle_head.return_value = SHA
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     assert (env.target_dir / ".bundle_created").exists()
     assert not any("create" in cmd for cmd in _cmds(env))
@@ -130,7 +131,7 @@ def test_stale_downloads_and_clones_when_no_local_repo(env):
     env.state.remote_sha = SHA_NEW
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     env.download_and_clone_from_bundle.assert_called_once_with(env.bundle_path, DATASET, env.target_dir)
 
@@ -142,7 +143,7 @@ def test_stale_with_local_repo_pulls_not_seeds(env):
     env.state.remote_sha = SHA_NEW
     (env.target_dir / ".kart").mkdir(parents=True)
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     env.download_and_clone_from_bundle.assert_not_called()
     assert ["kart", "pull"] in _cmds(env)
@@ -171,7 +172,7 @@ def test_pull_unrelated_history_falls_back_to_fresh_clone(env):
     (env.target_dir / ".kart").mkdir(parents=True)
     env.run_command.side_effect = _raise_on_pull("Error: Commits aaa and bbb aren't related.")
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     cmds = _cmds(env)
     assert ["kart", "pull"] in cmds  # attempted the delta pull
@@ -197,7 +198,7 @@ def test_pull_divergence_triggers_fresh_clone(env, monkeypatch):
 
     env.run_command.side_effect = rc
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     cmds = _cmds(env)
     assert ["kart", "pull"] in cmds  # attempted the delta pull
@@ -212,7 +213,7 @@ def test_pull_other_error_reraises(env):
     env.run_command.side_effect = _raise_on_pull("Error: could not resolve host github.com")
 
     with pytest.raises(subprocess.CalledProcessError):
-        bundle_dataset(DATASET)
+        bundle_repo(DATASET)
 
     assert not any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
 
@@ -225,7 +226,7 @@ def test_seed_then_unrelated_falls_back_to_fresh_clone(env):
     env.download_and_clone_from_bundle.side_effect = lambda _b, _n, target: (target / ".git").mkdir(parents=True)
     env.run_command.side_effect = _raise_on_pull("Error: Commits aaa and bbb aren't related.")
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     env.download_and_clone_from_bundle.assert_called_once()
     assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
@@ -234,7 +235,7 @@ def test_seed_then_unrelated_falls_back_to_fresh_clone(env):
 def test_no_bundle_git_clones_when_no_local_repo(env):
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env))
     assert not any(cmd[:2] == ["kart", "clone"] for cmd in _cmds(env))
@@ -245,7 +246,7 @@ def test_no_bundle_pull_behavior_with_local_repo(env, should_pull, expect_pull):
     env.should_pull.return_value = should_pull
     (env.target_dir / ".kart").mkdir(parents=True)
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     cmds = _cmds(env)
     assert (["kart", "pull"] in cmds) is expect_pull
@@ -255,7 +256,7 @@ def test_no_bundle_pull_behavior_with_local_repo(env, should_pull, expect_pull):
 def test_creates_bundle_and_uploads_to_s3(env):
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     cmds = _cmds(env)
     bundle_path = str(env.bundle_path)
@@ -264,16 +265,14 @@ def test_creates_bundle_and_uploads_to_s3(env):
     assert (env.target_dir / ".bundle_created").exists()
 
 
-def test_multi_dataset_source_uses_configured_dataset_id(env, monkeypatch):
-    """A multi-dataset source repo (e.g. topographic-source-data) must export the configured source.dataset."""
-    monkeypatch.setattr(
-        f"{MODULE}.DATASET_MAP",
-        {
-            DATASET: MagicMock(
-                source=Source(url="git@github.com:linz/topographic-source-data", dataset="linz_map_sheet")
-            )
-        },
-    )
+def test_multi_dataset_source_exports_each_configured_dataset(env, monkeypatch):
+    """A shared multi-dataset source repo (e.g. topographic-source-data) is bundled once, and every
+    dataset sourced from it exports its configured source.dataset under its own name."""
+    url = "git@github.com:linz/topographic-source-data"
+    env.repos[DATASET] = [
+        SimpleNamespace(name="map_sheet", source=Source(url=url, dataset="linz_map_sheet")),
+        SimpleNamespace(name="golf", source=Source(url=url, dataset="golf_sym")),
+    ]
     # auto-detect would raise on a multi-dataset repo; ensure it's never consulted.
     monkeypatch.setattr(f"{MODULE}.get_kart_dataset_id", MagicMock(side_effect=AssertionError("must not auto-detect")))
     commit_sha = "d" * 40
@@ -282,9 +281,13 @@ def test_multi_dataset_source_uses_configured_dataset_id(env, monkeypatch):
     env.run_in_thread_pool.side_effect = _inline_pool
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
-    assert any(cmd[:2] == ["kart", "export"] and "linz_map_sheet" in cmd for cmd in _cmds(env))
+    cmds = _cmds(env)
+    assert sum("bundle" in cmd and "create" in cmd for cmd in cmds) == 1
+    for name, dataset_id in (("map_sheet", "linz_map_sheet"), ("golf", "golf_sym")):
+        assert any(cmd[:2] == ["kart", "export"] and dataset_id in cmd for cmd in cmds)
+        assert any(cmd[:3] == ["aws", "s3", "cp"] and f"{S3_URL}{name}/{commit_sha}.json.gz" in cmd for cmd in cmds)
 
 
 def test_export_skips_commits_without_the_dataset(env, monkeypatch):
@@ -307,7 +310,7 @@ def test_export_skips_commits_without_the_dataset(env, monkeypatch):
     env.run_in_thread_pool.side_effect = _inline_pool
     (env.target_dir / ".kart").mkdir(parents=True)  # existing repo -> pull path (no fresh clone)
 
-    bundle_dataset(DATASET)  # must not raise
+    bundle_repo(DATASET)  # must not raise
 
     cmds = _cmds(env)
     assert not any(cmd[0] == "gzip" for cmd in cmds)  # skipped before gzip/upload
@@ -333,7 +336,7 @@ def test_export_commit_behavior(env, s3_result, expect_export):
     env.run_in_thread_pool.side_effect = _inline_pool
     env.target_dir.mkdir()
 
-    bundle_dataset(DATASET)
+    bundle_repo(DATASET)
 
     cmds = _cmds(env)
     exported = any(cmd[:2] == ["kart", "export"] and commit_sha in cmd for cmd in cmds)

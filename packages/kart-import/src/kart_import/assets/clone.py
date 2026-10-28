@@ -5,7 +5,7 @@ from pathlib import Path
 from ..command import run_command
 from ..config import (
     SOURCE_DIR,
-    get_source_entry,
+    get_source_repo,
 )
 from ..env import env_use_bundle
 from ..git.bundle import download_and_clone_from_bundle
@@ -15,24 +15,25 @@ from ..log import log_context
 logger = logging.getLogger("kart_import")
 
 
-def _clone_has_dataset(target_dir: Path, wanted: str | None) -> bool:
-    """Whether the clone actually contains the configured dataset at its source tip.
+def _clone_has_dataset(target_dir: Path, wanted: list[str]) -> bool:
+    """Whether the clone actually contains every configured dataset at its source tip.
 
-    Only checked when the dataset id is known (multi-dataset repos declare ``source.dataset``);
-    single-dataset koordinates repos (``wanted is None``) can be used as-is.
+    Only checked when the dataset ids are known (multi-dataset repos declare ``source.dataset``);
+    single-dataset koordinates repos (``wanted`` empty) can be used as-is.
     Guards against a clone that is the wrong repo or a stale bundle that doesn't contain the dataset.
     """
     if not wanted:
         return True
-    return ref_has_dataset(target_dir, source_ref(target_dir), wanted)
+    ref = source_ref(target_dir)
+    return all(ref_has_dataset(target_dir, ref, dataset_id) for dataset_id in wanted)
 
 
-def clone_dataset(dataset_name: str) -> None:
-    td = get_source_entry(dataset_name)
-    dataset_url = td.source.url
-    wanted = td.source.dataset
+def clone_repo(repo_name: str) -> None:
+    entries = get_source_repo(repo_name)
+    dataset_url = entries[0].source.url
+    wanted = sorted({e.source.dataset for e in entries if e.source.dataset})
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-    target_dir = SOURCE_DIR / dataset_name
+    target_dir = SOURCE_DIR / repo_name
     sentinel = target_dir / ".cloned"
 
     if is_kart(target_dir):
@@ -48,9 +49,9 @@ def clone_dataset(dataset_name: str) -> None:
 
     # Use the bundle if we can to prevent extra pulls
     if env_use_bundle():
-        bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
+        bundle_target = SOURCE_DIR / f"{repo_name}.bundle"
         try:
-            download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
+            download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
             if _clone_has_dataset(target_dir, wanted):
                 return
             logger.warning(
@@ -61,7 +62,7 @@ def clone_dataset(dataset_name: str) -> None:
             shutil.rmtree(target_dir)
         except Exception as e:
             logger.warning(
-                f"Failed to download and clone from bundle for {dataset_name}: {e}. Falling back to direct git clone."
+                f"Failed to download and clone from bundle for {repo_name}: {e}. Falling back to direct git clone."
             )
 
     # switched to `git clone`. `kart` supports git repos since v0.17.1
@@ -74,8 +75,8 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: uv run python -m kart_import.assets.clone <dataset_name>")
+        print("Usage: uv run python -m kart_import.assets.clone <repo_name>")
         sys.exit(1)
-    dataset = sys.argv[1]
-    with log_context(action="clone", dataset=dataset):
-        clone_dataset(dataset)
+    repo = sys.argv[1]
+    with log_context(action="clone", repo=repo):
+        clone_repo(repo)

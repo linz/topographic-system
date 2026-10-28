@@ -5,7 +5,14 @@ from pathlib import Path
 from typing import Any
 
 from ..command import run_command
-from ..config import SOURCE_DIR, WORKING_LIFECYCLE_DIR, Release, get_dataset_by_name, get_releases
+from ..config import (
+    SOURCE_DIR,
+    WORKING_LIFECYCLE_DIR,
+    Release,
+    get_dataset_by_name,
+    get_releases,
+    get_source_repo_name,
+)
 from ..git.kart import get_kart_dataset_id
 from ..git.release import get_release_commit
 from ..log import log_context
@@ -119,7 +126,7 @@ def parse_kart_diff(
 
 
 def generate_lifecycle(dataset_name: str):
-    repo_dir = SOURCE_DIR / dataset_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(get_dataset_by_name(dataset_name))
     dataset_id = resolve_dataset_id(dataset_name, repo_dir)
     releases = get_releases()
 

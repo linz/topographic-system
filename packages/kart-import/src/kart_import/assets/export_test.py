@@ -1,8 +1,11 @@
 import pytest
 
 from .. import export_paths
+from ..config import Source
 from ..export_paths import export_filename
 from . import export
+
+REPO_URL = "git@github.com:linz/topographic-source-data"
 
 
 def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
@@ -63,7 +66,9 @@ def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
-    monkeypatch.setattr(export, "get_source_entry", lambda _: SimpleNamespace(source=SimpleNamespace(dataset="ds")))
+    monkeypatch.setattr(
+        export, "get_source_entry", lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
+    )
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=None) for r in (66, 67)])
     monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("before", "2026-09-14"))
     monkeypatch.setattr(export, "ref_has_dataset", lambda *_: False)
@@ -105,7 +110,9 @@ def test_backfill_dataset_links_predating_releases_to_its_earliest_export(tmp_pa
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
     monkeypatch.setattr(
-        export, "get_source_entry", lambda _: SimpleNamespace(source=SimpleNamespace(dataset="ds"), backfill=True)
+        export,
+        "get_source_entry",
+        lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"), backfill=True),
     )
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=r) for r in (30, 66)])
     monkeypatch.setattr(

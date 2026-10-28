@@ -97,6 +97,19 @@ class Source(BaseModel):
         return data
 
 
+def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
+    """Local clone (and bundle) name for an entry's source repo.
+
+    A multi-dataset repo (one that needs ``source.dataset``, e.g. topographic-source-data) is
+    shared by every entry pulling from it, so it is cloned once under its repo name.
+    A single-dataset Koordinates repo keeps the entry's own name.
+    """
+    if entry.source.dataset is None:
+        return entry.name
+    # "git@github.com:linz/topographic-source-data(.git)" -> "topographic-source-data"
+    return entry.source.url.rstrip("/").removesuffix(".git").rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+
+
 class FieldSpec(BaseModel):
     """A single target column's mapping rule.
 
@@ -352,6 +365,8 @@ DATASET_MAP: dict[str, ThemeDataset] = {}
 DATASET_TO_THEME_MAP: dict[str, Theme] = {}
 LOOKUP_MAP: dict[str, Lookup] = {}
 LOOKUP_TO_THEME_MAP: dict[str, Theme] = {}
+SOURCE_REPO_MAP: dict[str, list["ThemeDataset | Lookup"]] = {}
+"""Source repo name -> every dataset/lookup cloned from it."""
 
 
 def load_config(file_name: str) -> Theme:
@@ -435,6 +450,25 @@ def get_source_entry(name: str) -> ThemeDataset | Lookup:
     if name in LOOKUP_MAP:
         return LOOKUP_MAP[name]
     raise LookupError(f"No dataset or lookup named {name!r}")
+
+
+def get_source_repo(repo_name: str) -> list[ThemeDataset | Lookup]:
+    """Every dataset/lookup sourced from the named local source repo."""
+    entries = SOURCE_REPO_MAP.get(repo_name)
+    if not entries:
+        raise LookupError(f"No source repo named {repo_name!r}")
+    return entries
+
+
+def _register_source_repo(entry: ThemeDataset | Lookup) -> None:
+    repo_name = get_source_repo_name(entry)
+    entries = SOURCE_REPO_MAP.setdefault(repo_name, [])
+    if entries and entries[0].source.url != entry.source.url:
+        raise ValueError(
+            f"{entry.name!r} source {entry.source.url!r} clashes with source repo {repo_name!r} "
+            f"({entries[0].source.url!r})"
+        )
+    entries.append(entry)
 
 
 def _validate_dataset_joins(
@@ -521,12 +555,14 @@ def load_from_yaml():
                 raise ValueError(f"Dataset {dataset.name!r} name collides with an existing dataset/lookup")
             DATASET_MAP[dataset.name] = dataset
             DATASET_TO_THEME_MAP[dataset.name] = theme
+            _register_source_repo(dataset)
 
         for lookup in theme.lookups:
             if lookup.name in DATASET_MAP or lookup.name in LOOKUP_MAP:
                 raise ValueError(f"Lookup {lookup.name!r} name collides with an existing dataset/lookup")
             LOOKUP_MAP[lookup.name] = lookup
             LOOKUP_TO_THEME_MAP[lookup.name] = theme
+            _register_source_repo(lookup)
 
         validate_theme_joins(theme)
         check_theme_or_warn(theme)

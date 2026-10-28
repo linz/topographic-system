@@ -55,14 +55,14 @@ in everything they need, so `all` on its own builds the lot.
 
 | Target                                  | Builds                                       | What it does                                                                                      |
 | --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `clone_<dataset>` / `clone_all`         | `data/source/<dataset>/.cloned`              | clone the LDS source repos                                                                        |
+| `clone_<dataset>` / `clone_all`         | `data/source/<source>/.cloned`               | clone the source repos (once per source repo; see [Source repos](#source-repos))                  |
 | `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.fgb` | export, transform and merge the theme's datasets, for every configured release                    |
 | `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                 | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle |
 | `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
 | `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
 | `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
-| `bundle_all`                            | `data/source/<dataset>/.bundle_created`      | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
-| `pull_all`                              | `data/source/<dataset>/.pulled`              | refresh already-cloned sources that have fallen behind the published bundle                       |
+| `bundle_all`                            | `data/source/<source>/.bundle_created`       | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
+| `pull_all`                              | `data/source/<source>/.pulled`               | refresh already-cloned sources that have fallen behind the published bundle                       |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot
@@ -80,6 +80,15 @@ Two flags worth knowing when re-running:
 - `--forceall` rebuilds the **entire** DAG behind the target, which includes re-cloning every
   source dataset. To redo only the import stage, delete the sentinels you want rebuilt
   (`data/output/<repo>/.imported`, `data/output/<theme>.bundle`) and re-run without it.
+
+### Source repos
+
+Each source repo is cloned once under `data/source/<source>/`, and every dataset and lookup sourced
+from it reads that clone. A single-dataset Koordinates repo is named after its dataset
+(`data/source/nz_airport_polygons`); a multi-dataset repo, one whose entries set `source.dataset`, is
+named after the repo and shared, so every dataset pulling from `topographic-source-data` uses
+`data/source/topographic-source-data`. Its S3 bundle is named the same way
+(`topographic-source-data.bundle`).
 
 ### Limiting the work
 
@@ -233,8 +242,8 @@ These are created with the "bundle_all" assets.
 uv run snakemake --cores=4 bundle_all
 ```
 
-To (re)create the bundle for a single dataset, target its `.bundle_created`
-sentinel (there is no per-dataset named rule for bundling):
+To (re)create the bundle for a single source repo, target its `.bundle_created`
+sentinel (there is no per-repo named rule for bundling):
 
 ```shell
 uv run snakemake --cores=4 data/source/nz_airport_polygons/.bundle_created --quiet | npx pjl

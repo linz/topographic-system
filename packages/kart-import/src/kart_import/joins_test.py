@@ -163,7 +163,7 @@ def test_apply_joins_picks_parquet_for_resolved_commit(env, monkeypatch):
 def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
     """The release->commit gate is purely 'what commit does the lookup have as-of this release'."""
     monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
-    (tmp_path / "road_lkp").mkdir()
+    (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
 
     monkeypatch.setattr(joins, "get_release_commit", lambda repo, until: ("abcdef12", "2026-05-15T00:00:00Z"))
     assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
@@ -187,7 +187,7 @@ def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
 def test_resolve_lookup_commit_errors_on_bad_clone(tmp_path, monkeypatch, make_clone, get_commit, match):
     monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
     if make_clone:
-        (tmp_path / "road_lkp").mkdir()
+        (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
         monkeypatch.setattr(joins, "get_release_commit", get_commit)
     with pytest.raises(FileNotFoundError, match=match):
         joins._resolve_lookup_commit("road_lkp", 66)
