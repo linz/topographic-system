@@ -27,8 +27,9 @@ def pull_repo(repo_name: str) -> None:
         return
 
     logger.info(f"{repo_name}: pulling latest from source.", extra={"path": str(target_dir)})
-    run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
-    run_command(["kart", "pull"], cwd=str(target_dir))
+    with log_context(action="git_remote_pull", repo=repo_name):
+        run_command(["git", "remote", "set-url", "origin", dataset_source], cwd=str(target_dir))
+        run_command(["kart", "pull"], cwd=str(target_dir))
 
     sentinel.touch()
 

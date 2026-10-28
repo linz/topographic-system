@@ -54,8 +54,9 @@ def clone_repo(repo_name: str) -> None:
         try:
             download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
             logger.info(f"{repo_name}: seeded from bundle; pulling latest from source.")
-            run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
-            run_command(["kart", "pull"], cwd=str(target_dir))
+            with log_context(action="git_remote_pull", repo=repo_name):
+                run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
+                run_command(["kart", "pull"], cwd=str(target_dir))
             if _clone_has_dataset(target_dir, wanted):
                 return
             logger.warning(
@@ -72,7 +73,8 @@ def clone_repo(repo_name: str) -> None:
                 shutil.rmtree(target_dir)
 
     # switched to `git clone`. `kart` supports git repos since v0.17.1
-    run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
+    with log_context(action="git_clone", repo=repo_name):
+        run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
 
     sentinel.touch()
 
