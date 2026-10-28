@@ -4,13 +4,15 @@ from pathlib import Path
 
 from ..command import run_command
 from ..env import env_bundle_url
+from ..log import log_context
 
 
 def download_bundle(repo_name: str, target_path: Path) -> None:
     """Download a git bundle from CloudFront to a local path."""
-    url = env_bundle_url(repo_name)
-    with urllib.request.urlopen(url) as response, open(target_path, "wb") as f:
-        shutil.copyfileobj(response, f)
+    with log_context(action="bundle_download", repo=repo_name):
+        url = env_bundle_url(repo_name)
+        with urllib.request.urlopen(url) as response, open(target_path, "wb") as f:
+            shutil.copyfileobj(response, f)
 
 
 def clone_from_bundle(bundle_path: Path, target_dir: Path) -> None:

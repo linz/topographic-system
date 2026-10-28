@@ -67,3 +67,69 @@ def test_clone_must_contain_every_dataset_sourced_from_it(monkeypatch, tmp_path)
     assert clone._clone_has_dataset(tmp_path, ["linz_map_sheet"])
     assert not clone._clone_has_dataset(tmp_path, ["linz_map_sheet", "golf_sym"])
     assert clone._clone_has_dataset(tmp_path, [])  # single-dataset koordinates repo
+
+
+def test_bundle_clone_is_updated_from_the_real_source(monkeypatch, tmp_path):
+    """Cloning seeds from the bundle for speed, then pulls from the real source since the
+    published bundle may be stale."""
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+
+    def run_command(cmd, cwd=None, **kwargs):
+        return ""
+
+    def download_and_clone_from_bundle(bundle_target, repo_name, target_dir):
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+    rc = MagicMock(side_effect=run_command)
+    monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
+    monkeypatch.setattr(f"{MODULE}.run_command", rc)
+    monkeypatch.setattr(f"{MODULE}.env_use_bundle", lambda: True)
+    monkeypatch.setattr(f"{MODULE}.download_and_clone_from_bundle", download_and_clone_from_bundle)
+    monkeypatch.setattr(
+        f"{MODULE}.get_source_repo",
+        lambda name: [
+            SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=None))
+        ],
+    )
+    monkeypatch.setattr(f"{MODULE}._clone_has_dataset", lambda td, wanted: True)
+
+    clone_repo(REPO)
+
+    cmds = [c.args[0] for c in rc.call_args_list]
+    assert ["git", "remote", "set-url", "origin", "git@github.com:linz/topographic-source-data"] in cmds
+    assert ["kart", "pull"] in cmds
+    assert not any(cmd[:2] == ["git", "clone"] for cmd in cmds)
+
+
+def test_bundle_clone_skips_source_pull_when_stubbed(monkeypatch, tmp_path):
+    """KART_IMPORT_SKIP_SOURCE_PULL trusts the bundle as-is, for environments (e2e) with no
+    credentials to reach the real source."""
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+
+    def run_command(cmd, cwd=None, **kwargs):
+        return ""
+
+    def download_and_clone_from_bundle(bundle_target, repo_name, target_dir):
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+    rc = MagicMock(side_effect=run_command)
+    monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
+    monkeypatch.setattr(f"{MODULE}.run_command", rc)
+    monkeypatch.setattr(f"{MODULE}.env_use_bundle", lambda: True)
+    monkeypatch.setattr(f"{MODULE}.env_skip_source_pull", lambda: True)
+    monkeypatch.setattr(f"{MODULE}.download_and_clone_from_bundle", download_and_clone_from_bundle)
+    monkeypatch.setattr(
+        f"{MODULE}.get_source_repo",
+        lambda name: [
+            SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=None))
+        ],
+    )
+    monkeypatch.setattr(f"{MODULE}._clone_has_dataset", lambda td, wanted: True)
+
+    clone_repo(REPO)
+
+    cmds = [c.args[0] for c in rc.call_args_list]
+    assert not any(cmd[:2] == ["kart", "pull"] for cmd in cmds)
+    assert not any(cmd[:2] == ["git", "clone"] for cmd in cmds)

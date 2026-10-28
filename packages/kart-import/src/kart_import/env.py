@@ -129,6 +129,21 @@ def env_use_bundle() -> bool:
     return os.getenv("GIT_BUNDLE", "true").lower() == "true"
 
 
+def env_skip_source_pull() -> bool:
+    """
+    Stub out the live `kart pull`/`git clone` against the real source repo, trusting
+    whatever is already on disk (a bundle-seeded clone, or an existing clone) as-is.
+
+    For environments without credentials to reach the real source (e.g. e2e CI), where
+    a bundle that's slightly stale is an acceptable trade-off for not needing live access.
+    Leave unset in production: bundles do go stale, which is why clone/pull_all pull from
+    source at all.
+
+    KART_IMPORT_SKIP_SOURCE_PULL=true
+    """
+    return os.getenv("KART_IMPORT_SKIP_SOURCE_PULL", "false").lower() == "true"
+
+
 def env_push_to_master() -> bool:
     """
     Push the built target repo to `master` instead of a release-named branch.

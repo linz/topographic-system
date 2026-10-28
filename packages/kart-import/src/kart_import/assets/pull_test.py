@@ -6,8 +6,6 @@ import pytest
 from ..config import Source
 from .pull import pull_repo
 
-SHA = "a" * 40  # local clone is up to date with the published bundle
-SHA_OLD = "b" * 40  # local clone's HEAD, now behind the published bundle
 DATASET = "test_dataset"
 MODULE = "kart_import.assets.pull"
 
@@ -18,18 +16,12 @@ def env(tmp_path, monkeypatch):
     source_dir.mkdir()
     target_dir = source_dir / DATASET
 
-    state = SimpleNamespace(local_head=SHA)
-
     def run_command(cmd, cwd=None, **kwargs):
-        if cmd[:2] == ["git", "rev-parse"]:
-            return f"{state.local_head}\n"
         return ""
 
     mocks = SimpleNamespace(
         target_dir=target_dir,
-        state=state,
         run_command=MagicMock(side_effect=run_command),
-        fetch_bundle_head=MagicMock(return_value=SHA),
     )
 
     monkeypatch.setattr(f"{MODULE}.SOURCE_DIR", source_dir)
@@ -42,7 +34,7 @@ def env(tmp_path, monkeypatch):
 
     monkeypatch.setattr(f"{MODULE}.get_source_repo", get_source_repo)
     monkeypatch.setattr(f"{MODULE}.run_command", mocks.run_command)
-    monkeypatch.setattr(f"{MODULE}.fetch_bundle_head", mocks.fetch_bundle_head)
+    monkeypatch.setattr(f"{MODULE}.env_skip_source_pull", lambda: False)
 
     return mocks
 
@@ -58,21 +50,9 @@ def test_missing_local_clone_is_skipped(env):
     assert (env.target_dir / ".pulled").exists()
 
 
-def test_clone_matching_bundle_is_left_alone(env):
+def test_existing_clone_always_pulls_directly_from_source(env):
+    """`pull_all` ignores published bundles entirely and always pulls straight from source."""
     (env.target_dir / ".kart").mkdir(parents=True)
-    env.fetch_bundle_head.return_value = SHA
-    env.state.local_head = SHA
-
-    pull_repo(DATASET)
-
-    assert not any(cmd[:2] == ["kart", "pull"] for cmd in _cmds(env))
-    assert (env.target_dir / ".pulled").exists()
-
-
-def test_clone_behind_bundle_pulls_from_source(env):
-    (env.target_dir / ".kart").mkdir(parents=True)
-    env.fetch_bundle_head.return_value = SHA
-    env.state.local_head = SHA_OLD
 
     pull_repo(DATASET)
 
@@ -82,18 +62,18 @@ def test_clone_behind_bundle_pulls_from_source(env):
     assert (env.target_dir / ".pulled").exists()
 
 
-def test_bundle_head_unknown_still_pulls(env):
-    """A bundle that can't be reached (`fetch_bundle_head` returns None) can't confirm
-    freshness, so pull defensively rather than silently trusting the local clone."""
-    (env.target_dir / ".kart").mkdir(parents=True)
-    env.fetch_bundle_head.return_value = None
-    env.state.local_head = SHA
-
-    pull_repo(DATASET)
-
-    assert ["kart", "pull"] in _cmds(env)
-
-
 def test_unknown_repo_raises(env):
     with pytest.raises(LookupError, match="No source repo"):
         pull_repo("does_not_exist")
+
+
+def test_skips_source_pull_when_stubbed(env, monkeypatch):
+    """KART_IMPORT_SKIP_SOURCE_PULL trusts the existing clone as-is, for environments (e2e)
+    with no credentials to reach the real source."""
+    (env.target_dir / ".kart").mkdir(parents=True)
+    monkeypatch.setattr(f"{MODULE}.env_skip_source_pull", lambda: True)
+
+    pull_repo(DATASET)
+
+    assert not any(cmd[:2] == ["kart", "pull"] for cmd in _cmds(env))
+    assert (env.target_dir / ".pulled").exists()

@@ -7,7 +7,7 @@ from ..config import (
     SOURCE_DIR,
     get_source_repo,
 )
-from ..env import env_use_bundle
+from ..env import env_skip_source_pull, env_use_bundle
 from ..git.bundle import download_and_clone_from_bundle
 from ..git.kart import is_kart, ref_has_dataset, source_ref
 from ..log import log_context
@@ -47,11 +47,19 @@ def clone_repo(repo_name: str) -> None:
         )
         shutil.rmtree(target_dir)
 
-    # Use the bundle if we can to prevent extra pulls
+    # Use the bundle if we can to prevent extra pulls, then catch up with the real source
+    # repo since the published bundle may be stale.
     if env_use_bundle():
         bundle_target = SOURCE_DIR / f"{repo_name}.bundle"
         try:
             download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
+            if env_skip_source_pull():
+                logger.info(f"{repo_name}: seeded from bundle; skipping source pull (KART_IMPORT_SKIP_SOURCE_PULL).")
+            else:
+                logger.info(f"{repo_name}: seeded from bundle; pulling latest from source.")
+                with log_context(action="git_remote_pull", repo=repo_name):
+                    run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
+                    run_command(["kart", "pull"], cwd=str(target_dir))
             if _clone_has_dataset(target_dir, wanted):
                 return
             logger.warning(
@@ -64,9 +72,12 @@ def clone_repo(repo_name: str) -> None:
             logger.warning(
                 f"Failed to download and clone from bundle for {repo_name}: {e}. Falling back to direct git clone."
             )
+            if target_dir.exists():
+                shutil.rmtree(target_dir)
 
     # switched to `git clone`. `kart` supports git repos since v0.17.1
-    run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
+    with log_context(action="git_clone", repo=repo_name):
+        run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
 
     sentinel.touch()
 
