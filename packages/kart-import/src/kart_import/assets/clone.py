@@ -7,7 +7,7 @@ from ..config import (
     SOURCE_DIR,
     get_source_repo,
 )
-from ..env import env_use_bundle
+from ..env import env_skip_source_pull, env_use_bundle
 from ..git.bundle import download_and_clone_from_bundle
 from ..git.kart import is_kart, ref_has_dataset, source_ref
 from ..log import log_context
@@ -53,10 +53,13 @@ def clone_repo(repo_name: str) -> None:
         bundle_target = SOURCE_DIR / f"{repo_name}.bundle"
         try:
             download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
-            logger.info(f"{repo_name}: seeded from bundle; pulling latest from source.")
-            with log_context(action="git_remote_pull", repo=repo_name):
-                run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
-                run_command(["kart", "pull"], cwd=str(target_dir))
+            if env_skip_source_pull():
+                logger.info(f"{repo_name}: seeded from bundle; skipping source pull (KART_IMPORT_SKIP_SOURCE_PULL).")
+            else:
+                logger.info(f"{repo_name}: seeded from bundle; pulling latest from source.")
+                with log_context(action="git_remote_pull", repo=repo_name):
+                    run_command(["git", "remote", "set-url", "origin", dataset_url], cwd=str(target_dir))
+                    run_command(["kart", "pull"], cwd=str(target_dir))
             if _clone_has_dataset(target_dir, wanted):
                 return
             logger.warning(

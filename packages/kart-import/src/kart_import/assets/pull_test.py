@@ -34,6 +34,7 @@ def env(tmp_path, monkeypatch):
 
     monkeypatch.setattr(f"{MODULE}.get_source_repo", get_source_repo)
     monkeypatch.setattr(f"{MODULE}.run_command", mocks.run_command)
+    monkeypatch.setattr(f"{MODULE}.env_skip_source_pull", lambda: False)
 
     return mocks
 
@@ -64,3 +65,15 @@ def test_existing_clone_always_pulls_directly_from_source(env):
 def test_unknown_repo_raises(env):
     with pytest.raises(LookupError, match="No source repo"):
         pull_repo("does_not_exist")
+
+
+def test_skips_source_pull_when_stubbed(env, monkeypatch):
+    """KART_IMPORT_SKIP_SOURCE_PULL trusts the existing clone as-is, for environments (e2e)
+    with no credentials to reach the real source."""
+    (env.target_dir / ".kart").mkdir(parents=True)
+    monkeypatch.setattr(f"{MODULE}.env_skip_source_pull", lambda: True)
+
+    pull_repo(DATASET)
+
+    assert not any(cmd[:2] == ["kart", "pull"] for cmd in _cmds(env))
+    assert (env.target_dir / ".pulled").exists()

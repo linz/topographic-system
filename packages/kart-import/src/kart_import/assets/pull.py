@@ -2,6 +2,7 @@ import logging
 
 from ..command import run_command
 from ..config import SOURCE_DIR, get_source_repo
+from ..env import env_skip_source_pull
 from ..git.kart import is_kart
 from ..log import log_context
 
@@ -23,6 +24,11 @@ def pull_repo(repo_name: str) -> None:
     if not is_kart(target_dir):
         logger.warning("no local clone found; run clone_all first", extra={"path": str(target_dir)})
         target_dir.mkdir(parents=True, exist_ok=True)
+        sentinel.touch()
+        return
+
+    if env_skip_source_pull():
+        logger.info(f"{repo_name}: skipping source pull (KART_IMPORT_SKIP_SOURCE_PULL).")
         sentinel.touch()
         return
 
