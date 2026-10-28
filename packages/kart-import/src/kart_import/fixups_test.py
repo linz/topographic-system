@@ -250,13 +250,16 @@ def test_build_source_metadata_without_a_sentinel_keys_every_non_null(road_relea
     assert json.loads(out["metadata"].iloc[0])[0]["source_key_value"] == 0
 
 
-def test_build_source_metadata_leaves_a_keyed_row_with_a_null_value_null(road_releases):
-    """A row with a real key but a null looked-up value gets NULL `metadata`, not a record: the
-    record explains where `name` came from, and there is no name to explain."""
+def test_build_source_metadata_keeps_a_keyed_row_with_a_null_value_as_a_plain_link(road_releases):
+    """A row with a real key but a null looked-up value keeps a plain link (`table_column` null)
+    carrying just the key, rather than being dropped: the record has no value to explain, but the
+    key still links to the source feature so a value can be matched later."""
     gdf = _road_gdf([3061525, 1771150], names=["FIRST ROAD", None])
     out = fixups._build_source_metadata(gdf, _td([], ROADS), 66, ROADS, fixups.ROAD_NAME_FROM_AIMS)
 
-    assert out["metadata"].isna().tolist() == [False, True]
+    named, linked = (json.loads(m)[0] for m in out["metadata"])
+    assert named["table_column"] == "name" and named["source_key_value"] == 3061525
+    assert linked["table_column"] is None and linked["source_key_value"] == 1771150
 
 
 def test_build_source_metadata_writes_the_source_ref_as_json_keys(road_releases):
@@ -400,15 +403,30 @@ def test_build_nzgb_metadata_is_generic_across_datasets(road_releases, monkeypat
     assert record["source_key_value"] == 555
 
 
-def test_build_nzgb_metadata_skips_a_gazfeatid_whose_name_is_null(road_releases, monkeypatch):
-    """The gazetteer lookup can match a `gazfeatid` while carrying no `name` for it. Such a row has
-    nothing to attribute, so it gets NULL `metadata` rather than a record for an absent name."""
+def test_build_nzgb_metadata_keeps_a_gazfeatid_without_a_name_as_a_plain_link(road_releases, monkeypatch):
+    """The gazetteer lookup can match a `gazfeatid` while carrying no `name` for it. Like a road
+    with a sufi but no name, such a row keeps a plain link (`table_column` null) carrying just the
+    key rather than being dropped - the match can gain a name later."""
     _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
     td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
 
     out = fixups.build_nzgb_metadata(_gaz_gdf([1043221, 999], names=["Grand Canal", None]), td, 66)
 
-    assert out["metadata"].isna().tolist() == [False, True]
+    named, linked = (json.loads(m)[0] for m in out["metadata"])
+    assert named["table_column"] == "name" and named["source_key_value"] == 1043221
+    assert linked["table_column"] is None and linked["source_key_value"] == 999
+
+
+def test_build_nzgb_metadata_leaves_an_unmatched_gazfeatid_null(road_releases, monkeypatch):
+    """A joined key of 0 is the gazetteer lookup's "no match" sentinel, not a real `feat_id`, so the
+    row links nowhere - it gets NULL `metadata` whether or not it carries a name, rather than a plain
+    link to a gazetteer feature `0` that does not exist."""
+    _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
+    td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
+
+    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221, 0, 0], names=["Grand Canal", "Named But Unmatched", None]), td, 66)
+
+    assert out["metadata"].isna().tolist() == [False, True, True]
 
 
 def test_build_nzgb_metadata_rejects_a_metadata_column_not_shaped_as_a_lookup_ref(road_releases):

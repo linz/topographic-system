@@ -184,6 +184,11 @@ ROAD_SUFI_UNSET = 0
 """`rna_sufi`'s "no AIMS road" sentinel. Never null in any release 30-66, always 0 - so this rather
 than a null check is what separates a road whose name came from AIMS from one that has no link."""
 
+GAZ_FEATID_UNSET = 0
+"""The gazetteer lookup's "no gazetteer feature" sentinel: a joined key of 0 means the lookup matched
+no NZGB feature, so it links nowhere - distinct from a real positive `feat_id`. Without this a
+nameless row holding the sentinel would keep a plain link to a feature `0` that does not exist."""
+
 
 def _rfc3339(moment: datetime) -> str:
     """`moment` as RFC 3339 UTC text (second precision, `Z` suffix) - the one timestamp shape every
@@ -234,9 +239,10 @@ def _build_source_metadata(
     `metadata` rather than a record asserting a link to a row that does not exist. A NULL key is
     always treated as unset.
 
-    A row whose looked-up value (`ref.table_column`) came back null also gets NULL `metadata`: a
-    provenance record explains where that column's value came from, and a null value has nothing
-    to explain.
+    A row whose looked-up value (`ref.table_column`) came back null has no value to explain, so it
+    keeps a plain link (`table_column=None`) carrying just the key rather than being dropped - a
+    keyed row is never lost for lacking a value, so e.g. a road with a sufi but no name retains its
+    AIMS link for a name to be matched from addressing later.
 
     `dataset` names what the wiring was checked against, as in `_drop_listed_empty`: pointed at
     another dataset this would silently overwrite that dataset's `metadata` instead of failing.
@@ -262,23 +268,25 @@ def _build_source_metadata(
     else:
         key = gdf["metadata"].astype("string")
     has_key = key.notna() if unset_key is None else key.notna() & (key != unset_key)
+    has_value = pd.Series(True, index=gdf.index) if ref.table_column is None else gdf[ref.table_column].notna()
 
-    # Only a row whose looked-up value is present gets a record: the record explains where that
-    # value came from, so a key that resolved to a null `ref.table_column` has nothing to explain
-    # and gets NULL `metadata` instead of a record pointing at an absent value. A plain link has
-    # no value to check.
-    keyed = has_key if ref.table_column is None else has_key & gdf[ref.table_column].notna()
+    # A keyed row whose looked-up value is present gets a full record explaining where that value
+    # came from. A keyed row whose value is absent has nothing to explain, so it keeps a plain link
+    # (`table_column` cleared) that still carries the key - a keyed row (a road with a sufi but no
+    # name, a gazetteer feature whose name is null) is never silently dropped.
+    valued = has_key & has_value
+    linked = has_key & ~has_value
 
-    def record(key_value: int | str) -> str:
+    def record(ref_variant: SourceRef, key_value: int | str) -> str:
         # sort_keys/separators so the same key always serialises to the same bytes - two runs that
         # differ only in dict ordering would read as a changed feature to kart.
         return json.dumps(
             [
                 {
-                    **ref._asdict(),
+                    **ref_variant._asdict(),
                     "source_key_value": key_value,
-                    "source_updated_at": ref.source_updated_at or stamp,
-                    "imported_at": ref.imported_at or stamp,
+                    "source_updated_at": ref_variant.source_updated_at or stamp,
+                    "imported_at": ref_variant.imported_at or stamp,
                 }
             ],
             sort_keys=True,
@@ -286,12 +294,15 @@ def _build_source_metadata(
         )
 
     # Built per distinct key, not per row: one external record covers many features (21,602 of
-    # release 66's 93,308 keyed roads repeat a sufi), and the record depends on nothing else.
-    keys = key[keyed]
-    records = {key_value: record(key_value) for key_value in keys.unique().tolist()}
-
+    # release 66's 93,308 keyed roads repeat a sufi), and the record depends on nothing else. The
+    # plain-link rows reuse the ref with `table_column` cleared; `valued` and `linked` are disjoint.
     metadata = pd.Series(pd.NA, index=gdf.index, dtype="string")
-    metadata[keyed] = keys.map(records).astype("string")
+    for mask, ref_variant in ((valued, ref), (linked, ref._replace(table_column=None))):
+        if not mask.any():
+            continue
+        masked_keys = key[mask]
+        records = {key_value: record(ref_variant, key_value) for key_value in masked_keys.unique().tolist()}
+        metadata[mask] = masked_keys.map(records).astype("string")
 
     logger.info(
         "built source metadata",
@@ -299,9 +310,9 @@ def _build_source_metadata(
             "dataset": td.name,
             "release": release_id,
             "source": ref.source,
-            "keyed": int(keyed.sum()),
+            "valued": int(valued.sum()),
+            "linked_without_value": int(linked.sum()),
             "unlinked": int((~has_key).sum()),
-            f"keyed_without_{ref.table_column}": int((has_key & ~keyed).sum()),
         },
     )
 
@@ -362,7 +373,7 @@ def build_nzgb_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int
         source_updated_at=build_stamp,
         imported_at=build_stamp,
     )
-    return _build_source_metadata(gdf, td, release_id, td.name, ref)
+    return _build_source_metadata(gdf, td, release_id, td.name, ref, unset_key=GAZ_FEATID_UNSET)
 
 
 def _metadata_lookup(td: ThemeDataset, fixup: str) -> tuple[Lookup, str]:
