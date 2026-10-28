@@ -74,7 +74,6 @@ def test_bundle_clone_is_updated_from_the_real_source(monkeypatch, tmp_path):
     published bundle may be stale."""
     source_dir = tmp_path / "source"
     source_dir.mkdir()
-    target_dir = source_dir / REPO
 
     def run_command(cmd, cwd=None, **kwargs):
         return ""
@@ -89,7 +88,9 @@ def test_bundle_clone_is_updated_from_the_real_source(monkeypatch, tmp_path):
     monkeypatch.setattr(f"{MODULE}.download_and_clone_from_bundle", download_and_clone_from_bundle)
     monkeypatch.setattr(
         f"{MODULE}.get_source_repo",
-        lambda name: [SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=None))],
+        lambda name: [
+            SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=None))
+        ],
     )
     monkeypatch.setattr(f"{MODULE}._clone_has_dataset", lambda td, wanted: True)
 
