@@ -1,0 +1,23 @@
+{
+  "source_layer": "fence_line",
+  "targets": [
+    {
+      "target_layer": "fence_cl",
+      "schema_key": "fence_cl",
+      "feature_type": "fence",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

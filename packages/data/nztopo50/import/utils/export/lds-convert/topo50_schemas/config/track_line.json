@@ -1,0 +1,53 @@
+{
+  "source_layer": "track_line",
+  "targets": [
+    {
+      "target_layer": "track_cl",
+      "schema_key": "track_cl",
+      "feature_type": "track",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:12"
+        },
+        {
+          "source_field": "track_type",
+          "target_field": "track_type",
+          "target_type": "str:11"
+        },
+        {
+          "source_field": "track_use",
+          "target_field": "track_use",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "source_layer": "geographic_name",
+  "targets": [
+    {
+      "target_layer": "geographic_name",
+      "schema_key": "geographic_name",
+      "feature_type": "geographic_name",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "size",
+          "target_field": "size",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "desc_code",
+          "target_field": "desc_code",
+          "target_type": "str:4"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}

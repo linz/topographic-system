@@ -1,4 +1,41 @@
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_carto_text 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_map_sheet 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_grid 
-kart import postgresql://postgres:landinformation@localhost/topo/carto  --primary-key topo_id nz_topo50_dms_grid 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_carto_text 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_map_sheet 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_grid 
+kart import postgresql://postgres:landinformation@localhost/topo/carto --replace-existing --primary-key id nztopo50_dms_grid 
+
+REM kart push origin dataload-release66
+
+REM - local update
+REM kart import C:\Data\toposource\topographic-product-data-target\topographic-product-data.gpkg --replace-existing --primary-key id nztopo50_carto_text
+
+LAMPS export layers
+Note: run rename_import_shp_geom.py to load shape and rename shape to geometry 
+
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing linz_highway_sh
+
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing contour_number
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing linz_carto_text
+
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing golf_sym
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing mine_sym
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports\20260922\20260922.gpkg --replace-existing site_bdy
+
+git push -u origin feat/release67
+
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing canal_cl
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing canal_poly
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing drain_cl
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing lagoon_poly
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing lake_poly
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing river_cl
+kart import C:\Data\Topo50\Release67_NZ50_Shape\release67-ftp-water-exports\release67-ftp-water-exports.gpkg --replace-existing river_poly
+
+
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports-road\release67-lamps-extra-exports-road.gpkg --replace-existing linz_bridge_cl
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports-road\release67-lamps-extra-exports-road.gpkg --replace-existing linz_road_cl
+kart import C:\Data\Topo50\kart-topographic-source-data\release67-lamps-extra-exports-road\release67-lamps-extra-exports-road.gpkg --replace-existing linz_tunnel_cl
+
+
+
+
+

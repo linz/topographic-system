@@ -1,0 +1,109 @@
+{
+  "source_layer": "water_point",
+  "targets": [
+    {
+      "target_layer": "soakhole_pnt",
+      "schema_key": "soakhole_pnt",
+      "feature_type": "soakhole",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "spring_pnt",
+      "schema_key": "spring_pnt",
+      "feature_type": "spring",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "temperature_indicator",
+          "target_field": "temp",
+          "target_type": "str:4"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    },
+    {
+      "target_layer": "waterfall_pnt",
+      "schema_key": "waterfall_pnt",
+      "feature_type": "waterfall",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "orientation",
+          "target_field": "orientatn",
+          "target_type": "float:13.11"
+        },
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "height",
+          "target_field": "height",
+          "target_type": "int32:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}
