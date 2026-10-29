@@ -424,7 +424,9 @@ def test_build_nzgb_metadata_leaves_an_unmatched_gazfeatid_null(road_releases, m
     _register_lookup(monkeypatch, "canal_lkp", "canal_cl")
     td = _gaz_td("nz_canal_polygons_topo_150k", "canal_lkp")
 
-    out = fixups.build_nzgb_metadata(_gaz_gdf([1043221, 0, 0], names=["Grand Canal", "Named But Unmatched", None]), td, 66)
+    out = fixups.build_nzgb_metadata(
+        _gaz_gdf([1043221, 0, 0], names=["Grand Canal", "Named But Unmatched", None]), td, 66
+    )
 
     assert out["metadata"].isna().tolist() == [False, True, True]
 
