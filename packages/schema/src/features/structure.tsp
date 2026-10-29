@@ -46,6 +46,7 @@ enum structure_subtype {
   Rock: "rock",
   Sea: "sea",
   Ship: "ship",
+  Silo: "silo",
   SurgeChamber: "surge_chamber",
   TunnelVentilation: "tunnel_ventilation",
   Uncovered: "uncovered",

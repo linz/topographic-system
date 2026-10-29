@@ -59,6 +59,8 @@ datasets:
       # (BM-1783); snake_cased here as the legacy loader did. `routeroute` is a source typo
       # (1 feature, release 63).
       - { column: track_type, replace: { 'poled route': poled_route, routeroute: route } }
+      # `disused rail` is not a track_status value (1 feature, release 67); `closed` is the nearest.
+      - { column: status, replace: { 'disused rail': closed } }
   - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
     feature_key: auto_pk
     mapping:

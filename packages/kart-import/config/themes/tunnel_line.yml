@@ -15,6 +15,8 @@ datasets:
     corrections:
       - { column: type, replace: { 'foot traffic': foot_traffic } }
       - { column: subtype, replace: { ivestock: livestock } }
+      # `underpa` is a truncated "underpass" in `type` (2 vehicle tunnels, release 67); an underpass is manmade.
+      - { column: construction_type, replace: { underpa: manmade } }
       # A handful of releases have use1/use2 swapped: `vehicle` lands in use2 and `livestock` in use1. Put each back in its own column.
       - { column: type, set: vehicle, where: { subtype: vehicle } }
       - { column: subtype, set: livestock, where: { subtype: vehicle } }
