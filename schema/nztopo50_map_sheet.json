@@ -18,7 +18,10 @@
     "cover_front_origin_y": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
     "cover_back_origin_x": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
     "cover_back_origin_y": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
-    "example_point_id": { "type": "string", "description": "id (UUID) of the example feature." },
+    "example_point_id": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "id (UUID) of the example feature.\n\nNull where no feature matches the sheet's example name, e.g. a backfilled release that\npredates the trig point or geographic name it names."
+    },
     "published_version": { "type": "string" },
     "published_at": { "type": "string", "format": "date-time" },
     "barcode": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
