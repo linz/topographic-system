@@ -40,6 +40,7 @@ from .fixups_map_sheet import (
     map_sheet_origin,
     map_sheet_published,
 )
+from .fixups_text_encoding import text_encoding
 
 logger = logging.getLogger("kart_import")
 
@@ -1001,6 +1002,7 @@ FIXUPS: dict[str, Fixup] = {
     "generate_sea_polygon": generate_sea_polygon,
     "polygonize_boundaries": polygonize_boundaries,
     "split_multipart_features": split_multipart_features,
+    "text_encoding": text_encoding,
     "contour_number": contour_number,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
     "map_sheet_origin": map_sheet_origin,

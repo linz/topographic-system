@@ -40,6 +40,8 @@ datasets:
       word_distance: { fixup: true }
       metadata: null
     fixups:
+      # Fix the macron-as-diaeresis encoding bug in the free-text columns (e.g. ö -> ō).
+      - fn: text_encoding
       # Populate the styling fields based on the mapped fields from carto_text_styling.csv
       - fn: carto_text_styling
       # Resolve example_point_id from geographic_name (by name) then trig_point (by code).
