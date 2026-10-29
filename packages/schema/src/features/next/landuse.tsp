@@ -30,6 +30,7 @@ enum landuse_type {
   PumicePit: "pumice_pit",
   Quarry: "quarry",
   Racetrack: "racetrack",
+  ResidentialArea: "residential_area",
   RestrictedArea: "restricted_area",
   RifleRange: "rifle_range",
   Showground: "showground",

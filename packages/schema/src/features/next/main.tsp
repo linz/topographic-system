@@ -32,7 +32,6 @@ import "./railway_point.tsp";
 import "./relief.tsp";
 import "./relief_line.tsp";
 import "./relief_point.tsp";
-import "./residential_area.tsp";
 import "./road_line.tsp";
 import "./runway.tsp";
 import "./structure.tsp";
