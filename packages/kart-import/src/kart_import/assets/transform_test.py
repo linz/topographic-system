@@ -225,6 +225,15 @@ def test_lifecycle_pk_misses_while_the_export_float_survives():
         transform.normalize_field_lifecyle(_pk_frame("float64"), _TD, LIFECYCLE)
 
 
+def test_lifecycle_pk_reads_auto_pk_renamed_to_fid():
+    """topographic-source-data renamed auto_pk to fid in its release 67 reload, so an export from
+    then on carries only fid."""
+    lifecycle = {"1": {"id": "uuid-b", "created_at": "2026-10-19T00:00:00Z"}}
+    gdf = gpd.GeoDataFrame({"fid": [1]}, geometry=[Point(0, 0)], crs="EPSG:2193")
+
+    assert transform.normalize_field_lifecyle(gdf, _TD, lifecycle)["id"].tolist() == ["uuid-b"]
+
+
 def test_empty_transform_carries_the_target_columns_and_crs():
     """An empty source has no columns to normalise, so the pipeline emits the shape the
     normalisers would have produced and lets the emptiness flow through to the theme."""
