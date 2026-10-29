@@ -5,7 +5,7 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-racetrack-centrelines-topo-150k
     mapping:
       t50_fid: $
-      # legacy: type <- track_use, normalised to <use>_track below; racetrack where null
+      # legacy: type <- track_use, normalised to <use>_racetrack below; racetrack where null
       type: { source: $track_use, default: racetrack }
       name: $
       subtype: $track_type
@@ -17,15 +17,15 @@ datasets:
       - { column: subtype, set: training, where: { type: trainin } }
       - column: type
         replace:
-          horse: horse_track
-          vehicle: vehicle_track
-          cycle: cycle_track
-          dog: dog_track
+          horse: horse_racetrack
+          vehicle: vehicle_racetrack
+          cycle: cycle_racetrack
+          dog: dog_racetrack
           trainin: racetrack
   - source: kart@data.koordinates.com:linz/nz-chatham-island-racetrack-centrelines-topo-150k
     mapping:
       t50_fid: $
-      # legacy: type <- track_use, normalised to <use>_track below; racetrack where null
+      # legacy: type <- track_use, normalised to <use>_racetrack below; racetrack where null
       type: { source: $track_use, default: racetrack }
       name: $
       subtype: $track_type
@@ -34,7 +34,7 @@ datasets:
     corrections:
       - column: type
         replace:
-          horse: horse_track
-          vehicle: vehicle_track
-          cycle: cycle_track
-          dog: dog_track
+          horse: horse_racetrack
+          vehicle: vehicle_racetrack
+          cycle: cycle_racetrack
+          dog: dog_racetrack

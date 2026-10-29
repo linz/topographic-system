@@ -121,10 +121,10 @@ datasets:
     corrections:
       - column: type
         replace:
-          horse: horse_track
-          vehicle: vehicle_track
-          cycle: cycle_track
-          dog: dog_track
+          horse: horse_racetrack
+          vehicle: vehicle_racetrack
+          cycle: cycle_racetrack
+          dog: dog_racetrack
   - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
     mapping:
       t50_fid: $
@@ -190,3 +190,17 @@ datasets:
       metadata: null
     fixups:
       - fn: polygonize_boundaries
+  - source: kart@data.koordinates.com:linz/nz-residential-area-polygons-topo-150k
+    mapping:
+      t50_fid: $
+      type: residential_area
+      subtype: null
+      status: null
+      name: $name
+      substance_extracted: null
+      theme: landuse
+      metadata: null
+    fixups:
+      # Taihape sliver, published with a null geometry in the 2020-11-17 snapshot only
+      - fn: drop_empty_residential_areas
+        releases: [51]

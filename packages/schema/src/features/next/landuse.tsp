@@ -19,23 +19,24 @@ model landuse {
 
 enum landuse_type {
   Cemetery: "cemetery",
-  Cycle_track: "cycle_track",
-  Dogtrack: "dog_track",
+  CycleRacetrack: "cycle_racetrack",
+  DogRacetrack: "dog_racetrack",
   GolfCourse: "golf_course",
   GravelPit: "gravel_pit",
-  Horsetrack: "horse_track",
+  HorseRacetrack: "horse_racetrack",
   Landfill: "landfill",
   Mine: "mine",
   Orchard: "orchard",
   PumicePit: "pumice_pit",
   Quarry: "quarry",
   Racetrack: "racetrack",
+  ResidentialArea: "residential_area",
   RestrictedArea: "restricted_area",
   RifleRange: "rifle_range",
   Showground: "showground",
   Sportsfield: "sportsfield",
   Vineyard: "vineyard",
-  Vehicletrack: "vehicle_track",
+  VehicleRacetrack: "vehicle_racetrack",
 }
 
 enum landuse_subtype {

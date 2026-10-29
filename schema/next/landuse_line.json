@@ -25,23 +25,24 @@
       "type": "string",
       "enum": [
         "cemetery",
-        "cycle_track",
-        "dog_track",
+        "cycle_racetrack",
+        "dog_racetrack",
         "golf_course",
         "gravel_pit",
-        "horse_track",
+        "horse_racetrack",
         "landfill",
         "mine",
         "orchard",
         "pumice_pit",
         "quarry",
         "racetrack",
+        "residential_area",
         "restricted_area",
         "rifle_range",
         "showground",
         "sportsfield",
         "vineyard",
-        "vehicle_track"
+        "vehicle_racetrack"
       ]
     },
     "landuse_subtype": { "type": "string", "enum": ["training", "opencast", "underground"] },
