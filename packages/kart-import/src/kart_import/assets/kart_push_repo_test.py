@@ -1,4 +1,5 @@
 import logging
+import subprocess
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -177,3 +178,42 @@ def test_push_repo_reports_progress_per_release(monkeypatch, tmp_path, caplog):
 
 def test_release_tag_names_the_release():
     assert release_tag(66) == "release/66"
+
+
+def _failing_pushes(env, failures: int) -> None:
+    """Make the first `failures` pushes fail, as GitHub's intermittent `commit_refs` error does."""
+    run = env.run_command.side_effect
+    remaining = [failures]
+
+    def flaky(cmd, **kwargs):
+        if cmd[:2] == ["git", "push"] and remaining[0] > 0:
+            remaining[0] -= 1
+            raise subprocess.CalledProcessError(1, cmd)
+        return run(cmd, **kwargs)
+
+    env.run_command.side_effect = flaky
+
+
+def test_push_repo_retries_a_failed_push(monkeypatch, tmp_path):
+    """A rejected push is retried after a pause, and the rest of the history still goes up."""
+    env = _setup(monkeypatch, tmp_path)
+    _failing_pushes(env, 2)
+    sleep = MagicMock()
+    monkeypatch.setattr(f"{MODULE}.time.sleep", sleep)
+
+    push_repo(REPO)
+
+    assert len(_pushes(env.run_command)) == 6 + 2  # every commit, plus the two retries of the first
+    assert sleep.call_count == 2
+
+
+def test_push_repo_gives_up_after_the_last_attempt(monkeypatch, tmp_path):
+    env = _setup(monkeypatch, tmp_path)
+    _failing_pushes(env, 99)
+    monkeypatch.setattr(f"{MODULE}.time.sleep", MagicMock())
+
+    with pytest.raises(subprocess.CalledProcessError):
+        push_repo(REPO)
+
+    assert len(_pushes(env.run_command)) == 4
+    assert not (env.repo_dir / ".pushed").exists()
