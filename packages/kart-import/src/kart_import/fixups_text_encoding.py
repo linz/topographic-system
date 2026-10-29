@@ -22,17 +22,16 @@ MACRON_AS_DIAERESIS: dict[int, int] = {
 """Source text encodes a macron vowel as the diaeresis form of the same base letter (e.g. ä for
 ā), since the legacy system had no macron glyph. `text_encoding` undoes it."""
 
+TEXT_FIELDS = ("full_text", "text_string")
+"""Free-text name columns to fix, across any dataset that carries them."""
+
 
 def text_encoding(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    """Fix the macron-as-diaeresis encoding bug (see `MACRON_AS_DIAERESIS`) in every free-text
-    column of the dataset, e.g. "Whakatäne" -> "Whakatāne". The bug isn't specific to one
-    dataset, so this runs over every string column rather than a named list of them."""
-    import pandas as pd
-
+    """Fix the macron-as-diaeresis encoding bug (see `MACRON_AS_DIAERESIS`) in `TEXT_FIELDS`,
+    e.g. "Whakatäne" -> "Whakatāne". Not specific to carto_text - any dataset carrying one of
+    these columns gets it fixed, but other string columns (codes, enums) are left alone."""
     gdf = gdf.copy()
-    for column in gdf.columns:
-        if column == gdf.geometry.name:
-            continue
-        if pd.api.types.is_string_dtype(gdf[column].dtype):
+    for column in TEXT_FIELDS:
+        if column in gdf.columns:
             gdf[column] = gdf[column].astype("string").str.translate(MACRON_AS_DIAERESIS)
     return gdf
