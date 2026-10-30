@@ -31,5 +31,6 @@ model nztopo50_map_sheet {
   barcode: string | null;
   created_at: utcDateTime;
   updated_at: utcDateTime;
+  ...TopographicMetadata;
   ...GeoParquet;
 }
