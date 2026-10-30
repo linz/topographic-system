@@ -154,10 +154,11 @@ def normalize_field_lifecyle(
         pk_col = td.feature_key
     elif "t50_fid" in gdf.columns:
         pk_col = "t50_fid"
-    elif "auto_pk" in gdf.columns:
-        pk_col = "auto_pk"
     else:
-        raise KeyError("Neither t50_fid nor auto_pk found in dataset columns")
+        pk_col = "auto_pk"
+    # topographic-source-data renamed auto_pk to fid in its release 67 reload
+    if pk_col == "auto_pk" and pk_col not in gdf.columns:
+        pk_col = "fid"
 
     primary_key = gdf[pk_col].astype(str)
 

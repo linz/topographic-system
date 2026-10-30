@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from .. import config
@@ -31,3 +32,20 @@ def test_resolve_dataset_id_falls_back_to_autodetect(monkeypatch):
     monkeypatch.setattr(fid_lifecycle, "get_kart_dataset_id", lambda _repo_dir: "nz-airport-polygons-topo-150k")
 
     assert fid_lifecycle.resolve_dataset_id(td.name, Path("/tmp/repo")) == "nz-airport-polygons-topo-150k"
+
+
+def _insert(change: dict) -> str:
+    return json.dumps({"type": "feature", "dataset": "ds", "change": {"++": change}})
+
+
+def test_parse_kart_diff_reads_auto_pk_renamed_to_fid():
+    """topographic-source-data renamed auto_pk to fid in its release 67 reload: rows before and after
+    the rename are both keyed."""
+    lifecycle: dict = {}
+    fid_lifecycle.parse_kart_diff(_insert({"auto_pk": 128506}), lifecycle, "2026-09-14T00:00:00+00:00", "ds", "auto_pk")
+    fid_lifecycle.parse_kart_diff(_insert({"fid": 1}), lifecycle, "2026-10-19T00:00:00+00:00", "ds", "auto_pk")
+
+    assert {fid: entry["created_at"] for fid, entry in lifecycle.items()} == {
+        "128506": "2026-09-14T00:00:00+00:00",
+        "1": "2026-10-19T00:00:00+00:00",
+    }

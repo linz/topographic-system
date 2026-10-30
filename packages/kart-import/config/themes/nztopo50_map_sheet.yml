@@ -29,6 +29,7 @@ datasets:
       example_class: { source: $ex_class, fixup: true }
       published_version: { source: $edition, fixup: true }
       published_at: { fixup: true }
+      metadata: null
     fixups:
       - fn: map_sheet_drop_index_sheets
       - fn: map_sheet_origin
@@ -61,6 +62,7 @@ datasets:
       example_class: { source: $ex_class, fixup: true }
       published_version: { source: $edition, fixup: true }
       published_at: { fixup: true }
+      metadata: null
     fixups:
       - fn: map_sheet_origin
       - fn: map_sheet_example_point_id

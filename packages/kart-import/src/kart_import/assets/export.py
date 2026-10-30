@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 
 import geopandas as gpd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from ..command import run_command
 from ..config import (
@@ -41,7 +43,11 @@ class CommitData:
 def gpd_read(path: Path) -> gpd.GeoDataFrame:
     """Read a GeoDataFrame from `path, Parquet files need a different reader than GeoJSON, and geopandas doesn't auto-detect by suffix."""
     if path.suffix == ".parquet":
-        return gpd.read_parquet(path)
+        # OGR formats wrote a kart numeric as REAL; Parquet keeps it a decimal. Read it as a float, so
+        # `kart_types.coerce_integer_columns` restores the declared integers as it does for OGR.
+        gdf = gpd.read_parquet(path)
+        decimals = [field.name for field in pq.read_schema(path) if pa.types.is_decimal(field.type)]
+        return gdf.astype(dict.fromkeys(decimals, "float64"))
     return gpd.read_file(path, engine="pyogrio", use_arrow=True)
 
 
