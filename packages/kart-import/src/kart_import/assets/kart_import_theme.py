@@ -103,7 +103,8 @@ def kart_import_theme(theme_name: str):
 
     if pending:
         first_release, stub_sample_file, stub_info = pending[0]
-        stub_file = stub_sample_file.with_name(f"_schema_stub{THEME_SUFFIX}")
+        # Named per theme: themes sharing a first release import in parallel from the same folder.
+        stub_file = stub_sample_file.with_name(f"_schema_stub_{theme_name}{THEME_SUFFIX}")
         _write_schema_stub(theme_name, stub_sample_file, stub_info, stub_file)
 
         # Must sort chronologically before the first real release commit: kart_import_repo
