@@ -8,44 +8,44 @@ datasets:
   #    mapping:
   #      t50_fid: $
   #      type: tree
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone4
   #    name: cook_islands_tree_points_zone4
   #    mapping:
   #      t50_fid: $
   #      type: tree
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/niue-tree-points-topo-150k
   #    mapping:
   #      t50_fid: $
   #      type: tree
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-tree-points-topo-150k
     mapping:
       t50_fid: $
       type: tree
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-tree-points-topo-150k
     mapping:
       t50_fid: $
       type: tree
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-tree-points-topo-125k
     feature_key: auto_pk
     mapping:
       t50_fid: null
       type: tree
-      theme: landcover
+      theme: land_cover
       metadata: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-tree-points-topo-125k
   #    mapping:
   #      t50_fid: $
   #      type: tree
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null

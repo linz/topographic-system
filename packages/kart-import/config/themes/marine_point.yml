@@ -11,7 +11,7 @@ _mappings:
     # Source carries no composition attribute, so the subtype stays null.
     subtype: null
     name: $name
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 datasets:
@@ -27,7 +27,7 @@ datasets:
   #      type: rock
   #      subtype: null
   #      name: $name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/cook-islands-rock-points-topo-125k-zone4
   #    name: cook_islands_rock_points_zone4
@@ -36,7 +36,7 @@ datasets:
   #      type: rock
   #      subtype: null
   #      name: $name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/niue-rock-points-topo-150k
   #    mapping:
@@ -44,7 +44,7 @@ datasets:
   #      type: rock
   #      subtype: null
   #      name: $name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/tokelau-rock-points-topo-125k
   #    mapping:
@@ -52,7 +52,7 @@ datasets:
   #      type: rock
   #      subtype: null
   #      name: $name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-rock-points-topo-125k
     feature_key: auto_pk
@@ -86,5 +86,5 @@ datasets:
   #      type: rock
   #      subtype: null
   #      name: $name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null

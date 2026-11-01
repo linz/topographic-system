@@ -16,7 +16,7 @@ A mapping value tagged ``fixup: true`` is skipped for value checks (rules 2/3) a
 value is only knowable at runtime, but the column still counts as *present* for rule 4.
 
 A theme schema may be a discriminated union (``oneOf`` of several ``$defs`` models, e.g.
-``landcover_point``'s ``rock_outcrop`` vs. its plain point types) rather than one flat
+``land_cover_point``'s ``rock_outcrop`` vs. its plain point types) rather than one flat
 ``properties`` object. Each dataset is checked against whichever branch its literal ``type:``
 mapping value matches; a dataset whose ``type`` matches zero or more than one branch is itself
 reported as a problem, since the check can't otherwise know which shape applies.

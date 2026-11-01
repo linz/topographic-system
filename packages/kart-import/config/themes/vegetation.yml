@@ -9,13 +9,13 @@ _mappings:
     t50_fid: $
     type: native
     subtype: null
-    theme: landcover
+    theme: land_cover
     metadata: null
   scrub: &scrub
     t50_fid: $
     type: scrub
     subtype: null
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 datasets:
@@ -29,7 +29,7 @@ datasets:
       t50_fid: $
       type: exotic
       subtype: { source: $species, default: coniferous }
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-exotic-polygons-topo-150k
     name: nz_chatham_island_exotic_polygons_topo_150k
@@ -84,7 +84,7 @@ datasets:
       t50_fid: $
       type: scattered_scrub
       subtype: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-scattered-scrub-polygons-topo-150k
     name: nz_chatham_island_scattered_scrub_polygons_topo_150k

@@ -87,8 +87,8 @@ enum composition_subtype {
 enum Theme {
   Annotation: "annotation",
   Buildings: "buildings",
-  Landcover: "landcover",
-  Landuse: "landuse",
+  Landcover: "land_cover",
+  Landuse: "land_use",
   MapSheets: "mapsheets",
   Relief: "relief",
   Structures: "structures",
