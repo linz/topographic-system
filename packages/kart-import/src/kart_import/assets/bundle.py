@@ -8,9 +8,11 @@ from pathlib import Path
 
 from ..command import run_command
 from ..config import (
-    DATASET_MAP,
     SOURCE_DIR,
     WORKING_EXPORTS_DIR,
+    Lookup,
+    ThemeDataset,
+    get_source_repo,
 )
 from ..env import env_bundle_s3_url, env_bundle_url
 from ..git.bundle import download_and_clone_from_bundle
@@ -120,58 +122,10 @@ def _pull_or_fresh_clone(target_dir: Path, dataset_source: str) -> None:
         _fresh_clone(target_dir, dataset_source)
 
 
-def bundle_dataset(dataset_name: str):
-    td = DATASET_MAP.get(dataset_name)
-    if not td:
-        raise ValueError(f"Dataset not found for name: {dataset_name}")
-    dataset_source = td.source.url
-
-    SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-    target_dir = SOURCE_DIR / dataset_name
-    bundle_target = SOURCE_DIR / f"{dataset_name}.bundle"
-    sentinel = target_dir / ".bundle_created"
-
-    bundle_head_sha = fetch_bundle_head(dataset_name)
-
-    # Skip bundle if the published bundle already matches the source HEAD.
-    if bundle_head_sha:
-        ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"], retries=NETWORK_RETRIES).strip()
-        source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
-        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head_sha})
-        if source_head_sha == bundle_head_sha:
-            logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
-            sentinel.touch()
-            return
-
-    if is_kart(target_dir):
-        if should_pull(target_dir):
-            _pull_or_fresh_clone(target_dir, dataset_source)
-    else:
-        # No local clone present. Seed from the published bundle, then pull. Fall back to a full fresh clone.
-        seeded = False
-        if bundle_head_sha:
-            logger.info(f"Bundle is stale; seeding {dataset_name} from it before pulling the delta.")
-            try:
-                download_and_clone_from_bundle(bundle_target, dataset_name, target_dir)
-                seeded = True
-            except (urllib.error.URLError, subprocess.CalledProcessError, OSError) as e:
-                logger.warning(f"Seed-from-bundle failed for {dataset_name}; fresh-cloning instead ({e}).")
-        if seeded:
-            _pull_or_fresh_clone(target_dir, dataset_source)
-        else:
-            _fresh_clone(target_dir, dataset_source)
-
-    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_target), "--all"])
-
-    head_sha = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
-
-    # Upload to S3 via aws s3 cp
-    s3_url = env_bundle_s3_url()
-
-    logger.info(f"Uploading bundle to {s3_url}...")
-    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{dataset_name}.bundle"])
-
-    kart_dataset_id = td.source.dataset or get_kart_dataset_id(target_dir)
+def _export_commits(entry: ThemeDataset | Lookup, target_dir: Path, s3_url: str, all_commits: list[str]) -> None:
+    """Export one dataset of the repo at every commit to S3 as `<name>/<sha>.json.gz`."""
+    dataset_name = entry.name
+    kart_dataset_id = entry.source.dataset or get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
     per_commit_dir.mkdir(parents=True, exist_ok=True)
 
@@ -192,20 +146,73 @@ def bundle_dataset(dataset_name: str):
         run_command(["aws", "s3", "cp", f"{json_export}.gz", s3_key])
         return True
 
-    all_commits = run_command(
-        ["git", "log", "--all", "--pretty=format:%H", "--reverse"], cwd=str(target_dir)
-    ).splitlines()
     results = run_in_thread_pool(
         func=export_commit,
         items=all_commits,
         thread_count=4,
     )
     exported = sum(results)
-    skipped = len(results) - exported
+    logger.info(f"Exported {dataset_name} commits (exported: {exported}, skipped: {len(results) - exported})")
 
-    logger.info(
-        f"Successfully uploaded {dataset_name}.bundle (head: {head_sha}, exported: {exported}, skipped: {skipped})"
-    )
+
+def bundle_repo(repo_name: str):
+    entries = get_source_repo(repo_name)
+    dataset_source = entries[0].source.url
+
+    SOURCE_DIR.mkdir(parents=True, exist_ok=True)
+    target_dir = SOURCE_DIR / repo_name
+    bundle_target = SOURCE_DIR / f"{repo_name}.bundle"
+    sentinel = target_dir / ".bundle_created"
+
+    bundle_head_sha = fetch_bundle_head(repo_name)
+
+    # Skip bundle if the published bundle already matches the source HEAD.
+    if bundle_head_sha:
+        ls_remote_out = run_command(["git", "ls-remote", dataset_source, "HEAD"], retries=NETWORK_RETRIES).strip()
+        source_head_sha = ls_remote_out.split()[0] if ls_remote_out else None
+        logger.info("head", extra={"remote": source_head_sha, "bundle": bundle_head_sha})
+        if source_head_sha == bundle_head_sha:
+            logger.info(f"CloudFront and Source HEAD match ({source_head_sha}). Skipping clone and bundle.")
+            sentinel.touch()
+            return
+
+    if is_kart(target_dir):
+        if should_pull(target_dir):
+            _pull_or_fresh_clone(target_dir, dataset_source)
+    else:
+        # No local clone present. Seed from the published bundle, then pull. Fall back to a full fresh clone.
+        seeded = False
+        if bundle_head_sha:
+            logger.info(f"Bundle is stale; seeding {repo_name} from it before pulling the delta.")
+            try:
+                download_and_clone_from_bundle(bundle_target, repo_name, target_dir)
+                seeded = True
+            except (urllib.error.URLError, subprocess.CalledProcessError, OSError) as e:
+                logger.warning(f"Seed-from-bundle failed for {repo_name}; fresh-cloning instead ({e}).")
+        if seeded:
+            _pull_or_fresh_clone(target_dir, dataset_source)
+        else:
+            _fresh_clone(target_dir, dataset_source)
+
+    run_command(["git", "-C", str(target_dir), "bundle", "create", str(bundle_target), "--all"])
+
+    head_sha = run_command(["git", "rev-parse", "HEAD"], cwd=str(target_dir)).strip()
+
+    # Upload to S3 via aws s3 cp
+    s3_url = env_bundle_s3_url()
+
+    logger.info(f"Uploading bundle to {s3_url}...")
+    run_command(["aws", "s3", "cp", str(bundle_target), f"{s3_url}{repo_name}.bundle"])
+
+    all_commits = run_command(
+        ["git", "log", "--all", "--pretty=format:%H", "--reverse"], cwd=str(target_dir)
+    ).splitlines()
+
+    # A shared repo holds several datasets; each gets its own per-commit exports.
+    for entry in entries:
+        _export_commits(entry, target_dir, s3_url, all_commits)
+
+    logger.info(f"Successfully uploaded {repo_name}.bundle (head: {head_sha})")
     sentinel.touch()
 
 
@@ -213,15 +220,15 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: python -m kart_import.assets.bundle <dataset_name>")
+        print("Usage: python -m kart_import.assets.bundle <repo_name>")
         sys.exit(1)
-    dataset = sys.argv[1]
-    with log_context(action="bundle", dataset=dataset):
+    repo = sys.argv[1]
+    with log_context(action="bundle", repo=repo):
         try:
-            bundle_dataset(dataset)
+            bundle_repo(repo)
         except Exception:
             # Emit the traceback through the JSON logger so it lands in the structured
             # log stream. Snakemake captures a failing job's raw stderr but doesn't
             # inline it in its main log, so an uncaught traceback would be lost.
-            logger.exception(f"bundle failed for {dataset}")
+            logger.exception(f"bundle failed for {repo}")
             sys.exit(1)

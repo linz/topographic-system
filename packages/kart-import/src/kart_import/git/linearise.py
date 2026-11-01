@@ -11,11 +11,24 @@ by release rather than by whichever theme happened to sort last.
 Only `M` lines are emitted, so deletions are never replayed. That is safe because a theme
 history never drops a root-level entry: each theme repo is rebuilt from scratch and every
 release imported into the one dataset named after the theme.
+
+A `kart import --replace-existing` commit is a full snapshot, so a release with a lot of new
+or changed rows can still land as one very large commit even though imports happen one release
+at a time. `kart_push_repo` pushes one commit at a time precisely so a push never has to carry
+more than one commit's worth of new objects; if a single commit's own new data is too big for
+that, no amount of push-side chunking helps. So here, before writing a commit, we measure the
+real pack bytes it would add (`_packed_size`, the same object-graph diff a push would compute)
+and, if that's over `threshold`, replay it as several consecutive commits instead of one --
+each a partial step toward the same final tree, split at whatever path depth makes each part
+fit (`_collect_units`, `_pack_groups`). This needs no knowledge of a dataset's internal layout:
+`git fast-import`'s `M` command accepts a full nested path just as well as a root-level one.
 """
 
 import logging
 import subprocess
 from pathlib import Path
+
+from ..env import env_commit_split_bytes
 
 logger = logging.getLogger("kart_import")
 
@@ -126,13 +139,111 @@ def _write_commit(stream, branch: str, mark: int, author: bytes, committer: byte
         stream.write(f"from :{mark - 1}\n".encode())
 
 
-def linearise(repo_dir: Path | str, commits: list[tuple[str, str]], branch: str = "master") -> None:
+def _tag_part(message: bytes, index: int, total: int) -> bytes:
+    """Mark one piece of a commit split across several fast-import commits for size.
+
+    Only touches the displayed subject -- `_release()` keys off the untouched original message,
+    so a split import commit still closes its release exactly where it would have unsplit.
+    """
+    subject, sep, rest = message.partition(b"\n")
+    return subject + f" (part {index}/{total})".encode() + sep + rest
+
+
+_Unit = tuple[int, str, str, str]  # (new pack bytes, mode, path, sha)
+_Entry = tuple[str, str, str]  # (mode, path, sha)
+
+
+def _packed_size(repo_dir: Path | str, old_sha: str | None, new_sha: str) -> int:
+    """Real pack bytes a push would need for `new_sha`'s objects not already reachable from
+    `old_sha` -- i.e. exactly what `kart_push_repo` would have to send for this change, not a
+    heuristic over raw blob sizes (delta compression moves that number a lot)."""
+    revs = f"{new_sha}\n" + (f"^{old_sha}\n" if old_sha else "")
+    result = subprocess.run(
+        ["git", "pack-objects", "--stdout", "--revs", "-q"],
+        cwd=str(repo_dir),
+        input=revs.encode(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=True,
+    )
+    return len(result.stdout)
+
+
+def _collect_units(
+    repo_dir: Path | str,
+    reader: _ObjectReader,
+    path: str,
+    mode: str,
+    old_sha: str | None,
+    new_sha: str,
+    threshold: int,
+) -> list[_Unit]:
+    """Break a changed entry down only as far as needed to get each piece under `threshold`.
+
+    Stops as soon as a (sub)tree already fits, so a release that's mostly small changes with
+    one big new directory only pays the recursion cost where the data actually is. A single
+    blob over threshold can't be split further and comes back as its own oversized unit.
+    """
+    if old_sha == new_sha:
+        return [(0, mode, path, new_sha)]
+
+    size = _packed_size(repo_dir, old_sha, new_sha)
+    if size <= threshold or mode != "040000":
+        return [(size, mode, path, new_sha)]
+
+    old_children = {name: sha for _, name, sha in _parse_tree(reader.read(old_sha, "tree"))} if old_sha else {}
+    units: list[_Unit] = []
+    for child_mode, child_name, child_sha in _parse_tree(reader.read(new_sha, "tree")):
+        child_old = old_children.get(child_name)
+        if child_old == child_sha:
+            continue
+        units.extend(
+            _collect_units(repo_dir, reader, f"{path}/{child_name}", child_mode, child_old, child_sha, threshold)
+        )
+    return units
+
+
+def _pack_groups(units: list[_Unit], threshold: int) -> list[list[_Entry]]:
+    """Greedily batch units, in their original order, into same-release commits worth of `M`
+    lines -- each group at or just over `threshold` only because its own last unit pushed it
+    there, never because two groups were merged that didn't need to be."""
+    groups: list[list[_Entry]] = []
+    current: list[_Entry] = []
+    current_size = 0
+    for size, mode, path, sha in units:
+        if current and current_size + size > threshold:
+            groups.append(current)
+            current, current_size = [], 0
+        current.append((mode, path, sha))
+        current_size += size
+    if current:
+        groups.append(current)
+    return groups or [[]]
+
+
+def _plan_commit(
+    repo_dir: Path | str, reader: _ObjectReader, entries: list[_Entry], previous: dict[str, str], threshold: int
+) -> list[list[_Entry]]:
+    """`entries`' `M` lines, batched into one or more same-release commits worth of writes."""
+    units: list[_Unit] = []
+    for mode, name, sha in entries:
+        units.extend(_collect_units(repo_dir, reader, name, mode, previous.get(name), sha, threshold))
+    return _pack_groups(units, threshold)
+
+
+def linearise(
+    repo_dir: Path | str, commits: list[tuple[str, str]], branch: str = "master", threshold: int | None = None
+) -> None:
     """Replay `commits` onto `branch` as a linear history, preserving each commit's tree.
 
     :param repo_dir: repo holding every theme's objects (fetched from their bundles)
     :param commits: (theme name, commit sha) in the order they should appear, oldest first
     :param branch: branch to build; must not already exist
+    :param threshold: max new pack bytes per resulting commit before it's split (default from
+        `KART_COMMIT_SPLIT_BYTES`, see `_collect_units`)
     """
+    if threshold is None:
+        threshold = env_commit_split_bytes()
     if not commits:
         raise ValueError("No commits to linearise")
 
@@ -175,12 +286,23 @@ def linearise(repo_dir: Path | str, commits: list[tuple[str, str]], branch: str 
                 release = found
             dates = (author, committer)
 
-            mark += 1
-            _write_commit(stream, branch, mark, author, committer, message)
+            previous = {name: prior_sha for name, (_, prior_sha) in owners.items()}
             for mode, name, entry_sha in entries:
                 _check_disjoint(owners, name, mode, entry_sha, theme)
-                stream.write(f"M {mode} {entry_sha} {name}\n".encode())
-            stream.write(b"\n")
+
+            groups = _plan_commit(repo_dir, reader, entries, previous, threshold)
+            if len(groups) > 1:
+                logger.info(
+                    "splitting oversized commit",
+                    extra={"theme": theme, "sha": sha, "parts": len(groups), "threshold": threshold},
+                )
+            for index, group in enumerate(groups, start=1):
+                mark += 1
+                part_message = message if len(groups) == 1 else _tag_part(message, index, len(groups))
+                _write_commit(stream, branch, mark, author, committer, part_message)
+                for mode, path, entry_sha in group:
+                    stream.write(f"M {mode} {entry_sha} {path}\n".encode())
+                stream.write(b"\n")
 
         if release is not None:
             mark += 1

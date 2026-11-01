@@ -14,6 +14,7 @@ from .config import (
     ThemeDataset,
     get_lookup_by_name,
     get_releases,
+    get_source_repo_name,
 )
 from .git.release import get_release_commit
 
@@ -69,7 +70,7 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
     release = next((r for r in get_releases() if r.id == release_id), None)
     if release is None:
         return None
-    repo_dir = SOURCE_DIR / lookup_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(get_lookup_by_name(lookup_name))
     if not repo_dir.exists():
         raise FileNotFoundError(
             f"lookup {lookup_name!r} source repo not found at {repo_dir}; clone+export the lookup before transform"

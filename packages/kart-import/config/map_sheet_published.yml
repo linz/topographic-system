@@ -1818,3 +1818,8 @@
 'CK08':
   '1.00': '2009-01-05T20:28:41Z'
   '1.01': '2020-11-17T02:44:58Z'
+# Offshore island sheets come from their own LDS layer
+# Derived from nz-snares-island-tini-heke-topo-25-map-sheets commit history
+'SI01':
+  '1.00': '2011-11-12T14:31:58Z'
+  '2.00': '2014-05-21T04:34:03Z'

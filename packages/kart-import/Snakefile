@@ -7,6 +7,9 @@ from kart_import.config import (
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
+    SOURCE_REPO_MAP,
+    get_source_entry,
+    get_source_repo_name,
 )
 from kart_import.export_paths import export_filename
 
@@ -22,6 +25,13 @@ THEMES = get_themes()
 RELEASES = get_releases()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
+# Local source clones; datasets sharing a multi-dataset repo (e.g. topographic-source-data) share one clone.
+SOURCE_REPOS = list(SOURCE_REPO_MAP)
+
+
+def cloned(name):
+    """Sentinel for the source clone a dataset/lookup reads from."""
+    return f"data/source/{get_source_repo_name(get_source_entry(name))}/.cloned"
 
 # Start root span for this Snakemake run so all distributed jobs and logs link together
 tracer = get_tracer("kart_import")
@@ -66,19 +76,19 @@ rule all:
         ALL_IMPORTED
 
 
-# 1. CLONE
+# 1. CLONE (one clone per source repo, shared by every dataset/lookup sourced from it)
 rule clone:
     output:
-        cloned = "data/source/{dataset}/.cloned"
+        cloned = "data/source/{repo}/.cloned"
     threads: 1
     shell:
-        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.repo}"
 
 
 # 2. LIFECYCLE
 rule lifecycle:
     input:
-        cloned = "data/source/{dataset}/.cloned",
+        cloned = lambda wildcards: cloned(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
@@ -90,7 +100,7 @@ rule lifecycle:
 # 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
 rule export:
     input:
-        cloned = "data/source/{dataset}/.cloned"
+        cloned = lambda wildcards: cloned(wildcards.dataset)
     output:
         files = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES]
     threads: 4
@@ -101,7 +111,7 @@ rule export:
 # 3b. EXPORT LOOKUP (one export of full lookup source per distinct commit across releases; not per release)
 rule export_lookup:
     input:
-        cloned = "data/source/{lookup}/.cloned"
+        cloned = lambda wildcards: cloned(wildcards.lookup)
     output:
         exported = directory("data/working/export/lookup/{lookup}")
     shell:
@@ -112,7 +122,7 @@ rule export_lookup:
 rule prepare_lookup:
     input:
         # clone must be present: prepare reads each commit's declared schema from it.
-        cloned = "data/source/{lookup}/.cloned",
+        cloned = lambda wildcards: cloned(wildcards.lookup),
         exported = "data/working/export/lookup/{lookup}",
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
@@ -126,7 +136,7 @@ rule transform:
     input:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
         # clone must be present: transform reads the source's declared schema from it.
-        cloned = "data/source/{dataset}/.cloned",
+        cloned = lambda wildcards: cloned(wildcards.dataset),
         exported = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES],
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
@@ -138,7 +148,7 @@ rule transform:
         ],
         # clone must be present (not just the prepared parquet).
         lookup_clones = lambda wildcards: [
-            f"data/source/{join.lookup}/.cloned"
+            cloned(join.lookup)
             for join in DATASET_MAP[wildcards.dataset].joins
         ],
         example_deps = lambda wildcards: [
@@ -205,50 +215,50 @@ rule push:
 # 7. UTILITY PULL RULE (refresh an already-cloned source if it's behind the published bundle)
 rule pull:
     input:
-        cloned = "data/source/{dataset}/.cloned"
+        cloned = "data/source/{repo}/.cloned"
     output:
-        pulled = "data/source/{dataset}/.pulled"
+        pulled = "data/source/{repo}/.pulled"
     shell:
-        "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.repo}"
 
 
 # 8. UTILITY BUNDLE RULE
 rule bundle:
     output:
-        sentinel = "data/source/{dataset}/.bundle_created"
+        sentinel = "data/source/{repo}/.bundle_created"
     log:
-        # Per-dataset, per-run log so parallel jobs don't interleave, runs don't clobber
+        # Per-repo, per-run log so parallel jobs don't interleave, runs don't clobber
         # each other, and failures are easy to isolate:
         #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
         # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
-        f"logs/bundle/{RUN_ID}/{{dataset}}.log"
+        f"logs/bundle/{RUN_ID}/{{repo}}.log"
     threads: 4
     shell:
-        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle {wildcards.dataset} > {log} 2>&1"
+        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle {wildcards.repo} > {log} 2>&1"
 
 
 
 for name in DATASET_MAP:
     workflow.rule(name=f"clone_{name}")(
-        workflow.input(f"data/source/{name}/.cloned")(
+        workflow.input(cloned(name))(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
 
 workflow.rule(name="clone_all")(
-    workflow.input([f"data/source/{name}/.cloned" for name in DATASET_MAP])(
+    workflow.input([f"data/source/{repo}/.cloned" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
 
 workflow.rule(name="bundle_all")(
-    workflow.input([f"data/source/{name}/.bundle_created" for name in DATASET_MAP])(
+    workflow.input([f"data/source/{repo}/.bundle_created" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
 
 workflow.rule(name="pull_all")(
-    workflow.input([f"data/source/{name}/.pulled" for name in DATASET_MAP])(
+    workflow.input([f"data/source/{repo}/.pulled" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )

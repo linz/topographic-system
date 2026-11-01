@@ -33,7 +33,16 @@ def _setup(monkeypatch, tmp_path, *, built: bool = True, log: str = LOG):
     if built:
         (repo_dir / ".git").mkdir(parents=True)
 
-    rc = MagicMock(side_effect=lambda cmd, **kwargs: log if cmd[:2] == ["git", "log"] else "")
+    shas = "\n".join(line.split(" ", 1)[0] for line in log.splitlines() if line)
+
+    def run(cmd, **kwargs):
+        if cmd[:2] == ["git", "log"]:
+            return log
+        if cmd[:2] == ["git", "rev-list"]:
+            return shas
+        return ""
+
+    rc = MagicMock(side_effect=run)
     monkeypatch.setattr(f"{MODULE}.OUTPUT_DIR", output_dir)
     monkeypatch.setattr(f"{MODULE}.run_command", rc)
     monkeypatch.setattr(f"{MODULE}.get_repo_remote", lambda name: URL)
@@ -90,15 +99,19 @@ def test_push_repo_raises_when_repo_not_built(monkeypatch, tmp_path):
     assert env.run_command.call_count == 0  # bailed before touching git
 
 
-def test_push_repo_pushes_one_release_at_a_time(monkeypatch, tmp_path):
-    """A single push of the whole history exceeds GitHub's pack limit; releases go up in order."""
+def test_push_repo_pushes_every_commit_in_order(monkeypatch, tmp_path):
+    """A single push of a whole release can itself exceed GitHub's pack limit; commits go up one at a time."""
     env = _setup(monkeypatch, tmp_path)
 
     ref = push_repo(REPO)
 
     assert ref == "feat/release66"
     assert _pushes(env.run_command) == [
+        ["git", "push", "origin", "aaa1:refs/heads/feat/release66"],
+        ["git", "push", "origin", "aaa2:refs/heads/feat/release66"],
         ["git", "push", "origin", "aaa3:refs/heads/feat/release66", "refs/tags/release/64"],
+        ["git", "push", "origin", "bbb1:refs/heads/feat/release66"],
+        ["git", "push", "origin", "bbb2:refs/heads/feat/release66"],
         ["git", "push", "origin", "bbb3:refs/heads/feat/release66", "refs/tags/release/66"],
     ]
     assert (env.repo_dir / ".pushed").read_text() == f"{URL} feat/release66\n"
@@ -110,10 +123,13 @@ def test_push_repo_tags_each_release_before_pushing_it(monkeypatch, tmp_path):
     push_repo(REPO)
 
     cmds = _cmds(env.run_command)
-    assert ["git", "tag", "--force", "release/64", "aaa3"] in cmds
-    assert ["git", "tag", "--force", "release/66", "bbb3"] in cmds
-    # The tag has to exist locally before the push that carries it.
-    assert cmds.index(["git", "tag", "--force", "release/64", "aaa3"]) < cmds.index(_pushes(env.run_command)[0])
+    tag_64, tag_66 = ["git", "tag", "--force", "release/64", "aaa3"], ["git", "tag", "--force", "release/66", "bbb3"]
+    push_64 = ["git", "push", "origin", "aaa3:refs/heads/feat/release66", "refs/tags/release/64"]
+    push_66 = ["git", "push", "origin", "bbb3:refs/heads/feat/release66", "refs/tags/release/66"]
+    assert tag_64 in cmds and tag_66 in cmds
+    # Each tag has to exist locally before the push that carries it.
+    assert cmds.index(tag_64) < cmds.index(push_64)
+    assert cmds.index(tag_66) < cmds.index(push_66)
 
 
 def test_push_repo_sets_up_the_remote_before_pushing(monkeypatch, tmp_path):
@@ -137,7 +153,7 @@ def test_push_repo_pushes_to_master(monkeypatch, tmp_path):
     assert (env.repo_dir / ".pushed").read_text() == f"{URL} master\n"
 
 
-def test_push_repo_force_adds_force_flag_to_every_release(monkeypatch, tmp_path):
+def test_push_repo_force_adds_force_flag_to_every_push(monkeypatch, tmp_path):
     """The first push rewrites the branch; the rest fast-forward, but a moved tag still needs it."""
     env = _setup(monkeypatch, tmp_path)
 

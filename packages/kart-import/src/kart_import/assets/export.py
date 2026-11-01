@@ -7,7 +7,14 @@ from pathlib import Path
 import geopandas as gpd
 
 from ..command import run_command
-from ..config import EXPORT_FORMAT, SOURCE_DIR, get_dataset_by_name, get_releases, get_source_entry
+from ..config import (
+    EXPORT_FORMAT,
+    SOURCE_DIR,
+    get_dataset_by_name,
+    get_releases,
+    get_source_entry,
+    get_source_repo_name,
+)
 from ..export_paths import (
     dataset_commit_file,
     dataset_empty_file,
@@ -105,7 +112,7 @@ def resolve_release_commits(dataset_name: str) -> tuple[dict[str, CommitData], l
     """Each release's source commit, grouped by commit, plus the releases predating the dataset."""
     td = get_source_entry(dataset_name)
 
-    repo_dir = SOURCE_DIR / dataset_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(td)
     if not is_kart(repo_dir):
         raise Exception(f"Kart repo not found: {repo_dir}")
     kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
@@ -144,7 +151,7 @@ def backfilled_release_ids(dataset_name: str) -> set[int]:
 def export_dataset_releases(dataset_name: str):
     td = get_source_entry(dataset_name)
     releases = get_releases()
-    repo_dir = SOURCE_DIR / dataset_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(td)
     commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
     kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
     if getattr(td, "backfill", False):
@@ -190,7 +197,7 @@ def export_lookup(lookup_name: str) -> str:
     """
     lookup = get_source_entry(lookup_name)
 
-    repo_dir = SOURCE_DIR / lookup_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
     if not is_kart(repo_dir):
         raise FileNotFoundError(f"lookup {lookup_name!r} is not a cloned kart repo (no .kart dir under {repo_dir})")
     kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)

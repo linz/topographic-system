@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from qgis.core import (
     Qgis,
     QgsApplication,
+    QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsExpressionContextUtils,
     QgsFeature,
@@ -180,15 +181,23 @@ def main():
         topo_sheet_layer = matching_layers[0]
         feature = find_sheet_feature(topo_sheet_layer, args.sheet_code)
 
+        if topo_sheet_layer.fields().indexOf("epsg") >= 0 and feature["epsg"]:
+            sheet_crs = QgsCoordinateReferenceSystem.fromEpsgId(int(feature["epsg"]))
+        else:
+            sheet_crs = map_main.crs()
+        map_main.setCrs(sheet_crs)
+
         # Set map item extents
         geom = feature.geometry()
-        geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), map_main.crs(), project))
+        geom.transform(QgsCoordinateTransform(topo_sheet_layer.crs(), sheet_crs, project))
         bbox = geom.boundingBox()
         map_main.setExtent(bbox)
 
         # Handle magnetic info
         if Qgis.hasGeographicLib():
-            mag_info_raw = calculate_mag_info(project, feature, topo_sheet_layer.crs())
+            sheet_feature = QgsFeature(feature)
+            sheet_feature.setGeometry(geom)
+            mag_info_raw = calculate_mag_info(project, sheet_feature, sheet_crs)
             mag_info_render = render_mag_info(mag_info_raw)
 
             for key, value in mag_info_render.items():

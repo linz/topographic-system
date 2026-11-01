@@ -12,7 +12,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name
+from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name, get_source_repo_name
 from ..export_paths import export_filename, lookup_dir
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
@@ -69,7 +69,7 @@ def prepare_lookup(lookup_name: str) -> Path:
     lookup = get_lookup_by_name(lookup_name)
 
     # Read per commit below; `.cloned` is an input of the Snakefile rule so the repo is present.
-    repo_dir = SOURCE_DIR / lookup_name
+    repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
     kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
 
     input_dir = lookup_dir(lookup_name)

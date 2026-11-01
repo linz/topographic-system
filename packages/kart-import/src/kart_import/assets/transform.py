@@ -20,6 +20,7 @@ from ..config import (
     Theme,
     ThemeDataset,
     get_releases,
+    get_source_repo_name,
     get_themes,
 )
 from ..corrections import apply_corrections
@@ -325,7 +326,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         if commit is None:
             logger.warning("no commit in export name; declared types not restored", extra={"file": str(input_file)})
         else:
-            repo_dir = SOURCE_DIR / dataset_name
+            repo_dir = SOURCE_DIR / get_source_repo_name(td)
             gdf = coerce_integer_columns(
                 gdf,
                 get_dataset_schema(repo_dir, td.source.dataset or get_kart_dataset_id(repo_dir), commit),

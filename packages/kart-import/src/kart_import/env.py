@@ -129,6 +129,21 @@ def env_use_bundle() -> bool:
     return os.getenv("GIT_BUNDLE", "true").lower() == "true"
 
 
+def env_skip_source_pull() -> bool:
+    """
+    Stub out the live `kart pull`/`git clone` against the real source repo, trusting
+    whatever is already on disk (a bundle-seeded clone, or an existing clone) as-is.
+
+    For environments without credentials to reach the real source (e.g. e2e CI), where
+    a bundle that's slightly stale is an acceptable trade-off for not needing live access.
+    Leave unset in production: bundles do go stale, which is why clone/pull_all pull from
+    source at all.
+
+    KART_IMPORT_SKIP_SOURCE_PULL=true
+    """
+    return os.getenv("KART_IMPORT_SKIP_SOURCE_PULL", "false").lower() == "true"
+
+
 def env_push_to_master() -> bool:
     """
     Push the built target repo to `master` instead of a release-named branch.
@@ -147,7 +162,7 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
-def env_bundle_url(dataset_name: str) -> str:
+def env_bundle_url(repo_name: str) -> str:
     """
     Location to git bundles stored for easy access
 
@@ -156,7 +171,7 @@ def env_bundle_url(dataset_name: str) -> str:
     base_url = os.getenv("GIT_BUNDLE_URL", "https://d1jzh93b1t1cv.cloudfront.net/source/")
     if not base_url.endswith("/"):
         base_url += "/"
-    return f"{base_url}{dataset_name}.bundle"
+    return f"{base_url}{repo_name}.bundle"
 
 
 def env_bundle_s3_url() -> str:
@@ -169,3 +184,15 @@ def env_bundle_s3_url() -> str:
     if not s3_uri.endswith("/"):
         s3_uri += "/"
     return s3_uri
+
+
+def env_commit_split_bytes() -> int:
+    """Max new pack bytes one linearised commit may introduce before it's split into several
+    same-release commits, so `kart_push_repo`'s per-commit pushes never alone exceed GitHub's
+    push pack limit (see `kart_import.git.linearise`).
+
+    KART_COMMIT_SPLIT_BYTES=1500000000 (default 1.5 GB)
+
+        export KART_COMMIT_SPLIT_BYTES=500000000
+    """
+    return int(os.getenv("KART_COMMIT_SPLIT_BYTES", "1500000000"))
