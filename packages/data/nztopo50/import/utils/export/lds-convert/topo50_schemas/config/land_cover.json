@@ -1,5 +1,5 @@
 {
-  "source_layer": "landcover",
+  "source_layer": "land_cover",
   "targets": [
     {
       "target_layer": "ice_poly",

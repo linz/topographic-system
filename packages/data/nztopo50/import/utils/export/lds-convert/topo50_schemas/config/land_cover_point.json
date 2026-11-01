@@ -1,5 +1,5 @@
 {
-  "source_layer": "landcover_point",
+  "source_layer": "land_cover_point",
   "targets": [
     {
       "target_layer": "fumarole_pnt",

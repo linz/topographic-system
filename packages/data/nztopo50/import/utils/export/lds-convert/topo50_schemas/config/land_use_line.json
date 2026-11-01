@@ -1,31 +1,16 @@
 {
-  "source_layer": "landuse_point",
+  "source_layer": "land_use_line",
   "targets": [
     {
-      "target_layer": "mine_pnt",
-      "schema_key": "mine_pnt",
-      "feature_type": "mine",
-      "geometry_type": "Point",
+      "target_layer": "racetrack_cl",
+      "schema_key": "racetrack_cl",
+      "feature_type": "racetrack",
+      "geometry_type": "LineString",
       "field_mappings": [
         {
           "source_field": "t50_fid",
           "target_field": "t50_fid",
-          "target_type": "int:10"
-        },
-        {
-          "source_field": "status",
-          "target_field": "status",
-          "target_type": "str:9"
-        },
-        {
-          "source_field": "substance",
-          "target_field": "substance",
-          "target_type": "str:10"
-        },
-        {
-          "source_field": "place_type",
-          "target_field": "visibility",
-          "target_type": "str:11"
+          "target_type": "int32:9"
         },
         {
           "source_field": "name_ascii",
@@ -43,9 +28,19 @@
           "target_type": "str:75"
         },
         {
+          "source_field": "type",
+          "target_field": "track_use",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "subtype",
+          "target_field": "track_type",
+          "target_type": "str:7"
+        },
+        {
           "source_field": "geometry",
           "target_field": "geometry",
-          "target_type": "Point"
+          "target_type": "LineString"
         }
       ]
     }

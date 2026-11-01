@@ -15,17 +15,17 @@ Utility functions and classes for exporting NZ Topo50 data to LDS shapefiles.
 Coded against schema 0.3
 
 Additional changes not implemented for later schema versions.
-BM-1904 , 
+BM-1904 (done) - racetracks
 1905- cartotext, 
-1906-added sub field ignore,
-1907 - , 
-1908,
+1906 - added sub field ignore
+1907 - added sub field ignore
 1909 - main impact - require lookup for geographic_names
-1914 - track_line: move subtype to type and track_type to subtype
+1914 - track_line (done): move subtype to type and track_type to subtype
 1915 - trig_point: move trig_type to type
 1916 - fields redesigned larger restructure - contour: use type for index, contour, supplementary and depression
 1917 - runway: move subtype to type and surface to subtype
-
+1919 - (done) - residential area move
+1928  (done)- rename landuse/cover
 """
 # TODO on live version - need to deal with snow_poly - this is created from ice_poly but fid need to be grabbed from the origin snow_poly
 
@@ -35,15 +35,15 @@ BM-1904 ,
 #- { column: subtype, set: null, where: { t50_fid: 7862768, subtype: 'research station' } }
 
 TYPE_SELECTION_ALIASES = {
-    ("landuse", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
+    ("land_use", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
     ("structure_point", "beacon"): ["beacon", "lighthouse"],
 }
 
 TRACK_USE_BY_TYPE = {
-    "horse_track": "horse",
-    "vehicle_track": "vehicle",
-    "cycle_track": "cycle",
-    "dog_track": "dog",
+    "horse_racetrack": "horse",
+    "vehicle_racetrack": "vehicle",
+    "cycle_racetrack": "cycle",
+    "dog_racetrack": "dog",
 }
 
 DISPLAY_BY_SUBTYPE = {
@@ -300,12 +300,12 @@ class ExportToLDSModel:
         elif layer_name == "bridge_line":
             layer["bridge_use"] = layer["type"]
             layer["bridge_use2"] = layer["subtype"]
-        elif layer_name == "landcover_point":
+        elif layer_name == "land_cover_point":
             layer["display"] = layer["subtype"].map(DISPLAY_BY_SUBTYPE)
-        elif layer_name in {"landuse", "landuse_line"}:
+        elif layer_name in {"land_use", "land_use_line"}:
             layer["landuse_type"] = layer["subtype"]
             layer["landuse_use"] = layer["type"].map(TRACK_USE_BY_TYPE)
-        elif layer_name == "landuse_point":
+        elif layer_name == "land_use_point":
             layer["place_type"] = layer["subtype"]
         elif layer_name in {"marine", "marine_point"}:
             layer["composition"] = layer["subtype"]

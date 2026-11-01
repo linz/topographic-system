@@ -1,5 +1,5 @@
 {
-  "source_layer": "landcover_line",
+  "source_layer": "land_cover_line",
   "targets": [
     {
       "target_layer": "dredge_tailing_cl",

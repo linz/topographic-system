@@ -64,7 +64,7 @@ Each target config contains:
 
 The default export mode is GeoParquet. Each configured source directory must
 contain one file per consolidated model layer, named `<source_layer>.parquet`,
-for example `landuse.parquet`, `road_line.parquet`, and
+for example `land_use.parquet`, `road_line.parquet`, and
 `structure_point.parquet`.
 
 Convert the three model GeoPackages when needed:

@@ -1,16 +1,31 @@
 {
-  "source_layer": "residential_area",
+  "source_layer": "land_use_point",
   "targets": [
     {
-      "target_layer": "residential_area_poly",
-      "schema_key": "residential_area_poly",
-      "feature_type": "residential_area",
-      "geometry_type": "Polygon",
+      "target_layer": "mine_pnt",
+      "schema_key": "mine_pnt",
+      "feature_type": "mine",
+      "geometry_type": "Point",
       "field_mappings": [
         {
           "source_field": "t50_fid",
           "target_field": "t50_fid",
-          "target_type": "int32:9"
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:9"
+        },
+        {
+          "source_field": "substance",
+          "target_field": "substance",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "place_type",
+          "target_field": "visibility",
+          "target_type": "str:11"
         },
         {
           "source_field": "name_ascii",
@@ -30,7 +45,7 @@
         {
           "source_field": "geometry",
           "target_field": "geometry",
-          "target_type": "Polygon"
+          "target_type": "Point"
         }
       ]
     }
