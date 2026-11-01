@@ -10,7 +10,7 @@ _mappings:
     type: island
     name: $name
     group_name: $grp_name
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 datasets:
@@ -22,7 +22,7 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: $grp_name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/cook-islands-island-polygons-topo-125k-zone4
   #    name: cook_islands_island_polygons_zone4
@@ -31,7 +31,7 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: $grp_name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   #  - source: kart@data.koordinates.com:linz/niue-island-polygons-topo-150k
   #    mapping:
@@ -39,7 +39,7 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: $grp_name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-island-polygons-topo-150k
     mapping: *island
@@ -83,7 +83,7 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: null
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-island-polygons-topo-125k
@@ -92,5 +92,5 @@ datasets:
   #      type: island
   #      name: $name
   #      group_name: $grp_name
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null

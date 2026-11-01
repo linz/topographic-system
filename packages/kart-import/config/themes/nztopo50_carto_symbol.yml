@@ -3,10 +3,10 @@ target_repo: topographic-product-data
 target_epsg: EPSG:2193
 
 lookups:
-  - name: landuse
+  - name: land_use
     source:
       url: git@github.com:linz/topographic-data
-      dataset: landuse
+      dataset: land_use
     columns: [id]
     geometry: true
 
@@ -30,10 +30,10 @@ datasets:
       dataset: golf_sym
     name: golf_sym
     joins:
-      - lookup: landuse
+      - lookup: land_use
         predicate: within
     mapping:
-      metadata: { source: $landuse.id, fixup: true }
+      metadata: { source: $land_use.id, fixup: true }
       type: golf_course
       label: null
       orientation: null
@@ -46,10 +46,10 @@ datasets:
       dataset: mine_sym
     name: mine_sym
     joins:
-      - lookup: landuse
+      - lookup: land_use
         predicate: within
     mapping:
-      metadata: { source: $landuse.id, fixup: true }
+      metadata: { source: $land_use.id, fixup: true }
       type: $mine_vis
       t50_fid: null
       label: null

@@ -231,7 +231,7 @@ def test_schema_dtypes_is_empty_without_a_schema(dtype_schema_folder):
 
 # A minimal discriminated union: two `oneOf` branches disagreeing on `subtype` (a real enum in
 # `rock`, always-null in `plain`) and a `type` resolved differently in each (`const` vs. `$ref`
-# enum) — the same shape as `landcover_point.json`'s `rock_outcrop` vs. its plain point types.
+# enum) — the same shape as `land_cover_point.json`'s `rock_outcrop` vs. its plain point types.
 ONEOF_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "oneOf": [{"$ref": "#/$defs/rock"}, {"$ref": "#/$defs/plain"}],
@@ -264,7 +264,7 @@ ONEOF_SCHEMA = {
 
 @pytest.fixture
 def oneof_schema_folder(tmp_path, monkeypatch):
-    (tmp_path / "landcover_point.json").write_text(json.dumps(ONEOF_SCHEMA))
+    (tmp_path / "land_cover_point.json").write_text(json.dumps(ONEOF_SCHEMA))
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
     monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
     return tmp_path
@@ -273,7 +273,7 @@ def oneof_schema_folder(tmp_path, monkeypatch):
 def _oneof_theme(mapping):
     return Theme.model_validate(
         {
-            "name": "landcover_point",
+            "name": "land_cover_point",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
             "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
@@ -325,7 +325,7 @@ def test_oneof_strict_mode_raises(oneof_schema_folder, monkeypatch):
 def test_oneof_dtypes_merge_across_branches(oneof_schema_folder):
     # `subtype`'s always-null `plain` branch drops out, same as a plain nullable `anyOf` does;
     # `type` and `name` agree (as `string`) across both branches.
-    assert schema_dtypes("landcover_point") == {
+    assert schema_dtypes("land_cover_point") == {
         "type": "string",
         "subtype": "string",
         "name": "string",

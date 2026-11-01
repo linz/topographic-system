@@ -15,7 +15,7 @@
       "message": "Building point features must not fall within building polygon features"
     },
     {
-      "table": "landuse",
+      "table": "land_use",
       "intersection_table": "building_point",
       "layername": "building-points-in-residential",
       "message": "Building point features must not fall within residential area polygon features",
@@ -80,15 +80,15 @@
       "message": "Vegetation features must not self-intersect"
     },
     {
-      "table": "landuse",
+      "table": "land_use",
       "layername": "residential_area-validation",
       "message": "Residential area features must not self-intersect",
       "where": "type = 'residential_area'"
     },
     {
-      "table": "landcover",
-      "layername": "landcover-validation",
-      "message": "Landcover features must not self-intersect"
+      "table": "land_cover",
+      "layername": "land_cover-validation",
+      "message": "Land cover features must not self-intersect"
     },
     {
       "table": "island",
@@ -192,10 +192,10 @@
       "message": "Physical infrastructure line features must have a support_type attribute for type powerline"
     },
     {
-      "table": "landuse",
+      "table": "land_use",
       "column": "subtype",
       "where": "type = 'mine'",
-      "message": "Landuse features must have a landuse type attribute for type mine"
+      "message": "Land use features must have a land use type attribute for type mine"
     },
     {
       "table": "water_point",

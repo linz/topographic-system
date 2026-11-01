@@ -483,7 +483,7 @@ def _carto_symbol_td(monkeypatch, lookup: str, repo: str) -> ThemeDataset:
 
 def test_build_carto_symbol_metadata_record_shape(road_releases, frozen_build_time, monkeypatch):
     """A plain link: `table_column` null and the UUID key stored as a JSON string."""
-    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+    td = _carto_symbol_td(monkeypatch, "land_use", "topographic-data")
 
     out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
 
@@ -493,7 +493,7 @@ def test_build_carto_symbol_metadata_record_shape(road_releases, frozen_build_ti
             "source": "topographic_data",
             "source_key_name": "id",
             "source_key_value": CARTO_SYMBOL_KEY,
-            "source_table": "landuse",
+            "source_table": "land_use",
             "source_column": "id",
             "source_updated_at": BUILD_TIME_STAMP,
             "imported_at": BUILD_TIME_STAMP,
@@ -510,7 +510,7 @@ def test_build_carto_symbol_metadata_source_is_the_lookups_repo(road_releases, m
 
 
 def test_build_carto_symbol_metadata_leaves_unmatched_symbols_null(road_releases, monkeypatch):
-    td = _carto_symbol_td(monkeypatch, "landuse", "topographic-data")
+    td = _carto_symbol_td(monkeypatch, "land_use", "topographic-data")
 
     out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY, None]), td, 66)
 
@@ -829,7 +829,7 @@ def test_generate_sea_polygon_builds_moana_from_transforms(tmp_path, monkeypatch
     assert out.crs.to_epsg() == 4167
     assert (out.geometry.geom_type == "Polygon").all()
     assert out["t50_fid"].isna().all()
-    assert (out["theme"] == "landcover").all()
+    assert (out["theme"] == "land_cover").all()
     # every moana feature carries a derived identity and timestamps
     for column in ("id", "created_at", "updated_at"):
         assert out[column].notna().all()

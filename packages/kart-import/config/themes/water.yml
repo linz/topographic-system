@@ -19,7 +19,7 @@ _mappings:
     elevation: $
     perennial: $
     temperature_indicator: null
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 lookups:
@@ -56,7 +56,7 @@ datasets:
       elevation: null
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: { source: $canal_poly_lkp.gazfeatid, fixup: true }
     joins:
       - lookup: canal_poly_lkp
@@ -78,7 +78,7 @@ datasets:
       elevation: $
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   # Chatham lagoon reads `name` straight from source, same as the mainland entry.
   - source: kart@data.koordinates.com:linz/nz-chatham-island-lagoon-polygons-topo-150k
@@ -93,7 +93,7 @@ datasets:
       elevation: $
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-lagoon-polygons-topo-125k-zone3
@@ -121,7 +121,7 @@ datasets:
       elevation: $
       perennial: $
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
     corrections: *lake_subtype_corrections
   # Chatham lake shares the `*lake` anchor (name read straight from source), same as mainland.
@@ -178,7 +178,7 @@ datasets:
   #     elevation: $
   #     perennial: $
   #     temperature_indicator: null
-  #     theme: landcover
+  #     theme: land_cover
   #     metadata: null
   # - source: kart@data.koordinates.com:linz/nz-ross-dependency-glacial-lake-polygons-ant-150k
   #   name: nz_ross_dependency_glacial_lake_polygons_ant_150k
@@ -192,7 +192,7 @@ datasets:
   #     elevation: null
   #     perennial: null
   #     temperature_indicator: null
-  #     theme: landcover
+  #     theme: land_cover
   #     metadata: null
 
   # -------- pond
@@ -209,7 +209,7 @@ datasets:
       elevation: null
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
     corrections:
       - column: subtype
@@ -235,7 +235,7 @@ datasets:
       elevation: null
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: { source: $river_poly_lkp.gazfeatid, fixup: true }
     joins:
       - lookup: river_poly_lkp
@@ -256,7 +256,7 @@ datasets:
       elevation: null
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-river-polygons-topo-125k-zone4
@@ -283,7 +283,7 @@ datasets:
       elevation: null
       perennial: null
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
     fixups:
       - fn: generate_sea_polygon

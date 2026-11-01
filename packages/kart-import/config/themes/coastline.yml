@@ -8,7 +8,7 @@ datasets:
       t50_fid: $
       type: coastline
       elevation: $elevation
-      theme: landcover
+      theme: land_cover
       metadata: null
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-coastlines-ant-150k
@@ -16,5 +16,5 @@ datasets:
   #      t50_fid: $
   #      type: coastline
   #      elevation: $elevation
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null

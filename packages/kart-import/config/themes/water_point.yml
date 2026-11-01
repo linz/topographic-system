@@ -12,7 +12,7 @@ _mappings:
     height: null
     orientation: null
     temperature_indicator: null
-    theme: landcover
+    theme: land_cover
     metadata: null
   waterfall: &waterfall
     t50_fid: null
@@ -21,7 +21,7 @@ _mappings:
     height: $
     orientation: null
     temperature_indicator: null
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 datasets:
@@ -36,7 +36,7 @@ datasets:
   #      height: null
   #      orientation: {source: $orientn, since_release: 57}
   #      temperature_indicator: null
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-soakhole-points-topo-150k
     mapping:
@@ -46,7 +46,7 @@ datasets:
       height: null
       orientation: { source: $orientatn, since_release: 50 }
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-soakhole-points-topo-150k
     feature_key: auto_pk
@@ -69,7 +69,7 @@ datasets:
       height: null
       orientation: null
       temperature_indicator: $temp
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-spring-points-topo-125k
     feature_key: auto_pk
@@ -80,7 +80,7 @@ datasets:
       height: null
       orientation: null
       temperature_indicator: $temp
-      theme: landcover
+      theme: land_cover
       metadata: null
   # -- waterfall --------------------------------------------------------------
   # Only keep NZ datasets for initial load.
@@ -93,7 +93,7 @@ datasets:
   #      height: $
   #      orientation: {source: $orientn, since_release: 57}
   #      temperature_indicator: null
-  #      theme: landcover
+  #      theme: land_cover
   #      metadata: null
   - source: kart@data.koordinates.com:linz/nz-waterfall-points-topo-150k
     mapping:
@@ -104,7 +104,7 @@ datasets:
       # `orientatn` was added to the source schema on 2020-06-10 (release 50).
       orientation: { source: $orientatn, since_release: 50 }
       temperature_indicator: null
-      theme: landcover
+      theme: land_cover
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-waterfall-points-topo-125k
     feature_key: auto_pk
