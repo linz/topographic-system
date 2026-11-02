@@ -1,4 +1,5 @@
-import type { Namespace, Model, Enum, Union, Type } from '@typespec/compiler';
+import type { Model, Namespace, Enum, Program, Scalar, Type, Union } from '@typespec/compiler';
+import { getId } from '@typespec/json-schema';
 
 export function toPascalCase(str: string): string {
   if (str == null) return '';
@@ -16,14 +17,21 @@ export function toSnakeCase(str: string): string {
     .toLowerCase();
 }
 
+/**
+ * Strips a `null` variant from a union, e.g. `T | null` unwraps to `T`. A union with more than
+ * one non-null variant (e.g. `string | int32`) isn't a simple nullable wrapper, so it's returned
+ * as-is (still a `Union`) rather than silently collapsed to just its first variant.
+ */
 export function unwrapNullableType(type: Type): { type: Type; optional: boolean } {
   if (type.kind === 'Union') {
     const variants = Array.from(type.variants.values());
     const nonNullVariants = variants.filter((v) => v.type.kind !== 'Intrinsic' || v.type.name !== 'null');
     const hasNull = variants.length !== nonNullVariants.length;
-    const first = nonNullVariants[0];
-    if (first) {
-      return { type: first.type, optional: hasNull };
+    if (nonNullVariants.length === 1) {
+      return { type: nonNullVariants[0]!.type, optional: hasNull };
+    }
+    if (hasNull) {
+      return { type, optional: true };
     }
   }
   return { type, optional: false };
@@ -40,20 +48,18 @@ export function resolveNamespace(globalNs: Namespace, path: string): Namespace |
 }
 
 /** Lists the immediate child namespaces of `ns`, excluding the built-in `TypeSpec` namespace. */
-export function getChildNamespaces(ns: any): Array<{ name: string; ns: any }> {
-  const out: Array<{ name: string; ns: any }> = [];
-  if ('namespaces' in ns && ns.namespaces) {
-    for (const sub of ns.namespaces.values()) {
-      if (sub.name === 'TypeSpec') continue;
-      out.push({ name: sub.name, ns: sub });
-    }
+export function getChildNamespaces(ns: Namespace): Array<{ name: string; ns: Namespace }> {
+  const out: Array<{ name: string; ns: Namespace }> = [];
+  for (const sub of ns.namespaces.values()) {
+    if (sub.name === 'TypeSpec') continue;
+    out.push({ name: sub.name, ns: sub });
   }
   return out;
 }
 
 /** Collects the models/enums/unions declared directly on `ns`, without recursing into children. */
 export function collectOwnTypes(
-  ns: any,
+  ns: Namespace,
   models: Map<string, Model>,
   enums: Map<string, Enum>,
   unions: Map<string, Union>,
@@ -85,5 +91,45 @@ export function collectTypes(
   collectOwnTypes(ns, models, enums, unions);
   for (const { ns: sub } of getChildNamespaces(ns)) {
     collectTypes(sub, models, enums, unions);
+  }
+}
+
+/**
+ * Visits every model/union/enum/scalar with a `@jsonSchema` id declared directly on `ns` — the
+ * single place this set of kinds is enumerated, so JSON Schema/Parquet/STAC emission can't drift
+ * out of sync on which kinds count as "identified" types.
+ */
+export function visitOwnIdentifiedTypes(
+  program: Program,
+  ns: Namespace,
+  visit: (id: string, type: Model | Union | Enum | Scalar) => void,
+): void {
+  for (const m of ns.models.values()) {
+    const id = getId(program, m);
+    if (id) visit(id, m);
+  }
+  for (const u of ns.unions.values()) {
+    const id = getId(program, u);
+    if (id) visit(id, u);
+  }
+  for (const e of ns.enums.values()) {
+    const id = getId(program, e);
+    if (id) visit(id, e);
+  }
+  for (const s of ns.scalars.values()) {
+    const id = getId(program, s);
+    if (id) visit(id, s);
+  }
+}
+
+/** Visits every model/union/enum/scalar with a `@jsonSchema` id reachable from `ns`, recursing into sub-namespaces. */
+export function visitIdentifiedTypes(
+  program: Program,
+  ns: Namespace,
+  visit: (id: string, type: Model | Union | Enum | Scalar) => void,
+): void {
+  visitOwnIdentifiedTypes(program, ns, visit);
+  for (const { ns: sub } of getChildNamespaces(ns)) {
+    visitIdentifiedTypes(program, sub, visit);
   }
 }

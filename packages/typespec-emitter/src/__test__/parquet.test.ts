@@ -3,13 +3,18 @@ import { describe, it } from 'node:test';
 
 import type { SchemaElement } from 'hyparquet';
 
-import type { ParquetField } from './parquet.ts';
+import type { ParquetField } from '../parquet.ts';
+
+interface HyparquetTree {
+  element: SchemaElement;
+  children: { element: SchemaElement }[];
+}
 
 /**
  * Helper function to validate that a hyparquet schema tree matches our emitted Parquet JSON schema.
  */
 export function validateHyparquetSchema(
-  hyparquetTree: { element: SchemaElement; children: { element: SchemaElement }[] },
+  hyparquetTree: HyparquetTree,
   expectedSchema: { name: string; fields: ParquetField[] },
 ): void {
   assert.strictEqual(
@@ -43,7 +48,7 @@ export function validateHyparquetSchema(
 
 describe('Parquet Schema Emitter & Validator', () => {
   it('validates a hyparquet schema tree against an emitted Parquet JSON schema', () => {
-    const mockHyparquetTree = {
+    const mockHyparquetTree: HyparquetTree = {
       element: { name: 'railway_line', num_children: 2 },
       children: [
         { element: { name: 'id', type: 'BYTE_ARRAY', repetition_type: 'REQUIRED', logical_type: { type: 'STRING' } } },
@@ -62,11 +67,11 @@ describe('Parquet Schema Emitter & Validator', () => {
       ],
     };
 
-    validateHyparquetSchema(mockHyparquetTree as any, sampleEmittedSchema);
+    validateHyparquetSchema(mockHyparquetTree, sampleEmittedSchema);
   });
 
   it('fails validation when a required column is missing', () => {
-    const mockHyparquetTree = {
+    const mockHyparquetTree: HyparquetTree = {
       element: { name: 'railway_line', num_children: 1 },
       children: [
         { element: { name: 'id', type: 'BYTE_ARRAY', repetition_type: 'REQUIRED', logical_type: { type: 'STRING' } } },
@@ -83,7 +88,7 @@ describe('Parquet Schema Emitter & Validator', () => {
     };
 
     assert.throws(() => {
-      validateHyparquetSchema(mockHyparquetTree as any, sampleEmittedSchema);
+      validateHyparquetSchema(mockHyparquetTree, sampleEmittedSchema);
     }, /Column "route" missing/);
   });
 });

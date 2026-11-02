@@ -1,7 +1,9 @@
 import { emitFile, getDirectoryPath, getDoc, joinPaths } from '@typespec/compiler';
 import type { EmitContext, Enum, Model, Program, Type, Union } from '@typespec/compiler';
 
-import { planEmission, unitOutputDir } from './plan.ts';
+import type { EmitterOptions } from './index.ts';
+import type { EmissionUnit } from './plan.ts';
+import { unitOutputDir } from './plan.ts';
 import { collectOwnTypes, collectTypes, toPascalCase } from './utils.ts';
 
 function formatPropName(name: string): string {
@@ -173,9 +175,12 @@ export function generateTypeScriptCode(
  * export generated across sibling products, since their types can share names (e.g. both
  * `NzTopo50` and `NzTopo250` may declare `airport`) and a combined `export *` would collide.
  */
-export async function emitTypeScript(context: EmitContext<any>, outputTarget: string): Promise<void> {
+export async function emitTypeScript(
+  context: EmitContext<EmitterOptions>,
+  units: EmissionUnit[],
+  outputTarget: string,
+): Promise<void> {
   const { program } = context;
-  const units = planEmission(program);
   const outputDir = outputTarget.endsWith('.ts') ? getDirectoryPath(outputTarget) : outputTarget;
 
   for (const unit of units) {

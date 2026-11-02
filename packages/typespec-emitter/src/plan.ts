@@ -1,12 +1,12 @@
-import type { Program } from '@typespec/compiler';
+import type { Namespace, Program } from '@typespec/compiler';
 import { joinPaths } from '@typespec/compiler';
 import { unsafe_mutateSubgraphWithNamespace } from '@typespec/compiler/experimental';
 import { getVersioningMutators } from '@typespec/versioning';
 
 import { getChildNamespaces, resolveNamespace } from './utils.ts';
 
-/** Namespace products (e.g. `NzTopo50`, `NzTopo250`) live as direct children of this namespace. */
-export const ROOT_NAMESPACE = 'Linz.Topography';
+/** Namespace products (e.g. `NzTopo50`, `NzTopo250`) live as direct children of this namespace, unless overridden via the `root-namespace` emitter option. */
+export const DEFAULT_ROOT_NAMESPACE = 'Linz.Topography';
 
 /** Name of the mutable "latest release" directory nested inside a versioned namespace directory. */
 export const LATEST_DIR = 'latest';
@@ -33,13 +33,13 @@ export interface EmissionUnit {
   /** Dotted, lowercased namespace path (e.g. `linz.topography.nztopo50`), set only when `Linz.Topography` was resolved. */
   namespacePath?: string;
   /** This unit's own namespace: a product namespace, or the root namespace if there are no products. */
-  ns: any;
+  ns: Namespace;
   /**
    * The shared root namespace for this version, set only when `ns` is a product namespace (its
    * own types, declared directly on it rather than inside any product, are shared by every
    * product at this version). Undefined when `ns` already IS the root (no product split).
    */
-  sharedNs?: any;
+  sharedNs?: Namespace;
   /**
    * True for the standalone unit covering the root namespace's own (shared) types, emitted
    * alongside its product siblings rather than folded only into them.
@@ -47,7 +47,7 @@ export interface EmissionUnit {
   ownOnly?: boolean;
 }
 
-function planNamespace(ns: any, rootDottedPath: string | undefined): EmissionUnit[] {
+function planNamespace(ns: Namespace, rootDottedPath: string | undefined): EmissionUnit[] {
   const products = getChildNamespaces(ns);
 
   if (products.length === 0) {
@@ -81,18 +81,18 @@ function planNamespace(ns: any, rootDottedPath: string | undefined): EmissionUni
 
 /**
  * Computes the (namespace × version) output units every emitter should write into, resolving
- * `Linz.Topography` (or the global namespace if there is no `Linz.Topography` namespace). Each
- * namespace reachable this way — the root itself (if it has product children) plus each product
- * sub-namespace — gets its own `namespace={dotted path}/` directory; a product's directory
- * combines its own types with any declared directly on the shared root. If the root is versioned
- * via `@typespec/versioning`, each namespace's directory additionally nests a
+ * `rootNamespace` (default `Linz.Topography`, or the global namespace if that namespace isn't
+ * found). Each namespace reachable this way — the root itself (if it has product children) plus
+ * each product sub-namespace — gets its own `namespace={dotted path}/` directory; a product's
+ * directory combines its own types with any declared directly on the shared root. If the root is
+ * versioned via `@typespec/versioning`, each namespace's directory additionally nests a
  * `release=v{version}/` per release. With no versioning and no products, a single unit covers
- * everything, at `namespace={dotted path}/` (or `''` if `Linz.Topography` wasn't found at all).
+ * everything, at `namespace={dotted path}/` (or `''` if `rootNamespace` wasn't found at all).
  */
-export function planEmission(program: Program): EmissionUnit[] {
-  const rootNs = resolveNamespace(program.getGlobalNamespaceType(), ROOT_NAMESPACE);
+export function planEmission(program: Program, rootNamespace: string = DEFAULT_ROOT_NAMESPACE): EmissionUnit[] {
+  const rootNs = resolveNamespace(program.getGlobalNamespaceType(), rootNamespace);
   const targetNs = rootNs ?? program.getGlobalNamespaceType();
-  const rootDottedPath = rootNs ? ROOT_NAMESPACE.toLowerCase() : undefined;
+  const rootDottedPath = rootNs ? rootNamespace.toLowerCase() : undefined;
 
   const mutators = getVersioningMutators(program, targetNs);
 
@@ -100,9 +100,13 @@ export function planEmission(program: Program): EmissionUnit[] {
     const units: EmissionUnit[] = [];
     for (const snapshot of mutators.snapshots) {
       const versionStr = String(snapshot.version.value ?? snapshot.version.name);
-      const { type: mutatedNs } = unsafe_mutateSubgraphWithNamespace(program, [snapshot.mutator], targetNs);
+      const { type: mutatedType } = unsafe_mutateSubgraphWithNamespace(program, [snapshot.mutator], targetNs);
+      // `mutateSubgraphWithNamespace` always returns a `Namespace` when given one; the broader
+      // `MutableTypeWithNamespace` return type only exists because the function also folds in the
+      // (unrelated) mutation of non-namespace types elsewhere in the library.
+      if (mutatedType.kind !== 'Namespace') continue;
       const releaseDir = releaseSegment(versionStr);
-      for (const unit of planNamespace(mutatedNs, rootDottedPath)) {
+      for (const unit of planNamespace(mutatedType, rootDottedPath)) {
         units.push({ ...unit, versionStr, releaseDir, path: joinPaths(unit.namespaceDir, releaseDir) });
       }
     }

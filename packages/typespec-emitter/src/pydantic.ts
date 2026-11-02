@@ -2,7 +2,9 @@ import { emitFile, getDirectoryPath, joinPaths } from '@typespec/compiler';
 import type { EmitContext, Enum, Model, Union } from '@typespec/compiler';
 import { isJsonSchemaDeclaration } from '@typespec/json-schema';
 
-import { planEmission, unitOutputDir } from './plan.ts';
+import type { EmitterOptions } from './index.ts';
+import type { EmissionUnit } from './plan.ts';
+import { unitOutputDir } from './plan.ts';
 import { collectOwnTypes, collectTypes, toPascalCase } from './utils.ts';
 
 /**
@@ -10,11 +12,15 @@ import { collectOwnTypes, collectTypes, toPascalCase } from './utils.ts';
  * `planEmission`. Each unit combines its own namespace's types with any declared directly on the
  * shared root at that version.
  */
-export async function emitPydanticModels(context: EmitContext<any>, outputTarget: string): Promise<void> {
+export async function emitPydanticModels(
+  context: EmitContext<EmitterOptions>,
+  units: EmissionUnit[],
+  outputTarget: string,
+): Promise<void> {
   const { program } = context;
   const outputDir = outputTarget.endsWith('.py') ? getDirectoryPath(outputTarget) : outputTarget;
 
-  for (const unit of planEmission(program)) {
+  for (const unit of units) {
     const models = new Map<string, Model>();
     const enums = new Map<string, Enum>();
     const unions = new Map<string, Union>();

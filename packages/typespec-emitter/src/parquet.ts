@@ -1,9 +1,10 @@
 import { emitFile, resolvePath } from '@typespec/compiler';
-import type { EmitContext, Model, Type, Union } from '@typespec/compiler';
-import { getId } from '@typespec/json-schema';
+import type { EmitContext, Enum, Model, Scalar, Type, Union } from '@typespec/compiler';
 
-import { planEmission, unitOutputDir } from './plan.ts';
-import { getChildNamespaces, toSnakeCase, unwrapNullableType } from './utils.ts';
+import type { EmitterOptions } from './index.ts';
+import type { EmissionUnit } from './plan.ts';
+import { unitOutputDir } from './plan.ts';
+import { toSnakeCase, unwrapNullableType, visitIdentifiedTypes, visitOwnIdentifiedTypes } from './utils.ts';
 
 export interface ParquetField {
   name: string;
@@ -165,7 +166,18 @@ export function getParquetFieldsForUnion(union: Union): ParquetField[] {
     }
   }
 
-  return Array.from(fieldsMap.values()).filter((f) => Boolean(f.type || f.fields));
+  // Every variant mapped this column to a bare `null`/untyped shape (e.g. the property is
+  // literally typed `null` in every variant) — it still needs a concrete physical type in
+  // Parquet, so fall back to an optional string rather than silently dropping the column.
+  for (const field of fieldsMap.values()) {
+    if (field.type == null && field.fields == null) {
+      field.type = 'BYTE_ARRAY';
+      field.logical_type = 'STRING';
+      field.repetition_type = 'OPTIONAL';
+    }
+  }
+
+  return Array.from(fieldsMap.values());
 }
 
 interface NamedTypeToEmit {
@@ -173,45 +185,29 @@ interface NamedTypeToEmit {
   type: Model | Union;
 }
 
-/** Collects `@jsonSchema`-tagged models/unions declared directly on `ns`. */
-function collectOwnTypes(program: any, ns: any, out: NamedTypeToEmit[]): void {
-  if ('models' in ns && ns.models) {
-    for (const m of ns.models.values()) {
-      const id = getId(program, m);
-      if (id) out.push({ name: id, type: m });
-    }
-  }
-  if ('unions' in ns && ns.unions) {
-    for (const u of ns.unions.values()) {
-      const id = getId(program, u);
-      if (id) out.push({ name: id, type: u });
-    }
-  }
-}
-
-/** Collects `@jsonSchema`-tagged models/unions reachable from `ns`, recursing into sub-namespaces. */
-function collectIdentifiedTypes(program: any, ns: any, out: NamedTypeToEmit[]): void {
-  collectOwnTypes(program, ns, out);
-  for (const { ns: sub } of getChildNamespaces(ns)) {
-    collectIdentifiedTypes(program, sub, out);
-  }
-}
-
 /**
  * Emits a Parquet schema for every `@jsonSchema`-tagged model/union, one output per
  * (version × product) unit — see `planEmission`. Each unit combines its own namespace's types
- * with any declared directly on the shared root at that version.
+ * with any declared directly on the shared root at that version. Enums and scalars are skipped:
+ * unlike models/unions, they have no `properties` to turn into Parquet fields.
  */
-export async function emitParquetSchema(context: EmitContext<any>, outputDir: string): Promise<void> {
+export async function emitParquetSchema(
+  context: EmitContext<EmitterOptions>,
+  units: EmissionUnit[],
+  outputDir: string,
+): Promise<void> {
   const { program } = context;
 
-  for (const unit of planEmission(program)) {
+  for (const unit of units) {
     const typesToEmit: NamedTypeToEmit[] = [];
-    if (unit.sharedNs) collectOwnTypes(program, unit.sharedNs, typesToEmit);
+    const visit = (id: string, type: Model | Union | Enum | Scalar): void => {
+      if (type.kind === 'Model' || type.kind === 'Union') typesToEmit.push({ name: id, type });
+    };
+    if (unit.sharedNs) visitOwnIdentifiedTypes(program, unit.sharedNs, visit);
     if (unit.ownOnly) {
-      collectOwnTypes(program, unit.ns, typesToEmit);
+      visitOwnIdentifiedTypes(program, unit.ns, visit);
     } else {
-      collectIdentifiedTypes(program, unit.ns, typesToEmit);
+      visitIdentifiedTypes(program, unit.ns, visit);
     }
 
     const unitDir = unitOutputDir(outputDir, unit.path);

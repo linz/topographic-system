@@ -1,58 +1,41 @@
 import { createAssetEmitter } from '@typespec/asset-emitter';
+import type { EmittedSourceFile, SourceFile } from '@typespec/asset-emitter';
 import type { EmitContext, Type } from '@typespec/compiler';
-import { JsonSchemaEmitter, getId } from '@typespec/json-schema';
+import type { JsonSchemaEmitterOutputOptions } from '@typespec/json-schema';
+import { JsonSchemaEmitter } from '@typespec/json-schema';
 
-import { planEmission, unitOutputDir } from './plan.ts';
-import { getChildNamespaces } from './utils.ts';
+import type { EmitterOptions } from './index.ts';
+import type { EmissionUnit } from './plan.ts';
+import { unitOutputDir } from './plan.ts';
+import { visitIdentifiedTypes, visitOwnIdentifiedTypes } from './utils.ts';
 
 class VersionedJsonSchemaEmitter extends JsonSchemaEmitter {
-  override sourceFile(sourceFile: any) {
+  override sourceFile(sourceFile: SourceFile<Record<string, unknown>>): EmittedSourceFile {
     const result = super.sourceFile(sourceFile);
     try {
-      const versionStr = (this.emitter.getOptions() as any).versionStr ?? '';
+      const versionStr = this.emitter.getOptions().versionStr ?? '';
       const json = JSON.parse(result.contents);
       if (json.$id) {
         json.$id = `${json.$id}_v${versionStr}`;
       }
       return { contents: JSON.stringify(json, null, 2), path: result.path };
-    } catch {
+    } catch (error) {
+      this.emitter
+        .getProgram()
+        .trace('typespec-emitter.json-schema', `Failed to version $id for ${result.path}: ${String(error)}`);
       return result;
     }
   }
 }
 
-/** Collects every model/union/enum/scalar with a `@jsonSchema` id declared directly on `ns`. */
-function collectOwnTypes(program: any, ns: any, out: Type[]): void {
-  if ('models' in ns && ns.models) {
-    for (const m of ns.models.values()) if (getId(program, m)) out.push(m);
-  }
-  if ('unions' in ns && ns.unions) {
-    for (const u of ns.unions.values()) if (getId(program, u)) out.push(u);
-  }
-  if ('enums' in ns && ns.enums) {
-    for (const e of ns.enums.values()) if (getId(program, e)) out.push(e);
-  }
-  if ('scalars' in ns && ns.scalars) {
-    for (const s of ns.scalars.values()) if (getId(program, s)) out.push(s);
-  }
-}
-
-/** Collects every model/union/enum/scalar with a `@jsonSchema` id, recursing into sub-namespaces. */
-function collectIdentifiedTypes(program: any, ns: any, out: Type[]): void {
-  collectOwnTypes(program, ns, out);
-  for (const { ns: sub } of getChildNamespaces(ns)) {
-    collectIdentifiedTypes(program, sub, out);
-  }
-}
-
 async function writeJsonSchema(
-  context: EmitContext<any>,
+  context: EmitContext<EmitterOptions>,
   types: Type[],
   outputDir: string,
   versionStr?: string,
 ): Promise<void> {
   const { program } = context;
-  const emitContext = {
+  const emitContext: EmitContext<JsonSchemaEmitterOutputOptions> = {
     ...context,
     emitterOutputDir: outputDir,
     options: { ...context.options, 'file-type': 'json', ...(versionStr != null ? { versionStr } : {}) },
@@ -76,16 +59,23 @@ async function writeJsonSchema(
  * — see `planEmission`. Each unit combines its own namespace's types with any declared directly
  * on the shared root at that version.
  */
-export async function emitJsonSchema(context: EmitContext<any>, outputDir: string): Promise<void> {
+export async function emitJsonSchema(
+  context: EmitContext<EmitterOptions>,
+  units: EmissionUnit[],
+  outputDir: string,
+): Promise<void> {
   const { program } = context;
 
-  for (const unit of planEmission(program)) {
+  for (const unit of units) {
     const types: Type[] = [];
-    if (unit.sharedNs) collectOwnTypes(program, unit.sharedNs, types);
+    const visit = (_id: string, type: Type): void => {
+      types.push(type);
+    };
+    if (unit.sharedNs) visitOwnIdentifiedTypes(program, unit.sharedNs, visit);
     if (unit.ownOnly) {
-      collectOwnTypes(program, unit.ns, types);
+      visitOwnIdentifiedTypes(program, unit.ns, visit);
     } else {
-      collectIdentifiedTypes(program, unit.ns, types);
+      visitIdentifiedTypes(program, unit.ns, visit);
     }
 
     await writeJsonSchema(context, types, unitOutputDir(outputDir, unit.path), unit.versionStr);

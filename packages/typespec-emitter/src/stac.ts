@@ -1,72 +1,74 @@
-import type { EmitContext, Program } from '@typespec/compiler';
+import type { EmitContext, Enum, Model, Program, Scalar, Union } from '@typespec/compiler';
 import { emitFile, joinPaths, resolvePath } from '@typespec/compiler';
-import { getId } from '@typespec/json-schema';
 
+import type { EmitterOptions } from './index.ts';
 import type { EmissionUnit } from './plan.ts';
-import { LATEST_DIR, planEmission, unitOutputDir } from './plan.ts';
-import { getChildNamespaces } from './utils.ts';
+import { LATEST_DIR, unitOutputDir } from './plan.ts';
+import { visitIdentifiedTypes, visitOwnIdentifiedTypes } from './utils.ts';
 
-/** Collects `@jsonSchema` ids declared directly on `ns` (no recursion into sub-namespaces). */
-function collectOwnAssetNames(program: Program, ns: any, out: string[]): void {
-  if ('models' in ns && ns.models) {
-    for (const m of ns.models.values()) {
-      const id = getId(program, m);
-      if (id) out.push(id);
-    }
-  }
-  if ('unions' in ns && ns.unions) {
-    for (const u of ns.unions.values()) {
-      const id = getId(program, u);
-      if (id) out.push(id);
-    }
-  }
+interface UnitAssetNames {
+  /** Every `@jsonSchema`-tagged type (model/union/enum/scalar) — matches what json-schema.ts writes. */
+  schema: string[];
+  /** The subset parquet.ts can actually emit a `.parquet.json` for (models/unions only). */
+  parquet: string[];
 }
 
-/** Collects `@jsonSchema` ids reachable from `ns`, recursing into sub-namespaces. */
-function collectAssetNames(program: Program, ns: any, out: string[]): void {
-  collectOwnAssetNames(program, ns, out);
-  for (const { ns: sub } of getChildNamespaces(ns)) {
-    collectAssetNames(program, sub, out);
+function assetNamesForUnit(program: Program, unit: EmissionUnit): UnitAssetNames {
+  const out: UnitAssetNames = { schema: [], parquet: [] };
+  const visit = (id: string, type: Model | Union | Enum | Scalar): void => {
+    out.schema.push(id);
+    if (type.kind === 'Model' || type.kind === 'Union') out.parquet.push(id);
+  };
+  if (unit.sharedNs) visitOwnIdentifiedTypes(program, unit.sharedNs, visit);
+  if (unit.ownOnly) {
+    visitOwnIdentifiedTypes(program, unit.ns, visit);
+  } else {
+    visitIdentifiedTypes(program, unit.ns, visit);
   }
-}
-
-function assetNamesForUnit(program: Program, unit: EmissionUnit): string[] {
-  const assetNames: string[] = [];
-  if (unit.sharedNs) collectOwnAssetNames(program, unit.sharedNs, assetNames);
-  if (unit.ownOnly) collectOwnAssetNames(program, unit.ns, assetNames);
-  else collectAssetNames(program, unit.ns, assetNames);
-  return [...new Set(assetNames)].sort();
+  return { schema: [...new Set(out.schema)].sort(), parquet: [...new Set(out.parquet)].sort() };
 }
 
 async function emitCollection(
   program: Program,
-  assetNames: string[],
+  assetNames: UnitAssetNames,
+  includeParquetAssets: boolean,
   outputDir: string,
   opts: {
     id: string;
     title: string;
     description: string;
     rootHref: string;
-    parentHref: string;
+    /** Omitted when this collection IS the root — a root has no parent to link to. */
+    parentHref?: string;
     assetHrefPrefix?: string;
   },
 ): Promise<void> {
   const assetHrefPrefix = opts.assetHrefPrefix ?? './';
   const assets: Record<string, { href: string; title: string; type: string; roles: string[] }> = {};
-  for (const name of assetNames) {
+  for (const name of assetNames.schema) {
     assets[name] = {
       href: `${assetHrefPrefix}${name}.json`,
       title: `${name} JSON Schema`,
       type: 'application/schema+json',
       roles: ['schema'],
     };
-    assets[`${name}_parquet`] = {
-      href: `${assetHrefPrefix}${name}.parquet.json`,
-      title: `${name} Parquet Schema`,
-      type: 'application/json',
-      roles: ['schema'],
-    };
   }
+  if (includeParquetAssets) {
+    for (const name of assetNames.parquet) {
+      assets[`${name}_parquet`] = {
+        href: `${assetHrefPrefix}${name}.parquet.json`,
+        title: `${name} Parquet Schema`,
+        type: 'application/json',
+        roles: ['schema'],
+      };
+    }
+  }
+
+  const links: Array<{ rel: string; href: string; type: string }> = [
+    { rel: 'root', href: opts.rootHref, type: 'application/json' },
+  ];
+  if (opts.parentHref) links.push({ rel: 'parent', href: opts.parentHref, type: 'application/json' });
+  links.push({ rel: 'self', href: './collection.json', type: 'application/json' });
 
   const collection = {
     type: 'Collection',
@@ -79,11 +81,7 @@ async function emitCollection(
       spatial: { bbox: [[166.0, -47.5, 179.0, -34.0]] },
       temporal: { interval: [['2026-01-01T00:00:00Z', null]] },
     },
-    links: [
-      { rel: 'root', href: opts.rootHref, type: 'application/json' },
-      { rel: 'parent', href: opts.parentHref, type: 'application/json' },
-      { rel: 'self', href: './collection.json', type: 'application/json' },
-    ],
+    links,
     assets,
   };
 
@@ -115,9 +113,13 @@ function describeNamespace(unit: EmissionUnit): { id: string; title: string; des
  * links each namespace's entry point; with only one namespace, that namespace's own
  * catalog/collection is written directly into `outputDir` with no extra wrapping catalog.
  */
-export async function emitStacMetadata(context: EmitContext<any>, outputDir: string): Promise<void> {
+export async function emitStacMetadata(
+  context: EmitContext<EmitterOptions>,
+  units: EmissionUnit[],
+  outputDir: string,
+  includeParquetAssets: boolean,
+): Promise<void> {
   const { program } = context;
-  const units = planEmission(program);
 
   const byNamespace = new Map<string, EmissionUnit[]>();
   for (const unit of units) {
@@ -136,9 +138,10 @@ export async function emitStacMetadata(context: EmitContext<any>, outputDir: str
     const namespaceOutputDir = unitOutputDir(outputDir, namespaceDir);
 
     // An unversioned unit's collection lives directly in `namespaceOutputDir`: with only one
-    // namespace there's no wrapping catalog above it (it IS the root); otherwise its parent and
-    // root are both the single top-level catalog one directory up.
+    // namespace there's no wrapping catalog above it (it IS the root, so it gets no `parent`
+    // link); otherwise its parent and root are both the single top-level catalog one directory up.
     const unversionedHref = isFlat ? './collection.json' : '../catalog.json';
+    const unversionedParentHref = isFlat ? undefined : unversionedHref;
     // A versioned unit's collection lives one directory deeper, inside `release=vX/` (or
     // `latest/`): its parent is always the namespace's own catalog one directory up, but its
     // root is that same catalog only when it's also the top (isFlat) — otherwise root is the
@@ -152,11 +155,11 @@ export async function emitStacMetadata(context: EmitContext<any>, outputDir: str
       const assetNames = assetNamesForUnit(program, unit);
       const isVersioned = unit.versionStr != null;
 
-      await emitCollection(program, assetNames, unitOutputDir(outputDir, unit.path), {
+      await emitCollection(program, assetNames, includeParquetAssets, unitOutputDir(outputDir, unit.path), {
         id: isVersioned ? `${id}_v${unit.versionStr}` : id,
         title: isVersioned ? `${title} — Release v${unit.versionStr}` : title,
         description,
-        parentHref: isVersioned ? versionedParentHref : unversionedHref,
+        parentHref: isVersioned ? versionedParentHref : unversionedParentHref,
         rootHref: isVersioned ? versionedRootHref : unversionedHref,
       });
 
@@ -174,7 +177,7 @@ export async function emitStacMetadata(context: EmitContext<any>, outputDir: str
 
     if (latestUnit && latestUnit.releaseDir) {
       const latestAssetNames = assetNamesForUnit(program, latestUnit);
-      await emitCollection(program, latestAssetNames, joinPaths(namespaceOutputDir, LATEST_DIR), {
+      await emitCollection(program, latestAssetNames, includeParquetAssets, joinPaths(namespaceOutputDir, LATEST_DIR), {
         id: `${id}_latest`,
         title: `${title} — Latest`,
         description,
