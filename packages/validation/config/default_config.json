@@ -161,8 +161,8 @@
     },
     {
       "table": "track_line",
-      "column": "subtype",
-      "message": "Track line features must have a subtype attribute"
+      "column": "type",
+      "message": "Track line features must have a type attribute"
     },
     {
       "table": "tunnel_line",

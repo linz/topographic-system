@@ -10,9 +10,8 @@
       "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "type": { "type": "string", "const": "track" },
+    "type": { "anyOf": [{ "$ref": "#/$defs/track_type" }, { "type": "null" }] },
     "subtype": { "anyOf": [{ "$ref": "#/$defs/track_subtype" }, { "type": "null" }] },
-    "track_type": { "anyOf": [{ "$ref": "#/$defs/track_type" }, { "type": "null" }] },
     "status": { "anyOf": [{ "$ref": "#/$defs/track_status" }, { "type": "null" }] },
     "name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "theme": { "type": "string", "const": "transport" },
@@ -27,7 +26,6 @@
     "t50_fid",
     "type",
     "subtype",
-    "track_type",
     "status",
     "name",
     "theme",
@@ -36,8 +34,8 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "track_subtype": { "type": "string", "enum": ["cycle_only", "foot", "vehicle"] },
-    "track_type": { "type": "string", "enum": ["connector", "multiple", "route", "single"] },
+    "track_type": { "type": "string", "enum": ["cycle_only", "foot", "vehicle"] },
+    "track_subtype": { "type": "string", "enum": ["connector", "multiple", "route", "single"] },
     "track_status": { "type": "string", "enum": ["closed"] },
     "BBox": {
       "type": "object",
