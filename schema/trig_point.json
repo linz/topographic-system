@@ -13,7 +13,7 @@
     "type": {
       "anyOf": [
         { "type": "string", "const": "beaconed" },
-        { "type": "string", "const": "unbeaconed" }
+        { "type": "string", "const": "geodetic_mark" }
       ]
     },
     "name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },

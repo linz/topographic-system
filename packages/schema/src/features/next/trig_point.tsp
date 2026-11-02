@@ -7,7 +7,7 @@ using TypeSpec.JsonSchema;
 @extension("additionalProperties", false)
 model trig_point {
   ...TopographicFeature;
-  type: "beaconed" | "unbeaconed";
+  type: "beaconed" | "geodetic_mark";
   name: string | null;
   code: string | null;
   elevation: int32 | null;
