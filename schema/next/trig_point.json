@@ -10,8 +10,12 @@
       "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 4294967295 }, { "type": "null" }],
       "description": "Reference topo50 feature ID.\n\nWill be null if the feature is new and has not been published in a Topo50 edition."
     },
-    "type": { "type": "string", "const": "trig" },
-    "trig_type": { "anyOf": [{ "type": "string", "const": "beaconed" }, { "type": "null" }] },
+    "type": {
+      "anyOf": [
+        { "type": "string", "const": "beaconed" },
+        { "type": "string", "const": "unbeaconed" }
+      ]
+    },
     "name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "code": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "elevation": {
@@ -28,7 +32,6 @@
     "updated_at",
     "t50_fid",
     "type",
-    "trig_type",
     "name",
     "code",
     "elevation",
