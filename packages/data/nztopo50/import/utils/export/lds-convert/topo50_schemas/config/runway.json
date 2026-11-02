@@ -18,12 +18,12 @@
           "target_type": "str:7"
         },
         {
-          "source_field": "surface",
+          "source_field": "subtype",
           "target_field": "surface",
           "target_type": "str:6"
         },
         {
-          "source_field": "runway_use",
+          "source_field": "type",
           "target_field": "runway_use",
           "target_type": "str:9"
         },
