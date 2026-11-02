@@ -984,7 +984,7 @@ def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: in
             "elevation": [None] * count,
             "perennial": [None] * count,
             "temperature_indicator": [None] * count,
-            "theme": "landcover",
+            "theme": "land_cover",
             "metadata": [None] * count,
         },
         geometry=sea.geometry.to_numpy(),

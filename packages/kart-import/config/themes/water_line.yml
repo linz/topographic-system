@@ -9,7 +9,7 @@ _mappings:
     t50_fid: $
     type: river
     name: null
-    theme: landcover
+    theme: land_cover
     metadata: null
 
 lookups:
@@ -49,7 +49,7 @@ datasets:
       t50_fid: $
       type: canal
       name: $
-      theme: landcover
+      theme: land_cover
       metadata: { source: $canal_cl_lkp.gazfeatid, fixup: true }
     joins:
       - lookup: canal_cl_lkp
@@ -65,7 +65,7 @@ datasets:
       t50_fid: $
       type: drain
       name: $
-      theme: landcover
+      theme: land_cover
       metadata: { source: $drain_cl_lkp.gazfeatid, fixup: true }
     joins:
       - lookup: drain_cl_lkp
@@ -80,7 +80,7 @@ datasets:
       t50_fid: $
       type: drain
       name: $
-      theme: landcover
+      theme: land_cover
       metadata: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-drain-centrelines-topo-125k-zone4
@@ -95,7 +95,7 @@ datasets:
       t50_fid: $
       type: river
       name: $river_cl_lkp.name
-      theme: landcover
+      theme: land_cover
       metadata: { source: $river_cl_lkp.gazfeatid, fixup: true }
     joins:
       - lookup: river_cl_lkp

@@ -10,7 +10,7 @@ _mappings:
     type: historic_site
     subtype: null
     name: $descriptn
-    theme: landuse
+    theme: land_use
     metadata: null
 
 datasets:
@@ -23,7 +23,7 @@ datasets:
       type: cave
       subtype: $compositn
       name: $
-      theme: landuse
+      theme: land_use
       metadata: null
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-cave-points-topo-125k-zone4
@@ -38,8 +38,8 @@ datasets:
   #   mapping: *cave
 
   # Note: cemetery points are NOT mapped here — "cemetery" is not a member of
-  # place_type. They belong to the `landcover_point` schema/theme and are
-  # mapped in landcover_point.yml instead.
+  # place_type. They belong to the `land_cover_point` schema/theme and are
+  # mapped in land_cover_point.yml instead.
 
   # -------- grave
   # nz
@@ -50,7 +50,7 @@ datasets:
       type: grave
       subtype: null
       name: $
-      theme: landuse
+      theme: land_use
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-grave-points-topo-150k
     name: nz_chatham_island_grave_points_topo_150k
@@ -101,7 +101,7 @@ datasets:
       type: monument
       subtype: null
       name: $
-      theme: landuse
+      theme: land_use
       metadata: null
   - source: kart@data.koordinates.com:linz/nz-chatham-island-monument-points-topo-150k
     name: nz_chatham_island_monument_points_topo_150k
@@ -123,11 +123,11 @@ datasets:
       type: pa
       subtype: null
       name: $
-      theme: landuse
+      theme: land_use
       metadata: null
 
   # Note: mine, radar_dome, saddle and satellite_station points were removed
   # from here — they don't belong to the place_point schema (invalid `type`
-  # values). `mine` is already handled in landuse_point.yml; `radar_dome` and
+  # values). `mine` is already handled in land_use_point.yml; `radar_dome` and
   # `satellite_station` now live in structure_point.yml; `saddle` now lives
   # in relief_point.yml.
