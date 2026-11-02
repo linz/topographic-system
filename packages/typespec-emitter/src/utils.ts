@@ -1,7 +1,7 @@
 import type { Namespace, Model, Enum, Union, Type } from '@typespec/compiler';
 
 export function toPascalCase(str: string): string {
-  if (!str) return '';
+  if (str == null) return '';
   return str
     .split(/[_-]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -9,7 +9,7 @@ export function toPascalCase(str: string): string {
 }
 
 export function toSnakeCase(str: string): string {
-  if (!str) return '';
+  if (str == null) return '';
   return str
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
@@ -34,7 +34,7 @@ export function resolveNamespace(globalNs: Namespace, path: string): Namespace |
   let ns: Namespace | undefined = globalNs;
   for (const part of path.split('.')) {
     ns = ns?.namespaces.get(part);
-    if (!ns) return undefined;
+    if (ns == null) return undefined;
   }
   return ns;
 }

@@ -142,10 +142,10 @@ export function getParquetFieldsForUnion(union: Union): ParquetField[] {
     for (const f of fields) {
       propVariantCount.set(f.name, (propVariantCount.get(f.name) ?? 0) + 1);
       const existing = fieldsMap.get(f.name);
-      if (!existing) {
+      if (existing == null) {
         fieldsMap.set(f.name, { ...f });
       } else {
-        if (!existing.type && f.type) {
+        if (existing.type == null && f.type != null) {
           existing.type = f.type;
           existing.logical_type = f.logical_type;
         }
@@ -159,7 +159,7 @@ export function getParquetFieldsForUnion(union: Union): ParquetField[] {
   for (const [name, count] of propVariantCount.entries()) {
     if (count < variantModels.length) {
       const field = fieldsMap.get(name);
-      if (field) {
+      if (field != null) {
         field.repetition_type = 'OPTIONAL';
       }
     }

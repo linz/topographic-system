@@ -9,8 +9,8 @@ function formatPropName(name: string): string {
 }
 
 /** Formats a doc comment as JSDoc, indented by `indent`. Collapses to a single line when short enough. */
-function toComment(doc: string | undefined, indent = ''): string {
-  if (!doc) return '';
+function toComment(doc?: string, indent = ''): string {
+  if (doc == null) return '';
   const lines = doc.trim().split('\n');
   if (lines.length === 1) {
     return `${indent}/** ${lines[0]} */\n`;

@@ -131,7 +131,7 @@ export async function emitStacMetadata(context: EmitContext<any>, outputDir: str
 
   for (const [namespaceDir, nsUnits] of byNamespace) {
     const first = nsUnits[0];
-    if (!first) continue;
+    if (first == null) continue;
     const { id, title, description } = describeNamespace(first);
     const namespaceOutputDir = unitOutputDir(outputDir, namespaceDir);
 
