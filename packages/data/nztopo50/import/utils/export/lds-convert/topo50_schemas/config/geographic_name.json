@@ -33,7 +33,7 @@
           "target_type": "str:75"
         },
         {
-          "source_field": "desc_code",
+          "source_field": "type",
           "target_field": "desc_code",
           "target_type": "str:4"
         },

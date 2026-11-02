@@ -52,6 +52,86 @@ DISPLAY_BY_SUBTYPE = {
     "large_rock_outcrop": 3,
 }
 
+DESC_CODE_BY_NAME = {
+    "airport": "AIR",
+    "bay_inlet": "BAY",
+    "beach": "BCH",
+    "bridge": "BDGE",
+    "building": "BLDG",
+    "bank": "BNK",
+    "mountain_basin": "BSN",
+    "cave": "CAVE",
+    "cemetery": "CEM",
+    "camping_ground": "CGND",
+    "cliff": "CLIF",
+    "crater": "CRTR",
+    "dam": "DAM",
+    "estuary": "ESTY",
+    "waterfall": "FALL",
+    "farm": "FARM",
+    "flat": "FLAT",
+    "ford": "FORD",
+    "forest": "FRST",
+    "geothermal_area": "GEO",
+    "glacier": "GLCR",
+    "golf_links": "GLKS",
+    "gorge_valley": "GORG",
+    "hill": "HILL",
+    "historic": "HIST",
+    "hospital": "HOSP",
+    "homestead": "HSTD",
+    "hut": "HUT",
+    "island": "ISLD",
+    "isthmus": "ISTH",
+    "lake": "LAKE",
+    "locality": "LOC",
+    "lighthouse": "LTH",
+    "miscellaneous_cultural_feature": "MCUL",
+    "metropolis": "METR",
+    "mine": "MINE",
+    "miscellaneous_natural_feature": "MNAT",
+    "miscellaneous_place": "MPLA",
+    "marine_rock_formation": "MRFM",
+    "navigational_beacon": "NAVB",
+    "native_land_reserve": "NLR",
+    "pa": "PA",
+    "park": "PARK",
+    "pass": "PASS",
+    "peninsula": "PEN",
+    "point": "PNT",
+    "populated_place": "POPL",
+    "pipeline": "PPLN",
+    "racecourse": "RC",
+    "ridge": "RDGE",
+    "road_related_feature": "RDRF",
+    "railway_related_feature": "RLYF",
+    "range": "RNGE",
+    "rock": "ROCK",
+    "railway_station": "RSTN",
+    "suburb": "SBRB",
+    "school": "SCH",
+    "sea": "SEA",
+    "ski": "SKI",
+    "slip": "SLIP",
+    "spring": "SPR",
+    "strait": "STRA",
+    "stream": "STRM",
+    "swamp": "SWMP",
+    "town": "TOWN",
+    "track": "TRCK",
+    "tree": "TREE",
+    "trig": "TRIG",
+    "tunnel": "TUNL",
+    "tramway": "TWAY",
+    "university": "UNIV",
+    "urban_satellite": "USAT",
+    "well": "WELL",
+    "wharf": "WHF",
+    "wilderness_area": "WILD",
+    "wreck": "WRCK",
+    "water_way": "WWAY",
+}
+
 TUNNEL_SWAPPED_USE_FIDS = {6066307, 7745273, 8344640, 8499056, 8525734}
 TUNNEL_IVESTOCK_FIDS = {6066314}
 
@@ -233,6 +313,10 @@ class ExportToLDSModel:
         }
         return "".join(macron_map.get(char, char) for char in text)
 
+    @staticmethod
+    def get_desc_code(name):
+        return DESC_CODE_BY_NAME.get(name)
+
     def read_source_data(self, format, layer_name, feature_type, database=None):
         database = database or self.database
         selection_types = TYPE_SELECTION_ALIASES.get(
@@ -297,6 +381,8 @@ class ExportToLDSModel:
 
         if layer_name in {"building", "building_point"}:
             layer["building_use"] = layer["subtype"]
+        elif layer_name == "geographic_name":
+            layer["desc_code"] = layer["type"].map(self.get_desc_code)
         elif layer_name == "bridge_line":
             layer["bridge_use"] = layer["type"]
             layer["bridge_use2"] = layer["subtype"]
