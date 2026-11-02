@@ -8,6 +8,16 @@ function formatPropName(name: string): string {
   return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name) ? name : JSON.stringify(name);
 }
 
+/** Formats a doc comment as JSDoc, indented by `indent`. Collapses to a single line when short enough. */
+function toComment(doc: string | undefined, indent = ''): string {
+  if (!doc) return '';
+  const lines = doc.trim().split('\n');
+  if (lines.length === 1) {
+    return `${indent}/** ${lines[0]} */\n`;
+  }
+  return `${indent}/**\n${lines.map((line) => `${indent} * ${line}`).join('\n')}\n${indent} */\n`;
+}
+
 export function generateTypeScriptCode(
   program: Program,
   models: Map<string, Model>,
@@ -15,13 +25,7 @@ export function generateTypeScriptCode(
   unions: Map<string, Union>,
 ): string {
   function getJSDocComment(type: Type): string {
-    const doc = getDoc(program, type);
-    if (!doc) return '';
-    const lines = doc.trim().split('\n');
-    if (lines.length === 1) {
-      return `  /** ${lines[0]} */\n`;
-    }
-    return `  /**\n${lines.map((line) => `   * ${line}`).join('\n')}\n   */\n`;
+    return toComment(getDoc(program, type), '  ');
   }
 
   function getTsType(type: Type): string {
@@ -122,48 +126,27 @@ export function generateTypeScriptCode(
   const sortedEnums = Array.from(enums.values()).sort((a, b) => a.name.localeCompare(b.name));
   for (const e of sortedEnums) {
     const doc = getDoc(program, e);
-    const comment = doc
-      ? `/**\n${doc
-          .trim()
-          .split('\n')
-          .map((l) => ` * ${l}`)
-          .join('\n')}\n */\n`
-      : '';
     const memberValues = Array.from(e.members.values()).map((member) =>
       member.value !== undefined ? JSON.stringify(member.value) : JSON.stringify(member.name),
     );
-    code += `${comment}export type ${toPascalCase(e.name)} = ${memberValues.join(' | ')};\n\n`;
+    code += `${toComment(doc)}export type ${toPascalCase(e.name)} = ${memberValues.join(' | ')};\n\n`;
   }
 
   // Generate Unions
   const sortedUnions = Array.from(unions.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
   for (const u of sortedUnions) {
     const doc = getDoc(program, u);
-    const comment = doc
-      ? `/**\n${doc
-          .trim()
-          .split('\n')
-          .map((l) => ` * ${l}`)
-          .join('\n')}\n */\n`
-      : '';
     const unionTypes = Array.from(u.variants.values()).map((v) => getTsType(v.type));
     const uniqueUnionTypes = Array.from(new Set(unionTypes));
-    code += `${comment}export type ${toPascalCase(u.name ?? '')} = ${uniqueUnionTypes.join(' | ')};\n\n`;
+    code += `${toComment(doc)}export type ${toPascalCase(u.name ?? '')} = ${uniqueUnionTypes.join(' | ')};\n\n`;
   }
 
   // Generate Models
   const sortedModels = Array.from(models.values()).sort((a, b) => a.name.localeCompare(b.name));
   for (const m of sortedModels) {
     const doc = getDoc(program, m);
-    const comment = doc
-      ? `/**\n${doc
-          .trim()
-          .split('\n')
-          .map((l) => ` * ${l}`)
-          .join('\n')}\n */\n`
-      : '';
     const extendsClause = m.baseModel?.name ? ` extends ${toPascalCase(m.baseModel.name)}` : '';
-    code += `${comment}export interface ${toPascalCase(m.name)}${extendsClause} {\n`;
+    code += `${toComment(doc)}export interface ${toPascalCase(m.name)}${extendsClause} {\n`;
     if (m.indexer) {
       const keyType = getTsType(m.indexer.key);
       const valueType = getTsType(m.indexer.value);
