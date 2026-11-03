@@ -6,10 +6,7 @@ import { getVersioningMutators } from '@typespec/versioning';
 import { getChildNamespaces, resolveNamespace } from './utils.ts';
 
 /** Namespace products (e.g. `NzTopo50`, `NzTopo250`) live as direct children of this namespace, unless overridden via the `root-namespace` emitter option. */
-export const DEFAULT_ROOT_NAMESPACE = 'Linz.Topography';
-
-/** Name of the mutable "latest release" directory nested inside a versioned namespace directory. */
-export const LATEST_DIR = 'latest';
+export const DefaultRootNamespace = 'Linz.Topography';
 
 /** Builds the `namespace={dottedPath}` directory segment — the one place this format is defined. */
 function namespaceSegment(dottedPath: string): string {
@@ -89,7 +86,7 @@ function planNamespace(ns: Namespace, rootDottedPath: string | undefined): Emiss
  * `version=v{version}/` per release. With no versioning and no products, a single unit covers
  * everything, at `namespace={dotted path}/` (or `''` if `rootNamespace` wasn't found at all).
  */
-export function planEmission(program: Program, rootNamespace: string = DEFAULT_ROOT_NAMESPACE): EmissionUnit[] {
+export function planEmission(program: Program, rootNamespace: string = DefaultRootNamespace): EmissionUnit[] {
   const rootNs = resolveNamespace(program.getGlobalNamespaceType(), rootNamespace);
   const targetNs = rootNs ?? program.getGlobalNamespaceType();
   const rootDottedPath = rootNs ? rootNamespace.toLowerCase() : undefined;
