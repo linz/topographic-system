@@ -12,7 +12,11 @@
 export const StacStorageCategoryTypes = ['qgis', 'data', 'product'] as const;
 export type StacStorageCategory = (typeof StacStorageCategoryTypes)[number];
 
-export type StorageStrategy = StorageStrategyLatest | StorageStrategyCommit | StorageStrategyDate | StorageStrategyVersion;
+export type StorageStrategy =
+  | StorageStrategyLatest
+  | StorageStrategyCommit
+  | StorageStrategyDate
+  | StorageStrategyVersion;
 
 /**
  * Store a mutable copy of the assets `latest/` location
