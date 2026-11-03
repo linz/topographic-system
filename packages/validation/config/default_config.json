@@ -135,10 +135,10 @@
       "column": "vehicle_type",
       "message": "Railway line features must have a vehicle_type attribute"
     },
-    { "table": "track_line", "column": "subtype", "message": "Track line features must have a subtype attribute" },
+    { "table": "track_line", "column": "type", "message": "Track line features must have a type attribute" },
     { "table": "tunnel_line", "column": "type", "message": "Tunnel line features must have a type attribute" },
+    { "table": "runway", "column": "type", "message": "Runway features must have a type attribute" },
     { "table": "runway", "column": "subtype", "message": "Runway features must have a subtype attribute" },
-    { "table": "runway", "column": "surface", "message": "Runway features must have a surface attribute" },
     {
       "table": "utility_point",
       "column": "orientation",

@@ -14,6 +14,7 @@
     "subtype": { "anyOf": [{ "$ref": "#/$defs/water_subtype" }, { "type": "null" }] },
     "name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "group_name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "sub_group_name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
     "height": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
     "elevation": {
       "anyOf": [{ "type": "integer", "minimum": -2147483648, "maximum": 2147483647 }, { "type": "null" }]
@@ -34,6 +35,7 @@
     "subtype",
     "name",
     "group_name",
+    "sub_group_name",
     "height",
     "elevation",
     "perennial",

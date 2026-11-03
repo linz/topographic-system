@@ -15,6 +15,7 @@ _mappings:
     subtype: $lake_use
     name: $
     group_name: $grp_name
+    sub_group_name: null
     height: null
     elevation: $
     perennial: $
@@ -52,6 +53,7 @@ datasets:
       subtype: null
       name: $
       group_name: null
+      sub_group_name: null
       height: null
       elevation: null
       perennial: null
@@ -74,6 +76,7 @@ datasets:
       subtype: null
       name: $
       group_name: null
+      sub_group_name: null
       height: null
       elevation: $
       perennial: null
@@ -89,6 +92,7 @@ datasets:
       subtype: null
       name: $
       group_name: null
+      sub_group_name: null
       height: null
       elevation: $
       perennial: null
@@ -117,6 +121,7 @@ datasets:
       subtype: $lake_use
       name: $
       group_name: $grp_name
+      sub_group_name: null
       height: null
       elevation: $
       perennial: $
@@ -205,6 +210,7 @@ datasets:
       subtype: $pond_use
       name: $
       group_name: null
+      sub_group_name: null
       height: null
       elevation: null
       perennial: null
@@ -231,6 +237,7 @@ datasets:
       subtype: null
       name: $river_poly_lkp.name
       group_name: null
+      sub_group_name: null
       height: null
       elevation: null
       perennial: null
@@ -252,6 +259,7 @@ datasets:
       subtype: null
       name: null
       group_name: null
+      sub_group_name: null
       height: null
       elevation: null
       perennial: null
@@ -279,6 +287,7 @@ datasets:
       subtype: null
       name: null
       group_name: null
+      sub_group_name: null
       height: null
       elevation: null
       perennial: null

@@ -17,8 +17,7 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-trig-points-topo-150k
     mapping:
       t50_fid: $
-      type: trig
-      trig_type: beaconed
+      type: beaconed
       code: $name
       elevation: $elevation
       name: $geodetic_marks.current_mark_name
