@@ -13,9 +13,9 @@ function namespaceSegment(dottedPath: string): string {
   return `namespace=${dottedPath}`;
 }
 
-/** Builds the `version=v{version}` directory segment — the one place this format is defined. */
+/** Builds the `version={version}` directory segment — the one place this format is defined. */
 function versionSegment(versionStr: string): string {
-  return `version=v${versionStr}`;
+  return `version=${versionStr}`;
 }
 
 export interface EmissionUnit {
@@ -23,7 +23,7 @@ export interface EmissionUnit {
   path: string;
   /** `path` without the trailing version segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
   namespaceDir: string;
-  /** The version directory segment itself (e.g. `version=v1`), set only when versioned. */
+  /** The version directory segment itself (e.g. `version=1`), set only when versioned. */
   versionDir?: string;
   versionStr?: string;
   productName?: string;
@@ -83,7 +83,7 @@ function planNamespace(ns: Namespace, rootDottedPath: string | undefined): Emiss
  * each product sub-namespace — gets its own `namespace={dotted path}/` directory; a product's
  * directory combines its own types with any declared directly on the shared root. If the root is
  * versioned via `@typespec/versioning`, each namespace's directory additionally nests a
- * `version=v{version}/` per release. With no versioning and no products, a single unit covers
+ * `version={version}/` per release. With no versioning and no products, a single unit covers
  * everything, at `namespace={dotted path}/` (or `''` if `rootNamespace` wasn't found at all).
  */
 export function planEmission(program: Program, rootNamespace: string = DefaultRootNamespace): EmissionUnit[] {

@@ -16,7 +16,7 @@ class VersionedJsonSchemaEmitter extends JsonSchemaEmitter {
       const versionStr = this.emitter.getOptions().versionStr ?? '';
       const json = JSON.parse(result.contents);
       if (json.$id) {
-        json.$id = `${json.$id}_v${versionStr}`;
+        json.$id = `${json.$id}_${versionStr}`;
       }
       return { contents: JSON.stringify(json, null, 2), path: result.path };
     } catch (error) {
