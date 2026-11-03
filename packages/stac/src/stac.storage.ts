@@ -12,7 +12,11 @@
 export const StacStorageCategoryTypes = ['qgis', 'data', 'product'] as const;
 export type StacStorageCategory = (typeof StacStorageCategoryTypes)[number];
 
-export type StorageStrategy = StorageStrategyLatest | StorageStrategyCommit | StorageStrategyDate;
+export type StorageStrategy =
+  | StorageStrategyLatest
+  | StorageStrategyCommit
+  | StorageStrategyDate
+  | StorageStrategyVersion;
 
 /**
  * Store a mutable copy of the assets `latest/` location
@@ -33,6 +37,14 @@ export type StorageStrategyCommit = { type: 'commit'; commit: string };
  * If "latest" is also preset will have a "latest-version" link to the latest folder
  */
 export type StorageStrategyDate = { type: 'date'; date: Date };
+
+/**
+ * Stores an immutable copy of the assets inside version={}, keyed by a named release (e.g. a
+ * schema version) rather than a commit or a date.
+ *
+ * If "latest" is also present will have a "latest-version" link to the latest folder.
+ */
+export type StorageStrategyVersion = { type: 'version'; version: string };
 
 export type StorageStrategyName = StorageStrategy['type'];
 
@@ -83,6 +95,11 @@ export const StorageStrategyParsers: { [K in StorageStrategyName]: StorageStrate
     const value = obj.split(StorageStrategySep)[1];
     return { type: 'date', date: parseStorageStrategyDate(value) };
   },
+  version(obj: string): StorageStrategyVersion {
+    const value = obj.split(StorageStrategySep)[1];
+    if (value == null || value === '') throw new Error('Invalid version');
+    return { type: 'version', version: value };
+  },
 };
 
 const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K> } = {
@@ -100,6 +117,9 @@ const StorageStrategyUrl: { [K in StorageStrategyName]: StorageStrategyPathGen<K
       `${store.category}/${store.label}/year=${s.date.getUTCFullYear()}/date=${s.date.toISOString().replaceAll(':', '-')}/`,
       store.prefix,
     );
+  },
+  version(store: StorageContext, s: StorageStrategyVersion): URL {
+    return new URL(`${store.category}/${store.label}/version=${s.version}/`, store.prefix);
   },
 };
 
@@ -139,6 +159,9 @@ const StorageStrategyId: { [K in StorageStrategyName]: StorageStrategyIdGen<K> }
   },
   date: function (store: StorageContextWithItem, s: StorageStrategyDate): string {
     return storeToId(store) + `_${s.date.toISOString().replaceAll(':', '-')}` + storeToSuffix(store);
+  },
+  version(store: StorageContextWithItem, s: StorageStrategyVersion): string {
+    return storeToId(store) + `_${s.version}` + storeToSuffix(store);
   },
 };
 
