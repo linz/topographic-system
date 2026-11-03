@@ -2,6 +2,8 @@ import "@typespec/json-schema";
 import "./common.tsp";
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("land_cover_point")
 @oneOf
 union land_cover_point {

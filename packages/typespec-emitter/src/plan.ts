@@ -13,9 +13,9 @@ function namespaceSegment(dottedPath: string): string {
   return `namespace=${dottedPath}`;
 }
 
-/** Builds the `version={version}` directory segment — the one place this format is defined. */
+/** The version directory segment is just the raw version string (e.g. `v0.4`) — no extra prefix. */
 function versionSegment(versionStr: string): string {
-  return `version=${versionStr}`;
+  return versionStr;
 }
 
 export interface EmissionUnit {
@@ -23,7 +23,7 @@ export interface EmissionUnit {
   path: string;
   /** `path` without the trailing version segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
   namespaceDir: string;
-  /** The version directory segment itself (e.g. `version=1`), set only when versioned. */
+  /** The version directory segment itself (e.g. `v0.4`), set only when versioned. */
   versionDir?: string;
   versionStr?: string;
   productName?: string;
@@ -47,9 +47,10 @@ export interface EmissionUnit {
 function planNamespace(ns: Namespace, rootDottedPath: string | undefined): EmissionUnit[] {
   const products = getChildNamespaces(ns);
 
+  // A `namespace={dotted path}/` directory only earns its keep when there's more than one
+  // product namespace to disambiguate between; a single (the root's own) namespace stays flat.
   if (products.length === 0) {
-    const namespaceDir = rootDottedPath ? namespaceSegment(rootDottedPath) : '';
-    return [{ path: namespaceDir, namespaceDir, ns, namespacePath: rootDottedPath }];
+    return [{ path: '', namespaceDir: '', ns, namespacePath: rootDottedPath }];
   }
 
   const units: EmissionUnit[] = [];
@@ -79,12 +80,13 @@ function planNamespace(ns: Namespace, rootDottedPath: string | undefined): Emiss
 /**
  * Computes the (namespace × version) output units every emitter should write into, resolving
  * `rootNamespace` (default `Linz.Topography`, or the global namespace if that namespace isn't
- * found). Each namespace reachable this way — the root itself (if it has product children) plus
- * each product sub-namespace — gets its own `namespace={dotted path}/` directory; a product's
- * directory combines its own types with any declared directly on the shared root. If the root is
- * versioned via `@typespec/versioning`, each namespace's directory additionally nests a
- * `version={version}/` per release. With no versioning and no products, a single unit covers
- * everything, at `namespace={dotted path}/` (or `''` if `rootNamespace` wasn't found at all).
+ * found). Each product sub-namespace (e.g. `NzTopo50`, `NzTopo250`) gets its own
+ * `namespace={dotted path}/` directory to disambiguate it from its siblings — a product's
+ * directory combines its own types with any declared directly on the shared root. With no
+ * product split, there's nothing to disambiguate, so the root's own types stay flat (no
+ * `namespace=` segment) regardless of whether `rootNamespace` resolved. If the root is versioned
+ * via `@typespec/versioning`, each namespace's directory additionally nests a `{version}/`
+ * directory per release (e.g. `v0.4/`).
  */
 export function planEmission(program: Program, rootNamespace: string = DefaultRootNamespace): EmissionUnit[] {
   const rootNs = resolveNamespace(program.getGlobalNamespaceType(), rootNamespace);

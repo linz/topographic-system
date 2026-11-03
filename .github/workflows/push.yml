@@ -24,9 +24,6 @@ jobs:
         uses: ./.github/actions/python-ci
         background: true
 
-      # Remove existing schema files to ensure no dangling json schemas.
-      - run: rm -fv schema/*.json schema/next/*.json
-
       - run: npm ci
 
       - run: npm run build

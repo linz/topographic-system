@@ -1,6 +1,8 @@
 import "./nztopo50_grid.tsp";
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("nztopo50_dms_grid")
 @extension("additionalProperties", false)
 model nztopo50_dms_grid {
