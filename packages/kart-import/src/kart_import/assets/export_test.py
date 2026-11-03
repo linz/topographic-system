@@ -1,4 +1,10 @@
+from decimal import Decimal
+
+import geopandas as gpd
+import pandas as pd
+import pyarrow as pa
 import pytest
+from shapely.geometry import Point
 
 from .. import export_paths
 from ..config import Source
@@ -126,3 +132,20 @@ def test_backfill_dataset_links_predating_releases_to_its_earliest_export(tmp_pa
     linked = {r: (tmp_path / f"release_{r}" / export_filename("ds")).resolve() for r in (30, 66)}
     assert linked[30] == linked[66]
     assert linked[30].name != export_filename("empty")
+
+
+def test_gpd_read_returns_parquet_decimals_as_floats(tmp_path):
+    """A kart numeric exports to Parquet as a decimal; it reads back as float64, as it did from OGR."""
+    path = tmp_path / "ds.parquet"
+    gdf = gpd.GeoDataFrame(
+        {"orientation": pd.array([Decimal("4.7069"), None], dtype=pd.ArrowDtype(pa.decimal128(10, 4)))},
+        geometry=[Point(0, 0), Point(1, 1)],
+        crs="EPSG:2193",
+    )
+    gdf.to_parquet(path)
+
+    out = export.gpd_read(path)
+
+    assert out["orientation"].dtype == "float64"
+    assert out["orientation"].iloc[0] == 4.7069
+    assert pd.isna(out["orientation"].iloc[1])

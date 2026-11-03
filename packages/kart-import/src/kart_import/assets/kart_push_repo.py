@@ -16,6 +16,8 @@ and commits already on the remote make a retry resumable.
 """
 
 import logging
+import subprocess
+import time
 from pathlib import Path
 
 from kart_import.log import log_context
@@ -25,6 +27,23 @@ from ..config import OUTPUT_DIR, get_releases, get_repo_remote
 from ..env import env_push_force, env_push_to_master
 
 logger = logging.getLogger("kart_import")
+
+PUSH_ATTEMPTS = 4
+PUSH_RETRY_PAUSE_SECONDS = 10
+"""GitHub intermittently rejects one of many quick pushes to a branch (`remote: fatal error in
+commit_refs`), so a failed push pauses and pushes the same commit again rather than ending the run."""
+
+
+def push_with_retry(git_command: list[str], repo_dir: Path) -> None:
+    for attempt in range(1, PUSH_ATTEMPTS + 1):
+        try:
+            run_command(git_command, cwd=repo_dir)
+            return
+        except subprocess.CalledProcessError:
+            if attempt == PUSH_ATTEMPTS:
+                raise
+            logger.warning("push failed, retrying", extra={"attempt": attempt, "of": PUSH_ATTEMPTS})
+            time.sleep(PUSH_RETRY_PAUSE_SECONDS)
 
 
 def release_branch() -> str:
@@ -101,7 +120,7 @@ def push_repo(repo_name: str, to_master: bool = False, force: bool = False) -> s
         # Branch (and tag, at a release marker) in one round trip; a commit already on the
         # remote is a no-op, not a re-send.
         git_command.extend(["origin", *refspecs])
-        run_command(git_command, cwd=repo_dir)
+        push_with_retry(git_command, repo_dir)
 
         if release_id is not None:
             logger.info("pushing chunk", extra={"push": release_id, "of": final_release})

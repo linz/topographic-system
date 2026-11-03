@@ -107,6 +107,8 @@ def parse_kart_diff(
             continue
 
         fid = change_obj.get(fid_field)
+        if fid is None and fid_field == "auto_pk":
+            fid = change_obj.get("fid")  # topographic-source-data renamed auto_pk to fid in its release 67 reload
         if fid is None:
             raise Exception(f"Change without fid: {line}")
 

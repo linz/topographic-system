@@ -7,7 +7,6 @@ datasets:
       url: git@github.com:linz/topographic-source-data
       dataset: linz_carto_text
     name: linz_carto_text
-    feature_key: fid
     depends_on_themes: [nztopo50_map_sheet, geographic_name, trig_point]
     mapping:
       t50_fid: null
