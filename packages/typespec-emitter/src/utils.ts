@@ -28,7 +28,7 @@ export function unwrapNullableType(type: Type): { type: Type; optional: boolean 
     const nonNullVariants = variants.filter((v) => v.type.kind !== 'Intrinsic' || v.type.name !== 'null');
     const hasNull = variants.length !== nonNullVariants.length;
     if (nonNullVariants.length === 1) {
-      return { type: nonNullVariants[0]!.type, optional: hasNull };
+      return { type: nonNullVariants[0]?.type as Type, optional: hasNull };
     }
     if (hasNull) {
       return { type, optional: true };
