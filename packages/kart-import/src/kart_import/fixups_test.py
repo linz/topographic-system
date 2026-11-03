@@ -28,6 +28,7 @@ from .fixups import (
     generate_dms_grid_features,
     generate_nztm_grid_features,
     generate_sea_polygon,
+    split_bay_inlet_gorge_valley,
 )
 
 
@@ -39,6 +40,21 @@ def _td(fixups_cfg: list[dict], name: str = "t") -> ThemeDataset:
     return ThemeDataset.model_validate(
         {"name": name, "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
     )
+
+
+def test_split_bay_inlet_gorge_valley():
+    """bay_inlet -> inlet when the name says so, else bay; gorge_valley -> valley, else gorge.
+    Other types and a null name are left untouched."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "type": ["bay_inlet", "bay_inlet", "gorge_valley", "gorge_valley", "beach", "bay_inlet"],
+            "name": ["Milford Inlet", "Golden Bay", "Manawatu Gorge", "Hutt Valley", "Long Beach", None],
+        },
+        geometry=[Point(i, i) for i in range(6)],
+        crs="EPSG:4167",
+    )
+    out = split_bay_inlet_gorge_valley(gdf, _td([], name="geographic_name"), 66)
+    assert out["type"].tolist() == ["inlet", "bay", "gorge", "valley", "beach", "bay"]
 
 
 def test_apply_fixups_runs_for_matching_release(monkeypatch):

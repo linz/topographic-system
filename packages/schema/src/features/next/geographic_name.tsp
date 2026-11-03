@@ -17,7 +17,8 @@ model geographic_name {
 
 enum geographic_name_type {
   AIR: "airport",
-  BAY: "bay_inlet",
+  BAY: "bay",
+  INLET: "inlet",
   BCH: "beach",
   BDGE: "bridge",
   BLDG: "building",
@@ -38,7 +39,8 @@ enum geographic_name_type {
   GEO: "geothermal_area",
   GLCR: "glacier",
   GLKS: "golf_links",
-  GORG: "gorge_valley",
+  GORG: "gorge",
+  VALLEY: "valley",
   HILL: "hill",
   HIST: "historic",
   HOSP: "hospital",
