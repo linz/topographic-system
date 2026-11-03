@@ -1,4 +1,4 @@
-"""Split GeoJSON MultiPolygon features into one feature per Polygon."""
+"""Split GeoJSON multipart line or polygon features into single parts."""
 
 from __future__ import annotations
 
@@ -7,25 +7,32 @@ from pathlib import Path
 
 import geopandas as gpd
 
-
 DEFAULT_INPUT_DIRECTORY = Path(r"C:\Temp\export\multipart_feature_geojson")
 DEFAULT_OUTPUT_DIRECTORY = DEFAULT_INPUT_DIRECTORY / "single"
+SUPPORTED_PART_TYPES = {"LineString", "Polygon"}
 
 
-def split_multipolygons(input_path: Path) -> gpd.GeoDataFrame:
-    """Return the input features with each MultiPolygon split into Polygons."""
+def split_multipart_features(input_path: Path) -> gpd.GeoDataFrame:
+    """Return multipart line or polygon features split into single parts."""
     features = gpd.read_file(input_path)
-    polygons = features.explode(index_parts=False, ignore_index=True)
-    non_polygons = polygons.geometry.notna() & (polygons.geometry.geom_type != "Polygon")
-    if non_polygons.any():
-        invalid_types = sorted(polygons.loc[non_polygons].geometry.geom_type.unique())
-        raise ValueError(f"Expected only Polygon or MultiPolygon geometries; found {invalid_types}")
-    return polygons
+    parts = features.explode(index_parts=False, ignore_index=True)
+    invalid_parts = parts.geometry.notna() & ~parts.geometry.geom_type.isin(
+        SUPPORTED_PART_TYPES
+    )
+    if invalid_parts.any():
+        invalid_types = sorted(parts.loc[invalid_parts].geometry.geom_type.unique())
+        raise ValueError(
+            "Expected only line or polygon geometries; "
+            f"found {invalid_types}"
+        )
+    return parts
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Split GeoJSON MultiPolygon files into individual Polygon features."
+        description=(
+            "Split GeoJSON MultiLineString or MultiPolygon files into individual parts."
+        )
     )
     parser.add_argument(
         "--input-directory", type=Path, default=DEFAULT_INPUT_DIRECTORY
@@ -43,15 +50,15 @@ def main() -> None:
         raise ValueError(f"No GeoJSON files found in {arguments.input_directory}")
 
     arguments.output_directory.mkdir(parents=True, exist_ok=True)
-    polygon_count = 0
+    part_count = 0
     for input_path in input_paths:
-        polygons = split_multipolygons(input_path)
+        parts = split_multipart_features(input_path)
         output_path = arguments.output_directory / input_path.name
-        polygons.to_file(output_path, driver="GeoJSON")
-        polygon_count += len(polygons)
-        print(f"Wrote {len(polygons)} Polygon feature(s) to {output_path}")
+        parts.to_file(output_path, driver="GeoJSON")
+        part_count += len(parts)
+        print(f"Wrote {len(parts)} geometry part(s) to {output_path}")
 
-    print(f"Processed {len(input_paths)} file(s), writing {polygon_count} Polygon feature(s)")
+    print(f"Processed {len(input_paths)} file(s), writing {part_count} geometry part(s)")
 
 
 if __name__ == "__main__":
