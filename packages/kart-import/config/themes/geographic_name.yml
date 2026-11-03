@@ -7,12 +7,95 @@ target_epsg: EPSG:4167
 _mappings:
   geographic_name: &geographic_name
     t50_fid: $
-    type: geographic_name
+    type: $desc_code
     name: $name
-    desc_code: $desc_code
     size: $size
     theme: annotation
     metadata: null
+
+# Translate the legacy topo `desc_code` abbreviation into the full-text `type`.
+# https://docs.topo.linz.govt.nz/data-dictionary/tdd-class-geographic_name.html
+_corrections:
+  geo_name_type_corrections: &geo_name_type_corrections
+    - column: type
+      replace:
+        AIR: airport
+        BAY: bay_inlet
+        BCH: beach
+        BDGE: bridge
+        BLDG: building
+        BNK: bank
+        BSN: mountain_basin
+        CAVE: cave
+        CEM: cemetery
+        CGND: camping_ground
+        CLIF: cliff
+        CRTR: crater
+        DAM: dam
+        ESTY: estuary
+        FALL: waterfall
+        FARM: farm
+        FLAT: flat
+        FORD: ford
+        FRST: forest
+        GEO: geothermal_area
+        GLCR: glacier
+        GLKS: golf_links
+        GORG: gorge_valley
+        HILL: hill
+        HIST: historic
+        HOSP: hospital
+        HSTD: homestead
+        HUT: hut
+        ISLD: island
+        ISTH: isthmus
+        LAKE: lake
+        LOC: locality
+        LTH: lighthouse
+        MCUL: miscellaneous_cultural_feature
+        METR: metropolis
+        MINE: mine
+        MNAT: miscellaneous_natural_feature
+        MPLA: miscellaneous_place
+        MRFM: marine_rock_formation
+        NAVB: navigational_beacon
+        NLR: native_land_reserve
+        PA: pa
+        PARK: park
+        PASS: pass
+        PEN: peninsula
+        PNT: point
+        POPL: populated_place
+        PPLN: pipeline
+        RC: racecourse
+        RDGE: ridge
+        RDRF: road_related_feature
+        RLYF: railway_related_feature
+        RNGE: range
+        ROCK: rock
+        RSTN: railway_station
+        SBRB: suburb
+        SCH: school
+        SEA: sea
+        SKI: ski
+        SLIP: slip
+        SPR: spring
+        STRA: strait
+        STRM: stream
+        SWMP: swamp
+        TOWN: town
+        TRCK: track
+        TREE: tree
+        TRIG: trig
+        TUNL: tunnel
+        TWAY: tramway
+        UNIV: university
+        USAT: urban_satellite
+        WELL: well
+        WHF: wharf
+        WILD: wilderness_area
+        WRCK: wreck
+        WWAY: water_way
 
 datasets:
   # Only keep NZ datasets for initial load.
@@ -20,83 +103,91 @@ datasets:
   #    name: cook_islands_geographic_names_zone3
   #    mapping:
   #      t50_fid: $
-  #      type: geographic_name
+  #      type: $desc_code
   #      name: $name
-  #      desc_code: $desc_code
   #      size: $size
   #      theme: annotation
   #      metadata: null
+  #    corrections: *geo_name_type_corrections
   #  - source: kart@data.koordinates.com:linz/cook-islands-geographic-names-topo-125k-zone4
   #    name: cook_islands_geographic_names_zone4
   #    mapping:
   #      t50_fid: $
-  #      type: geographic_name
+  #      type: $desc_code
   #      name: $name
-  #      desc_code: $desc_code
   #      size: $size
   #      theme: annotation
   #      metadata: null
+  #    corrections: *geo_name_type_corrections
   #  - source: kart@data.koordinates.com:linz/niue-geographic-names-topo-150k
   #    mapping:
   #      t50_fid: $
-  #      type: geographic_name
+  #      type: $desc_code
   #      name: $name
-  #      desc_code: $desc_code
   #      size: $size
   #      theme: annotation
   #      metadata: null
+  #    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-geographic-names-topo-150k
     mapping: *geographic_name
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-geographic-names-topo-125k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: null
+    corrections: *geo_name_type_corrections
   # nzoi
   - source: kart@data.koordinates.com:linz/nz-auckland-island-geographic-names-topo-150k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: null
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-geographic-names-topo-125k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: { source: $, since_release: 67 }
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-bounty-islands-geographic-names-topo-125k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: null
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-campbell-island-motu-ihupuku-geographic-names-topo-150k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: null
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-chatham-island-geographic-names-topo-150k
     mapping: *geographic_name
+    corrections: *geo_name_type_corrections
   - source: kart@data.koordinates.com:linz/nz-kermadec-is-geographic-names-topo-125k
     feature_key: auto_pk
     mapping:
       <<: *geographic_name
       t50_fid: null
+    corrections: *geo_name_type_corrections
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/nz-ross-dependency-geographic-names-ant-150k
   #    mapping:
   #      t50_fid: $
-  #      type: geographic_name
+  #      type: $desc_code
   #      name: $name
-  #      desc_code: $desc_code
   #      size: $size
   #      theme: annotation
   #      metadata: null
+  #    corrections: *geo_name_type_corrections
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-geographic-names-topo-125k
   #    mapping:
   #      t50_fid: $
-  #      type: geographic_name
+  #      type: $desc_code
   #      name: $name
-  #      desc_code: $desc_code
   #      size: $size
   #      theme: annotation
   #      metadata: null
+  #    corrections: *geo_name_type_corrections
