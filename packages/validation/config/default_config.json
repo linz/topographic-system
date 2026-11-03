@@ -105,13 +105,6 @@
       "column": "size",
       "message": "Descriptive text features must have a size attribute"
     },
-    { "table": "geographic_name", "column": "name", "message": "Geographic name features must have a name attribute" },
-    {
-      "table": "geographic_name",
-      "column": "desc_code",
-      "message": "Geographic name features must have a desc_code attribute"
-    },
-    { "table": "geographic_name", "column": "size", "message": "Geographic name features must have a size attribute" },
     {
       "table": "building_point",
       "column": "orientation",

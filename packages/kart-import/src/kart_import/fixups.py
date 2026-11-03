@@ -998,6 +998,40 @@ def generate_sea_polygon(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: in
     return result
 
 
+def split_bay_inlet_gorge_valley(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Split the NZGB combined geographic_name types by feature name.
+
+    NZGB records one `desc_code` for each pair - BAY for bays and inlets, GORG for gorges and
+    valleys - which the corrections translate to the combined `bay_inlet`/`gorge_valley`. Here each
+    is resolved to the specific type: a name containing "inlet" becomes `inlet` (otherwise `bay`),
+    and a name containing "valley" becomes `valley` (otherwise `gorge`).
+    """
+    import numpy as np
+
+    if "type" not in gdf.columns:
+        return gdf
+
+    name = gdf["name"].astype("string").fillna("")
+    type_col = gdf["type"].astype("string")
+
+    bay_inlet = (type_col == "bay_inlet").fillna(False)
+    gdf.loc[bay_inlet, "type"] = np.where(name[bay_inlet].str.contains("inlet", case=False), "inlet", "bay")
+
+    gorge_valley = (type_col == "gorge_valley").fillna(False)
+    gdf.loc[gorge_valley, "type"] = np.where(name[gorge_valley].str.contains("valley", case=False), "valley", "gorge")
+
+    logger.info(
+        "split_bay_inlet_gorge_valley",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "bay_inlet": int(bay_inlet.sum()),
+            "gorge_valley": int(gorge_valley.sum()),
+        },
+    )
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
@@ -1012,6 +1046,7 @@ FIXUPS: dict[str, Fixup] = {
     "generate_nztm_grid_features": generate_nztm_grid_features,
     "generate_sea_polygon": generate_sea_polygon,
     "polygonize_boundaries": polygonize_boundaries,
+    "split_bay_inlet_gorge_valley": split_bay_inlet_gorge_valley,
     "split_multipart_features": split_multipart_features,
     "text_encoding": text_encoding,
     "contour_number": contour_number,
