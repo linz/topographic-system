@@ -16,18 +16,18 @@ function namespaceSegment(dottedPath: string): string {
   return `namespace=${dottedPath}`;
 }
 
-/** Builds the `release=v{version}` directory segment — the one place this format is defined. */
-function releaseSegment(versionStr: string): string {
-  return `release=v${versionStr}`;
+/** Builds the `version=v{version}` directory segment — the one place this format is defined. */
+function versionSegment(versionStr: string): string {
+  return `version=v${versionStr}`;
 }
 
 export interface EmissionUnit {
-  /** Output path fragment relative to an emitter's output root, including any release segment. */
+  /** Output path fragment relative to an emitter's output root, including any version segment. */
   path: string;
-  /** `path` without the trailing release segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
+  /** `path` without the trailing version segment, e.g. `namespace=linz.topography.nztopo50`, or `''`. */
   namespaceDir: string;
-  /** The release directory segment itself (e.g. `release=v1`), set only when versioned. */
-  releaseDir?: string;
+  /** The version directory segment itself (e.g. `version=v1`), set only when versioned. */
+  versionDir?: string;
   versionStr?: string;
   productName?: string;
   /** Dotted, lowercased namespace path (e.g. `linz.topography.nztopo50`), set only when `Linz.Topography` was resolved. */
@@ -86,7 +86,7 @@ function planNamespace(ns: Namespace, rootDottedPath: string | undefined): Emiss
  * each product sub-namespace — gets its own `namespace={dotted path}/` directory; a product's
  * directory combines its own types with any declared directly on the shared root. If the root is
  * versioned via `@typespec/versioning`, each namespace's directory additionally nests a
- * `release=v{version}/` per release. With no versioning and no products, a single unit covers
+ * `version=v{version}/` per release. With no versioning and no products, a single unit covers
  * everything, at `namespace={dotted path}/` (or `''` if `rootNamespace` wasn't found at all).
  */
 export function planEmission(program: Program, rootNamespace: string = DEFAULT_ROOT_NAMESPACE): EmissionUnit[] {
@@ -105,9 +105,9 @@ export function planEmission(program: Program, rootNamespace: string = DEFAULT_R
       // `MutableTypeWithNamespace` return type only exists because the function also folds in the
       // (unrelated) mutation of non-namespace types elsewhere in the library.
       if (mutatedType.kind !== 'Namespace') continue;
-      const releaseDir = releaseSegment(versionStr);
+      const versionDir = versionSegment(versionStr);
       for (const unit of planNamespace(mutatedType, rootDottedPath)) {
-        units.push({ ...unit, versionStr, releaseDir, path: joinPaths(unit.namespaceDir, releaseDir) });
+        units.push({ ...unit, versionStr, versionDir, path: joinPaths(unit.namespaceDir, versionDir) });
       }
     }
     return units;

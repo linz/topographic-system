@@ -96,8 +96,8 @@ export function collectTypes(
 
 /**
  * Visits every model/union/enum/scalar with a `@jsonSchema` id declared directly on `ns` — the
- * single place this set of kinds is enumerated, so JSON Schema/Parquet/STAC emission can't drift
- * out of sync on which kinds count as "identified" types.
+ * single place this set of kinds is enumerated, so JSON Schema/Parquet emission can't drift out of
+ * sync on which kinds count as "identified" types.
  */
 export function visitOwnIdentifiedTypes(
   program: Program,

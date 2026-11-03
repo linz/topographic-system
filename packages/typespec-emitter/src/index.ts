@@ -5,7 +5,6 @@ import { emitJsonSchema } from './json-schema.ts';
 import { emitParquetSchema } from './parquet.ts';
 import { planEmission } from './plan.ts';
 import { emitPydanticModels } from './pydantic.ts';
-import { emitStacMetadata } from './stac.ts';
 import { emitTypeScript } from './typescript.ts';
 
 export interface EmitterOptions {
@@ -60,10 +59,5 @@ export async function $onEmit(context: EmitContext<EmitterOptions>) {
   // 4. Emit Pydantic Models if configured
   if (options['pydantic-output-file']) {
     await emitPydanticModels(context, units, options['pydantic-output-file']);
-  }
-
-  // 5. Emit STAC metadata (collection.json per release and catalog.json)
-  if (options['json-schema-output-dir']) {
-    await emitStacMetadata(context, units, options['json-schema-output-dir'], Boolean(options['parquet-output-dir']));
   }
 }
