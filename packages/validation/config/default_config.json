@@ -69,11 +69,7 @@
     }
   ],
   "self_intersect_layers": [
-    {
-      "table": "building",
-      "layername": "building-validation",
-      "message": "Building features must not self-intersect"
-    },
+    { "table": "building", "layername": "building-validation", "message": "Building features must not self-intersect" },
     {
       "table": "vegetation",
       "layername": "vegetation-validation",
@@ -90,21 +86,13 @@
       "layername": "land_cover-validation",
       "message": "Land cover features must not self-intersect"
     },
-    {
-      "table": "island",
-      "layername": "island-validation",
-      "message": "Island features must not self-intersect"
-    },
+    { "table": "island", "layername": "island-validation", "message": "Island features must not self-intersect" },
     {
       "table": "structure",
       "layername": "structure-validation",
       "message": "Structure features must not self-intersect"
     },
-    {
-      "table": "water",
-      "layername": "water-validation",
-      "message": "Water features must not self-intersect"
-    }
+    { "table": "water", "layername": "water-validation", "message": "Water features must not self-intersect" }
   ],
   "null_columns": [
     {
@@ -122,11 +110,7 @@
       "column": "orientation",
       "message": "Building point features must have an orientation attribute"
     },
-    {
-      "table": "trig_point",
-      "column": "code",
-      "message": "Trig point features must have a code attribute"
-    },
+    { "table": "trig_point", "column": "code", "message": "Trig point features must have a code attribute" },
     {
       "table": "road_line",
       "column": "lane_count",
@@ -144,26 +128,10 @@
       "column": "vehicle_type",
       "message": "Railway line features must have a vehicle_type attribute"
     },
-    {
-      "table": "track_line",
-      "column": "subtype",
-      "message": "Track line features must have a subtype attribute"
-    },
-    {
-      "table": "tunnel_line",
-      "column": "type",
-      "message": "Tunnel line features must have a type attribute"
-    },
-    {
-      "table": "runway",
-      "column": "subtype",
-      "message": "Runway features must have a subtype attribute"
-    },
-    {
-      "table": "runway",
-      "column": "surface",
-      "message": "Runway features must have a surface attribute"
-    },
+    { "table": "track_line", "column": "subtype", "message": "Track line features must have a subtype attribute" },
+    { "table": "tunnel_line", "column": "type", "message": "Tunnel line features must have a type attribute" },
+    { "table": "runway", "column": "subtype", "message": "Runway features must have a subtype attribute" },
+    { "table": "runway", "column": "surface", "message": "Runway features must have a surface attribute" },
     {
       "table": "utility_point",
       "column": "orientation",
