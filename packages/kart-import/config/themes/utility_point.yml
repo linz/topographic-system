@@ -23,3 +23,5 @@ datasets:
       orientation: { source: $orientatn, since_release: 49 }
       theme: utility
       metadata: null
+    fixups:
+      - fn: orientation_degrees

@@ -79,6 +79,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 50 }
       theme: land_cover
       metadata: null
+    fixups:
+      - fn: orientation_degrees
     corrections: &id001
       - column: subtype
         replace:

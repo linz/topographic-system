@@ -60,6 +60,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 49 }
       theme: buildings
       metadata: null
+    fixups:
+      - fn: orientation_degrees
     corrections:
       - column: subtype
         replace:

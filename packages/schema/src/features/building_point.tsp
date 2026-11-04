@@ -14,7 +14,7 @@ model building_point {
   subtype: building_subtype | null;
   status: building_status | null;
   name: string | null;
-  orientation: float64 | null;
+  orientation: int32 | null;
   theme: Theme.Buildings;
   ...TopographicMetadata;
   ...GeoParquet;

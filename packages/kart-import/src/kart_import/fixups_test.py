@@ -663,6 +663,21 @@ def test_contour_number_orients_the_label_and_renders_the_elevation():
     assert out["label"].tolist()[:2] == ["100", "250"]
 
 
+def test_orientation_degrees_converts_radians_to_clockwise_degrees():
+    """Source `orientatn` is radians counter-clockwise from east; the symbol renderer wants
+    integer degrees clockwise from east (the nztopo50_carto_symbol convention). A null stays null."""
+    gdf = gpd.GeoDataFrame(
+        {"orientation": [np.radians(30), np.radians(90), 0.0, np.nan]},
+        geometry=[Point(0, 0)] * 4,
+        crs="EPSG:4167",
+    )
+    out = fixups.orientation_degrees(gdf, _td([], name="building_point"), 66)
+
+    assert out["orientation"].tolist()[:3] == [330, 270, 0]
+    assert pd.isna(out["orientation"].tolist()[3])
+    assert out["orientation"].dtype == "Int32"
+
+
 GRID = "nztopo50_grid"
 DMS_GRID = "nztopo50_dms_grid"
 

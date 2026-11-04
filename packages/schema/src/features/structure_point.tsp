@@ -16,7 +16,7 @@ model structure_point {
   status: structure_status | null;
   name: string | null;
   height: float64 | null;
-  orientation: float64 | null;
+  orientation: int32 | null;
   theme: Theme.Structures;
   ...TopographicMetadata;
   ...GeoParquet;

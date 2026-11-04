@@ -80,6 +80,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 51 }
       theme: structures
       metadata: null
+    fixups:
+      - fn: orientation_degrees
 
   # -------- buoy
   # nz
@@ -161,6 +163,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 51 }
       theme: structures
       metadata: null
+    fixups:
+      - fn: orientation_degrees
 
   # -------- gate
   # Per FTM schema feedback (page 19): gate restrictns -> subtype.
@@ -179,6 +183,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 50 }
       theme: structures
       metadata: null
+    fixups:
+      - fn: orientation_degrees
   - source: kart@data.koordinates.com:linz/nz-chatham-island-gate-points-topo-150k
     name: nz_chatham_island_gate_points_topo_150k
     mapping:

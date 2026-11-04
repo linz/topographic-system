@@ -566,17 +566,48 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
     )
 
 
+def orientation_radians_to_degrees(radians: pd.Series) -> pd.Series:
+    """Convert a LAMPS orientation (radians, counter-clockwise from east) to integer degrees
+    clockwise from east - the `nztopo50_carto_symbol` convention. NULL/NaN stays NULL."""
+    import numpy as np
+    import pandas as pd
+
+    rad = pd.to_numeric(pd.Series(radians), errors="coerce")
+    return ((-np.degrees(rad)).round() % 360).astype("Int32")
+
+
+def orientation_degrees(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Convert `orientation` from the source radians to integer degrees clockwise from east, so
+    point symbols rotate the same way as `nztopo50_carto_symbol`. The topo source stores the angle
+    in radians; NULL (drawn unrotated) stays NULL."""
+    if "orientation" not in gdf.columns:
+        return gdf
+
+    gdf = gdf.copy()
+    gdf["orientation"] = orientation_radians_to_degrees(gdf["orientation"])
+    logger.info(
+        "orientation_degrees",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "converted": int(gdf["orientation"].notna().sum()),
+        },
+    )
+    return gdf
+
+
 def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
     """LAMPS orientation is contour tangent in radians, counter-clockwise from east.
 
     LAMPS cont_rota is perpendicular to the contour and points downhill."""
     import numpy as np
 
+    # Where downhill sits on the far side of the contour, turn the label 180 degrees so the digits
+    # stay upright. `cont_rota` and this bearing are both degrees clockwise from north.
     bearing = 90 - np.degrees(gdf["orientation"])
     flip = ((gdf["cont_rota"] - bearing) % 360) > 180
-    bearing = np.where(flip, bearing + 180, bearing)
-    gdf["orientation"] = np.round(bearing - 90) % 360
-    gdf["orientation"] = gdf["orientation"].astype("Int32")
+    radians = gdf["orientation"] + np.where(flip, np.pi, 0.0)
+    gdf["orientation"] = orientation_radians_to_degrees(radians)
 
     gdf = gdf.drop(columns="cont_rota")
 
@@ -1050,6 +1081,7 @@ FIXUPS: dict[str, Fixup] = {
     "split_multipart_features": split_multipart_features,
     "text_encoding": text_encoding,
     "contour_number": contour_number,
+    "orientation_degrees": orientation_degrees,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
     "map_sheet_origin": map_sheet_origin,
     "map_sheet_example_name_fixes": map_sheet_example_name_fixes,
