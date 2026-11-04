@@ -55,7 +55,7 @@ example-bucket:
               - airport.parquet
 ```
 
-### Release based Versioning - "release"
+### Version based Versioning - "version"
 
 For components that have a fixed release process such as semver or a quarterly release, it is recommended to store in a similar structure as date based versioning with the addition of `next/` to store the next development release.
 
@@ -72,10 +72,10 @@ example-bucket:
           - airport.parquet
 
       - latest: # Mutable latest released copy
-          - collection.json # references immutable tag eg `release=v0.0.1/collection.json`
+          - collection.json # references immutable tag eg `version=v0.0.1/collection.json`
           - airport.parquet
 
-      - release=v0.0.1: # Immutable tagged releases
+      - version=v0.0.1: # Immutable tagged releases
           - collection.json
           - airport.parquet
 ```

@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("island")
 @extension("additionalProperties", false)
 model island {
@@ -10,6 +12,7 @@ model island {
   type: "island";
   name: string | null;
   group_name: string | null;
+  sub_group_name: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;

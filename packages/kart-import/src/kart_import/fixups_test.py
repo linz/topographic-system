@@ -28,6 +28,7 @@ from .fixups import (
     generate_dms_grid_features,
     generate_nztm_grid_features,
     generate_sea_polygon,
+    split_bay_inlet_gorge_valley,
 )
 
 
@@ -39,6 +40,21 @@ def _td(fixups_cfg: list[dict], name: str = "t") -> ThemeDataset:
     return ThemeDataset.model_validate(
         {"name": name, "source": "kart@data.koordinates.com:linz/x-topo-150k", "fixups": fixups_cfg}
     )
+
+
+def test_split_bay_inlet_gorge_valley():
+    """bay_inlet -> inlet when the name says so, else bay; gorge_valley -> valley, else gorge.
+    Other types and a null name are left untouched."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "type": ["bay_inlet", "bay_inlet", "gorge_valley", "gorge_valley", "beach", "bay_inlet"],
+            "name": ["Milford Inlet", "Golden Bay", "Manawatu Gorge", "Hutt Valley", "Long Beach", None],
+        },
+        geometry=[Point(i, i) for i in range(6)],
+        crs="EPSG:4167",
+    )
+    out = split_bay_inlet_gorge_valley(gdf, _td([], name="geographic_name"), 66)
+    assert out["type"].tolist() == ["inlet", "bay", "gorge", "valley", "beach", "bay"]
 
 
 def test_apply_fixups_runs_for_matching_release(monkeypatch):
@@ -645,6 +661,21 @@ def test_contour_number_orients_the_label_and_renders_the_elevation():
     # 30 degrees CCW from east -> -30 -> 330 for the label that needs no flip
     assert out["orientation"].tolist() == [330, 150, 330]
     assert out["label"].tolist()[:2] == ["100", "250"]
+
+
+def test_orientation_degrees_converts_radians_to_clockwise_degrees():
+    """Source `orientatn` is radians counter-clockwise from east; the symbol renderer wants
+    integer degrees clockwise from east (the nztopo50_carto_symbol convention). A null stays null."""
+    gdf = gpd.GeoDataFrame(
+        {"orientation": [np.radians(30), np.radians(90), 0.0, np.nan]},
+        geometry=[Point(0, 0)] * 4,
+        crs="EPSG:4167",
+    )
+    out = fixups.orientation_degrees(gdf, _td([], name="building_point"), 66)
+
+    assert out["orientation"].tolist()[:3] == [330, 270, 0]
+    assert pd.isna(out["orientation"].tolist()[3])
+    assert out["orientation"].dtype == "Int32"
 
 
 GRID = "nztopo50_grid"

@@ -1,5 +1,17 @@
 import "@typespec/json-schema";
+import "@typespec/versioning";
 using TypeSpec.JsonSchema;
+using TypeSpec.Versioning;
+
+@versioned(Versions)
+namespace Linz.Topography;
+
+/** Published schema releases. `v0.3` is the current (published) schema, `v0.4` is in development. */
+enum Versions {
+  v0_3: "v0.3",
+  v0_4: "v0.4",
+}
+
 /** GeoParquet 1.1 covering bbox struct. */
 @extension("additionalProperties", false)
 model BBox {

@@ -23,7 +23,8 @@ export const StacPushArgs = {
   strategies: multioption({
     long: 'strategy',
     type: StorageStrategyMulti,
-    description: 'Storage strategies to use, for example --strategy=latest',
+    description:
+      'Storage strategies to use, repeatable (e.g. --strategy=latest --strategy=version=v2) or comma-separated (e.g. --strategy=latest,commit=abc123). One of: latest, commit=<sha>, date=<ISO date>, version=<name>',
   }),
   commit: flag({
     long: 'commit',

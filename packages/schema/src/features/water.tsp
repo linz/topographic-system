@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("water")
 @extension("additionalProperties", false)
 model water {
@@ -11,6 +13,7 @@ model water {
   subtype: water_subtype | null;
   name: string | null;
   group_name: string | null;
+  sub_group_name: string | null;
   height: float64 | null;
   elevation: int32 | null;
   perennial: water_perennial | null;

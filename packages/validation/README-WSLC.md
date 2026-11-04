@@ -24,7 +24,7 @@ npm -v   # e.g. 11.12.1
 Run from the `topographic-system` root. On Windows, use a `file://` URL if the file is not relative to the working directory:
 
 ```bash
-node packages/kart/src/index.ts validate-schema --schema schema/next/airport.json file:///c:/data/temp/airport.parquet
+node packages/kart/src/index.ts validate-schema --schema schema/v0.4/airport.json file:///c:/data/temp/airport.parquet
 
 node packages/kart/src/index.ts validate-schema --schema file:///c:/Data/toposource/schema_model/airport.json file:///c:/data/temp/airport.parquet
 ```
@@ -70,13 +70,13 @@ The build includes schema and topology validation tooling.
 ### Against the live schema
 
 ```bash
-wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/airport.json /data/airport.parquet
+wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/v0.3/airport.json /data/airport.parquet
 ```
 
 ### Against the next schema
 
 ```bash
-wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/next/road_line.json /data/road_line.parquet
+wslc run --rm -it -v C:\data\temp:/data kart validate-schema --schema /schema/v0.4/road_line.json /data/road_line.parquet
 ```
 
 ### Targeting a custom schema folder

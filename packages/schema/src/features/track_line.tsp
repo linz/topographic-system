@@ -3,13 +3,14 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("track_line")
 @extension("additionalProperties", false)
 model track_line {
   ...TopographicFeature;
-  type: "track";
+  type: track_type | null;
   subtype: track_subtype | null;
-  track_type: track_type | null;
   status: track_status | null;
   name: string | null;
   theme: Theme.Transport;
@@ -17,13 +18,13 @@ model track_line {
   ...GeoParquet;
 }
 
-enum track_subtype {
+enum track_type {
   CycleOnly: "cycle_only",
   Foot: "foot",
   Vehicle: "vehicle",
 }
 
-enum track_type {
+enum track_subtype {
   Connector: "connector",
   Multiple: "multiple",
   Route: "route",

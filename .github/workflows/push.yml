@@ -24,9 +24,6 @@ jobs:
         uses: ./.github/actions/python-ci
         background: true
 
-      # Remove existing schema files to ensure no dangling json schemas.
-      - run: rm -fv schema/*.json schema/next/*.json
-
       - run: npm ci
 
       - run: npm run build
@@ -43,6 +40,14 @@ jobs:
 
       - wait: [check, test, python-ci]
       - run: git diff --exit-code
+
+  deploy-schema:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/deploy-schema.yml
+    with:
+      environment: nonprod
+    secrets: inherit
 
   build-container:
     uses: ./.github/workflows/containers.yml

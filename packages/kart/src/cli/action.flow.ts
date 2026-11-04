@@ -203,8 +203,10 @@ export const FlowCommand = command({
     schemaDirectory: option({
       type: UrlFolder,
       long: 'schema-directory',
-      description: 'Path to JSON schemas directory (default: /schema)',
-      defaultValue: () => new URL('file:///schema/'),
+      // Validates real imported data against the current (published), not next (in-development),
+      // schema -- see packages/schema/src/features/common.tsp's `Versions` enum.
+      description: 'Path to JSON schemas directory (default: /schema/v0.3)',
+      defaultValue: () => new URL('file:///schema/v0.3/'),
     }),
 
     // Validate args

@@ -51,7 +51,8 @@ export class StacPusher {
   private static strategyPriority(s: StorageStrategy): number {
     if (s.type === 'date') return 0;
     if (s.type === 'commit') return 1;
-    return 2; // latest
+    if (s.type === 'version') return 2;
+    return 3; // latest
   }
 
   strategy(s: StorageStrategy) {

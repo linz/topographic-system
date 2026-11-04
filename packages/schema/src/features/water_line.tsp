@@ -4,6 +4,8 @@ import "./water.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("water_line")
 @extension("additionalProperties", false)
 model water_line {

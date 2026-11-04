@@ -10,6 +10,7 @@ _mappings:
     type: island
     name: $name
     group_name: $grp_name
+    sub_group_name: null
     theme: land_cover
     metadata: null
 

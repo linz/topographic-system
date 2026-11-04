@@ -10,8 +10,9 @@ RUN uv sync --directory /packages/data-prep
 COPY packages/kart/dist/ /app/
 
 # TODO: In future, this may want to live in https/s3/somewhere publicly accessible
-# Copy manually created test schema
-COPY e2e/assets/test*json /schema/
+# Copy manually created test schema -- validate-schema's default --schema-directory is
+# /schema/v0.3 (the current published version), so test fixtures must land there too.
+COPY e2e/assets/test*json /schema/v0.3/
 # Copy tsp emitted json schema
 COPY schema /schema
 

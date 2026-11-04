@@ -2,6 +2,8 @@ import "@typespec/json-schema";
 import "./common.tsp";
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("land_cover_point")
 @oneOf
 union land_cover_point {
@@ -21,7 +23,7 @@ model LandCoverPointCommon {
 model rock_outcrop {
   ...TopographicFeature;
   type: "rock_outcrop";
-  orientation: float64;
+  orientation: int32;
   elevation: int32;
   subtype: rock_outcrop_subtype;
   ...LandCoverPointCommon;

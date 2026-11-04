@@ -3,12 +3,14 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("utility_point")
 @extension("additionalProperties", false)
 model utility_point {
   ...TopographicFeature;
   type: utility_point_type;
-  orientation: float64 | null;
+  orientation: int32 | null;
   theme: Theme.Utility;
   ...TopographicMetadata;
   ...GeoParquet;

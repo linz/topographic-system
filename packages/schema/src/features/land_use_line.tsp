@@ -4,6 +4,8 @@ import "./land_use.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("land_use_line")
 @extension("additionalProperties", false)
 model land_use_line {

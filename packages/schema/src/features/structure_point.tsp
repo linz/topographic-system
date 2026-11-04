@@ -4,6 +4,8 @@ import "./structure.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("structure_point")
 @extension("additionalProperties", false)
 model structure_point {
@@ -14,7 +16,7 @@ model structure_point {
   status: structure_status | null;
   name: string | null;
   height: float64 | null;
-  orientation: float64 | null;
+  orientation: int32 | null;
   theme: Theme.Structures;
   ...TopographicMetadata;
   ...GeoParquet;

@@ -15,6 +15,7 @@ describe('stac.storage', async () => {
 
   const latest = { type: 'latest' } as const;
   const commit = { type: 'commit', commit: 'commit' } as const;
+  const version = { type: 'version', version: 'v2' } as const;
   const prefix = new URL('memory://target/bucket/');
 
   describe('id', () => {
@@ -32,6 +33,14 @@ describe('stac.storage', async () => {
         );
       });
     }
+
+    it('should generate version ids', () => {
+      assert.equal(StacStorage.id(version, { prefix, category: 'data', label: 'airport' }), 'data_airport_v2');
+      assert.equal(
+        StacStorage.id(version, { prefix, category: 'product', label: 'nztopo50', item: 'BQ27' }),
+        'product_nztopo50_v2-BQ27',
+      );
+    });
   });
 
   describe('strategies', () => {
@@ -45,6 +54,13 @@ describe('stac.storage', async () => {
       assert.deepEqual(pusher.strategies, [
         { type: 'date', date: new Date('2024-01-01') },
         { type: 'commit', commit: 'abc' },
+        { type: 'latest' },
+      ]);
+      pusher.strategy({ type: 'version', version: 'v2' });
+      assert.deepEqual(pusher.strategies, [
+        { type: 'date', date: new Date('2024-01-01') },
+        { type: 'commit', commit: 'abc' },
+        { type: 'version', version: 'v2' },
         { type: 'latest' },
       ]);
     });
@@ -69,6 +85,23 @@ describe('stac.storage', async () => {
 
     it('should throw for missing date strategy value', () => {
       assert.throws(() => parseStrategy('date'), /Invalid date/);
+    });
+
+    it('should parse a version strategy', () => {
+      assert.deepEqual(parseStrategy('version=v2'), { type: 'version', version: 'v2' });
+    });
+
+    it('should throw for empty version strategy', () => {
+      assert.throws(() => parseStrategy('version='), /Invalid version/);
+    });
+
+    it('should throw for missing version strategy value', () => {
+      assert.throws(() => parseStrategy('version'), /Invalid version/);
+    });
+
+    it('should generate a version target URL', () => {
+      const ctx: StorageContext = { prefix, category: 'data', label: 'airport' };
+      assert.strictEqual(StacStorage.url(version, ctx).href, 'memory://target/bucket/data/airport/version=v2/');
     });
   });
 
