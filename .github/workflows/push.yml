@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - uses: actions/checkout@v6
@@ -44,22 +41,13 @@ jobs:
       - wait: [check, test, python-ci]
       - run: git diff --exit-code
 
-      # Publish the generated schemas for long-term, versioned history (see
-      # packages/typespec-emitter and packages/schema/src/features/common.tsp). Only on push to
-      # master, after everything above has passed -- PRs build and check the same schemas, just
-      # don't publish them. `aws s3 sync` never deletes: older versions already in the bucket stay
-      # published even after they're dropped from the local `Versions` enum.
-      - name: Configure AWS Credentials
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: aws-actions/configure-aws-credentials@v6.2.1
-        with:
-          aws-region: ap-southeast-2
-          mask-aws-account-id: true
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-
-      - name: Sync schemas to S3
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: aws s3 sync schema/ s3://linz-topography-nonprod/schema/
+  deploy-schema:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/deploy-schema.yml
+    with:
+      environment: nonprod
+    secrets: inherit
 
   build-container:
     uses: ./.github/workflows/containers.yml
