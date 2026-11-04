@@ -5,7 +5,7 @@ import { iceContour } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const iceContourName = 'nztopo50_ice_contour';
-const iceContourSchema = new URL('file:///schema/nztopo50_ice_contour.json');
+const iceContourSchema = new URL('file:///schema/v0.3/nztopo50_ice_contour.json');
 
 export const IceContourArgs = {
   ...DataPrepareArgs,

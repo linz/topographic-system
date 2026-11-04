@@ -22,7 +22,7 @@ mapping value matches; a dataset whose ``type`` matches zero or more than one br
 reported as a problem, since the check can't otherwise know which shape applies.
 
 Schema set selection:
-  ``KART_SCHEMA_SET`` = ``current`` (default,``schema/``) or ``next`` (``schema/next/``).
+  ``KART_SCHEMA_SET`` = ``current`` (default, ``schema/v0.3/``) or ``next`` (``schema/v0.4/``).
   ``KART_SCHEMA_DIR`` overrides the ``current`` root.
 
 Behaviour is gated by ``KART_SCHEMA_CHECK``:
@@ -86,14 +86,26 @@ class SchemaCheckError(Exception):
     """One or more theme configs failed the static schema check (``strict`` mode)."""
 
 
+# `current`/`next` map onto the schema package's `@typespec/versioning` releases
+# (packages/schema/src/features/common.tsp). Update these when a version is promoted or added.
+CURRENT_VERSION = "v0.3"
+NEXT_VERSION = "v0.4"
+
+
 def schema_dir(schema_set: str | None = None) -> Path:
     schema_set = schema_set or env_schema_set()
     base = env_schema_dir_override()
-    root = Path(base) if base else REPO_ROOT / "schema"
+    # `KART_SCHEMA_DIR` points directly at the root to check against (e.g. a test fixture's
+    # flat folder); only the real default root is split into versioned subdirectories.
+    if base:
+        current, next_ = Path(base), Path(base) / "next"
+    else:
+        root = REPO_ROOT / "schema"
+        current, next_ = root / CURRENT_VERSION, root / NEXT_VERSION
     if schema_set == "next":
-        return root / "next"
+        return next_
     if schema_set == "current":
-        return root
+        return current
     raise ValueError(f"Unknown schema_set {schema_set!r}; expected 'current' or 'next'")
 
 

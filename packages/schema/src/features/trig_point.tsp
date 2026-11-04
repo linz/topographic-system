@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("trig_point")
 @extension("additionalProperties", false)
 model trig_point {

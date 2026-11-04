@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("coastline")
 @extension("additionalProperties", false)
 model coastline {

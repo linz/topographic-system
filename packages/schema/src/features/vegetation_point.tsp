@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("vegetation_point")
 @extension("additionalProperties", false)
 model vegetation_point {

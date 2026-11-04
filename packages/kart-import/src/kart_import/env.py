@@ -81,7 +81,8 @@ def env_schema_set() -> str:
     and the dtypes `theme.coerce_dtypes` forces onto the merged frame at write time.
 
     KART_SCHEMA_SET=current|next (default current):
-    ``current`` -> ``schema/`` ; ``next`` -> ``schema/next/``.
+    ``current`` -> ``schema/v0.3/`` ; ``next`` -> ``schema/v0.4/`` (see `schema_check.schema_dir`
+    and the `Versions` enum in packages/schema/src/features/common.tsp).
 
         export KART_SCHEMA_SET=next
     """
@@ -89,7 +90,8 @@ def env_schema_set() -> str:
 
 
 def env_schema_dir_override() -> str | None:
-    """Override the root of the ``current`` schema set (``next`` is its ``next/`` child).
+    """Override the root `schema_dir` resolves ``current``/``next`` against directly (bypassing
+    the ``v0.3``/``v0.4`` versioned subdirectories), e.g. for a test fixture's flat folder.
 
     KART_SCHEMA_DIR=/path/to/schema (default: the repo's ``schema/`` dir). Returns None
     when unset, i.e. use the default. A set-but-missing path is an operator config error

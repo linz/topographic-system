@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("contour")
 @extension("additionalProperties", false)
 model contour {

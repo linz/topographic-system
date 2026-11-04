@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("nztopo50_rock_line")
 @extension("additionalProperties", false)
 model nztopo50_rock_line {

@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("land_cover_line")
 @extension("additionalProperties", false)
 model land_cover_line {

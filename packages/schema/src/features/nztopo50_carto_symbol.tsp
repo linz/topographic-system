@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("nztopo50_carto_symbol")
 @extension("additionalProperties", false)
 model nztopo50_carto_symbol {

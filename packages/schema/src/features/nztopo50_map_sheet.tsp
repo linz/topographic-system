@@ -3,6 +3,8 @@ import "./common.tsp";
 
 using TypeSpec.JsonSchema;
 
+namespace Linz.Topography;
+
 @jsonSchema("nztopo50_map_sheet")
 @extension("additionalProperties", false)
 model nztopo50_map_sheet {
