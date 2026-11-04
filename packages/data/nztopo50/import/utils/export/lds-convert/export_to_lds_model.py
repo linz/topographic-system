@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 
 import geopandas as gpd  # type: ignore
+import numpy as np
 import pandas as pd
 
 """
@@ -16,11 +17,11 @@ Coded against schema 0.3
 
 Additional changes not implemented for later schema versions.
 BM-1904 (done) - racetracks
-1905- cartotext, 
+1905- (done) cartotext, word_distance - not in export model
 1906 - (done) added sub field ignore
 1907 - (done) added sub field ignore
-1909 - main impact - require lookup for geographic_names
-1914 - track_line (done): move subtype to type and track_type to subtype
+1909 - (done) main impact - require lookup for geographic_names
+1914 - (done) track_line: move subtype to type and track_type to subtype
 1915 - (done) trig_point: move trig_type to type - ignore not in schema
 1916 - fields redesigned larger restructure - contour: use type for index, contour, supplementary and depression
 1917 - (done) runway: move subtype to type and surface to subtype
@@ -134,6 +135,15 @@ DESC_CODE_BY_NAME = {
 
 TUNNEL_SWAPPED_USE_FIDS = {6066307, 7745273, 8344640, 8499056, 8525734}
 TUNNEL_IVESTOCK_FIDS = {6066314}
+
+ORIENTATION_LAYERS = {
+    "building_point",
+    "land_cover_point",
+    "relief_point",
+    "structure_point",
+    "utility_point",
+    "water_point",
+}
 
 class ExportToLDSModel:
     def __init__(
@@ -579,6 +589,13 @@ class ExportToLDSModel:
                 )
         return layer
 
+    @staticmethod
+    def restore_orientation_radians(layer, layer_name):
+        if layer_name in ORIENTATION_LAYERS and "orientation" in layer.columns:
+            orientation = pd.to_numeric(layer["orientation"], errors="coerce")
+            layer["orientation"] = np.radians(-orientation.astype(float))
+        return layer
+
     def tree_locations_special_case(self, layer):
         layer["macronated"] = "N"
         layer["name"] = ""
@@ -681,6 +698,7 @@ class ExportToLDSModel:
                 continue
 
             layer = self.restore_source_fields(layer, layer_name, feature_type)
+            layer = self.restore_orientation_radians(layer, layer_name)
             if "name" in mapped_names or feature_type == "historic_site":
                 layer = self.check_names(mapped_names, layer, feature_type)
 
