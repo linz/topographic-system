@@ -5,7 +5,7 @@ import { rockLine } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const rockLineName = 'nztopo50_rock_line';
-const rockLineSchema = new URL('file:///schema/nztopo50_rock_line.json');
+const rockLineSchema = new URL('file:///schema/v0.3/nztopo50_rock_line.json');
 
 export const RockLineArgs = {
   ...DataPrepareArgs,
