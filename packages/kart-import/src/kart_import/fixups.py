@@ -566,7 +566,7 @@ def drop_degenerate_tracks(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: 
     )
 
 
-def orientation_radians_to_degrees(radians: "pd.Series") -> "pd.Series":
+def orientation_radians_to_degrees(radians: pd.Series) -> pd.Series:
     """Convert a LAMPS orientation (radians, counter-clockwise from east) to integer degrees
     clockwise from east - the `nztopo50_carto_symbol` convention. NULL/NaN stays NULL."""
     import numpy as np
