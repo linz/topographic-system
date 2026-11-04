@@ -1,0 +1,23 @@
+{
+  "source_layer": "vegetation_line",
+  "targets": [
+    {
+      "target_layer": "shelter_belt_cl",
+      "schema_key": "shelter_belt_cl",
+      "feature_type": "shelter_belt",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

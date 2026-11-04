@@ -21,6 +21,12 @@
       "message": "Building point features must not fall within residential area polygon features",
       "where": "type = 'residential_area'"
     },
+        {
+      "table": "building_point",
+      "intersection_table": "structure",
+      "layername": "building-points-in-structure",
+      "message": "Building point features must not fall within structure polygon features"
+    },
     {
       "table": "vegetation_line",
       "intersection_table": "road_line",

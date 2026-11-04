@@ -1,0 +1,38 @@
+{
+  "source_layer": "marine_point",
+  "targets": [
+    {
+      "target_layer": "rock_pnt",
+      "schema_key": "rock_pnt",
+      "feature_type": "rock",
+      "geometry_type": "Point",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int:10"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "Point"
+        }
+      ]
+    }
+  ]
+}

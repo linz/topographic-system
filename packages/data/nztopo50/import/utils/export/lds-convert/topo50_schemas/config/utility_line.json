@@ -1,0 +1,74 @@
+{
+  "source_layer": "utility_line",
+  "targets": [
+    {
+      "target_layer": "pipeline_cl",
+      "schema_key": "pipeline_cl",
+      "feature_type": "pipeline",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "infrastructure_use",
+          "target_field": "pipe_use",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "visibility",
+          "target_field": "visibility",
+          "target_type": "str:11"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "powerline_cl",
+      "schema_key": "powerline_cl",
+      "feature_type": "powerline",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "support_type",
+          "target_field": "support_ty",
+          "target_type": "str:5"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    },
+    {
+      "target_layer": "telephone_cl",
+      "schema_key": "telephone_cl",
+      "feature_type": "telephone",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}

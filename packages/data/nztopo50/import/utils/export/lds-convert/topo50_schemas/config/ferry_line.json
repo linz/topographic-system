@@ -1,0 +1,23 @@
+{
+  "source_layer": "ferry_line",
+  "targets": [
+    {
+      "target_layer": "ferry_crossing_cl",
+      "schema_key": "ferry_crossing_cl",
+      "feature_type": "ferry_crossing",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}
