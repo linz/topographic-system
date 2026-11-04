@@ -13,7 +13,7 @@ model water_point {
   type: water_type;
   name: string | null;
   height: float64 | null;
-  orientation: float64 | null;
+  orientation: int32 | null;
   temperature_indicator: water_temperature_indicator | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;

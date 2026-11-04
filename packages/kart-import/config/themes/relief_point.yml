@@ -29,6 +29,8 @@ datasets:
       orientation: { source: $orientatn, since_release: 50 }
       theme: relief
       metadata: null
+    fixups:
+      - fn: orientation_degrees
 
   - source: kart@data.koordinates.com:linz/nz-height-points-topo-150k
     name: nz_height_points_topo_150k
@@ -108,3 +110,5 @@ datasets:
       orientation: { source: $orientatn, since_release: 50 }
       theme: relief
       metadata: null
+    fixups:
+      - fn: orientation_degrees
