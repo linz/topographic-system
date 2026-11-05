@@ -81,6 +81,24 @@ def test_select_lookup_columns_raises(columns, cols, match):
         prepare.select_lookup_columns(gdf, Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=columns))
 
 
+def test_select_lookup_columns_reads_an_alias_under_the_current_name():
+    gdf = gpd.GeoDataFrame(
+        {"t50_fid": [1], "road_acces": ["mp"], "width": ["a"]}, geometry=[Point(0, 0)], crs="EPSG:4326"
+    )
+    out = prepare.select_lookup_columns(
+        gdf,
+        Lookup(
+            name="road_lkp",
+            source=_SRC,
+            key="t50_fid",
+            columns=[{"name": "road_access", "aliases": ["road_acces"]}, "width"],
+        ),
+    )
+
+    assert list(out.columns) == ["t50_fid", "road_access", "width"]
+    assert out["road_access"].tolist() == ["mp"]
+
+
 def test_join_fingerprint_reflects_lookup_commits(monkeypatch):
     td = _td()
     monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: f"commit{release_id}")
