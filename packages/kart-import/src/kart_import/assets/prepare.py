@@ -38,6 +38,14 @@ def select_spatial_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> gpd.
 
 def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame:
     """The key + selected columns as a plain DataFrame."""
+    # An older snapshot may still carry a since-renamed column (e.g. `road_acces` before the source
+    # renamed it `road_access`)
+    for name, aliases in lookup.column_aliases.items():
+        if name not in gdf.columns:
+            present = next((alias for alias in aliases if alias in gdf.columns), None)
+            if present is not None:
+                gdf = gdf.rename(columns={present: name})
+
     if lookup.geometry:
         return select_spatial_lookup_columns(gdf, lookup)
     if lookup.key not in gdf.columns:
