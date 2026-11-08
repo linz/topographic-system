@@ -11,7 +11,7 @@ import pyogrio
 
 DEFAULT_GPKG_PATH = Path(r"C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg")
 DEFAULT_LAYERS = ("railway_line", "vegetation", "landcover")
-DEFAULT_OUTPUT_PATH = Path(r"C:\Temp\export\multipart_count_features.csv")
+DEFAULT_OUTPUT_CSV_FILE = Path(r"C:\Temp\export\multipart_count_features.csv")
 DEFAULT_FEATURE_OUTPUT_DIRECTORY = Path(r"C:\Temp\export\multipart_feature_geojson")
 OUTPUT_FIELDS = ["id", "t50_fid", "type", "subtype", "created_at"]
 SUPPORTED_GEOMETRY_TYPES = {
@@ -79,7 +79,9 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--gpkg", type=Path, default=DEFAULT_GPKG_PATH)
     parser.add_argument("--layers", nargs="+", default=DEFAULT_LAYERS)
-    parser.add_argument("--output-path", type=Path, default=DEFAULT_OUTPUT_PATH)
+    parser.add_argument(
+        "--output-csv-file", type=Path, default=DEFAULT_OUTPUT_CSV_FILE
+    )
     parser.add_argument(
         "--feature-output-directory",
         type=Path,
@@ -90,6 +92,11 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     arguments = parse_arguments()
+    if arguments.output_csv_file.parent.is_file():
+        raise ValueError(
+            "The parent directory for --output-csv-file is an existing file: "
+            f"{arguments.output_csv_file.parent}"
+        )
     multipart_features = pd.concat(
         [
             find_multipart_features(arguments.gpkg, layer_name)
@@ -97,8 +104,8 @@ def main() -> None:
         ],
         ignore_index=True,
     )
-    arguments.output_path.parent.mkdir(parents=True, exist_ok=True)
-    multipart_features.to_csv(arguments.output_path, index=False)
+    arguments.output_csv_file.parent.mkdir(parents=True, exist_ok=True)
+    multipart_features.to_csv(arguments.output_csv_file, index=False)
     written_feature_count = sum(
         write_multipart_feature_geojsons(
             arguments.gpkg, layer_name, arguments.feature_output_directory
@@ -107,7 +114,7 @@ def main() -> None:
     )
     print(
         f"Wrote {len(multipart_features)} multipart feature(s) to "
-        f"{arguments.output_path}"
+        f"{arguments.output_csv_file}"
     )
     print(
         f"Wrote {written_feature_count} GeoJSON feature file(s) to "

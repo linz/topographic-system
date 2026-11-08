@@ -592,8 +592,9 @@ class ExportToLDSModel:
     @staticmethod
     def restore_orientation_radians(layer, layer_name):
         if layer_name in ORIENTATION_LAYERS and "orientation" in layer.columns:
-            orientation = pd.to_numeric(layer["orientation"], errors="coerce")
-            layer["orientation"] = np.radians(-orientation.astype(float))
+            rad = pd.to_numeric(layer["orientation"], errors="coerce")
+            bearing = 90 - np.degrees(rad)
+            layer["orientation"] = (np.round(bearing - 90) % 360).astype("Int32")
         return layer
 
     def tree_locations_special_case(self, layer):
