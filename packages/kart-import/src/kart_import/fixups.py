@@ -573,7 +573,8 @@ def orientation_radians_to_degrees(radians: pd.Series) -> pd.Series:
     import pandas as pd
 
     rad = pd.to_numeric(pd.Series(radians), errors="coerce")
-    return ((-np.degrees(rad)).round() % 360).astype("Int32")
+    bearing = 90 - np.degrees(rad)
+    return (np.round(bearing - 90) % 360).astype("Int32")
 
 
 def orientation_degrees(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
