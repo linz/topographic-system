@@ -41,6 +41,7 @@ TYPE_SELECTION_ALIASES = {
 }
 
 TRACK_USE_BY_TYPE = {
+    "racetrack": None,
     "horse_racetrack": "horse",
     "vehicle_racetrack": "vehicle",
     "cycle_racetrack": "cycle",
@@ -56,6 +57,8 @@ DISPLAY_BY_SUBTYPE = {
 DESC_CODE_BY_NAME = {
     "airport": "AIR",
     "bay_inlet": "BAY",
+    "bay": "BAY",
+    "inlet": "BAY",
     "beach": "BCH",
     "bridge": "BDGE",
     "building": "BLDG",
@@ -77,6 +80,8 @@ DESC_CODE_BY_NAME = {
     "glacier": "GLCR",
     "golf_links": "GLKS",
     "gorge_valley": "GORG",
+    "gorge": "GORG",
+    "valley": "GORG",
     "hill": "HILL",
     "historic": "HIST",
     "hospital": "HOSP",
@@ -325,7 +330,8 @@ class ExportToLDSModel:
 
     @staticmethod
     def get_desc_code(name):
-        return DESC_CODE_BY_NAME.get(name)
+        lookup = DESC_CODE_BY_NAME.get(name)
+        return lookup
 
     def read_source_data(self, format, layer_name, feature_type, database=None):
         database = database or self.database
@@ -392,7 +398,7 @@ class ExportToLDSModel:
         if layer_name in {"building", "building_point"}:
             layer["building_use"] = layer["subtype"]
         elif layer_name == "geographic_name":
-            layer["desc_code"] = layer["type"].map(self.get_desc_code)
+            layer["type"] = layer["type"].map(self.get_desc_code)
         elif layer_name == "bridge_line":
             layer["bridge_use"] = layer["type"]
             layer["bridge_use2"] = layer["subtype"]
@@ -400,9 +406,11 @@ class ExportToLDSModel:
             layer["display"] = layer["subtype"].map(DISPLAY_BY_SUBTYPE)
         elif layer_name in {"land_use", "land_use_line"}:
             layer["landuse_type"] = layer["subtype"]
-            layer["landuse_use"] = layer["type"].map(TRACK_USE_BY_TYPE)
+            layer["type"] = layer["type"].replace(TRACK_USE_BY_TYPE)
         elif layer_name == "land_use_point":
             layer["place_type"] = layer["subtype"]
+            if feature_type == "mine":
+                layer["status"] = layer["status"].replace({"old": "historic"})
         elif layer_name in {"marine", "marine_point"}:
             layer["composition"] = layer["subtype"]
         elif layer_name == "place_point":
@@ -426,7 +434,7 @@ class ExportToLDSModel:
             layer["rna_sufi"] = layer["rna_sufi"].mask(layer["rna_sufi"] == 0)
         elif layer_name == "runway":
             layer["runway_use"] = layer["subtype"]
-            layer["surface"] = layer["surface"].where(layer["surface"] != "grass")
+            layer["subtype"] = layer["subtype"].where(layer["subtype"] != "grass")
         elif layer_name == "structure":
             if feature_type == "tank":
                 layer["structure_type"] = layer["tank_type"]
@@ -583,18 +591,22 @@ class ExportToLDSModel:
         for field_name, field_type in schema["properties"].items():
             if field_type.startswith("str") and field_name in layer.columns:
                 layer[field_name] = layer[field_name].map(
-                    lambda value: value.replace("_", " ")
-                    if isinstance(value, str)
-                    else value
+                    lambda value: (
+                        None
+                        if pd.isna(value)
+                        or (isinstance(value, str) and value == "<NA>")
+                        else value.replace("_", " ")
+                        if isinstance(value, str)
+                        else value
+                    )
                 )
         return layer
 
     @staticmethod
     def restore_orientation_radians(layer, layer_name):
-        if layer_name in ORIENTATION_LAYERS and "orientation" in layer.columns:
-            rad = pd.to_numeric(layer["orientation"], errors="coerce")
-            bearing = 90 - np.degrees(rad)
-            layer["orientation"] = (np.round(bearing - 90) % 360).astype("Int32")
+        if layer_name in ORIENTATION_LAYERS:
+            degrees = pd.to_numeric(layer["orientation"], errors="coerce")
+            layer["orientation"] = np.deg2rad(-degrees)
         return layer
 
     def tree_locations_special_case(self, layer):
@@ -698,8 +710,9 @@ class ExportToLDSModel:
                 self.logger.exception(message)
                 continue
 
-            layer = self.restore_source_fields(layer, layer_name, feature_type)
             layer = self.restore_orientation_radians(layer, layer_name)
+            layer = self.restore_source_fields(layer, layer_name, feature_type)
+
             if "name" in mapped_names or feature_type == "historic_site":
                 layer = self.check_names(mapped_names, layer, feature_type)
 
@@ -742,7 +755,7 @@ if __name__ == "__main__":
     # its .gpkg file. For GeoParquet, use source_format="parquet" and set each
     # value to a folder containing one <model_layer_name>.parquet file per layer.
     source_format = "parquet"
-    database = r"C:\Data\temp\topographic-data-dev"
+    database = r"C:\Data\temp\topographic-data-dev-67"
     contour_database = r"C:\Data\temp\topographic-contour-data"
     product_database = r"C:\Data\temp\topographic-product-data"
 
@@ -750,7 +763,6 @@ if __name__ == "__main__":
     # Use None to process every configured output file.
     single_file = None
 
-    output_folder = r"C:\Data\topo50\export\lds_model"
     output_folder = r"C:\temp\export\lds_model"
 
     os.makedirs(output_folder, exist_ok=True)

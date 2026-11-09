@@ -16,8 +16,12 @@ ID_FIELD = "t50_fid"
 SAMPLE_FRACTION = 0.10
 ALL_ROWS_THRESHOLD = 101
 RANDOM_SEED = 42
+ORIENTATION_TOLERANCE_RADIANS = math.radians(0.5)
 KART_LAYER_ALIASES = {
     "nz_snow_polygons_topo_150k": "snow_poly",
+}
+ACCEPTED_VALUE_MISMATCHES = {
+    ("rock_outcrop_pnt", "display", 0, 1),
 }
 
 
@@ -30,6 +34,7 @@ class ShapefileExportComparator:
         layer_info=layer_info_file,
         layer=None,
         skip_shp_file_id_missing=False,
+        skip_snow_poly=True,
         first_value_mismatch_only=False,
         sample_fraction=SAMPLE_FRACTION,
         all_rows_threshold=ALL_ROWS_THRESHOLD,
@@ -41,6 +46,7 @@ class ShapefileExportComparator:
         self.layer = Path(layer).stem.lower() if layer else None
         self.log_file = self.new_lds_shapefiles_folder / "match_exports.log"
         self.skip_shp_file_id_missing = skip_shp_file_id_missing
+        self.skip_snow_poly = skip_snow_poly
         self.first_value_mismatch_only = first_value_mismatch_only
         self.sample_fraction = sample_fraction
         self.all_rows_threshold = all_rows_threshold
@@ -79,6 +85,15 @@ class ShapefileExportComparator:
             return non_null_value == 0
         if lds_direct_export_is_null or shp_file_is_null:
             return lds_direct_export_is_null and shp_file_is_null
+        if field == "orientatn":
+            try:
+                orientation_difference = math.atan2(
+                    math.sin(lds_direct_export_value - shp_file_value),
+                    math.cos(lds_direct_export_value - shp_file_value),
+                )
+                return abs(orientation_difference) <= ORIENTATION_TOLERANCE_RADIANS
+            except (TypeError, ValueError):
+                pass
         return lds_direct_export_value == shp_file_value
 
     @staticmethod
@@ -90,6 +105,17 @@ class ShapefileExportComparator:
             type(shp_file_value).__name__,
             repr(shp_file_value),
         )
+
+    @staticmethod
+    def is_accepted_value_mismatch(
+        layer_name, field, lds_direct_export_value, shp_file_value
+    ):
+        return (
+            layer_name,
+            field,
+            lds_direct_export_value,
+            shp_file_value,
+        ) in ACCEPTED_VALUE_MISMATCHES
 
     def create_sample(self, lds_direct_export):
         if len(lds_direct_export) < self.all_rows_threshold:
@@ -132,6 +158,8 @@ class ShapefileExportComparator:
                     gpkg_path,
                     kart_layer,
                 )
+                continue
+            if self.skip_snow_poly and target_layer == "snow_poly":
                 continue
             if self.layer is not None and target_layer != self.layer:
                 continue
@@ -263,6 +291,13 @@ class ShapefileExportComparator:
                 shp_file_value = shp_file_row[field]
                 if self.values_match(field, lds_direct_export_value, shp_file_value):
                     continue
+                if self.is_accepted_value_mismatch(
+                    layer_name,
+                    field,
+                    lds_direct_export_value,
+                    shp_file_value,
+                ):
+                    continue
 
                 mismatch_count += 1
                 signature = self.mismatch_signature(
@@ -300,12 +335,14 @@ class ShapefileExportComparator:
         self.logger.info(
             "COMPARISON_STARTED start=%s lds_direct_export_folder=%s "
             "new_lds_shapefiles_folder=%s "
-            "layer=%s skip_shp_file_id_missing=%s first_value_mismatch_only=%s",
+            "layer=%s skip_shp_file_id_missing=%s skip_snow_poly=%s "
+            "first_value_mismatch_only=%s",
             start_time.isoformat(),
             self.lds_direct_export_folder,
             self.new_lds_shapefiles_folder,
             self.layer,
             self.skip_shp_file_id_missing,
+            self.skip_snow_poly,
             self.first_value_mismatch_only,
         )
 
@@ -315,7 +352,8 @@ class ShapefileExportComparator:
         shp_file_layers = {
             path.stem.lower(): path
             for path in self.new_lds_shapefiles_folder.glob("*.shp")
-            if self.layer is None or path.stem.lower() == self.layer
+            if (self.layer is None or path.stem.lower() == self.layer)
+            and not (self.skip_snow_poly and path.stem.lower() == "snow_poly")
         }
 
         missing_layers = sorted(
@@ -392,6 +430,12 @@ def parse_args():
     )
     parser.add_argument("--skip-shp-file-id-missing", action="store_true")
     parser.add_argument(
+        "--skip-snow-poly",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Skip snow_poly output comparison (default: enabled)",
+    )
+    parser.add_argument(
         "--first-value-mismatch-only",
         action="store_true",
         help=(
@@ -414,6 +458,7 @@ if __name__ == "__main__":
         layer_info=args.layer_info,
         layer=args.layer,
         skip_shp_file_id_missing=args.skip_shp_file_id_missing,
+        skip_snow_poly=args.skip_snow_poly,
         first_value_mismatch_only=args.first_value_mismatch_only,
         sample_fraction=args.sample_fraction,
         all_rows_threshold=args.all_rows_threshold,

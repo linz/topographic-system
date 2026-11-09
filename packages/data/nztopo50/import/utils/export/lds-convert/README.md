@@ -162,6 +162,9 @@ Run a comparison with common noise suppressed:
 uv run python utils\export\lds-convert\match_exports.py --skip-shp-file-id-missing --first-value-mismatch-only
 ```
 
+`snow_poly` comparison is skipped by default because the output is derived
+from `ice_poly`. Use `--no-skip-snow-poly` to include it.
+
 Compare every record in only the `road_cl` layer:
 
 ```powershell

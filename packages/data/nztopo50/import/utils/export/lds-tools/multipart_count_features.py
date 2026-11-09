@@ -10,7 +10,7 @@ import pandas as pd
 import pyogrio
 
 DEFAULT_GPKG_PATH = Path(r"C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg")
-DEFAULT_LAYERS = ("railway_line", "vegetation", "landcover")
+DEFAULT_LAYERS = ("vegetation", "land_cover")
 DEFAULT_OUTPUT_CSV_FILE = Path(r"C:\Temp\export\multipart_count_features.csv")
 DEFAULT_FEATURE_OUTPUT_DIRECTORY = Path(r"C:\Temp\export\multipart_feature_geojson")
 OUTPUT_FIELDS = ["id", "t50_fid", "type", "subtype", "created_at"]

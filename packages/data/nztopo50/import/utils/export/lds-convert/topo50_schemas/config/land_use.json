@@ -140,7 +140,7 @@
           "target_type": "str:10"
         },
         {
-          "source_field": "type",
+          "source_field": "subtype",
           "target_field": "visibility",
           "target_type": "str:11"
         },
