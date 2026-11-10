@@ -36,7 +36,7 @@ BM-1904 (done) - racetracks
 #- { column: subtype, set: null, where: { t50_fid: 7862768, subtype: 'research station' } }
 
 TYPE_SELECTION_ALIASES = {
-    ("land_use", "racetrack"): ["racetrack", "horse_track", "vehicle_track"],
+    ("land_use", "racetrack"): ["racetrack", "horse_racetrack", "vehicle_racetrack"],
     ("structure_point", "beacon"): ["beacon", "lighthouse"],
 }
 
@@ -52,6 +52,19 @@ DISPLAY_BY_SUBTYPE = {
     "large_boulder": 1,
     "small_rock_outcrop": 2,
     "large_rock_outcrop": 3,
+}
+
+BUILDING_STATUS_BY_FID = {
+    159743: "closed",
+    7798270: "closed",
+    8411910: "locked",
+}
+
+BUILDING_SUBTYPE_BY_FID = {
+    6744342: "tank",
+    7862766: "research station",
+    7862767: "research station",
+    7862768: "research station",
 }
 
 DESC_CODE_BY_NAME = {
@@ -396,6 +409,21 @@ class ExportToLDSModel:
             layer["substance"] = layer["substance_extracted"]
 
         if layer_name in {"building", "building_point"}:
+            homesteads = layer["status"].isna() & (
+                layer["type"].eq("homestead")
+                | layer["subtype"].eq("homestead")
+            )
+            layer.loc[homesteads, "status"] = "homestea"
+            layer.loc[homesteads & layer["subtype"].eq("homestead"), "subtype"] = None
+
+            for t50_fid, status in BUILDING_STATUS_BY_FID.items():
+                normalized = layer["t50_fid"].eq(t50_fid) & layer["status"].isna()
+                layer.loc[normalized, "status"] = status
+
+            for t50_fid, subtype in BUILDING_SUBTYPE_BY_FID.items():
+                normalized = layer["t50_fid"].eq(t50_fid) & layer["subtype"].isna()
+                layer.loc[normalized, "subtype"] = subtype
+
             layer["building_use"] = layer["subtype"]
         elif layer_name == "geographic_name":
             layer["type"] = layer["type"].map(self.get_desc_code)

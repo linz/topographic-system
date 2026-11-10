@@ -28,13 +28,13 @@
           "target_type": "str:75"
         },
         {
-          "source_field": "type",
-          "target_field": "track_use",
+          "source_field": "track_type",
+          "target_field": "track_type",
           "target_type": "str:8"
         },
         {
           "source_field": "subtype",
-          "target_field": "track_type",
+          "target_field": "track_use",
           "target_type": "str:7"
         },
         {
