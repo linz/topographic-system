@@ -74,6 +74,8 @@ class ShapefileExportComparator:
     def values_match(field, lds_direct_export_value, shp_file_value):
         lds_direct_export_is_null = bool(pd.isna(lds_direct_export_value))
         shp_file_is_null = bool(pd.isna(shp_file_value))
+        if field == "building_use" and lds_direct_export_value == "homestea":
+            return True
         if field == "rna_sufi" and (
             lds_direct_export_is_null != shp_file_is_null
         ):

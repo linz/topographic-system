@@ -507,8 +507,6 @@ class ExportToLDSModel:
             )
             ivestock_uses = layer["t50_fid"].isin(TUNNEL_IVESTOCK_FIDS)
             layer.loc[ivestock_uses, "subtype"] = "ivestock"
-        elif layer_name == "track_line":
-            layer["track_use"] = layer["subtype"]
         elif layer_name == "utility_line" and feature_type == "pipeline":
             layer["infrastructure_use"] = layer["subtype"]
         elif layer_name == "vegetation":
