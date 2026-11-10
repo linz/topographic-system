@@ -1,0 +1,7 @@
+pyproject.toml
+topographic-data/README.md
+topographic_data_schema.egg-info/PKG-INFO
+topographic_data_schema.egg-info/SOURCES.txt
+topographic_data_schema.egg-info/dependency_links.txt
+topographic_data_schema.egg-info/requires.txt
+topographic_data_schema.egg-info/top_level.txt

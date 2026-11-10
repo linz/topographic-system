@@ -1,0 +1,58 @@
+{
+  "source_layer": "bridge_line",
+  "targets": [
+    {
+      "target_layer": "bridge_cl",
+      "schema_key": "bridge_cl",
+      "feature_type": "bridge",
+      "geometry_type": "LineString",
+      "field_mappings": [
+        {
+          "source_field": "t50_fid",
+          "target_field": "t50_fid",
+          "target_type": "int32:9"
+        },
+        {
+          "source_field": "construction_type",
+          "target_field": "constr_typ",
+          "target_type": "str:10"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "target_type": "str:8"
+        },
+        {
+          "source_field": "bridge_use",
+          "target_field": "use_1",
+          "target_type": "str:12"
+        },
+        {
+          "source_field": "bridge_use2",
+          "target_field": "use_2",
+          "target_type": "str:12"
+        },
+        {
+          "source_field": "name_ascii",
+          "target_field": "name_ascii",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "macronated",
+          "target_field": "macronated",
+          "target_type": "str:1"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "target_type": "str:75"
+        },
+        {
+          "source_field": "geometry",
+          "target_field": "geometry",
+          "target_type": "LineString"
+        }
+      ]
+    }
+  ]
+}
