@@ -30,6 +30,16 @@ datasets:
     name: nz_contours_topo_150k
     mapping: *contour
     fixups: *contour_type
+    corrections:
+      # Source data error: this contour is published at 570 m, which is off the 20 m contour
+      # interval. Its correct elevation is 580 m. It can't be fixed in the source data yet, so it
+      # is corrected here. Matching on the old elevation too means this stops applying once the
+      # source is fixed.
+      - column: elevation
+        set: 580
+        where:
+          t50_fid: 1023115
+          elevation: 570
   - source: kart@data.koordinates.com:linz/nz-chatham-island-contours-topo-150k
     name: nz_chatham_island_contours_topo_150k
     mapping: *contour

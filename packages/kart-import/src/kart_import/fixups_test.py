@@ -113,6 +113,20 @@ def test_contour_type_fails_on_unexpected_source_values(column, row):
         contour_type(_contour_gdf([row]), _td([], name="nz_contours_topo_150k"), 66)
 
 
+def test_contour_config_corrects_elevation_before_contour_type():
+    """The 570 m source error on t50_fid 1023115 is corrected to 580 m, and only that contour."""
+    from .config import load_config
+    from .corrections import apply_corrections
+
+    theme = load_config("contour")
+    td = next(d for d in theme.datasets if d.name == "nz_contours_topo_150k")
+    gdf = _contour_gdf([(570, None, "depression"), (570, None, None)])
+    gdf["t50_fid"] = pd.array([1023115, 1], dtype="Int32")
+    out = contour_type(apply_corrections(gdf, td), td, 66)
+    assert out["elevation"].tolist() == [580, 570]
+    assert out["type"].tolist() == ["depression", "intermediate"]
+
+
 def test_contour_config_runs_contour_type_on_every_dataset():
     from .config import load_config
 
