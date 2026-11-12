@@ -23,6 +23,7 @@ from .fixups import (
     _drop_listed_empty,
     _generate_grid_features,
     carto_text_styling,
+    contour_type,
     drop_degenerate_fences,
     drop_empty_residential_areas,
     generate_dms_grid_features,
@@ -55,6 +56,61 @@ def test_split_bay_inlet_gorge_valley():
     )
     out = split_bay_inlet_gorge_valley(gdf, _td([], name="geographic_name"), 66)
     assert out["type"].tolist() == ["inlet", "bay", "gorge", "valley", "beach", "bay"]
+
+
+def _contour_gdf(rows: list[tuple]) -> gpd.GeoDataFrame:
+    """Contours as `(elevation, designated, nat_form)` rows."""
+    elevation, designated, nat_form = zip(*rows, strict=True)
+    return gpd.GeoDataFrame(
+        {
+            "elevation": pd.array(elevation, dtype="Int32"),
+            "designated": pd.array(designated, dtype="string"),
+            "nat_form": pd.array(nat_form, dtype="string"),
+        },
+        geometry=[LineString([(i, 0), (i, 1)]) for i in range(len(rows))],
+        crs="EPSG:4167",
+    )
+
+
+def test_contour_type_sets_type_and_subtype_by_precedence():
+    """supplementary, then index (every 100 m, 0 m included), then depression, then intermediate. A
+    depression that loses to another type keeps `subtype = depression`."""
+    gdf = _contour_gdf(
+        [
+            (120, None, None),
+            (200, None, None),
+            (0, None, None),
+            (130, "supplementary", None),
+            (580, None, "depression"),
+            (150, "supplementary", "depression"),
+            (300, None, "depression"),
+            (-100, None, "depression"),
+        ]
+    )
+    out = contour_type(gdf, _td([], name="nz_contours_topo_150k"), 66)
+    assert out["type"].tolist() == [
+        "intermediate",
+        "index",
+        "index",
+        "supplementary",
+        "depression",
+        "supplementary",
+        "index",
+        "index",
+    ]
+    assert out["subtype"].fillna("-").tolist() == ["-", "-", "-", "-", "-", "depression", "depression", "depression"]
+    assert "designated" not in out.columns
+    assert "nat_form" not in out.columns
+
+
+@pytest.mark.parametrize(
+    ("column", "row"),
+    [("designated", (130, "depression", None)), ("nat_form", (580, None, "hill"))],
+)
+def test_contour_type_fails_on_unexpected_source_values(column, row):
+    """A source value the rule doesn't know fails the import rather than becoming `intermediate`."""
+    with pytest.raises(ValueError, match=column):
+        contour_type(_contour_gdf([row]), _td([], name="nz_contours_topo_150k"), 66)
 
 
 def test_apply_fixups_runs_for_matching_release(monkeypatch):
