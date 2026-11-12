@@ -616,6 +616,62 @@ def contour_number(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> 
     return gdf
 
 
+CONTOUR_INDEX_INTERVAL = 100
+"""Every contour whose elevation is a multiple of this (in metres, 0 included) is an index contour."""
+
+
+def contour_type(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Set contour `type` and `subtype` from the source `designated`, `nat_form` and elevation (BM-1916).
+
+    `type`, in order of precedence:
+      - `supplementary` where `designated` is `supplementary`
+      - `index` where the elevation is a multiple of 100 m
+      - `depression` where `nat_form` is `depression`
+      - `intermediate` otherwise
+
+    `subtype` is `depression` when the contour is a depression but another type took precedence
+    (supplementary + depression, index + depression), so the depression is not lost.
+
+    The helper columns `designated` and `nat_form` are dropped. Any value other than the expected
+    one (or null) fails the import, so a new source value is never silently mapped to `intermediate`.
+    """
+    import numpy as np
+    import pandas as pd
+
+    designated = gdf["designated"].astype("string")
+    nat_form = gdf["nat_form"].astype("string")
+    unexpected = {
+        "designated": sorted(set(designated.dropna()) - {"supplementary"}),
+        "nat_form": sorted(set(nat_form.dropna()) - {"depression"}),
+    }
+    unexpected = {col: values for col, values in unexpected.items() if values}
+    if unexpected:
+        raise ValueError(f"contour_type: unexpected source values in {td.name} release {release_id}: {unexpected}")
+
+    supplementary = designated.eq("supplementary").fillna(False).to_numpy(dtype=bool)
+    depression = nat_form.eq("depression").fillna(False).to_numpy(dtype=bool)
+    index = gdf["elevation"].mod(CONTOUR_INDEX_INTERVAL).eq(0).fillna(False).to_numpy(dtype=bool)
+
+    gdf["type"] = np.select(
+        [supplementary, index, depression], ["supplementary", "index", "depression"], default="intermediate"
+    )
+    gdf["subtype"] = pd.Series("depression", index=gdf.index, dtype="string").where(
+        depression & (supplementary | index)
+    )
+    gdf = gdf.drop(columns=["designated", "nat_form"])
+
+    logger.info(
+        "contour_type",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "type": gdf["type"].value_counts().to_dict(),
+            "subtype_depression": int(gdf["subtype"].notna().sum()),
+        },
+    )
+    return gdf
+
+
 CARTO_TEXT_COLOUR: dict[int, str] = {9: "black", 5: "warm_red", 6: "process_blue"}
 CARTO_TEXT_COLOUR_DEFAULT = "black"
 """`text_colour` integer code -> `colour` enum. Legacy decoded any other code to black."""
@@ -1082,6 +1138,7 @@ FIXUPS: dict[str, Fixup] = {
     "split_multipart_features": split_multipart_features,
     "text_encoding": text_encoding,
     "contour_number": contour_number,
+    "contour_type": contour_type,
     "orientation_degrees": orientation_degrees,
     "map_sheet_drop_index_sheets": map_sheet_drop_index_sheets,
     "map_sheet_origin": map_sheet_origin,
