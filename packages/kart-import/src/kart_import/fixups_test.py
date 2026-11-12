@@ -113,6 +113,14 @@ def test_contour_type_fails_on_unexpected_source_values(column, row):
         contour_type(_contour_gdf([row]), _td([], name="nz_contours_topo_150k"), 66)
 
 
+def test_contour_config_runs_contour_type_on_every_dataset():
+    from .config import load_config
+
+    theme = load_config("contour")
+    assert theme.datasets
+    assert all([f.fn for f in d.fixups] == ["contour_type"] for d in theme.datasets)
+
+
 def test_apply_fixups_runs_for_matching_release(monkeypatch):
     def fix(gdf, td, release_id):
         gdf = gdf.copy()
