@@ -655,8 +655,8 @@ def contour_type(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gp
     gdf["type"] = np.select(
         [supplementary, index, depression], ["supplementary", "index", "depression"], default="intermediate"
     )
-    gdf["subtype"] = pd.Series(
-        np.where(depression & (supplementary | index), "depression", None), index=gdf.index, dtype="string"
+    gdf["subtype"] = pd.Series("depression", index=gdf.index, dtype="string").where(
+        depression & (supplementary | index)
     )
     gdf = gdf.drop(columns=["designated", "nat_form"])
 
