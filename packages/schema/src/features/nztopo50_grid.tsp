@@ -26,12 +26,17 @@ model nztopo50_grid {
   @added(Versions.v0_4)
   updated_at: utcDateTime;
 
+  /** The axis the line runs along. An `easting` line runs east–west, so its `value` is a northing. */
   direction: grid_direction;
 
-  /** Axis that `value` measures, in NZTM2000 (EPSG:2193) metres. */
+  /**
+   * The axis `value` is measured on: `northing` for an east–west line, `easting` for a north–south line.
+   * Always the opposite of `direction`.
+   */
   @added(Versions.v0_4)
-  value_axis: grid_axis;
+  value_axis: grid_direction;
 
+  /** Position of the line in NZTM2000 (EPSG:2193) metres: a northing for an `easting` line, an easting for a `northing` line. */
   value: float64;
 
   @added(Versions.v0_4)
@@ -40,14 +45,8 @@ model nztopo50_grid {
   ...GeoParquet;
 }
 
+/** An NZTM2000 (EPSG:2193) grid axis. */
 enum grid_direction {
-  Easting: "easting",
-  Northing: "northing",
-}
-
-/** NZTM2000 (EPSG:2193) axis that a grid line's `value` measures. */
-@added(Versions.v0_4)
-enum grid_axis {
   Easting: "easting",
   Northing: "northing",
 }

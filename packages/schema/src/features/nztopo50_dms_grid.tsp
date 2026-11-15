@@ -24,12 +24,20 @@ model nztopo50_dms_grid {
   @added(Versions.v0_4)
   updated_at: utcDateTime;
 
+  /**
+   * The axis the line runs along. A `longitude` line runs east–west (a parallel), so its `value` is a latitude.
+   * Note this is the reverse of the usual "line of longitude", which means a meridian.
+   */
   direction: dms_direction;
 
-  /** Axis that `value` measures, in WGS84 (EPSG:4326) decimal degrees. */
+  /**
+   * The axis `value` is measured on: `latitude` for an east–west line, `longitude` for a north–south line.
+   * Always the opposite of `direction`.
+   */
   @added(Versions.v0_4)
-  value_axis: dms_axis;
+  value_axis: dms_direction;
 
+  /** Position of the line in WGS84 (EPSG:4326) decimal degrees: a latitude for a `longitude` line, a longitude for a `latitude` line. */
   value: float64;
 
   @added(Versions.v0_4)
@@ -38,15 +46,8 @@ model nztopo50_dms_grid {
   ...GeoParquet;
 }
 
-/** Named for the axis the line runs along: a `longitude` line holds a latitude, and vice versa. */
+/** A WGS84 (EPSG:4326) axis. */
 enum dms_direction {
-  Latitude: "latitude",
-  Longitude: "longitude",
-}
-
-/** WGS84 (EPSG:4326) axis that a DMS grid line's `value` measures. */
-@added(Versions.v0_4)
-enum dms_axis {
   Latitude: "latitude",
   Longitude: "longitude",
 }
