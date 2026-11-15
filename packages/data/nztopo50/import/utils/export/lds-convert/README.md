@@ -75,32 +75,21 @@ uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topogra
 uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-product-data\topographic-product-data.gpkg C:\Data\temp\topographic-product-data
 ```
 
-## Configure the Export
+## Run the Export
 
-Edit the `__main__` block in `export_to_lds_model.py`:
+The CLI accepts a data-source key and an optional path override. If the path is
+omitted, the configured default path is used.
 
-```python
-source_format = "parquet"
-database = r"C:\Data\temp\topographic-data"
-contour_database = r"C:\Data\temp\topographic-contour-data"
-product_database = r"C:\Data\temp\topographic-product-data"
-output_folder = r"C:\Temp\export\lds_model"
+```powershell
+uv run python utils\export\lds-convert\export_cli.py topo-data new_zealand_mainland
+uv run python utils\export\lds-convert\export_cli.py topo-data new_zealand_mainland C:\Data\temp\topographic-data
+uv run python utils\export\lds-convert\export_cli.py contour-data new_zealand_mainland
+uv run python utils\export\lds-convert\export_cli.py product-data new_zealand_mainland
 ```
 
-To export every configured target:
-
-```python
-single_file = None
-```
-
-To export one target only, use its LDS shapefile name with or without `.shp`:
-
-```python
-single_file = "road_cl"
-```
-
-GeoPackage input is also supported. Set `source_format = "gpkg"` and provide
-the corresponding GeoPackage file paths instead of directories.
+The export is written below `C:\temp\export\lds_model`, with one folder per
+configured export area. Contour and product database actions will be added
+separately.
 
 ## Run the Export
 

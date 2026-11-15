@@ -9,7 +9,7 @@ import pandas as pd
 import pyogrio
 
 lds_direct_export_folder = r"C:\Data\Topo50\kart-source\Latest"
-new_lds_shapefiles_folder = r"C:\Temp\export\lds_model"
+new_lds_shapefiles_folder = r"C:\Temp\export\lds_model\new_zealand_mainland"
 layer_info_file = Path(__file__).resolve().parents[3] / "core" / "layers_info.csv"
 
 ID_FIELD = "t50_fid"

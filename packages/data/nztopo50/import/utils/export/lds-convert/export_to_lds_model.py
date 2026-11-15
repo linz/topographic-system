@@ -11,6 +11,8 @@ import geopandas as gpd  # type: ignore
 import numpy as np
 import pandas as pd
 
+from export_layers_setup import ExportLayersSetup
+
 """
 Utility functions and classes for exporting NZ Topo50 data to LDS shapefiles.
 Coded against schema 0.3
@@ -154,6 +156,27 @@ DESC_CODE_BY_NAME = {
 TUNNEL_SWAPPED_USE_FIDS = {6066307, 7745273, 8344640, 8499056, 8525734}
 TUNNEL_IVESTOCK_FIDS = {6066314}
 
+
+EXPORT_CRS = {
+    "new_zealand_mainland": 2193,
+    "chatham_islands": 3793,
+    "snares_ak_islands": 3788,
+    "antipodes_and_bounty_islands": 3790,
+    "kermadec_raoul_islands": 3791,
+    "campbell_island": 3789,
+}
+
+EXPORT_EXTENTS = {
+    "new_zealand_mainland": [166, -47.54, 179.0, -33.9],
+    "chatham_islands": [-177, -44.52, -176.131, -43.544],
+    "snares_ak_islands": [166.4, -51.1, 166.7, -48.0],
+    "auckland_islands": [165.7, -51.1, 166.4, -50.4], 
+    "antipodes_and_bounty_islands": [178.6, -49.9, 179.0, -49.5],
+    "bounty_islands":[178.6, -47.9, 179.2, -47.6], 
+    "kermadec_raoul_islands": [-179, -31.42, -177.7, -29.15],
+    "campbell_island": [168.9, -52.7, 169.3, -52.4],
+}
+
 ORIENTATION_LAYERS = {
     "building_point",
     "land_cover_point",
@@ -168,105 +191,23 @@ class ExportToLDSModel:
         self,
         config_directory,
         database,
-        contour_database,
-        product_database,
         output_folder,
         source_format="gpkg",
     ):
         self.config_directory = Path(config_directory)
         self.database = database
-        self.contour_database = contour_database
-        self.product_database = product_database
         self.output_folder = output_folder
         self.source_format = source_format.lower()
         if self.source_format not in {"gpkg", "parquet"}:
             raise ValueError(f"Unsupported source format: {source_format}")
         os.makedirs(self.output_folder, exist_ok=True)
         self.logger = self.create_logger()
-        (
-            self.layers_info,
-            self.layer_source_counts,
-            self.field_names,
-            self.mapped_names,
-            self.schemas,
-        ) = self.load_configs(self.config_directory)
-
-    @staticmethod
-    def create_fiona_schema(target_config):
-        properties = {}
-        geometry_mapping_count = 0
-        for field_mapping in target_config["field_mappings"]:
-            target_field = field_mapping["target_field"]
-            target_type = field_mapping["target_type"]
-            if target_field == "geometry":
-                geometry_mapping_count += 1
-                if target_type != target_config["geometry_type"]:
-                    raise ValueError(
-                        f"Geometry mapping for {target_config['target_layer']} "
-                        "does not match geometry_type"
-                    )
-                continue
-            if target_field in properties:
-                raise ValueError(
-                    f"Duplicate target field {target_field} in "
-                    f"{target_config['target_layer']}"
-                )
-            properties[target_field] = target_type
-
-        if geometry_mapping_count != 1:
-            raise ValueError(
-                f"Expected one geometry mapping for "
-                f"{target_config['target_layer']}, found {geometry_mapping_count}"
-            )
-        return {
-            "properties": properties,
-            "geometry": target_config["geometry_type"],
-        }
-
-    def load_configs(self, config_directory):
-        config_files = sorted(config_directory.glob("*.json"))
-        if not config_files:
-            raise ValueError(f"No LDS config files found in {config_directory}")
-
-        layers_info = {}
-        layer_source_counts = {}
-        field_names = {}
-        mapped_names = {}
-        schemas = {}
-
-        for config_file in config_files:
-            with config_file.open(encoding="utf-8") as file:
-                config = json.load(file)
-            source_layer = config["source_layer"].lower()
-            if config_file.stem.lower() != source_layer:
-                raise ValueError(
-                    f"Config filename {config_file.name} does not match "
-                    f"source_layer {source_layer}"
-                )
-
-            targets = config["targets"]
-            layer_source_counts[source_layer] = len(targets)
-            for target in targets:
-                target_layer = target["target_layer"]
-                if target_layer in layers_info:
-                    raise ValueError(f"Duplicate LDS target layer: {target_layer}")
-
-                layers_info[target_layer] = [target["feature_type"], source_layer]
-                field_names[target_layer] = [
-                    mapping["target_field"] for mapping in target["field_mappings"]
-                ]
-                mapped_names[target_layer] = [
-                    mapping["source_field"] for mapping in target["field_mappings"]
-                ]
-                schemas[target_layer] = self.create_fiona_schema(target)
-
-        return (
-            layers_info,
-            layer_source_counts,
-            field_names,
-            mapped_names,
-            schemas,
-        )
+        self.layer_setup = ExportLayersSetup(self.config_directory)
+        self.layers_info = self.layer_setup.layers_info
+        self.layer_source_counts = self.layer_setup.layer_source_counts
+        self.field_names = self.layer_setup.field_names
+        self.mapped_names = self.layer_setup.mapped_names
+        self.schemas = self.layer_setup.schemas
 
     def create_logger(self):
         logger = logging.getLogger(f"{__name__}.{id(self)}")
@@ -346,8 +287,11 @@ class ExportToLDSModel:
         lookup = DESC_CODE_BY_NAME.get(name)
         return lookup
 
-    def read_source_data(self, format, layer_name, feature_type, database=None):
+    def read_source_data(
+        self, format, layer_name, feature_type, area_name, database=None
+    ):
         database = database or self.database
+        bbox = EXPORT_EXTENTS[area_name]
         selection_types = TYPE_SELECTION_ALIASES.get(
             (layer_name, feature_type), [feature_type]
         )
@@ -364,10 +308,11 @@ class ExportToLDSModel:
                 database,
                 layer=layer_name,
                 where=where,
+                bbox=bbox,
             )
         elif format.lower() == "parquet":
             parquet_file = os.path.join(database, f"{layer_name}.parquet")
-            layer = gpd.read_parquet(parquet_file)
+            layer = gpd.read_parquet(parquet_file, bbox=bbox)
             if where is not None:
                 layer = layer[layer["type"].isin(selection_types)]
         else:
@@ -409,13 +354,7 @@ class ExportToLDSModel:
             layer["substance"] = layer["substance_extracted"]
 
         if layer_name in {"building", "building_point"}:
-            homesteads = layer["status"].isna() & (
-                layer["type"].eq("homestead")
-                | layer["subtype"].eq("homestead")
-            )
-            layer.loc[homesteads, "status"] = "homestea"
-            layer.loc[homesteads & layer["subtype"].eq("homestead"), "subtype"] = None
-
+       
             for t50_fid, status in BUILDING_STATUS_BY_FID.items():
                 normalized = layer["t50_fid"].eq(t50_fid) & layer["status"].isna()
                 layer.loc[normalized, "status"] = status
@@ -682,22 +621,21 @@ class ExportToLDSModel:
         }
         return shape_name in skip
 
-    def process_layers(self, single_file=None):
+    def process_layers(self, area_name, single_file=None, source_name=None):
         processed_layers = []
-        layer_items = self.layers_info.items()
+        try:
+            layer_items = self.layer_setup.get_layer_items(
+                extent_name=area_name,
+                single_file=single_file,
+                source_name=source_name,
+            )
+        except ValueError as error:
+            self.logger.error(str(error))
+            self.close_logger()
+            raise
+
         if single_file:
-            selected_name = os.path.splitext(os.path.basename(single_file))[0].lower()
-            layer_items = [
-                (shp_name, layer_info)
-                for shp_name, layer_info in layer_items
-                if shp_name.lower() == selected_name
-            ]
-            if not layer_items:
-                message = f"Unknown LDS output file: {single_file}"
-                self.logger.error(message)
-                self.close_logger()
-                raise ValueError(message)
-            self.logger.info("Processing only %s", selected_name)
+            self.logger.info("Processing only %s", Path(single_file).stem.lower())
 
         for shp_name, layer_info in layer_items:
             start_time = pd.Timestamp.now()
@@ -714,18 +652,15 @@ class ExportToLDSModel:
             field_names = self.field_names.get(shp_name, [])
             mapped_names = self.mapped_names.get(shp_name, [])
 
-            if layer_name == "contour" and os.path.exists(self.contour_database):
-                database = self.contour_database
-            elif layer_name in ["nz_topo50_map_sheet"] and os.path.exists(
-                self.product_database
-            ):
-                database = self.product_database
-            else:
-                database = self.database
+            database = self.database
 
             try:
                 layer = self.read_source_data(
-                    self.source_format, layer_name, feature_type, database=database
+                    self.source_format,
+                    layer_name,
+                    feature_type,
+                    area_name,
+                    database=database,
                 )
             except Exception:
                 message = (
@@ -734,6 +669,15 @@ class ExportToLDSModel:
                 )
                 print(message)
                 self.logger.exception(message)
+                continue
+
+            if layer.empty:
+                message = (
+                    f"No features found for {layer_name}, "
+                    f"type {feature_type}, area {area_name}; skipping {shp_name}"
+                )
+                print(message)
+                self.logger.info(message)
                 continue
 
             layer = self.restore_orientation_radians(layer, layer_name)
@@ -745,7 +689,7 @@ class ExportToLDSModel:
             if feature_type == "tree":
                 layer = self.tree_locations_special_case(layer)
             layer = self.reorder_columns(layer, mapped_names, field_names)
-            layer.to_crs(2193, inplace=True)
+            layer.to_crs(EXPORT_CRS[area_name], inplace=True)
             schema = self.read_schema_layer(shp_name)
             layer = self.restore_lds_string_values(layer, schema)
             layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
@@ -772,36 +716,3 @@ class ExportToLDSModel:
         self.logger.info("LDS export finished; processed %s layers", len(processed_layers))
         self.close_logger()
 
-
-if __name__ == "__main__":
-    script_folder = os.path.dirname(os.path.abspath(__file__))
-    config_directory = os.path.join(script_folder, "topo50_schemas", "config")
-
-    # For GeoPackage sources, use source_format="gpkg" and set each value to
-    # its .gpkg file. For GeoParquet, use source_format="parquet" and set each
-    # value to a folder containing one <model_layer_name>.parquet file per layer.
-    source_format = "parquet"
-    database = r"C:\Data\temp\topographic-data-dev-67"
-    contour_database = r"C:\Data\temp\topographic-contour-data"
-    product_database = r"C:\Data\temp\topographic-product-data"
-
-    # Set to an LDS output name such as "road_cl" or "road_cl.shp".
-    # Use None to process every configured output file.
-    single_file = None
-
-    output_folder = r"C:\temp\export\lds_model"
-
-    os.makedirs(output_folder, exist_ok=True)
-
-    start_time = pd.Timestamp.now()
-    exporter = ExportToLDSModel(
-        config_directory,
-        database,
-        contour_database,
-        product_database,
-        output_folder,
-        source_format=source_format,
-    )
-    exporter.process_layers(single_file=single_file)
-    end_time = pd.Timestamp.now()
-    print(f"Processing time: {end_time - start_time}")
