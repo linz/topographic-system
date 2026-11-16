@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 from ..config import (
@@ -62,13 +63,20 @@ def _cast(series: pd.Series, target: str) -> pd.Series:
     dtype = pd.api.types.pandas_dtype(target)
     if series.isna().all():
         return pd.Series(pd.NA, index=series.index, dtype=dtype)
-    # pandas refuses a lossy float64 -> Int64 cast but silently truncates a *nullable* Float64
-    # one, and `unify_dtypes` has already widened floats to Float64 by the time we get here,
-    # so the check pandas would have made has to be made here instead.
-    if pd.api.types.is_integer_dtype(dtype) and pd.api.types.is_float_dtype(series.dtype):
-        lossy = series.notna() & (series != series.round())
-        if lossy.any():
-            raise ValueError(f"would truncate non-integer values {series[lossy].unique()[:5].tolist()}")
+    if pd.api.types.is_integer_dtype(dtype):
+        # pandas refuses a lossy float64 -> Int cast but silently truncates a *nullable* Float64
+        # one, and `unify_dtypes` has already widened floats to Float64 by the time we get here,
+        # so the check pandas would have made has to be made here instead.
+        if pd.api.types.is_float_dtype(series.dtype):
+            lossy = series.notna() & (series != series.round())
+            if lossy.any():
+                raise ValueError(f"would truncate non-integer values {series[lossy].unique()[:5].tolist()}")
+        # Narrowing to a fixed-width int wraps out-of-range values silently, so reject them.
+        info = np.iinfo(getattr(dtype, "numpy_dtype", dtype))
+        bad = series.dropna()
+        bad = bad[(bad < info.min) | (bad > info.max)]
+        if not bad.empty:
+            raise ValueError(f"values exceed the {target} range [{info.min}, {info.max}]: {bad.unique()[:5].tolist()}")
     return series.astype(dtype)
 
 

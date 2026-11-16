@@ -82,7 +82,7 @@ describe('buildOgr2OgrArgs', () => {
 
 describe('createDatasetStac', () => {
   const metadata = {
-    epsg: { code: 2193 } as any,
+    epsg: { code: 2193, toEpsgString: () => 'EPSG:2193' } as any,
     extent: { spatial: { bbox: [[170, -45, 175, -40]] }, temporal: { interval: [['2024-01-01T00:00:00.000Z', null]] } },
     table: {
       'table:row_count': 500,
@@ -119,7 +119,7 @@ describe('createDatasetStac', () => {
     assert.strictEqual(parquetAsset.href, './nz_buildings.parquet');
     assert.deepStrictEqual(parquetAsset.roles, ['data']);
     assert.strictEqual(parquetAsset.type, 'application/vnd.apache.parquet');
-    assert.strictEqual(parquetAsset['proj:epsg'], 2193);
+    assert.strictEqual(parquetAsset['proj:code'], 'EPSG:2193');
     assert.strictEqual(parquetAsset['table:row_count'], 500);
     assert.strictEqual(parquetAsset['table:primary_geometry'], 'geometry');
     assert.strictEqual(parquetAsset['table:primary_datetime'], 'create_date');

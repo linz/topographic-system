@@ -72,7 +72,7 @@ export function createDatasetStac(ds: DatasetExportInfo): StacCollectionWriter {
     href: `./${ds.dataset}.parquet`,
     roles: ['data'],
     type: 'application/vnd.apache.parquet',
-    'proj:epsg': ds.metadata.epsg.code,
+    'proj:code': ds.metadata.epsg.toEpsgString(),
     ...ds.metadata.table,
   });
   sw.collection.title = ds.title ?? ds.dataset;
