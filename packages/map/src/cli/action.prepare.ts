@@ -234,7 +234,7 @@ export const PrepareCommand = command({
       const item = sw.item(standardizedSheetCode);
       item.geometry = metadata.geometry;
       item.bbox = getJsonToWgs84Bbox(metadata.geometry);
-      item.properties['proj:epsg'] = projectMeta.epsg.code;
+      item.properties['proj:code'] = projectMeta.epsg.toEpsgString();
       item.properties['linz:mapsheet'] = metadata.sheetCode;
       item.properties['linz_topographic_system:options'] = exportOptions;
 
