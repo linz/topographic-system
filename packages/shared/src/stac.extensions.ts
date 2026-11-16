@@ -8,7 +8,7 @@ export type StacExtensionUrl = (typeof StacExtensions)[keyof typeof StacExtensio
 
 export interface StacProjectionV2_0_0 {
   /** Authority and specific code of the data source (e.g., EPSG:3857)  */
-  'proj:epsg'?: number;
+  'proj:code'?: string;
   /** WKT2 string representing the Coordinate Reference System (CRS) that the proj:geometry and proj:bbox fields represent */
   'proj:wkt2'?: string;
   /** PROJJSON object representing the Coordinate Reference System (CRS) that the proj:geometry and proj:bbox fields represent  */

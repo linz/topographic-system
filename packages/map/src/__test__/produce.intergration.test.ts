@@ -114,7 +114,7 @@ describe('deploy -> produce-cover -> produce', () => {
       `memory://target-push/qgis/topo50/commit_prefix=${gitHash.charAt(0)}/commit=${gitHash}/topo50.json`,
     );
 
-    assert.equal(bq32Json.properties['proj:epsg'], 2193);
+    assert.equal(bq32Json.properties['proj:code'], 'EPSG:2193');
     assert.equal(bq32Json.properties['linz:mapsheet'], 'BQ32');
     assert.deepEqual(bq32Json.properties['linz_topographic_system:options'], {
       mapSheetDataset: 'nztopo50_map_sheet.parquet',
@@ -256,7 +256,7 @@ describe('deploy -> produce-cover -> produce', () => {
       },
     );
 
-    t.mock.method(validator, 'validateTiff', async () => {});
+    t.mock.method(validator, 'validateTiff', async () => { });
 
     await ExportCommand.handler({
       path: [new URL(`memory://target-produce-multi/topo50/BQ32.json`)],
