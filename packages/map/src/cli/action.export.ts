@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+import { Epsg } from '@basemaps/geo';
 import { fsa } from '@chunkd/fs';
 import { Command } from '@linzjs/docker-command';
 import {
@@ -125,8 +126,10 @@ async function produce(path: URL, projectPath: URL, args: { force: boolean; temp
 
     if (exportAsset.format === ExportFormats.GeoTiff || exportAsset.format === ExportFormats.Tiff) {
       file = await optimizeTiff(file);
+      const epsg = Epsg.parse(String(stac.properties['proj:code']));
+      if (epsg == null) throw new Error(`Unable to parse proj:code: ${String(stac.properties['proj:code'])}`);
       // TODO optimize tiff to COG / lossless webp
-      await validator.validateTiff(file, Number(stac.properties['proj:epsg']));
+      await validator.validateTiff(file, epsg.code);
     }
 
     logger.info({ file: file.href }, 'Produce: FileExported');
