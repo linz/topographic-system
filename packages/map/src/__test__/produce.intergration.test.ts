@@ -256,7 +256,7 @@ describe('deploy -> produce-cover -> produce', () => {
       },
     );
 
-    t.mock.method(validator, 'validateTiff', async () => { });
+    t.mock.method(validator, 'validateTiff', async () => {});
 
     await ExportCommand.handler({
       path: [new URL(`memory://target-produce-multi/topo50/BQ32.json`)],
