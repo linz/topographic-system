@@ -119,6 +119,27 @@ def test_coerce_rejects_fractional_values_for_an_integer_column(schema, values, 
         coerce_dtypes(_gdf(t50_fid=values), "airport")
 
 
+def test_coerce_narrows_t50_fid_to_int32(schema):
+    """The schema types t50_fid Int32 so hyparquet/Ajv see a plain integer, not a 64-bit BigInt.
+    A value well inside the range narrows cleanly, NULLs included."""
+    schema(t50_fid="Int32")
+
+    coerced = coerce_dtypes(_gdf(t50_fid=pd.array([8538123, None], dtype="Int64")), "airport")
+
+    assert coerced["t50_fid"].dtype == "Int32"
+    assert coerced["t50_fid"].tolist()[0] == 8538123
+    assert coerced["t50_fid"].isna().tolist() == [False, True]
+
+
+def test_coerce_rejects_t50_fid_beyond_int32(schema):
+    """Narrowing to a fixed-width integer wraps silently in pandas; a value past Int32 must fail
+    rather than be imported as a corrupted id."""
+    schema(t50_fid="Int32")
+
+    with pytest.raises(ValueError, match=r"airport\.t50_fid: .*exceed the Int32 range"):
+        coerce_dtypes(_gdf(t50_fid=pd.array([1, 2**31], dtype="int64")), "airport")
+
+
 INTEGRAL = {
     "float64": ([4915871.0, 4915872.0], [4915871, 4915872]),
     "Float64 with NULL": (pd.array([4915871.0, None], dtype="Float64"), [4915871, pd.NA]),
