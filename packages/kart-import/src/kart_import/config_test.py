@@ -23,6 +23,7 @@ def _theme_with_join(join_columns):
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": "v0.3",
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -82,6 +83,7 @@ def test_lookup_and_join_parse():
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": "v0.3",
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -128,6 +130,7 @@ def _theme_with_mapping(mapping, joins):
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": "v0.3",
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -356,8 +359,9 @@ def _theme_with_schema_version(schema_version):
     )
 
 
-def test_schema_version_defaults_to_none():
-    assert _theme_with_schema_version(None).schema_version is None
+def test_schema_version_is_required():
+    with pytest.raises(ValidationError):
+        _theme_with_schema_version(None)
 
 
 def test_schema_version_accepts_known_version():

@@ -35,11 +35,11 @@ SCHEMA = {
 
 @pytest.fixture
 def schema_folder(tmp_path, monkeypatch):
-    # Point the checker at a temporary `current` schema root holding airport.json.
-    (tmp_path / "airport.json").write_text(json.dumps(SCHEMA))
+    # Point the checker at a temporary schema root holding v0.3/airport.json, the default version.
+    (tmp_path / "v0.3").mkdir()
+    (tmp_path / "v0.3" / "airport.json").write_text(json.dumps(SCHEMA))
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    return tmp_path
+    return tmp_path / "v0.3"
 
 
 def _theme(mapping):
@@ -48,39 +48,22 @@ def _theme(mapping):
             "name": "airport",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": "v0.3",
             "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
         }
     )
 
 
-def test_schema_dir_resolves_current_and_next(monkeypatch, tmp_path):
+def test_schema_dir_resolves_known_versions(monkeypatch, tmp_path):
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    assert schema_dir() == tmp_path
-    assert schema_dir("next") == tmp_path / "next"
-
-
-def test_schema_dir_rejects_unknown_set(monkeypatch, tmp_path):
-    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    with pytest.raises(ValueError, match="expected 'current' or 'next'"):
-        schema_dir("future")
-
-
-def test_schema_dir_resolves_explicit_version(monkeypatch, tmp_path):
-    # An explicit version pin (e.g. a theme's `schema_version`) resolves straight to its own
-    # named subfolder, regardless of which alias ('current'/'next') it currently sits behind.
-    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
     assert schema_dir("v0.3") == tmp_path / "v0.3"
     assert schema_dir("v0.4") == tmp_path / "v0.4"
 
 
-def test_schema_dir_explicit_current_version_matches_current_alias(monkeypatch):
-    # Without a `KART_SCHEMA_DIR` override, the real root is split into versioned
-    # subdirectories, so pinning the version that happens to be 'current' resolves identically.
-    monkeypatch.delenv("KART_SCHEMA_DIR", raising=False)
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    assert schema_dir("v0.3") == schema_dir("current")
+def test_schema_dir_rejects_unknown_version(monkeypatch, tmp_path):
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    with pytest.raises(ValueError, match="expected one of"):
+        schema_dir("v0.9")
 
 
 def test_valid_mapping_has_no_problems(schema_folder):
@@ -193,10 +176,11 @@ def test_strict_mode_does_not_raise_on_missing_schema(schema_folder, monkeypatch
 
 
 def test_check_theme_or_warn_uses_theme_schema_version(schema_folder):
-    # The theme's own `schema_version` picks a different subfolder than the (unset) global
-    # default, so a schema only present under that version is found.
-    (schema_folder / "v0.4").mkdir()
-    (schema_folder / "v0.4" / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["type"]}))
+    # Changing the theme's own `schema_version` picks a different subfolder, so a schema only
+    # present under that version is found.
+    v04 = schema_folder.parent / "v0.4"
+    v04.mkdir()
+    (v04 / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["type"]}))
 
     theme = _theme({"name": "$"})  # missing required 'type' -- only checkable if v0.4 is used
     theme.schema_version = "v0.4"
@@ -229,14 +213,14 @@ DTYPE_SCHEMA = {
 
 @pytest.fixture
 def dtype_schema_folder(tmp_path, monkeypatch):
-    (tmp_path / "water_point.json").write_text(json.dumps(DTYPE_SCHEMA))
+    (tmp_path / "v0.3").mkdir()
+    (tmp_path / "v0.3" / "water_point.json").write_text(json.dumps(DTYPE_SCHEMA))
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    return tmp_path
+    return tmp_path / "v0.3"
 
 
 def test_schema_dtypes_reads_each_property_shape(dtype_schema_folder):
-    assert schema_dtypes("water_point") == {
+    assert schema_dtypes("water_point", "v0.3") == {
         "id": "string",
         "created_at": RFC3339_STRING,
         "t50_fid": "Int32",  # the `null` branch of the anyOf drops out; the dtype is nullable
@@ -248,14 +232,14 @@ def test_schema_dtypes_reads_each_property_shape(dtype_schema_folder):
 def test_schema_dtypes_skips_columns_it_cannot_type(dtype_schema_folder):
     """`geometry` (declared only as not-null), `bbox` (an object) and `note` ({}) are supplied
     by the pipeline or unconstrained: There's no scalar dtype to assert."""
-    dtypes = schema_dtypes("water_point")
+    dtypes = schema_dtypes("water_point", "v0.3")
 
     assert "geometry" not in dtypes and "bbox" not in dtypes and "note" not in dtypes
 
 
 def test_schema_dtypes_is_empty_without_a_schema(dtype_schema_folder):
     """Local dev without a schema keeps whatever dtypes the sources carried."""
-    assert schema_dtypes("no_such_theme") == {}
+    assert schema_dtypes("no_such_theme", "v0.3") == {}
 
 
 # A minimal discriminated union: two `oneOf` branches disagreeing on `subtype` (a real enum in
@@ -293,10 +277,10 @@ ONEOF_SCHEMA = {
 
 @pytest.fixture
 def oneof_schema_folder(tmp_path, monkeypatch):
-    (tmp_path / "land_cover_point.json").write_text(json.dumps(ONEOF_SCHEMA))
+    (tmp_path / "v0.3").mkdir()
+    (tmp_path / "v0.3" / "land_cover_point.json").write_text(json.dumps(ONEOF_SCHEMA))
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    return tmp_path
+    return tmp_path / "v0.3"
 
 
 def _oneof_theme(mapping):
@@ -305,6 +289,7 @@ def _oneof_theme(mapping):
             "name": "land_cover_point",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": "v0.3",
             "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
         }
     )
@@ -354,7 +339,7 @@ def test_oneof_strict_mode_raises(oneof_schema_folder, monkeypatch):
 def test_oneof_dtypes_merge_across_branches(oneof_schema_folder):
     # `subtype`'s always-null `plain` branch drops out, same as a plain nullable `anyOf` does;
     # `type` and `name` agree (as `string`) across both branches.
-    assert schema_dtypes("land_cover_point") == {
+    assert schema_dtypes("land_cover_point", "v0.3") == {
         "type": "string",
         "subtype": "string",
         "name": "string",
@@ -364,7 +349,8 @@ def test_oneof_dtypes_merge_across_branches(oneof_schema_folder):
 def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
     """`$ref` is resolved by the referencing library, so a pointer into a nested property
     works. Reading the last path segment out of `$defs` would find nothing here."""
-    (tmp_path / "nested.json").write_text(
+    (tmp_path / "v0.3").mkdir()
+    (tmp_path / "v0.3" / "nested.json").write_text(
         json.dumps(
             {
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -374,6 +360,5 @@ def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
         )
     )
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
 
-    assert schema_dtypes("nested") == {"count": "Int32"}
+    assert schema_dtypes("nested", "v0.3") == {"count": "Int32"}

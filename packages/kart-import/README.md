@@ -202,8 +202,8 @@ So `theme_release` reconciles types in two passes around the concatenation:
    Columns the schema does not describe, and themes with no schema at all, keep their unified
    dtype.
 
-Which schema file the coerce pass reads is selected by **`KART_SCHEMA_SET`**, the same variable
-that selects the set for the static check, so it decides output dtypes as well as config
+Which schema file the coerce pass reads is selected by a theme's own **`schema_version`**, the
+same selection used for the static check, so it decides output dtypes as well as config
 validation. See [Schema check](#schema-check).
 
 A column the coerce pass could not type because no dataset in the release carried a value for it
@@ -361,13 +361,15 @@ Some columns are populated by the pipeline rather than a mapping and so are alwa
 present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
 (`kart export`), and `bbox` (`to-parquet`). Any other required column must be mapped explicitly.
 
+Every theme declares its own `schema_version: v0.3` (or `v0.4`, etc.) in its yaml config; there
+is no global default, so this field is required.
+
 Controlled by env vars:
 
 ```shell
 # warn (default): log problems and continue | strict: raise | off: skip
-export KART_SCHEMA_CHECK=strict         # e.g. in CI or a pre-commit hook
-export KART_SCHEMA_SET=next             # use schema/next/ instead of schema/ for BOTH the check above and the coerce dtypes
-export KART_SCHEMA_DIR=/path/to/schema  # override the schema root (folder must exist)
+export KART_SCHEMA_CHECK=strict          # e.g. in CI or a pre-commit hook
+export KART_SCHEMA_DIR=/path/to/schema   # override the schema root (folder must exist)
 ```
 
 # Example YAML Configuration Files

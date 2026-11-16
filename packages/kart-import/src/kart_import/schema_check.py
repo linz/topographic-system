@@ -21,9 +21,10 @@ A theme schema may be a discriminated union (``oneOf`` of several ``$defs`` mode
 mapping value matches; a dataset whose ``type`` matches zero or more than one branch is itself
 reported as a problem, since the check can't otherwise know which shape applies.
 
-Schema set selection:
-  ``KART_SCHEMA_SET`` = ``current`` (default, ``schema/v0.3/``) or ``next`` (``schema/v0.4/``).
-  ``KART_SCHEMA_DIR`` overrides the ``current`` root.
+Schema version selection:
+  Every theme's yaml declares its own ``schema_version`` (one of `KNOWN_VERSIONS`, e.g.
+  ``v0.4``), which pins it to ``schema/v0.4/``. There is no global default.
+  ``KART_SCHEMA_DIR`` overrides the ``schema/`` root.
 
 Behaviour is gated by ``KART_SCHEMA_CHECK``:
   ``warn`` (default: log and continue)
@@ -48,7 +49,7 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
-from .env import env_schema_check_mode, env_schema_dir_override, env_schema_set
+from .env import env_schema_check_mode, env_schema_dir_override
 
 if TYPE_CHECKING:
     from referencing._core import Resolver
@@ -86,45 +87,26 @@ class SchemaCheckError(Exception):
     """One or more theme configs failed the static schema check (``strict`` mode)."""
 
 
-# `current`/`next` map onto the schema package's `@typespec/versioning` releases
-# (packages/schema/src/features/common.tsp). Update these when a version is promoted or added.
-CURRENT_VERSION = "v0.3"
-NEXT_VERSION = "v0.4"
-
-KNOWN_VERSIONS = (CURRENT_VERSION, NEXT_VERSION)
+# Schema versions the package publishes (packages/schema/src/features/common.tsp's `Versions`
+# enum). Update this when a version is promoted or added.
+KNOWN_VERSIONS = ("v0.3", "v0.4")
 """Explicit version strings a theme's yaml `schema_version` may pin to (see `Theme.schema_version`)."""
 
 
-def schema_dir(schema_set: str | None = None) -> Path:
-    """Resolve a schema_set spec to its directory.
+def schema_dir(schema_version: str) -> Path:
+    """Resolve a schema version to its directory: ``schema/<schema_version>/``.
 
-    ``schema_set`` is one of:
-      - ``None`` -> the global default (``KART_SCHEMA_SET``, see `env_schema_set`)
-      - ``'current'`` / ``'next'`` -> the moving aliases for `CURRENT_VERSION`/`NEXT_VERSION`
-      - an explicit version (e.g. ``'v0.4'``, one of `KNOWN_VERSIONS`) -> that version directly,
-        regardless of which alias it currently sits behind. A theme's yaml ``schema_version``
-        pins this way, so it keeps pointing at the same schema even after `CURRENT_VERSION`/
-        `NEXT_VERSION` are later bumped.
+    ``KART_SCHEMA_DIR`` overrides the ``schema/`` root (e.g. for a test fixture).
     """
-    schema_set = schema_set or env_schema_set()
+    if schema_version not in KNOWN_VERSIONS:
+        raise ValueError(f"Unknown schema_version {schema_version!r}; expected one of {KNOWN_VERSIONS}")
     base = env_schema_dir_override()
-    # `KART_SCHEMA_DIR` points directly at the root to check against (e.g. a test fixture's
-    # flat folder); only the real default root is split into versioned subdirectories.
     root = Path(base) if base else REPO_ROOT / "schema"
-    if schema_set == "current":
-        return root if base else root / CURRENT_VERSION
-    if schema_set == "next":
-        return (root / "next") if base else root / NEXT_VERSION
-    if schema_set in KNOWN_VERSIONS:
-        return root / schema_set
-    raise ValueError(
-        f"Unknown schema_set {schema_set!r}; expected 'current' or 'next', "
-        f"or an explicit version ({', '.join(KNOWN_VERSIONS)})"
-    )
+    return root / schema_version
 
 
-def schema_path(theme_name: str, schema_set: str | None = None) -> Path:
-    return schema_dir(schema_set) / f"{theme_name}.json"
+def schema_path(theme_name: str, schema_version: str) -> Path:
+    return schema_dir(schema_version) / f"{theme_name}.json"
 
 
 @cache
@@ -212,7 +194,7 @@ def _dtype_for(subschema: dict[str, Any], resolver: Resolver[Any]) -> str | None
     return None
 
 
-def schema_dtypes(theme_name: str, schema_set: str | None = None) -> dict[str, str]:
+def schema_dtypes(theme_name: str, schema_version: str) -> dict[str, str]:
     """The pandas dtype each of the theme's columns must carry, read off its JSON schema.
 
     Empty when the theme has no schema, and columns the schema doesn't describe are simply
@@ -224,7 +206,7 @@ def schema_dtypes(theme_name: str, schema_set: str | None = None) -> dict[str, s
     one real dtype, the same way a plain ``anyOf: [<type>, null]`` already does for a single
     flat schema.
     """
-    sp = schema_path(theme_name, schema_set)
+    sp = schema_path(theme_name, schema_version)
     if not sp.exists():
         return {}
     doc = _load_schema(str(sp))
@@ -245,9 +227,13 @@ def schema_dtypes(theme_name: str, schema_set: str | None = None) -> dict[str, s
     return dtypes
 
 
-def check_theme(theme: Any, schema_set: str | None = None) -> list[str]:
-    """Return a list of human-readable problems for ``theme``'s mappings."""
-    sp = schema_path(theme.name, schema_set)
+def check_theme(theme: Any, schema_version: str | None = None) -> list[str]:
+    """Return a list of human-readable problems for ``theme``'s mappings.
+
+    ``schema_version`` defaults to ``theme.schema_version`` when not given explicitly.
+    """
+    schema_version = schema_version or theme.schema_version
+    sp = schema_path(theme.name, schema_version)
     if not sp.exists():
         return [f"{theme.name}: no schema at {sp}"]
 
@@ -333,20 +319,18 @@ def check_theme_or_warn(theme: Any) -> list[str]:
     ``warn`` logs each problem and continues; ``strict`` raises ``SchemaCheckError``;
     ``off`` skips the check entirely.
 
-    Checked against ``theme.schema_version`` when the theme pins one, falling back to the
-    global ``KART_SCHEMA_SET`` default otherwise.
+    Checked against ``theme.schema_version``.
     """
     mode = env_schema_check_mode()
     if mode == "off":
         return []
-    schema_set = getattr(theme, "schema_version", None)
-    problems = check_theme(theme, schema_set)
+    problems = check_theme(theme)
     if problems:
         for p in problems:
             logger.warning("schema-check %s", p)
         # A missing schema file can't be a mapping violation, so it never hard-fails
         # strict mode — only an actual schema breach does.
-        if mode == "strict" and schema_path(theme.name, schema_set).exists():
+        if mode == "strict" and schema_path(theme.name, theme.schema_version).exists():
             raise SchemaCheckError(
                 f"{len(problems)} schema problem(s) in theme {theme.name!r}:\n  " + "\n  ".join(problems)
             )

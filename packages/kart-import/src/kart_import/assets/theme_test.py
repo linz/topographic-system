@@ -72,7 +72,7 @@ def test_coerce_applies_the_schema_dtypes(schema):
     schema(t50_fid="Int64", height="Float64")
     merged = _gdf(t50_fid=pd.array([1.0, 2.0], dtype="float64"), height=pd.array([3, 4], dtype="int32"))
 
-    coerced = coerce_dtypes(merged, "water_point")
+    coerced = coerce_dtypes(merged, "water_point", "v0.3")
 
     assert coerced["t50_fid"].dtype == "Int64"
     assert coerced["height"].dtype == "Float64"
@@ -96,7 +96,7 @@ def test_dtype_does_not_depend_on_which_release_is_merged(schema):
         ],
     }
 
-    dtypes = {name: coerce_dtypes(_merge(gdfs), "airport")["t50_fid"].dtype for name, gdfs in releases.items()}
+    dtypes = {name: coerce_dtypes(_merge(gdfs), "airport", "v0.3")["t50_fid"].dtype for name, gdfs in releases.items()}
 
     assert dtypes == dict.fromkeys(releases, pd.Int64Dtype())
 
@@ -116,7 +116,7 @@ def test_coerce_rejects_fractional_values_for_an_integer_column(schema, values, 
     schema(t50_fid="Int64")
 
     with pytest.raises(ValueError, match=rf"airport\.t50_fid: .*{message}"):
-        coerce_dtypes(_gdf(t50_fid=values), "airport")
+        coerce_dtypes(_gdf(t50_fid=values), "airport", "v0.3")
 
 
 INTEGRAL = {
@@ -131,7 +131,7 @@ def test_coerce_accepts_integral_floats_for_an_integer_column(schema, values, ex
     that holds a NULL as float, and those values are integral, so they convert losslessly."""
     schema(t50_fid="Int64")
 
-    coerced = coerce_dtypes(_gdf(t50_fid=values), "airport")
+    coerced = coerce_dtypes(_gdf(t50_fid=values), "airport", "v0.3")
 
     assert coerced["t50_fid"].dtype == "Int64"
     assert coerced["t50_fid"].tolist() == expected
@@ -141,7 +141,7 @@ def test_coerce_types_a_column_that_is_null_everywhere(schema):
     """`unify_dtypes` has no evidence for such a column, so only the schema can type it."""
     schema(metadata="string")
 
-    coerced = coerce_dtypes(_gdf(metadata=[None, None]), "airport")
+    coerced = coerce_dtypes(_gdf(metadata=[None, None]), "airport", "v0.3")
 
     assert coerced["metadata"].dtype == "string"
     assert coerced["metadata"].isna().all()
@@ -153,7 +153,7 @@ def test_untyped_columns_are_reported(schema):
     """
     schema()
 
-    merged = coerce_dtypes(_gdf(t50_fid=[None], name=[None]), "airport")
+    merged = coerce_dtypes(_gdf(t50_fid=[None], name=[None]), "airport", "v0.3")
 
     assert untyped_columns(merged) == ["t50_fid", "name"]
 
@@ -162,7 +162,7 @@ def test_coerced_and_geometry_columns_are_not_reported(schema):
     """Only genuinely untyped columns count -- not ones the schema settled, and never geometry."""
     schema(t50_fid="Int64")
 
-    merged = coerce_dtypes(_gdf(t50_fid=[None], name=pd.array(["a"], dtype="string")), "airport")
+    merged = coerce_dtypes(_gdf(t50_fid=[None], name=pd.array(["a"], dtype="string")), "airport", "v0.3")
 
     assert untyped_columns(merged) == []
 
@@ -175,7 +175,7 @@ def test_lifecycle_columns_are_normalised_to_rfc3339(schema, value):
     """`format: date-time` needs an offset."""
     schema()
 
-    coerced = coerce_dtypes(_gdf(created_at=[value], updated_at=[value]), "airport")
+    coerced = coerce_dtypes(_gdf(created_at=[value], updated_at=[value]), "airport", "v0.3")
 
     assert coerced["created_at"].tolist() == ["2015-11-19T02:26:49Z"]
     assert coerced["updated_at"].tolist() == ["2015-11-19T02:26:49Z"]
@@ -186,7 +186,7 @@ def test_lifecycle_columns_are_normalised_without_a_schema(schema):
     """A schema-less dev run has to emit the same timestamps as a run with one."""
     schema()
 
-    coerced = coerce_dtypes(_gdf(created_at=["2015-11-19T02:26:49+00:00"], t50_fid=[1.5]), "no_schema")
+    coerced = coerce_dtypes(_gdf(created_at=["2015-11-19T02:26:49+00:00"], t50_fid=[1.5]), "no_schema", "v0.3")
 
     assert coerced["created_at"].tolist() == ["2015-11-19T02:26:49Z"]
     assert coerced["t50_fid"].tolist() == [1.5]  # unconstrained without a schema, so untouched
@@ -206,7 +206,7 @@ def test_integer_column_reaches_the_file_as_int64(tmp_path, schema, gdfs):
     schema(t50_fid="Int64")
     output = tmp_path / "airport.fgb"
 
-    coerce_dtypes(_merge(gdfs), "airport").to_file(output, driver="FlatGeobuf", index=False)
+    coerce_dtypes(_merge(gdfs), "airport", "v0.3").to_file(output, driver="FlatGeobuf", index=False)
 
     info = pyogrio.read_info(output)
     assert dict(zip(info["fields"], info["dtypes"], strict=True))["t50_fid"] == "int64"

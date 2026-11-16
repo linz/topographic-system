@@ -112,7 +112,7 @@ def _to_rfc3339(series: pd.Series) -> pd.Series:
     return parsed.dt.strftime("%Y-%m-%dT%H:%M:%SZ").astype("string")
 
 
-def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str, schema_version: str | None = None) -> gpd.GeoDataFrame:
+def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str, schema_version: str) -> gpd.GeoDataFrame:
     """Force the merged frame onto the dtypes the theme's JSON schema declares.
 
     `unify_dtypes` only preserves what the sources happened to carry; this asserts the target
@@ -120,8 +120,7 @@ def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str, schema_version: str
     here (or fails loudly) rather than silently becoming text downstream. Columns the schema
     doesn't describe, and themes with no schema at all, keep their inferred dtype.
 
-    `schema_version` pins the theme to a specific schema version (``Theme.schema_version``);
-    unset falls back to the global `KART_SCHEMA_SET` default.
+    `schema_version` is the theme's own pinned schema version (``Theme.schema_version``).
     """
     targets = {col: RFC3339_STRING for col in LIFECYCLE_COLUMNS if col in merged.columns}
     targets.update(

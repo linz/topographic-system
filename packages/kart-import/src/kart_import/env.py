@@ -74,24 +74,9 @@ def env_releases() -> set[str] | None:
     return set(t.strip() for t in base_releases.lower().split(","))
 
 
-def env_schema_set() -> str:
-    """Which schema set is read for a theme.
-
-    Selects the set for *both* the static check of a theme's mapping at config-load time,
-    and the dtypes `theme.coerce_dtypes` forces onto the merged frame at write time.
-
-    KART_SCHEMA_SET=current|next (default current):
-    ``current`` -> ``schema/v0.3/`` ; ``next`` -> ``schema/v0.4/`` (see `schema_check.schema_dir`
-    and the `Versions` enum in packages/schema/src/features/common.tsp).
-
-        export KART_SCHEMA_SET=next
-    """
-    return os.getenv("KART_SCHEMA_SET", "current")
-
-
 def env_schema_dir_override() -> str | None:
-    """Override the root `schema_dir` resolves ``current``/``next`` against directly (bypassing
-    the ``v0.3``/``v0.4`` versioned subdirectories), e.g. for a test fixture's flat folder.
+    """Override the root `schema_dir` resolves a schema version against (bypassing the repo's
+    real ``schema/`` root), e.g. for a test fixture.
 
     KART_SCHEMA_DIR=/path/to/schema (default: the repo's ``schema/`` dir). Returns None
     when unset, i.e. use the default. A set-but-missing path is an operator config error
