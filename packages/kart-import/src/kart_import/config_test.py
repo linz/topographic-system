@@ -342,3 +342,28 @@ def test_get_repo_remote_empty_value_raises(monkeypatch, tmp_path):
     _write_repos(monkeypatch, tmp_path, f'repos:\n  {REPO}: ""\n')
     with pytest.raises(KeyError, match="No remote URL defined"):
         get_repo_remote(REPO)
+
+
+def _theme_with_schema_version(schema_version):
+    return Theme.model_validate(
+        {
+            "name": "airport",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "schema_version": schema_version,
+            "datasets": [{"source": SOURCE}],
+        }
+    )
+
+
+def test_schema_version_defaults_to_none():
+    assert _theme_with_schema_version(None).schema_version is None
+
+
+def test_schema_version_accepts_known_version():
+    assert _theme_with_schema_version("v0.4").schema_version == "v0.4"
+
+
+def test_schema_version_rejects_unknown_version():
+    with pytest.raises(ValidationError, match="Unknown schema_version 'v0.9'"):
+        _theme_with_schema_version("v0.9")

@@ -112,16 +112,21 @@ def _to_rfc3339(series: pd.Series) -> pd.Series:
     return parsed.dt.strftime("%Y-%m-%dT%H:%M:%SZ").astype("string")
 
 
-def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str) -> gpd.GeoDataFrame:
+def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str, schema_version: str | None = None) -> gpd.GeoDataFrame:
     """Force the merged frame onto the dtypes the theme's JSON schema declares.
 
     `unify_dtypes` only preserves what the sources happened to carry; this asserts the target
     contract on top, so a source handing us a float where the schema says integer is corrected
     here (or fails loudly) rather than silently becoming text downstream. Columns the schema
     doesn't describe, and themes with no schema at all, keep their inferred dtype.
+
+    `schema_version` pins the theme to a specific schema version (``Theme.schema_version``);
+    unset falls back to the global `KART_SCHEMA_SET` default.
     """
     targets = {col: RFC3339_STRING for col in LIFECYCLE_COLUMNS if col in merged.columns}
-    targets.update({col: dtype for col, dtype in schema_dtypes(theme_name).items() if col in merged.columns})
+    targets.update(
+        {col: dtype for col, dtype in schema_dtypes(theme_name, schema_version).items() if col in merged.columns}
+    )
 
     for col, target in targets.items():
         series = merged[col]
@@ -307,7 +312,7 @@ def merge_theme_release(theme_name: str, release_id: int):
 
     unify_dtypes(gdfs)
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
-    merged = coerce_dtypes(merged, theme.name)
+    merged = coerce_dtypes(merged, theme.name, theme.schema_version)
 
     # A null/empty geometry (a source data-quality issue) has nothing to render or index anyway,
     # so drop it -- matching how the spatial lookup select drops geometryless rows.

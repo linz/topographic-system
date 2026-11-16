@@ -25,7 +25,7 @@ def schema(monkeypatch):
     """Stand in for `schema/<theme>.json`: `schema(t50_fid="Int64")`, or `schema()` for none."""
 
     def _apply(**dtypes: str) -> None:
-        monkeypatch.setattr(theme, "schema_dtypes", lambda name: dtypes)
+        monkeypatch.setattr(theme, "schema_dtypes", lambda name, schema_version=None: dtypes)
 
     return _apply
 

@@ -1,6 +1,7 @@
 name: structure
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version: v0.3
 datasets:
   # -------- dry_dock
   # nz

@@ -1,6 +1,7 @@
 name: land_cover_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version: v0.3
 
 # Reusable mappings, referenced by datasets below via YAML aliases (*name).
 # `_mappings` is not part of the theme schema; the config loader ignores it.

@@ -91,22 +91,36 @@ class SchemaCheckError(Exception):
 CURRENT_VERSION = "v0.3"
 NEXT_VERSION = "v0.4"
 
+KNOWN_VERSIONS = (CURRENT_VERSION, NEXT_VERSION)
+"""Explicit version strings a theme's yaml `schema_version` may pin to (see `Theme.schema_version`)."""
+
 
 def schema_dir(schema_set: str | None = None) -> Path:
+    """Resolve a schema_set spec to its directory.
+
+    ``schema_set`` is one of:
+      - ``None`` -> the global default (``KART_SCHEMA_SET``, see `env_schema_set`)
+      - ``'current'`` / ``'next'`` -> the moving aliases for `CURRENT_VERSION`/`NEXT_VERSION`
+      - an explicit version (e.g. ``'v0.4'``, one of `KNOWN_VERSIONS`) -> that version directly,
+        regardless of which alias it currently sits behind. A theme's yaml ``schema_version``
+        pins this way, so it keeps pointing at the same schema even after `CURRENT_VERSION`/
+        `NEXT_VERSION` are later bumped.
+    """
     schema_set = schema_set or env_schema_set()
     base = env_schema_dir_override()
     # `KART_SCHEMA_DIR` points directly at the root to check against (e.g. a test fixture's
     # flat folder); only the real default root is split into versioned subdirectories.
-    if base:
-        current, next_ = Path(base), Path(base) / "next"
-    else:
-        root = REPO_ROOT / "schema"
-        current, next_ = root / CURRENT_VERSION, root / NEXT_VERSION
-    if schema_set == "next":
-        return next_
+    root = Path(base) if base else REPO_ROOT / "schema"
     if schema_set == "current":
-        return current
-    raise ValueError(f"Unknown schema_set {schema_set!r}; expected 'current' or 'next'")
+        return root if base else root / CURRENT_VERSION
+    if schema_set == "next":
+        return (root / "next") if base else root / NEXT_VERSION
+    if schema_set in KNOWN_VERSIONS:
+        return root / schema_set
+    raise ValueError(
+        f"Unknown schema_set {schema_set!r}; expected 'current' or 'next', "
+        f"or an explicit version ({', '.join(KNOWN_VERSIONS)})"
+    )
 
 
 def schema_path(theme_name: str, schema_set: str | None = None) -> Path:
@@ -318,17 +332,21 @@ def check_theme_or_warn(theme: Any) -> list[str]:
 
     ``warn`` logs each problem and continues; ``strict`` raises ``SchemaCheckError``;
     ``off`` skips the check entirely.
+
+    Checked against ``theme.schema_version`` when the theme pins one, falling back to the
+    global ``KART_SCHEMA_SET`` default otherwise.
     """
     mode = env_schema_check_mode()
     if mode == "off":
         return []
-    problems = check_theme(theme)
+    schema_set = getattr(theme, "schema_version", None)
+    problems = check_theme(theme, schema_set)
     if problems:
         for p in problems:
             logger.warning("schema-check %s", p)
         # A missing schema file can't be a mapping violation, so it never hard-fails
         # strict mode — only an actual schema breach does.
-        if mode == "strict" and schema_path(theme.name).exists():
+        if mode == "strict" and schema_path(theme.name, schema_set).exists():
             raise SchemaCheckError(
                 f"{len(problems)} schema problem(s) in theme {theme.name!r}:\n  " + "\n  ".join(problems)
             )

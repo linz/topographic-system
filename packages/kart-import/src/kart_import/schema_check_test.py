@@ -66,6 +66,23 @@ def test_schema_dir_rejects_unknown_set(monkeypatch, tmp_path):
         schema_dir("future")
 
 
+def test_schema_dir_resolves_explicit_version(monkeypatch, tmp_path):
+    # An explicit version pin (e.g. a theme's `schema_version`) resolves straight to its own
+    # named subfolder, regardless of which alias ('current'/'next') it currently sits behind.
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
+    assert schema_dir("v0.3") == tmp_path / "v0.3"
+    assert schema_dir("v0.4") == tmp_path / "v0.4"
+
+
+def test_schema_dir_explicit_current_version_matches_current_alias(monkeypatch):
+    # Without a `KART_SCHEMA_DIR` override, the real root is split into versioned
+    # subdirectories, so pinning the version that happens to be 'current' resolves identically.
+    monkeypatch.delenv("KART_SCHEMA_DIR", raising=False)
+    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
+    assert schema_dir("v0.3") == schema_dir("current")
+
+
 def test_valid_mapping_has_no_problems(schema_folder):
     theme = _theme({"type": "airport", "name": "$", "kind": "testing", "elevation": "$elev"})
     assert check_theme(theme) == []
@@ -173,6 +190,18 @@ def test_strict_mode_does_not_raise_on_missing_schema(schema_folder, monkeypatch
     theme.name = "no_such_theme"
     problems = check_theme_or_warn(theme)
     assert len(problems) == 1 and "no schema" in problems[0]
+
+
+def test_check_theme_or_warn_uses_theme_schema_version(schema_folder):
+    # The theme's own `schema_version` picks a different subfolder than the (unset) global
+    # default, so a schema only present under that version is found.
+    (schema_folder / "v0.4").mkdir()
+    (schema_folder / "v0.4" / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["type"]}))
+
+    theme = _theme({"name": "$"})  # missing required 'type' -- only checkable if v0.4 is used
+    theme.schema_version = "v0.4"
+    problems = check_theme_or_warn(theme)
+    assert any("missing required column 'type'" in p for p in problems)
 
 
 # A sample schema exercising each shape `schema_dtypes` has to read: a nullable integer, a plain

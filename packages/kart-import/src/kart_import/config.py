@@ -8,7 +8,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .env import env_export_format, env_releases, env_theme_format, env_themes, env_transform_format
-from .schema_check import check_theme_or_warn
+from .schema_check import KNOWN_VERSIONS, check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
 
@@ -341,6 +341,13 @@ class Theme(BaseModel):
     target epsg projection code
     """
 
+    schema_version: str | None = None
+    """
+    Pin this theme's JSON schema to a specific version (e.g. "v0.4"), overriding the global
+    `KART_SCHEMA_SET` default for both the static mapping check and the output dtypes.
+    One of `kart_import.schema_check.KNOWN_VERSIONS`; unset falls back to the global default.
+    """
+
     datasets: list[ThemeDataset]
     """
     list of datasets to include in the theme
@@ -350,6 +357,13 @@ class Theme(BaseModel):
     """
     derived lookup tables prepared from sources and joined into datasets
     """
+
+    @field_validator("schema_version")
+    @classmethod
+    def known_schema_version(cls, value: str | None) -> str | None:
+        if value is not None and value not in KNOWN_VERSIONS:
+            raise ValueError(f"Unknown schema_version {value!r}; expected one of {KNOWN_VERSIONS}")
+        return value
 
 
 class Release(BaseModel):

@@ -1,6 +1,7 @@
 name: land_use_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version: v0.3
 datasets:
   - source: kart@data.koordinates.com:linz/nz-mine-points-topo-150k
     mapping:
