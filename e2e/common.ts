@@ -39,7 +39,10 @@ async function runContainer(opts: { containerName: string; options?: string[] },
 
 export const tsKart = runContainer.bind(null, { containerName: kartContainer });
 export const tsMap = runContainer.bind(null, { containerName: mapContainer });
-export const tsArgo = runContainer.bind(null, { containerName: 'ghcr.io/linz/argo-tasks:latest' });
+export const tsArgo = runContainer.bind(null, {
+  containerName: 'ghcr.io/linz/argo-tasks:latest',
+  options: ['--workdir=/target'],
+});
 
 export const tsKartImport = (...args: (string | string[])[]) =>
   runContainer(
