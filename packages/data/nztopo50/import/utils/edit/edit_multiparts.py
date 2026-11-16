@@ -14,7 +14,7 @@ from shapely import from_wkb, to_wkb
 from shapely.geometry import MultiPolygon, Polygon
 
 DEFAULT_GPKG_PATH = Path(
-	r"C:\Data\toposource\topographic-data\topographic-data.gpkg"
+	r"C:\Data\toposource\topographic-data-dev\topographic-data-dev.gpkg"
 )
 
 
@@ -23,20 +23,19 @@ def quote_identifier(identifier: str) -> str:
 	return f'"{identifier.replace(chr(34), chr(34) * 2)}"'
 
 
-def load_feature(gpkg_path: Path, layer_name: str, feature_id: str):
-	"""Load exactly one feature by its ID, retaining its GeoPackage FID."""
-	escaped_id = feature_id.replace("'", "''")
+def load_feature(gpkg_path: Path, layer_name: str, t50_fid: int):
+	"""Load exactly one feature by t50_fid, retaining its GeoPackage FID."""
 	features = pyogrio.read_dataframe(
 		gpkg_path,
 		layer=layer_name,
-		where=f"id = '{escaped_id}'",
+		where=f"t50_fid = {t50_fid}",
 		fid_as_index=True,
 	)
 	if features.empty:
-		raise ValueError(f"No feature with id {feature_id!r} in layer {layer_name!r}")
+		raise ValueError(f"No feature with t50_fid {t50_fid} in layer {layer_name!r}")
 	if len(features) != 1:
 		raise ValueError(
-			f"Expected one feature with id {feature_id!r}; found {len(features)}"
+			f"Expected one feature with t50_fid {t50_fid}; found {len(features)}"
 		)
 	return features.iloc[0]
 
@@ -305,16 +304,16 @@ def confirm(prompt: str, assume_yes: bool) -> None:
 
 
 def delete_feature(
-	gpkg_path: Path, layer_name: str, feature_id: str, fid: int
+	gpkg_path: Path, layer_name: str, t50_fid: int, fid: int
 ) -> None:
-	"""Delete one feature, checking that its FID and ID still match."""
+	"""Delete one feature, checking that its FID and t50_fid still match."""
 	with closing(sqlite3.connect(gpkg_path)) as connection:
 		with connection:
 			primary_key, _, _, _ = layer_metadata(connection, layer_name)
 			cursor = connection.execute(
 				f"DELETE FROM {quote_identifier(layer_name)} "
-				f"WHERE {quote_identifier(primary_key)} = ? AND id = ?",
-				(fid, feature_id),
+				f"WHERE {quote_identifier(primary_key)} = ? AND t50_fid = ?",
+				(fid, t50_fid),
 			)
 			if cursor.rowcount != 1:
 				raise RuntimeError(
@@ -325,7 +324,7 @@ def delete_feature(
 def replace_geometry(
 	gpkg_path: Path,
 	layer_name: str,
-	feature_id: str,
+	t50_fid: int,
 	fid: int,
 	selected_part: Polygon,
 ) -> None:
@@ -344,8 +343,8 @@ def replace_geometry(
 			cursor = connection.execute(
 				f"UPDATE {quote_identifier(layer_name)} "
 				f"SET {quote_identifier(geometry_column)} = ? "
-				f"WHERE {quote_identifier(primary_key)} = ? AND id = ?",
-				(encode_gpkg_geometry(geometry, srs_id), fid, feature_id),
+				f"WHERE {quote_identifier(primary_key)} = ? AND t50_fid = ?",
+				(encode_gpkg_geometry(geometry, srs_id), fid, t50_fid),
 			)
 			if cursor.rowcount != 1:
 				raise RuntimeError(
@@ -356,7 +355,7 @@ def replace_geometry(
 def parse_arguments() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument("layer", nargs="?", help="GeoPackage layer, for example land_cover")
-	parser.add_argument("id", nargs="?", help="Feature ID value")
+	parser.add_argument("t50_fid", nargs="?", type=int, help="Feature t50_fid value")
 	parser.add_argument("action", nargs="?", choices=("delete", "select"))
 	parser.add_argument(
 		"--part",
@@ -386,7 +385,7 @@ def main() -> None:
 		if any(
 			(
 				arguments.layer,
-				arguments.id,
+				arguments.t50_fid,
 				arguments.action,
 				arguments.part,
 				arguments.update_geometry_type,
@@ -397,7 +396,7 @@ def main() -> None:
 		return
 	if arguments.update_geometry_type:
 		if not arguments.layer or any(
-			(arguments.id, arguments.action, arguments.part)
+			(arguments.t50_fid, arguments.action, arguments.part)
 		):
 			raise ValueError(
 				"--update-geometry-type requires one layer and no feature arguments"
@@ -411,18 +410,20 @@ def main() -> None:
 			f"Converted {converted_count} geometries in {arguments.layer} to POLYGON"
 		)
 		return
-	if not all((arguments.layer, arguments.id, arguments.action)):
-		raise ValueError("layer, id, and action are required unless --check is used")
+	if not all((arguments.layer, arguments.t50_fid, arguments.action)):
+		raise ValueError(
+			"layer, t50_fid, and action are required unless another mode is used"
+		)
 
-	feature = load_feature(arguments.gpkg, arguments.layer, arguments.id)
+	feature = load_feature(arguments.gpkg, arguments.layer, arguments.t50_fid)
 	parts = polygon_parts(feature.geometry)
 	print_feature(feature, parts)
 	fid = int(feature.name)
 
 	if arguments.action == "delete":
-		confirm(f"Delete feature {arguments.id}?", arguments.yes)
-		delete_feature(arguments.gpkg, arguments.layer, arguments.id, fid)
-		print(f"Deleted feature {arguments.id} from {arguments.layer}")
+		confirm(f"Delete feature with t50_fid {arguments.t50_fid}?", arguments.yes)
+		delete_feature(arguments.gpkg, arguments.layer, arguments.t50_fid, fid)
+		print(f"Deleted t50_fid {arguments.t50_fid} from {arguments.layer}")
 		return
 
 	part_number = arguments.part
@@ -431,17 +432,17 @@ def main() -> None:
 	if not 1 <= part_number <= len(parts):
 		raise ValueError(f"Part must be between 1 and {len(parts)}")
 	confirm(
-		f"Replace feature {arguments.id} with polygon part {part_number}?",
+		f"Replace t50_fid {arguments.t50_fid} with polygon part {part_number}?",
 		arguments.yes,
 	)
 	replace_geometry(
 		arguments.gpkg,
 		arguments.layer,
-		arguments.id,
+		arguments.t50_fid,
 		fid,
 		parts[part_number - 1],
 	)
-	print(f"Retained polygon part {part_number} for feature {arguments.id}")
+	print(f"Retained polygon part {part_number} for t50_fid {arguments.t50_fid}")
 
 
 if __name__ == "__main__":
