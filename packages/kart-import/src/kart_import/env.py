@@ -188,6 +188,19 @@ def env_bundle_s3_url() -> str:
     return s3_uri
 
 
+def env_schema_host() -> str:
+    """
+    Public URL the schema package's JSON schemas are published under, as synced by
+    `.github/workflows/deploy-schema.yml`. Used to populate a dataset's `linz_schema` kart meta item.
+
+    SCHEMA_HOST_URL=https://d1jzh93b1t1cv.cloudfront.net/schema/
+    """
+    base_url = os.getenv("SCHEMA_HOST_URL", "https://d1jzh93b1t1cv.cloudfront.net/schema/")
+    if not base_url.endswith("/"):
+        base_url += "/"
+    return base_url
+
+
 def env_commit_split_bytes() -> int:
     """Max new pack bytes one linearised commit may introduce before it's split into several
     same-release commits, so `kart_push_repo`'s per-commit pushes never alone exceed GitHub's

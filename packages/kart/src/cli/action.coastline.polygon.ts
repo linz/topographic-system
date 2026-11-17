@@ -1,11 +1,11 @@
-import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, schemaUrl, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { coastlinePolygon } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const coastlinePolygonName = 'nztopo50_coastline_island';
-const coastlinePolygonSchema = new URL('file:///schema/v0.3/nztopo50_coastline_island.json');
+const coastlinePolygonSchema = schemaUrl(coastlinePolygonName);
 
 export const CoastlinePolygonArgs = {
   ...DataPrepareArgs,
