@@ -9,16 +9,18 @@ import {
   qFromArgs,
   qMapAll,
   recursiveFileSearch,
+  registerFileSystem,
   stringToUrlFolder,
   Url,
   UrlFolder,
   worker,
 } from '@linzjs/topographic-system-shared';
 import { boolean, command, flag, number, option, positional, string } from 'cmd-ts';
+import { $ } from 'zx';
 
 import { CloneCommand } from './action.clone.ts';
 import { DiffCommand } from './action.diff.ts';
-import { ExportCommand } from './action.export.ts';
+import { buildKartMetaArgs, ExportCommand } from './action.export.ts';
 import { CommentCommand } from './action.pr.comment.ts';
 import { ParquetCommand } from './action.to.parquet.ts';
 import { ValidateSchemaCommand } from './action.validate.schema.ts';
@@ -49,49 +51,73 @@ interface SchemaValidationFailure {
   error: string;
 }
 
-function schemaPathForParquet(parquetFile: URL, schemaDirectory: URL): URL {
-  const schemaName = `${path.basename(parquetFile.pathname, '.parquet')}.json`;
-  return new URL(schemaName, schemaDirectory);
+/** The dataset a parquet export's name resolves to (see `action.export.ts`'s `buildKartExportArgs`). */
+function datasetForParquet(parquetFile: URL): string {
+  return path.basename(parquetFile.pathname, '.parquet');
 }
+
+/**
+ * Looks up which published JSON schema applies to a dataset, by reading the `linz_schema` kart
+ * meta item `kart_import_theme` records on it -- rather than assuming a single schema version
+ * for every dataset, which breaks once a theme's `schema_version` mapping moves a dataset onto a
+ * later version partway through its history (see kart-import's `Theme.schema_version_for`).
+ *
+ * Exposed as a method (not a bare function) so tests can mock it the same way every other flow
+ * step is mocked, without needing a real kart repo.
+ */
+export const KartMeta = {
+  async linzSchemaUrl(dataset: string, context: URL, ref: string): Promise<URL> {
+    const metaJson = (await $`kart ${buildKartMetaArgs(dataset, ref, context)}`.json()) as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const linzSchema = metaJson[dataset]?.['linz_schema'];
+    if (typeof linzSchema !== 'string') {
+      throw new Error(`Dataset ${dataset} has no 'linz_schema' meta item at ref ${ref}`);
+    }
+    return new URL(linzSchema);
+  },
+};
 
 async function runSchemaValidationStep(args: {
   concurrency?: number;
   worker?: number;
-  schemaDirectory: URL;
+  context: URL;
+  ref: string;
   parquetTempLocation: URL;
 }): Promise<void> {
+  registerFileSystem(); // `linz_schema` is a published https:// URL, not a local path.
+
   const parquetFilesForValidation = await recursiveFileSearch(args.parquetTempLocation, '.parquet');
-  const schemaFilesForValidation = await recursiveFileSearch(args.schemaDirectory, '.json');
   if (parquetFilesForValidation.length === 0) {
     throw new Error(`No parquet file under ${args.parquetTempLocation.href}`);
   }
-  if (schemaFilesForValidation.length === 0) {
-    throw new Error(`No schema under ${args.schemaDirectory.href}`);
-  }
-  const availableSchemas = new Set(schemaFilesForValidation.map((url) => url.pathname));
   const q = qFromArgs(args);
   const schemaValidationFailures: SchemaValidationFailure[] = [];
 
   await qMapAll(q, parquetFilesForValidation, async (parquetFile) => {
-    const schemaPath = schemaPathForParquet(parquetFile, args.schemaDirectory);
-    if (!availableSchemas.has(schemaPath.pathname)) {
-      const error = `Missing schema: ${schemaPath.href}`;
-      logger.error({ parquetFile: parquetFile.href, schema: schemaPath.href }, 'Flow:ValidateSchema:MissingSchema');
-      schemaValidationFailures.push({ parquetFile, schemaFile: schemaPath, error });
+    const dataset = datasetForParquet(parquetFile);
+    let schema: URL;
+    try {
+      schema = await KartMeta.linzSchemaUrl(dataset, args.context, args.ref);
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      logger.error({ parquetFile: parquetFile.href, dataset, error }, 'Flow:ValidateSchema:NoSchemaMeta');
+      schemaValidationFailures.push({ parquetFile, error });
       return;
     }
 
     try {
       await ValidateSchemaCommand.handler({
         concurrency: args.concurrency,
-        schema: schemaPath,
+        schema,
         decodeGeometry: false,
         paths: [parquetFile],
       });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      logger.error({ parquetFile: parquetFile.href, schema: schemaPath.href, error }, 'Flow:ValidateSchema:Failed');
-      schemaValidationFailures.push({ parquetFile, schemaFile: schemaPath, error });
+      logger.error({ parquetFile: parquetFile.href, schema: schema.href, error }, 'Flow:ValidateSchema:Failed');
+      schemaValidationFailures.push({ parquetFile, schemaFile: schema, error });
     }
   });
 
@@ -199,16 +225,6 @@ export const FlowCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(baseOutputLocation, 'parquet')),
     }),
 
-    // Validate Schema args
-    schemaDirectory: option({
-      type: UrlFolder,
-      long: 'schema-directory',
-      // Validates real imported data against the current (published), not next (in-development),
-      // schema -- see packages/schema/src/features/common.tsp's `Versions` enum.
-      description: 'Path to JSON schemas directory (default: /schema/v0.3)',
-      defaultValue: () => new URL('file:///schema/v0.3/'),
-    }),
-
     // Validate args
     configFile: option({
       type: Url,
@@ -273,7 +289,13 @@ export const FlowCommand = command({
     });
 
     ghGroupLog('Flow:Step [7/8] validate schema');
-    await runSchemaValidationStep(args);
+    await runSchemaValidationStep({
+      concurrency: args.concurrency,
+      worker: args.worker,
+      context: args.cloneOutput,
+      ref: args.exportRef,
+      parquetTempLocation: args.parquetTempLocation,
+    });
 
     ghGroupLog('Flow:Step [8/8] validate topography');
     await ValidateCommand.handler({

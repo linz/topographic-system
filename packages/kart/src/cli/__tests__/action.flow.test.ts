@@ -10,7 +10,7 @@ import { stringToUrlFolder } from '@linzjs/topographic-system-shared';
 import { CloneCommand } from '../action.clone.ts';
 import { DiffCommand } from '../action.diff.ts';
 import { ExportCommand } from '../action.export.ts';
-import { FlowCommand } from '../action.flow.ts';
+import { FlowCommand, KartMeta } from '../action.flow.ts';
 import { CommentCommand } from '../action.pr.comment.ts';
 import { ParquetCommand } from '../action.to.parquet.ts';
 import { ValidateSchemaCommand } from '../action.validate.schema.ts';
@@ -39,6 +39,17 @@ function mockAllHandlers(callOrder?: string[], options?: { mockValidateSchema?: 
     parquet: mock.method(ParquetCommand, 'handler', async () => {
       callOrder?.push('to-parquet');
     }),
+    // `runSchemaValidationStep` always resolves a dataset's schema via `KartMeta.linzSchemaUrl`
+    // before calling `ValidateSchemaCommand`, real or mocked -- stub it too whenever the schema
+    // step as a whole is being stubbed, so it never shells out to a real `kart` binary.
+    linzSchemaUrl:
+      mockValidateSchema === true
+        ? mock.method(
+            KartMeta,
+            'linzSchemaUrl',
+            async (dataset: string) => new URL(`https://schema.test/${dataset}.json`),
+          )
+        : undefined,
     validateSchema:
       mockValidateSchema === true
         ? mock.method(ValidateSchemaCommand, 'handler', async () => {
@@ -65,11 +76,8 @@ describe('action.flow', () => {
     delete process.env['GITHUB_EVENT_PATH'];
 
     const defaultParquetDir = path.join(testDir, 'parquet', 'files.parquet');
-    const defaultSchemaDir = path.join(testDir, 'schema');
     await mkdir(defaultParquetDir, { recursive: true });
-    await mkdir(defaultSchemaDir, { recursive: true });
     await writeFile(path.join(defaultParquetDir, 'road_line.parquet'), '');
-    await writeFile(path.join(defaultSchemaDir, 'road_line.json'), '{}');
 
     defaultFlowArgs = {
       // Flow-level args
@@ -99,7 +107,6 @@ describe('action.flow', () => {
       parquetTempLocation: stringToUrlFolder(path.join(testDir, 'parquet')),
 
       // Validate
-      schemaDirectory: stringToUrlFolder(path.join(testDir, 'schema')),
       configFile: pathToFileURL('/packages/validation/config/default_config.json'),
       validationOutputDir: stringToUrlFolder(path.join(testDir, 'validation-output')),
     };
@@ -281,50 +288,53 @@ describe('action.flow', () => {
   describe('step arguments: validate schema', () => {
     const schemaTestDir = path.join(tmpdir(), 'kart-flow-schema-test');
     const parquetDir = path.join(schemaTestDir, 'parquet', 'files.parquet');
-    const schemaDir = path.join(schemaTestDir, 'schema');
 
     before(async () => {
       await mkdir(parquetDir, { recursive: true });
-      await mkdir(schemaDir, { recursive: true });
       await writeFile(path.join(parquetDir, 'road_line.parquet'), '');
       await writeFile(path.join(parquetDir, 'water.parquet'), '');
-      await writeFile(path.join(schemaDir, 'road_line.json'), '{}');
-      await writeFile(path.join(schemaDir, 'water.json'), '{}');
     });
 
     after(async () => {
       await rm(schemaTestDir, { recursive: true, force: true });
     });
 
-    it('should validate each parquet file against its matching schema json', async () => {
+    it('should validate each parquet file against its dataset’s linz_schema meta', async () => {
       const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
+      const linzSchemaUrl = mock.method(
+        KartMeta,
+        'linzSchemaUrl',
+        async (dataset: string) => new URL(`https://schema.test/v0.4/${dataset}.json`),
+      );
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async () => {});
 
       await FlowCommand.handler({
         ...defaultFlowArgs,
         parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
-        schemaDirectory: stringToUrlFolder(schemaDir),
       });
 
+      assert.strictEqual(linzSchemaUrl.mock.callCount(), 2);
       assert.strictEqual(validateSchema.mock.callCount(), 2);
 
       const schemaCalls = validateSchema.mock.calls
         .map((c) => c.arguments[0])
-        .map((a) => ({
-          schema: path.basename(a?.schema?.pathname ?? ''),
-          parquet: path.basename(a?.paths?.[0]?.pathname ?? ''),
-        }))
+        .map((a) => ({ schema: a?.schema?.href, parquet: path.basename(a?.paths?.[0]?.pathname ?? '') }))
         .sort((a, b) => a.parquet.localeCompare(b.parquet));
 
       assert.deepStrictEqual(schemaCalls, [
-        { schema: 'road_line.json', parquet: 'road_line.parquet' },
-        { schema: 'water.json', parquet: 'water.parquet' },
+        { schema: 'https://schema.test/v0.4/road_line.json', parquet: 'road_line.parquet' },
+        { schema: 'https://schema.test/v0.4/water.json', parquet: 'water.parquet' },
       ]);
       assert.strictEqual(mocks.validate.mock.callCount(), 1, 'validate should run after schema step succeeds');
     });
 
     it('should run all schema validations and fail if any validation fails', async () => {
       const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
+      mock.method(
+        KartMeta,
+        'linzSchemaUrl',
+        async (dataset: string) => new URL(`https://schema.test/v0.4/${dataset}.json`),
+      );
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async (args: { schema: URL }) => {
         if (args.schema.pathname.endsWith('/road_line.json')) throw new Error('validation failed');
       });
@@ -334,7 +344,6 @@ describe('action.flow', () => {
           FlowCommand.handler({
             ...defaultFlowArgs,
             parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
-            schemaDirectory: stringToUrlFolder(schemaDir),
           }),
         { message: 'Schema validation failed for 1 parquet file(s)' },
       );
@@ -343,8 +352,11 @@ describe('action.flow', () => {
       assert.strictEqual(mocks.validate.mock.callCount(), 0, 'validate should not run when schema step fails');
     });
 
-    it('should fail when schema is missing for a parquet file', async () => {
+    it('should fail when a dataset has no linz_schema meta item', async () => {
       const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
+      mock.method(KartMeta, 'linzSchemaUrl', async (dataset: string) => {
+        throw new Error(`Dataset ${dataset} has no 'linz_schema' meta item at ref FETCH_HEAD`);
+      });
       const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async () => {});
 
       await assert.rejects(
@@ -352,12 +364,11 @@ describe('action.flow', () => {
           FlowCommand.handler({
             ...defaultFlowArgs,
             parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
-            schemaDirectory: stringToUrlFolder(path.join(schemaTestDir, 'empty-schema')),
           }),
-        { message: /No schema under/ },
+        { message: 'Schema validation failed for 2 parquet file(s)' },
       );
 
-      assert.strictEqual(validateSchema.mock.callCount(), 0, 'no validations attempted when schemas missing');
+      assert.strictEqual(validateSchema.mock.callCount(), 0, 'no validations attempted when schema meta is missing');
       assert.strictEqual(mocks.validate.mock.callCount(), 0, 'validate should not run when schema step fails');
     });
   });
