@@ -1,0 +1,13 @@
+{
+  "default": "local",
+  "locations": {
+    "local": {
+      "url": "C:\\Data\\temp\\topographic-data-dev-67",
+      "data_path": "{layer_name}.parquet"
+    },
+    "nztopodev": {
+      "url": "https://d1jzh93b1t1cv.cloudfront.net/data",
+      "data_path": "{layer_name}/latest/{layer_name}.parquet"
+    }
+  }
+}

@@ -7,10 +7,10 @@ import logging
 import os
 from pathlib import Path
 
+import duckdb
 import geopandas as gpd  # type: ignore
 import numpy as np
 import pandas as pd
-
 from export_layers_setup import ExportLayersSetup
 
 """
@@ -160,6 +160,7 @@ TUNNEL_IVESTOCK_FIDS = {6066314}
 EXPORT_CRS = {
     "new_zealand_mainland": 2193,
     "chatham_islands": 3793,
+    "auckland_islands": 3788,
     "snares_ak_islands": 3788,
     "antipodes_and_bounty_islands": 3790,
     "kermadec_raoul_islands": 3791,
@@ -170,9 +171,9 @@ EXPORT_EXTENTS = {
     "new_zealand_mainland": [166, -47.54, 179.0, -33.9],
     "chatham_islands": [-177, -44.52, -176.131, -43.544],
     "snares_ak_islands": [166.4, -51.1, 166.7, -48.0],
-    "auckland_islands": [165.7, -51.1, 166.4, -50.4], 
+    "auckland_islands": [165.7, -51.1, 166.4, -50.4],
     "antipodes_and_bounty_islands": [178.6, -49.9, 179.0, -49.5],
-    "bounty_islands":[178.6, -47.9, 179.2, -47.6], 
+    "bounty_islands":[178.6, -47.9, 179.2, -47.6],
     "kermadec_raoul_islands": [-179, -31.42, -177.7, -29.15],
     "campbell_island": [168.9, -52.7, 169.3, -52.4],
 }
@@ -186,21 +187,28 @@ ORIENTATION_LAYERS = {
     "water_point",
 }
 
+SOURCE_CRS = "EPSG:4167"
+
 class ExportToLDSModel:
     def __init__(
         self,
         config_directory,
-        database,
+        data_url,
+        data_path_template,
         output_folder,
-        source_format="gpkg",
     ):
         self.config_directory = Path(config_directory)
-        self.database = database
+        self.data_url = str(data_url).rstrip("/\\")
+        self.data_path_template = data_path_template
         self.output_folder = output_folder
-        self.source_format = source_format.lower()
-        if self.source_format not in {"gpkg", "parquet"}:
-            raise ValueError(f"Unsupported source format: {source_format}")
         os.makedirs(self.output_folder, exist_ok=True)
+        self.connection = duckdb.connect()
+        self.connection.execute("SET allow_asterisks_in_http_paths = true")
+        try:
+            self.connection.execute("LOAD spatial")
+        except duckdb.Error:
+            self.connection.execute("INSTALL spatial")
+            self.connection.execute("LOAD spatial")
         self.logger = self.create_logger()
         self.layer_setup = ExportLayersSetup(self.config_directory)
         self.layers_info = self.layer_setup.layers_info
@@ -222,7 +230,10 @@ class ExportToLDSModel:
             logging.Formatter("%(asctime)s %(levelname)s %(message)s")
         )
         logger.addHandler(handler)
-        logger.info("LDS export started using %s source data", self.source_format)
+        logger.info(
+            "LDS export started using GeoParquet source data at %s",
+            self.data_url,
+        )
         return logger
 
     def close_logger(self):
@@ -230,6 +241,7 @@ class ExportToLDSModel:
             handler.flush()
             handler.close()
             self.logger.removeHandler(handler)
+        self.connection.close()
 
     def is_macronated(self, word):
         macronated_maori_vowels = {"ā", "ē", "ī", "ō", "ū", "è"}
@@ -287,37 +299,70 @@ class ExportToLDSModel:
         lookup = DESC_CODE_BY_NAME.get(name)
         return lookup
 
-    def read_source_data(
-        self, format, layer_name, feature_type, area_name, database=None
-    ):
-        database = database or self.database
+    def parquet_path(self, layer_name):
+        try:
+            relative_path = self.data_path_template.format(layer_name=layer_name)
+        except KeyError as error:
+            raise ValueError(
+                f"Unsupported placeholder {error.args[0]!r} in data_path"
+            ) from error
+        if "{layer_name}" not in self.data_path_template:
+            raise ValueError("data_path must contain the {layer_name} placeholder")
+        separator = "/" if "://" in self.data_url else os.sep
+        return f"{self.data_url}{separator}{relative_path.lstrip('/\\')}"
+
+    def read_source_data(self, layer_name, feature_type, area_name):
         bbox = EXPORT_EXTENTS[area_name]
         selection_types = TYPE_SELECTION_ALIASES.get(
             (layer_name, feature_type), [feature_type]
         )
-        where = None
+        west, south, east, north = bbox
+        query = """
+            SELECT * EXCLUDE (bbox, geometry), ST_AsWKB(geometry) AS geometry
+            FROM read_parquet(?)
+            WHERE bbox.xmax >= ?
+              AND bbox.xmin <= ?
+              AND bbox.ymax >= ?
+              AND bbox.ymin <= ?
+                AND ST_Intersects(
+                        geometry,
+                        ST_MakeEnvelope(?, ?, ?, ?)
+                )
+        """
+        parameters = [
+            self.parquet_path(layer_name),
+            west,
+            east,
+            south,
+            north,
+            west,
+            south,
+            east,
+            north,
+        ]
         if self.layer_source_counts.get(layer_name, 0) > 1:
-            quoted_types = ", ".join(
-                f"'{value.replace(chr(39), chr(39) * 2)}'"
-                for value in selection_types
-            )
-            where = f'"type" IN ({quoted_types})'
+            query += f" AND type IN ({', '.join('?' for _ in selection_types)})"
+            parameters.extend(selection_types)
 
-        if format.lower() == "gpkg":
-            layer = gpd.read_file(
-                database,
-                layer=layer_name,
-                where=where,
-                bbox=bbox,
-            )
-        elif format.lower() == "parquet":
-            parquet_file = os.path.join(database, f"{layer_name}.parquet")
-            layer = gpd.read_parquet(parquet_file, bbox=bbox)
-            if where is not None:
-                layer = layer[layer["type"].isin(selection_types)]
-        else:
-            raise ValueError(f"Unsupported format: {format}")
-        return layer
+        start_time = pd.Timestamp.now()
+        start_message = f"Query start: {layer_name} {start_time}"
+        print(start_message)
+        self.logger.info(start_message)
+        frame = self.connection.execute(query, parameters).fetchdf()
+        end_time = pd.Timestamp.now()
+        end_message = (
+            f"Query end: {layer_name} {end_time}; "
+            f"delta: {end_time - start_time}"
+        )
+        print(end_message)
+        self.logger.info(end_message)
+        geometry = frame.pop("geometry").map(
+            lambda value: bytes(value) if value is not None else None
+        )
+        return gpd.GeoDataFrame(
+            frame,
+            geometry=gpd.GeoSeries.from_wkb(geometry, crs=SOURCE_CRS),
+        )
 
     def read_schema_layer(self, layer_name):
         schema = self.schemas.get(layer_name)
@@ -354,7 +399,7 @@ class ExportToLDSModel:
             layer["substance"] = layer["substance_extracted"]
 
         if layer_name in {"building", "building_point"}:
-       
+
             for t50_fid, status in BUILDING_STATUS_BY_FID.items():
                 normalized = layer["t50_fid"].eq(t50_fid) & layer["status"].isna()
                 layer.loc[normalized, "status"] = status
@@ -466,7 +511,9 @@ class ExportToLDSModel:
         # tree_pnt we droppped the name field so no need to check
         if feature_type == "tree":
             return layer
-        print("Checking for macronated names...")
+        message = "Checking for macronated names..."
+        print(message)
+        self.logger.info(message)
         layer["macronated"] = "N"
         name_field = "description"
         if feature_type != "historic_site":
@@ -621,13 +668,12 @@ class ExportToLDSModel:
         }
         return shape_name in skip
 
-    def process_layers(self, area_name, single_file=None, source_name=None):
+    def process_layers(self, area_name, single_file=None):
         processed_layers = []
         try:
             layer_items = self.layer_setup.get_layer_items(
                 extent_name=area_name,
                 single_file=single_file,
-                source_name=source_name,
             )
         except ValueError as error:
             self.logger.error(str(error))
@@ -652,19 +698,16 @@ class ExportToLDSModel:
             field_names = self.field_names.get(shp_name, [])
             mapped_names = self.mapped_names.get(shp_name, [])
 
-            database = self.database
-
             try:
                 layer = self.read_source_data(
-                    self.source_format,
                     layer_name,
                     feature_type,
                     area_name,
-                    database=database,
                 )
             except Exception:
                 message = (
-                    f"Unable to open {database}, layer {layer_name}, "
+                    f"Unable to open {self.parquet_path(layer_name)}, "
+                    f"layer {layer_name}, "
                     f"type {feature_type}; skipping {shp_name}"
                 )
                 print(message)
@@ -695,16 +738,12 @@ class ExportToLDSModel:
             layer.to_file(shp_path, engine="fiona", schema=schema, encoding="UTF-8")
             processed_layers.append(feature_type)
             end_time = pd.Timestamp.now()
-            print(
-                f"Exported: {layer_name} of type {feature_type} to {shp_name}: {end_time - start_time}"
+            message = (
+                f"Exported: {layer_name} of type {feature_type} to {shp_name}: "
+                f"{end_time - start_time}"
             )
-            self.logger.info(
-                "Exported %s type %s to %s in %s",
-                layer_name,
-                feature_type,
-                shp_name,
-                end_time - start_time,
-            )
+            print(message)
+            self.logger.info(message)
 
             if feature_type == "ice":
                 shp_path = shp_path.replace("ice", "snow")

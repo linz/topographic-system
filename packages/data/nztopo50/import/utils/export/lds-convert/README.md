@@ -12,8 +12,10 @@ packages/data/nztopo50/import
 
 | Path | Purpose |
 |---|---|
-| `export_to_lds_model.py` | Reads model GeoPackages or GeoParquet files and writes LDS shapefiles |
+| `export_to_lds_model.py` | Reads model GeoParquet files and writes LDS shapefiles |
 | `match_exports.py` | Compares sampled export attributes against latest Kart GeoPackages |
+| `topo50_schemas/data_path.json` | Named local/cloud GeoParquet URLs and per-layer path conventions |
+| `topo50_schemas/data_sources.json` | Source model layers available in each export extent |
 | `topo50_schemas/nztopo50_lds_schemas.json` | Master LDS field and geometry definitions used to generate configs |
 | `topo50_schemas/config/*.json` | Runtime routing, field mapping, and Fiona schema information, grouped by source model layer |
 | `../lds-tools/create_lds_config.py` | Regenerates runtime configs from the legacy workbooks and master schema |
@@ -32,72 +34,41 @@ uv sync
 The exporter uses Fiona to enforce shapefile field widths and types. The project
 is constrained to a Fiona-compatible Python version.
 
-## Generate Runtime Configs
 
-Regenerate configs after changing the master schema, layer workbook, or field
-mapping workbook:
+## Configure GeoParquet Source
 
-```powershell
-uv run python utils\export\lds-tools\create_lds_config.py C:\Data\Model\layers_info.xlsx C:\Data\Model\lds_field_mapping.xlsx utils\export\lds-convert\topo50_schemas\nztopo50_lds_schemas.json utils\export\lds-convert\topo50_schemas\config
-```
+Configure named locations in `topo50_schemas/data_path.json`. Each location has
+a base `url` and a `data_path` template containing `{layer_name}`. The selected
+location must expose all topo, contour, and product layers.
 
-The generator:
-
-1. Groups LDS targets by consolidated source model layer.
-2. Uses the master schema as the authoritative target field order and type.
-3. Resolves each target field to its model source field.
-4. Writes one JSON file per source model layer.
-5. Reports targets that have no usable schema or mapping.
-
-Legacy workbook-only fields that are absent from the master schema are ignored.
-Generation fails when a schema field has no source mapping.
-
-Each target config contains:
-
-- `target_layer`: output shapefile name.
-- `schema_key`: corresponding master schema entry.
-- `feature_type`: value used to select records from a consolidated layer.
-- `geometry_type`: Fiona output geometry.
-- `field_mappings`: ordered source field, target field, and Fiona target type.
-
-## Prepare GeoParquet Sources
-
-The default export mode is GeoParquet. Each configured source directory must
-contain one file per consolidated model layer, named `<source_layer>.parquet`,
-for example `land_use.parquet`, `road_line.parquet`, and
-`structure_point.parquet`.
-
-Convert the three model GeoPackages when needed:
-
-```powershell
-uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-data\topographic-data.gpkg C:\Data\temp\topographic-data
-uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-contour-data\topographic-contour-data.gpkg C:\Data\temp\topographic-contour-data
-uv run python utils\export\parquet\run_export_gkpg.py C:\Data\toposource\topographic-product-data\topographic-product-data.gpkg C:\Data\temp\topographic-product-data
+```json
+{
+  "default": "local",
+  "locations": {
+    "local": {
+      "url": "C:\\Data\\temp\\topographic-data-dev-67",
+      "data_path": "{layer_name}.parquet"
+    },
+    "nztopodev": {
+      "url": "https://d1jzh93b1t1cv.cloudfront.net/data",
+      "data_path": "{layer_name}/latest/{layer_name}.parquet"
+    }
+  }
+}
 ```
 
 ## Run the Export
 
-The CLI accepts a data-source key and an optional path override. If the path is
-omitted, the configured default path is used.
+The CLI accepts an extent and an optional configured location name. If the
+location is omitted, the `default` from `data_path.json` is used.
 
 ```powershell
-uv run python utils\export\lds-convert\export_cli.py topo-data new_zealand_mainland
-uv run python utils\export\lds-convert\export_cli.py topo-data new_zealand_mainland C:\Data\temp\topographic-data
-uv run python utils\export\lds-convert\export_cli.py contour-data new_zealand_mainland
-uv run python utils\export\lds-convert\export_cli.py product-data new_zealand_mainland
+uv run python utils\export\lds-convert\export_cli.py new_zealand_mainland
+uv run python utils\export\lds-convert\export_cli.py new_zealand_mainland nztopodev
 ```
 
 The export is written below `C:\temp\export\lds_model`, with one folder per
-configured export area. Contour and product database actions will be added
-separately.
-
-## Run the Export
-
-```powershell
-uv run python utils\export\lds-convert\export_to_lds_model.py
-```
-
-Output is written to the configured `output_folder`. The run log is:
+configured export area. The run log is:
 
 ```text
 <output_folder>/export_to_lds_model.log
@@ -110,14 +81,15 @@ outputs can continue.
 
 For each LDS target, the exporter:
 
-1. Reads the configured consolidated source layer.
-2. Filters by `type` when the source layer feeds multiple LDS targets.
-3. Reconstructs legacy source fields from the current model.
-4. Recreates macron and ASCII name fields where required.
-5. Reorders and renames fields using the target config.
-6. Builds the Fiona schema dynamically from `target_type` and `geometry_type`.
-7. Converts model underscores back to spaces in schema-declared string fields.
-8. Reprojects to EPSG:2193 and writes an UTF-8 shapefile.
+1. Uses DuckDB Spatial to query the configured local or cloud GeoParquet layer.
+2. Prunes rows with the GeoParquet `bbox` covering and applies an exact geometry intersection.
+3. Filters by `type` in SQL when the source layer feeds multiple LDS targets.
+4. Reconstructs legacy source fields from the current model.
+5. Recreates macron and ASCII name fields where required.
+6. Reorders and renames fields using the target config.
+7. Builds the Fiona schema dynamically from `target_type` and `geometry_type`.
+8. Converts model underscores back to spaces in schema-declared string fields.
+9. Reprojects to EPSG:2193 and writes an UTF-8 shapefile.
 
 Current special reverse mappings include:
 

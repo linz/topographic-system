@@ -99,16 +99,12 @@ class ExportLayersSetup:
         with data_sources_file.open(encoding="utf-8") as file:
             return json.load(file)
 
-    def get_layer_items(self, extent_name, single_file=None, source_name=None):
-        extent_sources = self.data_sources.get(extent_name)
-        if extent_sources is None:
+    def get_layer_items(self, extent_name, single_file=None):
+        extent_layers = self.data_sources.get(extent_name)
+        if extent_layers is None:
             raise ValueError(f"Unknown export extent: {extent_name}")
 
-        source_layers = {
-            source_layer
-            for source_layer, configured_source in extent_sources.items()
-            if source_name is None or configured_source == source_name
-        }
+        source_layers = set(extent_layers)
         layer_items = list(self.layers_info.items())
         if single_file:
             selected_name = Path(single_file).stem.lower()
