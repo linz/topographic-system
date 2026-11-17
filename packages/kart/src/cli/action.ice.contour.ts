@@ -1,11 +1,11 @@
-import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, schemaUrl, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { iceContour } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const iceContourName = 'nztopo50_ice_contour';
-const iceContourSchema = new URL('file:///schema/v0.3/nztopo50_ice_contour.json');
+const iceContourSchema = schemaUrl(iceContourName);
 
 export const IceContourArgs = {
   ...DataPrepareArgs,

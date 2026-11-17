@@ -23,3 +23,4 @@ export { StacExtensions } from './stac.extensions.ts';
 export type { StacExtensionUrl, StacFileV2_1_0, StacProjectionV2_0_0, StacTableV1_3_0 } from './stac.extensions.ts';
 export { getQgisProjectMeta, parseQgisLayerDef } from './qgis.ts';
 export type { QgisLayerDef } from './qgis.ts';
+export { SchemaHost, schemaUrl, SchemaVersion } from './schema.ts';

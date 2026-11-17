@@ -12,6 +12,7 @@ from kart_import.log import log_context
 from ..command import run_command
 from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases
 from ..git.schema_ids import assign_stable_column_ids
+from ..schema_check import schema_url
 
 logger = logging.getLogger("kart_import")
 
@@ -126,6 +127,15 @@ def kart_import_theme(theme_name: str):
                 *PATH_STRUCTURE_ARGS,
                 f"OGR:{geometry_named_vrt(stub_file, theme_name, theme_name)}",
             ],
+            cwd=str(repo_dir),
+            env=schema_env,
+        )
+        # Record where the theme's published JSON schema lives, so consumers of the dataset
+        # can resolve its schema without knowing this pipeline's conventions. Done before
+        # `assign_stable_column_ids` so its commit folds into the single schema commit below,
+        # rather than leaving `kart meta set`'s own commit behind.
+        run_command(
+            ["kart", "meta", "set", theme_name, f"linz_schema={schema_url(theme_name)}"],
             cwd=str(repo_dir),
             env=schema_env,
         )

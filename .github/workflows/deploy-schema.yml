@@ -36,4 +36,4 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Sync schemas to S3
-        run: aws s3 sync schema/ s3://linz-topography-nonprod/schema/
+        run: aws s3 sync schema/ s3://linz-topography-nonprod/schema/ --cache-control "public, max-age=60"

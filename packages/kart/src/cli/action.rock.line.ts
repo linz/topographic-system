@@ -1,11 +1,11 @@
-import { registerFileSystem, Url } from '@linzjs/topographic-system-shared';
+import { registerFileSystem, schemaUrl, Url } from '@linzjs/topographic-system-shared';
 import { command, option } from 'cmd-ts';
 
 import { rockLine } from '../python.runner.ts';
 import { DataPrepareArgs, prepareData } from './data.prepare.ts';
 
 const rockLineName = 'nztopo50_rock_line';
-const rockLineSchema = new URL('file:///schema/v0.3/nztopo50_rock_line.json');
+const rockLineSchema = schemaUrl(rockLineName);
 
 export const RockLineArgs = {
   ...DataPrepareArgs,
