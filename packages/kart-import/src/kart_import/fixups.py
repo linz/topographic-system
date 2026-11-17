@@ -932,7 +932,8 @@ def _generate_grid_features(
     lines += [(along_y, value, _grid_line(value, False, ys[0], ys[-1], vertices)) for value in xs]
 
     # IDs are a pure function of the line itself based on the earliest release timestamp (release 30)
-    base_timestamp = int(datetime(2015, 11, 19, 2, 33, 32, tzinfo=UTC).timestamp() * 1000)
+    base_time = datetime(2015, 11, 19, 2, 33, 32, tzinfo=UTC)
+    base_timestamp = int(base_time.timestamp() * 1000)
     ids = [
         str(reproducable_uuid7_text(base_timestamp, f"{td.name}:{direction}:{value:.9f}"))
         for direction, value, _ in lines
@@ -951,11 +952,17 @@ def _generate_grid_features(
     geoms = gpd_.GeoSeries([geom for _, _, geom in lines], crs=crs)
     if gdf.crs is not None:
         geoms = geoms.to_crs(gdf.crs)
+    # This frame replaces the source rows, so it carries its own lifecycle columns rather than the
+    # pipeline's (which belong to the borrowed source). Pinned to the same release 30 time as the ids.
+    created_at = base_time.isoformat()
     return gpd_.GeoDataFrame(
         {
             "id": ids,
+            "created_at": [created_at] * len(lines),
+            "updated_at": [created_at] * len(lines),
             "direction": [direction for direction, _, _ in lines],
             "value": [value for _, value, _ in lines],
+            "metadata": [None] * len(lines),
         },
         geometry=geoms.reset_index(drop=True),
         crs=geoms.crs,

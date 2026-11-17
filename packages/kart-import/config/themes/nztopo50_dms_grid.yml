@@ -8,5 +8,6 @@ datasets:
     mapping:
       direction: { source: null, fixup: true }
       value: { source: null, fixup: true }
+      metadata: { source: null, fixup: true }
     fixups:
       - fn: generate_dms_grid_features
