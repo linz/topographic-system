@@ -130,18 +130,19 @@ def kart_import_theme(theme_name: str):
             cwd=str(repo_dir),
             env=schema_env,
         )
-        stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
-
-        stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name, env=schema_env)
-        run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
-
         # Record where the theme's published JSON schema lives, so consumers of the dataset
-        # can resolve its schema without knowing this pipeline's conventions.
+        # can resolve its schema without knowing this pipeline's conventions. Done before
+        # `assign_stable_column_ids` so its commit folds into the single schema commit below,
+        # rather than leaving `kart meta set`'s own commit behind.
         run_command(
             ["kart", "meta", "set", theme_name, f"linz_schema={schema_url(theme_name)}"],
             cwd=str(repo_dir),
             env=schema_env,
         )
+        stub_commit = run_command(["git", "rev-parse", "master"], cwd=str(repo_dir)).strip()
+
+        stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name, env=schema_env)
+        run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
 
     for release, input_file, info in pending:
         with log_context(action="kart_import", theme=theme_name, release=release.id):
