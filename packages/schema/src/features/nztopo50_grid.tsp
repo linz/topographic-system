@@ -29,13 +29,6 @@ model nztopo50_grid {
   /** The axis the line runs along. An `easting` line runs east–west, so its `value` is a northing. */
   direction: grid_direction;
 
-  /**
-   * The axis `value` is measured on: `northing` for an east–west line, `easting` for a north–south line.
-   * Always the opposite of `direction`.
-   */
-  @added(Versions.v0_4)
-  value_axis: grid_direction;
-
   /** Position of the line in NZTM2000 (EPSG:2193) metres: a northing for an `easting` line, an easting for a `northing` line. */
   value: float64;
 
