@@ -1,6 +1,8 @@
 name: tunnel_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version:
+  default: v0.3
 datasets:
   - source: kart@data.koordinates.com:linz/nz-tunnel-centrelines-topo-150k
     mapping:

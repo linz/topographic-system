@@ -10,7 +10,7 @@ import pyogrio
 from kart_import.log import log_context
 
 from ..command import run_command
-from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases
+from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases, get_theme_by_name
 from ..git.schema_ids import assign_stable_column_ids
 from ..schema_check import schema_url
 
@@ -41,6 +41,21 @@ def geometry_named_vrt(theme_file: Path, dataset_name: str, source_layer: str) -
     return vrt_file
 
 
+def _commit_message(subject: str, *notes: str) -> str:
+    """A commit message: `subject`, plus each of `notes` as its own paragraph in the body."""
+    lines = [subject]
+    for note in notes:
+        lines += ["", note]
+    return "\n".join(lines)
+
+
+def _schema_changed_note(schema_version: str) -> str:
+    """Notes that this is the release the mapping's resolved schema version changed to -- so
+    `git log` alone shows it, without a separate `kart meta set` commit to carry it.
+    """
+    return f"schema changed to {schema_version}"
+
+
 def _write_schema_stub(theme_name: str, sample_file: Path, info: Mapping[str, Any], stub_file: Path) -> None:
     """Writes a zero-row file with `sample_file`'s columns and geometry type, so importing it
     establishes the theme's Kart schema without needing a real release's data.
@@ -65,6 +80,7 @@ def kart_import_theme(theme_name: str):
     repo_dir = OUTPUT_DIR / "theme" / theme_name
     bundle_file = OUTPUT_DIR / f"{theme_name}.bundle"
 
+    theme = get_theme_by_name(theme_name)
     releases = get_releases()
 
     # Init the Kart repo if it doesn't exist
@@ -134,8 +150,9 @@ def kart_import_theme(theme_name: str):
         # can resolve its schema without knowing this pipeline's conventions. Done before
         # `assign_stable_column_ids` so its commit folds into the single schema commit below,
         # rather than leaving `kart meta set`'s own commit behind.
+        current_schema_version = theme.schema_version_for(first_release.id)
         run_command(
-            ["kart", "meta", "set", theme_name, f"linz_schema={schema_url(theme_name)}"],
+            ["kart", "meta", "set", theme_name, f"linz_schema={schema_url(theme_name, current_schema_version)}"],
             cwd=str(repo_dir),
             env=schema_env,
         )
@@ -152,15 +169,28 @@ def kart_import_theme(theme_name: str):
                 "GIT_COMMITTER_DATE": release.until.isoformat(),
             }
 
+            # The theme's yaml may pin a later version from this release onward. Noted (below)
+            # against whichever release first lands it, rather than its own `kart meta set`
+            # commit, so history doesn't carry a commit with no feature changes of its own.
+            resolved_schema_version = theme.schema_version_for(release.id)
+            schema_changed = resolved_schema_version != current_schema_version
+            if schema_changed:
+                logger.info(
+                    "Schema version changed",
+                    extra={"release": release.id, "schema_version": resolved_schema_version},
+                )
+
             import_source = geometry_named_vrt(input_file, theme_name, info["layer_name"])
 
             logger.info("Importing release", extra={"release": release.id})
 
+            notes = [_schema_changed_note(resolved_schema_version)] if schema_changed else []
+            message = _commit_message(f"feat({theme_name}): import release {release.id}", *notes)
             cmd = [
                 "kart",
                 "import",
                 "--message",
-                f"feat({theme_name}): import release {release.id}",
+                message,
                 "--primary-key",
                 "id",
                 "--replace-existing",
@@ -168,7 +198,36 @@ def kart_import_theme(theme_name: str):
                 *PATH_STRUCTURE_ARGS,
                 f"OGR:{import_source}",
             ]
-            run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
+            result = run_command(cmd, cwd=str(repo_dir), env=env, allow_error="No changes to commit")
+
+            if schema_changed:
+                if "No changes to commit" in result:
+                    # Nothing landed in a commit this release to carry the version change --
+                    # leave `current_schema_version` stale so the next release that does commit
+                    # picks it up, rather than silently losing it.
+                    logger.warning(
+                        "Schema version changed but release had no changes to commit; "
+                        "deferring linz_schema update to the next committed release.",
+                        extra={"release": release.id},
+                    )
+                else:
+                    # `--amend` folds this into the import commit just made, rather than adding
+                    # a second commit for the same release.
+                    run_command(
+                        [
+                            "kart",
+                            "meta",
+                            "set",
+                            theme_name,
+                            f"linz_schema={schema_url(theme_name, resolved_schema_version)}",
+                            "--amend",
+                            "-m",
+                            message,
+                        ],
+                        cwd=str(repo_dir),
+                        env=env,
+                    )
+                    current_schema_version = resolved_schema_version
 
     run_command(["kart", "git", "bundle", "create", str(bundle_file), "--all"], cwd=str(repo_dir))
     logger.info("All releases imported")

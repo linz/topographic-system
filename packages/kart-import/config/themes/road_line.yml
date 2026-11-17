@@ -1,6 +1,8 @@
 name: road_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version:
+  default: v0.3
 # Enrichment lookup: NZ road extra attributes exported to the topographic-source-data
 # kart repo (linz_road_cl), joined on t50_fid. Supplies road_access / width_indicator /
 # name_id, which are not in the LDS road-centrelines layer.

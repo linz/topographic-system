@@ -5,7 +5,6 @@ from .env import (
     env_push_to_master,
     env_schema_check_mode,
     env_schema_dir_override,
-    env_schema_set,
     env_theme_format,
     env_transform_format,
 )
@@ -59,13 +58,6 @@ def test_push_flag_is_case_insensitive_true(monkeypatch, env_fn, var):
 def test_push_flag_non_true_is_false(monkeypatch, env_fn, var):
     monkeypatch.setenv(var, "1")  # only "true" enables the flag
     assert env_fn() is False
-
-
-def test_schema_set_defaults_to_current(monkeypatch):
-    monkeypatch.delenv("KART_SCHEMA_SET", raising=False)
-    assert env_schema_set() == "current"
-    monkeypatch.setenv("KART_SCHEMA_SET", "next")
-    assert env_schema_set() == "next"
 
 
 def test_schema_check_mode_defaults_and_is_case_insensitive(monkeypatch):

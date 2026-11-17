@@ -1,6 +1,8 @@
 name: nztopo50_carto_text
 target_repo: topographic-product-data
 target_epsg: EPSG:2193
+schema_version:
+  default: v0.3
 
 datasets:
   - source:
