@@ -44,6 +44,69 @@
     "water_line",
     "water_point"
   ],
+  "antipodes_islands": [
+    "contour",
+    "descriptive_text",
+    "geographic_name",
+    "island",
+    "land_cover",
+    "marine",
+    "marine_point",
+    "nztopo50_map_sheet",
+    "relief_line",
+    "relief_point",
+    "water_line",
+    "water_point"
+  ],
+  "auckland_islands": [
+    "contour",
+    "descriptive_text",
+    "geographic_name",
+    "island",
+    "land_cover",
+    "land_cover_point",
+    "marine",
+    "marine_point",
+    "nztopo50_map_sheet",
+    "place_point",
+    "relief_line",
+    "relief_point",
+    "structure_point",
+    "track_line",
+    "vegetation",
+    "water",
+    "water_line",
+    "water_point"
+  ],
+  "bounty_islands": [
+    "contour",
+    "geographic_name",
+    "island",
+    "marine",
+    "marine_point",
+    "nztopo50_map_sheet",
+    "relief_line",
+    "relief_point"
+  ],
+  "campbell_islands": [
+    "building_point",
+    "contour",
+    "descriptive_text",
+    "geographic_name",
+    "island",
+    "land_cover",
+    "marine",
+    "marine_point",
+    "nztopo50_map_sheet",
+    "place_point",
+    "relief_line",
+    "relief_point",
+    "track_line",
+    "vegetation",
+    "water",
+    "water_line",
+    "water_point"
+  ],
   "chatham_islands": [
     "airport",
     "bridge_line",
@@ -60,6 +123,7 @@
     "land_use_line",
     "marine",
     "marine_point",
+    "nztopo50_map_sheet",
     "place_point",
     "relief_line",
     "road_line",
@@ -76,7 +140,9 @@
     "water_line",
     "water_point"
   ],
-  "antipodes_and_bounty_islands": [
+  "kermadec_islands": [
+    "building",
+    "building_point",
     "contour",
     "descriptive_text",
     "geographic_name",
@@ -84,46 +150,31 @@
     "land_cover",
     "marine",
     "marine_point",
+    "nztopo50_map_sheet",
     "relief_line",
     "relief_point",
-    "water_line",
-    "water_point"
-  ],
-  "auckland_islands": [
-    "contour",
-    "descriptive_text",
-    "geographic_name",
-    "island",
-    "land_cover",
-    "land_cover_point",
-    "marine",
-    "marine_point",
-    "place_point",
-    "relief_line",
-    "relief_point",
+    "runway",
+    "structure_line",
     "structure_point",
     "track_line",
     "vegetation",
+    "vegetation_point",
     "water",
     "water_line",
     "water_point"
   ],
-  "snares_ak_islands": [
-    "island"
-  ],
-  "campbell_island": [
-    "island"
-  ],
-  "bounty-islands": [
+  "snares_islands": [
+    "building_point",
     "contour",
+    "descriptive_text",
     "geographic_name",
     "island",
     "marine",
-    "marine_point",
+    "nztopo50_map_sheet",
     "relief_line",
-    "relief_point"
-  ],
-  "kermadec_raoul_islands": [
-    "island"
+    "relief_point",
+    "vegetation",
+    "water",
+    "water_line"
   ]
 }

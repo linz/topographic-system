@@ -161,21 +161,22 @@ EXPORT_CRS = {
     "new_zealand_mainland": 2193,
     "chatham_islands": 3793,
     "auckland_islands": 3788,
-    "snares_ak_islands": 3788,
-    "antipodes_and_bounty_islands": 3790,
-    "kermadec_raoul_islands": 3791,
-    "campbell_island": 3789,
+    "bounty_islands": 3790,  #CHECK THIS
+    "snares_islands": 3788,
+    "antipodes_islands": 3790,
+    "kermadec_islands": 3791,
+    "campbell_islands": 3789,
 }
 
 EXPORT_EXTENTS = {
     "new_zealand_mainland": [166, -47.54, 179.0, -33.9],
     "chatham_islands": [-177, -44.52, -176.131, -43.544],
-    "snares_ak_islands": [166.4, -51.1, 166.7, -48.0],
+    "snares_islands": [166.4, -51.1, 166.7, -48.0],
     "auckland_islands": [165.7, -51.1, 166.4, -50.4],
-    "antipodes_and_bounty_islands": [178.6, -49.9, 179.0, -49.5],
+    "antipodes_islands": [178.6, -49.9, 179.0, -49.5],
     "bounty_islands":[178.6, -47.9, 179.2, -47.6],
-    "kermadec_raoul_islands": [-179, -31.42, -177.7, -29.15],
-    "campbell_island": [168.9, -52.7, 169.3, -52.4],
+    "kermadec_islands": [-179, -31.42, -177.7, -29.15],
+    "campbell_islands": [168.9, -52.7, 169.3, -52.4],
 }
 
 ORIENTATION_LAYERS = {
