@@ -48,7 +48,7 @@ def _theme(mapping):
             "name": "airport",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
-            "schema_version": "v0.3",
+            "schema_version": {"default": "v0.3"},
             "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
         }
     )
@@ -183,7 +183,7 @@ def test_check_theme_or_warn_uses_theme_schema_version(schema_folder):
     (v04 / "airport.json").write_text(json.dumps({**SCHEMA, "required": ["type"]}))
 
     theme = _theme({"name": "$"})  # missing required 'type' -- only checkable if v0.4 is used
-    theme.schema_version = "v0.4"
+    theme.schema_version = {"default": "v0.4"}
     problems = check_theme_or_warn(theme)
     assert any("missing required column 'type'" in p for p in problems)
 
@@ -289,7 +289,7 @@ def _oneof_theme(mapping):
             "name": "land_cover_point",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
-            "schema_version": "v0.3",
+            "schema_version": {"default": "v0.3"},
             "datasets": [{"source": SOURCE, "name": "ds", "mapping": mapping}],
         }
     )

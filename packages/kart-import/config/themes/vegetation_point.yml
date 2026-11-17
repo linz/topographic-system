@@ -1,7 +1,8 @@
 name: vegetation_point
 target_repo: topographic-data
 target_epsg: EPSG:4167
-schema_version: v0.3
+schema_version:
+  default: v0.3
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-tree-points-topo-125k-zone3

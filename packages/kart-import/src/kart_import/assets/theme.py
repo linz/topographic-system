@@ -128,7 +128,7 @@ def coerce_dtypes(merged: gpd.GeoDataFrame, theme_name: str, schema_version: str
     here (or fails loudly) rather than silently becoming text downstream. Columns the schema
     doesn't describe, and themes with no schema at all, keep their inferred dtype.
 
-    `schema_version` is the theme's own pinned schema version (``Theme.schema_version``).
+    `schema_version` is the version that applies to the release being merged (``Theme.schema_version_for``).
     """
     targets = {col: RFC3339_STRING for col in LIFECYCLE_COLUMNS if col in merged.columns}
     targets.update(
@@ -319,7 +319,7 @@ def merge_theme_release(theme_name: str, release_id: int):
 
     unify_dtypes(gdfs)
     merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
-    merged = coerce_dtypes(merged, theme.name, theme.schema_version)
+    merged = coerce_dtypes(merged, theme.name, theme.schema_version_for(release_id))
 
     # A null/empty geometry (a source data-quality issue) has nothing to render or index anyway,
     # so drop it -- matching how the spatial lookup select drops geometryless rows.

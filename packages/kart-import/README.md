@@ -361,8 +361,27 @@ Some columns are populated by the pipeline rather than a mapping and so are alwa
 present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
 (`kart export`), and `bbox` (`to-parquet`). Any other required column must be mapped explicitly.
 
-Every theme declares its own `schema_version: v0.3` (or `v0.4`, etc.) in its yaml config; there
-is no global default, so this field is required.
+Every theme declares its own `schema_version` in its yaml config; there is no global default, so
+this field is required. It's a release-keyed mapping with a mandatory `default` plus the release
+id each later version takes over from -- a theme with only one version still needs a mapping,
+just with no overrides:
+
+```yaml
+schema_version:
+  default: v0.3
+  67: v0.4 # releases before 67 are checked/coerced against v0.3, 67 onward against v0.4
+```
+
+`kart_import_theme` records which version applies as the `linz_schema` kart meta item on the
+dataset. When the mapping's resolved version changes between consecutive imported releases, the
+meta update rides along in that release's own import commit (via `kart meta set --amend`) rather
+than a separate commit, with the commit message noting it:
+
+```
+feat(airport): import release 67
+
+schema changed to v0.4
+```
 
 Controlled by env vars:
 

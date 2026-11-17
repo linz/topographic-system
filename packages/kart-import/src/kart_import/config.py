@@ -341,10 +341,14 @@ class Theme(BaseModel):
     target epsg projection code
     """
 
-    schema_version: str
+    schema_version: dict[str, str]
     """
-    JSON schema version this theme is mapped against (e.g. "v0.4"), for both the static mapping
-    check and the output dtypes. One of `kart_import.schema_check.KNOWN_VERSIONS`.
+    JSON schema version(s) this theme is mapped against, for both the static mapping check and
+    the output dtypes. A release-keyed mapping with a mandatory "default" plus the release id
+    each later version takes over from, e.g. {"default": "v0.3", "67": "v0.4"} pins v0.3 up to
+    release 66 and v0.4 from release 67 onward. A theme with only one version still needs a
+    mapping, just with no overrides: {"default": "v0.3"}. See `schema_version_for`. Every version
+    must be one of `kart_import.schema_check.KNOWN_VERSIONS`.
     """
 
     datasets: list[ThemeDataset]
@@ -357,12 +361,43 @@ class Theme(BaseModel):
     derived lookup tables prepared from sources and joined into datasets
     """
 
+    @field_validator("schema_version", mode="before")
+    @classmethod
+    def _stringify_schema_version_keys(cls, value: Any) -> Any:
+        # YAML parses an unquoted release id (e.g. `67:`) as an int key; normalize to str so it
+        # matches the field's declared `dict[str, str]` shape before pydantic validates it.
+        if isinstance(value, dict):
+            return {str(key): version for key, version in value.items()}
+        return value
+
     @field_validator("schema_version")
     @classmethod
-    def known_schema_version(cls, value: str) -> str:
-        if value not in KNOWN_VERSIONS:
-            raise ValueError(f"Unknown schema_version {value!r}; expected one of {KNOWN_VERSIONS}")
+    def known_schema_version(cls, value: dict[str, str]) -> dict[str, str]:
+        if "default" not in value:
+            raise ValueError("schema_version mapping must have a 'default' entry")
+        for key, version in value.items():
+            if key != "default" and not key.isdigit():
+                raise ValueError(f"schema_version key {key!r} must be 'default' or a release id")
+            if version not in KNOWN_VERSIONS:
+                raise ValueError(f"Unknown schema_version {version!r}; expected one of {KNOWN_VERSIONS}")
         return value
+
+    def schema_version_for(self, release_id: int) -> str:
+        """The schema version that applies at `release_id`: the mapping's latest override whose
+        release id is <= `release_id`, falling back to `default` when no override applies yet.
+        """
+        overrides = {int(key): version for key, version in self.schema_version.items() if key != "default"}
+        applicable = [version for rid, version in sorted(overrides.items()) if rid <= release_id]
+        return applicable[-1] if applicable else self.schema_version["default"]
+
+    @property
+    def latest_schema_version(self) -> str:
+        """The schema version that applies to the newest release the mapping overrides (or just
+        `default`, if it has none). Used where no specific release is in scope, e.g. the static
+        mapping check at config-load time.
+        """
+        overrides = {int(key): version for key, version in self.schema_version.items() if key != "default"}
+        return overrides[max(overrides)] if overrides else self.schema_version["default"]
 
 
 class Release(BaseModel):

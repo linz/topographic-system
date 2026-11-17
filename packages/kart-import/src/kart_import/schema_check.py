@@ -243,9 +243,11 @@ def schema_dtypes(theme_name: str, schema_version: str) -> dict[str, str]:
 def check_theme(theme: Any, schema_version: str | None = None) -> list[str]:
     """Return a list of human-readable problems for ``theme``'s mappings.
 
-    ``schema_version`` defaults to ``theme.schema_version`` when not given explicitly.
+    ``schema_version`` defaults to ``theme.latest_schema_version`` when not given explicitly --
+    the version that governs the theme's mapping going forward, which is what a config-load-time
+    check should hold it to even if older releases were imported under an earlier version.
     """
-    schema_version = schema_version or theme.schema_version
+    schema_version = schema_version or theme.latest_schema_version
     sp = schema_path(theme.name, schema_version)
     if not sp.exists():
         return [f"{theme.name}: no schema at {sp}"]
@@ -332,7 +334,7 @@ def check_theme_or_warn(theme: Any) -> list[str]:
     ``warn`` logs each problem and continues; ``strict`` raises ``SchemaCheckError``;
     ``off`` skips the check entirely.
 
-    Checked against ``theme.schema_version``.
+    Checked against ``theme.latest_schema_version``.
     """
     mode = env_schema_check_mode()
     if mode == "off":
@@ -343,7 +345,7 @@ def check_theme_or_warn(theme: Any) -> list[str]:
             logger.warning("schema-check %s", p)
         # A missing schema file can't be a mapping violation, so it never hard-fails
         # strict mode — only an actual schema breach does.
-        if mode == "strict" and schema_path(theme.name, theme.schema_version).exists():
+        if mode == "strict" and schema_path(theme.name, theme.latest_schema_version).exists():
             raise SchemaCheckError(
                 f"{len(problems)} schema problem(s) in theme {theme.name!r}:\n  " + "\n  ".join(problems)
             )
