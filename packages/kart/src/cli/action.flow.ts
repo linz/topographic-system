@@ -2,6 +2,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { fsa } from '@chunkd/fs';
 import {
   canCommentOnPr,
   concurrency,
@@ -56,6 +57,11 @@ function datasetForParquet(parquetFile: URL): string {
   return path.basename(parquetFile.pathname, '.parquet');
 }
 
+function schemaPathForParquet(parquetFile: URL, schemaDirectory: URL): URL {
+  const schemaName = `${datasetForParquet(parquetFile)}.json`;
+  return new URL(schemaName, schemaDirectory);
+}
+
 /**
  * Looks up which published JSON schema applies to a dataset, by reading the `linz_schema` kart
  * meta item `kart_import_theme` records on it -- rather than assuming a single schema version
@@ -79,12 +85,35 @@ export const KartMeta = {
   },
 };
 
+/**
+ * Resolves the schema to validate `parquetFile` against: preferably its dataset's own
+ * `linz_schema` kart meta item, falling back to the pre-`linz_schema` convention of a flat local
+ * directory keyed by dataset name -- not every dataset has been re-imported under a theme's
+ * `schema_version` mapping yet, so this can't be a hard failure.
+ */
+async function resolveSchemaUrl(parquetFile: URL, context: URL, ref: string, schemaDirectory: URL): Promise<URL> {
+  const dataset = datasetForParquet(parquetFile);
+  try {
+    return await KartMeta.linzSchemaUrl(dataset, context, ref);
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    logger.info({ parquetFile: parquetFile.href, dataset, error }, 'Flow:ValidateSchema:FallingBackToSchemaDirectory');
+  }
+
+  const schemaPath = schemaPathForParquet(parquetFile, schemaDirectory);
+  if (!(await fsa.exists(schemaPath))) {
+    throw new Error(`Missing schema: ${schemaPath.href}`);
+  }
+  return schemaPath;
+}
+
 async function runSchemaValidationStep(args: {
   concurrency?: number;
   worker?: number;
   context: URL;
   ref: string;
   parquetTempLocation: URL;
+  schemaDirectory: URL;
 }): Promise<void> {
   registerFileSystem(); // `linz_schema` is a published https:// URL, not a local path.
 
@@ -96,13 +125,12 @@ async function runSchemaValidationStep(args: {
   const schemaValidationFailures: SchemaValidationFailure[] = [];
 
   await qMapAll(q, parquetFilesForValidation, async (parquetFile) => {
-    const dataset = datasetForParquet(parquetFile);
     let schema: URL;
     try {
-      schema = await KartMeta.linzSchemaUrl(dataset, args.context, args.ref);
+      schema = await resolveSchemaUrl(parquetFile, args.context, args.ref, args.schemaDirectory);
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      logger.error({ parquetFile: parquetFile.href, dataset, error }, 'Flow:ValidateSchema:NoSchemaMeta');
+      logger.error({ parquetFile: parquetFile.href, error }, 'Flow:ValidateSchema:MissingSchema');
       schemaValidationFailures.push({ parquetFile, error });
       return;
     }
@@ -225,6 +253,17 @@ export const FlowCommand = command({
       defaultValue: () => stringToUrlFolder(path.join(baseOutputLocation, 'parquet')),
     }),
 
+    // Validate Schema args
+    schemaDirectory: option({
+      type: UrlFolder,
+      long: 'schema-directory',
+      // Fallback for a dataset that hasn't been re-imported with a `linz_schema` kart meta item
+      // yet; once every dataset has one this directory-matching path is dead and can go.
+      description:
+        'Fallback path to JSON schemas directory for a dataset with no linz_schema meta (default: /schema/v0.3)',
+      defaultValue: () => new URL('file:///schema/v0.3/'),
+    }),
+
     // Validate args
     configFile: option({
       type: Url,
@@ -295,6 +334,7 @@ export const FlowCommand = command({
       context: args.cloneOutput,
       ref: args.exportRef,
       parquetTempLocation: args.parquetTempLocation,
+      schemaDirectory: args.schemaDirectory,
     });
 
     ghGroupLog('Flow:Step [8/8] validate topography');

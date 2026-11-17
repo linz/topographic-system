@@ -107,6 +107,7 @@ describe('action.flow', () => {
       parquetTempLocation: stringToUrlFolder(path.join(testDir, 'parquet')),
 
       // Validate
+      schemaDirectory: stringToUrlFolder(path.join(testDir, 'schema')),
       configFile: pathToFileURL('/packages/validation/config/default_config.json'),
       validationOutputDir: stringToUrlFolder(path.join(testDir, 'validation-output')),
     };
@@ -352,7 +353,40 @@ describe('action.flow', () => {
       assert.strictEqual(mocks.validate.mock.callCount(), 0, 'validate should not run when schema step fails');
     });
 
-    it('should fail when a dataset has no linz_schema meta item', async () => {
+    it('should fall back to the schema directory when a dataset has no linz_schema meta item', async () => {
+      // road_line hasn't been re-imported under a schema_version mapping yet (no meta item);
+      // water has. Both must still validate, from whichever source has the schema.
+      const fallbackSchemaDir = path.join(schemaTestDir, 'fallback-schema');
+      await mkdir(fallbackSchemaDir, { recursive: true });
+      await writeFile(path.join(fallbackSchemaDir, 'road_line.json'), '{}');
+
+      const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
+      mock.method(KartMeta, 'linzSchemaUrl', async (dataset: string) => {
+        if (dataset === 'water') return new URL(`https://schema.test/v0.4/${dataset}.json`);
+        throw new Error(`Dataset ${dataset} has no 'linz_schema' meta item at ref FETCH_HEAD`);
+      });
+      const validateSchema = mock.method(ValidateSchemaCommand, 'handler', async () => {});
+
+      await FlowCommand.handler({
+        ...defaultFlowArgs,
+        parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
+        schemaDirectory: stringToUrlFolder(fallbackSchemaDir),
+      });
+
+      assert.strictEqual(validateSchema.mock.callCount(), 2);
+      const schemaCalls = validateSchema.mock.calls
+        .map((c) => c.arguments[0])
+        .map((a) => ({ schema: a?.schema?.href, parquet: path.basename(a?.paths?.[0]?.pathname ?? '') }))
+        .sort((a, b) => a.parquet.localeCompare(b.parquet));
+
+      assert.deepStrictEqual(schemaCalls, [
+        { schema: pathToFileURL(path.join(fallbackSchemaDir, 'road_line.json')).href, parquet: 'road_line.parquet' },
+        { schema: 'https://schema.test/v0.4/water.json', parquet: 'water.parquet' },
+      ]);
+      assert.strictEqual(mocks.validate.mock.callCount(), 1, 'validate should run after schema step succeeds');
+    });
+
+    it('should fail when neither a linz_schema meta item nor a fallback schema file exist', async () => {
       const mocks = mockAllHandlers(undefined, { mockValidateSchema: false });
       mock.method(KartMeta, 'linzSchemaUrl', async (dataset: string) => {
         throw new Error(`Dataset ${dataset} has no 'linz_schema' meta item at ref FETCH_HEAD`);
@@ -364,11 +398,12 @@ describe('action.flow', () => {
           FlowCommand.handler({
             ...defaultFlowArgs,
             parquetTempLocation: stringToUrlFolder(path.join(schemaTestDir, 'parquet')),
+            schemaDirectory: stringToUrlFolder(path.join(schemaTestDir, 'empty-schema')),
           }),
         { message: 'Schema validation failed for 2 parquet file(s)' },
       );
 
-      assert.strictEqual(validateSchema.mock.callCount(), 0, 'no validations attempted when schema meta is missing');
+      assert.strictEqual(validateSchema.mock.callCount(), 0, 'no validations attempted when schema is missing');
       assert.strictEqual(mocks.validate.mock.callCount(), 0, 'validate should not run when schema step fails');
     });
   });
