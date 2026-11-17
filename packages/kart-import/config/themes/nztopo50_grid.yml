@@ -8,8 +8,8 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
     name: nztopo50_grid
     mapping:
-      t50_fid: null
       direction: { source: null, fixup: true }
       value: { source: null, fixup: true }
+      metadata: { source: null, fixup: true }
     fixups:
       - fn: generate_nztm_grid_features

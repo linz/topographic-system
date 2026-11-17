@@ -844,10 +844,19 @@ def test_grid_ids_are_unique_and_namespaced_per_dataset():
 
 def test_grid_output_shape():
     out = _tiny()
-    assert out.columns.tolist() == ["id", "t50_fid", "direction", "value", "geometry"]
-    assert out["t50_fid"].isna().all()
+    assert out.columns.tolist() == ["id", "created_at", "updated_at", "direction", "value", "metadata", "geometry"]
     assert out.index.tolist() == list(range(len(out)))  # theme.py does positional lookups
     assert out.geometry.is_valid.all()
+
+
+def test_grid_carries_its_own_lifecycle_and_null_metadata():
+    """The grid replaces the source rows, so the pipeline's lifecycle columns don't survive; it pins its own."""
+    from .assets.theme import _to_rfc3339
+
+    out = _tiny(_grid_gdf(rows=[("easting", 0.0, "id-from-source")]))
+    assert _to_rfc3339(out["created_at"]).unique().tolist() == ["2015-11-19T02:33:32Z"]
+    assert out["updated_at"].tolist() == out["created_at"].tolist()
+    assert out["metadata"].isna().all()
 
 
 def test_grid_is_reprojected_into_the_source_crs_with_every_vertex():
