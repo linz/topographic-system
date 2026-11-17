@@ -1,6 +1,8 @@
 name: bridge_line
 target_repo: topographic-data
 target_epsg: EPSG:4167
+schema_version:
+  default: v0.3
 datasets:
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/cook-islands-bridge-centrelines-topo-125k-zone4

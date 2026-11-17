@@ -23,6 +23,7 @@ def _theme_with_join(join_columns):
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": {"default": "v0.3"},
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -82,6 +83,7 @@ def test_lookup_and_join_parse():
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": {"default": "v0.3"},
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -128,6 +130,7 @@ def _theme_with_mapping(mapping, joins):
             "name": "road_line",
             "target_repo": "topographic-data",
             "target_epsg": "EPSG:4167",
+            "schema_version": {"default": "v0.3"},
             "lookups": [
                 {
                     "name": "road_lkp",
@@ -342,3 +345,74 @@ def test_get_repo_remote_empty_value_raises(monkeypatch, tmp_path):
     _write_repos(monkeypatch, tmp_path, f'repos:\n  {REPO}: ""\n')
     with pytest.raises(KeyError, match="No remote URL defined"):
         get_repo_remote(REPO)
+
+
+def _theme_with_schema_version(schema_version):
+    return Theme.model_validate(
+        {
+            "name": "airport",
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "schema_version": schema_version,
+            "datasets": [{"source": SOURCE}],
+        }
+    )
+
+
+def test_schema_version_is_required():
+    with pytest.raises(ValidationError):
+        _theme_with_schema_version(None)
+
+
+def test_schema_version_accepts_known_version():
+    assert _theme_with_schema_version({"default": "v0.4"}).schema_version == {"default": "v0.4"}
+
+
+def test_schema_version_rejects_unknown_version():
+    with pytest.raises(ValidationError, match="Unknown schema_version 'v0.9'"):
+        _theme_with_schema_version({"default": "v0.9"})
+
+
+def test_schema_version_mapping_requires_default():
+    with pytest.raises(ValidationError, match="must have a 'default' entry"):
+        _theme_with_schema_version({"67": "v0.4"})
+
+
+def test_schema_version_mapping_rejects_non_default_non_numeric_key():
+    with pytest.raises(ValidationError, match="must be 'default' or a release id"):
+        _theme_with_schema_version({"default": "v0.3", "next": "v0.4"})
+
+
+def test_schema_version_mapping_rejects_unknown_version():
+    with pytest.raises(ValidationError, match="Unknown schema_version 'v0.9'"):
+        _theme_with_schema_version({"default": "v0.3", "67": "v0.9"})
+
+
+def test_schema_version_mapping_accepts_unquoted_release_id_key():
+    # YAML parses an unquoted `67:` as an int key; the theme must still accept it.
+    theme = _theme_with_schema_version({"default": "v0.3", 67: "v0.4"})
+    assert theme.schema_version == {"default": "v0.3", "67": "v0.4"}
+
+
+def test_schema_version_for_mapping_with_no_overrides_always_returns_default():
+    theme = _theme_with_schema_version({"default": "v0.4"})
+    assert theme.schema_version_for(1) == "v0.4"
+    assert theme.schema_version_for(999) == "v0.4"
+
+
+def test_schema_version_for_mapping_resolves_by_release_boundary():
+    theme = _theme_with_schema_version({"default": "v0.3", "67": "v0.4"})
+    assert theme.schema_version_for(1) == "v0.3"
+    assert theme.schema_version_for(66) == "v0.3"
+    assert theme.schema_version_for(67) == "v0.4"
+    assert theme.schema_version_for(68) == "v0.4"
+
+
+def test_latest_schema_version_for_mapping_is_newest_override():
+    theme = _theme_with_schema_version({"default": "v0.3", "67": "v0.4"})
+    assert theme.latest_schema_version == "v0.4"
+
+
+def test_latest_schema_version_for_mapping_with_no_overrides_is_default():
+    theme = _theme_with_schema_version({"default": "v0.3"})
+    assert theme.latest_schema_version == "v0.3"

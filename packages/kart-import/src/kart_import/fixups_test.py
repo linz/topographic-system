@@ -653,7 +653,7 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
             "fixups": fixups_cfg,
         }
     )
-    theme = Theme(name="t", target_repo="r", target_epsg="EPSG:4326", datasets=[td])
+    theme = Theme(name="t", target_repo="r", target_epsg="EPSG:4326", schema_version={"default": "v0.3"}, datasets=[td])
     releases = [Release(id=60, date=datetime(2020, 1, 1)), Release(id=66, date=datetime(2021, 1, 1))]
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
@@ -938,6 +938,7 @@ def _seed_sea_transforms(tmp_path, monkeypatch):
                 "name": name,
                 "target_repo": "x",
                 "target_epsg": "EPSG:4167",
+                "schema_version": {"default": "v0.3"},
                 "datasets": [{"name": dataset, "source": "kart@data.koordinates.com:linz/x-topo-150k"}],
             }
         )
@@ -1092,6 +1093,7 @@ def test_carto_text_example_point_id_two_pass(monkeypatch):
             name=name,
             target_repo="r",
             target_epsg="EPSG:2193",
+            schema_version={"default": "v0.3"},
             datasets=[
                 ThemeDataset.model_validate(
                     {"name": dataset_name, "source": "kart@data.koordinates.com:linz/x-topo-150k"}
