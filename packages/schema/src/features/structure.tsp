@@ -55,6 +55,7 @@ enum structure_subtype {
 }
 
 enum structure_tank_type {
+  Covered: "covered",
   Uncovered: "uncovered",
   Water: "water",
   SurgeChamber: "surge_chamber",
