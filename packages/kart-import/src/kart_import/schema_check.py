@@ -49,7 +49,7 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
-from .env import env_schema_check_mode, env_schema_dir_override
+from .env import env_schema_check_mode, env_schema_dir_override, env_schema_host
 
 if TYPE_CHECKING:
     from referencing._core import Resolver
@@ -107,6 +107,19 @@ def schema_dir(schema_version: str) -> Path:
 
 def schema_path(theme_name: str, schema_version: str) -> Path:
     return schema_dir(schema_version) / f"{theme_name}.json"
+
+
+def schema_url(theme_name: str, schema_version: str) -> str:
+    """Public URL of a theme's published JSON schema, recorded on its dataset as the
+    `linz_schema` kart meta item (see `kart_import_theme.kart_import_theme`).
+
+    Mirrors `schema_dir`'s version selection (the theme's own pinned `schema_version`), but
+    always against the real published layout (`<host>/<schema_version>/<theme>.json`) rather
+    than a `KART_SCHEMA_DIR` test override.
+    """
+    if schema_version not in KNOWN_VERSIONS:
+        raise ValueError(f"Unknown schema_version {schema_version!r}; expected one of {KNOWN_VERSIONS}")
+    return f"{env_schema_host()}{schema_version}/{theme_name}.json"
 
 
 @cache
