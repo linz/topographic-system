@@ -40,6 +40,7 @@ enum water_subtype {
   Evaporation: "evaporation",
   HydroElectric: "hydro_electric",
   IceSkating: "ice_skating",
+  IndustrialWaste: "industrial_waste",
   Oil: "oil",
   Oxidation: "oxidation",
   Reservoir: "reservoir",

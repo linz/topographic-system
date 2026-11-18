@@ -223,6 +223,7 @@ datasets:
       - column: subtype
         replace:
           'ice skating': ice_skating
+          'industrial waste': industrial_waste
           'sewage treatment': sewage_treatment
           'Oxidation': oxidation
   # # pi
