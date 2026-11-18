@@ -13,6 +13,16 @@ This project is a snakemake-based pipeline for importing topographic data from L
   ```
 
 - **`git`** on `PATH`.
+- **The generated JSON schemas** in `schema/` at the repo root. They are built from
+  `packages/schema` and are not committed, so a fresh checkout has none. From the repo root:
+
+  ```shell
+  npm ci && npm run -w packages/schema bundle
+  ```
+
+  Without them the pipeline only warns, and skips the column type conversion (see
+  [Config schema check](#config-schema-check)). With `KART_SCHEMA_CHECK=strict` it stops instead.
+
 - **An SSH key registered with the LINZ Data Service.** Every source dataset is cloned over
   SSH from `kart@data.koordinates.com` (see the `source:` values in `config/themes/*.yml`),
   which authenticates with your LDS user's SSH key. Add your public key (e.g. `~/.ssh/id_ed25519.pub`) under _SSH keys_ in your
@@ -356,6 +366,10 @@ as the nullable form of its non-null branch, and `$ref` is resolved within the d
 property the mapping does not supply a scalar for (i.e. `geometry`, declared only as
 `not: {type: null}`; and `bbox`, declared as object) contributes no dtype, and neither does a theme with
 no schema file.
+
+A missing schema file is reported for every version a theme's `schema_version` uses. In `warn`
+mode that allows a schema-less dev run, whose output keeps the dtypes the sources carried; in
+`strict` mode it raises, so a run that is meant to be checked can't silently go without schemas.
 
 Some columns are populated by the pipeline rather than a mapping and so are always treated as
 present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`

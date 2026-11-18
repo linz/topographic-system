@@ -166,13 +166,43 @@ def test_off_mode_skips(schema_folder, monkeypatch):
     assert check_theme_or_warn(_theme({"type": "aerodrome"})) == []
 
 
-def test_strict_mode_does_not_raise_on_missing_schema(schema_folder, monkeypatch):
-    # A theme with no schema file creates a warning even in strict mode.
+def test_missing_schema_says_how_to_generate_it(schema_folder):
+    theme = _theme({"type": "airport"})
+    theme.name = "no_such_theme"
+    (problem,) = check_theme(theme)
+    assert "npm run -w packages/schema bundle" in problem
+
+
+def test_strict_mode_raises_on_missing_schema(schema_folder, monkeypatch):
+    # Without a schema the coerce pass skips type conversion, so a strict run must not carry on.
     monkeypatch.setenv("KART_SCHEMA_CHECK", "strict")
+    theme = _theme({"type": "airport"})
+    theme.name = "no_such_theme"
+    with pytest.raises(SchemaCheckError, match="no schema"):
+        check_theme_or_warn(theme)
+
+
+def test_warn_mode_allows_missing_schema(schema_folder, monkeypatch):
+    # A schema-less dev run is still allowed outside strict mode, with a warning.
+    monkeypatch.setenv("KART_SCHEMA_CHECK", "warn")
     theme = _theme({"type": "airport"})
     theme.name = "no_such_theme"
     problems = check_theme_or_warn(theme)
     assert len(problems) == 1 and "no schema" in problems[0]
+
+
+def test_strict_mode_raises_on_missing_earlier_version_schema(schema_folder, monkeypatch):
+    # Mappings are checked against the latest version, but releases pinned to an earlier version
+    # are coerced with that version's schema, so its file must exist too.
+    monkeypatch.setenv("KART_SCHEMA_CHECK", "strict")
+    v04 = schema_folder.parent / "v0.4"
+    v04.mkdir()
+    (v04 / "airport.json").write_text(json.dumps(SCHEMA))
+    (schema_folder / "airport.json").unlink()  # v0.3, still used before release 67
+    theme = _theme({"type": "airport"})
+    theme.schema_version = {"default": "v0.3", "67": "v0.4"}
+    with pytest.raises(SchemaCheckError, match=r"v0\.3/airport\.json"):
+        check_theme_or_warn(theme)
 
 
 def test_check_theme_or_warn_uses_theme_schema_version(schema_folder):

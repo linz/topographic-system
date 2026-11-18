@@ -55,6 +55,8 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', `GIT_COMMITTER_EMAIL=e2e@example.com`],
         ['-e', 'KART_IMPORT_THEME=airport'],
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
+        // Fail rather than warn on schema problems, including missing schemas (see push.yml)
+        ['-e', 'KART_SCHEMA_CHECK=strict'],
         // e2e has no credentials for the real Koordinates source repos; trust the bundle.
         ['-e', 'KART_IMPORT_SKIP_SOURCE_PULL=true'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],

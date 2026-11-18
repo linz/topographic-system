@@ -109,6 +109,12 @@ def schema_path(theme_name: str, schema_version: str) -> Path:
     return schema_dir(schema_version) / f"{theme_name}.json"
 
 
+def _missing_schema(theme_name: str, path: Path) -> str:
+    """The problem reported for a theme whose schema file doesn't exist. ``schema/`` is generated,
+    not committed, so the usual cause is a checkout where it was never built."""
+    return f"{theme_name}: no schema at {path} (generate it with `npm run -w packages/schema bundle`)"
+
+
 def schema_url(theme_name: str, schema_version: str) -> str:
     """Public URL of a theme's published JSON schema, recorded on its dataset as the
     `linz_schema` kart meta item (see `kart_import_theme.kart_import_theme`).
@@ -250,7 +256,7 @@ def check_theme(theme: Any, schema_version: str | None = None) -> list[str]:
     schema_version = schema_version or theme.latest_schema_version
     sp = schema_path(theme.name, schema_version)
     if not sp.exists():
-        return [f"{theme.name}: no schema at {sp}"]
+        return [_missing_schema(theme.name, sp)]
 
     doc = _load_schema(str(sp))
     defs = doc.get("$defs", {})
@@ -334,18 +340,24 @@ def check_theme_or_warn(theme: Any) -> list[str]:
     ``warn`` logs each problem and continues; ``strict`` raises ``SchemaCheckError``;
     ``off`` skips the check entirely.
 
-    Checked against ``theme.latest_schema_version``.
+    Mappings are checked against ``theme.latest_schema_version``. Every version the theme uses
+    must also have a schema file: without one, `schema_dtypes` silently skips the type coercion
+    for the releases it covers. ``warn`` allows that for a schema-less dev run; ``strict``
+    raises, so a run that is meant to be checked can't quietly go without schemas.
     """
     mode = env_schema_check_mode()
     if mode == "off":
         return []
     problems = check_theme(theme)
+    # `check_theme` only looks at the latest version; releases pinned to an earlier one need theirs too
+    for version in sorted(set(theme.schema_version.values()) - {theme.latest_schema_version}):
+        sp = schema_path(theme.name, version)
+        if not sp.exists():
+            problems.append(_missing_schema(theme.name, sp))
     if problems:
         for p in problems:
             logger.warning("schema-check %s", p)
-        # A missing schema file can't be a mapping violation, so it never hard-fails
-        # strict mode — only an actual schema breach does.
-        if mode == "strict" and schema_path(theme.name, theme.latest_schema_version).exists():
+        if mode == "strict":
             raise SchemaCheckError(
                 f"{len(problems)} schema problem(s) in theme {theme.name!r}:\n  " + "\n  ".join(problems)
             )

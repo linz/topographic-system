@@ -380,7 +380,9 @@ def test_build_road_metadata_carries_the_stamp_forward_for_an_unchanged_feature(
     assert stamp == "2021-02-19T06:17:49Z"  # the feature's last-modified, not release 66 or 67
 
     # A feature that changed at release 67 gets that release's stamp instead.
-    changed = fixups.build_road_metadata(_road_gdf([3061525], updated_at="2026-09-15T00:00:00+00:00"), _td([], ROADS), 67)
+    changed = fixups.build_road_metadata(
+        _road_gdf([3061525], updated_at="2026-09-15T00:00:00+00:00"), _td([], ROADS), 67
+    )
     assert json.loads(changed["metadata"].iloc[0])[0]["imported_at"] == "2026-09-15T00:00:00Z"
 
 

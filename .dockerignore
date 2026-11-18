@@ -4,3 +4,6 @@ node_modules
 **/__pycache__
 **/*.pyc
 .git
+# kart-import's local pipeline state (can be tens of GB)
+packages/kart-import/data
+packages/kart-import/logs
