@@ -26,10 +26,15 @@ datasets:
       name: $name
       theme: transport
       metadata: null
-    corrections:
+    corrections: &bridge_corrections
       - column: type
         replace:
           foot traffic: foot_traffic
+      # `subtype` (bridge_subtype) only has `foot_traffic`/`train` values; a farm bridge's
+      # `use_2` carries no meaningful subtype (e.g. "vehicle", which is a `type` on its own).
+      - column: subtype
+        set: null
+        where: { type: farm }
   - source: kart@data.koordinates.com:linz/nz-chatham-island-bridge-centrelines-topo-150k
     mapping:
       t50_fid: $
@@ -40,10 +45,7 @@ datasets:
       name: $name
       theme: transport
       metadata: null
-    corrections:
-      - column: type
-        replace:
-          foot traffic: foot_traffic
+    corrections: *bridge_corrections
   # Only keep NZ datasets for initial load.
   #  - source: kart@data.koordinates.com:linz/tokelau-bridge-centrelines-topo-125k
   #    mapping:
