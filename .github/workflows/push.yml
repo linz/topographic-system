@@ -112,6 +112,9 @@ jobs:
 
       - run: npm ci
 
+      # kart-import reads the generated JSON schemas from schema/, which isn't committed
+      - run: npm run -w packages/schema bundle
+
       - run: |
           node e2e/index.import.ts \
             --verbose \

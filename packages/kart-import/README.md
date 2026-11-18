@@ -13,6 +13,16 @@ This project is a snakemake-based pipeline for importing topographic data from L
   ```
 
 - **`git`** on `PATH`.
+- **The generated JSON schemas** in `schema/` at the repo root. They are built from
+  `packages/schema` and are not committed, so a fresh checkout has none. From the repo root:
+
+  ```shell
+  npm ci && npm run -w packages/schema bundle
+  ```
+
+  Without them the pipeline only warns, and skips the column type conversion (see
+  [Config schema check](#config-schema-check)). With `KART_SCHEMA_CHECK=strict` it stops instead.
+
 - **An SSH key registered with the LINZ Data Service.** Every source dataset is cloned over
   SSH from `kart@data.koordinates.com` (see the `source:` values in `config/themes/*.yml`),
   which authenticates with your LDS user's SSH key. Add your public key (e.g. `~/.ssh/id_ed25519.pub`) under _SSH keys_ in your
