@@ -325,6 +325,7 @@ datasets:
     corrections:
       - column: subtype
         replace:
+          'mine vent': mine_ventilation
           'tunnel ventilation': tunnel_ventilation
 
   # -------- siphon

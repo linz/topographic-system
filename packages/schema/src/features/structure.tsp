@@ -43,6 +43,7 @@ enum structure_subtype {
   Lighthouse: "lighthouse",
   Lime: "lime",
   Locked: "locked",
+  MineVentilation: "mine_ventilation",
   Plane: "plane",
   PowerGeneration: "power_generation",
   Rock: "rock",
