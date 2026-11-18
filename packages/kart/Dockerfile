@@ -7,6 +7,24 @@ RUN uv sync --directory /packages/validation
 COPY packages/data-prep /packages/data-prep
 RUN uv sync --directory /packages/data-prep
 
+# kart-import has no lockfile of its own and depends on data-prep, so unlike the two packages
+# above it can only be installed through the repo's root uv workspace (pyproject.toml + uv.lock).
+# The workspace goes under /workspace rather than /, so it can't take over the standalone
+# /packages/validation and /packages/data-prep installs above.
+
+# 1. The workspace definition: which packages exist, and every pinned dependency version
+COPY pyproject.toml uv.lock /workspace/
+# 2. kart-import, and data-prep which it imports in its fixups
+COPY packages/data-prep /workspace/packages/data-prep
+COPY packages/kart-import /workspace/packages/kart-import
+# 3. Install only kart-import and its dependencies. --frozen installs straight from uv.lock (the
+#    workspace's other members, such as qgis, aren't copied, so uv must not try to re-lock), and
+#    --no-dev skips the root dev tools (pytest, mypy, ruff).
+#    At runtime use `uv run --no-sync ...` from /workspace/packages/kart-import, for the same reason.
+RUN uv sync --directory /workspace --frozen --no-dev --package topographic-system-kart-import
+# 4. kart-import reads schemas from <workspace root>/schema; point that at /schema, copied below
+RUN ln --symbolic /schema /workspace/schema
+
 COPY packages/kart/dist/ /app/
 
 # TODO: In future, this may want to live in https/s3/somewhere publicly accessible
