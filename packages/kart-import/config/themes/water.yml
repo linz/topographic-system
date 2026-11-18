@@ -223,7 +223,9 @@ datasets:
       - column: subtype
         replace:
           'ice skating': ice_skating
+          'industrial waste': industrial_waste
           'sewage treatment': sewage_treatment
+          'Oxidation': oxidation
   # # pi
   # - source: kart@data.koordinates.com:linz/cook-islands-pond-polygons-topo-125k-zone4
   #   name: cook_islands_pond_polygons_topo_125k_zone4

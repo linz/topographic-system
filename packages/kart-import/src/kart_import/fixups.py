@@ -1132,6 +1132,32 @@ def split_bay_inlet_gorge_valley(gdf: gpd.GeoDataFrame, td: ThemeDataset, releas
     return gdf
 
 
+def fish_farm_species(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Merge a fish farm's species, read into `subtype` from the raw `type` column (see the
+    `nz_fish_farm_polygons_topo_150k` mapping), into `species`, and null `subtype` - `type`
+    isn't a structure_subtype, it's where some releases park the species instead of `species`.
+    """
+    gdf["species"] = gdf["species"].astype("string").fillna(gdf["subtype"].astype("string"))
+    gdf["subtype"] = None
+    return gdf
+
+
+def gate_closed_status(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """A gate's `restrictns` value of "closed" describes the gate's current state, not a
+    structure_subtype (`closed` isn't a valid one) - it belongs in `status` instead. Move it
+    there and null the subtype, so only genuine subtype values (e.g. `locked`) remain.
+    """
+    closed = gdf["subtype"].astype("string").eq("closed").fillna(False)
+    gdf.loc[closed, "status"] = "closed"
+    gdf.loc[closed, "subtype"] = None
+
+    logger.info(
+        "gate_closed_status",
+        extra={"dataset": td.name, "release": release_id, "closed": int(closed.sum())},
+    )
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
@@ -1142,6 +1168,8 @@ FIXUPS: dict[str, Fixup] = {
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,
     "drop_empty_residential_areas": drop_empty_residential_areas,
+    "fish_farm_species": fish_farm_species,
+    "gate_closed_status": gate_closed_status,
     "generate_dms_grid_features": generate_dms_grid_features,
     "generate_nztm_grid_features": generate_nztm_grid_features,
     "generate_sea_polygon": generate_sea_polygon,

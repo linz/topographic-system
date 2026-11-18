@@ -187,6 +187,7 @@ datasets:
       metadata: null
     fixups:
       - fn: orientation_degrees
+      - fn: gate_closed_status
   - source: kart@data.koordinates.com:linz/nz-chatham-island-gate-points-topo-150k
     name: nz_chatham_island_gate_points_topo_150k
     mapping:
@@ -200,6 +201,8 @@ datasets:
       orientation: null
       theme: structures
       metadata: null
+    fixups:
+      - fn: gate_closed_status
 
   # -------- ladder
   # Per FTM schema feedback (page 20): ladder_upright_materials is always
@@ -322,6 +325,7 @@ datasets:
     corrections:
       - column: subtype
         replace:
+          'mine vent': mine_ventilation
           'tunnel ventilation': tunnel_ventilation
 
   # -------- siphon

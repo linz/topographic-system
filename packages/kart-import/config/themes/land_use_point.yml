@@ -15,4 +15,5 @@ datasets:
       theme: land_use
       metadata: null
     corrections:
-      - { column: status, replace: { historic: old } }
+      # `Historic` (capitalized, release 48, 1 feature) is the same value as `historic`.
+      - { column: status, replace: { historic: old, Historic: old } }

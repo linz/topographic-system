@@ -21,13 +21,17 @@ datasets:
       metadata: null
 
   # -------- fish_farm
+  # The raw `type` column holds species data (e.g. "salmon"), not a structure_subtype - the
+  # real species lives in `species`. The two coexist across releases, each empty where the
+  # other carries the value (release 67: species populated, type empty; release 44: the
+  # reverse), so `fish_farm_species` merges them into `species` and nulls `subtype`.
   # nz
   - source: kart@data.koordinates.com:linz/nz-fish-farm-polygons-topo-150k
     name: nz_fish_farm_polygons_topo_150k
     mapping:
       t50_fid: $
       type: fish_farm
-      subtype: $type
+      subtype: { source: $type, fixup: true }
       lid_type: null
       tank_type: null
       species: $
@@ -35,6 +39,8 @@ datasets:
       name: null
       theme: structures
       metadata: null
+    fixups:
+      - fn: fish_farm_species
 
   # -------- marine_farm
   # nz

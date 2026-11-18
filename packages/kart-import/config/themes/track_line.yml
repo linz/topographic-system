@@ -53,10 +53,8 @@ datasets:
       - fn: drop_degenerate_tracks # near-zero-length lines that collapse to LINESTRING EMPTY on rounding
     corrections:
       - { column: type, replace: { 'cycle only': cycle_only } }
-      # `poled route` (releases 30-58, up to 397 features) needs a subtype enum value
-      # (BM-1783); snake_cased here as the legacy loader did. `routeroute` is a source typo
-      # (1 feature, release 63).
-      - { column: subtype, replace: { 'poled route': poled_route, routeroute: route } }
+      # (BM-1783/BM-1988); folded into `route`, the closest existing value. `routeroute` is a source typo
+      - { column: subtype, replace: { 'poled route': route, routeroute: route } }
   - source: kart@data.koordinates.com:linz/nz-auckland-island-track-centrelines-topo-150k
     feature_key: auto_pk
     mapping:

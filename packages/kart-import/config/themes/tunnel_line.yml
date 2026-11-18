@@ -17,6 +17,7 @@ datasets:
     corrections:
       - { column: type, replace: { 'foot traffic': foot_traffic } }
       - { column: subtype, replace: { ivestock: livestock } }
+      - { column: status, replace: { 'under construction': under_construction } }
       # A handful of releases have use1/use2 swapped: `vehicle` lands in use2 and `livestock` in use1. Put each back in its own column.
       - { column: type, set: vehicle, where: { subtype: vehicle } }
       - { column: subtype, set: livestock, where: { subtype: vehicle } }
