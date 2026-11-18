@@ -26,6 +26,7 @@ from .fixups import (
     contour_type,
     drop_degenerate_fences,
     drop_empty_residential_areas,
+    gate_closed_status,
     generate_dms_grid_features,
     generate_nztm_grid_features,
     generate_sea_polygon,
@@ -56,6 +57,25 @@ def test_split_bay_inlet_gorge_valley():
     )
     out = split_bay_inlet_gorge_valley(gdf, _td([], name="geographic_name"), 66)
     assert out["type"].tolist() == ["inlet", "bay", "gorge", "valley", "beach", "bay"]
+
+
+def test_gate_closed_status():
+    """A `closed` gate isn't a valid structure_subtype - it moves to `status`, and `subtype` is
+    nulled. Other subtypes (e.g. `locked`) and an existing status are left untouched."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "subtype": ["closed", "locked", None],
+            "status": [None, None, "dangerous"],
+        },
+        geometry=[Point(i, i) for i in range(3)],
+        crs="EPSG:4167",
+    )
+    out = gate_closed_status(gdf, _td([], name="nz_gate_points_topo_150k"), 66)
+    assert out["subtype"].isna().tolist() == [True, False, True]
+    assert out["subtype"].tolist()[1] == "locked"
+    assert out["status"].isna().tolist() == [False, True, False]
+    assert out["status"].tolist()[0] == "closed"
+    assert out["status"].tolist()[2] == "dangerous"
 
 
 def _contour_gdf(rows: list[tuple]) -> gpd.GeoDataFrame:
