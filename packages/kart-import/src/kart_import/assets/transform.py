@@ -163,7 +163,10 @@ def normalize_field_lifecyle(
     primary_key = gdf[pk_col].astype(str)
 
     gdf["created_at"] = primary_key.map(lambda x: lifecycle_data.get(x, {}).get("created_at"))
-    gdf["updated_at"] = gdf["created_at"]
+    # updated_at is the feature's real last-modified from the lifecycle
+    gdf["updated_at"] = primary_key.map(
+        lambda x: lifecycle_data.get(x, {}).get("updated_at") or lifecycle_data.get(x, {}).get("created_at")
+    )
 
     # Look up pre-computed UUIDv7 id from lifecycle data
     def get_feature_id(fid):

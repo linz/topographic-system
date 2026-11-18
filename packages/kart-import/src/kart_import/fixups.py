@@ -166,9 +166,9 @@ class SourceRef(NamedTuple):
     source_column: str
     """The column within that table the value was read from."""
     source_updated_at: str | None = None
-    """RFC 3339 UTC text, or `None` to stamp both timestamps from the release date - see
-    `_build_source_metadata`. Set this only when a ref needs a different stamp, e.g. build-time
-    wall-clock rather than the release it's imported for."""
+    """RFC 3339 UTC text, or `None` to stamp both timestamps from the feature's own last-modified
+    (`updated_at`) - see `_build_source_metadata`. Set this only when a ref needs a different stamp,
+    e.g. build-time wall-clock for a source that carries no per-record update time of its own."""
     imported_at: str | None = None
     """As `source_updated_at`; the two are independent so a ref can set one without the other."""
 
@@ -195,21 +195,6 @@ def _rfc3339(moment: datetime) -> str:
     """`moment` as RFC 3339 UTC text (second precision, `Z` suffix) - the one timestamp shape every
     provenance record uses, whether stamped from a release date or the build's wall clock."""
     return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def _release_stamp(release_id: int) -> str:
-    """The release's own date as an RFC 3339 UTC stamp, for a provenance timestamp."""
-    from .config import get_releases
-
-    release_date = next((release.date for release in get_releases() if release.id == release_id), None)
-    if release_date is None:
-        raise LookupError(f"release {release_id} is not in the release config")
-    # A naive date is read as UTC, not as the builder's local time: every entry in
-    # `topo50_release.yml` carries a `Z`, so naive here means a test or a hand-built Release, and
-    # `astimezone` on a naive value would otherwise make the output depend on the machine's TZ.
-    if release_date.tzinfo is None:
-        release_date = release_date.replace(tzinfo=UTC)
-    return _rfc3339(release_date)
 
 
 def _build_source_metadata(
@@ -258,7 +243,14 @@ def _build_source_metadata(
     if td.name != dataset:
         raise ValueError(f"fixup for dataset '{dataset}' applied to '{td.name}'")
 
-    stamp = _release_stamp(release_id)
+    # Each record's timestamps come from the feature's own last-modified (`updated_at`) or created_at if updated_at is missing.
+    needs_feature_stamp = ref.source_updated_at is None or ref.imported_at is None
+    if needs_feature_stamp:
+        raw_stamps = gdf["updated_at"].fillna(gdf["created_at"])
+        canonical = {raw: _rfc3339(datetime.fromisoformat(raw)) for raw in raw_stamps.dropna().unique().tolist()}
+        row_stamp = raw_stamps.map(canonical)
+    else:
+        row_stamp = pd.Series("", index=gdf.index)  # unused; the ref carries both stamps
 
     key: pd.Series
     if numeric_key:
@@ -278,7 +270,7 @@ def _build_source_metadata(
     valued = has_key & has_value
     linked = has_key & ~has_value
 
-    def record(ref_variant: SourceRef, key_value: int | str) -> str:
+    def record(ref_variant: SourceRef, key_value: int | str, stamp: str) -> str:
         # sort_keys/separators so the same key always serialises to the same bytes - two runs that
         # differ only in dict ordering would read as a changed feature to kart.
         return json.dumps(
@@ -294,16 +286,30 @@ def _build_source_metadata(
             separators=(",", ":"),
         )
 
-    # Built per distinct key, not per row: one external record covers many features (21,602 of
-    # release 66's 93,308 keyed roads repeat a sufi), and the record depends on nothing else. The
-    # plain-link rows reuse the ref with `table_column` cleared; `valued` and `linked` are disjoint.
+    # Built per distinct (key, stamp), not per row: one external record still covers every feature
+    # that shares a key AND a last-modified - the common case, a sufi repeating across roads last
+    # changed in the same release. The plain-link rows reuse the ref with `table_column` cleared;
+    # `valued` and `linked` are disjoint.
     metadata = pd.Series(pd.NA, index=gdf.index, dtype="string")
     for mask, ref_variant in ((valued, ref), (linked, ref._replace(table_column=None))):
         if not mask.any():
             continue
         masked_keys = key[mask]
-        records = {key_value: record(ref_variant, key_value) for key_value in masked_keys.unique().tolist()}
-        metadata[mask] = masked_keys.map(records).astype("string")
+        masked_stamps = row_stamp[mask]
+        cache: dict[tuple[object, object], str] = {}
+
+        def render(key_value: object, stamp: object, _ref: SourceRef = ref_variant, _cache=cache) -> str:
+            cached = _cache.get((key_value, stamp))
+            if cached is None:
+                cached = record(_ref, key_value, stamp)  # type: ignore[arg-type]
+                _cache[(key_value, stamp)] = cached
+            return cached
+
+        metadata[mask] = pd.Series(
+            [render(k, s) for k, s in zip(masked_keys.tolist(), masked_stamps.tolist(), strict=True)],
+            index=masked_keys.index,
+            dtype="string",
+        )
 
     logger.info(
         "built source metadata",
