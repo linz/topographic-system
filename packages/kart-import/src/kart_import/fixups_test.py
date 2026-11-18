@@ -262,11 +262,23 @@ RELEASE_66 = Release(id=66, date=datetime(2024, 5, 16, 21, 4, 22, tzinfo=UTC))
 STAMP_66 = "2024-05-16T21:04:22Z"
 
 
-def _road_gdf(sufis: list[int], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
-    """A post-`normalize_fields` road frame: `metadata` already holds the raw `$rna_sufi` values,
-    which is the only input `build_road_metadata` has (see its docstring)."""
+def _road_gdf(
+    sufis: list[int],
+    names: list[str | None] | None = None,
+    updated_at: str | list[str] = "2024-05-16T21:04:22+00:00",
+) -> gpd.GeoDataFrame:
+    """A post-`normalize_fields` road frame: `metadata` already holds the raw `$rna_sufi` values
+    and `created_at`/`updated_at` carry the feature's lifecycle dates - the inputs
+    `build_road_metadata` has (see its docstring). `updated_at` defaults to a date whose RFC 3339
+    form is `STAMP_66`, and may be a per-row list to vary the feature's last-modified."""
+    stamps = updated_at if isinstance(updated_at, list) else [updated_at] * len(sufis)
     return gpd.GeoDataFrame(
-        {"metadata": sufis, "name": names if names is not None else [f"ROAD {s}" for s in sufis]},
+        {
+            "metadata": sufis,
+            "name": names if names is not None else [f"ROAD {s}" for s in sufis],
+            "created_at": stamps,
+            "updated_at": stamps,
+        },
         geometry=[LineString([(174.0, -41.0), (174.1, -41.1)]) for _ in sufis],
         crs="EPSG:4167",
     )
@@ -305,13 +317,33 @@ def test_build_road_metadata_leaves_unlinked_roads_null(road_releases):
     assert out["metadata"].isna().tolist() == [False, True, False]
 
 
-def test_build_road_metadata_stamps_the_release_not_the_wall_clock(road_releases):
-    """Both timestamps are the release date. A build-time stamp would change the bytes of every
-    record on every rebuild, so kart would see all ~93k features as modified each run."""
-    out = fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 66)
+def test_build_road_metadata_stamps_the_features_last_modified(road_releases):
+    """Both timestamps are the feature's own last-modified (`updated_at`), not the release being
+    imported. A release-dated stamp re-stamped every unchanged feature each release, so kart saw
+    all ~93k features as modified on every import."""
+    out = fixups.build_road_metadata(_road_gdf([3061525], updated_at="2024-05-16T21:04:22+00:00"), _td([], ROADS), 66)
 
     record = json.loads(out["metadata"].iloc[0])[0]
     assert record["source_updated_at"] == record["imported_at"] == STAMP_66
+
+
+def test_build_road_metadata_carries_the_stamp_forward_for_an_unchanged_feature(road_releases):
+    """The whole point: a feature unchanged since an earlier release keeps that release's stamp, so
+    its `metadata` bytes are identical whichever later release imports it - kart sees no change.
+    Only a feature whose `updated_at` advanced (it actually changed) gets a new stamp."""
+    stable = "2021-02-19T06:17:49+00:00"
+    # Imported for release 66 and again for release 67; the feature did not change, so updated_at
+    # stays at its 2021 value both times.
+    at_66 = fixups.build_road_metadata(_road_gdf([3061525], updated_at=stable), _td([], ROADS), 66)
+    at_67 = fixups.build_road_metadata(_road_gdf([3061525], updated_at=stable), _td([], ROADS), 67)
+
+    assert at_66["metadata"].iloc[0] == at_67["metadata"].iloc[0]  # byte-identical across releases
+    stamp = json.loads(at_66["metadata"].iloc[0])[0]["imported_at"]
+    assert stamp == "2021-02-19T06:17:49Z"  # the feature's last-modified, not release 66 or 67
+
+    # A feature that changed at release 67 gets that release's stamp instead.
+    changed = fixups.build_road_metadata(_road_gdf([3061525], updated_at="2026-09-15T00:00:00+00:00"), _td([], ROADS), 67)
+    assert json.loads(changed["metadata"].iloc[0])[0]["imported_at"] == "2026-09-15T00:00:00Z"
 
 
 def test_build_road_metadata_is_byte_stable(road_releases):
@@ -396,12 +428,6 @@ def test_build_road_metadata_rejects_a_non_sufi_metadata_column(road_releases):
 
     with pytest.raises((ValueError, TypeError)):
         fixups.build_road_metadata(gdf, _td([], ROADS), 66)
-
-
-def test_build_road_metadata_rejects_an_unknown_release(road_releases):
-    """No release date means no stamp; falling back to `now()` is exactly what this avoids."""
-    with pytest.raises(LookupError, match="release 99 is not in the release config"):
-        fixups.build_road_metadata(_road_gdf([3061525]), _td([], ROADS), 99)
 
 
 def _gaz_gdf(gazfeatids: list[int | None], names: list[str | None] | None = None) -> gpd.GeoDataFrame:
