@@ -113,15 +113,21 @@ def parse_kart_diff(
             raise Exception(f"Change without fid: {line}")
 
         fid_str = str(fid)
-        # Sometimes fids are joined in the reblocker then unjoined later, so skip if we've already seen this fid
-        if fid_str in lifecycle:
-            skipped_fids.append(fid_str)
+        entry = lifecycle.get(fid_str)
+        if entry is None:
+            # First time this fid appear use created_at
+            lifecycle[fid_str] = {
+                "id": make_lifecycle_id(commit_time, fid_str, fid_field, dataset_id),
+                "created_at": commit_time,
+                "updated_at": commit_time,
+            }
             continue
 
-        lifecycle[fid_str] = {
-            "id": make_lifecycle_id(commit_time, fid_str, fid_field, dataset_id),
-            "created_at": commit_time,
-        }
+        # Data updated use updated_at to track the last modification time
+        if entry["updated_at"] == commit_time:
+            skipped_fids.append(fid_str)
+        else:
+            entry["updated_at"] = commit_time
     logger.info(f"skipped {len(skipped_fids)} duplicate fids.")
     for i, fid_str in enumerate(skipped_fids[:10]):
         logger.debug(f"{i: 4}/{len(skipped_fids)}: [{fid_str}] previously seen: {lifecycle[fid_str]['created_at']}")
