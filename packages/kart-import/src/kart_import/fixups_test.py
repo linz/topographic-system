@@ -26,6 +26,7 @@ from .fixups import (
     contour_type,
     drop_degenerate_fences,
     drop_empty_residential_areas,
+    fish_farm_species,
     gate_closed_status,
     generate_dms_grid_features,
     generate_nztm_grid_features,
@@ -57,6 +58,23 @@ def test_split_bay_inlet_gorge_valley():
     )
     out = split_bay_inlet_gorge_valley(gdf, _td([], name="geographic_name"), 66)
     assert out["type"].tolist() == ["inlet", "bay", "gorge", "valley", "beach", "bay"]
+
+
+def test_fish_farm_species():
+    """`species` wins where populated; otherwise the value that landed in `subtype` (from the
+    raw `type` column) fills it in. `subtype` always ends up null."""
+    gdf = gpd.GeoDataFrame(
+        {
+            "species": ["mussels", None, None],
+            "subtype": [None, "salmon", None],
+        },
+        geometry=[Point(i, i) for i in range(3)],
+        crs="EPSG:4167",
+    )
+    out = fish_farm_species(gdf, _td([], name="nz_fish_farm_polygons_topo_150k"), 66)
+    assert out["species"].isna().tolist() == [False, False, True]
+    assert out["species"].tolist()[:2] == ["mussels", "salmon"]
+    assert out["subtype"].isna().all()
 
 
 def test_gate_closed_status():
