@@ -357,6 +357,10 @@ property the mapping does not supply a scalar for (i.e. `geometry`, declared onl
 `not: {type: null}`; and `bbox`, declared as object) contributes no dtype, and neither does a theme with
 no schema file.
 
+A missing schema file is reported for every version a theme's `schema_version` uses. In `warn`
+mode that allows a schema-less dev run, whose output keeps the dtypes the sources carried; in
+`strict` mode it raises, so a run that is meant to be checked can't silently go without schemas.
+
 Some columns are populated by the pipeline rather than a mapping and so are always treated as
 present for the required check: `id`, `created_at`, `updated_at` (import), `geometry`
 (`kart export`), and `bbox` (`to-parquet`). Any other required column must be mapped explicitly.
