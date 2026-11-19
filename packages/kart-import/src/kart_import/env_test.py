@@ -5,6 +5,7 @@ from .env import (
     env_push_to_master,
     env_schema_check_mode,
     env_schema_dir_override,
+    env_skip_upload,
     env_source_dir_override,
     env_theme_format,
     env_transform_format,
@@ -100,3 +101,13 @@ def test_source_dir_override_need_not_already_exist(monkeypatch, tmp_path):
     missing = tmp_path / "does-not-exist-yet"
     monkeypatch.setenv("KART_SOURCE_DIR", str(missing))
     assert env_source_dir_override() == str(missing)
+
+
+def test_skip_upload_defaults_to_false(monkeypatch):
+    monkeypatch.delenv("KART_IMPORT_SKIP_UPLOAD", raising=False)
+    assert env_skip_upload() is False
+
+
+def test_skip_upload_is_case_insensitive_true(monkeypatch):
+    monkeypatch.setenv("KART_IMPORT_SKIP_UPLOAD", "True")
+    assert env_skip_upload() is True

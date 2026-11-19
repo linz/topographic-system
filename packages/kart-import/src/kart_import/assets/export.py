@@ -21,14 +21,13 @@ from ..config import (
 from ..export_paths import (
     dataset_commit_file,
     dataset_empty_file,
-    dataset_export_dir,
     dataset_release_file,
-    export_filename,
+    entry_export_files,
+    entry_export_filename,
+    entry_exported_sentinel,
+    export_entry_dir,
     lookup_commit_file,
-    lookup_dir,
     load_releases_map,
-    relative_export_path,
-    resolve_export_path,
     schema_sidecar_file,
     write_releases_map,
 )
@@ -188,14 +187,14 @@ def export_dataset_releases(dataset_name: str):
     if getattr(td, "backfill", False):
         releases_before_first_commit = backfill_releases(commit_to_releases, releases_before_first_commit)
 
-    # {release_id: {"commit": sha | None, "location": <path relative to WORKING_EXPORTS_DIR>}},
+    # {release_id: {"commit": sha | None, "location": <filename within export_entry_dir>}},
     # persisted below so `relink_dataset_releases` can rebuild these symlinks from the downloaded
     # per-commit exports alone, with no clone involved. Threads below write disjoint keys (one
     # release id belongs to exactly one commit), so no lock is needed.
     releases_map: dict[int, dict[str, str | None]] = {}
 
     def export_release(info: CommitData):
-        target_commit_file = dataset_commit_file(dataset_name, info.commit, info.commit_time)
+        target_commit_file = dataset_commit_file(dataset_name, info.commit)
         target_commit_file.parent.mkdir(parents=True, exist_ok=True)
 
         if not target_commit_file.exists():
@@ -212,7 +211,7 @@ def export_dataset_releases(dataset_name: str):
             schema = get_dataset_schema(repo_dir, kart_dataset_id, info.commit)
             schema_file.write_text(json.dumps(schema))
 
-        location = relative_export_path(target_commit_file)
+        location = target_commit_file.name
         for release_id in info.releases:
             link_release_export(target_commit_file, dataset_name, release_id)
             releases_map[release_id] = {"commit": info.commit, "location": location}
@@ -228,11 +227,11 @@ def export_dataset_releases(dataset_name: str):
 
     export_empty_releases(dataset_name, releases_before_first_commit)
     if releases_before_first_commit:
-        empty_location = relative_export_path(dataset_empty_file(dataset_name))
+        empty_location = dataset_empty_file(dataset_name).name
         for release_id in releases_before_first_commit:
             releases_map[release_id] = {"commit": None, "location": empty_location}
 
-    write_releases_map(dataset_export_dir(dataset_name), releases_map)
+    write_releases_map(export_entry_dir(dataset_name), dataset_name, releases_map)
 
     return str(dataset_release_file(dataset_name, releases[-1].id))
 
@@ -242,9 +241,10 @@ def relink_dataset_releases(dataset_name: str) -> None:
     exports and persisted release map (see `write_releases_map` in `export_dataset_releases`).
     No clone needed -- used by `assets.working_data`'s S3 download, never by Snakemake directly.
     """
-    releases_map = load_releases_map(dataset_export_dir(dataset_name))
+    entry_dir = export_entry_dir(dataset_name)
+    releases_map = load_releases_map(entry_dir, dataset_name)
     for release_id, info in releases_map.items():
-        source_file = resolve_export_path(info["location"])
+        source_file = entry_dir / info["location"]
         link_release_export(source_file, dataset_name, release_id)
 
 
@@ -281,7 +281,7 @@ def export_lookup(lookup_name: str) -> str:
         commits.setdefault(commit, commit_time)
         releases_map[release.id] = {"commit": commit, "location": None}  # location filled in below
 
-    output_dir = lookup_dir(lookup_name)
+    output_dir = export_entry_dir(lookup_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     def export_commit(commit: str) -> None:
@@ -303,15 +303,19 @@ def export_lookup(lookup_name: str) -> str:
 
     for info in releases_map.values():
         if info["commit"] is not None:
-            info["location"] = relative_export_path(lookup_commit_file(lookup_name, info["commit"]))
-    write_releases_map(output_dir, releases_map)
+            info["location"] = lookup_commit_file(lookup_name, info["commit"]).name
+    write_releases_map(output_dir, lookup_name, releases_map)
 
     # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
-    referenced = {export_filename(commit) for commit in commits}
-    for stale in output_dir.glob(export_filename("*")):
+    # Scoped to this lookup's own files: output_dir is shared with every other dataset/lookup
+    # sourced from the same repo.
+    referenced = {entry_export_filename(lookup_name, commit) for commit in commits}
+    for stale in entry_export_files(output_dir, lookup_name):
         if stale.name not in referenced:
             logger.info("pruning stale lookup export", extra={"lookup": lookup_name, "file": stale.name})
             stale.unlink()
+
+    entry_exported_sentinel(lookup_name).touch()
 
     logger.info("export_lookup", extra={"lookup": lookup_name, "commits": len(commits)})
     return str(output_dir)

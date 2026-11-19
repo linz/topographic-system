@@ -1,7 +1,9 @@
+import hashlib
 import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from .. import export_paths
 from . import working_data
 
 S3_URL = "s3://bucket/working/"
@@ -23,13 +25,17 @@ def test_upload_working_data_syncs_then_publishes_a_summary(tmp_path, monkeypatc
     """Touches no `.extracted*` sentinel itself -- `extract_all`/`extract_<repo>` each touch their
     own output (see the module docstring on `upload_working_data`)."""
     export_dir = tmp_path / "export"
+    release_config = tmp_path / "topo50_release.yml"
+    release_config.write_text("releases: []\n")
     monkeypatch.setattr(working_data, "WORKING_DIR", tmp_path)
-    monkeypatch.setattr(working_data, "WORKING_EXPORTS_DIR", export_dir)
+    monkeypatch.setattr(working_data, "EXPORT_DIR", export_dir)
     monkeypatch.setattr(working_data, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
+    monkeypatch.setattr(export_paths, "CONFIG_DIR_RELEASE", release_config)
     monkeypatch.setattr(working_data, "env_working_data_s3_url", lambda: S3_URL)
-    releases_file = export_dir / "nz_airport_polygons" / ".releases.json"
-    releases_file.parent.mkdir(parents=True)
-    releases_file.write_text(json.dumps({"66": {"commit": "abc", "location": "x"}}))
+    # One repo dir shared by two entries (a dataset and a lookup), each with its own named map.
+    releases_dir = export_dir / "topographic-source-data"
+    releases_dir.mkdir(parents=True)
+    export_paths.write_releases_map(releases_dir, "nz_airport_polygons", {66: {"commit": "abc", "location": "x"}})
     run_command = MagicMock(return_value="")
     monkeypatch.setattr(working_data, "run_command", run_command)
 
@@ -43,15 +49,67 @@ def test_upload_working_data_syncs_then_publishes_a_summary(tmp_path, monkeypatc
     assert calls[2][:4] == ["aws", "s3", "cp", str(tmp_path / "summary.json")]
     assert calls[2][4] == f"{S3_URL}summary.json"
 
+    release_hash = hashlib.sha256(release_config.read_bytes()).hexdigest()
+    commit_hash = export_paths.source_commit_hash()
     summary = json.loads((tmp_path / "summary.json").read_text())
-    assert summary == {"datasets": {"nz_airport_polygons": {"66": {"commit": "abc", "location": "x"}}}, "lookups": {}}
+    assert summary == {
+        "config": release_hash,
+        "commit": commit_hash,
+        "entries": {
+            "nz_airport_polygons": {
+                "config": release_hash,
+                "commit": commit_hash,
+                "releases": {"66": {"commit": "abc", "location": "x"}},
+            }
+        },
+    }
+
+
+def test_upload_working_data_skips_s3_when_disabled(tmp_path, monkeypatch):
+    """KART_IMPORT_SKIP_UPLOAD leaves the run entirely local -- no `aws` calls at all -- while
+    still writing summary.json locally."""
+    export_dir = tmp_path / "export"
+    release_config = tmp_path / "topo50_release.yml"
+    release_config.write_text("releases: []\n")
+    monkeypatch.setattr(working_data, "WORKING_DIR", tmp_path)
+    monkeypatch.setattr(working_data, "EXPORT_DIR", export_dir)
+    monkeypatch.setattr(working_data, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
+    monkeypatch.setattr(export_paths, "CONFIG_DIR_RELEASE", release_config)
+    monkeypatch.setattr(working_data, "env_skip_upload", lambda: True)
+    run_command = MagicMock(return_value="")
+    monkeypatch.setattr(working_data, "run_command", run_command)
+
+    working_data.upload_working_data()
+
+    run_command.assert_not_called()
+    assert (tmp_path / "summary.json").exists()
+
+
+def test_upload_working_data_creates_export_dir_when_nothing_was_exported(tmp_path, monkeypatch):
+    """`aws s3 sync` needs its local source to exist; nothing creates EXPORT_DIR at all if the
+    requested KART_IMPORT_THEME/_RELEASE scope happened to resolve to zero datasets."""
+    export_dir = tmp_path / "export"
+    release_config = tmp_path / "topo50_release.yml"
+    release_config.write_text("releases: []\n")
+    monkeypatch.setattr(working_data, "WORKING_DIR", tmp_path)
+    monkeypatch.setattr(working_data, "EXPORT_DIR", export_dir)
+    monkeypatch.setattr(working_data, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
+    monkeypatch.setattr(export_paths, "CONFIG_DIR_RELEASE", release_config)
+    monkeypatch.setattr(working_data, "env_working_data_s3_url", lambda: S3_URL)
+    monkeypatch.setattr(working_data, "run_command", MagicMock(return_value=""))
+    assert not export_dir.exists()
+
+    working_data.upload_working_data()
+
+    assert export_dir.is_dir()
+    assert (tmp_path / "lifecycle").is_dir()
 
 
 def _download_env(tmp_path, monkeypatch):
     source_dir = tmp_path / "source"
     monkeypatch.setattr(working_data, "WORKING_DIR", tmp_path)
     monkeypatch.setattr(working_data, "SOURCE_DIR", source_dir)
-    monkeypatch.setattr(working_data, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(working_data, "EXPORT_DIR", tmp_path / "export")
     monkeypatch.setattr(working_data, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
     monkeypatch.setattr(working_data, "SOURCE_REPO_MAP", {"topographic-source-data": []})
     monkeypatch.setattr(working_data, "DATASET_MAP", {"nz_airport_polygons": object()})

@@ -37,9 +37,17 @@ CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 # source/ — raw Kart repos and GeoJSON release snapshots (override with KART_SOURCE_DIR)
 SOURCE_DIR = Path(env_source_dir_override()).expanduser() if env_source_dir_override() else DATA_DIR / "source"
 
+# export/ — per-commit source exports (parquet/geojson), schema sidecars and release maps, one
+# directory per source repo (shared by every dataset/lookup sourced from it, same as SOURCE_DIR).
+# The entire S3 handoff between `extract_all` and `process_all` is this directory plus
+# WORKING_LIFECYCLE_DIR -- kept separate from SOURCE_DIR so that sync never has to touch (or
+# exclude) a real clone's `.kart`/`.git` contents.
+EXPORT_DIR = DATA_DIR / "export"
+
 # working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"
-# Exports of all the datasets one file per dataset per release
+# Per-release view of EXPORT_DIR: release_<n>/<dataset>.parquet, symlinked to the commit it
+# resolves to. Purely local/derived (rebuildable from EXPORT_DIR's release maps), never synced.
 WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"

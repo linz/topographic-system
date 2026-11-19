@@ -13,7 +13,7 @@ from .config import (
     ThemeDataset,
     get_lookup_by_name,
 )
-from .export_paths import load_releases_map, lookup_dir, releases_map_file
+from .export_paths import export_entry_dir, load_releases_map, releases_map_file
 
 logger = logging.getLogger("kart_import")
 
@@ -68,14 +68,14 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
     repeatedly (once per release while fingerprinting in find_canonical_release, again when it
     recurses into the canonical release, and again in apply_joins).
     """
-    export_dir = lookup_dir(lookup_name)
-    releases_file = releases_map_file(export_dir)
+    export_dir = export_entry_dir(lookup_name)
+    releases_file = releases_map_file(export_dir, lookup_name)
     if not releases_file.exists():
         raise FileNotFoundError(
             f"lookup {lookup_name!r} has no release map at {releases_file}; export it before transform"
         )
 
-    releases_map = load_releases_map(export_dir)
+    releases_map = load_releases_map(export_dir, lookup_name)
     if release_id not in releases_map:
         return None
 

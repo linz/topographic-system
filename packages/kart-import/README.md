@@ -106,6 +106,18 @@ already exist; `clone_repo` creates it):
 export KART_SOURCE_DIR=~/data/kart-source
 ```
 
+Per-commit exports live the same way, one directory per source repo, but always under `data/export/`
+(not under `SOURCE_DIR`, and not configurable) -- e.g. `data/export/nz_airport_polygons/nz_airport_polygons_<sha>.parquet`,
+or `data/export/topographic-source-data/<dataset-or-lookup-name>_<sha>.parquet` for entries sharing
+a multi-dataset repo. Every reader (`transform`, `prepare_lookup`, `assets.working_data`) gets there
+through `export_paths.export_entry_dir`/`entry_export_filename`, never a hardcoded path, so a
+dataset/lookup's own filename prefix is what keeps it from colliding with siblings in the same
+directory. `data/export/` is exactly what the two-stage split's S3 handoff syncs (see
+[Two stages](#two-stages-extract-and-process)) -- kept separate from `SOURCE_DIR` so that sync
+never has to touch (or exclude) a real clone's `.kart`/`.git` contents, and separate from
+`data/working/` so the per-release symlink view there (`data/working/export/release_<n>/<dataset>.parquet`)
+stays purely local/derived, rebuildable from a dataset's release map without re-syncing anything.
+
 ### Limiting the work
 
 For local runs, the pipeline can be narrowed by env var rather than by target. These are read at
@@ -133,7 +145,7 @@ an LDS-registered SSH key) and everything downstream of it (which doesn't) can r
 machines/credentials:
 
 1. **`extract_all`** — clone every source repo, export every dataset/lookup's per-release commits
-   and lifecycle data, then upload `data/working/export` and `data/working/lifecycle` to S3
+   and lifecycle data, then upload `data/export` and `data/working/lifecycle` to S3
    (`assets.working_data`).
 
    ```shell
@@ -146,6 +158,15 @@ machines/credentials:
 
    ```shell
    uv run snakemake --cores=4 extract_topographic_data --quiet | npx pjl
+   ```
+
+   For local development with no AWS credentials or S3 bucket to push to, set
+   `KART_IMPORT_SKIP_UPLOAD` to keep the whole run local -- `extract_all`/`extract_<repo>` still
+   clone and export exactly the same (those always write straight to disk), the only thing skipped
+   is the push to S3 (`summary.json` is still written to `data/working/`, just not uploaded):
+
+   ```shell
+   export KART_IMPORT_SKIP_UPLOAD=true
    ```
 
 2. **`process_all`** — download that data back from S3, then run prepare/transform/theme/import,
@@ -161,12 +182,14 @@ machines/credentials:
    uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```
 
-   `download` always fetches S3's `summary.json` (a manifest of every exported dataset's/lookup's
-   release map) first and compares it to the copy it cached last time it actually synced; the
-   expensive `aws s3 sync` of the exports/lifecycle themselves only runs when that comparison finds
-   a difference. This is what makes running `process_all` several times a day cheap: once
-   `extract_all` hasn't produced anything new, `download` is a single small S3 fetch, not a full
-   re-sync.
+   `download` always fetches S3's `summary.json` first and compares it to the copy it cached last
+   time it actually synced; the expensive `aws s3 sync` of the exports/lifecycle themselves only
+   runs when that comparison finds a difference. The summary is a manifest of every exported
+   dataset's/lookup's release map, plus a hash of `config/topo50_release.yml`, so a release
+   definition change (a cutoff date edited, a release added) is caught too, even before it has
+   changed any dataset's resolved commits. This is what makes running `process_all` several times
+   a day cheap: once `extract_all` hasn't produced anything new, `download` is a single small S3
+   fetch, not a full re-sync.
 
    To process (and import/push) just one target repo rather than everything, use `process_<repo>`:
 

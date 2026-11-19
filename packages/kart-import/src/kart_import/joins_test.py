@@ -10,7 +10,6 @@ from . import config, export_paths, joins
 from .assets import export, prepare
 from .assets.export import write_export
 from .config import Join, Lookup, Source, ThemeDataset
-from .export_paths import export_filename
 
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")
 
@@ -181,20 +180,23 @@ def test_apply_joins_picks_parquet_for_resolved_commit(env, monkeypatch):
 def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
     """The release->commit gate reads the release map `export_lookup` persists -- no clone
     involved."""
-    export_dir = tmp_path / "lookup" / "road_lkp"
+    export_dir = tmp_path / "topographic-source-data"
     export_dir.mkdir(parents=True)
-    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
+    monkeypatch.setattr(joins, "export_entry_dir", lambda _: export_dir)
 
-    export_paths.write_releases_map(export_dir, {66: {"commit": "abcdef12", "location": "road_lkp/abcdef12.parquet"}})
+    export_paths.write_releases_map(
+        export_dir, "road_lkp", {66: {"commit": "abcdef12", "location": "road_lkp_abcdef12.parquet"}}
+    )
     assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
 
     # release predates the lookup: no commit as-of the release, but the map HAS other history -> None.
     joins._resolve_lookup_commit.cache_clear()
     export_paths.write_releases_map(
         export_dir,
+        "road_lkp",
         {
             66: {"commit": None, "location": None},
-            65: {"commit": "head0001", "location": "road_lkp/head0001.parquet"},
+            65: {"commit": "head0001", "location": "road_lkp_head0001.parquet"},
         },
     )
     assert joins._resolve_lookup_commit("road_lkp", 66) is None
@@ -202,8 +204,8 @@ def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
 
 def test_resolve_lookup_commit_errors_when_unexported(tmp_path, monkeypatch):
     """No release map at all -- the lookup was never exported -- must raise, not null the join."""
-    export_dir = tmp_path / "lookup" / "road_lkp"
-    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
+    export_dir = tmp_path / "topographic-source-data"
+    monkeypatch.setattr(joins, "export_entry_dir", lambda _: export_dir)
     with pytest.raises(FileNotFoundError, match="has no release map"):
         joins._resolve_lookup_commit("road_lkp", 66)
 
@@ -211,10 +213,10 @@ def test_resolve_lookup_commit_errors_when_unexported(tmp_path, monkeypatch):
 def test_resolve_lookup_commit_errors_when_no_commit_ever_resolved(tmp_path, monkeypatch):
     """A release map with no resolvable commits at all (lookup present but history-less) must
     raise, not null the join."""
-    export_dir = tmp_path / "lookup" / "road_lkp"
+    export_dir = tmp_path / "topographic-source-data"
     export_dir.mkdir(parents=True)
-    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
-    export_paths.write_releases_map(export_dir, {66: {"commit": None, "location": None}})
+    monkeypatch.setattr(joins, "export_entry_dir", lambda _: export_dir)
+    export_paths.write_releases_map(export_dir, "road_lkp", {66: {"commit": None, "location": None}})
     with pytest.raises(FileNotFoundError, match="no resolvable commits"):
         joins._resolve_lookup_commit("road_lkp", 66)
 
@@ -239,11 +241,13 @@ def _export_lookup_dir(tmp_path, monkeypatch, schema):
     monkeypatch.setitem(
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
-    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
     monkeypatch.setattr(prepare, "load_schema_sidecar", lambda *_: schema)
 
-    export_dir = tmp_path / "export" / "lookup" / "road_lkp"
+    # _SRC sets source.dataset, simulating road_lkp sharing a repo with other datasets/lookups --
+    # so its export dir is named by that shared repo, not by "road_lkp" itself.
+    export_dir = export_paths.export_entry_dir("road_lkp")
     export_dir.mkdir(parents=True)
     return export_dir
 
@@ -254,7 +258,7 @@ def test_prepare_lookup_slims_each_commit_export(tmp_path, monkeypatch):
     gdf = gpd.GeoDataFrame(
         {"t50_fid": [1, 2], "width": ["WIDE", "NARROW"]}, geometry=[Point(0, 0)] * 2, crs="EPSG:4326"
     )
-    write_export(gdf, export_dir / export_filename("abc123"))
+    write_export(gdf, export_dir / export_paths.entry_export_filename("road_lkp", "abc123"))
 
     out_dir = prepare.prepare_lookup("road_lkp")
 
@@ -273,12 +277,13 @@ def test_prepare_lookup_restores_a_key_the_export_turned_into_a_float(tmp_path, 
     export_dir = _export_lookup_dir(
         tmp_path, monkeypatch, schema=[{"name": "t50_fid", "dataType": "numeric", "precision": 10, "scale": 0}]
     )
+    export_file = export_dir / export_paths.entry_export_filename("road_lkp", "abc123")
     gpd.GeoDataFrame(
         {"t50_fid": [3197173.0, 7874815.0], "width": ["WIDE", "NARROW"]},
         geometry=[Point(0, 0)] * 2,
         crs="EPSG:4326",
-    ).to_file(export_dir / "abc123.json", driver="GeoJSON")
-    assert gpd.read_file(export_dir / "abc123.json")["t50_fid"].dtype == "float64"  # what the export really gives us
+    ).to_file(export_file, driver="GeoJSON")
+    assert gpd.read_file(export_file)["t50_fid"].dtype == "float64"  # what the export really gives us
 
     prepare.prepare_lookup("road_lkp")
 

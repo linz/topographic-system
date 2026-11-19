@@ -15,11 +15,36 @@ from . import export
 REPO_URL = "git@github.com:linz/topographic-source-data"
 
 
+def _fake_entry(dataset_name: str, **kwargs):
+    from types import SimpleNamespace
+
+    # dataset=None (a single-dataset Koordinates repo) makes get_source_repo_name return the
+    # entry's own name, so export_entry_dir(name) == EXPORT_DIR / name -- the simplest case.
+    return SimpleNamespace(name=dataset_name, source=Source(url=REPO_URL, dataset=None), **kwargs)
+
+
+def _patch_source_entry(monkeypatch, entry_fn):
+    """`export.py` and `export_paths.py` each import `get_source_entry` independently; keep them
+    in sync so export_paths' EXPORT_DIR-based paths resolve the same repo as export.py's own
+    clone-path computation (`get_source_repo_name` itself is pure, so it needs no patch)."""
+    monkeypatch.setattr(export, "get_source_entry", entry_fn)
+    monkeypatch.setattr(export_paths, "get_source_entry", entry_fn)
+
+
+def _patch_simple_export_layout(monkeypatch, tmp_path):
+    """For tests using a synthetic dataset name not registered in the real config: make
+    `export_entry_dir("ds")` resolve to `tmp_path / "ds"`, the same shape EXPORT_DIR-based paths
+    always have, without needing a real DATASET_MAP entry."""
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path)
+    _patch_source_entry(monkeypatch, _fake_entry)
+
+
 def test_export_empty_releases_shares_one_file(tmp_path, monkeypatch):
     """The `export` rule declares an output per release, so a dataset whose repo starts partway
     through the series needs a file for the releases predating it. One shared file, symlinked like
     the commit exports, so the transform fingerprint normalises them once."""
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    _patch_simple_export_layout(monkeypatch, tmp_path)
 
     export.export_empty_releases("ds", [30, 31, 32])
 
@@ -32,6 +57,7 @@ def test_export_empty_releases_is_readable_as_an_empty_frame(tmp_path, monkeypat
     """What transform reads back, and what makes it emit an empty transform rather than pushing
     a featureless frame through the column-wise normalisers."""
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    _patch_simple_export_layout(monkeypatch, tmp_path)
 
     export.export_empty_releases("ds", [30])
 
@@ -71,10 +97,11 @@ def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
     from types import SimpleNamespace
 
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
-    monkeypatch.setattr(
-        export, "get_source_entry", lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
+    _patch_source_entry(
+        monkeypatch, lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
     )
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=None) for r in (66, 67)])
     monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("before", "2026-09-14"))
@@ -83,8 +110,9 @@ def test_releases_before_the_dataset_exists_export_empty(tmp_path, monkeypatch):
 
     export.export_dataset_releases("ds")
 
-    assert (tmp_path / "release_66" / export_filename("ds")).resolve().name == export_filename("empty")
-    assert (tmp_path / "release_67" / export_filename("ds")).resolve().name == export_filename("empty")
+    empty_name = export_paths.dataset_empty_file("ds").name
+    assert (tmp_path / "release_66" / export_filename("ds")).resolve().name == empty_name
+    assert (tmp_path / "release_67" / export_filename("ds")).resolve().name == empty_name
 
 
 def _commits() -> dict[str, export.CommitData]:
@@ -121,11 +149,11 @@ def test_backfill_dataset_links_predating_releases_to_its_earliest_export(tmp_pa
     from types import SimpleNamespace
 
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
-    monkeypatch.setattr(
-        export,
-        "get_source_entry",
+    _patch_source_entry(
+        monkeypatch,
         lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"), backfill=True),
     )
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=r) for r in (30, 66)])
@@ -162,27 +190,26 @@ def test_export_dataset_releases_writes_schema_sidecar_and_releases_map(tmp_path
     from types import SimpleNamespace
 
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    _patch_simple_export_layout(monkeypatch, tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
-    monkeypatch.setattr(
-        export, "get_source_entry", lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
-    )
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=r) for r in (66, 67)])
     monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("abc", "2026-05-15T12:27:14+12:00"))
     monkeypatch.setattr(export, "ref_has_dataset", lambda *_: True)
     monkeypatch.setattr(export, "run_command", lambda cmd, **_: open(cmd[-1], "w").close())
     monkeypatch.setattr(export, "get_dataset_schema", lambda *_: ({"name": "t50_fid", "dataType": "integer"},))
+    monkeypatch.setattr(export, "get_kart_dataset_id", lambda _: "ds")  # source.dataset is None here
 
     export.export_dataset_releases("ds")
 
-    commit_file = tmp_path / "ds" / export_filename("2026-05-15_abc")
+    commit_file = export_paths.dataset_commit_file("ds", "abc")
     assert commit_file.exists()
     assert json.loads(export_paths.schema_sidecar_file(commit_file).read_text()) == [
         {"name": "t50_fid", "dataType": "integer"}
     ]
 
-    location = "ds/" + export_filename("2026-05-15_abc")
-    assert export_paths.load_releases_map(export_paths.dataset_export_dir("ds")) == {
+    location = commit_file.name
+    assert export_paths.load_releases_map(export_paths.export_entry_dir("ds"), "ds") == {
         66: {"commit": "abc", "location": location},
         67: {"commit": "abc", "location": location},
     }
@@ -192,11 +219,14 @@ def test_relink_dataset_releases_rebuilds_symlinks_from_the_map(tmp_path, monkey
     """The inverse of the write above -- what `assets.working_data`'s download runs after
     pulling per-commit exports from S3, with no clone involved."""
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
-    commit_file = tmp_path / "ds" / export_filename("2026-05-15_abc")
+    _patch_simple_export_layout(monkeypatch, tmp_path)
+    commit_file = export_paths.dataset_commit_file("ds", "abc")
     commit_file.parent.mkdir(parents=True)
     commit_file.write_text("data")
     export_paths.write_releases_map(
-        export_paths.dataset_export_dir("ds"), {66: {"commit": "abc", "location": "ds/" + commit_file.name}}
+        export_paths.export_entry_dir("ds"),
+        "ds",
+        {66: {"commit": "abc", "location": commit_file.name}},
     )
 
     export.relink_dataset_releases("ds")

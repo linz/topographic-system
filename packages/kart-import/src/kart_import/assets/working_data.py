@@ -3,8 +3,9 @@ import logging
 import os
 
 from ..command import run_command
-from ..config import DATASET_MAP, SOURCE_DIR, SOURCE_REPO_MAP, WORKING_DIR, WORKING_EXPORTS_DIR, WORKING_LIFECYCLE_DIR
-from ..env import env_working_data_s3_url
+from ..config import DATASET_MAP, EXPORT_DIR, SOURCE_DIR, SOURCE_REPO_MAP, WORKING_DIR, WORKING_LIFECYCLE_DIR
+from ..env import env_skip_upload, env_working_data_s3_url
+from ..export_paths import release_config_hash, source_commit_hash
 from ..log import log_context
 from .export import relink_dataset_releases
 
@@ -13,41 +14,54 @@ logger = logging.getLogger("kart_import")
 NETWORK_RETRIES = 3
 
 """
-Hand off `data/working/export` and `data/working/lifecycle` between the two pipeline stages:
+Hand off EXPORT_DIR (`data/export`) and `data/working/lifecycle` between the two pipeline stages:
 `extract_all` (clone+export+lifecycle, needs an LDS-registered SSH key) uploads them here;
 `process_all` (prepare/transform/theme/import/push, needs only AWS credentials) downloads them.
 """
 
 
 def _build_summary() -> dict:
-    """A compact manifest of every dataset's/lookup's release map currently in
-    `data/working/export` (see `export_paths.write_releases_map`). `download_working_data`
-    compares this (fetched from S3) against its last-synced copy to decide whether the much
-    bigger `aws s3 sync` of the actual exports is even worth doing."""
+    """A compact manifest of every dataset's/lookup's release map currently in EXPORT_DIR (see
+    `export_paths.write_releases_map`), plus the same `config`/`commit` hashes they each already
+    carry, so a release definition change or a new pipeline version is caught even before either
+    has changed any dataset's resolved commits. `download_working_data` compares this (fetched
+    from S3) against its last-synced copy to decide whether the much bigger `aws s3 sync` of the
+    actual exports is even worth doing."""
+    entries = {}
+    for releases_file in EXPORT_DIR.glob("*/*.releases.json"):
+        name = releases_file.name.removesuffix(".releases.json")
+        entries[name] = json.loads(releases_file.read_text())
     return {
-        "datasets": {f.parent.name: json.loads(f.read_text()) for f in WORKING_EXPORTS_DIR.glob("*/.releases.json")},
-        "lookups": {
-            f.parent.name: json.loads(f.read_text())
-            for f in (WORKING_EXPORTS_DIR / "lookup").glob("*/.releases.json")
-        },
+        "config": release_config_hash(),
+        "commit": source_commit_hash(),
+        "entries": entries,
     }
 
 
 def upload_working_data() -> None:
-    """Sync `data/working/export` and `data/working/lifecycle` up to S3, then publish a summary
-    of what's now there (see `_build_summary`).
+    """Write `summary.json` locally, then (unless `KART_IMPORT_SKIP_UPLOAD`) sync EXPORT_DIR,
+    `data/working/lifecycle` and that summary up to S3 (see `_build_summary`).
 
     Touches no `.extracted*` sentinel itself: `extract_all` and the per-repo `extract_<repo>`
     share this function but declare different output sentinels (`data/working/.extracted` vs.
     `.extracted_{repo}`), so the Snakefile rule's own shell command touches its own output.
     """
-    s3_url = env_working_data_s3_url()
-    run_command(["aws", "s3", "sync", str(WORKING_EXPORTS_DIR), f"{s3_url}export"], retries=NETWORK_RETRIES)
-    run_command(["aws", "s3", "sync", str(WORKING_LIFECYCLE_DIR), f"{s3_url}lifecycle"], retries=NETWORK_RETRIES)
+    # `aws s3 sync` requires its local source to exist; nothing creates EXPORT_DIR/WORKING_LIFECYCLE_DIR
+    # at all if the requested scope (KART_IMPORT_THEME/_RELEASE) happens to resolve to zero datasets.
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+    WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)
 
     WORKING_DIR.mkdir(parents=True, exist_ok=True)
     summary_file = WORKING_DIR / "summary.json"
     summary_file.write_text(json.dumps(_build_summary()))
+
+    if env_skip_upload():
+        logger.info("KART_IMPORT_SKIP_UPLOAD set; leaving working data local, not pushing to S3")
+        return
+
+    s3_url = env_working_data_s3_url()
+    run_command(["aws", "s3", "sync", str(EXPORT_DIR), f"{s3_url}export"], retries=NETWORK_RETRIES)
+    run_command(["aws", "s3", "sync", str(WORKING_LIFECYCLE_DIR), f"{s3_url}lifecycle"], retries=NETWORK_RETRIES)
     run_command(["aws", "s3", "cp", str(summary_file), f"{s3_url}summary.json"], retries=NETWORK_RETRIES)
 
     logger.info("uploaded working data", extra={"s3_url": s3_url})
@@ -58,7 +72,7 @@ def download_working_data() -> None:
     (much more expensive) `aws s3 sync` of the actual exports/lifecycle when it's changed."""
     s3_url = env_working_data_s3_url()
     WORKING_DIR.mkdir(parents=True, exist_ok=True)
-    WORKING_EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
     WORKING_LIFECYCLE_DIR.mkdir(parents=True, exist_ok=True)
 
     remote_summary_file = WORKING_DIR / ".remote_summary.json"
@@ -70,7 +84,7 @@ def download_working_data() -> None:
     if local_summary_file.exists() and local_summary_file.read_text() == remote_summary:
         logger.info("working data already up to date; skipping sync", extra={"s3_url": s3_url})
     else:
-        run_command(["aws", "s3", "sync", f"{s3_url}export", str(WORKING_EXPORTS_DIR)], retries=NETWORK_RETRIES)
+        run_command(["aws", "s3", "sync", f"{s3_url}export", str(EXPORT_DIR)], retries=NETWORK_RETRIES)
         run_command(["aws", "s3", "sync", f"{s3_url}lifecycle", str(WORKING_LIFECYCLE_DIR)], retries=NETWORK_RETRIES)
         local_summary_file.write_text(remote_summary)
         logger.info("downloaded working data", extra={"s3_url": s3_url})

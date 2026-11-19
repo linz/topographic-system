@@ -139,9 +139,9 @@ def env_push_force() -> bool:
 
 def env_working_data_s3_url() -> str:
     """
-    Location of the S3 handoff between `export_all` (clone+export+lifecycle, needs LDS SSH
+    Location of the S3 handoff between `extract_all` (clone+export+lifecycle, needs LDS SSH
     access) and the rest of the pipeline (`process_all`, needs only AWS credentials):
-    `assets.working_data` syncs `data/working/export` and `data/working/lifecycle` here.
+    `assets.working_data` syncs EXPORT_DIR and `data/working/lifecycle` here.
 
     KART_IMPORT_S3_URL=s3://linz-topography-nonprod/working/
     """
@@ -149,6 +149,22 @@ def env_working_data_s3_url() -> str:
     if not s3_uri.endswith("/"):
         s3_uri += "/"
     return s3_uri
+
+
+def env_skip_upload() -> bool:
+    """
+    Skip pushing EXPORT_DIR/lifecycle/summary.json to S3 in `upload_working_data` (what
+    `extract_all`/`extract_<repo>` run), so extract can be run entirely locally -- e.g. local
+    development/testing with no AWS credentials or S3 bucket to push to.
+
+    The exported data itself is always local regardless (`export_dataset_releases`/
+    `export_lookup`/`generate_lifecycle` write straight to disk); this only skips the S3 push on
+    top of that, including `summary.json`'s own upload -- `summary.json` is still written
+    locally either way.
+
+    KART_IMPORT_SKIP_UPLOAD=true
+    """
+    return os.getenv("KART_IMPORT_SKIP_UPLOAD", "false").lower() == "true"
 
 
 def env_schema_host() -> str:

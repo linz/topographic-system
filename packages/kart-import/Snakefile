@@ -4,6 +4,7 @@ from kart_import.config import (
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
+    EXPORT_DIR,
     SOURCE_DIR,
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
@@ -33,6 +34,13 @@ SOURCE_REPOS = list(SOURCE_REPO_MAP)
 def cloned(name):
     """Sentinel for the source clone a dataset/lookup reads from."""
     return f"{SOURCE_DIR}/{get_source_repo_name(get_source_entry(name))}/.cloned"
+
+
+def exported_sentinel(name):
+    """Sentinel marking a lookup's export as complete (see export_paths.entry_exported_sentinel).
+    A lookup's export dir is shared with every other dataset/lookup sourced from the same repo,
+    so it can't be the Snakemake-tracked output itself -- this per-lookup file is."""
+    return f"{EXPORT_DIR}/.sentinel/{name}.exported"
 
 
 def repo_themes(repo):
@@ -129,7 +137,7 @@ rule export_lookup:
     input:
         cloned = lambda wildcards: cloned(wildcards.lookup)
     output:
-        exported = directory("data/working/export/lookup/{lookup}")
+        exported = f"{EXPORT_DIR}/.sentinel/{{lookup}}.exported"
     shell:
         "OTEL_SERVICE_NAME=export_lookup uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
 
@@ -138,7 +146,7 @@ rule export_lookup:
 rule prepare_lookup:
     input:
         # `exported` already carries each commit's schema sidecar (see assets.export) -- no clone needed.
-        exported = "data/working/export/lookup/{lookup}",
+        exported = lambda wildcards: exported_sentinel(wildcards.lookup),
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
         prepared = directory("data/working/lookup/{lookup}")
@@ -248,7 +256,7 @@ rule extract_all:
             for name in DATASET_MAP
             for r in RELEASES
         ],
-        lookups = [f"data/working/export/lookup/{lookup}" for lookup in LOOKUP_TO_THEME_MAP]
+        lookups = [exported_sentinel(lookup) for lookup in LOOKUP_TO_THEME_MAP]
     output:
         uploaded = "data/working/.extracted"
     shell:
@@ -272,7 +280,7 @@ rule extract_repo:
                 for ds in repo_datasets(wildcards.repo)
                 for r in RELEASES
             ]
-            + [f"data/working/export/lookup/{lookup}" for lookup in repo_lookups(wildcards.repo)]
+            + [exported_sentinel(lookup) for lookup in repo_lookups(wildcards.repo)]
         )
     output:
         uploaded = "data/working/.extracted_{repo}"
