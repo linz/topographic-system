@@ -9,8 +9,8 @@ import geopandas as gpd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from ..command import run_command
-from ..config import (
+from ...command import run_command
+from ...config import (
     EXPORT_FORMAT,
     SOURCE_DIR,
     get_dataset_by_name,
@@ -18,7 +18,7 @@ from ..config import (
     get_source_entry,
     get_source_repo_name,
 )
-from ..export_paths import (
+from ...export_paths import (
     dataset_commit_file,
     dataset_empty_file,
     dataset_release_file,
@@ -31,11 +31,11 @@ from ..export_paths import (
     schema_sidecar_file,
     write_releases_map,
 )
-from ..git.kart import get_dataset_schema, get_kart_dataset_id, is_kart, ref_has_dataset
-from ..git.release import get_release_commit
-from ..log import log_context
-from ..thread import run_in_thread_pool
-from .fid_lifecycle import generate_lifecycle
+from ...git.kart import get_dataset_schema, get_kart_dataset_id, is_kart, ref_has_dataset
+from ...git.release import get_release_commit
+from ...log import log_context
+from ...thread import run_in_thread_pool
+from ..fid_lifecycle import generate_lifecycle
 
 logger = logging.getLogger("kart_import")
 
@@ -327,7 +327,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if args and args[0] == "--lookup":
         if len(args) < 2:
-            print("Usage: python -m kart_import.assets.export --lookup <lookup_name>")
+            print("Usage: python -m kart_import.assets.extract.export --lookup <lookup_name>")
             sys.exit(1)
         with log_context(action="export_lookup", lookup=args[1]):
             export_lookup(args[1])
@@ -335,5 +335,5 @@ if __name__ == "__main__":
         with log_context(action="export", dataset=args[0]):
             export_dataset(args[0])
     else:
-        print("Usage: python -m kart_import.assets.export <dataset_name> | --lookup <lookup_name>")
+        print("Usage: python -m kart_import.assets.extract.export <dataset_name> | --lookup <lookup_name>")
         sys.exit(1)

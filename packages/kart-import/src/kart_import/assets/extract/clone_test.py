@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from .clone import clone_repo
 
 REPO = "topographic-source-data"
-MODULE = "kart_import.assets.clone"
+MODULE = "kart_import.assets.extract.clone"
 
 
 def _setup(monkeypatch, tmp_path, *, has_dataset: bool):

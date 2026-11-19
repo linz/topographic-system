@@ -38,7 +38,7 @@ def export_filename(stem: str) -> str:
 
 
 def dataset_release_file(dataset_name: str, release_id: int) -> Path:
-    """Where a release's export is linked for a dataset (see `assets.export.link_release_export`).
+    """Where a release's export is linked for a dataset (see `assets.extract.export.link_release_export`).
     Purely local/derived -- never synced, and rebuildable from the dataset's release map."""
     return WORKING_EXPORTS_DIR / f"release_{release_id}" / export_filename(dataset_name)
 
@@ -94,7 +94,7 @@ def dataset_commit_file(dataset_name: str, commit: str) -> Path:
 
 def dataset_empty_file(dataset_name: str) -> Path:
     """The shared placeholder for releases predating a dataset's first commit
-    (see `assets.export.export_empty_releases`)."""
+    (see `assets.extract.export.export_empty_releases`)."""
     return export_entry_dir(dataset_name) / entry_export_filename(dataset_name, "empty")
 
 
@@ -104,7 +104,7 @@ def lookup_commit_file(lookup_name: str, commit: str) -> Path:
 
 
 def schema_sidecar_file(export_file: Path) -> Path:
-    """Where a per-commit export's kart column schema is captured (see `assets.export`), read back
+    """Where a per-commit export's kart column schema is captured (see `assets.extract.export`), read back
     by `transform`/`prepare_lookup` in place of a live `git show` against the clone -- so those
     stages have no dependency on the source clone being present.
 
@@ -115,7 +115,7 @@ def schema_sidecar_file(export_file: Path) -> Path:
 
 
 def load_schema_sidecar(export_file: Path) -> tuple[dict, ...]:
-    """The schema captured for `export_file` by `assets.export` (see `schema_sidecar_file`)."""
+    """The schema captured for `export_file` by `assets.extract.export` (see `schema_sidecar_file`)."""
     return tuple(json.loads(schema_sidecar_file(export_file).read_text()))
 
 
@@ -130,7 +130,7 @@ def write_releases_map(export_dir: Path, name: str, entries: dict[int, dict[str,
     """Persist each release's resolved commit and the export file it resolves to, plus
     `release_config_hash()` (`config`) and `source_commit_hash()` (`commit`) so the file is
     self-describing about which `topo50_release.yml` and which version of the pipeline itself
-    built it. Read back by `assets.export.relink_dataset_releases` and
+    built it. Read back by `assets.extract.export.relink_dataset_releases` and
     `joins._resolve_lookup_commit`.
 
     `location` is just a filename (e.g. `ds_<sha>.parquet`), not a path: every commit file a

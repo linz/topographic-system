@@ -28,7 +28,7 @@ from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
-from .export import gpd_read
+from .extract.export import gpd_read
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")

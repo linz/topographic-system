@@ -7,9 +7,9 @@ import pyarrow as pa
 import pytest
 from shapely.geometry import Point
 
-from .. import export_paths
-from ..config import Source
-from ..export_paths import export_filename
+from ... import export_paths
+from ...config import Source
+from ...export_paths import export_filename
 from . import export
 
 REPO_URL = "git@github.com:linz/topographic-source-data"

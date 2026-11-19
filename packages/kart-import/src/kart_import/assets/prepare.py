@@ -16,7 +16,7 @@ from ..config import WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name
 from ..export_paths import entry_export_files, export_entry_dir, load_schema_sidecar
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
-from .export import gpd_read
+from .extract.export import gpd_read
 
 logger = logging.getLogger("kart_import")
 

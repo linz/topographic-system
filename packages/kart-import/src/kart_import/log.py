@@ -31,7 +31,7 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 
 def _default_service_name() -> str:
     """Derive a service name from how this process was invoked, e.g. "clone" for
-    `python -m kart_import.assets.clone` or "snakemake" for the `snakemake` CLI."""
+    `python -m kart_import.assets.extract.clone` or "snakemake" for the `snakemake` CLI."""
     # When invoked via `python -m <module>`, runpy sets __main__'s __spec__ before
     # executing its code, so it's already available while this module is imported.
     main_spec = getattr(sys.modules.get("__main__"), "__spec__", None)

@@ -12,7 +12,7 @@ from shapely.wkt import loads
 
 from . import export_paths, fixups
 from .assets import fid_lifecycle, transform
-from .assets.export import write_export
+from .assets.extract.export import write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
 from .export_paths import export_filename

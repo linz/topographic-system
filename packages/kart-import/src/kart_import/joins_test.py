@@ -7,8 +7,9 @@ import shapely
 from shapely.geometry import Point
 
 from . import config, export_paths, joins
-from .assets import export, prepare
-from .assets.export import write_export
+from .assets import prepare
+from .assets.extract import export
+from .assets.extract.export import write_export
 from .config import Join, Lookup, Source, ThemeDataset
 
 _SRC = Source(url="git@github.com:linz/topographic-source-data", dataset="linz_road_cl")

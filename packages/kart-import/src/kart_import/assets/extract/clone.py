@@ -1,8 +1,8 @@
 import logging
 
-from ..command import run_command
-from ..config import SOURCE_DIR, get_source_repo
-from ..log import log_context
+from ...command import run_command
+from ...config import SOURCE_DIR, get_source_repo
+from ...log import log_context
 
 logger = logging.getLogger("kart_import")
 
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: uv run python -m kart_import.assets.clone <repo_name>")
+        print("Usage: uv run python -m kart_import.assets.extract.clone <repo_name>")
         sys.exit(1)
     repo = sys.argv[1]
     with log_context(action="clone", repo=repo):
