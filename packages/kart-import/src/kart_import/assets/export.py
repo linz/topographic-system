@@ -154,6 +154,23 @@ def resolve_release_commits(dataset_name: str) -> tuple[dict[str, CommitData], l
     return commit_to_releases, releases_before_first_commit
 
 
+def release_commit_map(dataset_name: str) -> dict[int, str | None]:
+    """Each release's resolved source commit (see `resolve_release_commits`), flattened to one
+    entry per release id - `None` for a release predating the dataset's first commit.
+
+    Comparing two calls' results (one from before a `pull`, one from after) is how
+    `assets.pull.invalidate_stale_transforms` finds exactly which releases a pull actually
+    changed, since a commit resolves against the remote-tracking ref `get_release_commit` reads,
+    which only moves once something is actually pulled in.
+    """
+    commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
+    commits: dict[int, str | None] = dict.fromkeys(releases_before_first_commit, None)
+    for info in commit_to_releases.values():
+        for release_id in info.releases:
+            commits[release_id] = info.commit
+    return commits
+
+
 def backfilled_release_ids(dataset_name: str) -> set[int]:
     """Releases of a `backfill` dataset that reuse its earliest export rather than their own."""
     if not get_dataset_by_name(dataset_name).backfill:

@@ -7,7 +7,14 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_export_format, env_releases, env_theme_format, env_themes, env_transform_format
+from .env import (
+    env_export_format,
+    env_releases,
+    env_source_dir_override,
+    env_theme_format,
+    env_themes,
+    env_transform_format,
+)
 from .schema_check import KNOWN_VERSIONS, check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -27,8 +34,8 @@ CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 # Static style mappings table for the `carto_text_styling` fixup.
 CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 
-# source/ — raw Kart repos and GeoJSON release snapshots
-SOURCE_DIR = DATA_DIR / "source"
+# source/ — raw Kart repos and GeoJSON release snapshots (override with KART_SOURCE_DIR)
+SOURCE_DIR = Path(env_source_dir_override()).expanduser() if env_source_dir_override() else DATA_DIR / "source"
 
 # working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"

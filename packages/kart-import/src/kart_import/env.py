@@ -74,6 +74,18 @@ def env_releases() -> set[str] | None:
     return set(t.strip() for t in base_releases.lower().split(","))
 
 
+def env_source_dir_override() -> str | None:
+    """Override where source repo clones are kept (bypassing the default `data/source/` under
+    this package), e.g. to keep large, persistent clones on a separate disk shared across worktrees.
+
+    KART_SOURCE_DIR=/path/to/source (default: `data/source/` under this package). Returns None
+    when unset, i.e. use the default. Not required to already exist -- `clone_repo` creates it.
+
+        export KART_SOURCE_DIR=~/data/kart-source
+    """
+    return os.getenv("KART_SOURCE_DIR")
+
+
 def env_schema_dir_override() -> str | None:
     """Override the root `schema_dir` resolves a schema version against (bypassing the repo's
     real ``schema/`` root), e.g. for a test fixture.

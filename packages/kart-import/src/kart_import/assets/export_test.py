@@ -108,6 +108,13 @@ def test_backfill_releases_without_any_commit_leaves_them_empty():
     assert export.backfill_releases({}, [30, 31]) == [30, 31]
 
 
+def test_release_commit_map_flattens_by_release(monkeypatch):
+    """One entry per release id, `None` for a release predating the dataset's first commit."""
+    monkeypatch.setattr(export, "resolve_release_commits", lambda name: (_commits(), [30, 31]))
+
+    assert export.release_commit_map("ds") == {30: None, 31: None, 66: "a", 67: "b"}
+
+
 def test_backfill_dataset_links_predating_releases_to_its_earliest_export(tmp_path, monkeypatch):
     """End to end through `export_dataset_releases`: release 30 predates the source and links to
     the same commit export as release 66 instead of the empty layer."""

@@ -98,6 +98,14 @@ from it reads that clone. A single-dataset Koordinates repo is named after its d
 named after the repo and shared, so every dataset pulling from `topographic-source-data` uses
 `data/source/topographic-source-data`.
 
+To keep clones somewhere other than `data/source/` under this package -- e.g. on a separate disk,
+shared and persistent across worktrees -- override it with `KART_SOURCE_DIR` (it doesn't need to
+already exist; `clone_repo` creates it):
+
+```shell
+export KART_SOURCE_DIR=~/data/kart-source
+```
+
 ### Limiting the work
 
 For local runs, the pipeline can be narrowed by env var rather than by target. These are read at
@@ -152,6 +160,13 @@ machines/credentials:
    uv run python -m kart_import.assets.working_data download
    uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```
+
+   `download` always fetches S3's `summary.json` (a manifest of every exported dataset's/lookup's
+   release map) first and compares it to the copy it cached last time it actually synced; the
+   expensive `aws s3 sync` of the exports/lifecycle themselves only runs when that comparison finds
+   a difference. This is what makes running `process_all` several times a day cheap: once
+   `extract_all` hasn't produced anything new, `download` is a single small S3 fetch, not a full
+   re-sync.
 
    To process (and import/push) just one target repo rather than everything, use `process_<repo>`:
 
