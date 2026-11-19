@@ -1,14 +1,16 @@
+from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from .clone import clone_repo
+from .clone import clone_repo, clone_sentinel_name
 
 REPO = "topographic-source-data"
 MODULE = "kart_import.assets.extract.clone"
+TODAY = date(2026, 11, 20)
 
 
-def test_clone_repo_clones_no_checkout_and_touches_sentinel(monkeypatch, tmp_path):
+def _setup(monkeypatch, tmp_path):
     source_dir = tmp_path / "source"
     target_dir = source_dir / REPO
 
@@ -24,10 +26,31 @@ def test_clone_repo_clones_no_checkout_and_touches_sentinel(monkeypatch, tmp_pat
         f"{MODULE}.get_source_repo",
         lambda name: [SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data"))],
     )
+    return target_dir, rc
 
-    clone_repo(REPO)
+
+def test_clone_repo_clones_no_checkout_and_touches_daily_sentinel(monkeypatch, tmp_path):
+    target_dir, rc = _setup(monkeypatch, tmp_path)
+
+    clone_repo(REPO, day=TODAY)
 
     rc.assert_called_once_with(
         ["git", "clone", "git@github.com:linz/topographic-source-data", str(target_dir), "--no-checkout"]
     )
-    assert (target_dir / ".cloned").exists()
+    assert (target_dir / clone_sentinel_name(TODAY)).exists()
+
+
+def test_clone_repo_fetches_existing_clone_and_cleans_old_sentinels(monkeypatch, tmp_path):
+    target_dir, rc = _setup(monkeypatch, tmp_path)
+    (target_dir / ".git").mkdir(parents=True)
+    old_sentinel = target_dir / ".cloned_2026-11-19"
+    old_sentinel.touch()
+    legacy_sentinel = target_dir / ".cloned"
+    legacy_sentinel.touch()
+
+    clone_repo(REPO, day=TODAY)
+
+    rc.assert_called_once_with(["git", "fetch", "origin"], cwd=str(target_dir))
+    assert (target_dir / ".cloned_2026-11-20").exists()
+    assert not old_sentinel.exists()
+    assert not legacy_sentinel.exists()

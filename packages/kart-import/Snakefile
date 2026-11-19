@@ -18,6 +18,7 @@ import atexit
 import os
 import sys
 
+from kart_import.assets.extract.clone import clone_sentinel_name
 from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
@@ -28,11 +29,12 @@ REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
 # Local source clones; datasets sharing a multi-dataset repo (e.g. topographic-source-data) share one clone.
 SOURCE_REPOS = list(SOURCE_REPO_MAP)
+CLONE_SENTINEL = clone_sentinel_name()
 
 
 def cloned(name):
-    """Sentinel for the source clone a dataset/lookup reads from."""
-    return f"{SOURCE_DIR}/{get_source_repo_name(get_source_entry(name))}/.cloned"
+    """Daily sentinel for the source clone a dataset/lookup reads from."""
+    return f"{SOURCE_DIR}/{get_source_repo_name(get_source_entry(name))}/{CLONE_SENTINEL}"
 
 
 def exported_sentinel(name):
@@ -51,7 +53,7 @@ def repo_themes(repo):
     while pending:
         for ds in pending.pop().datasets:
             for dep_name in ds.depends_on_themes:
-                if dep_name not in themes:
+                if dep_name not in themes and dep_name in THEME_MAP:
                     themes[dep_name] = THEME_MAP[dep_name]
                     pending.append(THEME_MAP[dep_name])
     return list(themes.values())
@@ -108,10 +110,10 @@ rule all:
         ALL_IMPORTED
 
 
-# 1. CLONE (one clone per source repo, shared by every dataset/lookup sourced from it)
+# 1. CLONE / DAILY FETCH (one clone per source repo, refreshed at most once per day)
 rule clone:
     output:
-        cloned = f"{SOURCE_DIR}/{{repo}}/.cloned"
+        cloned = f"{SOURCE_DIR}/{{repo}}/{CLONE_SENTINEL}"
     threads: 1
     shell:
         "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.extract.clone {wildcards.repo}"
@@ -246,7 +248,7 @@ for name in DATASET_MAP:
     )
 
 workflow.rule(name="clone_all")(
-    workflow.input([f"{SOURCE_DIR}/{repo}/.cloned" for repo in SOURCE_REPOS])(
+    workflow.input([f"{SOURCE_DIR}/{repo}/{CLONE_SENTINEL}" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )

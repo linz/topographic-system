@@ -63,7 +63,7 @@ in everything they need, so `all` on its own builds the lot.
 
 | Target                                  | Builds                                       | What it does                                                                                      |
 | --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `clone_<dataset>` / `clone_all`         | `data/source/<source>/.cloned`               | clone the source repos (once per source repo; see [Source repos](#source-repos))                  |
+| `clone_<dataset>` / `clone_all`         | `data/source/<source>/.cloned_<YYYY-MM-DD>`  | clone or daily-fetch the source repos (once per source repo per day; see [Source repos](#source-repos)) |
 | `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.fgb` | export, transform and merge the theme's datasets, for every configured release                    |
 | `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                 | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle |
 | `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
