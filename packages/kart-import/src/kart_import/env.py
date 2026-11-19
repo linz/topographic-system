@@ -107,21 +107,6 @@ def env_schema_check_mode() -> str:
     return mode
 
 
-def env_skip_source_pull() -> bool:
-    """
-    Stub out the live `kart pull`/`git clone` against the real source repo, trusting whatever
-    clone is already on disk as-is.
-
-    For environments without credentials to reach the real source (e.g. e2e CI), where a
-    possibly-stale existing clone is an acceptable trade-off for not needing live access.
-    Leave unset in production: an existing clone does go stale, which is why `pull_all` pulls
-    from source at all.
-
-    KART_IMPORT_SKIP_SOURCE_PULL=true
-    """
-    return os.getenv("KART_IMPORT_SKIP_SOURCE_PULL", "false").lower() == "true"
-
-
 def env_push_to_master() -> bool:
     """
     Push the built target repo to `master` instead of a release-named branch.
