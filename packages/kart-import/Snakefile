@@ -4,6 +4,7 @@ from kart_import.config import (
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
+    SOURCE_DIR,
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
@@ -31,7 +32,7 @@ SOURCE_REPOS = list(SOURCE_REPO_MAP)
 
 def cloned(name):
     """Sentinel for the source clone a dataset/lookup reads from."""
-    return f"data/source/{get_source_repo_name(get_source_entry(name))}/.cloned"
+    return f"{SOURCE_DIR}/{get_source_repo_name(get_source_entry(name))}/.cloned"
 
 
 def repo_themes(repo):
@@ -103,7 +104,7 @@ rule all:
 # 1. CLONE (one clone per source repo, shared by every dataset/lookup sourced from it)
 rule clone:
     output:
-        cloned = "data/source/{repo}/.cloned"
+        cloned = f"{SOURCE_DIR}/{{repo}}/.cloned"
     threads: 1
     shell:
         "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.repo}"
@@ -221,12 +222,12 @@ rule push:
         "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
-# 7. UTILITY PULL RULE (refresh an already-cloned source if it's behind the published bundle)
+# 7. UTILITY PULL RULE (refresh an already-cloned source directly from LDS)
 rule pull:
     input:
-        cloned = "data/source/{repo}/.cloned"
+        cloned = f"{SOURCE_DIR}/{{repo}}/.cloned"
     output:
-        pulled = "data/source/{repo}/.pulled"
+        pulled = f"{SOURCE_DIR}/{{repo}}/.pulled"
     shell:
         "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.repo}"
 
@@ -288,13 +289,13 @@ for name in DATASET_MAP:
     )
 
 workflow.rule(name="clone_all")(
-    workflow.input([f"data/source/{repo}/.cloned" for repo in SOURCE_REPOS])(
+    workflow.input([f"{SOURCE_DIR}/{repo}/.cloned" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
 
 workflow.rule(name="pull_all")(
-    workflow.input([f"data/source/{repo}/.pulled" for repo in SOURCE_REPOS])(
+    workflow.input([f"{SOURCE_DIR}/{repo}/.pulled" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
