@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -20,15 +21,22 @@ from ..config import (
 from ..export_paths import (
     dataset_commit_file,
     dataset_empty_file,
+    dataset_export_dir,
     dataset_release_file,
     export_filename,
     lookup_commit_file,
     lookup_dir,
+    load_releases_map,
+    relative_export_path,
+    resolve_export_path,
+    schema_sidecar_file,
+    write_releases_map,
 )
-from ..git.kart import get_kart_dataset_id, is_kart, ref_has_dataset
+from ..git.kart import get_dataset_schema, get_kart_dataset_id, is_kart, ref_has_dataset
 from ..git.release import get_release_commit
 from ..log import log_context
 from ..thread import run_in_thread_pool
+from .fid_lifecycle import generate_lifecycle
 
 logger = logging.getLogger("kart_import")
 
@@ -163,6 +171,12 @@ def export_dataset_releases(dataset_name: str):
     if getattr(td, "backfill", False):
         releases_before_first_commit = backfill_releases(commit_to_releases, releases_before_first_commit)
 
+    # {release_id: {"commit": sha | None, "location": <path relative to WORKING_EXPORTS_DIR>}},
+    # persisted below so `relink_dataset_releases` can rebuild these symlinks from the downloaded
+    # per-commit exports alone, with no clone involved. Threads below write disjoint keys (one
+    # release id belongs to exactly one commit), so no lock is needed.
+    releases_map: dict[int, dict[str, str | None]] = {}
+
     def export_release(info: CommitData):
         target_commit_file = dataset_commit_file(dataset_name, info.commit, info.commit_time)
         target_commit_file.parent.mkdir(parents=True, exist_ok=True)
@@ -176,8 +190,15 @@ def export_dataset_releases(dataset_name: str):
             cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(target_commit_file)]
             run_command(cmd, cwd=str(repo_dir))
 
+        schema_file = schema_sidecar_file(target_commit_file)
+        if not schema_file.exists():
+            schema = get_dataset_schema(repo_dir, kart_dataset_id, info.commit)
+            schema_file.write_text(json.dumps(schema))
+
+        location = relative_export_path(target_commit_file)
         for release_id in info.releases:
             link_release_export(target_commit_file, dataset_name, release_id)
+            releases_map[release_id] = {"commit": info.commit, "location": location}
             logger.info(
                 "link", extra={"release": release_id, "commit": info.commit, "commit_time": info.commit_time[0:10]}
             )
@@ -189,8 +210,32 @@ def export_dataset_releases(dataset_name: str):
     )
 
     export_empty_releases(dataset_name, releases_before_first_commit)
+    if releases_before_first_commit:
+        empty_location = relative_export_path(dataset_empty_file(dataset_name))
+        for release_id in releases_before_first_commit:
+            releases_map[release_id] = {"commit": None, "location": empty_location}
+
+    write_releases_map(dataset_export_dir(dataset_name), releases_map)
 
     return str(dataset_release_file(dataset_name, releases[-1].id))
+
+
+def relink_dataset_releases(dataset_name: str) -> None:
+    """Rebuild a dataset's per-release export symlinks from its already-downloaded per-commit
+    exports and persisted release map (see `write_releases_map` in `export_dataset_releases`).
+    No clone needed -- used by `assets.working_data`'s S3 download, never by Snakemake directly.
+    """
+    releases_map = load_releases_map(dataset_export_dir(dataset_name))
+    for release_id, info in releases_map.items():
+        source_file = resolve_export_path(info["location"])
+        link_release_export(source_file, dataset_name, release_id)
+
+
+def export_dataset(dataset_name: str) -> str:
+    """Export a dataset's lifecycle data and per-release files -- the two clone-only, stage-1-only
+    steps that have no dependency on each other's output, merged into one entry point."""
+    generate_lifecycle(dataset_name)
+    return export_dataset_releases(dataset_name)
 
 
 def export_lookup(lookup_name: str) -> str:
@@ -209,27 +254,40 @@ def export_lookup(lookup_name: str) -> str:
     kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
 
     commits: dict[str, str] = {}
+    releases_map: dict[int, dict[str, str | None]] = {}
     for release in get_releases():
         res = get_release_commit(repo_dir, release.until)
-        if res is not None:
-            commit, commit_time = res
-            commits.setdefault(commit, commit_time)
+        if res is None:
+            releases_map[release.id] = {"commit": None, "location": None}
+            continue
+        commit, commit_time = res
+        commits.setdefault(commit, commit_time)
+        releases_map[release.id] = {"commit": commit, "location": None}  # location filled in below
 
     output_dir = lookup_dir(lookup_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     def export_commit(commit: str) -> None:
         output_file = lookup_commit_file(lookup_name, commit)
-        if output_file.exists():
-            return
-        logger.info(
-            f"Exporting lookup {lookup_name} to {EXPORT_FORMAT}",
-            extra={"commit": commit, "commit_time": commits[commit][:10], "file": str(output_file)},
-        )
-        cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
-        run_command(cmd, cwd=str(repo_dir))
+        if not output_file.exists():
+            logger.info(
+                f"Exporting lookup {lookup_name} to {EXPORT_FORMAT}",
+                extra={"commit": commit, "commit_time": commits[commit][:10], "file": str(output_file)},
+            )
+            cmd = ["kart", "export", "--overwrite", "--ref", commit, kart_dataset_id, str(output_file)]
+            run_command(cmd, cwd=str(repo_dir))
+
+        schema_file = schema_sidecar_file(output_file)
+        if not schema_file.exists():
+            schema = get_dataset_schema(repo_dir, kart_dataset_id, commit)
+            schema_file.write_text(json.dumps(schema))
 
     run_in_thread_pool(func=export_commit, items=list(commits), thread_count=4)
+
+    for info in releases_map.values():
+        if info["commit"] is not None:
+            info["location"] = relative_export_path(lookup_commit_file(lookup_name, info["commit"]))
+    write_releases_map(output_dir, releases_map)
 
     # Prune exports for commits no longer resolved by any current release, so prepare_lookup doesn't keep slimming orphaned commits into stale parquets.
     referenced = {export_filename(commit) for commit in commits}
@@ -254,7 +312,7 @@ if __name__ == "__main__":
             export_lookup(args[1])
     elif args:
         with log_context(action="export", dataset=args[0]):
-            export_dataset_releases(args[0])
+            export_dataset(args[0])
     else:
         print("Usage: python -m kart_import.assets.export <dataset_name> | --lookup <lookup_name>")
         sys.exit(1)

@@ -12,9 +12,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name, get_source_repo_name
-from ..export_paths import export_filename, lookup_dir
-from ..git.kart import get_dataset_schema, get_kart_dataset_id
+from ..config import WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name
+from ..export_paths import export_filename, load_schema_sidecar, lookup_dir
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from .export import gpd_read
@@ -76,10 +75,6 @@ def prepare_lookup(lookup_name: str) -> Path:
     """Slim each of the lookup's per-commit exports into a parquet (keyed by commit)."""
     lookup = get_lookup_by_name(lookup_name)
 
-    # Read per commit below; `.cloned` is an input of the Snakefile rule so the repo is present.
-    repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
-    kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
-
     input_dir = lookup_dir(lookup_name)
     if not input_dir.exists():
         raise FileNotFoundError(f"no exported lookup {lookup_name!r} at {input_dir}")
@@ -104,7 +99,7 @@ def prepare_lookup(lookup_name: str) -> Path:
         out = select_lookup_columns(gdf, lookup)
         out = coerce_integer_columns(
             out,
-            get_dataset_schema(repo_dir, kart_dataset_id, commit),
+            load_schema_sidecar(input_file),
             context=f"lookup {lookup_name!r} at {commit}",
         )
         out.to_parquet(output_file, compression="zstd", index=False)

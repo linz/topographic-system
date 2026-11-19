@@ -12,7 +12,6 @@ import geopandas as gpd
 import pandas as pd
 
 from ..config import (
-    SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_TRANSFORM_DIR,
@@ -20,13 +19,11 @@ from ..config import (
     Theme,
     ThemeDataset,
     get_releases,
-    get_source_repo_name,
     get_themes,
 )
 from ..corrections import apply_corrections
-from ..export_paths import dataset_release_file
+from ..export_paths import dataset_release_file, load_schema_sidecar
 from ..fixups import FIXUPS
-from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
@@ -330,10 +327,9 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         if commit is None:
             logger.warning("no commit in export name; declared types not restored", extra={"file": str(input_file)})
         else:
-            repo_dir = SOURCE_DIR / get_source_repo_name(td)
             gdf = coerce_integer_columns(
                 gdf,
-                get_dataset_schema(repo_dir, td.source.dataset or get_kart_dataset_id(repo_dir), commit),
+                load_schema_sidecar(input_file.resolve()),
                 context=f"dataset {dataset_name!r} at {commit}",
             )
 

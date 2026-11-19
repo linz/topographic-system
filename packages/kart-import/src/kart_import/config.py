@@ -98,7 +98,7 @@ class Source(BaseModel):
 
 
 def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
-    """Local clone (and bundle) name for an entry's source repo.
+    """Local clone name for an entry's source repo.
 
     A multi-dataset repo (one that needs ``source.dataset``, e.g. topographic-source-data) is
     shared by every entry pulling from it, so it is cloned once under its repo name.

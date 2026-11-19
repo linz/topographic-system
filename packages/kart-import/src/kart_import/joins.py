@@ -7,16 +7,13 @@ import pandas as pd
 import shapely
 
 from .config import (
-    SOURCE_DIR,
     WORKING_LOOKUP_DIR,
     Join,
     Lookup,
     ThemeDataset,
     get_lookup_by_name,
-    get_releases,
-    get_source_repo_name,
 )
-from .git.release import get_release_commit
+from .export_paths import load_releases_map, lookup_dir, releases_map_file
 
 logger = logging.getLogger("kart_import")
 
@@ -63,27 +60,29 @@ def _require_compatible_join_keys(
 def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
     """The lookup commit as-of this release, or None if the release predates the lookup's history.
 
+    Read from the release map `export_lookup` persists (see `export_paths.write_releases_map`)
+    rather than a live `git log` against the clone, so transform has no dependency on the clone
+    being present.
+
     Memoized on (lookup_name, release_id): a single transform process resolves the same pair
     repeatedly (once per release while fingerprinting in find_canonical_release, again when it
     recurses into the canonical release, and again in apply_joins).
     """
-    release = next((r for r in get_releases() if r.id == release_id), None)
-    if release is None:
-        return None
-    repo_dir = SOURCE_DIR / get_source_repo_name(get_lookup_by_name(lookup_name))
-    if not repo_dir.exists():
+    export_dir = lookup_dir(lookup_name)
+    releases_file = releases_map_file(export_dir)
+    if not releases_file.exists():
         raise FileNotFoundError(
-            f"lookup {lookup_name!r} source repo not found at {repo_dir}; clone+export the lookup before transform"
+            f"lookup {lookup_name!r} has no release map at {releases_file}; export it before transform"
         )
-    res = get_release_commit(repo_dir, release.until)
-    if res is not None:
-        return res[0]
 
-    if get_release_commit(repo_dir, None) is None:  # check if missing release _or_ genuine `None` value
-        raise FileNotFoundError(
-            f"lookup {lookup_name!r} at {repo_dir} has no resolvable commits; re-clone/export the lookup"
-        )
-    return None
+    releases_map = load_releases_map(export_dir)
+    if release_id not in releases_map:
+        return None
+
+    commit = releases_map[release_id]["commit"]
+    if commit is None and not any(info["commit"] for info in releases_map.values()):
+        raise FileNotFoundError(f"lookup {lookup_name!r} at {releases_file} has no resolvable commits; re-export it")
+    return commit
 
 
 def join_fingerprint(td: ThemeDataset, release_id: int) -> tuple[tuple[str, str | None], ...]:

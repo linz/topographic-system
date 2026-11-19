@@ -14,8 +14,8 @@ def _git(cwd, *args):
 
 
 def test_get_release_commit_uses_origin_tip_not_stale_local(tmp_path):
-    """A stale / behind local branch must not shadow the fetched source tip: a bundle
-    seed left local `master` at an old commit while `origin/master` advanced must return the origin tip."""
+    """A stale / behind local branch must not shadow the fetched source tip: a local `master`
+    left at an old commit while `origin/master` advanced must still return the origin tip."""
     origin = tmp_path / "origin"
     origin.mkdir()
     _git(origin, "init", "-b", "master")

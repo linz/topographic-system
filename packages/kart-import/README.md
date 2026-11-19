@@ -36,8 +36,6 @@ This project is a snakemake-based pipeline for importing topographic data from L
   A successful connection is authenticated but has no shell, so a "does not provide shell
   access"-style message is the expected result; `Permission denied (publickey)` means the key
   is not registered (or your agent is not offering it: `ssh-add ~/.ssh/id_ed25519`).
-  The same key is used whether cloning direct or via a bundle, because bundle clones still
-  pull the tip from the source repo.
 
 - **`pjl`** (optional) pretty-prints the pipeline's JSON logs; the examples below pipe to it.
   `npm install` at the repo root installs it, but does not add it to `PATH`, hence run with `npx`.
@@ -71,8 +69,9 @@ in everything they need, so `all` on its own builds the lot.
 | `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
 | `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
 | `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
-| `bundle_all`                            | `data/source/<source>/.bundle_created`       | maintenance only: refresh the source bundles in S3 (see [LDS Backup](#lds-backup))                |
-| `pull_all`                              | `data/source/<source>/.pulled`               | refresh already-cloned sources that have fallen behind the published bundle                       |
+| `export_all`                            | `data/working/.exported`                     | stage 1: clone + export + lifecycle for everything, then upload to S3 (see [Two stages](#two-stages-export-and-process)) |
+| `process_all`                           | every repo's `.imported`                     | stage 2: same target as `all`, named for the split above                                          |
+| `pull_all`                              | `data/source/<source>/.pulled`               | refresh already-cloned sources from the real source                                               |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot
@@ -97,8 +96,7 @@ Each source repo is cloned once under `data/source/<source>/`, and every dataset
 from it reads that clone. A single-dataset Koordinates repo is named after its dataset
 (`data/source/nz_airport_polygons`); a multi-dataset repo, one whose entries set `source.dataset`, is
 named after the repo and shared, so every dataset pulling from `topographic-source-data` uses
-`data/source/topographic-source-data`. Its S3 bundle is named the same way
-(`topographic-source-data.bundle`).
+`data/source/topographic-source-data`.
 
 ### Limiting the work
 
@@ -120,9 +118,45 @@ export KART_THEME_FORMAT=geojson
 Because they change which files the rules expect, keep them exported for every command in a
 given run. Flipping one mid-run invalidates the targets built before it.
 
+## Two stages: export and process
+
+The pipeline splits into two independently runnable stages, so the clone/export side (which needs
+an LDS-registered SSH key) and everything downstream of it (which doesn't) can run on different
+machines/credentials:
+
+1. **`export_all`** — clone every source repo, export every dataset/lookup's per-release commits
+   and lifecycle data, then upload `data/working/export` and `data/working/lifecycle` to S3
+   (`assets.working_data`).
+
+   ```shell
+   uv run snakemake --cores=4 export_all --quiet | npx pjl
+   ```
+
+2. **`process_all`** — download that data back from S3, then run prepare/transform/theme/import,
+   with **no LDS SSH access needed**: schema and release→commit resolution are read from what
+   `export_all` captured (JSON sidecars next to each per-commit export), not from a live clone.
+
+   Run the download first, as its own command, **not** chained with `process_all` in the same
+   `snakemake` invocation — Snakemake decides which rules need to (re)run from on-disk state as an
+   invocation starts, so the download has to have already happened:
+
+   ```shell
+   uv run python -m kart_import.assets.working_data download
+   uv run snakemake --cores=4 process_all --quiet | npx pjl
+   ```
+
+Both invocations must use the same `KART_IMPORT_THEME`/`KART_IMPORT_RELEASE` scoping (see
+[Limiting the work](#limiting-the-work)) — `process_all` requests exactly the lifecycle/export
+filenames that scoping implies, which only exist if `export_all` was run with the same values.
+
+```shell
+# where the handoff lives (default s3://linz-topography-nonprod/working/)
+export KART_IMPORT_S3_URL=s3://my-bucket/working/
+```
+
 ## Transform
 
-The stages between `clone` and `kart_theme` (`export`, `lifecycle`, `prepare_lookup`, `transform`,
+The stages between `clone` and `kart_theme` (`export`, `prepare_lookup`, `transform`,
 `theme_release`) are wildcard rules driven by the theme config, so they have no named targets,
 `theme_<theme>` pulls them all in. To run one on its own, ask for its output file, or invoke the
 module directly to bypass snakemake:
@@ -237,61 +271,6 @@ Lookups take a slightly different path: they are exported once per distinct comm
 (`export_lookup`), then `prepare_lookup` slims each export to the key plus the selected columns,
 dropping keyless rows and deduplicating on the key so a join cannot fan out rows. Lookups are
 never emitted as theme features. See [Left Join Example](#left-join-example).
-
-## LDS Backup
-
-git bundles are stored of all kart repositories in cloudfront to enable fast cloning
-
-```shell
-git clone --bundle-uri=https://d1jzh93b1t1cv.cloudfront.net/source/nz_airport_polygons.bundle kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k
-```
-
-These are created with the "bundle_all" assets.
-
-```shell
-uv run snakemake --cores=4 bundle_all
-```
-
-To (re)create the bundle for a single source repo, target its `.bundle_created`
-sentinel (there is no per-repo named rule for bundling):
-
-```shell
-uv run snakemake --cores=4 data/source/nz_airport_polygons/.bundle_created --quiet | npx pjl
-```
-
-### Prerequisites for bundling
-
-Bundling clones each Kart repo, packs it into a git `.bundle`, and uploads the
-bundle plus a per-commit JSON export to S3. For this to work you need:
-
-- **AWS credentials with write access to the bundle store.** The upload uses
-  `aws s3 cp` against `GIT_BUNDLE_S3_URL` (default
-  `s3://linz-topography-nonprod/source/`). Log in first so the AWS CLI has
-  write-credentials, e.g.:
-
-  ```shell
-  aws sso login --profile <your-topography-nonprod-profile>
-  export AWS_PROFILE=<your-topography-nonprod-profile>
-  ```
-
-  To write somewhere else, override the target bucket/prefix:
-
-  ```shell
-  export GIT_BUNDLE_S3_URL=s3://my-bucket/source/
-  ```
-
-- **The `aws` CLI installed** and on `PATH` (the upload shells out to it).
-- **`kart`, `git` and LDS SSH access** as per [Prerequisites](#prerequisites).
-
-The uploaded bundles are served read-only from CloudFront
-(`GIT_BUNDLE_URL`, default `https://d1jzh93b1t1cv.cloudfront.net/source/`),
-which is what the clone step reads from when `GIT_BUNDLE=true`.
-
-To turn bundle usage off
-
-```shell
-export GIT_BUNDLE=false; uv run snakemake --cores=4 clone_nz_airport_polygons --quiet | npx pjl
-```
 
 ## Push
 

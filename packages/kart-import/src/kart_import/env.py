@@ -107,24 +107,15 @@ def env_schema_check_mode() -> str:
     return mode
 
 
-def env_use_bundle() -> bool:
-    """
-    Should git bundles be used to speed up download process
-
-    GIT_BUNDLE=true
-    """
-    return os.getenv("GIT_BUNDLE", "true").lower() == "true"
-
-
 def env_skip_source_pull() -> bool:
     """
-    Stub out the live `kart pull`/`git clone` against the real source repo, trusting
-    whatever is already on disk (a bundle-seeded clone, or an existing clone) as-is.
+    Stub out the live `kart pull`/`git clone` against the real source repo, trusting whatever
+    clone is already on disk as-is.
 
-    For environments without credentials to reach the real source (e.g. e2e CI), where
-    a bundle that's slightly stale is an acceptable trade-off for not needing live access.
-    Leave unset in production: bundles do go stale, which is why clone/pull_all pull from
-    source at all.
+    For environments without credentials to reach the real source (e.g. e2e CI), where a
+    possibly-stale existing clone is an acceptable trade-off for not needing live access.
+    Leave unset in production: an existing clone does go stale, which is why `pull_all` pulls
+    from source at all.
 
     KART_IMPORT_SKIP_SOURCE_PULL=true
     """
@@ -149,25 +140,15 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
-def env_bundle_url(repo_name: str) -> str:
+def env_working_data_s3_url() -> str:
     """
-    Location to git bundles stored for easy access
+    Location of the S3 handoff between `export_all` (clone+export+lifecycle, needs LDS SSH
+    access) and the rest of the pipeline (`process_all`, needs only AWS credentials):
+    `assets.working_data` syncs `data/working/export` and `data/working/lifecycle` here.
 
-    GIT_BUNDLE_URL=https://d1jzh93b1t1cv.cloudfront.net/source/
+    KART_IMPORT_S3_URL=s3://linz-topography-nonprod/working/
     """
-    base_url = os.getenv("GIT_BUNDLE_URL", "https://d1jzh93b1t1cv.cloudfront.net/source/")
-    if not base_url.endswith("/"):
-        base_url += "/"
-    return f"{base_url}{repo_name}.bundle"
-
-
-def env_bundle_s3_url() -> str:
-    """
-    Location to a AWS writeable bundle store, used for initial bundle seeding
-
-    GIT_BUNDLE_S3_URL=s3://linz-topography-nonprod/source/
-    """
-    s3_uri = os.getenv("GIT_BUNDLE_S3_URL", "s3://linz-topography-nonprod/source/")
+    s3_uri = os.getenv("KART_IMPORT_S3_URL", "s3://linz-topography-nonprod/working/")
     if not s3_uri.endswith("/"):
         s3_uri += "/"
     return s3_uri

@@ -179,35 +179,43 @@ def test_apply_joins_picks_parquet_for_resolved_commit(env, monkeypatch):
 
 
 def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
-    """The release->commit gate is purely 'what commit does the lookup have as-of this release'."""
-    monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
-    (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
+    """The release->commit gate reads the release map `export_lookup` persists -- no clone
+    involved."""
+    export_dir = tmp_path / "lookup" / "road_lkp"
+    export_dir.mkdir(parents=True)
+    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
 
-    monkeypatch.setattr(joins, "get_release_commit", lambda repo, until: ("abcdef12", "2026-05-15T00:00:00Z"))
+    export_paths.write_releases_map(export_dir, {66: {"commit": "abcdef12", "location": "road_lkp/abcdef12.parquet"}})
     assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
 
-    # release predates the lookup: no commit as-of the release, but the repo HAS history -> None.
+    # release predates the lookup: no commit as-of the release, but the map HAS other history -> None.
     joins._resolve_lookup_commit.cache_clear()
-    monkeypatch.setattr(
-        joins, "get_release_commit", lambda repo, until: None if until else ("head0001", "2026-01-01T00:00:00Z")
+    export_paths.write_releases_map(
+        export_dir,
+        {
+            66: {"commit": None, "location": None},
+            65: {"commit": "head0001", "location": "road_lkp/head0001.parquet"},
+        },
     )
     assert joins._resolve_lookup_commit("road_lkp", 66) is None
 
 
-@pytest.mark.parametrize(
-    "make_clone, get_commit, match",
-    [
-        (False, None, "source repo not found"),  # missing clone must raise, not null the join
-        (True, lambda repo, until: None, "no resolvable commits"),  # present but no history at all
-    ],
-    ids=["missing-clone", "empty-clone"],
-)
-def test_resolve_lookup_commit_errors_on_bad_clone(tmp_path, monkeypatch, make_clone, get_commit, match):
-    monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
-    if make_clone:
-        (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
-        monkeypatch.setattr(joins, "get_release_commit", get_commit)
-    with pytest.raises(FileNotFoundError, match=match):
+def test_resolve_lookup_commit_errors_when_unexported(tmp_path, monkeypatch):
+    """No release map at all -- the lookup was never exported -- must raise, not null the join."""
+    export_dir = tmp_path / "lookup" / "road_lkp"
+    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
+    with pytest.raises(FileNotFoundError, match="has no release map"):
+        joins._resolve_lookup_commit("road_lkp", 66)
+
+
+def test_resolve_lookup_commit_errors_when_no_commit_ever_resolved(tmp_path, monkeypatch):
+    """A release map with no resolvable commits at all (lookup present but history-less) must
+    raise, not null the join."""
+    export_dir = tmp_path / "lookup" / "road_lkp"
+    export_dir.mkdir(parents=True)
+    monkeypatch.setattr(joins, "lookup_dir", lambda _: export_dir)
+    export_paths.write_releases_map(export_dir, {66: {"commit": None, "location": None}})
+    with pytest.raises(FileNotFoundError, match="no resolvable commits"):
         joins._resolve_lookup_commit("road_lkp", 66)
 
 
@@ -231,10 +239,9 @@ def _export_lookup_dir(tmp_path, monkeypatch, schema):
     monkeypatch.setitem(
         config.LOOKUP_MAP, "road_lkp", Lookup(name="road_lkp", source=_SRC, key="t50_fid", columns=["width"])
     )
-    monkeypatch.setattr(prepare, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
-    monkeypatch.setattr(prepare, "get_dataset_schema", lambda *_: schema)
+    monkeypatch.setattr(prepare, "load_schema_sidecar", lambda *_: schema)
 
     export_dir = tmp_path / "export" / "lookup" / "road_lkp"
     export_dir.mkdir(parents=True)

@@ -51,7 +51,7 @@ def test_missing_local_clone_is_skipped(env):
 
 
 def test_existing_clone_always_pulls_directly_from_source(env):
-    """`pull_all` ignores published bundles entirely and always pulls straight from source."""
+    """`pull_all` always pulls straight from source."""
     (env.target_dir / ".kart").mkdir(parents=True)
 
     pull_repo(DATASET)

@@ -50,11 +50,6 @@ run_trace_id = format(span_ctx.trace_id, "032x")
 run_span_id = format(span_ctx.span_id, "016x")
 os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
 
-# Per-invocation run id (the trace id, whether generated above or inherited). Used to
-# scope log files so each run's logs live in their own directory and match the `TraceId`
-# embedded in every JSON log record. `ls -t logs/bundle/` finds the latest run.
-RUN_ID = run_trace_id
-
 
 def _end_root_span(status_code=None, description=""):
     # The tracer provider flushes/shuts down on its own atexit handler (see log.py);
@@ -85,23 +80,14 @@ rule clone:
         "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.repo}"
 
 
-# 2. LIFECYCLE
-rule lifecycle:
+# 2/3a. EXPORT (lifecycle + per-release files for a dataset, in one process: both are clone-only
+# and independent of each other's output, so there's no reason to keep them as separate rules)
+rule export:
     input:
         cloned = lambda wildcards: cloned(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
-        lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
-    threads: 1
-    shell:
-        "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
-
-
-# 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
-rule export:
-    input:
-        cloned = lambda wildcards: cloned(wildcards.dataset)
-    output:
+        lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
         files = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES]
     threads: 4
     shell:
@@ -121,8 +107,7 @@ rule export_lookup:
 # 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
 rule prepare_lookup:
     input:
-        # clone must be present: prepare reads each commit's declared schema from it.
-        cloned = lambda wildcards: cloned(wildcards.lookup),
+        # `exported` already carries each commit's schema sidecar (see assets.export) -- no clone needed.
         exported = "data/working/export/lookup/{lookup}",
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
@@ -134,21 +119,16 @@ rule prepare_lookup:
 # 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool 
 rule transform:
     input:
+        # `exported` already carries each release's schema sidecar (see assets.export) -- no clone needed.
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
-        # clone must be present: transform reads the source's declared schema from it.
-        cloned = lambda wildcards: cloned(wildcards.dataset),
         exported = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES],
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
         ),
+        # lookup joins resolve their release->commit map from `exported`'s release map -- no clone needed.
         lookups = lambda wildcards: [
             f"data/working/lookup/{join.lookup}"
-            for join in DATASET_MAP[wildcards.dataset].joins
-        ],
-        # clone must be present (not just the prepared parquet).
-        lookup_clones = lambda wildcards: [
-            cloned(join.lookup)
             for join in DATASET_MAP[wildcards.dataset].joins
         ],
         example_deps = lambda wildcards: [
@@ -222,20 +202,27 @@ rule pull:
         "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.repo}"
 
 
-# 8. UTILITY BUNDLE RULE
-rule bundle:
+# 8. STAGE 1 -> S3 HANDOFF (clone+export+lifecycle for every dataset/lookup, then upload to S3 --
+# see assets.working_data). The counterpart, downloading before `process_all`, is deliberately a
+# plain script (`uv run python -m kart_import.assets.working_data download`), not a Snakemake
+# rule: Snakemake decides which jobs in a run need to run from on-disk state as that run starts,
+# so the download has to complete *before* the `process_all` invocation starts, not as a step
+# inside it -- see the Snakefile section of the README for the two-invocation sequence.
+rule export_all:
+    input:
+        lifecycle = [
+            f"data/working/lifecycle/{name}_release{RELEASES[0].id}-{RELEASES[-1].id}.json" for name in DATASET_MAP
+        ],
+        exported = [
+            f"data/working/export/release_{r.id}/" + export_filename(name)
+            for name in DATASET_MAP
+            for r in RELEASES
+        ],
+        lookups = [f"data/working/export/lookup/{lookup}" for lookup in LOOKUP_TO_THEME_MAP]
     output:
-        sentinel = "data/source/{repo}/.bundle_created"
-    log:
-        # Per-repo, per-run log so parallel jobs don't interleave, runs don't clobber
-        # each other, and failures are easy to isolate:
-        #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
-        # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
-        f"logs/bundle/{RUN_ID}/{{repo}}.log"
-    threads: 4
+        uploaded = "data/working/.exported"
     shell:
-        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle {wildcards.repo} > {log} 2>&1"
-
+        "OTEL_SERVICE_NAME=export_all uv run python -m kart_import.assets.working_data upload"
 
 
 for name in DATASET_MAP:
@@ -247,12 +234,6 @@ for name in DATASET_MAP:
 
 workflow.rule(name="clone_all")(
     workflow.input([f"data/source/{repo}/.cloned" for repo in SOURCE_REPOS])(
-        workflow.run(lambda *args, **kwargs: None)
-    )
-)
-
-workflow.rule(name="bundle_all")(
-    workflow.input([f"data/source/{repo}/.bundle_created" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
@@ -304,6 +285,15 @@ for repo in REPOS:
 
 workflow.rule(name="push_all")(
     workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
+# STAGE 2 ENTRY POINT: same target as `all`, named for the two-stage split (see `export_all`
+# above). Run `uv run python -m kart_import.assets.working_data download` first, in its own
+# invocation -- see the README.
+workflow.rule(name="process_all")(
+    workflow.input(ALL_IMPORTED)(
         workflow.run(lambda *args, **kwargs: None)
     )
 )

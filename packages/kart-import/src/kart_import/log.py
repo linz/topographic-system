@@ -199,8 +199,8 @@ def setup_logging():
         if logs_endpoint or os.environ.get("OTEL_LOGS_EXPORTER") == "otlp":
             provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter()))
 
-    # Always written locally too: Snakemake redirects this to a per-dataset log file
-    # (see the `bundle` rule), which `grep`/`ls -t logs/bundle/$RUN_ID/` rely on.
+    # Always written locally too: a Snakemake rule can redirect this to a per-rule log file
+    # via its `log:` directive, for tools that need the raw JSON lines on disk.
     provider.add_log_record_processor(SimpleLogRecordProcessor(_JsonLineExporter()))
 
     log_level = getattr(logging, os.environ.get("LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)

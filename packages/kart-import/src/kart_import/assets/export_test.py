@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 import geopandas as gpd
@@ -126,12 +127,76 @@ def test_backfill_dataset_links_predating_releases_to_its_earliest_export(tmp_pa
     )
     monkeypatch.setattr(export, "ref_has_dataset", lambda *_: True)
     monkeypatch.setattr(export, "run_command", lambda cmd, **_: open(cmd[-1], "w").close())
+    monkeypatch.setattr(export, "get_dataset_schema", lambda *_: ())
 
     export.export_dataset_releases("ds")
 
     linked = {r: (tmp_path / f"release_{r}" / export_filename("ds")).resolve() for r in (30, 66)}
     assert linked[30] == linked[66]
     assert linked[30].name != export_filename("empty")
+
+
+def test_export_dataset_merges_lifecycle_and_export(monkeypatch):
+    """`export_dataset` is the single entry point for the two clone-only, stage-1-only steps that
+    have no dependency on each other's output -- merged so there's one rule/CLI invocation."""
+    calls = []
+    monkeypatch.setattr(export, "generate_lifecycle", lambda name: calls.append(("lifecycle", name)))
+    monkeypatch.setattr(export, "export_dataset_releases", lambda name: calls.append(("export", name)) or "result")
+
+    result = export.export_dataset("ds")
+
+    assert calls == [("lifecycle", "ds"), ("export", "ds")]
+    assert result == "result"
+
+
+def test_export_dataset_releases_writes_schema_sidecar_and_releases_map(tmp_path, monkeypatch):
+    """The per-commit schema sidecar and the dataset's release map -- what lets `transform`/
+    `prepare_lookup` and `relink_dataset_releases` work with no clone present."""
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
+    monkeypatch.setattr(export, "is_kart", lambda _: True)
+    monkeypatch.setattr(
+        export, "get_source_entry", lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
+    )
+    monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=r) for r in (66, 67)])
+    monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("abc", "2026-05-15T12:27:14+12:00"))
+    monkeypatch.setattr(export, "ref_has_dataset", lambda *_: True)
+    monkeypatch.setattr(export, "run_command", lambda cmd, **_: open(cmd[-1], "w").close())
+    monkeypatch.setattr(export, "get_dataset_schema", lambda *_: ({"name": "t50_fid", "dataType": "integer"},))
+
+    export.export_dataset_releases("ds")
+
+    commit_file = tmp_path / "ds" / export_filename("2026-05-15_abc")
+    assert commit_file.exists()
+    assert json.loads(export_paths.schema_sidecar_file(commit_file).read_text()) == [
+        {"name": "t50_fid", "dataType": "integer"}
+    ]
+
+    location = "ds/" + export_filename("2026-05-15_abc")
+    assert export_paths.load_releases_map(export_paths.dataset_export_dir("ds")) == {
+        66: {"commit": "abc", "location": location},
+        67: {"commit": "abc", "location": location},
+    }
+
+
+def test_relink_dataset_releases_rebuilds_symlinks_from_the_map(tmp_path, monkeypatch):
+    """The inverse of the write above -- what `assets.working_data`'s download runs after
+    pulling per-commit exports from S3, with no clone involved."""
+    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
+    commit_file = tmp_path / "ds" / export_filename("2026-05-15_abc")
+    commit_file.parent.mkdir(parents=True)
+    commit_file.write_text("data")
+    export_paths.write_releases_map(
+        export_paths.dataset_export_dir("ds"), {66: {"commit": "abc", "location": "ds/" + commit_file.name}}
+    )
+
+    export.relink_dataset_releases("ds")
+
+    link = tmp_path / "release_66" / export_filename("ds")
+    assert link.is_symlink()
+    assert link.resolve() == commit_file
 
 
 def test_gpd_read_returns_parquet_decimals_as_floats(tmp_path):

@@ -10,8 +10,6 @@ logger = logging.getLogger("kart_import")
 
 """
 Keep an already-cloned local source repo current by pulling directly from the real source.
-Bundles are only a fast path for the initial clone; `pull_all` always goes straight to the
-source repo so it never trusts a bundle that may be stale.
 """
 
 
