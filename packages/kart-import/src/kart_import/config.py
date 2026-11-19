@@ -39,16 +39,12 @@ SOURCE_DIR = Path(env_source_dir_override()).expanduser() if env_source_dir_over
 
 # export/ — per-commit source exports (parquet/geojson), schema sidecars and release maps, one
 # directory per source repo (shared by every dataset/lookup sourced from it, same as SOURCE_DIR).
-# The entire S3 handoff between `extract_all` and `process_all` is this directory plus
-# WORKING_LIFECYCLE_DIR -- kept separate from SOURCE_DIR so that sync never has to touch (or
-# exclude) a real clone's `.kart`/`.git` contents.
+# The entire Stage 1 output (and S3 handoff between `extract_all` and `process_all`) is this
+# directory -- kept separate from SOURCE_DIR so syncing never touches `.kart`/`.git` contents.
 EXPORT_DIR = DATA_DIR / "export"
 
 # working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"
-# Per-release view of EXPORT_DIR: release_<n>/<dataset>.parquet, symlinked to the commit it
-# resolves to. Purely local/derived (rebuildable from EXPORT_DIR's release maps), never synced.
-WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"

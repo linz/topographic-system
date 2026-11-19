@@ -8,14 +8,13 @@ REPO = "topographic-source-data"
 MODULE = "kart_import.assets.extract.clone"
 
 
-def _setup(monkeypatch, tmp_path, *, has_dataset: bool):
+def test_clone_repo_clones_no_checkout_and_touches_sentinel(monkeypatch, tmp_path):
     source_dir = tmp_path / "source"
-    source_dir.mkdir()
     target_dir = source_dir / REPO
 
     def run_command(cmd, cwd=None, **kwargs):
         if cmd[:2] == ["git", "clone"]:
-            Path(cmd[3]).mkdir(parents=True, exist_ok=True)  # real git clone creates the dir
+            Path(cmd[3]).mkdir(parents=True, exist_ok=True)
         return ""
 
     rc = MagicMock(side_effect=run_command)
@@ -23,46 +22,12 @@ def _setup(monkeypatch, tmp_path, *, has_dataset: bool):
     monkeypatch.setattr(f"{MODULE}.run_command", rc)
     monkeypatch.setattr(
         f"{MODULE}.get_source_repo",
-        lambda name: [
-            SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data", dataset=ds))
-            for ds in ("linz_map_sheet", "golf_sym")
-        ],
+        lambda name: [SimpleNamespace(source=SimpleNamespace(url="git@github.com:linz/topographic-source-data"))],
     )
-    monkeypatch.setattr(f"{MODULE}._clone_has_dataset", lambda td, wanted: has_dataset)
-    return SimpleNamespace(target_dir=target_dir, run_command=rc)
-
-
-def _cmds(rc) -> list[list[str]]:
-    return [c.args[0] for c in rc.call_args_list]
-
-
-def test_existing_clone_with_dataset_is_reused(monkeypatch, tmp_path):
-    env = _setup(monkeypatch, tmp_path, has_dataset=True)
-    (env.target_dir / ".git").mkdir(parents=True)
 
     clone_repo(REPO)
 
-    assert not any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env.run_command))  # reused, no re-clone
-    assert (env.target_dir / ".cloned").exists()
-
-
-def test_existing_clone_without_dataset_is_recloned(monkeypatch, tmp_path):
-    env = _setup(monkeypatch, tmp_path, has_dataset=False)
-    (env.target_dir / ".git").mkdir(parents=True)
-
-    clone_repo(REPO)
-
-    assert any(cmd[:2] == ["git", "clone"] for cmd in _cmds(env.run_command))  # wrong repo --> re-cloned
-    assert (env.target_dir / ".cloned").exists()
-
-
-def test_clone_must_contain_every_dataset_sourced_from_it(monkeypatch, tmp_path):
-    """A shared clone is only reusable if it holds all of the datasets configured against it."""
-    from . import clone
-
-    monkeypatch.setattr(f"{MODULE}.source_ref", lambda repo_dir: "origin/master")
-    monkeypatch.setattr(f"{MODULE}.ref_has_dataset", lambda repo_dir, ref, ds: ds == "linz_map_sheet")
-
-    assert clone._clone_has_dataset(tmp_path, ["linz_map_sheet"])
-    assert not clone._clone_has_dataset(tmp_path, ["linz_map_sheet", "golf_sym"])
-    assert clone._clone_has_dataset(tmp_path, [])  # single-dataset koordinates repo
+    rc.assert_called_once_with(
+        ["git", "clone", "git@github.com:linz/topographic-source-data", str(target_dir), "--no-checkout"]
+    )
+    assert (target_dir / ".cloned").exists()

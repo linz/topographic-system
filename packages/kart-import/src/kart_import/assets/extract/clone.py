@@ -1,3 +1,4 @@
+from genericpath import exists
 import logging
 
 from ...command import run_command
@@ -15,7 +16,10 @@ def clone_repo(repo_name: str) -> None:
     sentinel = target_dir / ".cloned"
 
     with log_context(action="git_clone", repo=repo_name):
-        run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
+        if exists(sentinel):
+            run_command(["git", "pull"])
+        else:
+            run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
 
     sentinel.touch()
 

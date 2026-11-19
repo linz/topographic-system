@@ -69,9 +69,8 @@ in everything they need, so `all` on its own builds the lot.
 | `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
 | `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
 | `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
-| `extract_<repo>` / `extract_all`        | `data/working/.extracted_<repo>` / `.extracted` | stage 1: clone + export + lifecycle for `<repo>` / everything, then upload to S3 (see [Two stages](#two-stages-extract-and-process)) |
+| `extract_<repo>` / `extract_all`        | `data/export/.sentinel/<entry>.exported`     | stage 1: clone + export per-commit parquets for `<repo>` / everything (see [Two stages](#two-stages-extract-and-process)) |
 | `process_<repo>` / `process_all`        | `data/output/<repo>/.imported` / every repo's | stage 2: same target as `kart_import_<repo>` / `all`, named for the split above                   |
-| `pull_all`                              | `data/source/<source>/.pulled`               | refresh already-cloned sources from the real source                                               |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot
@@ -144,9 +143,8 @@ The pipeline splits into two independently runnable stages, so the clone/export 
 an LDS-registered SSH key) and everything downstream of it (which doesn't) can run on different
 machines/credentials:
 
-1. **`extract_all`** — clone every source repo, export every dataset/lookup's per-release commits
-   and lifecycle data, then upload `data/export` and `data/working/lifecycle` to S3
-   (`assets.working_data`).
+1. **`extract_all`** — clone every source repo and export every dataset/lookup's per-commit
+   parquets (plus schema sidecars and release maps) into `data/export/`.
 
    ```shell
    uv run snakemake --cores=4 extract_all --quiet | npx pjl
@@ -160,18 +158,17 @@ machines/credentials:
    uv run snakemake --cores=4 extract_topographic_data --quiet | npx pjl
    ```
 
-   For local development with no AWS credentials or S3 bucket to push to, set
-   `KART_IMPORT_SKIP_UPLOAD` to keep the whole run local -- `extract_all`/`extract_<repo>` still
-   clone and export exactly the same (those always write straight to disk), the only thing skipped
-   is the push to S3 (`summary.json` is still written to `data/working/`, just not uploaded):
+   To hand off `data/export/` to another machine via S3, run `working_data upload` after
+   `extract_all`:
 
    ```shell
-   export KART_IMPORT_SKIP_UPLOAD=true
+   uv run python -m kart_import.assets.working_data upload
    ```
 
-2. **`process_all`** — download that data back from S3, then run prepare/transform/theme/import,
-   with **no LDS SSH access needed**: schema and release→commit resolution are read from what
-   `extract_all` captured (JSON sidecars next to each per-commit export), not from a live clone.
+2. **`process_all`** — download `data/export/` from S3 (when running on another machine), then run
+   lifecycle/prepare/transform/theme/import with **no LDS SSH access needed**: schema,
+   release→commit resolution, and feature lifecycle are all derived from `data/export/`, not from
+   a live clone.
 
    Run the download first, as its own command, **not** chained with `process_all` in the same
    `snakemake` invocation — Snakemake decides which rules need to (re)run from on-disk state as an
@@ -236,10 +233,10 @@ instead: that release is never transformed in its own right.
 
 ### Feature identity
 
-`lifecycle` walks the releases in order, diffs each commit against the previous
-(`kart diff --delta-filter=++`) and records the commit where each feature first appeared, into
+`lifecycle` walks the exported per-commit parquets in release order, diffs each commit against the
+previous, and records when each feature first appeared and last changed into
 `data/working/lifecycle/<dataset>_release<first>-<last>.json`. The key is `t50_fid` if the source
-schema ever gained one, otherwise Kart's `auto_pk`.
+schema carries one, otherwise Kart's `auto_pk`.
 
 From that first-seen commit, `transform` derives the feature's `id` (a reproducible UUIDv7 seeded
 with the commit timestamp and the fid), plus `created_at` and `updated_at`. IDs are therefore
