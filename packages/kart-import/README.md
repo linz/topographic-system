@@ -69,8 +69,8 @@ in everything they need, so `all` on its own builds the lot.
 | `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
 | `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
 | `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
-| `export_all`                            | `data/working/.exported`                     | stage 1: clone + export + lifecycle for everything, then upload to S3 (see [Two stages](#two-stages-export-and-process)) |
-| `process_all`                           | every repo's `.imported`                     | stage 2: same target as `all`, named for the split above                                          |
+| `extract_<repo>` / `extract_all`        | `data/working/.extracted_<repo>` / `.extracted` | stage 1: clone + export + lifecycle for `<repo>` / everything, then upload to S3 (see [Two stages](#two-stages-extract-and-process)) |
+| `process_<repo>` / `process_all`        | `data/output/<repo>/.imported` / every repo's | stage 2: same target as `kart_import_<repo>` / `all`, named for the split above                   |
 | `pull_all`                              | `data/source/<source>/.pulled`               | refresh already-cloned sources from the real source                                               |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
@@ -118,23 +118,31 @@ export KART_THEME_FORMAT=geojson
 Because they change which files the rules expect, keep them exported for every command in a
 given run. Flipping one mid-run invalidates the targets built before it.
 
-## Two stages: export and process
+## Two stages: extract and process
 
 The pipeline splits into two independently runnable stages, so the clone/export side (which needs
 an LDS-registered SSH key) and everything downstream of it (which doesn't) can run on different
 machines/credentials:
 
-1. **`export_all`** — clone every source repo, export every dataset/lookup's per-release commits
+1. **`extract_all`** — clone every source repo, export every dataset/lookup's per-release commits
    and lifecycle data, then upload `data/working/export` and `data/working/lifecycle` to S3
    (`assets.working_data`).
 
    ```shell
-   uv run snakemake --cores=4 export_all --quiet | npx pjl
+   uv run snakemake --cores=4 extract_all --quiet | npx pjl
+   ```
+
+   To extract just what one target repo needs (its themes, plus anything they transitively depend
+   on via `depends_on_themes`) rather than everything, use `extract_<repo>` (same `<repo>` naming
+   as `kart_import_<repo>` / `push_<repo>`):
+
+   ```shell
+   uv run snakemake --cores=4 extract_topographic_data --quiet | npx pjl
    ```
 
 2. **`process_all`** — download that data back from S3, then run prepare/transform/theme/import,
    with **no LDS SSH access needed**: schema and release→commit resolution are read from what
-   `export_all` captured (JSON sidecars next to each per-commit export), not from a live clone.
+   `extract_all` captured (JSON sidecars next to each per-commit export), not from a live clone.
 
    Run the download first, as its own command, **not** chained with `process_all` in the same
    `snakemake` invocation — Snakemake decides which rules need to (re)run from on-disk state as an
@@ -145,9 +153,16 @@ machines/credentials:
    uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```
 
+   To process (and import/push) just one target repo rather than everything, use `process_<repo>`:
+
+   ```shell
+   uv run snakemake --cores=4 process_topographic_data --quiet | npx pjl
+   ```
+
 Both invocations must use the same `KART_IMPORT_THEME`/`KART_IMPORT_RELEASE` scoping (see
-[Limiting the work](#limiting-the-work)) — `process_all` requests exactly the lifecycle/export
-filenames that scoping implies, which only exist if `export_all` was run with the same values.
+[Limiting the work](#limiting-the-work)) — `process_all`/`process_<repo>` request exactly the
+lifecycle/export filenames that scoping implies, which only exist if `extract_all`/`extract_<repo>`
+was run with the same values.
 
 ```shell
 # where the handoff lives (default s3://linz-topography-nonprod/working/)

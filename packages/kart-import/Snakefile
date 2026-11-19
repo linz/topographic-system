@@ -33,6 +33,35 @@ def cloned(name):
     """Sentinel for the source clone a dataset/lookup reads from."""
     return f"data/source/{get_source_repo_name(get_source_entry(name))}/.cloned"
 
+
+def repo_themes(repo):
+    """Every theme targeting `repo`, plus every theme any of those themes' datasets transitively
+    depend on (`depends_on_themes`) -- the full set `extract_<repo>`/`process_<repo>` need, since a
+    dataset's cross-theme dependency can point at a theme that targets a different repo."""
+    themes = {t.name: t for t in THEMES if t.target_repo == repo}
+    pending = list(themes.values())
+    while pending:
+        for ds in pending.pop().datasets:
+            for dep_name in ds.depends_on_themes:
+                if dep_name not in themes:
+                    themes[dep_name] = THEME_MAP[dep_name]
+                    pending.append(THEME_MAP[dep_name])
+    return list(themes.values())
+
+
+def repo_datasets(repo):
+    """Every dataset `extract_<repo>` must export: every dataset of `repo_themes(repo)`."""
+    seen = {}
+    for theme in repo_themes(repo):
+        for ds in theme.datasets:
+            seen[ds.name] = ds
+    return list(seen.values())
+
+
+def repo_lookups(repo):
+    """Every lookup `repo_datasets(repo)` joins against."""
+    return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins})
+
 # Start root span for this Snakemake run so all distributed jobs and logs link together
 tracer = get_tracer("kart_import")
 target_args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
@@ -208,7 +237,7 @@ rule pull:
 # rule: Snakemake decides which jobs in a run need to run from on-disk state as that run starts,
 # so the download has to complete *before* the `process_all` invocation starts, not as a step
 # inside it -- see the Snakefile section of the README for the two-invocation sequence.
-rule export_all:
+rule extract_all:
     input:
         lifecycle = [
             f"data/working/lifecycle/{name}_release{RELEASES[0].id}-{RELEASES[-1].id}.json" for name in DATASET_MAP
@@ -220,9 +249,35 @@ rule export_all:
         ],
         lookups = [f"data/working/export/lookup/{lookup}" for lookup in LOOKUP_TO_THEME_MAP]
     output:
-        uploaded = "data/working/.exported"
+        uploaded = "data/working/.extracted"
     shell:
-        "OTEL_SERVICE_NAME=export_all uv run python -m kart_import.assets.working_data upload"
+        "OTEL_SERVICE_NAME=extract_all uv run python -m kart_import.assets.working_data upload "
+        "&& touch {output.uploaded}"
+
+
+# Per-repo variant, named `extract_<repo>` below: only the datasets/lookups that repo's themes (and
+# anything they transitively depend on via `depends_on_themes`) actually need, uploaded the same
+# way. `aws s3 sync` only ever adds/updates, so a scoped run here never removes another repo's
+# already-uploaded data.
+rule extract_repo:
+    input:
+        lambda wildcards: (
+            [
+                f"data/working/lifecycle/{ds.name}_release{RELEASES[0].id}-{RELEASES[-1].id}.json"
+                for ds in repo_datasets(wildcards.repo)
+            ]
+            + [
+                f"data/working/export/release_{r.id}/" + export_filename(ds.name)
+                for ds in repo_datasets(wildcards.repo)
+                for r in RELEASES
+            ]
+            + [f"data/working/export/lookup/{lookup}" for lookup in repo_lookups(wildcards.repo)]
+        )
+    output:
+        uploaded = "data/working/.extracted_{repo}"
+    shell:
+        "OTEL_SERVICE_NAME=extract_all uv run python -m kart_import.assets.working_data upload "
+        "&& touch {output.uploaded}"
 
 
 for name in DATASET_MAP:
@@ -271,7 +326,22 @@ workflow.rule(name="kart_theme_all")(
 
 for repo in REPOS:
     safe_repo_name = repo.replace("-", "_")
+
+    # Stage 1, scoped to this repo (see `extract_repo` above).
+    workflow.rule(name=f"extract_{safe_repo_name}")(
+        workflow.input(f"data/working/.extracted_{repo}")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
     workflow.rule(name=f"kart_import_{safe_repo_name}")(
+        workflow.input(f"data/output/{repo}/.imported")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+    # Stage 2, scoped to this repo: same target as `kart_import_<repo>` (see `process_all` below).
+    workflow.rule(name=f"process_{safe_repo_name}")(
         workflow.input(f"data/output/{repo}/.imported")(
             workflow.run(lambda *args, **kwargs: None)
         )
@@ -289,7 +359,7 @@ workflow.rule(name="push_all")(
     )
 )
 
-# STAGE 2 ENTRY POINT: same target as `all`, named for the two-stage split (see `export_all`
+# STAGE 2 ENTRY POINT: same target as `all`, named for the two-stage split (see `extract_all`
 # above). Run `uv run python -m kart_import.assets.working_data download` first, in its own
 # invocation -- see the README.
 workflow.rule(name="process_all")(

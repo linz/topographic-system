@@ -3,8 +3,9 @@ from unittest.mock import MagicMock
 from . import working_data
 
 
-def test_upload_working_data_syncs_export_and_lifecycle_then_touches_sentinel(tmp_path, monkeypatch):
-    monkeypatch.setattr(working_data, "WORKING_DIR", tmp_path)
+def test_upload_working_data_syncs_export_and_lifecycle(tmp_path, monkeypatch):
+    """Touches no sentinel itself -- `extract_all`/`extract_<repo>` each touch their own output
+    (see the module docstring on `upload_working_data`)."""
     monkeypatch.setattr(working_data, "WORKING_EXPORTS_DIR", tmp_path / "export")
     monkeypatch.setattr(working_data, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
     monkeypatch.setattr(working_data, "env_working_data_s3_url", lambda: "s3://bucket/working/")
@@ -18,7 +19,6 @@ def test_upload_working_data_syncs_export_and_lifecycle_then_touches_sentinel(tm
         ["aws", "s3", "sync", str(tmp_path / "export"), "s3://bucket/working/export"],
         ["aws", "s3", "sync", str(tmp_path / "lifecycle"), "s3://bucket/working/lifecycle"],
     ]
-    assert (tmp_path / ".exported").exists()
 
 
 def test_download_working_data_syncs_then_relinks_and_fakes_the_clone_sentinel(tmp_path, monkeypatch):

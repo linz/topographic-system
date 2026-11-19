@@ -2,7 +2,7 @@ import logging
 import os
 
 from ..command import run_command
-from ..config import DATASET_MAP, SOURCE_DIR, SOURCE_REPO_MAP, WORKING_DIR, WORKING_EXPORTS_DIR, WORKING_LIFECYCLE_DIR
+from ..config import DATASET_MAP, SOURCE_DIR, SOURCE_REPO_MAP, WORKING_EXPORTS_DIR, WORKING_LIFECYCLE_DIR
 from ..env import env_working_data_s3_url
 from ..log import log_context
 from .export import relink_dataset_releases
@@ -13,17 +13,21 @@ NETWORK_RETRIES = 3
 
 """
 Hand off `data/working/export` and `data/working/lifecycle` between the two pipeline stages:
-`export_all` (clone+export+lifecycle, needs an LDS-registered SSH key) uploads them here;
+`extract_all` (clone+export+lifecycle, needs an LDS-registered SSH key) uploads them here;
 `process_all` (prepare/transform/theme/import/push, needs only AWS credentials) downloads them.
 """
 
 
 def upload_working_data() -> None:
+    """Sync `data/working/export` and `data/working/lifecycle` up to S3.
+
+    Touches no sentinel itself: `extract_all` and the per-repo `extract_<repo>` share this
+    function but declare different output sentinels (`data/working/.extracted` vs.
+    `.extracted_{repo}`), so the Snakefile rule's own shell command touches its own output.
+    """
     s3_url = env_working_data_s3_url()
     run_command(["aws", "s3", "sync", str(WORKING_EXPORTS_DIR), f"{s3_url}export"], retries=NETWORK_RETRIES)
     run_command(["aws", "s3", "sync", str(WORKING_LIFECYCLE_DIR), f"{s3_url}lifecycle"], retries=NETWORK_RETRIES)
-    WORKING_DIR.mkdir(parents=True, exist_ok=True)
-    (WORKING_DIR / ".exported").touch()
     logger.info("uploaded working data", extra={"s3_url": s3_url})
 
 
