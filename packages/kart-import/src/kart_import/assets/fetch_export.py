@@ -16,7 +16,6 @@ from ..export_paths import (
     release_config_hash,
     releases_map_file,
     schema_sidecar_file,
-    source_commit_hash,
 )
 from ..log import log_context
 from ..thread import run_in_thread_pool
@@ -63,9 +62,9 @@ def download_file(url: str, dest: Path) -> None:
         raise
 
 
-def _validate_releases_hashes(entry_name: str, meta: dict) -> None:
+def _validate_releases_config_hash(entry_name: str, meta: dict) -> None:
     """Ensure the fetched `<entry>.releases.json` was built with the same `topo50_release.yml`
-    (`config`) and pipeline git commit (`commit`) as this checkout."""
+    (`config`) as this checkout."""
     expected_config = release_config_hash()
     remote_config = meta.get("config")
     if remote_config != expected_config:
@@ -74,19 +73,11 @@ def _validate_releases_hashes(entry_name: str, meta: dict) -> None:
             f"expected {expected_config!r} (topo50_release.yml differs)"
         )
 
-    expected_commit = source_commit_hash()
-    remote_commit = meta.get("commit")
-    if remote_commit != expected_commit:
-        raise ValueError(
-            f"Remote releases.json for {entry_name!r} has commit hash {remote_commit!r}, "
-            f"expected {expected_commit!r} (pipeline git commit differs)"
-        )
-
 
 def fetch_entry(entry_name: str, base_url: str | None = None) -> str:
     """Fetch `<entry_name>.releases.json` from `base_url` (`KART_EXPORT_URL`), verify its
-    `config` and `commit` hashes match ours, and download only the per-commit exports (and schema
-    sidecars) needed by the configured releases that are not already present locally."""
+    `config` hash matches our `topo50_release.yml`, and download only the per-commit exports
+    (and schema sidecars) needed by the configured releases that are not already present locally."""
     resolved_url = base_url if base_url is not None else env_export_url()
     if not resolved_url:
         raise ValueError("KART_EXPORT_URL must be set to fetch remote exports")
@@ -103,7 +94,7 @@ def fetch_entry(entry_name: str, base_url: str | None = None) -> str:
     try:
         download_file(f"{resolved_url}{repo_name}/{releases_file.name}", staged_releases)
         meta = json.loads(staged_releases.read_text())
-        _validate_releases_hashes(entry_name, meta)
+        _validate_releases_config_hash(entry_name, meta)
         staged_releases.replace(releases_file)
     except BaseException:
         if staged_releases.exists():

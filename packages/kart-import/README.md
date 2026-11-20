@@ -163,7 +163,7 @@ machines/credentials:
    `data/export/`, not from a live clone.
 
    To fetch exports lazily on demand from a remote HTTPS or S3 location (fetching each entry's
-   `<entry>.releases.json`, validating its `config`/`commit` hashes, and downloading only the
+   `<entry>.releases.json`, validating its `config` (`topo50_release.yml`) hash, and downloading only the
    per-commit parquets/sidecars needed by the configured releases that aren't already cached
    locally), set `KART_EXPORT_URL`:
 

@@ -22,6 +22,7 @@ def test_write_releases_map_includes_config_and_commit(tmp_path, monkeypatch):
     raw = json.loads(export_paths.releases_map_file(export_dir, "ds").read_text())
     assert raw["config"] == export_paths.release_config_hash()
     assert raw["commit"] == export_paths.source_commit_hash()
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", raw["exported_at"])
     assert raw["releases"] == {"66": {"commit": "abc", "location": "ds_abc.parquet"}}
 
 

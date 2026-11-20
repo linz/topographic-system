@@ -1,6 +1,7 @@
 import functools
 import hashlib
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -120,6 +121,7 @@ def write_releases_map(
     payload: dict[str, Any] = {
         "config": release_config_hash(),
         "commit": source_commit_hash(),
+        "exported_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "releases": {str(k): v for k, v in entries.items()},
     }
     if dataset_id is not None:

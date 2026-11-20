@@ -13,14 +13,13 @@ from . import fetch_export
 REPO_URL = "git@github.com:linz/topographic-source-data"
 
 
-def _setup_entry(monkeypatch, tmp_path, *, entry_name="ds", releases=(66, 67), config_hash="cfg", commit_hash="sha"):
+def _setup_entry(monkeypatch, tmp_path, *, entry_name="ds", releases=(66, 67), config_hash="cfg"):
     entry = SimpleNamespace(name=entry_name, source=Source(url=REPO_URL, dataset=None))
     monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path)
     monkeypatch.setattr(export_paths, "get_source_entry", lambda _: entry)
     monkeypatch.setattr(fetch_export, "get_source_entry", lambda _: entry)
     monkeypatch.setattr(fetch_export, "get_releases", lambda: [SimpleNamespace(id=r) for r in releases])
     monkeypatch.setattr(fetch_export, "release_config_hash", lambda: config_hash)
-    monkeypatch.setattr(fetch_export, "source_commit_hash", lambda: commit_hash)
     return export_paths.export_entry_dir(entry_name)
 
 
@@ -122,25 +121,37 @@ def test_download_file_cleans_up_temp_file_on_error(tmp_path, monkeypatch):
     assert list(tmp_path.iterdir()) == []
 
 
-@pytest.mark.parametrize(
-    "remote_config, remote_commit, match",
-    [
-        ("wrong-cfg", "sha", "config hash"),
-        ("cfg", "wrong-sha", "commit hash"),
-    ],
-)
-def test_fetch_entry_rejects_mismatched_hashes(tmp_path, monkeypatch, remote_config, remote_commit, match):
-    entry_dir = _setup_entry(monkeypatch, tmp_path, releases=(66,), config_hash="cfg", commit_hash="sha")
+def test_fetch_entry_rejects_mismatched_config_hash(tmp_path, monkeypatch):
+    entry_dir = _setup_entry(monkeypatch, tmp_path, releases=(66,), config_hash="cfg")
     payload = _remote_releases_payload(
         {66: {"commit": "aaa", "commit_time": "2025-01-01T00:00:00Z", "location": "ds_aaa.parquet"}},
-        config_hash=remote_config,
-        commit_hash=remote_commit,
+        config_hash="wrong-cfg",
     )
     monkeypatch.setattr(fetch_export.urllib.request, "urlopen", lambda url, timeout=None: io.BytesIO(payload))
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match="config hash"):
         fetch_export.fetch_entry("ds", base_url="https://example.com/export")
 
     assert not export_paths.releases_map_file(entry_dir, "ds").exists()
     assert not export_paths.entry_exported_sentinel("ds").exists()
+
+
+def test_fetch_entry_allows_different_pipeline_commit_hash(tmp_path, monkeypatch):
+    """Stage 2 may run from a newer pipeline commit than Stage 1 as long as topo50_release.yml matches."""
+    entry_dir = _setup_entry(monkeypatch, tmp_path, releases=(66,), config_hash="cfg")
+    remote_files = {
+        "https://example.com/export/ds/ds.releases.json": _remote_releases_payload(
+            {66: {"commit": "aaa", "commit_time": "2025-01-01T00:00:00Z", "location": "ds_aaa.parquet"}},
+            config_hash="cfg",
+            commit_hash="older-pipeline-commit",
+        ),
+        "https://example.com/export/ds/ds_aaa.parquet": b"parquet",
+        "https://example.com/export/ds/ds_aaa.parquet.schema.json": b"[]",
+    }
+    monkeypatch.setattr(fetch_export.urllib.request, "urlopen", lambda url, timeout=None: io.BytesIO(remote_files[url]))
+
+    fetch_export.fetch_entry("ds", base_url="https://example.com/export")
+
+    assert (entry_dir / "ds_aaa.parquet").read_bytes() == b"parquet"
+    assert export_paths.entry_exported_sentinel("ds").exists()
 
