@@ -1,11 +1,11 @@
 import pytest
 
 from .env import (
+    env_export_url,
     env_push_force,
     env_push_to_master,
     env_schema_check_mode,
     env_schema_dir_override,
-    env_skip_upload,
     env_source_dir_override,
     env_theme_format,
     env_transform_format,
@@ -103,11 +103,25 @@ def test_source_dir_override_need_not_already_exist(monkeypatch, tmp_path):
     assert env_source_dir_override() == str(missing)
 
 
-def test_skip_upload_defaults_to_false(monkeypatch):
-    monkeypatch.delenv("KART_IMPORT_SKIP_UPLOAD", raising=False)
-    assert env_skip_upload() is False
+def test_export_url_unset_is_none(monkeypatch):
+    monkeypatch.delenv("KART_EXPORT_URL", raising=False)
+    assert env_export_url() is None
 
 
-def test_skip_upload_is_case_insensitive_true(monkeypatch):
-    monkeypatch.setenv("KART_IMPORT_SKIP_UPLOAD", "True")
-    assert env_skip_upload() is True
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("https://example.com/export", "https://example.com/export/"),
+        ("https://example.com/export/", "https://example.com/export/"),
+        ("s3://bucket/working/export", "s3://bucket/working/export/"),
+    ],
+)
+def test_export_url_normalizes_trailing_slash(monkeypatch, raw, expected):
+    monkeypatch.setenv("KART_EXPORT_URL", raw)
+    assert env_export_url() == expected
+
+
+def test_export_url_rejects_unknown_scheme(monkeypatch):
+    monkeypatch.setenv("KART_EXPORT_URL", "ftp://example.com/export")
+    with pytest.raises(ValueError, match="KART_EXPORT_URL"):
+        env_export_url()

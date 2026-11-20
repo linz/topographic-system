@@ -19,6 +19,7 @@ import os
 import sys
 
 from kart_import.assets.extract.clone import clone_sentinel_name
+from kart_import.env import env_export_url
 from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
@@ -30,6 +31,9 @@ THEME_MAP = {t.name: t for t in THEMES}
 # Local source clones; datasets sharing a multi-dataset repo (e.g. topographic-source-data) share one clone.
 SOURCE_REPOS = list(SOURCE_REPO_MAP)
 CLONE_SENTINEL = clone_sentinel_name()
+# When KART_EXPORT_URL is set (https:// or s3://), Stage 2 fetches `<entry>.releases.json` and only
+# downloads missing per-commit parquets on demand instead of cloning/exporting from Kart.
+EXPORT_URL = env_export_url()
 
 
 def cloned(name):
@@ -119,15 +123,28 @@ rule clone:
         "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.extract.clone {wildcards.repo}"
 
 
-# 2. EXPORT (per-commit parquets, schema sidecars and release map for any dataset or lookup)
-rule export:
-    input:
-        cloned = lambda wildcards: cloned(wildcards.entry)
-    output:
-        exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
-    threads: 4
-    shell:
-        "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.extract.export {wildcards.entry}"
+# 2. EXPORT (per-commit parquets, schema sidecars and release map for any dataset or lookup).
+# When KART_EXPORT_URL is set, fetch `<entry>.releases.json` from that remote HTTPS/S3 location
+# and download only the needed per-commit parquets not already present locally (no clone needed).
+if EXPORT_URL:
+    rule export:
+        output:
+            exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
+        params:
+            url = EXPORT_URL,
+            releases = ",".join(str(r.id) for r in RELEASES)
+        threads: 4
+        shell:
+            "OTEL_SERVICE_NAME=fetch_export uv run python -m kart_import.assets.fetch_export {wildcards.entry}"
+else:
+    rule export:
+        input:
+            cloned = lambda wildcards: cloned(wildcards.entry)
+        output:
+            exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
+        threads: 4
+        shell:
+            "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.extract.export {wildcards.entry}"
 
 
 # 3a. LIFECYCLE (derive stable UUIDv7 ids and created_at/updated_at from exported parquets -- no clone needed)
@@ -230,8 +247,6 @@ rule push:
 
 
 # 7. STAGE 1 (clone + extract parquets for every dataset/lookup into data/export/).
-# Uploading/downloading `data/export/` via S3 is handled separately by
-# `uv run python -m kart_import.assets.working_data upload|download`.
 workflow.rule(name="extract_all")(
     workflow.input(
         [exported_sentinel(name) for name in DATASET_MAP]
@@ -315,8 +330,7 @@ workflow.rule(name="push_all")(
 )
 
 # STAGE 2 ENTRY POINT: same target as `all`, named for the two-stage split (see `extract_all`
-# above). Run `uv run python -m kart_import.assets.working_data download` first, in its own
-# invocation -- see the README.
+# above). Set `KART_EXPORT_URL` to fetch exports lazily from a remote HTTPS/S3 location.
 workflow.rule(name="process_all")(
     workflow.input(ALL_IMPORTED)(
         workflow.run(lambda *args, **kwargs: None)

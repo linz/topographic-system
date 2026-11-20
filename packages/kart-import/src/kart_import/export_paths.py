@@ -16,9 +16,8 @@ from .config import (
 
 def release_config_hash() -> str:
     """A hash of `config/topo50_release.yml`'s current content, embedded in every release map
-    (see `write_releases_map`) and in `assets.working_data`'s `summary.json`, so a release
-    definition change (a cutoff date edited, a release added) is visible even before it has
-    changed any dataset's resolved commits."""
+    (see `write_releases_map`) so a release definition change (a cutoff date edited, a release
+    added) is caught when fetching remote exports."""
     return hashlib.sha256(CONFIG_DIR_RELEASE.read_bytes()).hexdigest()
 
 

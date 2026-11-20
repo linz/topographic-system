@@ -108,7 +108,7 @@ export KART_SOURCE_DIR=~/data/kart-source
 Per-commit exports live the same way, one directory per source repo, but always under `data/export/`
 (not under `SOURCE_DIR`, and not configurable) -- e.g. `data/export/nz_airport_polygons/nz_airport_polygons_<sha>.parquet`,
 or `data/export/topographic-source-data/<dataset-or-lookup-name>_<sha>.parquet` for entries sharing
-a multi-dataset repo. Every reader (`transform`, `prepare_lookup`, `assets.working_data`) gets there
+a multi-dataset repo. Every reader (`transform`, `prepare_lookup`, `fid_lifecycle`, `fetch_export`) gets there
 through `export_paths.export_entry_dir`/`entry_export_filename`, never a hardcoded path, so a
 dataset/lookup's own filename prefix is what keeps it from colliding with siblings in the same
 directory. `data/export/` is exactly what the two-stage split's S3 handoff syncs (see
@@ -158,51 +158,26 @@ machines/credentials:
    uv run snakemake --cores=4 extract_topographic_data --quiet | npx pjl
    ```
 
-   To hand off `data/export/` to another machine via S3, run `working_data upload` after
-   `extract_all`:
+2. **`process_all`** — run lifecycle/prepare/transform/theme/import with **no LDS SSH access
+   needed**: schema, release→commit resolution, and feature lifecycle are all derived from
+   `data/export/`, not from a live clone.
+
+   To fetch exports lazily on demand from a remote HTTPS or S3 location (fetching each entry's
+   `<entry>.releases.json`, validating its `config`/`commit` hashes, and downloading only the
+   per-commit parquets/sidecars needed by the configured releases that aren't already cached
+   locally), set `KART_EXPORT_URL`:
 
    ```shell
-   uv run python -m kart_import.assets.working_data upload
+   KART_EXPORT_URL=https://example.com/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
+   # or from S3:
+   KART_EXPORT_URL=s3://linz-topography-nonprod/working/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```
-
-2. **`process_all`** — download `data/export/` from S3 (when running on another machine), then run
-   lifecycle/prepare/transform/theme/import with **no LDS SSH access needed**: schema,
-   release→commit resolution, and feature lifecycle are all derived from `data/export/`, not from
-   a live clone.
-
-   Run the download first, as its own command, **not** chained with `process_all` in the same
-   `snakemake` invocation — Snakemake decides which rules need to (re)run from on-disk state as an
-   invocation starts, so the download has to have already happened:
-
-   ```shell
-   uv run python -m kart_import.assets.working_data download
-   uv run snakemake --cores=4 process_all --quiet | npx pjl
-   ```
-
-   `download` always fetches S3's `summary.json` first and compares it to the copy it cached last
-   time it actually synced; the expensive `aws s3 sync` of the exports/lifecycle themselves only
-   runs when that comparison finds a difference. The summary is a manifest of every exported
-   dataset's/lookup's release map, plus a hash of `config/topo50_release.yml`, so a release
-   definition change (a cutoff date edited, a release added) is caught too, even before it has
-   changed any dataset's resolved commits. This is what makes running `process_all` several times
-   a day cheap: once `extract_all` hasn't produced anything new, `download` is a single small S3
-   fetch, not a full re-sync.
 
    To process (and import/push) just one target repo rather than everything, use `process_<repo>`:
 
    ```shell
    uv run snakemake --cores=4 process_topographic_data --quiet | npx pjl
    ```
-
-Both invocations must use the same `KART_IMPORT_THEME`/`KART_IMPORT_RELEASE` scoping (see
-[Limiting the work](#limiting-the-work)) — `process_all`/`process_<repo>` request exactly the
-lifecycle/export filenames that scoping implies, which only exist if `extract_all`/`extract_<repo>`
-was run with the same values.
-
-```shell
-# where the handoff lives (default s3://linz-topography-nonprod/working/)
-export KART_IMPORT_S3_URL=s3://my-bucket/working/
-```
 
 ## Transform
 

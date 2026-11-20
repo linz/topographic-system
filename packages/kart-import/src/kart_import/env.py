@@ -137,34 +137,24 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
-def env_working_data_s3_url() -> str:
+def env_export_url() -> str | None:
     """
-    Location of the S3 handoff between `extract_all` (clone+export+lifecycle, needs LDS SSH
-    access) and the rest of the pipeline (`process_all`, needs only AWS credentials):
-    `assets.working_data` syncs EXPORT_DIR and `data/working/lifecycle` here.
+    Remote base URL (`https://...` or `s3://...`) hosting the `data/export/` tree produced by
+    `extract_all`. When set, Stage 2 (`process_all`) fetches `<repo>/<entry>.releases.json` from
+    here and downloads only the per-commit parquets (and schema sidecars) needed by the configured
+    releases that are not already present locally -- with no source clones required.
 
-    KART_IMPORT_S3_URL=s3://linz-topography-nonprod/working/
+        export KART_EXPORT_URL=https://example.com/export/
+        export KART_EXPORT_URL=s3://linz-topography-nonprod/working/export/
     """
-    s3_uri = os.getenv("KART_IMPORT_S3_URL", "s3://linz-topography-nonprod/working/")
-    if not s3_uri.endswith("/"):
-        s3_uri += "/"
-    return s3_uri
-
-
-def env_skip_upload() -> bool:
-    """
-    Skip pushing EXPORT_DIR/lifecycle/summary.json to S3 in `upload_working_data` (what
-    `extract_all`/`extract_<repo>` run), so extract can be run entirely locally -- e.g. local
-    development/testing with no AWS credentials or S3 bucket to push to.
-
-    The exported data itself is always local regardless (`export_dataset_releases`/
-    `export_lookup`/`generate_lifecycle` write straight to disk); this only skips the S3 push on
-    top of that, including `summary.json`'s own upload -- `summary.json` is still written
-    locally either way.
-
-    KART_IMPORT_SKIP_UPLOAD=true
-    """
-    return os.getenv("KART_IMPORT_SKIP_UPLOAD", "false").lower() == "true"
+    url = os.getenv("KART_EXPORT_URL")
+    if not url:
+        return None
+    if not url.startswith(("https://", "http://", "s3://")):
+        raise ValueError(f"KART_EXPORT_URL must start with 'https://', 'http://', or 's3://', got {url!r}")
+    if not url.endswith("/"):
+        url += "/"
+    return url
 
 
 def env_schema_host() -> str:
