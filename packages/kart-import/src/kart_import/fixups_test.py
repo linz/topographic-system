@@ -12,10 +12,9 @@ from shapely.wkt import loads
 
 from . import export_paths, fixups
 from .assets import fid_lifecycle, transform
-from .assets.export import write_export
+from .assets.extract.export import write_export
 from .assets.transform import apply_fixups
 from .config import Release, Theme, ThemeDataset
-from .export_paths import export_filename
 from .fixups import (
     CARTO_TEXT_COLOUR,
     CARTO_TEXT_FONT,
@@ -724,7 +723,8 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
 
     monkeypatch.setattr(transform, "get_themes", lambda: [theme])
     monkeypatch.setattr(transform, "get_releases", lambda: releases)
-    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path / "export")
+    monkeypatch.setattr(export_paths, "get_source_entry", lambda _: td)
     monkeypatch.setattr(transform, "WORKING_TRANSFORM_DIR", tmp_path / "transform")
     monkeypatch.setattr(fid_lifecycle, "WORKING_LIFECYCLE_DIR", tmp_path / "lifecycle")
 
@@ -733,13 +733,18 @@ def _setup_shared_source(tmp_path, monkeypatch, *, fixups_cfg: list[dict]):
         geometry=[Point(0, 0), Point(1, 1)],
         crs="EPSG:4326",
     )
-    exp60 = tmp_path / "export" / "release_60"
-    exp60.mkdir(parents=True)
-    src_file = exp60 / export_filename("ds")
+    entry_dir = export_paths.export_entry_dir("ds")
+    entry_dir.mkdir(parents=True)
+    src_file = export_paths.entry_commit_file("ds", "commit")
     write_export(src, src_file)
-    exp66 = tmp_path / "export" / "release_66"
-    exp66.mkdir(parents=True)
-    (exp66 / export_filename("ds")).symlink_to(src_file)  # shared source commit
+    export_paths.write_releases_map(
+        entry_dir,
+        "ds",
+        {
+            60: {"commit": "commit", "commit_time": "2020-01-01T00:00:00+00:00", "location": src_file.name},
+            66: {"commit": "commit", "commit_time": "2020-01-01T00:00:00+00:00", "location": src_file.name},
+        },
+    )
 
     lifecycle_dir = tmp_path / "lifecycle"
     lifecycle_dir.mkdir()

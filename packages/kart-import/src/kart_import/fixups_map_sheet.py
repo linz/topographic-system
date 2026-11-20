@@ -70,7 +70,7 @@ def gazetteer_name(name: str, known) -> str:
 
 
 def map_sheet_example_point_id(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
-    from .assets.export import backfilled_release_ids
+    from .assets.extract.export import backfilled_release_ids
     from .assets.transform import read_transform
     from .config import TRANSFORM_SUFFIX, WORKING_TRANSFORM_DIR, get_theme_by_name
 

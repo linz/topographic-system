@@ -7,7 +7,14 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_export_format, env_releases, env_theme_format, env_themes, env_transform_format
+from .env import (
+    env_export_format,
+    env_releases,
+    env_source_dir_override,
+    env_theme_format,
+    env_themes,
+    env_transform_format,
+)
 from .schema_check import KNOWN_VERSIONS, check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -27,13 +34,17 @@ CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 # Static style mappings table for the `carto_text_styling` fixup.
 CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 
-# source/ — raw Kart repos and GeoJSON release snapshots
-SOURCE_DIR = DATA_DIR / "source"
+# source/ — raw Kart repos and GeoJSON release snapshots (override with KART_SOURCE_DIR)
+SOURCE_DIR = Path(env_source_dir_override()).expanduser() if env_source_dir_override() else DATA_DIR / "source"
+
+# export/ — per-commit source exports (parquet/geojson), schema sidecars and release maps, one
+# directory per source repo (shared by every dataset/lookup sourced from it, same as SOURCE_DIR).
+# The entire Stage 1 output (and S3 handoff between `extract_all` and `process_all`) is this
+# directory -- kept separate from SOURCE_DIR so syncing never touches `.kart`/`.git` contents.
+EXPORT_DIR = DATA_DIR / "export"
 
 # working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"
-# Exports of all the datasets one file per dataset per release
-WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
@@ -98,7 +109,7 @@ class Source(BaseModel):
 
 
 def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
-    """Local clone (and bundle) name for an entry's source repo.
+    """Local clone name for an entry's source repo.
 
     A multi-dataset repo (one that needs ``source.dataset``, e.g. topographic-source-data) is
     shared by every entry pulling from it, so it is cloned once under its repo name.
@@ -590,12 +601,24 @@ def load_from_yaml():
     base_themes = env_themes()
     base_releases = env_releases()
 
-    for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
-        theme = load_config(cfg.stem)
+    all_loaded = {theme.name: theme for cfg in CONFIG_DIR_THEMES.glob("*.yml") for theme in (load_config(cfg.stem),)}
+    if base_themes is not None:
+        needed: set[str] = set()
+        pending = [name for name in base_themes if name in all_loaded]
+        while pending:
+            name = pending.pop()
+            if name in needed:
+                continue
+            needed.add(name)
+            for ds in all_loaded[name].datasets:
+                for dep in ds.depends_on_themes:
+                    if dep not in needed and dep in all_loaded:
+                        pending.append(dep)
+        selected = [all_loaded[name] for name in sorted(needed)]
+    else:
+        selected = list(all_loaded.values())
 
-        if base_themes and theme.name not in base_themes:
-            continue
-
+    for theme in selected:
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:

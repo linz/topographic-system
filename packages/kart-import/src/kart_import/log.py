@@ -31,7 +31,7 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 
 def _default_service_name() -> str:
     """Derive a service name from how this process was invoked, e.g. "clone" for
-    `python -m kart_import.assets.clone` or "snakemake" for the `snakemake` CLI."""
+    `python -m kart_import.assets.extract.clone` or "snakemake" for the `snakemake` CLI."""
     # When invoked via `python -m <module>`, runpy sets __main__'s __spec__ before
     # executing its code, so it's already available while this module is imported.
     main_spec = getattr(sys.modules.get("__main__"), "__spec__", None)
@@ -52,6 +52,7 @@ def _format_span_name(kwargs: dict[str, Any]) -> str:
         or kwargs.get("theme")
         or kwargs.get("repo")
         or kwargs.get("lookup")
+        or kwargs.get("entry")
         or kwargs.get("commit")
     )
     release = kwargs.get("release")
@@ -199,8 +200,8 @@ def setup_logging():
         if logs_endpoint or os.environ.get("OTEL_LOGS_EXPORTER") == "otlp":
             provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter()))
 
-    # Always written locally too: Snakemake redirects this to a per-dataset log file
-    # (see the `bundle` rule), which `grep`/`ls -t logs/bundle/$RUN_ID/` rely on.
+    # Always written locally too: a Snakemake rule can redirect this to a per-rule log file
+    # via its `log:` directive, for tools that need the raw JSON lines on disk.
     provider.add_log_record_processor(SimpleLogRecordProcessor(_JsonLineExporter()))
 
     log_level = getattr(logging, os.environ.get("LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)

@@ -12,7 +12,6 @@ import geopandas as gpd
 import pandas as pd
 
 from ..config import (
-    SOURCE_DIR,
     TRANSFORM_FORMAT,
     TRANSFORM_SUFFIX,
     WORKING_TRANSFORM_DIR,
@@ -20,18 +19,16 @@ from ..config import (
     Theme,
     ThemeDataset,
     get_releases,
-    get_source_repo_name,
     get_themes,
 )
 from ..corrections import apply_corrections
-from ..export_paths import dataset_release_file
+from ..export_paths import load_schema_sidecar, resolve_release_export
 from ..fixups import FIXUPS
-from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..joins import apply_joins, join_fingerprint
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
-from .export import gpd_read
+from .extract.export import gpd_read
 from .fid_lifecycle import get_fid_lifecycle_file
 
 logger = logging.getLogger("kart_import")
@@ -206,13 +203,17 @@ def _source_commit(input_file: Path) -> str | None:
 def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int) -> tuple:
     """Identity of a release's transform output: equal fingerprints => identical output, so it can
     be produced once and shared. Combines the resolved source export (already shared across
-    releases by commit via export symlinks) with the join lookup commits (which can advance
+    releases by commit via `releases.json`) with the join lookup commits (which can advance
     between releases independently of the source). A join-free dataset fingerprints on its source
     alone, preserving the original source-only dedup behaviour. A `backfill` dataset never shares:
     its releases reuse one export but fixups rewind each to its own release.
     """
-    source_file = dataset_release_file(dataset_name, release_id).resolve()
-    return (source_file, join_fingerprint(td, release_id), release_id if td.backfill else None)
+    source_file = resolve_release_export(dataset_name, release_id)
+    return (
+        source_file.resolve() if source_file is not None else None,
+        join_fingerprint(td, release_id),
+        release_id if td.backfill else None,
+    )
 
 
 def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int, releases: list[Release]) -> int:
@@ -225,8 +226,10 @@ def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int,
     """
     target = _transform_fingerprint(dataset_name, td, release_id)
     for release in releases:
-        input_file = dataset_release_file(dataset_name, release.id)
-        if input_file.exists() and _transform_fingerprint(dataset_name, td, release.id) == target:
+        input_file = resolve_release_export(dataset_name, release.id)
+        if (input_file is None or input_file.exists()) and _transform_fingerprint(
+            dataset_name, td, release.id
+        ) == target:
             return release.id
     raise LookupError(f"No release found for source file: {dataset_name} (release {release_id})")
 
@@ -258,8 +261,8 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     theme, td = get_theme_and_dataset(dataset_name)
     releases = get_releases()
 
-    input_file = dataset_release_file(dataset_name, release_id)
-    if not input_file.exists():
+    input_file = resolve_release_export(dataset_name, release_id)
+    if input_file is not None and not input_file.exists():
         raise FileNotFoundError(f"'export' file missing: {input_file}")
 
     output_dir = WORKING_TRANSFORM_DIR / f"release_{release_id}"
@@ -307,6 +310,11 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             logger.info("transform produced while waiting for lock", extra={"target": output_file})
             return output_file
 
+        if input_file is None:
+            logger.info("source predates release, writing empty transform")
+            write_transform(empty_transform(td, theme.target_epsg), output_file)
+            return output_file
+
         lifecycle_file = get_fid_lifecycle_file(dataset_name, releases)
         if not lifecycle_file.exists():
             raise FileNotFoundError(f"missing lifecycle_{dataset_name}")
@@ -318,8 +326,6 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         logger.info("read_source", extra={"duration": round(time.perf_counter() - start_time, 4)})
 
         if gdf.empty:
-            # Either the source repo starts after this release (see `export_empty_releases`) or
-            # the layer was genuinely empty at that commit.
             logger.info("source has no features, writing empty transform")
             write_transform(empty_transform(td, theme.target_epsg), output_file)
             return output_file
@@ -330,10 +336,9 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
         if commit is None:
             logger.warning("no commit in export name; declared types not restored", extra={"file": str(input_file)})
         else:
-            repo_dir = SOURCE_DIR / get_source_repo_name(td)
             gdf = coerce_integer_columns(
                 gdf,
-                get_dataset_schema(repo_dir, td.source.dataset or get_kart_dataset_id(repo_dir), commit),
+                load_schema_sidecar(input_file.resolve()),
                 context=f"dataset {dataset_name!r} at {commit}",
             )
 

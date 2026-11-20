@@ -4,6 +4,8 @@ from kart_import.config import (
     get_kart_repos,
     DATASET_MAP,
     DATASET_TO_THEME_MAP,
+    EXPORT_DIR,
+    SOURCE_DIR,
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
@@ -11,12 +13,13 @@ from kart_import.config import (
     get_source_entry,
     get_source_repo_name,
 )
-from kart_import.export_paths import export_filename
 
 import atexit
 import os
 import sys
 
+from kart_import.assets.extract.clone import clone_sentinel_name
+from kart_import.env import env_export_url
 from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
@@ -27,11 +30,51 @@ REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
 # Local source clones; datasets sharing a multi-dataset repo (e.g. topographic-source-data) share one clone.
 SOURCE_REPOS = list(SOURCE_REPO_MAP)
+CLONE_SENTINEL = clone_sentinel_name()
+# When KART_EXPORT_URL is set (https:// or s3://), Stage 2 fetches `<entry>.releases.json` and only
+# downloads missing per-commit parquets on demand instead of cloning/exporting from Kart.
+EXPORT_URL = env_export_url()
 
 
 def cloned(name):
-    """Sentinel for the source clone a dataset/lookup reads from."""
-    return f"data/source/{get_source_repo_name(get_source_entry(name))}/.cloned"
+    """Daily sentinel for the source clone a dataset/lookup reads from."""
+    return f"{SOURCE_DIR}/{get_source_repo_name(get_source_entry(name))}/{CLONE_SENTINEL}"
+
+
+def exported_sentinel(name):
+    """Sentinel marking a dataset's or lookup's export as complete (see export_paths.entry_exported_sentinel).
+    An entry's export dir is shared with every other dataset/lookup sourced from the same repo,
+    so it can't be the Snakemake-tracked output itself -- this per-entry file is."""
+    return f"{EXPORT_DIR}/.sentinel/{name}.exported"
+
+
+def repo_themes(repo):
+    """Every theme targeting `repo`, plus every theme any of those themes' datasets transitively
+    depend on (`depends_on_themes`) -- the full set `extract_<repo>`/`process_<repo>` need, since a
+    dataset's cross-theme dependency can point at a theme that targets a different repo."""
+    themes = {t.name: t for t in THEMES if t.target_repo == repo}
+    pending = list(themes.values())
+    while pending:
+        for ds in pending.pop().datasets:
+            for dep_name in ds.depends_on_themes:
+                if dep_name not in themes and dep_name in THEME_MAP:
+                    themes[dep_name] = THEME_MAP[dep_name]
+                    pending.append(THEME_MAP[dep_name])
+    return list(themes.values())
+
+
+def repo_datasets(repo):
+    """Every dataset `extract_<repo>` must export: every dataset of `repo_themes(repo)`."""
+    seen = {}
+    for theme in repo_themes(repo):
+        for ds in theme.datasets:
+            seen[ds.name] = ds
+    return list(seen.values())
+
+
+def repo_lookups(repo):
+    """Every lookup `repo_datasets(repo)` joins against."""
+    return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins})
 
 # Start root span for this Snakemake run so all distributed jobs and logs link together
 tracer = get_tracer("kart_import")
@@ -49,11 +92,6 @@ span_ctx = root_span.get_span_context()
 run_trace_id = format(span_ctx.trace_id, "032x")
 run_span_id = format(span_ctx.span_id, "016x")
 os.environ["TRACEPARENT"] = f"00-{run_trace_id}-{run_span_id}-01"
-
-# Per-invocation run id (the trace id, whether generated above or inherited). Used to
-# scope log files so each run's logs live in their own directory and match the `TraceId`
-# embedded in every JSON log record. `ls -t logs/bundle/` finds the latest run.
-RUN_ID = run_trace_id
 
 
 def _end_root_span(status_code=None, description=""):
@@ -76,54 +114,55 @@ rule all:
         ALL_IMPORTED
 
 
-# 1. CLONE (one clone per source repo, shared by every dataset/lookup sourced from it)
+# 1. CLONE / DAILY FETCH (one clone per source repo, refreshed at most once per day)
 rule clone:
     output:
-        cloned = "data/source/{repo}/.cloned"
+        cloned = f"{SOURCE_DIR}/{{repo}}/{CLONE_SENTINEL}"
     threads: 1
     shell:
-        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.clone {wildcards.repo}"
+        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.extract.clone {wildcards.repo}"
 
 
-# 2. LIFECYCLE
+# 2. EXPORT (per-commit parquets, schema sidecars and release map for any dataset or lookup).
+# When KART_EXPORT_URL is set, fetch `<entry>.releases.json` from that remote HTTPS/S3 location
+# and download only the needed per-commit parquets not already present locally (no clone needed).
+if EXPORT_URL:
+    rule export:
+        output:
+            exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
+        params:
+            url = EXPORT_URL,
+            releases = ",".join(str(r.id) for r in RELEASES)
+        threads: 4
+        shell:
+            "OTEL_SERVICE_NAME=fetch_export uv run python -m kart_import.assets.fetch_export {wildcards.entry}"
+else:
+    rule export:
+        input:
+            cloned = lambda wildcards: cloned(wildcards.entry)
+        output:
+            exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
+        threads: 4
+        shell:
+            "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.extract.export {wildcards.entry}"
+
+
+# 3a. LIFECYCLE (derive stable UUIDv7 ids and created_at/updated_at from exported parquets -- no clone needed)
 rule lifecycle:
     input:
-        cloned = lambda wildcards: cloned(wildcards.dataset),
+        exported = lambda wildcards: exported_sentinel(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
-    threads: 1
     shell:
         "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
-# 3a. EXPORT RELEASES (Produces all release files for a dataset at once)
-rule export:
-    input:
-        cloned = lambda wildcards: cloned(wildcards.dataset)
-    output:
-        files = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES]
-    threads: 4
-    shell:
-        "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.export {wildcards.dataset}"
-
-
-# 3b. EXPORT LOOKUP (one export of full lookup source per distinct commit across releases; not per release)
-rule export_lookup:
-    input:
-        cloned = lambda wildcards: cloned(wildcards.lookup)
-    output:
-        exported = directory("data/working/export/lookup/{lookup}")
-    shell:
-        "OTEL_SERVICE_NAME=export_lookup uv run python -m kart_import.assets.export --lookup {wildcards.lookup}"
-
-
-# 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
+# 3b. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
 rule prepare_lookup:
     input:
-        # clone must be present: prepare reads each commit's declared schema from it.
-        cloned = lambda wildcards: cloned(wildcards.lookup),
-        exported = "data/working/export/lookup/{lookup}",
+        # `exported` already carries each commit's schema sidecar (see assets.extract.export) -- no clone needed.
+        exported = lambda wildcards: exported_sentinel(wildcards.lookup),
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
         prepared = directory("data/working/lookup/{lookup}")
@@ -131,24 +170,19 @@ rule prepare_lookup:
         "OTEL_SERVICE_NAME=prepare_lookup uv run python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
-# 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool 
+# 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool)
 rule transform:
     input:
+        # `exported` already carries each release's schema sidecar and release map (see assets.extract.export) -- no clone needed.
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json",
-        # clone must be present: transform reads the source's declared schema from it.
-        cloned = lambda wildcards: cloned(wildcards.dataset),
-        exported = [f"data/working/export/release_{r.id}/" + export_filename("{dataset}") for r in RELEASES],
+        exported = lambda wildcards: exported_sentinel(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml",
         fixups = lambda wildcards: (
             ["src/kart_import/fixups.py"] if DATASET_MAP[wildcards.dataset].fixups else []
         ),
+        # lookup joins resolve their release->commit map from `exported`'s release map -- no clone needed.
         lookups = lambda wildcards: [
             f"data/working/lookup/{join.lookup}"
-            for join in DATASET_MAP[wildcards.dataset].joins
-        ],
-        # clone must be present (not just the prepared parquet).
-        lookup_clones = lambda wildcards: [
-            cloned(join.lookup)
             for join in DATASET_MAP[wildcards.dataset].joins
         ],
         example_deps = lambda wildcards: [
@@ -212,30 +246,13 @@ rule push:
         "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
-# 7. UTILITY PULL RULE (refresh an already-cloned source if it's behind the published bundle)
-rule pull:
-    input:
-        cloned = "data/source/{repo}/.cloned"
-    output:
-        pulled = "data/source/{repo}/.pulled"
-    shell:
-        "OTEL_SERVICE_NAME=pull uv run python -m kart_import.assets.pull {wildcards.repo}"
-
-
-# 8. UTILITY BUNDLE RULE
-rule bundle:
-    output:
-        sentinel = "data/source/{repo}/.bundle_created"
-    log:
-        # Per-repo, per-run log so parallel jobs don't interleave, runs don't clobber
-        # each other, and failures are easy to isolate:
-        #   grep -l '"SeverityText": "ERROR"' logs/bundle/$RUN_ID/*.log
-        # The {RUN_ID} directory matches the `TraceId` in every JSON log record.
-        f"logs/bundle/{RUN_ID}/{{repo}}.log"
-    threads: 4
-    shell:
-        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle {wildcards.repo} > {log} 2>&1"
-
+# 7. STAGE 1 (clone + extract parquets for every dataset/lookup into data/export/).
+workflow.rule(name="extract_all")(
+    workflow.input(
+        [exported_sentinel(name) for name in DATASET_MAP]
+        + [exported_sentinel(lookup) for lookup in LOOKUP_TO_THEME_MAP]
+    )(workflow.run(lambda *args, **kwargs: None))
+)
 
 
 for name in DATASET_MAP:
@@ -246,19 +263,7 @@ for name in DATASET_MAP:
     )
 
 workflow.rule(name="clone_all")(
-    workflow.input([f"data/source/{repo}/.cloned" for repo in SOURCE_REPOS])(
-        workflow.run(lambda *args, **kwargs: None)
-    )
-)
-
-workflow.rule(name="bundle_all")(
-    workflow.input([f"data/source/{repo}/.bundle_created" for repo in SOURCE_REPOS])(
-        workflow.run(lambda *args, **kwargs: None)
-    )
-)
-
-workflow.rule(name="pull_all")(
-    workflow.input([f"data/source/{repo}/.pulled" for repo in SOURCE_REPOS])(
+    workflow.input([f"{SOURCE_DIR}/{repo}/{CLONE_SENTINEL}" for repo in SOURCE_REPOS])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
@@ -290,7 +295,23 @@ workflow.rule(name="kart_theme_all")(
 
 for repo in REPOS:
     safe_repo_name = repo.replace("-", "_")
+
+    # Stage 1, scoped to this repo: only the datasets/lookups this repo's themes need.
+    workflow.rule(name=f"extract_{safe_repo_name}")(
+        workflow.input(
+            [exported_sentinel(ds.name) for ds in repo_datasets(repo)]
+            + [exported_sentinel(lookup) for lookup in repo_lookups(repo)]
+        )(workflow.run(lambda *args, **kwargs: None))
+    )
+
     workflow.rule(name=f"kart_import_{safe_repo_name}")(
+        workflow.input(f"data/output/{repo}/.imported")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
+    # Stage 2, scoped to this repo: same target as `kart_import_<repo>` (see `process_all` below).
+    workflow.rule(name=f"process_{safe_repo_name}")(
         workflow.input(f"data/output/{repo}/.imported")(
             workflow.run(lambda *args, **kwargs: None)
         )
@@ -304,6 +325,14 @@ for repo in REPOS:
 
 workflow.rule(name="push_all")(
     workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
+
+# STAGE 2 ENTRY POINT: same target as `all`, named for the two-stage split (see `extract_all`
+# above). Set `KART_EXPORT_URL` to fetch exports lazily from a remote HTTPS/S3 location.
+workflow.rule(name="process_all")(
+    workflow.input(ALL_IMPORTED)(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
