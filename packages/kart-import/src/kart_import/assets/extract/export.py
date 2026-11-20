@@ -125,7 +125,8 @@ def export_entry(entry_name: str) -> str:
     Writes only under `EXPORT_DIR` (`data/export/<repo>/` + `.sentinel/<entry_name>.exported`).
     """
     entry = get_source_entry(entry_name)
-    repo_dir = SOURCE_DIR / get_source_repo_name(entry)
+    repo_name = get_source_repo_name(entry)
+    repo_dir = SOURCE_DIR / repo_name
     commit_to_releases, releases_before_first_commit = resolve_release_commits(entry_name)
     kart_dataset_id = entry.source.dataset or get_kart_dataset_id(repo_dir)
 
@@ -217,7 +218,7 @@ def export_entry(entry_name: str) -> str:
     sentinel.parent.mkdir(parents=True, exist_ok=True)
     sentinel.touch()
 
-    logger.info("export", extra={"entry": entry_name, "commits": len(commit_to_releases)})
+    logger.info("export", extra={"dataset": entry_name, "repo": repo_name, "commits": len(commit_to_releases)})
     return str(output_dir)
 
 
@@ -227,5 +228,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python -m kart_import.assets.extract.export <entry_name>")
         sys.exit(1)
-    with log_context(action="export", entry=sys.argv[1]):
-        export_entry(sys.argv[1])
+    entry_name = sys.argv[1]
+    repo_name = get_source_repo_name(get_source_entry(entry_name))
+    with log_context(action="export", dataset=entry_name, repo=repo_name):
+        export_entry(entry_name)

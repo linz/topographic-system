@@ -52,6 +52,7 @@ def _format_span_name(kwargs: dict[str, Any]) -> str:
         or kwargs.get("theme")
         or kwargs.get("repo")
         or kwargs.get("lookup")
+        or kwargs.get("entry")
         or kwargs.get("commit")
     )
     release = kwargs.get("release")

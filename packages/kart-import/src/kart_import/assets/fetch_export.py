@@ -134,7 +134,8 @@ def fetch_entry(entry_name: str, base_url: str | None = None) -> str:
     logger.info(
         "fetch_export",
         extra={
-            "entry": entry_name,
+            "dataset": entry_name,
+            "repo": repo_name,
             "fetched": len(missing),
             "cached": len(needed) - len(missing),
             "url": resolved_url,
@@ -149,5 +150,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python -m kart_import.assets.fetch_export <entry_name>")
         sys.exit(1)
-    with log_context(action="fetch_export", entry=sys.argv[1]):
-        fetch_entry(sys.argv[1])
+    entry_name = sys.argv[1]
+    repo_name = get_source_repo_name(get_source_entry(entry_name))
+    with log_context(action="fetch_export", dataset=entry_name, repo=repo_name):
+        fetch_entry(entry_name)
