@@ -61,16 +61,16 @@ uv run snakemake --cores=4 theme_airport --quiet | npx pjl
 Each stage has a named rule, so you can stop at (or resume from) any point. Later targets pull
 in everything they need, so `all` on its own builds the lot.
 
-| Target                                  | Builds                                       | What it does                                                                                      |
-| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `clone_<dataset>` / `clone_all`         | `data/source/<source>/.cloned_<YYYY-MM-DD>`  | clone or daily-fetch the source repos (once per source repo per day; see [Source repos](#source-repos)) |
-| `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.fgb` | export, transform and merge the theme's datasets, for every configured release                    |
-| `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                 | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle |
-| `kart_import_<repo>`                    | `data/output/<repo>/.imported`               | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history           |
-| `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                 | push the built repo to its GitHub remote (see [Push](#push))                                      |
-| `all` (default)                         | every repo's `.imported`                     | the full pipeline for all configured repos                                                        |
-| `extract_<repo>` / `extract_all`        | `data/export/.sentinel/<entry>.exported`     | stage 1: clone + export per-commit parquets for `<repo>` / everything (see [Two stages](#two-stages-extract-and-process)) |
-| `process_<repo>` / `process_all`        | `data/output/<repo>/.imported` / every repo's | stage 2: same target as `kart_import_<repo>` / `all`, named for the split above                   |
+| Target                                  | Builds                                        | What it does                                                                                                              |
+| --------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `clone_<dataset>` / `clone_all`         | `data/source/<source>/.cloned_<YYYY-MM-DD>`   | clone or daily-fetch the source repos (once per source repo per day; see [Source repos](#source-repos))                   |
+| `theme_<theme>`                         | `data/working/theme/release_<n>/<theme>.fgb`  | export, transform and merge the theme's datasets, for every configured release                                            |
+| `kart_theme_<theme>` / `kart_theme_all` | `data/output/<theme>.bundle`                  | replay the theme's releases into a Kart repo, one commit per release, and pack it as a git bundle                         |
+| `kart_import_<repo>`                    | `data/output/<repo>/.imported`                | combine the bundles of every theme whose `target_repo` is `<repo>` into one git history                                   |
+| `push_<repo>` / `push_all`              | `data/output/<repo>/.pushed`                  | push the built repo to its GitHub remote (see [Push](#push))                                                              |
+| `all` (default)                         | every repo's `.imported`                      | the full pipeline for all configured repos                                                                                |
+| `extract_<repo>` / `extract_all`        | `data/export/.sentinel/<entry>.exported`      | stage 1: clone + export per-commit parquets for `<repo>` / everything (see [Two stages](#two-stages-extract-and-process)) |
+| `process_<repo>` / `process_all`        | `data/output/<repo>/.imported` / every repo's | stage 2: same target as `kart_import_<repo>` / `all`, named for the split above                                           |
 
 Rule names come from the config, so `<theme>` is a file in `config/themes/` and `<repo>` is a
 key of `config/repos.yml` **with hyphens replaced by underscores** — snakemake rule names cannot

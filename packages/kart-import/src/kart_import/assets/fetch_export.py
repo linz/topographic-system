@@ -36,11 +36,15 @@ def _http_download(url: str, dest: Path) -> None:
         except urllib.error.HTTPError as exc:
             if exc.code < 500 or attempt == NETWORK_RETRIES:
                 raise
-            logger.warning("transient HTTP error, retrying", extra={"url": url, "status": exc.code, "attempt": attempt + 1})
+            logger.warning(
+                "transient HTTP error, retrying", extra={"url": url, "status": exc.code, "attempt": attempt + 1}
+            )
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             if attempt == NETWORK_RETRIES:
                 raise
-            logger.warning("transient download error, retrying", extra={"url": url, "error": str(exc), "attempt": attempt + 1})
+            logger.warning(
+                "transient download error, retrying", extra={"url": url, "error": str(exc), "attempt": attempt + 1}
+            )
         time.sleep(2**attempt)
 
 
@@ -147,4 +151,3 @@ if __name__ == "__main__":
         sys.exit(1)
     with log_context(action="fetch_export", entry=sys.argv[1]):
         fetch_entry(sys.argv[1])
-

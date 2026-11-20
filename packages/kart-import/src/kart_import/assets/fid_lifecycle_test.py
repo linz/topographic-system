@@ -51,9 +51,7 @@ def test_update_lifecycle_reads_auto_pk_renamed_to_fid():
     digests = fid_lifecycle.update_lifecycle_from_frame(
         gdf1, lifecycle, {}, "2026-09-14T00:00:00+00:00", "ds", "auto_pk"
     )
-    fid_lifecycle.update_lifecycle_from_frame(
-        gdf2, lifecycle, digests, "2026-10-19T00:00:00+00:00", "ds", "auto_pk"
-    )
+    fid_lifecycle.update_lifecycle_from_frame(gdf2, lifecycle, digests, "2026-10-19T00:00:00+00:00", "ds", "auto_pk")
 
     assert {fid: entry["created_at"] for fid, entry in lifecycle.items()} == {
         "128506": "2026-09-14T00:00:00+00:00",
@@ -85,7 +83,9 @@ def test_generate_lifecycle_from_exported_parquets_without_clone(tmp_path, monke
         f1,
     )
     write_export(
-        gpd.GeoDataFrame({"t50_fid": [10.0, 20.0], "name": ["new", "added"]}, geometry=[Point(0, 0), Point(1, 1)], crs="EPSG:4326"),
+        gpd.GeoDataFrame(
+            {"t50_fid": [10.0, 20.0], "name": ["new", "added"]}, geometry=[Point(0, 0), Point(1, 1)], crs="EPSG:4326"
+        ),
         f2,
     )
     schema = json.dumps([{"name": "t50_fid", "dataType": "integer"}])

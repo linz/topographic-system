@@ -209,7 +209,11 @@ def _transform_fingerprint(dataset_name: str, td: ThemeDataset, release_id: int)
     its releases reuse one export but fixups rewind each to its own release.
     """
     source_file = resolve_release_export(dataset_name, release_id)
-    return (source_file.resolve() if source_file is not None else None, join_fingerprint(td, release_id), release_id if td.backfill else None)
+    return (
+        source_file.resolve() if source_file is not None else None,
+        join_fingerprint(td, release_id),
+        release_id if td.backfill else None,
+    )
 
 
 def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int, releases: list[Release]) -> int:
@@ -223,7 +227,9 @@ def find_canonical_release(dataset_name: str, td: ThemeDataset, release_id: int,
     target = _transform_fingerprint(dataset_name, td, release_id)
     for release in releases:
         input_file = resolve_release_export(dataset_name, release.id)
-        if (input_file is None or input_file.exists()) and _transform_fingerprint(dataset_name, td, release.id) == target:
+        if (input_file is None or input_file.exists()) and _transform_fingerprint(
+            dataset_name, td, release.id
+        ) == target:
             return release.id
     raise LookupError(f"No release found for source file: {dataset_name} (release {release_id})")
 

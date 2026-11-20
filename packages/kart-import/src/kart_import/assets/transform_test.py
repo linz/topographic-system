@@ -28,7 +28,10 @@ def _link_shared_source(monkeypatch, root, dataset_name: str, release_ids: list[
     export_paths.write_releases_map(
         entry_dir,
         dataset_name,
-        {r: {"commit": "commit", "commit_time": "2020-01-01T00:00:00+00:00", "location": commit_file.name} for r in release_ids},
+        {
+            r: {"commit": "commit", "commit_time": "2020-01-01T00:00:00+00:00", "location": commit_file.name}
+            for r in release_ids
+        },
     )
 
 

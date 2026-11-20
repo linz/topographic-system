@@ -154,4 +154,3 @@ def test_fetch_entry_allows_different_pipeline_commit_hash(tmp_path, monkeypatch
 
     assert (entry_dir / "ds_aaa.parquet").read_bytes() == b"parquet"
     assert export_paths.entry_exported_sentinel("ds").exists()
-
