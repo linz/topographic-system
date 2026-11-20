@@ -12,6 +12,7 @@ from .config import (
     build_releases,
     get_dataset_name,
     get_repo_remote,
+    select_themes,
     validate_theme_joins,
 )
 from .fixups import FIXUPS
@@ -416,3 +417,68 @@ def test_latest_schema_version_for_mapping_is_newest_override():
 def test_latest_schema_version_for_mapping_with_no_overrides_is_default():
     theme = _theme_with_schema_version({"default": "v0.3"})
     assert theme.latest_schema_version == "v0.3"
+
+
+def _theme(name: str, depends_on: list[str] | None = None) -> Theme:
+    return Theme.model_validate(
+        {
+            "name": name,
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "schema_version": {"default": "v0.3"},
+            "datasets": [
+                {
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": name},
+                    "name": name,
+                    "depends_on_themes": depends_on or [],
+                }
+            ],
+        }
+    )
+
+
+def _names(themes: list[Theme]) -> list[str]:
+    return [theme.name for theme in themes]
+
+
+# carto_text -> map_sheet -> trig_point, as nztopo50_carto_text and nztopo50_map_sheet do
+THEMES = [
+    _theme("airport"),
+    _theme("trig_point"),
+    _theme("map_sheet", ["trig_point"]),
+    _theme("carto_text", ["map_sheet"]),
+]
+
+
+def test_select_themes_without_a_filter_builds_and_selects_everything():
+    to_build, selected = select_themes(THEMES, None)
+    assert _names(to_build) == _names(selected) == ["airport", "trig_point", "map_sheet", "carto_text"]
+
+
+def test_select_themes_builds_dependencies_but_only_selects_what_was_asked():
+    to_build, selected = select_themes(THEMES, {"map_sheet"})
+    assert _names(to_build) == ["trig_point", "map_sheet"]
+    assert _names(selected) == ["map_sheet"]
+
+
+def test_select_themes_follows_dependencies_of_dependencies():
+    to_build, selected = select_themes(THEMES, {"carto_text"})
+    assert _names(to_build) == ["trig_point", "map_sheet", "carto_text"]
+    assert _names(selected) == ["carto_text"]
+
+
+def test_select_themes_does_not_add_themes_that_depend_on_the_selection():
+    # Dependencies are pulled in, never dependents
+    to_build, _ = select_themes(THEMES, {"trig_point"})
+    assert _names(to_build) == ["trig_point"]
+
+
+def test_select_themes_rejects_an_unknown_dependency():
+    themes = [_theme("map_sheet", ["no_such_theme"])]
+    with pytest.raises(ValueError, match="no_such_theme"):
+        select_themes(themes, None)
+
+
+def test_real_theme_dependencies_all_exist():
+    # Every depends_on_themes in config/themes names a real theme
+    select_themes(config.load_all_theme_configs(), None)

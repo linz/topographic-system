@@ -407,6 +407,9 @@ class Release(BaseModel):
 
 
 ALL_THEMES: list[Theme] = []
+"""Every theme this run builds: the selected themes plus the themes they depend on."""
+SELECTED_THEMES: list[Theme] = []
+"""The themes picked by KART_IMPORT_THEME (all of them when unset); only these are imported."""
 ALL_KART_REPOS: set[str] = set()
 ALL_RELEASES: list[Release] = []
 DATASET_MAP: dict[str, ThemeDataset] = {}
@@ -450,7 +453,13 @@ def get_releases() -> list[Release]:
 
 
 def get_themes() -> list[Theme]:
+    """Every theme this run builds, including ones only built because a selected theme needs them."""
     return ALL_THEMES
+
+
+def get_selected_themes() -> list[Theme]:
+    """The themes this run imports into their target repos."""
+    return SELECTED_THEMES
 
 
 def get_theme_by_name(theme_name: str) -> Theme:
@@ -586,18 +595,56 @@ def validate_theme_joins(theme: Theme) -> None:
         _validate_mapping_join_refs(dataset, theme_lookups, joined)
 
 
+def load_all_theme_configs() -> list[Theme]:
+    """Every theme in config/themes, unfiltered."""
+    return [load_config(cfg.stem) for cfg in CONFIG_DIR_THEMES.glob("*.yml")]
+
+
+def theme_dependencies(theme: Theme) -> set[str]:
+    """Names of the other themes this theme needs built first, from its datasets' `depends_on_themes`."""
+    return {name for dataset in theme.datasets for name in dataset.depends_on_themes}
+
+
+def select_themes(themes: list[Theme], requested: set[str] | None) -> tuple[list[Theme], list[Theme]]:
+    """Split the themes into (to build, selected) for a `KART_IMPORT_THEME` filter.
+
+    Selected themes are the ones asked for (all of them when `requested` is None); only these are
+    imported and pushed. Themes to build are the selected ones plus every theme they depend on,
+    directly or not, so filtering to a theme still builds what its transform reads. Both lists keep
+    the order of `themes`.
+    """
+    by_name = {theme.name: theme for theme in themes}
+    selected = {name for name in by_name if requested is None or name in requested}
+
+    to_build: set[str] = set()
+    pending = list(selected)
+    while pending:
+        name = pending.pop()
+        if name in to_build:
+            continue
+        to_build.add(name)
+        for dependency in theme_dependencies(by_name[name]):
+            if dependency not in by_name:
+                raise ValueError(f"Theme {name!r} depends on unknown theme {dependency!r}")
+            pending.append(dependency)
+
+    return (
+        [theme for theme in themes if theme.name in to_build],
+        [theme for theme in themes if theme.name in selected],
+    )
+
+
 def load_from_yaml():
     base_themes = env_themes()
     base_releases = env_releases()
 
-    for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
-        theme = load_config(cfg.stem)
+    to_build, selected = select_themes(load_all_theme_configs(), base_themes)
+    SELECTED_THEMES.extend(selected)
+    # Only the selected themes are imported, so only their repos are built and pushed
+    ALL_KART_REPOS.update(theme.target_repo for theme in selected)
 
-        if base_themes and theme.name not in base_themes:
-            continue
-
+    for theme in to_build:
         ALL_THEMES.append(theme)
-        ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
             if dataset.name in DATASET_MAP or dataset.name in LOOKUP_MAP:
                 raise ValueError(f"Dataset {dataset.name!r} name collides with an existing dataset/lookup")
@@ -629,7 +676,8 @@ def load_from_yaml():
     logger.info(
         "config-loaded",
         extra={
-            "themes": [t.name for t in ALL_THEMES],
+            "themes": [t.name for t in SELECTED_THEMES],
+            "build_only_themes": [t.name for t in ALL_THEMES if t not in SELECTED_THEMES],
             "releases": ",".join([str(r.id) for r in ALL_RELEASES]),
         },
     )

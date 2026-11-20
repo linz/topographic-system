@@ -1,5 +1,6 @@
 from kart_import.config import (
     get_themes,
+    get_selected_themes,
     get_releases,
     get_kart_repos,
     DATASET_MAP,
@@ -21,7 +22,10 @@ from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
 # Load configuration details from the Python package
+# Every theme to build, including ones only built because a selected theme depends on them
 THEMES = get_themes()
+# The themes KART_IMPORT_THEME picked (all when unset); only these are imported into a repo
+SELECTED_THEMES = get_selected_themes()
 RELEASES = get_releases()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
@@ -194,7 +198,7 @@ rule kart_repo:
     input:
         themes = lambda wildcards: [
             f"data/output/{t.name}.bundle"
-            for t in THEMES if t.target_repo == wildcards.repo
+            for t in SELECTED_THEMES if t.target_repo == wildcards.repo
         ]
     output:
         imported = "data/output/{repo}/.imported"
@@ -283,7 +287,7 @@ for t in THEMES:
     )
 
 workflow.rule(name="kart_theme_all")(
-    workflow.input([f"data/output/{t.name}.bundle" for t in THEMES])(
+    workflow.input([f"data/output/{t.name}.bundle" for t in SELECTED_THEMES])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )
