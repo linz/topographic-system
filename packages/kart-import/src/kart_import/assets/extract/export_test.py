@@ -115,7 +115,8 @@ def test_export_entry_writes_schema_sidecar_releases_map_and_sentinel(tmp_path, 
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=r) for r in (66, 67)])
     monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("abc", "2026-05-15T12:27:14+12:00"))
     monkeypatch.setattr(export, "ref_has_dataset", lambda *_: True)
-    monkeypatch.setattr(export, "run_command", lambda cmd, **_: open(cmd[-1], "w").close())
+    cmds = []
+    monkeypatch.setattr(export, "run_command", lambda cmd, **_: cmds.append(cmd) or open(cmd[-1], "w").close())
     monkeypatch.setattr(export, "get_dataset_schema", lambda *_: ({"name": "t50_fid", "dataType": "integer"},))
     monkeypatch.setattr(export, "get_kart_dataset_id", lambda _: "ds_kart_id")
 
@@ -123,6 +124,22 @@ def test_export_entry_writes_schema_sidecar_releases_map_and_sentinel(tmp_path, 
 
     commit_file = export_paths.entry_commit_file("ds", "abc")
     assert commit_file.exists()
+    if export.EXPORT_FORMAT == "parquet":
+        assert cmds == [
+            [
+                "kart",
+                "export",
+                "--overwrite",
+                "--ref",
+                "abc",
+                "-lco",
+                "COMPRESSION=ZSTD",
+                "-lco",
+                "COMPRESSION_LEVEL=9",
+                "ds_kart_id",
+                str(commit_file),
+            ]
+        ]
     assert json.loads(export_paths.schema_sidecar_file(commit_file).read_text()) == [
         {"name": "t50_fid", "dataType": "integer"}
     ]

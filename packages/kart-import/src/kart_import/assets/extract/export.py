@@ -58,7 +58,7 @@ def gpd_read(path: Path) -> gpd.GeoDataFrame:
 def write_export(gdf: gpd.GeoDataFrame, path: Path) -> None:
     """Write an export in the configured format (see EXPORT_FORMAT)."""
     if EXPORT_FORMAT == "parquet":
-        gdf.to_parquet(path, index=False)
+        gdf.to_parquet(path, compression="zstd", compression_level=9, index=False)
     else:
         gdf.to_file(path, driver="GeoJSON", index=False)
 
@@ -148,7 +148,10 @@ def export_entry(entry_name: str) -> str:
                 f"Exporting {entry_name} to {EXPORT_FORMAT}",
                 extra={"commit": info.commit, "releases": info.releases, "file": str(target_commit_file)},
             )
-            cmd = ["kart", "export", "--overwrite", "--ref", info.commit, kart_dataset_id, str(target_commit_file)]
+            cmd = ["kart", "export", "--overwrite", "--ref", info.commit]
+            if EXPORT_FORMAT == "parquet":
+                cmd.extend(["-lco", "COMPRESSION=ZSTD", "-lco", "COMPRESSION_LEVEL=9"])
+            cmd.extend([kart_dataset_id, str(target_commit_file)])
             run_command(cmd, cwd=str(repo_dir))
 
         schema_file = schema_sidecar_file(target_commit_file)

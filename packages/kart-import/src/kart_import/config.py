@@ -601,12 +601,24 @@ def load_from_yaml():
     base_themes = env_themes()
     base_releases = env_releases()
 
-    for cfg in CONFIG_DIR_THEMES.glob("*.yml"):
-        theme = load_config(cfg.stem)
+    all_loaded = {theme.name: theme for cfg in CONFIG_DIR_THEMES.glob("*.yml") for theme in (load_config(cfg.stem),)}
+    if base_themes is not None:
+        needed: set[str] = set()
+        pending = [name for name in base_themes if name in all_loaded]
+        while pending:
+            name = pending.pop()
+            if name in needed:
+                continue
+            needed.add(name)
+            for ds in all_loaded[name].datasets:
+                for dep in ds.depends_on_themes:
+                    if dep not in needed and dep in all_loaded:
+                        pending.append(dep)
+        selected = [all_loaded[name] for name in sorted(needed)]
+    else:
+        selected = list(all_loaded.values())
 
-        if base_themes and theme.name not in base_themes:
-            continue
-
+    for theme in selected:
         ALL_THEMES.append(theme)
         ALL_KART_REPOS.add(theme.target_repo)
         for dataset in theme.datasets:
