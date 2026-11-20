@@ -564,15 +564,11 @@ def test_no_theme_reads_another_target_repo():
             for remotes in yaml.safe_load(f)["repos"].values()
             for url in (remotes.values() if isinstance(remotes, dict) else [remotes])
         }
-    # contour is still cloned from topographic-contour-data until the contour theme is cheap enough to build here
-    allowed = {("nztopo50_carto_symbol", "contour")}
 
     offenders = [
         (theme.name, entry.name, entry.source.url)
         for theme in config.load_all_theme_configs()
         for entry in [*theme.datasets, *theme.lookups]
-        if entry.source is not None
-        and entry.source.url.rstrip("/").removesuffix(".git") in targets
-        and (theme.name, entry.name) not in allowed
+        if entry.source is not None and entry.source.url.rstrip("/").removesuffix(".git") in targets
     ]
     assert offenders == []

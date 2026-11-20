@@ -4,9 +4,8 @@ target_epsg: EPSG:2193
 schema_version:
   default: v0.3
 
-# land_use and road_line are read from the themes this run builds, not cloned from topographic-data,
-# so building topographic-product-data never needs another target repo. contour still clones
-# topographic-contour-data until building the contour theme here is shown to be affordable.
+# Lookups read the themes this run builds rather than cloning topographic-data or
+# topographic-contour-data, so building topographic-product-data never needs another target repo.
 lookups:
   - name: land_use
     theme: land_use
@@ -14,9 +13,7 @@ lookups:
     geometry: true
 
   - name: contour
-    source:
-      url: git@github.com:linz/topographic-contour-data
-      dataset: contour
+    theme: contour
     columns: [id, elevation]
     geometry: true
 
