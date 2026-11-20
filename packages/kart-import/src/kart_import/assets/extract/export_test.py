@@ -66,9 +66,7 @@ def test_releases_before_the_dataset_exists_record_null_location(tmp_path, monke
     monkeypatch.setattr(export_paths, "EXPORT_DIR", tmp_path)
     monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
     monkeypatch.setattr(export, "is_kart", lambda _: True)
-    _patch_source_entry(
-        monkeypatch, lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds"))
-    )
+    _patch_source_entry(monkeypatch, lambda _: SimpleNamespace(name="ds", source=Source(url=REPO_URL, dataset="ds")))
     monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=r, until=None) for r in (66, 67)])
     monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("before", "2026-09-14"))
     monkeypatch.setattr(export, "ref_has_dataset", lambda *_: False)
