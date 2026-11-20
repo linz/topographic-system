@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from pathlib import Path
 from types import SimpleNamespace
 
 import geopandas as gpd
@@ -123,7 +124,9 @@ def test_export_entry_writes_schema_sidecar_releases_map_and_sentinel(tmp_path, 
     export.export_entry("ds")
 
     commit_file = export_paths.entry_commit_file("ds", "abc")
+    tmp_commit_file = commit_file.with_name(f".tmp_{commit_file.name}")
     assert commit_file.exists()
+    assert not tmp_commit_file.exists()
     if export.EXPORT_FORMAT == "parquet":
         assert cmds == [
             [
@@ -137,7 +140,7 @@ def test_export_entry_writes_schema_sidecar_releases_map_and_sentinel(tmp_path, 
                 "-lco",
                 "COMPRESSION_LEVEL=9",
                 "ds_kart_id",
-                str(commit_file),
+                str(tmp_commit_file),
             ]
         ]
     assert json.loads(export_paths.schema_sidecar_file(commit_file).read_text()) == [
@@ -198,3 +201,27 @@ def test_gpd_read_returns_parquet_decimals_as_floats(tmp_path):
     assert out["orientation"].dtype == "float64"
     assert out["orientation"].iloc[0] == 4.7069
     assert pd.isna(out["orientation"].iloc[1])
+
+
+def test_export_entry_cleans_up_temp_file_on_kart_export_failure(tmp_path, monkeypatch):
+    """A failed or interrupted `kart export` must not leave a partial parquet at the final path."""
+    _patch_simple_export_layout(monkeypatch, tmp_path)
+    monkeypatch.setattr(export, "SOURCE_DIR", tmp_path / "source")
+    monkeypatch.setattr(export, "is_kart", lambda _: True)
+    monkeypatch.setattr(export, "get_releases", lambda: [SimpleNamespace(id=66, until=66)])
+    monkeypatch.setattr(export, "get_release_commit", lambda _, until: ("abc", "2026-05-15T12:27:14+12:00"))
+    monkeypatch.setattr(export, "ref_has_dataset", lambda *_: True)
+    monkeypatch.setattr(export, "get_kart_dataset_id", lambda _: "ds")
+
+    def fail_mid_write(cmd, **_):
+        Path(cmd[-1]).write_text("partial")
+        raise RuntimeError("kart export failed")
+
+    monkeypatch.setattr(export, "run_command", fail_mid_write)
+
+    with pytest.raises(RuntimeError, match="kart export failed"):
+        export.export_entry("ds")
+
+    commit_file = export_paths.entry_commit_file("ds", "abc")
+    assert not commit_file.exists()
+    assert not commit_file.with_name(f".tmp_{commit_file.name}").exists()

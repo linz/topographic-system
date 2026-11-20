@@ -148,16 +148,32 @@ def export_entry(entry_name: str) -> str:
                 f"Exporting {entry_name} to {EXPORT_FORMAT}",
                 extra={"commit": info.commit, "releases": info.releases, "file": str(target_commit_file)},
             )
+            # Keep the original suffix so `kart export` detects the driver, and stay in the same
+            # directory so `replace()` is an atomic same-filesystem rename.
+            tmp_file = target_commit_file.with_name(f".tmp_{target_commit_file.name}")
             cmd = ["kart", "export", "--overwrite", "--ref", info.commit]
             if EXPORT_FORMAT == "parquet":
                 cmd.extend(["-lco", "COMPRESSION=ZSTD", "-lco", "COMPRESSION_LEVEL=9"])
-            cmd.extend([kart_dataset_id, str(target_commit_file)])
-            run_command(cmd, cwd=str(repo_dir))
+            cmd.extend([kart_dataset_id, str(tmp_file)])
+            try:
+                run_command(cmd, cwd=str(repo_dir))
+                tmp_file.replace(target_commit_file)
+            except BaseException:
+                if tmp_file.exists():
+                    tmp_file.unlink()
+                raise
 
         schema_file = schema_sidecar_file(target_commit_file)
         if not schema_file.exists():
             schema = get_dataset_schema(repo_dir, kart_dataset_id, info.commit)
-            schema_file.write_text(json.dumps(schema))
+            tmp_schema = schema_file.with_name(f".tmp_{schema_file.name}")
+            try:
+                tmp_schema.write_text(json.dumps(schema))
+                tmp_schema.replace(schema_file)
+            except BaseException:
+                if tmp_schema.exists():
+                    tmp_schema.unlink()
+                raise
 
         location = target_commit_file.name
         for release_id in info.releases:
