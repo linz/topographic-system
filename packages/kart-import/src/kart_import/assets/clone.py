@@ -6,6 +6,7 @@ from ..command import run_command
 from ..config import (
     SOURCE_DIR,
     get_source_repo,
+    source_of,
 )
 from ..env import env_skip_source_pull, env_use_bundle
 from ..git.bundle import download_and_clone_from_bundle
@@ -30,8 +31,8 @@ def _clone_has_dataset(target_dir: Path, wanted: list[str]) -> bool:
 
 def clone_repo(repo_name: str) -> None:
     entries = get_source_repo(repo_name)
-    dataset_url = entries[0].source.url
-    wanted = sorted({e.source.dataset for e in entries if e.source.dataset})
+    dataset_url = source_of(entries[0]).url
+    wanted = sorted({dataset for e in entries if (dataset := source_of(e).dataset)})
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / repo_name
     sentinel = target_dir / ".cloned"

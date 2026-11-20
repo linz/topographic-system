@@ -16,6 +16,7 @@ from ..config import (
     get_releases,
     get_source_entry,
     get_source_repo_name,
+    source_of,
 )
 from ..export_paths import (
     dataset_commit_file,
@@ -121,7 +122,7 @@ def resolve_release_commits(dataset_name: str) -> tuple[dict[str, CommitData], l
     repo_dir = SOURCE_DIR / get_source_repo_name(td)
     if not is_kart(repo_dir):
         raise Exception(f"Kart repo not found: {repo_dir}")
-    kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
+    kart_dataset_id = source_of(td).dataset or get_kart_dataset_id(repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
     releases_before_first_commit: list[int] = []
@@ -159,7 +160,7 @@ def export_dataset_releases(dataset_name: str):
     releases = get_releases()
     repo_dir = SOURCE_DIR / get_source_repo_name(td)
     commit_to_releases, releases_before_first_commit = resolve_release_commits(dataset_name)
-    kart_dataset_id = td.source.dataset or get_kart_dataset_id(repo_dir)
+    kart_dataset_id = source_of(td).dataset or get_kart_dataset_id(repo_dir)
     if getattr(td, "backfill", False):
         releases_before_first_commit = backfill_releases(commit_to_releases, releases_before_first_commit)
 
@@ -206,7 +207,7 @@ def export_lookup(lookup_name: str) -> str:
     repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
     if not is_kart(repo_dir):
         raise FileNotFoundError(f"lookup {lookup_name!r} is not a cloned kart repo (no .kart dir under {repo_dir})")
-    kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
+    kart_dataset_id = source_of(lookup).dataset or get_kart_dataset_id(repo_dir)
 
     commits: dict[str, str] = {}
     for release in get_releases():

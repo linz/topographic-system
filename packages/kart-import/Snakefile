@@ -1,5 +1,6 @@
 from kart_import.config import (
     get_themes,
+    get_selected_themes,
     get_releases,
     get_kart_repos,
     DATASET_MAP,
@@ -7,6 +8,7 @@ from kart_import.config import (
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
+    LOOKUP_MAP,
     SOURCE_REPO_MAP,
     get_source_entry,
     get_source_repo_name,
@@ -21,7 +23,10 @@ from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
 # Load configuration details from the Python package
+# Every theme to build, including ones only built because a selected theme depends on them
 THEMES = get_themes()
+# The themes KART_IMPORT_THEME picked (all when unset); only these are imported into a repo
+SELECTED_THEMES = get_selected_themes()
 RELEASES = get_releases()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
@@ -32,6 +37,11 @@ SOURCE_REPOS = list(SOURCE_REPO_MAP)
 def cloned(name):
     """Sentinel for the source clone a dataset/lookup reads from."""
     return f"data/source/{get_source_repo_name(get_source_entry(name))}/.cloned"
+
+
+def is_theme_lookup(name):
+    """A lookup that reads a theme this run builds, rather than a cloned source repo."""
+    return LOOKUP_MAP[name].theme is not None
 
 # Start root span for this Snakemake run so all distributed jobs and logs link together
 tracer = get_tracer("kart_import")
@@ -119,11 +129,23 @@ rule export_lookup:
 
 
 # 3c. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
+#     A theme lookup instead reads every release of a theme this run builds, so it waits for that
+#     theme rather than a clone and export.
 rule prepare_lookup:
     input:
         # clone must be present: prepare reads each commit's declared schema from it.
-        cloned = lambda wildcards: cloned(wildcards.lookup),
-        exported = "data/working/export/lookup/{lookup}",
+        cloned = lambda wildcards: [] if is_theme_lookup(wildcards.lookup) else cloned(wildcards.lookup),
+        exported = lambda wildcards: (
+            [] if is_theme_lookup(wildcards.lookup) else f"data/working/export/lookup/{wildcards.lookup}"
+        ),
+        theme = lambda wildcards: (
+            [
+                f"data/working/theme/release_{r.id}/{LOOKUP_MAP[wildcards.lookup].theme}{THEME_SUFFIX}"
+                for r in RELEASES
+            ]
+            if is_theme_lookup(wildcards.lookup)
+            else []
+        ),
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
         prepared = directory("data/working/lookup/{lookup}")
@@ -150,6 +172,7 @@ rule transform:
         lookup_clones = lambda wildcards: [
             cloned(join.lookup)
             for join in DATASET_MAP[wildcards.dataset].joins
+            if not is_theme_lookup(join.lookup)
         ],
         example_deps = lambda wildcards: [
             f"data/working/transform/release_{r.id}/{ds.name}{TRANSFORM_SUFFIX}"
@@ -194,7 +217,7 @@ rule kart_repo:
     input:
         themes = lambda wildcards: [
             f"data/output/{t.name}.bundle"
-            for t in THEMES if t.target_repo == wildcards.repo
+            for t in SELECTED_THEMES if t.target_repo == wildcards.repo
         ]
     output:
         imported = "data/output/{repo}/.imported"
@@ -283,7 +306,7 @@ for t in THEMES:
     )
 
 workflow.rule(name="kart_theme_all")(
-    workflow.input([f"data/output/{t.name}.bundle" for t in THEMES])(
+    workflow.input([f"data/output/{t.name}.bundle" for t in SELECTED_THEMES])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )

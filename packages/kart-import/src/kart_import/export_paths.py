@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .config import EXPORT_SUFFIX, WORKING_EXPORTS_DIR
+from .config import EXPORT_SUFFIX, THEME_SUFFIX, WORKING_EXPORTS_DIR, WORKING_THEME_DIR
 
 
 def export_filename(stem: str) -> str:
@@ -33,3 +33,13 @@ def lookup_dir(lookup_name: str) -> Path:
 def lookup_commit_file(lookup_name: str, commit: str) -> Path:
     """The per-commit source export for a lookup, shared by every release that resolves to it."""
     return lookup_dir(lookup_name) / export_filename(commit)
+
+
+def theme_release_file(theme_name: str, release_id: int) -> Path:
+    """A release's merged theme file (see `assets.theme`)."""
+    return WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}"
+
+
+def theme_hash_file(theme_name: str, release_id: int) -> Path:
+    """Sidecar holding the SHA-256 of a release's merged theme file, as `assets.theme` writes it."""
+    return theme_release_file(theme_name, release_id).with_name(f"{theme_name}{THEME_SUFFIX}.sha256")

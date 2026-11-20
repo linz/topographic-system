@@ -29,9 +29,9 @@ def _td() -> ThemeDataset:
 
 @pytest.fixture(autouse=True)
 def _clear_resolve_lookup_cache():
-    """_resolve_lookup_commit is @functools.cache'd; clear it between tests so a value cached by
+    """_resolve_lookup_version is @functools.cache'd; clear it between tests so a value cached by
     one test (keyed on lookup_name/release_id) can't bleed into another and mask a real resolve."""
-    joins._resolve_lookup_commit.cache_clear()
+    joins._resolve_lookup_version.cache_clear()
     yield
 
 
@@ -46,7 +46,7 @@ def env(tmp_path, monkeypatch):
     (tmp_path / "road_lkp").mkdir()
 
     def resolves_to(commit):
-        monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: commit)
+        monkeypatch.setattr(joins, "_resolve_lookup_version", lambda *_: commit)
 
     def write(df, commit="abc123"):
         df.to_parquet(tmp_path / "road_lkp" / f"{commit}.parquet")
@@ -101,9 +101,9 @@ def test_select_lookup_columns_reads_an_alias_under_the_current_name():
 
 def test_join_fingerprint_reflects_lookup_commits(monkeypatch):
     td = _td()
-    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: f"commit{release_id}")
+    monkeypatch.setattr(joins, "_resolve_lookup_version", lambda name, release_id: f"commit{release_id}")
     assert joins.join_fingerprint(td, 60) != joins.join_fingerprint(td, 66)  # advances -> not shared
-    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: "frozen")
+    monkeypatch.setattr(joins, "_resolve_lookup_version", lambda name, release_id: "frozen")
     assert joins.join_fingerprint(td, 60) == joins.join_fingerprint(td, 66)  # frozen -> one transform reusable
 
 
@@ -170,7 +170,7 @@ def test_apply_joins_yields_null_columns_when_nothing_to_join(env, setup):
 
 def test_apply_joins_picks_parquet_for_resolved_commit(env, monkeypatch):
     """Per-release versioning: each release loads the parquet for its resolved commit."""
-    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda name, release_id: f"commit{release_id}")
+    monkeypatch.setattr(joins, "_resolve_lookup_version", lambda name, release_id: f"commit{release_id}")
     env.write(pd.DataFrame({"t50_fid": [1], "width": ["OLD"]}), commit="commit60")
     env.write(pd.DataFrame({"t50_fid": [1], "width": ["NEW"]}), commit="commit66")
 
@@ -178,20 +178,20 @@ def test_apply_joins_picks_parquet_for_resolved_commit(env, monkeypatch):
     assert joins.apply_joins(_gdf([1]), env.td, 66)["road_lkp.width"].iloc[0] == "NEW"
 
 
-def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
+def test_resolve_lookup_version_follows_commit_resolution(tmp_path, monkeypatch):
     """The release->commit gate is purely 'what commit does the lookup have as-of this release'."""
     monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
     (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
 
     monkeypatch.setattr(joins, "get_release_commit", lambda repo, until: ("abcdef12", "2026-05-15T00:00:00Z"))
-    assert joins._resolve_lookup_commit("road_lkp", 66) == "abcdef12"
+    assert joins._resolve_lookup_version("road_lkp", 66) == "abcdef12"
 
     # release predates the lookup: no commit as-of the release, but the repo HAS history -> None.
-    joins._resolve_lookup_commit.cache_clear()
+    joins._resolve_lookup_version.cache_clear()
     monkeypatch.setattr(
         joins, "get_release_commit", lambda repo, until: None if until else ("head0001", "2026-01-01T00:00:00Z")
     )
-    assert joins._resolve_lookup_commit("road_lkp", 66) is None
+    assert joins._resolve_lookup_version("road_lkp", 66) is None
 
 
 @pytest.mark.parametrize(
@@ -202,13 +202,13 @@ def test_resolve_lookup_commit_follows_commit_resolution(tmp_path, monkeypatch):
     ],
     ids=["missing-clone", "empty-clone"],
 )
-def test_resolve_lookup_commit_errors_on_bad_clone(tmp_path, monkeypatch, make_clone, get_commit, match):
+def test_resolve_lookup_version_errors_on_bad_clone(tmp_path, monkeypatch, make_clone, get_commit, match):
     monkeypatch.setattr(joins, "SOURCE_DIR", tmp_path)
     if make_clone:
         (tmp_path / "topographic-source-data").mkdir()  # road_lkp's shared source clone
         monkeypatch.setattr(joins, "get_release_commit", get_commit)
     with pytest.raises(FileNotFoundError, match=match):
-        joins._resolve_lookup_commit("road_lkp", 66)
+        joins._resolve_lookup_version("road_lkp", 66)
 
 
 def test_select_lookup_columns_keeps_a_nullable_integer_key(monkeypatch):
@@ -300,7 +300,7 @@ def test_apply_joins_within_attaches_the_containing_feature(tmp_path, monkeypatc
         config.LOOKUP_MAP, "land_use", Lookup(name="land_use", source=_SRC, columns=["id"], geometry=True)
     )
     monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
-    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    monkeypatch.setattr(joins, "_resolve_lookup_version", lambda *_: "abc123")
     (tmp_path / "land_use").mkdir()
     gpd.GeoDataFrame(
         {"id": ["LU-1", "LU-2"]},
@@ -334,7 +334,7 @@ def test_apply_joins_nearest_respects_max_distance(tmp_path, monkeypatch):
         config.LOOKUP_MAP, "contour", Lookup(name="contour", source=_SRC, columns=["elevation"], geometry=True)
     )
     monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path)
-    monkeypatch.setattr(joins, "_resolve_lookup_commit", lambda *_: "abc123")
+    monkeypatch.setattr(joins, "_resolve_lookup_version", lambda *_: "abc123")
     (tmp_path / "contour").mkdir()
     gpd.GeoDataFrame(
         {"elevation": [100, 200]},
@@ -369,3 +369,89 @@ def test_chop_splits_linework_without_losing_segments():
     assert out["elevation"].tolist() == [100, 100, 100]
     assert sum(shapely.get_num_coordinates(g) - 1 for g in out.geometry) == 10
     assert out.crs == "EPSG:2193"
+
+
+def _theme_lookup_env(tmp_path, monkeypatch, builds: dict[int, tuple[str, list[str]]]):
+    """A 'road_line' theme lookup over the road_line theme, plus a theme build per release:
+    `builds` maps release id -> (that build's hash, its features' highway numbers)."""
+    from datetime import datetime
+
+    monkeypatch.setitem(
+        config.LOOKUP_MAP,
+        "road_line",
+        Lookup(name="road_line", theme="road_line", columns=["id", "highway_number"], geometry=True),
+    )
+    releases = [config.Release(id=release_id, date=datetime(2020, 1, 1)) for release_id in builds]
+    monkeypatch.setattr(prepare, "get_releases", lambda: releases)
+    monkeypatch.setattr(joins, "get_releases", lambda: releases)
+    monkeypatch.setattr(export_paths, "WORKING_THEME_DIR", tmp_path / "theme")
+    monkeypatch.setattr(export_paths, "THEME_SUFFIX", ".fgb")
+    monkeypatch.setattr(prepare, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+    monkeypatch.setattr(joins, "WORKING_LOOKUP_DIR", tmp_path / "lookup")
+
+    for release_id, (digest, highways) in builds.items():
+        theme_file = export_paths.theme_release_file("road_line", release_id)
+        theme_file.parent.mkdir(parents=True)
+        gpd.GeoDataFrame(
+            {"id": [f"road-{i}" for i in range(len(highways))], "highway_number": highways, "name": "unused"},
+            geometry=[shapely.LineString([(0, i), (10, i)]) for i in range(len(highways))],
+            crs="EPSG:2193",
+        ).to_file(theme_file, driver="FlatGeobuf")
+        export_paths.theme_hash_file("road_line", release_id).write_text(digest + "\n")
+
+
+def _road_line_td() -> ThemeDataset:
+    return ThemeDataset(
+        name="shield",
+        source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
+        joins=[Join(lookup="road_line", predicate="nearest")],
+    )
+
+
+def test_prepare_theme_lookup_writes_one_parquet_per_distinct_theme_build(tmp_path, monkeypatch):
+    """Releases whose theme build is identical share a prepared file, as releases sharing a commit do."""
+    _theme_lookup_env(tmp_path, monkeypatch, {64: ("aaa", ["1"]), 65: ("aaa", ["1"]), 66: ("bbb", ["2"])})
+
+    out_dir = prepare.prepare_lookup("road_line")
+
+    assert sorted(path.name for path in out_dir.glob("*.parquet")) == ["aaa.parquet", "bbb.parquet"]
+    out = gpd.read_parquet(out_dir / "bbb.parquet")
+    assert list(out.columns) == ["id", "highway_number", "geometry"]  # slimmed to the chosen columns
+
+
+def test_prepare_theme_lookup_prunes_builds_no_release_uses(tmp_path, monkeypatch):
+    _theme_lookup_env(tmp_path, monkeypatch, {66: ("bbb", ["2"])})
+    stale = tmp_path / "lookup" / "road_line" / "old.parquet"
+    stale.parent.mkdir(parents=True)
+    stale.touch()
+
+    prepare.prepare_lookup("road_line")
+
+    assert not stale.exists()
+
+
+def test_apply_joins_reads_each_releases_own_theme_build(tmp_path, monkeypatch):
+    """Release 64 joins against release 64's road_line build, and 66 against 66's."""
+    _theme_lookup_env(tmp_path, monkeypatch, {64: ("aaa", ["SH1"]), 66: ("bbb", ["SH2"])})
+    prepare.prepare_lookup("road_line")
+    shield = gpd.GeoDataFrame({"t50_fid": [1]}, geometry=[Point(5, 0)], crs="EPSG:2193")
+
+    assert joins.apply_joins(shield, _road_line_td(), 64)["road_line.highway_number"].iloc[0] == "SH1"
+    assert joins.apply_joins(shield, _road_line_td(), 66)["road_line.highway_number"].iloc[0] == "SH2"
+
+
+def test_join_fingerprint_matches_for_releases_with_the_same_theme_build(tmp_path, monkeypatch):
+    """So transform still reuses one release's output for another whose lookup didn't change."""
+    _theme_lookup_env(tmp_path, monkeypatch, {64: ("aaa", ["1"]), 65: ("aaa", ["1"]), 66: ("bbb", ["2"])})
+    td = _road_line_td()
+
+    assert joins.join_fingerprint(td, 64) == joins.join_fingerprint(td, 65)
+    assert joins.join_fingerprint(td, 65) != joins.join_fingerprint(td, 66)
+
+
+def test_resolve_theme_lookup_errors_when_the_theme_is_not_built(tmp_path, monkeypatch):
+    _theme_lookup_env(tmp_path, monkeypatch, {66: ("bbb", ["2"])})
+    export_paths.theme_hash_file("road_line", 66).unlink()
+
+    with pytest.raises(FileNotFoundError, match="reads theme 'road_line'"):
+        joins._resolve_lookup_version("road_line", 66)

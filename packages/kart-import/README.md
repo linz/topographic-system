@@ -238,6 +238,9 @@ Lookups take a slightly different path: they are exported once per distinct comm
 dropping keyless rows and deduplicating on the key so a join cannot fan out rows. Lookups are
 never emitted as theme features. See [Left Join Example](#left-join-example).
 
+A lookup can also read a theme that the same run builds, instead of cloning a repo. See
+[Theme Lookup Example](#theme-lookup-example).
+
 ## LDS Backup
 
 git bundles are stored of all kart repositories in cloudfront to enable fast cloning
@@ -491,3 +494,23 @@ datasets:
       - lookup: road_width_lkp
         left_on: t50_fid # key column in the *source* dataset to join on
 ```
+
+## Theme Lookup Example
+
+A lookup can read another theme that this run builds, instead of cloning a source repo. Use it to
+link to a feature in one of our own target repos (such as `topographic-data`) without cloning that
+repo, so no target repo depends on another. A test fails if a theme clones a target repo.
+
+```yaml
+lookups:
+  - name: road_line
+    theme: road_line # instead of `source`
+    columns: [id, highway_number]
+    geometry: true
+```
+
+- The `road_line` theme is built first, even when `KART_IMPORT_THEME` names only this theme. It is
+  built but not imported.
+- Each release joins against that release's build of the theme.
+- A theme lookup can read `id`, `created_at`, `updated_at`, and any column that every one of the
+  theme's datasets maps. Other columns fail when the config loads.

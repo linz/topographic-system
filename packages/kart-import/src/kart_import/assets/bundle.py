@@ -13,6 +13,7 @@ from ..config import (
     Lookup,
     ThemeDataset,
     get_source_repo,
+    source_of,
 )
 from ..env import env_bundle_s3_url, env_bundle_url
 from ..git.bundle import download_and_clone_from_bundle
@@ -125,7 +126,7 @@ def _pull_or_fresh_clone(target_dir: Path, dataset_source: str) -> None:
 def _export_commits(entry: ThemeDataset | Lookup, target_dir: Path, s3_url: str, all_commits: list[str]) -> None:
     """Export one dataset of the repo at every commit to S3 as `<name>/<sha>.json.gz`."""
     dataset_name = entry.name
-    kart_dataset_id = entry.source.dataset or get_kart_dataset_id(target_dir)
+    kart_dataset_id = source_of(entry).dataset or get_kart_dataset_id(target_dir)
     per_commit_dir = WORKING_EXPORTS_DIR / dataset_name
     per_commit_dir.mkdir(parents=True, exist_ok=True)
 
@@ -157,7 +158,7 @@ def _export_commits(entry: ThemeDataset | Lookup, target_dir: Path, s3_url: str,
 
 def bundle_repo(repo_name: str):
     entries = get_source_repo(repo_name)
-    dataset_source = entries[0].source.url
+    dataset_source = source_of(entries[0]).url
 
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / repo_name

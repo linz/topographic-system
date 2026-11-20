@@ -409,18 +409,25 @@ def build_carto_symbol_metadata(gdf: gpd.GeoDataFrame, td: ThemeDataset, release
           - fn: build_carto_symbol_metadata
 
     A plain link (`table_column` null), since the symbol copies no value from the feature. `source`
-    is the lookup's repo, e.g. `topographic-contour-data` -> `topographic_contour_data`. Stamped at
-    build time like `build_nzgb_metadata`, so not byte-stable across rebuilds.
+    is the repo the linked feature lives in, e.g. `topographic-contour-data` ->
+    `topographic_contour_data`: the lookup's source repo, or for a theme lookup that theme's target
+    repo. Stamped at build time like `build_nzgb_metadata`, so not byte-stable across rebuilds.
     """
+    from .config import get_theme_by_name
+
     lookup, key_column = _metadata_lookup(td, "build_carto_symbol_metadata")
-    repo = lookup.source.url.rsplit("/", 1)[-1]
+    if lookup.theme is not None:
+        repo, table = get_theme_by_name(lookup.theme).target_repo, lookup.theme
+    else:
+        assert lookup.source is not None  # a lookup has exactly one of `source` or `theme`
+        repo, table = lookup.source.url.rsplit("/", 1)[-1], lookup.source.dataset or lookup.name
 
     build_stamp = _rfc3339(datetime.now(UTC))
     ref = SourceRef(
         table_column=None,
         source=repo.replace("-", "_"),
         source_key_name=key_column,
-        source_table=lookup.source.dataset or lookup.name,
+        source_table=table,
         source_column=key_column,
         source_updated_at=build_stamp,
         imported_at=build_stamp,
