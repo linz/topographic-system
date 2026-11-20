@@ -12,8 +12,15 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import SOURCE_DIR, WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name, get_source_repo_name
-from ..export_paths import export_filename, lookup_dir
+from ..config import (
+    SOURCE_DIR,
+    WORKING_LOOKUP_DIR,
+    Lookup,
+    get_lookup_by_name,
+    get_releases,
+    get_source_repo_name,
+)
+from ..export_paths import export_filename, lookup_dir, theme_hash_file, theme_release_file
 from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
@@ -72,9 +79,49 @@ def select_lookup_columns(gdf: gpd.GeoDataFrame, lookup: Lookup) -> pd.DataFrame
     return keyed.reset_index(drop=True)
 
 
+def prepare_theme_lookup(lookup: Lookup, theme_name: str) -> Path:
+    """Slim each release's build of a theme into a parquet, keyed by the theme file's SHA-256.
+
+    Keyed by content rather than by release, so releases whose theme didn't change share one file,
+    the same way source lookups share one per commit. `joins` finds a release's file through the
+    same hash sidecar.
+    """
+    output_dir = WORKING_LOOKUP_DIR / lookup.name
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    wanted: dict[str, Path] = {}
+    for release in get_releases():
+        digest = theme_hash_file(theme_name, release.id).read_text().strip()
+        wanted.setdefault(digest, theme_release_file(theme_name, release.id))
+
+    for stale in output_dir.glob("*.parquet"):
+        if stale.stem not in wanted:
+            logger.info("pruning stale prepared lookup", extra={"lookup": lookup.name, "file": stale.name})
+            stale.unlink()
+
+    for digest, theme_file in wanted.items():
+        start_time = time.perf_counter()
+        out = select_lookup_columns(gpd_read(theme_file), lookup)
+        out.to_parquet(output_dir / f"{digest}.parquet", compression="zstd", index=False)
+        logger.info(
+            "prepare_lookup",
+            extra={
+                "lookup": lookup.name,
+                "theme": theme_name,
+                "theme_hash": digest,
+                "rows": len(out),
+                "duration": round(time.perf_counter() - start_time, 4),
+            },
+        )
+    return output_dir
+
+
 def prepare_lookup(lookup_name: str) -> Path:
     """Slim each of the lookup's per-commit exports into a parquet (keyed by commit)."""
     lookup = get_lookup_by_name(lookup_name)
+    if lookup.theme is not None:
+        return prepare_theme_lookup(lookup, lookup.theme)
+    assert lookup.source is not None  # a lookup has exactly one of `source` or `theme`
 
     # Read per commit below; `.cloned` is an input of the Snakefile rule so the repo is present.
     repo_dir = SOURCE_DIR / get_source_repo_name(lookup)

@@ -16,6 +16,7 @@ from .config import (
     get_releases,
     get_source_repo_name,
 )
+from .export_paths import theme_hash_file
 from .git.release import get_release_commit
 
 logger = logging.getLogger("kart_import")
@@ -60,8 +61,10 @@ def _require_compatible_join_keys(
 
 
 @functools.cache
-def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
-    """The lookup commit as-of this release, or None if the release predates the lookup's history.
+def _resolve_lookup_version(lookup_name: str, release_id: int) -> str | None:
+    """Which prepared file of the lookup this release joins against, by its name: the source
+    commit as-of this release, or for a theme lookup the SHA-256 of that release's theme build.
+    None if the release predates the lookup's history.
 
     Memoized on (lookup_name, release_id): a single transform process resolves the same pair
     repeatedly (once per release while fingerprinting in find_canonical_release, again when it
@@ -70,7 +73,17 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
     release = next((r for r in get_releases() if r.id == release_id), None)
     if release is None:
         return None
-    repo_dir = SOURCE_DIR / get_source_repo_name(get_lookup_by_name(lookup_name))
+    lookup = get_lookup_by_name(lookup_name)
+    if lookup.theme is not None:
+        hash_file = theme_hash_file(lookup.theme, release_id)
+        if not hash_file.exists():
+            raise FileNotFoundError(
+                f"lookup {lookup_name!r} reads theme {lookup.theme!r}, but its release {release_id} "
+                f"hasn't been built: {hash_file}"
+            )
+        return hash_file.read_text().strip()
+
+    repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
     if not repo_dir.exists():
         raise FileNotFoundError(
             f"lookup {lookup_name!r} source repo not found at {repo_dir}; clone+export the lookup before transform"
@@ -87,8 +100,8 @@ def _resolve_lookup_commit(lookup_name: str, release_id: int) -> str | None:
 
 
 def join_fingerprint(td: ThemeDataset, release_id: int) -> tuple[tuple[str, str | None], ...]:
-    """The lookup commit each join resolves to for this release."""
-    return tuple(sorted((join.lookup, _resolve_lookup_commit(join.lookup, release_id)) for join in td.joins))
+    """The lookup version (commit, or theme hash) each join resolves to for this release."""
+    return tuple(sorted((join.lookup, _resolve_lookup_version(join.lookup, release_id)) for join in td.joins))
 
 
 @dataclass
@@ -113,15 +126,15 @@ def _plan_joins(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> lis
         # Namespace by lookup name so columns can't clash across lookups or with the source.
         qualified = {col: f"{lookup.name}.{col}" for col in wanted}
 
-        commit = _resolve_lookup_commit(join.lookup, release_id)
-        if commit is None:
+        version = _resolve_lookup_version(join.lookup, release_id)
+        if version is None:
             plans.append(_JoinPlan(join, lookup, wanted, qualified, None))
             continue
 
-        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{commit}.parquet"
+        lookup_file = WORKING_LOOKUP_DIR / join.lookup / f"{version}.parquet"
         if not lookup_file.exists():
             raise FileNotFoundError(
-                f"prepared lookup {join.lookup!r} missing for {commit=} ({release_id=}): {lookup_file}"
+                f"prepared lookup {join.lookup!r} missing for {version=} ({release_id=}): {lookup_file}"
             )
 
         if join.predicate:

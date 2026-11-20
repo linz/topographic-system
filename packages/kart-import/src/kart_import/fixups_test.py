@@ -689,6 +689,29 @@ def test_build_carto_symbol_metadata_source_is_the_lookups_repo(road_releases, m
     assert json.loads(out["metadata"].iloc[0])[0]["source"] == "topographic_contour_data"
 
 
+def test_build_carto_symbol_metadata_source_is_a_theme_lookups_target_repo(road_releases, monkeypatch):
+    """A theme lookup's features land in its theme's target repo, under the theme's name."""
+    from . import config as config_module
+
+    monkeypatch.setitem(
+        config_module.LOOKUP_MAP,
+        "road_line",
+        config_module.Lookup(name="road_line", theme="road_line", columns=["id"], geometry=True),
+    )
+    td = ThemeDataset.model_validate(
+        {
+            "name": "sym",
+            "source": "kart@data.koordinates.com:linz/x-topo-150k",
+            "mapping": {"metadata": {"source": "$road_line.id", "fixup": True}},
+        }
+    )
+
+    out = fixups.build_carto_symbol_metadata(_carto_symbol_gdf([CARTO_SYMBOL_KEY]), td, 66)
+
+    record = json.loads(out["metadata"].iloc[0])[0]
+    assert (record["source"], record["source_table"]) == ("topographic_data", "road_line")
+
+
 def test_build_carto_symbol_metadata_leaves_unmatched_symbols_null(road_releases, monkeypatch):
     td = _carto_symbol_td(monkeypatch, "land_use", "topographic-data")
 

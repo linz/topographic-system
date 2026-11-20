@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 
 import pytest
+import yaml
 from pydantic import ValidationError
 
 from . import config
 from .config import (
     FieldSpec,
+    Lookup,
     Source,
     Theme,
     ThemeDataset,
@@ -14,6 +16,7 @@ from .config import (
     get_repo_remote,
     select_themes,
     validate_theme_joins,
+    validate_theme_lookup_columns,
 )
 from .fixups import FIXUPS
 
@@ -482,3 +485,94 @@ def test_select_themes_rejects_an_unknown_dependency():
 def test_real_theme_dependencies_all_exist():
     # Every depends_on_themes in config/themes names a real theme
     select_themes(config.load_all_theme_configs(), None)
+
+
+def test_theme_lookup_parses():
+    lookup = Lookup.model_validate({"name": "road_line", "theme": "road_line", "columns": ["id"], "geometry": True})
+    assert (lookup.theme, lookup.source) == ("road_line", None)
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"name": "road_line"},
+        {"name": "road_line", "theme": "road_line", "source": "git@github.com:linz/topographic-data"},
+    ],
+    ids=["neither", "both"],
+)
+def test_lookup_needs_exactly_one_of_source_or_theme(fields):
+    with pytest.raises(ValidationError, match="exactly one of 'source' or 'theme'"):
+        Lookup.model_validate({**fields, "columns": ["id"], "geometry": True})
+
+
+def test_theme_lookup_needs_a_name():
+    with pytest.raises(ValidationError, match="needs a 'name'"):
+        Lookup.model_validate({"theme": "road_line", "columns": ["id"], "geometry": True})
+
+
+def _theme_reading(theme_name: str) -> Theme:
+    """A theme whose only lookup reads `theme_name`."""
+    theme = _theme("carto_symbol")
+    theme.lookups = [Lookup(name=theme_name, theme=theme_name, columns=["id"], geometry=True)]
+    return theme
+
+
+def test_select_themes_builds_themes_a_lookup_reads():
+    to_build, selected = select_themes([_theme("road_line"), _theme_reading("road_line")], {"carto_symbol"})
+    assert _names(to_build) == ["road_line", "carto_symbol"]
+    assert _names(selected) == ["carto_symbol"]
+
+
+def test_theme_lookup_on_an_unknown_theme_is_rejected():
+    with pytest.raises(ValueError, match="unknown theme 'no_such_theme'"):
+        select_themes([_theme_reading("no_such_theme")], None)
+
+
+def _mapped_theme(*mappings: dict) -> Theme:
+    theme = _theme("road_line")
+    theme.datasets = [
+        ThemeDataset.model_validate(
+            {
+                "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": f"d{i}"},
+                "name": f"d{i}",
+                "mapping": mapping,
+            }
+        )
+        for i, mapping in enumerate(mappings)
+    ]
+    return theme
+
+
+def test_theme_lookup_can_read_lifecycle_and_mapped_columns():
+    lookup = Lookup(name="road_line", theme="road_line", columns=["id", "highway_number"], geometry=True)
+    validate_theme_lookup_columns(lookup, _mapped_theme({"highway_number": "$hway_num"}))
+
+
+def test_theme_lookup_rejects_a_column_only_some_datasets_map():
+    lookup = Lookup(name="road_line", theme="road_line", columns=["highway_number"], geometry=True)
+    theme = _mapped_theme({"highway_number": "$hway_num"}, {"name": "$"})
+    with pytest.raises(ValueError, match="highway_number"):
+        validate_theme_lookup_columns(lookup, theme)
+
+
+def test_no_theme_reads_another_target_repo():
+    """No repo depends on another: build a target repo's data from the themes this run builds (a
+    `theme` lookup), never by cloning a target repo."""
+    with open(config.CONFIG_DIR_REPOS) as f:
+        targets = {
+            url.rstrip("/").removesuffix(".git")
+            for remotes in yaml.safe_load(f)["repos"].values()
+            for url in (remotes.values() if isinstance(remotes, dict) else [remotes])
+        }
+    # contour is still cloned from topographic-contour-data until the contour theme is cheap enough to build here
+    allowed = {("nztopo50_carto_symbol", "contour")}
+
+    offenders = [
+        (theme.name, entry.name, entry.source.url)
+        for theme in config.load_all_theme_configs()
+        for entry in [*theme.datasets, *theme.lookups]
+        if entry.source is not None
+        and entry.source.url.rstrip("/").removesuffix(".git") in targets
+        and (theme.name, entry.name) not in allowed
+    ]
+    assert offenders == []

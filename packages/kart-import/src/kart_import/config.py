@@ -97,6 +97,13 @@ class Source(BaseModel):
         return data
 
 
+def source_of(entry: "ThemeDataset | Lookup") -> Source:
+    """The source repo an entry is cloned from. A theme lookup has none: it reads a theme the run builds."""
+    if entry.source is None:
+        raise ValueError(f"{entry.name!r} reads a theme, not a source repo")
+    return entry.source
+
+
 def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
     """Local clone (and bundle) name for an entry's source repo.
 
@@ -104,10 +111,11 @@ def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
     shared by every entry pulling from it, so it is cloned once under its repo name.
     A single-dataset Koordinates repo keeps the entry's own name.
     """
-    if entry.source.dataset is None:
+    source = source_of(entry)
+    if source.dataset is None:
         return entry.name
     # "git@github.com:linz/topographic-source-data(.git)" -> "topographic-source-data"
-    return entry.source.url.rstrip("/").removesuffix(".git").rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+    return source.url.rstrip("/").removesuffix(".git").rsplit("/", 1)[-1].rsplit(":", 1)[-1]
 
 
 class FieldSpec(BaseModel):
@@ -218,9 +226,21 @@ class Lookup(BaseModel):
     `<lookup name>.<column>`.
     The lookup is cloned + exported like a dataset, then prepared (slimmed).
     It is NOT emitted as theme features.
+
+    Instead of a `source`, a lookup can read another `theme` that the same run builds:
+
+        - name: road_line
+          theme: road_line
+          columns: [id, highway_number]
+          geometry: true
+
+    That theme is built first, and each release joins against that release's build of it, so no
+    target repo has to be cloned to build another.
     """
 
-    source: Source
+    source: Source | None = None
+    theme: str | None = None
+    """A theme this run builds, read instead of a `source`."""
     name: str = ""
     key: str = ""
     columns: list[str] = []
@@ -254,6 +274,10 @@ class Lookup(BaseModel):
 
     @model_validator(mode="after")
     def check_key(self):
+        if (self.source is None) == (self.theme is None):
+            raise ValueError(f"lookup '{self.name}' needs exactly one of 'source' or 'theme'")
+        if self.theme is not None and not self.name:
+            raise ValueError(f"lookup on theme '{self.theme}' needs a 'name'")
         if not self.geometry and not self.key:
             raise ValueError(f"lookup '{self.name}' needs a 'key' (or 'geometry: true' for a spatial lookup)")
         if self.geometry and self.key:
@@ -520,10 +544,10 @@ def get_source_repo(repo_name: str) -> list[ThemeDataset | Lookup]:
 def _register_source_repo(entry: ThemeDataset | Lookup) -> None:
     repo_name = get_source_repo_name(entry)
     entries = SOURCE_REPO_MAP.setdefault(repo_name, [])
-    if entries and entries[0].source.url != entry.source.url:
+    if entries and source_of(entries[0]).url != source_of(entry).url:
         raise ValueError(
-            f"{entry.name!r} source {entry.source.url!r} clashes with source repo {repo_name!r} "
-            f"({entries[0].source.url!r})"
+            f"{entry.name!r} source {source_of(entry).url!r} clashes with source repo {repo_name!r} "
+            f"({source_of(entries[0]).url!r})"
         )
     entries.append(entry)
 
@@ -601,8 +625,11 @@ def load_all_theme_configs() -> list[Theme]:
 
 
 def theme_dependencies(theme: Theme) -> set[str]:
-    """Names of the other themes this theme needs built first, from its datasets' `depends_on_themes`."""
-    return {name for dataset in theme.datasets for name in dataset.depends_on_themes}
+    """Names of the other themes this theme needs built first: its datasets' `depends_on_themes`,
+    and the themes its lookups read."""
+    from_datasets = {name for dataset in theme.datasets for name in dataset.depends_on_themes}
+    from_lookups = {lookup.theme for lookup in theme.lookups if lookup.theme is not None}
+    return from_datasets | from_lookups
 
 
 def select_themes(themes: list[Theme], requested: set[str] | None) -> tuple[list[Theme], list[Theme]]:
@@ -634,6 +661,25 @@ def select_themes(themes: list[Theme], requested: set[str] | None) -> tuple[list
     )
 
 
+# Set on every row by transform's lifecycle step, so a theme lookup can read them without a mapping
+LIFECYCLE_COLUMNS = ("id", "created_at", "updated_at")
+
+
+def validate_theme_lookup_columns(lookup: Lookup, theme: Theme) -> None:
+    """A theme lookup may only read columns the theme produces: a lifecycle column, or a column
+    every one of the theme's datasets maps (a column only some map would be null for the rest)."""
+    mapped = set.intersection(*(set(dataset.mapping) for dataset in theme.datasets))
+    available = mapped | set(LIFECYCLE_COLUMNS)
+    missing = [column for column in lookup.columns if column not in available]
+    if missing:
+        raise ValueError(
+            f"lookup '{lookup.name}' reads columns {missing} that theme '{theme.name}' does not "
+            f"produce for every dataset; available: {sorted(available)}"
+        )
+    if lookup.key and lookup.key not in available:
+        raise ValueError(f"lookup '{lookup.name}' key '{lookup.key}' is not a column of theme '{theme.name}'")
+
+
 def load_from_yaml():
     base_themes = env_themes()
     base_releases = env_releases()
@@ -657,10 +703,16 @@ def load_from_yaml():
                 raise ValueError(f"Lookup {lookup.name!r} name collides with an existing dataset/lookup")
             LOOKUP_MAP[lookup.name] = lookup
             LOOKUP_TO_THEME_MAP[lookup.name] = theme
-            _register_source_repo(lookup)
+            if lookup.theme is None:  # a theme lookup reads a theme this run builds; nothing to clone
+                _register_source_repo(lookup)
 
         validate_theme_joins(theme)
         check_theme_or_warn(theme)
+
+    themes_by_name = {theme.name: theme for theme in ALL_THEMES}
+    for lookup in LOOKUP_MAP.values():
+        if lookup.theme is not None:
+            validate_theme_lookup_columns(lookup, themes_by_name[lookup.theme])
 
     for repo_name in ALL_KART_REPOS:
         get_repo_remote(repo_name)

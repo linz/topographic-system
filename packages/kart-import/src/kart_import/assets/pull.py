@@ -1,7 +1,7 @@
 import logging
 
 from ..command import run_command
-from ..config import SOURCE_DIR, get_source_repo
+from ..config import SOURCE_DIR, get_source_repo, source_of
 from ..env import env_skip_source_pull
 from ..git.kart import is_kart
 from ..log import log_context
@@ -16,7 +16,7 @@ source repo so it never trusts a bundle that may be stale.
 
 
 def pull_repo(repo_name: str) -> None:
-    dataset_source = get_source_repo(repo_name)[0].source.url
+    dataset_source = source_of(get_source_repo(repo_name)[0]).url
 
     target_dir = SOURCE_DIR / repo_name
     sentinel = target_dir / ".pulled"
