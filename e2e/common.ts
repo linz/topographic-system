@@ -57,8 +57,6 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
         // Fail rather than warn on schema problems, including missing schemas (see push.yml)
         ['-e', 'KART_SCHEMA_CHECK=strict'],
-        // e2e has no credentials for the real Koordinates source repos; trust the bundle.
-        ['-e', 'KART_IMPORT_SKIP_SOURCE_PULL=true'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],
         ['-e', 'XDG_CACHE_HOME=/source/.cache'],
         ['-e', 'UV_PYTHON_INSTALL_DIR=/source/.uv-python'],
@@ -69,6 +67,25 @@ export const tsKartImport = (...args: (string | string[])[]) =>
     '-c',
     args.flat().join(' '),
   );
+
+// e2e has no credentials for the real Koordinates source repos. `kart clone --bundle-uri` was
+// tried but still requires its live fetch-from-remote to succeed (verified against a real
+// container with no known_hosts/SSH key: it fails outright, not gracefully). Instead, clone
+// straight from the repo's published git bundle (plain HTTPS, no auth, no live remote contact at
+// all) -- the exact same plain `git clone` the pipeline's own clone step uses, just pointed at a
+// downloaded bundle file instead of the real source. Today's clone sentinel is touched to match,
+// so Snakemake's `clone` rule finds its output already satisfied for this repo.
+export const seedFromBundle = (repoName: string) =>
+  tsKartImport(`
+    set -eu
+    target="data/source/${repoName}"
+    if [ ! -d "$target/.git" ]; then
+      curl -fsSL "https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle" -o "/tmp/${repoName}.bundle"
+      git clone "/tmp/${repoName}.bundle" "$target" --no-checkout
+      rm -f "/tmp/${repoName}.bundle"
+    fi
+    touch "$target/.cloned_$(date -u +%F)"
+  `);
 
 export const skipIfExists = async (url: URL) => {
   const exists = await fsa.exists(url);

@@ -135,6 +135,7 @@ export const ValidateSchemaCommand = command({
       let invalid = 0;
       for await (const group of readParquetGroups(path, { decodeGeometry: args.decodeGeometry })) {
         for (const record of group) {
+          if (record['t50_fid']) record['t50_fid'] = Number(record['t50_fid'])
           const ret = validate(record);
           if (ret) {
             valid++;

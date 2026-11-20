@@ -35,7 +35,8 @@ CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 
 # source/ — raw Kart repos and GeoJSON release snapshots (override with KART_SOURCE_DIR)
-SOURCE_DIR = Path(env_source_dir_override()).expanduser() if env_source_dir_override() else DATA_DIR / "source"
+_source_dir_override = env_source_dir_override()
+SOURCE_DIR = Path(_source_dir_override).expanduser() if _source_dir_override else DATA_DIR / "source"
 
 # export/ — per-commit source exports (parquet/geojson), schema sidecars and release maps, one
 # directory per source repo (shared by every dataset/lookup sourced from it, same as SOURCE_DIR).

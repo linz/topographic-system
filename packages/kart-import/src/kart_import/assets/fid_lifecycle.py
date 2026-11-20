@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 import shapely
 
@@ -87,7 +88,7 @@ def _frame_row_digests(gdf: gpd.GeoDataFrame, pk_col: str) -> tuple[dict[str, by
     if attr_cols:
         attr_hashes = pd.util.hash_pandas_object(gdf[attr_cols], index=False).to_numpy()
     else:
-        attr_hashes = [0] * len(gdf)
+        attr_hashes = np.zeros(len(gdf), dtype=np.uint64)
     geom_wkbs = shapely.to_wkb(gdf.geometry.to_numpy())
     fids = gdf[pk_col].astype(str).to_numpy()
 

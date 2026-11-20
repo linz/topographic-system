@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import { readFile, stat } from 'node:fs/promises';
-import { describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 
-import { sourceCodeUrl, tsKartImport } from './common.ts';
+import { seedFromBundle, sourceCodeUrl, tsKartImport } from './common.ts';
 
 interface FeatureCollectionAirport {
   type: 'FeatureCollection';
@@ -28,6 +28,13 @@ interface FeatureAirport {
 
 describe('kart.import', async () => {
   const state = { hasClone: false, hasTheme: false, hasKart: false };
+
+  // The airport theme clones both the NZ and Chatham Islands airport repos (see "should create
+  // theme_airport" below); seed both so neither ever needs real LDS credentials.
+  before(async () => {
+    await seedFromBundle('nz_airport_polygons');
+    await seedFromBundle('nz_chatham_island_airport_polygons');
+  });
 
   await it('should have uv and source', async () => {
     const retUv = await tsKartImport('uv', '--version');
