@@ -1,5 +1,6 @@
+import { join } from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import { $, os, ProcessOutput } from 'zx';
@@ -75,17 +76,19 @@ export const tsKartImport = (...args: (string | string[])[]) =>
 // all) -- the exact same plain `git clone` the pipeline's own clone step uses, just pointed at a
 // downloaded bundle file instead of the real source. Today's clone sentinel is touched to match,
 // so Snakemake's `clone` rule finds its output already satisfied for this repo.
-export const seedFromBundle = (repoName: string) =>
-  tsKartImport(`
-    set -eu
-    target="data/source/${repoName}"
-    if [ ! -d "$target/.git" ]; then
-      curl -fsSL "https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle" -o "/tmp/${repoName}.bundle"
-      git clone "/tmp/${repoName}.bundle" "$target" --no-checkout
-      rm -f "/tmp/${repoName}.bundle"
-    fi
-    touch "$target/.cloned_$(date -u +%F)"
-  `);
+export const seedFromBundle = async (repoName: string) => {
+  const target = join(sourceCode, 'packages/kart-import/data/source', repoName);
+
+  if (!(await fsa.exists(pathToFileURL(join(target, '.git'))))) {
+    const bundlePath = join(os.tmpdir(), `${repoName}.bundle`);
+    await $`curl -fsSL https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle -o ${bundlePath}`;
+    await $`git clone ${bundlePath} ${target} --no-checkout`;
+    await $`rm -f ${bundlePath}`;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  await $`touch ${join(target, `.cloned_${today}`)}`;
+};
 
 export const skipIfExists = async (url: URL) => {
   const exists = await fsa.exists(url);
