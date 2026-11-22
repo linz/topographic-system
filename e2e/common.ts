@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import process from 'node:process';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
 import { $, os, ProcessOutput } from 'zx';
