@@ -170,7 +170,7 @@ machines/credentials:
    ```shell
    KART_EXPORT_URL=https://example.com/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
    # or from S3:
-   KART_EXPORT_URL=s3://linz-topography-nonprod/working/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
+   KART_EXPORT_URL=s3://linz-topography-nonprod/source/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```
 
    To process (and import/push) just one target repo rather than everything, use `process_<repo>`:

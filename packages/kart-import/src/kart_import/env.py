@@ -145,7 +145,7 @@ def env_export_url() -> str | None:
     releases that are not already present locally -- with no source clones required.
 
         export KART_EXPORT_URL=https://example.com/export/
-        export KART_EXPORT_URL=s3://linz-topography-nonprod/working/export/
+        export KART_EXPORT_URL=s3://linz-topography-nonprod/source/export/
     """
     url = os.getenv("KART_EXPORT_URL")
     if not url:
