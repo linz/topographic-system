@@ -3,7 +3,10 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import { registerFileSystem } from '@linzjs/topographic-system-shared';
 import { $, os, ProcessOutput } from 'zx';
+
+registerFileSystem();
 
 export const kartContainer = process.argv.find((f) => f.startsWith('--container-kart='))?.split('=')[1] ?? 'ts-kart';
 export const mapContainer = process.argv.find((f) => f.startsWith('--container-map='))?.split('=')[1] ?? 'ts-map';
