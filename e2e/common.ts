@@ -79,7 +79,10 @@ export const seedFromBundle = async (repoName: string) => {
 
   if (!(await fsa.exists(fsa.toUrl(join(target, '.git'))))) {
     const bundlePath = fsa.toUrl(join(os.tmpdir(), `${repoName}.bundle`));
-    await fsa.write(bundlePath, fsa.readStream(new URL(`https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle`)))
+    await fsa.write(
+      bundlePath,
+      fsa.readStream(new URL(`https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle`)),
+    );
     await $`git clone ${fileURLToPath(bundlePath)} ${target} --no-checkout`;
     await fsa.delete(bundlePath);
   }
