@@ -17,6 +17,7 @@ from ...config import (
     get_releases,
     get_source_entry,
     get_source_repo_name,
+    source_of,
 )
 from ...export_paths import (
     entry_commit_file,
@@ -84,7 +85,7 @@ def resolve_release_commits(entry_name: str) -> tuple[dict[str, CommitData], lis
     repo_dir = SOURCE_DIR / get_source_repo_name(entry)
     if not is_kart(repo_dir):
         raise FileNotFoundError(f"Kart repo not found: {repo_dir}")
-    kart_dataset_id = entry.source.dataset or get_kart_dataset_id(repo_dir)
+    kart_dataset_id = source_of(entry).dataset or get_kart_dataset_id(repo_dir)
 
     commit_to_releases: dict[str, CommitData] = {}
     releases_before_first_commit: list[int] = []
@@ -128,7 +129,7 @@ def export_entry(entry_name: str) -> str:
     repo_name = get_source_repo_name(entry)
     repo_dir = SOURCE_DIR / repo_name
     commit_to_releases, releases_before_first_commit = resolve_release_commits(entry_name)
-    kart_dataset_id = entry.source.dataset or get_kart_dataset_id(repo_dir)
+    kart_dataset_id = source_of(entry).dataset or get_kart_dataset_id(repo_dir)
 
     backfilled: set[int] = set()
     if getattr(entry, "backfill", False) and commit_to_releases:

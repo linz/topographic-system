@@ -4,7 +4,7 @@ import shutil
 from kart_import.log import log_context
 
 from ..command import run_command
-from ..config import OUTPUT_DIR, get_themes
+from ..config import OUTPUT_DIR, get_selected_themes
 from ..git.linearise import linearise
 
 logger = logging.getLogger("kart_import")
@@ -14,7 +14,7 @@ def kart_import_repo(repo_name: str):
     repo_dir = OUTPUT_DIR / repo_name
     imported_marker = repo_dir / ".imported"
 
-    themes = [t for t in get_themes() if t.target_repo == repo_name]
+    themes = [t for t in get_selected_themes() if t.target_repo == repo_name]
 
     if not themes:
         logger.warning(f"No themes found for repo {repo_name}")

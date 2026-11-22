@@ -10,6 +10,8 @@ from .config import (
     CONFIG_DIR_RELEASE,
     EXPORT_DIR,
     EXPORT_SUFFIX,
+    THEME_SUFFIX,
+    WORKING_THEME_DIR,
     get_source_entry,
     get_source_repo_name,
 )
@@ -148,3 +150,13 @@ def resolve_release_export(name: str, release_id: int) -> Path | None:
     if info is None or info.get("location") is None:
         return None
     return entry_dir / info["location"]
+
+
+def theme_release_file(theme_name: str, release_id: int) -> Path:
+    """A release's merged theme file (see `assets.theme`)."""
+    return WORKING_THEME_DIR / f"release_{release_id}" / f"{theme_name}{THEME_SUFFIX}"
+
+
+def theme_hash_file(theme_name: str, release_id: int) -> Path:
+    """Sidecar holding the SHA-256 of a release's merged theme file, as `assets.theme` writes it."""
+    return theme_release_file(theme_name, release_id).with_name(f"{theme_name}{THEME_SUFFIX}.sha256")

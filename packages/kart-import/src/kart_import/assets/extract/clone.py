@@ -2,7 +2,7 @@ import logging
 from datetime import date
 
 from ...command import run_command
-from ...config import SOURCE_DIR, get_source_repo
+from ...config import SOURCE_DIR, get_source_repo, source_of
 from ...log import log_context
 
 logger = logging.getLogger("kart_import")
@@ -16,7 +16,7 @@ def clone_sentinel_name(day: date | None = None) -> str:
 
 def clone_repo(repo_name: str, day: date | None = None) -> None:
     entries = get_source_repo(repo_name)
-    dataset_url = entries[0].source.url
+    dataset_url = source_of(entries[0]).url
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = SOURCE_DIR / repo_name
     sentinel = target_dir / clone_sentinel_name(day)

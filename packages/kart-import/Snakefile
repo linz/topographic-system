@@ -1,5 +1,6 @@
 from kart_import.config import (
     get_themes,
+    get_selected_themes,
     get_releases,
     get_kart_repos,
     DATASET_MAP,
@@ -9,9 +10,11 @@ from kart_import.config import (
     THEME_SUFFIX,
     TRANSFORM_SUFFIX,
     LOOKUP_TO_THEME_MAP,
+    LOOKUP_MAP,
     SOURCE_REPO_MAP,
     get_source_entry,
     get_source_repo_name,
+    theme_dependencies,
 )
 
 import atexit
@@ -24,7 +27,10 @@ from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
 # Load configuration details from the Python package
+# Every theme to build, including ones only built because a selected theme depends on them
 THEMES = get_themes()
+# The themes KART_IMPORT_THEME picked (all when unset); only these are imported into a repo
+SELECTED_THEMES = get_selected_themes()
 RELEASES = get_releases()
 REPOS = get_kart_repos()
 THEME_MAP = {t.name: t for t in THEMES}
@@ -49,17 +55,16 @@ def exported_sentinel(name):
 
 
 def repo_themes(repo):
-    """Every theme targeting `repo`, plus every theme any of those themes' datasets transitively
-    depend on (`depends_on_themes`) -- the full set `extract_<repo>`/`process_<repo>` need, since a
-    dataset's cross-theme dependency can point at a theme that targets a different repo."""
-    themes = {t.name: t for t in THEMES if t.target_repo == repo}
+    """Every theme targeting `repo`, plus every theme they transitively depend on
+    (`depends_on_themes` and theme lookups) -- the full set `extract_<repo>`/`process_<repo>`
+    need, since a cross-theme dependency can point at a theme targeting a different repo."""
+    themes = {t.name: t for t in SELECTED_THEMES if t.target_repo == repo}
     pending = list(themes.values())
     while pending:
-        for ds in pending.pop().datasets:
-            for dep_name in ds.depends_on_themes:
-                if dep_name not in themes and dep_name in THEME_MAP:
-                    themes[dep_name] = THEME_MAP[dep_name]
-                    pending.append(THEME_MAP[dep_name])
+        for dep_name in theme_dependencies(pending.pop()):
+            if dep_name not in themes and dep_name in THEME_MAP:
+                themes[dep_name] = THEME_MAP[dep_name]
+                pending.append(THEME_MAP[dep_name])
     return list(themes.values())
 
 
@@ -73,8 +78,13 @@ def repo_datasets(repo):
 
 
 def repo_lookups(repo):
-    """Every lookup `repo_datasets(repo)` joins against."""
-    return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins})
+    """Every source-backed lookup `repo_datasets(repo)` joins against (theme lookups have nothing to export)."""
+    return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins if not is_theme_lookup(join.lookup)})
+
+
+def is_theme_lookup(name):
+    """A lookup that reads a theme this run builds, rather than a cloned source repo."""
+    return LOOKUP_MAP[name].theme is not None
 
 # Start root span for this Snakemake run so all distributed jobs and logs link together
 tracer = get_tracer("kart_import")
@@ -158,11 +168,23 @@ rule lifecycle:
         "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
-# 3b. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets)
+# 3b. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets).
+#     A theme lookup instead reads every release of a theme this run builds, so it waits for that
+#     theme rather than an export.
 rule prepare_lookup:
     input:
         # `exported` already carries each commit's schema sidecar (see assets.extract.export) -- no clone needed.
-        exported = lambda wildcards: exported_sentinel(wildcards.lookup),
+        exported = lambda wildcards: (
+            [] if is_theme_lookup(wildcards.lookup) else exported_sentinel(wildcards.lookup)
+        ),
+        theme = lambda wildcards: (
+            [
+                f"data/working/theme/release_{r.id}/{LOOKUP_MAP[wildcards.lookup].theme}{THEME_SUFFIX}"
+                for r in RELEASES
+            ]
+            if is_theme_lookup(wildcards.lookup)
+            else []
+        ),
         config = lambda wildcards: f"config/themes/{LOOKUP_TO_THEME_MAP[wildcards.lookup].name}.yml"
     output:
         prepared = directory("data/working/lookup/{lookup}")
@@ -228,7 +250,7 @@ rule kart_repo:
     input:
         themes = lambda wildcards: [
             f"data/output/{t.name}.bundle"
-            for t in THEMES if t.target_repo == wildcards.repo
+            for t in SELECTED_THEMES if t.target_repo == wildcards.repo
         ]
     output:
         imported = "data/output/{repo}/.imported"
@@ -246,11 +268,11 @@ rule push:
         "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
-# 7. STAGE 1 (clone + extract parquets for every dataset/lookup into data/export/).
+# 7. STAGE 1 (clone + extract parquets for every dataset/source lookup into data/export/).
 workflow.rule(name="extract_all")(
     workflow.input(
         [exported_sentinel(name) for name in DATASET_MAP]
-        + [exported_sentinel(lookup) for lookup in LOOKUP_TO_THEME_MAP]
+        + [exported_sentinel(lookup) for lookup in LOOKUP_TO_THEME_MAP if not is_theme_lookup(lookup)]
     )(workflow.run(lambda *args, **kwargs: None))
 )
 
@@ -288,7 +310,7 @@ for t in THEMES:
     )
 
 workflow.rule(name="kart_theme_all")(
-    workflow.input([f"data/output/{t.name}.bundle" for t in THEMES])(
+    workflow.input([f"data/output/{t.name}.bundle" for t in SELECTED_THEMES])(
         workflow.run(lambda *args, **kwargs: None)
     )
 )

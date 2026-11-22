@@ -1,18 +1,22 @@
 from datetime import datetime, timedelta
 
 import pytest
+import yaml
 from pydantic import ValidationError
 
 from . import config
 from .config import (
     FieldSpec,
+    Lookup,
     Source,
     Theme,
     ThemeDataset,
     build_releases,
     get_dataset_name,
     get_repo_remote,
+    select_themes,
     validate_theme_joins,
+    validate_theme_lookup_columns,
 )
 from .fixups import FIXUPS
 
@@ -416,3 +420,155 @@ def test_latest_schema_version_for_mapping_is_newest_override():
 def test_latest_schema_version_for_mapping_with_no_overrides_is_default():
     theme = _theme_with_schema_version({"default": "v0.3"})
     assert theme.latest_schema_version == "v0.3"
+
+
+def _theme(name: str, depends_on: list[str] | None = None) -> Theme:
+    return Theme.model_validate(
+        {
+            "name": name,
+            "target_repo": "topographic-data",
+            "target_epsg": "EPSG:4167",
+            "schema_version": {"default": "v0.3"},
+            "datasets": [
+                {
+                    "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": name},
+                    "name": name,
+                    "depends_on_themes": depends_on or [],
+                }
+            ],
+        }
+    )
+
+
+def _names(themes: list[Theme]) -> list[str]:
+    return [theme.name for theme in themes]
+
+
+# carto_text -> map_sheet -> trig_point, as nztopo50_carto_text and nztopo50_map_sheet do
+THEMES = [
+    _theme("airport"),
+    _theme("trig_point"),
+    _theme("map_sheet", ["trig_point"]),
+    _theme("carto_text", ["map_sheet"]),
+]
+
+
+def test_select_themes_without_a_filter_builds_and_selects_everything():
+    to_build, selected = select_themes(THEMES, None)
+    assert _names(to_build) == _names(selected) == ["airport", "trig_point", "map_sheet", "carto_text"]
+
+
+def test_select_themes_builds_dependencies_but_only_selects_what_was_asked():
+    to_build, selected = select_themes(THEMES, {"map_sheet"})
+    assert _names(to_build) == ["trig_point", "map_sheet"]
+    assert _names(selected) == ["map_sheet"]
+
+
+def test_select_themes_follows_dependencies_of_dependencies():
+    to_build, selected = select_themes(THEMES, {"carto_text"})
+    assert _names(to_build) == ["trig_point", "map_sheet", "carto_text"]
+    assert _names(selected) == ["carto_text"]
+
+
+def test_select_themes_does_not_add_themes_that_depend_on_the_selection():
+    # Dependencies are pulled in, never dependents
+    to_build, _ = select_themes(THEMES, {"trig_point"})
+    assert _names(to_build) == ["trig_point"]
+
+
+def test_select_themes_rejects_an_unknown_dependency():
+    themes = [_theme("map_sheet", ["no_such_theme"])]
+    with pytest.raises(ValueError, match="no_such_theme"):
+        select_themes(themes, None)
+
+
+def test_real_theme_dependencies_all_exist():
+    # Every depends_on_themes in config/themes names a real theme
+    select_themes(config.load_all_theme_configs(), None)
+
+
+def test_theme_lookup_parses():
+    lookup = Lookup.model_validate({"name": "road_line", "theme": "road_line", "columns": ["id"], "geometry": True})
+    assert (lookup.theme, lookup.source) == ("road_line", None)
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"name": "road_line"},
+        {"name": "road_line", "theme": "road_line", "source": "git@github.com:linz/topographic-data"},
+    ],
+    ids=["neither", "both"],
+)
+def test_lookup_needs_exactly_one_of_source_or_theme(fields):
+    with pytest.raises(ValidationError, match="exactly one of 'source' or 'theme'"):
+        Lookup.model_validate({**fields, "columns": ["id"], "geometry": True})
+
+
+def test_theme_lookup_needs_a_name():
+    with pytest.raises(ValidationError, match="needs a 'name'"):
+        Lookup.model_validate({"theme": "road_line", "columns": ["id"], "geometry": True})
+
+
+def _theme_reading(theme_name: str) -> Theme:
+    """A theme whose only lookup reads `theme_name`."""
+    theme = _theme("carto_symbol")
+    theme.lookups = [Lookup(name=theme_name, theme=theme_name, columns=["id"], geometry=True)]
+    return theme
+
+
+def test_select_themes_builds_themes_a_lookup_reads():
+    to_build, selected = select_themes([_theme("road_line"), _theme_reading("road_line")], {"carto_symbol"})
+    assert _names(to_build) == ["road_line", "carto_symbol"]
+    assert _names(selected) == ["carto_symbol"]
+
+
+def test_theme_lookup_on_an_unknown_theme_is_rejected():
+    with pytest.raises(ValueError, match="unknown theme 'no_such_theme'"):
+        select_themes([_theme_reading("no_such_theme")], None)
+
+
+def _mapped_theme(*mappings: dict) -> Theme:
+    theme = _theme("road_line")
+    theme.datasets = [
+        ThemeDataset.model_validate(
+            {
+                "source": {"url": "git@github.com:linz/topographic-source-data", "dataset": f"d{i}"},
+                "name": f"d{i}",
+                "mapping": mapping,
+            }
+        )
+        for i, mapping in enumerate(mappings)
+    ]
+    return theme
+
+
+def test_theme_lookup_can_read_lifecycle_and_mapped_columns():
+    lookup = Lookup(name="road_line", theme="road_line", columns=["id", "highway_number"], geometry=True)
+    validate_theme_lookup_columns(lookup, _mapped_theme({"highway_number": "$hway_num"}))
+
+
+def test_theme_lookup_rejects_a_column_only_some_datasets_map():
+    lookup = Lookup(name="road_line", theme="road_line", columns=["highway_number"], geometry=True)
+    theme = _mapped_theme({"highway_number": "$hway_num"}, {"name": "$"})
+    with pytest.raises(ValueError, match="highway_number"):
+        validate_theme_lookup_columns(lookup, theme)
+
+
+def test_no_theme_reads_another_target_repo():
+    """No repo depends on another: build a target repo's data from the themes this run builds (a
+    `theme` lookup), never by cloning a target repo."""
+    with open(config.CONFIG_DIR_REPOS) as f:
+        targets = {
+            url.rstrip("/").removesuffix(".git")
+            for remotes in yaml.safe_load(f)["repos"].values()
+            for url in (remotes.values() if isinstance(remotes, dict) else [remotes])
+        }
+
+    offenders = [
+        (theme.name, entry.name, entry.source.url)
+        for theme in config.load_all_theme_configs()
+        for entry in [*theme.datasets, *theme.lookups]
+        if entry.source is not None and entry.source.url.rstrip("/").removesuffix(".git") in targets
+    ]
+    assert offenders == []
