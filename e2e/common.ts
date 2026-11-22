@@ -69,21 +69,19 @@ export const tsKartImport = (...args: (string | string[])[]) =>
     args.flat().join(' '),
   );
 
-// e2e has no credentials for the real Koordinates source repos. `kart clone --bundle-uri` was
-// tried but still requires its live fetch-from-remote to succeed (verified against a real
-// container with no known_hosts/SSH key: it fails outright, not gracefully). Instead, clone
-// straight from the repo's published git bundle (plain HTTPS, no auth, no live remote contact at
-// all) -- the exact same plain `git clone` the pipeline's own clone step uses, just pointed at a
-// downloaded bundle file instead of the real source. Today's clone sentinel is touched to match,
-// so Snakemake's `clone` rule finds its output already satisfied for this repo.
+// e2e has no credentials for the real Koordinates source repos.
+// Instead, clone straight from the repo's published git bundle
+//
+// Today's clone sentinel is touched to match so Snakemake's `clone` rule finds its
+// output already satisfied for this repo.
 export const seedFromBundle = async (repoName: string) => {
   const target = join(sourceCode, 'packages/kart-import/data/source', repoName);
 
-  if (!(await fsa.exists(pathToFileURL(join(target, '.git'))))) {
-    const bundlePath = join(os.tmpdir(), `${repoName}.bundle`);
-    await $`curl -fsSL https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle -o ${bundlePath}`;
-    await $`git clone ${bundlePath} ${target} --no-checkout`;
-    await $`rm -f ${bundlePath}`;
+  if (!(await fsa.exists(fsa.toUrl(join(target, '.git'))))) {
+    const bundlePath = fsa.toUrl(join(os.tmpdir(), `${repoName}.bundle`));
+    await fsa.write(bundlePath, fsa.readStream(new URL(`https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle`)))
+    await $`git clone ${fileURLToPath(bundlePath)} ${target} --no-checkout`;
+    await fsa.delete(bundlePath);
   }
 
   const today = new Date().toISOString().slice(0, 10);
