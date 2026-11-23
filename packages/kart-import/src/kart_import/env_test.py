@@ -8,6 +8,7 @@ from .env import (
     env_schema_dir_override,
     env_source_dir_override,
     env_theme_format,
+    env_thread_count,
     env_transform_format,
 )
 
@@ -125,3 +126,13 @@ def test_export_url_rejects_unknown_scheme(monkeypatch):
     monkeypatch.setenv("KART_EXPORT_URL", "ftp://example.com/export")
     with pytest.raises(ValueError, match="KART_EXPORT_URL"):
         env_export_url()
+
+
+def test_thread_count_defaults_to_four(monkeypatch):
+    monkeypatch.delenv("KART_IMPORT_THREAD_COUNT", raising=False)
+    assert env_thread_count() == 4
+
+
+def test_thread_count_override(monkeypatch):
+    monkeypatch.setenv("KART_IMPORT_THREAD_COUNT", "8")
+    assert env_thread_count() == 8

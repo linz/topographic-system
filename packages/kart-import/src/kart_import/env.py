@@ -170,6 +170,17 @@ def env_schema_host() -> str:
     return base_url
 
 
+def env_thread_count() -> int:
+    """
+    Number of worker threads used for parallel operations (export, bundle, theme merge, transform).
+
+    KART_IMPORT_THREAD_COUNT=4 (default 4)
+
+        export KART_IMPORT_THREAD_COUNT=8
+    """
+    return int(os.getenv("KART_IMPORT_THREAD_COUNT", "4"))
+
+
 def env_commit_split_bytes() -> int:
     """Max new pack bytes one linearised commit may introduce before it's split into several
     same-release commits, so `kart_push_repo`'s per-commit pushes never alone exceed GitHub's

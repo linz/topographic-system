@@ -9,6 +9,7 @@ from typing import Any, TypeVar
 
 from opentelemetry.context import attach, detach, get_current
 
+from .env import env_thread_count
 from .log import log_context
 
 logger = logging.getLogger("kart_import")
@@ -45,7 +46,7 @@ def _get_clean_thread_id() -> int:
 def run_in_thread_pool(
     func: Callable[[T], R],
     items: Iterable[T],
-    thread_count: int = 4,
+    thread_count: int | None = None,
     trace_items: bool = True,
 ) -> list[R]:
     """Runs a function in parallel over an iterable of items using a ThreadPoolExecutor.
@@ -57,7 +58,12 @@ def run_in_thread_pool(
     that when `func` already opens its own properly-named `log_context` per item, so the item
     isn't traced twice under a redundant, generically-named span (e.g. the function's name, or
     `<lambda>` for an inline one).
+
+    `thread_count` defaults to `env_thread_count()` (KART_IMPORT_THREAD_COUNT) when not given.
     """
+
+    if thread_count is None:
+        thread_count = env_thread_count()
 
     parent_otel_context = get_current()
 

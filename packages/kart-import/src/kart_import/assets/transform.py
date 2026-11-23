@@ -372,7 +372,7 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
     return output_file
 
 
-def transform_dataset_all_releases(dataset_name: str, thread_count: int = 4) -> None:
+def transform_dataset_all_releases(dataset_name: str, thread_count: int | None = None) -> None:
     """
     Transform every release of one dataset inside a thread pool.
     """
