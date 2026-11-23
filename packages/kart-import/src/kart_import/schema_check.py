@@ -1,6 +1,7 @@
 """Early, static check of a theme's yml mapping against ``schema/<theme>.json``.
 
-This runs at **config-load time**, to capture obvious authoring mistakes in a theme yml.
+This runs as the `schema_check` Snakemake rule, once per theme a run builds and before any of
+that theme's datasets are processed, to capture obvious authoring mistakes in a theme yml.
 It is deliberately *complementary* to the canonical GeoParquet validation that runs in CI.
 
 Rules:
@@ -250,7 +251,7 @@ def check_theme(theme: Any, schema_version: str | None = None) -> list[str]:
     """Return a list of human-readable problems for ``theme``'s mappings.
 
     ``schema_version`` defaults to ``theme.latest_schema_version`` when not given explicitly --
-    the version that governs the theme's mapping going forward, which is what a config-load-time
+    the version that governs the theme's mapping going forward, which is what this static
     check should hold it to even if older releases were imported under an earlier version.
     """
     schema_version = schema_version or theme.latest_schema_version
@@ -335,7 +336,7 @@ def check_theme(theme: Any, schema_version: str | None = None) -> list[str]:
 
 
 def check_theme_or_warn(theme: Any) -> list[str]:
-    """Config-load hook. ``KART_SCHEMA_CHECK`` = warn (default) | strict | off.
+    """Check one theme (see `assets.schema_check_theme`). ``KART_SCHEMA_CHECK`` = warn (default) | strict | off.
 
     ``warn`` logs each problem and continues; ``strict`` raises ``SchemaCheckError``;
     ``off`` skips the check entirely.

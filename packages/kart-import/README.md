@@ -355,8 +355,10 @@ so any pre-existing `origin` is replaced.
 
 ## Config schema check
 
-On load, each theme's `mapping` is statically checked against `schema/<theme>.json` as a
-cheap, early guard for authoring mistakes:
+Before any of a theme's datasets are processed, the `schema_check` rule statically checks the
+theme's `mapping` against `schema/<theme>.json` as a cheap, early guard for authoring mistakes.
+It runs once for each theme the target builds, so `bundle_topographic_data` only checks
+`topographic-data`'s themes (and any theme they depend on):
 
 1. **unknown target column**: a mapping key that is not a schema property.
 2. **bad literal constant**: a literal value that violates the property's `const`/`enum`/`type`.

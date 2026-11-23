@@ -22,7 +22,8 @@ import os
 import sys
 
 from kart_import.assets.extract.clone import clone_sentinel_name
-from kart_import.env import env_export_url
+from kart_import.env import env_export_url, env_schema_check_mode
+from kart_import.schema_check import schema_path
 from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
@@ -80,6 +81,13 @@ def repo_datasets(repo):
 def repo_lookups(repo):
     """Every source-backed lookup `repo_datasets(repo)` joins against (theme lookups have nothing to export)."""
     return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins if not is_theme_lookup(join.lookup)})
+
+
+def theme_schemas(theme):
+    """The schema files a theme's check reads, where they exist (`schema/` is generated, so a
+    dev checkout may have none; the check itself reports those as missing)."""
+    versions = set(theme.schema_version.values()) | {theme.latest_schema_version}
+    return [str(p) for p in (schema_path(theme.name, v) for v in sorted(versions)) if p.exists()]
 
 
 def is_theme_lookup(name):
@@ -157,9 +165,26 @@ else:
             "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.extract.export {wildcards.entry}"
 
 
+# 2b. SCHEMA CHECK (one theme's mapping against its JSON schema; see assets.schema_check_theme).
+#     Every dataset waits for its theme's check, so only the themes a target builds are checked,
+#     and with KART_SCHEMA_CHECK=strict a theme that fails stops before any work is done on it.
+rule schema_check:
+    input:
+        config = "config/themes/{theme}.yml",
+        schemas = lambda wildcards: theme_schemas(THEME_MAP[wildcards.theme])
+    output:
+        checked = "data/working/schema_check/{theme}.checked"
+    params:
+        # Re-check when the mode changes, e.g. a `warn` run followed by a `strict` one
+        mode = env_schema_check_mode()
+    shell:
+        "OTEL_SERVICE_NAME=schema_check uv run python -m kart_import.assets.schema_check_theme {wildcards.theme}"
+
+
 # 3a. LIFECYCLE (derive stable UUIDv7 ids and created_at/updated_at from exported parquets -- no clone needed)
 rule lifecycle:
     input:
+        schema_checked = lambda wildcards: f"data/working/schema_check/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.checked",
         exported = lambda wildcards: exported_sentinel(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
