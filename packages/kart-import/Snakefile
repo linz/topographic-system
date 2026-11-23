@@ -338,11 +338,24 @@ for t in THEMES:
         )
     )
 
+    workflow.rule(name=f"schema_check_{t.name}")(
+        workflow.input(f"data/working/schema_check/{t.name}.checked")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
     workflow.rule(name=f"kart_theme_{t.name}")(
         workflow.input(f"data/output/{t.name}.bundle")(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+# Check every theme's mapping against its schema without building anything (e.g. in CI)
+workflow.rule(name="schema_check_all")(
+    workflow.input([f"data/working/schema_check/{t.name}.checked" for t in THEMES])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 workflow.rule(name="kart_theme_all")(
     workflow.input([f"data/output/{t.name}.bundle" for t in SELECTED_THEMES])(
