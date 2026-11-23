@@ -54,6 +54,10 @@ WORKING_LOOKUP_DIR = WORKING_DIR / "lookup"
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
 
+# bundle/ — each built target repo packed as one git bundle file, ready to download.
+# Not under output/, where `kart_theme`'s `{theme}.bundle` pattern would also match it.
+BUNDLE_DIR = DATA_DIR / "bundle"
+
 # Per-commit source exports, the input to transform (GeoParquet by default)
 EXPORT_FORMAT = env_export_format()
 EXPORT_SUFFIX = ".parquet" if EXPORT_FORMAT == "parquet" else ".json"

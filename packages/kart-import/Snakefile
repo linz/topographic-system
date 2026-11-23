@@ -258,6 +258,16 @@ rule kart_repo:
         "OTEL_SERVICE_NAME=kart_repo uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
 
 
+# 5b. BUNDLE (pack a built target repo into one git bundle file, ready to download and `kart clone`)
+rule bundle:
+    input:
+        imported = "data/output/{repo}/.imported"
+    output:
+        bundle = "data/bundle/{repo}.bundle"
+    shell:
+        "OTEL_SERVICE_NAME=bundle uv run python -m kart_import.assets.bundle_repo {wildcards.repo}"
+
+
 # 6. PUSH (push a built target repo to its GitHub remote - a release-named branch by default)
 rule push:
     input:
@@ -339,11 +349,23 @@ for repo in REPOS:
         )
     )
 
+    workflow.rule(name=f"bundle_{safe_repo_name}")(
+        workflow.input(f"data/bundle/{repo}.bundle")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
     workflow.rule(name=f"push_{safe_repo_name}")(
         workflow.input(f"data/output/{repo}/.pushed")(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+workflow.rule(name="bundle_all")(
+    workflow.input([f"data/bundle/{repo}.bundle" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 workflow.rule(name="push_all")(
     workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(
