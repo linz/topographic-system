@@ -1,10 +1,12 @@
 import pytest
 
 from .env import (
+    env_export_url,
     env_push_force,
     env_push_to_master,
     env_schema_check_mode,
     env_schema_dir_override,
+    env_source_dir_override,
     env_theme_format,
     env_transform_format,
 )
@@ -87,3 +89,39 @@ def test_schema_dir_override_rejects_missing_dir(monkeypatch, tmp_path):
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path / "does-not-exist"))
     with pytest.raises(FileNotFoundError, match="KART_SCHEMA_DIR"):
         env_schema_dir_override()
+
+
+def test_source_dir_override_unset_is_none(monkeypatch):
+    monkeypatch.delenv("KART_SOURCE_DIR", raising=False)
+    assert env_source_dir_override() is None
+
+
+def test_source_dir_override_need_not_already_exist(monkeypatch, tmp_path):
+    """Unlike KART_SCHEMA_DIR, a missing path is fine here -- `clone_repo` creates it."""
+    missing = tmp_path / "does-not-exist-yet"
+    monkeypatch.setenv("KART_SOURCE_DIR", str(missing))
+    assert env_source_dir_override() == str(missing)
+
+
+def test_export_url_unset_is_none(monkeypatch):
+    monkeypatch.delenv("KART_EXPORT_URL", raising=False)
+    assert env_export_url() is None
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("https://example.com/export", "https://example.com/export/"),
+        ("https://example.com/export/", "https://example.com/export/"),
+        ("s3://bucket/working/export", "s3://bucket/working/export/"),
+    ],
+)
+def test_export_url_normalizes_trailing_slash(monkeypatch, raw, expected):
+    monkeypatch.setenv("KART_EXPORT_URL", raw)
+    assert env_export_url() == expected
+
+
+def test_export_url_rejects_unknown_scheme(monkeypatch):
+    monkeypatch.setenv("KART_EXPORT_URL", "ftp://example.com/export")
+    with pytest.raises(ValueError, match="KART_EXPORT_URL"):
+        env_export_url()

@@ -1,8 +1,12 @@
+import { join } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 import { fsa } from '@chunkd/fs';
+import { registerFileSystem } from '@linzjs/topographic-system-shared';
 import { $, os, ProcessOutput } from 'zx';
+
+registerFileSystem();
 
 export const kartContainer = process.argv.find((f) => f.startsWith('--container-kart='))?.split('=')[1] ?? 'ts-kart';
 export const mapContainer = process.argv.find((f) => f.startsWith('--container-map='))?.split('=')[1] ?? 'ts-map';
@@ -57,8 +61,6 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
         // Fail rather than warn on schema problems, including missing schemas (see push.yml)
         ['-e', 'KART_SCHEMA_CHECK=strict'],
-        // e2e has no credentials for the real Koordinates source repos; trust the bundle.
-        ['-e', 'KART_IMPORT_SKIP_SOURCE_PULL=true'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],
         ['-e', 'XDG_CACHE_HOME=/source/.cache'],
         ['-e', 'UV_PYTHON_INSTALL_DIR=/source/.uv-python'],
@@ -69,6 +71,28 @@ export const tsKartImport = (...args: (string | string[])[]) =>
     '-c',
     args.flat().join(' '),
   );
+
+// e2e has no credentials for the real Koordinates source repos.
+// Instead, clone straight from the repo's published git bundle
+//
+// Today's clone sentinel is touched to match so Snakemake's `clone` rule finds its
+// output already satisfied for this repo.
+export const seedFromBundle = async (repoName: string) => {
+  const target = join(sourceCode, 'packages/kart-import/data/source', repoName);
+
+  if (!(await fsa.exists(fsa.toUrl(join(target, '.git'))))) {
+    const bundlePath = fsa.toUrl(join(os.tmpdir(), `${repoName}.bundle`));
+    await fsa.write(
+      bundlePath,
+      fsa.readStream(new URL(`https://d1jzh93b1t1cv.cloudfront.net/source/${repoName}.bundle`)),
+    );
+    await $`git clone ${fileURLToPath(bundlePath)} ${target} --no-checkout`;
+    await fsa.delete(bundlePath);
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  await $`touch ${join(target, `.cloned_${today}`)}`;
+};
 
 export const skipIfExists = async (url: URL) => {
   const exists = await fsa.exists(url);

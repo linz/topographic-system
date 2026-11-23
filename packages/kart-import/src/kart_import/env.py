@@ -74,6 +74,18 @@ def env_releases() -> set[str] | None:
     return set(t.strip() for t in base_releases.lower().split(","))
 
 
+def env_source_dir_override() -> str | None:
+    """Override where source repo clones are kept (bypassing the default `data/source/` under
+    this package), e.g. to keep large, persistent clones on a separate disk shared across worktrees.
+
+    KART_SOURCE_DIR=/path/to/source (default: `data/source/` under this package). Returns None
+    when unset, i.e. use the default. Not required to already exist -- `clone_repo` creates it.
+
+        export KART_SOURCE_DIR=~/data/kart-source
+    """
+    return os.getenv("KART_SOURCE_DIR")
+
+
 def env_schema_dir_override() -> str | None:
     """Override the root `schema_dir` resolves a schema version against (bypassing the repo's
     real ``schema/`` root), e.g. for a test fixture.
@@ -107,30 +119,6 @@ def env_schema_check_mode() -> str:
     return mode
 
 
-def env_use_bundle() -> bool:
-    """
-    Should git bundles be used to speed up download process
-
-    GIT_BUNDLE=true
-    """
-    return os.getenv("GIT_BUNDLE", "true").lower() == "true"
-
-
-def env_skip_source_pull() -> bool:
-    """
-    Stub out the live `kart pull`/`git clone` against the real source repo, trusting
-    whatever is already on disk (a bundle-seeded clone, or an existing clone) as-is.
-
-    For environments without credentials to reach the real source (e.g. e2e CI), where
-    a bundle that's slightly stale is an acceptable trade-off for not needing live access.
-    Leave unset in production: bundles do go stale, which is why clone/pull_all pull from
-    source at all.
-
-    KART_IMPORT_SKIP_SOURCE_PULL=true
-    """
-    return os.getenv("KART_IMPORT_SKIP_SOURCE_PULL", "false").lower() == "true"
-
-
 def env_push_to_master() -> bool:
     """
     Push the built target repo to `master` instead of a release-named branch.
@@ -149,28 +137,24 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
-def env_bundle_url(repo_name: str) -> str:
+def env_export_url() -> str | None:
     """
-    Location to git bundles stored for easy access
+    Remote base URL (`https://...` or `s3://...`) hosting the `data/export/` tree produced by
+    `extract_all`. When set, Stage 2 (`process_all`) fetches `<repo>/<entry>.releases.json` from
+    here and downloads only the per-commit parquets (and schema sidecars) needed by the configured
+    releases that are not already present locally -- with no source clones required.
 
-    GIT_BUNDLE_URL=https://d1jzh93b1t1cv.cloudfront.net/source/
+        export KART_EXPORT_URL=https://example.com/export/
+        export KART_EXPORT_URL=s3://linz-topography-nonprod/source/export/
     """
-    base_url = os.getenv("GIT_BUNDLE_URL", "https://d1jzh93b1t1cv.cloudfront.net/source/")
-    if not base_url.endswith("/"):
-        base_url += "/"
-    return f"{base_url}{repo_name}.bundle"
-
-
-def env_bundle_s3_url() -> str:
-    """
-    Location to a AWS writeable bundle store, used for initial bundle seeding
-
-    GIT_BUNDLE_S3_URL=s3://linz-topography-nonprod/source/
-    """
-    s3_uri = os.getenv("GIT_BUNDLE_S3_URL", "s3://linz-topography-nonprod/source/")
-    if not s3_uri.endswith("/"):
-        s3_uri += "/"
-    return s3_uri
+    url = os.getenv("KART_EXPORT_URL")
+    if not url:
+        return None
+    if not url.startswith(("https://", "http://", "s3://")):
+        raise ValueError(f"KART_EXPORT_URL must start with 'https://', 'http://', or 's3://', got {url!r}")
+    if not url.endswith("/"):
+        url += "/"
+    return url
 
 
 def env_schema_host() -> str:

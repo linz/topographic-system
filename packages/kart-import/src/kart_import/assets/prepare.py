@@ -12,19 +12,17 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from ..config import (
-    SOURCE_DIR,
-    WORKING_LOOKUP_DIR,
-    Lookup,
-    get_lookup_by_name,
-    get_releases,
-    get_source_repo_name,
+from ..config import WORKING_LOOKUP_DIR, Lookup, get_lookup_by_name, get_releases
+from ..export_paths import (
+    entry_export_files,
+    export_entry_dir,
+    load_schema_sidecar,
+    theme_hash_file,
+    theme_release_file,
 )
-from ..export_paths import export_filename, lookup_dir, theme_hash_file, theme_release_file
-from ..git.kart import get_dataset_schema, get_kart_dataset_id
 from ..kart_types import coerce_integer_columns
 from ..log import log_context
-from .export import gpd_read
+from .extract.export import gpd_read
 
 logger = logging.getLogger("kart_import")
 
@@ -123,27 +121,28 @@ def prepare_lookup(lookup_name: str) -> Path:
         return prepare_theme_lookup(lookup, lookup.theme)
     assert lookup.source is not None  # a lookup has exactly one of `source` or `theme`
 
-    # Read per commit below; `.cloned` is an input of the Snakefile rule so the repo is present.
-    repo_dir = SOURCE_DIR / get_source_repo_name(lookup)
-    kart_dataset_id = lookup.source.dataset or get_kart_dataset_id(repo_dir)
-
-    input_dir = lookup_dir(lookup_name)
+    # Shared with every other dataset/lookup sourced from the same repo; entry_export_files scopes
+    # the listing below to this lookup's own exports.
+    input_dir = export_entry_dir(lookup_name)
     if not input_dir.exists():
         raise FileNotFoundError(f"no exported lookup {lookup_name!r} at {input_dir}")
 
     output_dir = WORKING_LOOKUP_DIR / lookup_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    prefix = f"{lookup_name}_"
+    input_files = sorted(entry_export_files(input_dir, lookup_name))
+
     # Drop parquets whose source export no longer exists (commit pruned upstream by export_lookup),
     # so orphaned commits don't accumulate on disk across runs.
-    valid_commits = {input_file.stem for input_file in input_dir.glob(export_filename("*"))}
+    valid_commits = {input_file.stem.removeprefix(prefix) for input_file in input_files}
     for stale in output_dir.glob("*.parquet"):
         if stale.stem not in valid_commits:
             logger.info("pruning stale prepared lookup", extra={"lookup": lookup_name, "file": stale.name})
             stale.unlink()
 
-    for input_file in sorted(input_dir.glob(export_filename("*"))):
-        commit = input_file.stem
+    for input_file in input_files:
+        commit = input_file.stem.removeprefix(prefix)
         output_file = output_dir / f"{commit}.parquet"
 
         start_time = time.perf_counter()
@@ -151,7 +150,7 @@ def prepare_lookup(lookup_name: str) -> Path:
         out = select_lookup_columns(gdf, lookup)
         out = coerce_integer_columns(
             out,
-            get_dataset_schema(repo_dir, kart_dataset_id, commit),
+            load_schema_sidecar(input_file),
             context=f"lookup {lookup_name!r} at {commit}",
         )
         out.to_parquet(output_file, compression="zstd", index=False)

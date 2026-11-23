@@ -7,7 +7,6 @@ from shapely.geometry import Point
 
 from .. import export_paths
 from ..config import Join, Release, Source, ThemeDataset
-from ..export_paths import export_filename
 from ..kart_types import coerce_integer_columns
 from . import transform
 from .transform import find_canonical_release, normalize_fields, transform_dataset_all_releases
@@ -17,20 +16,28 @@ def _releases(*ids: int) -> list[Release]:
     return [Release(id=i, date=datetime(2020, 1, 1)) for i in ids]
 
 
-def _link_shared_source(root, dataset_name: str, release_ids: list[int]) -> None:
-    """Point each release's export at one shared commit file (what export's symlinking produces)."""
-    commit_file = root / export_filename(f"{dataset_name}_commit")
+def _link_shared_source(monkeypatch, root, dataset_name: str, release_ids: list[int]) -> None:
+    """Point each release in `releases.json` at one shared commit file (what export produces)."""
+    td = ThemeDataset(name=dataset_name, source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"))
+    monkeypatch.setattr(export_paths, "EXPORT_DIR", root)
+    monkeypatch.setattr(export_paths, "get_source_entry", lambda _: td)
+    entry_dir = export_paths.export_entry_dir(dataset_name)
+    entry_dir.mkdir(parents=True, exist_ok=True)
+    commit_file = export_paths.entry_commit_file(dataset_name, "commit")
     commit_file.write_text("{}")
-    for r in release_ids:
-        d = root / f"release_{r}"
-        d.mkdir()
-        (d / export_filename(dataset_name)).symlink_to(commit_file)
+    export_paths.write_releases_map(
+        entry_dir,
+        dataset_name,
+        {
+            r: {"commit": "commit", "commit_time": "2020-01-01T00:00:00+00:00", "location": commit_file.name}
+            for r in release_ids
+        },
+    )
 
 
 def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch):
-    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     releases = _releases(1, 2, 3)
-    _link_shared_source(tmp_path, "ds", [1, 2, 3])  # all three share one source export
+    _link_shared_source(monkeypatch, tmp_path, "ds", [1, 2, 3])  # all three share one source export
     td = ThemeDataset(
         name="ds",
         source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"),
@@ -49,9 +56,8 @@ def test_find_canonical_release_dedups_on_source_and_joins(tmp_path, monkeypatch
 
 def test_find_canonical_release_never_shares_a_backfill_dataset(tmp_path, monkeypatch):
     """Backfilled releases reuse one export, but fixups rewind each to its own release."""
-    monkeypatch.setattr(export_paths, "WORKING_EXPORTS_DIR", tmp_path)
     releases = _releases(1, 2, 3)
-    _link_shared_source(tmp_path, "ds", [1, 2, 3])
+    _link_shared_source(monkeypatch, tmp_path, "ds", [1, 2, 3])
     td = ThemeDataset(name="ds", source=Source(url="kart@data.koordinates.com:linz/x-topo-150k"), backfill=True)
 
     assert [find_canonical_release("ds", td, r.id, releases) for r in releases] == [1, 2, 3]

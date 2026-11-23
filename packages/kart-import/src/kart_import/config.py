@@ -7,7 +7,14 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .env import env_export_format, env_releases, env_theme_format, env_themes, env_transform_format
+from .env import (
+    env_export_format,
+    env_releases,
+    env_source_dir_override,
+    env_theme_format,
+    env_themes,
+    env_transform_format,
+)
 from .schema_check import KNOWN_VERSIONS, check_theme_or_warn
 
 logger = logging.getLogger("kart_import")
@@ -27,13 +34,18 @@ CONFIG_DIR_REPOS = CONFIG_DIR / "repos.yml"
 # Static style mappings table for the `carto_text_styling` fixup.
 CONFIG_DIR_CARTO_TEXT_STYLING = CONFIG_DIR / "carto_text_styling.csv"
 
-# source/ — raw Kart repos and GeoJSON release snapshots
-SOURCE_DIR = DATA_DIR / "source"
+# source/ — raw Kart repos and GeoJSON release snapshots (override with KART_SOURCE_DIR)
+_source_dir_override = env_source_dir_override()
+SOURCE_DIR = Path(_source_dir_override).expanduser() if _source_dir_override else DATA_DIR / "source"
+
+# export/ — per-commit source exports (parquet/geojson), schema sidecars and release maps, one
+# directory per source repo (shared by every dataset/lookup sourced from it, same as SOURCE_DIR).
+# The entire Stage 1 output (and S3 handoff between `extract_all` and `process_all`) is this
+# directory -- kept separate from SOURCE_DIR so syncing never touches `.kart`/`.git` contents.
+EXPORT_DIR = DATA_DIR / "export"
 
 # working/ — per-dataset intermediate
 WORKING_DIR = DATA_DIR / "working"
-# Exports of all the datasets one file per dataset per release
-WORKING_EXPORTS_DIR = WORKING_DIR / "export"
 WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
@@ -105,7 +117,7 @@ def source_of(entry: "ThemeDataset | Lookup") -> Source:
 
 
 def get_source_repo_name(entry: "ThemeDataset | Lookup") -> str:
-    """Local clone (and bundle) name for an entry's source repo.
+    """Local clone name for an entry's source repo.
 
     A multi-dataset repo (one that needs ``source.dataset``, e.g. topographic-source-data) is
     shared by every entry pulling from it, so it is cloned once under its repo name.
