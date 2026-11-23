@@ -20,10 +20,13 @@ COPY packages/kart-import /workspace/packages/kart-import
 # 3. Install only kart-import and its dependencies. --frozen installs straight from uv.lock (the
 #    workspace's other members, such as qgis, aren't copied, so uv must not try to re-lock), and
 #    --no-dev skips the root dev tools (pytest, mypy, ruff).
-#    At runtime use `uv run --no-sync ...` from /workspace/packages/kart-import, for the same reason.
 RUN uv sync --directory /workspace --frozen --no-dev --package topographic-system-kart-import
 # 4. kart-import reads schemas from <workspace root>/schema; point that at /schema, copied below
 RUN ln --symbolic /schema /workspace/schema
+# 5. Never re-sync at runtime. Everything above is installed at build time, and a sync of the
+#    partial workspace fails (its other members aren't copied). A `uv run --no-sync` flag isn't
+#    enough: each Snakefile rule starts its own `uv run`, and only an env var reaches those.
+ENV UV_NO_SYNC=1
 
 COPY packages/kart/dist/ /app/
 
