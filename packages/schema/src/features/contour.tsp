@@ -12,13 +12,12 @@ model contour {
 
   /**
    * Contour type, in order of precedence: `supplementary` (from the source `designated`),
-   * `index` (elevation is a multiple of 100 m), `depression` (from the source `nat_form`),
-   * otherwise `intermediate`.
+   * `index` (elevation is a multiple of 100 m), otherwise `intermediate`.
    */
   type: contour_type;
 
   /**
-   * `depression` when the contour is a depression but another type took precedence.
+   * `depression` when the contour is a depression (from the source `nat_form`).
    */
   subtype: contour_subtype | null;
 
@@ -32,7 +31,6 @@ enum contour_type {
   Intermediate: "intermediate",
   Index: "index",
   Supplementary: "supplementary",
-  Depression: "depression",
 }
 
 enum contour_subtype {

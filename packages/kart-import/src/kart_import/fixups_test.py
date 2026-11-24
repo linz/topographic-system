@@ -110,8 +110,8 @@ def _contour_gdf(rows: list[tuple]) -> gpd.GeoDataFrame:
 
 
 def test_contour_type_sets_type_and_subtype_by_precedence():
-    """supplementary, then index (every 100 m, 0 m included), then depression, then intermediate. A
-    depression that loses to another type keeps `subtype = depression`."""
+    """supplementary, then index (every 100 m, 0 m included), then intermediate. Every depression
+    gets `subtype = depression`."""
     gdf = _contour_gdf(
         [
             (120, None, None),
@@ -130,12 +130,21 @@ def test_contour_type_sets_type_and_subtype_by_precedence():
         "index",
         "index",
         "supplementary",
-        "depression",
+        "intermediate",
         "supplementary",
         "index",
         "index",
     ]
-    assert out["subtype"].fillna("-").tolist() == ["-", "-", "-", "-", "-", "depression", "depression", "depression"]
+    assert out["subtype"].fillna("-").tolist() == [
+        "-",
+        "-",
+        "-",
+        "-",
+        "depression",
+        "depression",
+        "depression",
+        "depression",
+    ]
     assert "designated" not in out.columns
     assert "nat_form" not in out.columns
 
@@ -161,7 +170,8 @@ def test_contour_config_corrects_elevation_before_contour_type():
     gdf["t50_fid"] = pd.array([1023115, 1], dtype="Int32")
     out = contour_type(apply_corrections(gdf, td), td, 66)
     assert out["elevation"].tolist() == [580, 570]
-    assert out["type"].tolist() == ["depression", "intermediate"]
+    assert out["type"].tolist() == ["intermediate", "intermediate"]
+    assert out["subtype"].fillna("-").tolist() == ["depression", "-"]
 
 
 def test_contour_config_runs_contour_type_on_every_dataset():

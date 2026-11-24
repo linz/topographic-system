@@ -639,11 +639,9 @@ def contour_type(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gp
     `type`, in order of precedence:
       - `supplementary` where `designated` is `supplementary`
       - `index` where the elevation is a multiple of 100 m
-      - `depression` where `nat_form` is `depression`
       - `intermediate` otherwise
 
-    `subtype` is `depression` when the contour is a depression but another type took precedence
-    (supplementary + depression, index + depression), so the depression is not lost.
+    `subtype` is `depression` wherever `nat_form` is `depression`.
 
     The helper columns `designated` and `nat_form` are dropped. Any value other than the expected
     one (or null) fails the import, so a new source value is never silently mapped to `intermediate`.
@@ -665,12 +663,8 @@ def contour_type(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gp
     depression = nat_form.eq("depression").fillna(False).to_numpy(dtype=bool)
     index = gdf["elevation"].mod(CONTOUR_INDEX_INTERVAL).eq(0).fillna(False).to_numpy(dtype=bool)
 
-    gdf["type"] = np.select(
-        [supplementary, index, depression], ["supplementary", "index", "depression"], default="intermediate"
-    )
-    gdf["subtype"] = pd.Series("depression", index=gdf.index, dtype="string").where(
-        depression & (supplementary | index)
-    )
+    gdf["type"] = np.select([supplementary, index], ["supplementary", "index"], default="intermediate")
+    gdf["subtype"] = pd.Series("depression", index=gdf.index, dtype="string").where(depression)
     gdf = gdf.drop(columns=["designated", "nat_form"])
 
     logger.info(
