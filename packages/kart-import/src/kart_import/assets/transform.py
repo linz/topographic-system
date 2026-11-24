@@ -47,15 +47,15 @@ def write_transform(gdf: gpd.GeoDataFrame, output_file: Path) -> None:
 
 def cast_int64_to_int32(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Cast all int64 columns to int32 to match schema and fit in JavaScript's safe integer range.
-    
+
     All integer fields in the schema are defined as int32, but pandas/parquet may default to int64.
     int64 values become BigInt in JavaScript, which JSON Schema doesn't recognize.
     This ensures all integers are stored as int32 (or nullable Int32).
     """
     import numpy as np
-    
+
     int32_min, int32_max = np.iinfo(np.int32).min, np.iinfo(np.int32).max
-    
+
     for col in gdf.columns:
         if gdf[col].dtype == np.int64:
             # Check if column is all null; if so, skip conversion to avoid NA markers
@@ -63,17 +63,16 @@ def cast_int64_to_int32(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             if series.empty:
                 # All null: leave as-is to avoid creating Int32 NA markers
                 continue
-                
+
             # Check if any values exceed int32 range
             bad = series[(series < int32_min) | (series > int32_max)]
             if not bad.empty:
                 raise ValueError(
-                    f"{col} values exceed int32 range [{int32_min}, {int32_max}]: "
-                    f"{bad.unique()[:5].tolist()}"
+                    f"{col} values exceed int32 range [{int32_min}, {int32_max}]: {bad.unique()[:5].tolist()}"
                 )
             # Cast to int32 (nullable)
             gdf[col] = gdf[col].astype("Int32")
-    
+
     return gdf
 
 
