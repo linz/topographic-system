@@ -5,6 +5,8 @@ import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
 import yaml from 'js-yaml';
+import * as geojson from 'flatgeobuf/geojson';
+import { readFileSync } from 'fs';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
@@ -12,6 +14,61 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   if (schemaPath.href.endsWith('.yaml') || schemaPath.href.endsWith('.yml'))
     return yaml.load(String(content)) as SchemaObject;
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
+}
+
+/**
+ * Extract all property names from a JSON schema's properties object.
+ * This handles nested property definitions at the top level.
+ */
+function getSchemaProperties(schema: SchemaObject): string[] {
+  if (typeof schema['properties'] === 'object' && schema['properties'] !== null) {
+    return Object.keys(schema['properties'] as Record<string, unknown>);
+  }
+  return [];
+}
+
+/**
+ * Read FGB (FlatGeoBuf) file and yield records in groups.
+ * FGB files contain geospatial features with properties that match schema fields.
+ * 
+ * FlatGeoBuf has a known limitation where nullable columns are added to the file header
+ * but their data is not properly serialized. To work around this, we fill in missing
+ * properties with null values so they're treated as nullable by the schema validator.
+ * 
+ * Note: We skip computed properties like 'bbox' which are derived from geometry.
+ */
+async function* readFgbGroups(path: URL, schemaProperties: string[] = [], batchSize: number = 1000): AsyncGenerator<unknown[]> {
+  const filePath = new URL(path).pathname;
+  const buffer = readFileSync(filePath);
+
+  const batch: unknown[] = [];
+  for await (const feature of geojson.deserialize(buffer)) {
+    // Convert GeoJSON feature to record format: combine geometry and properties
+    const record: any = {
+      ...feature.properties,
+      geometry: feature.geometry,
+    };
+
+    // FlatGeoBuf may not deserialize nullable columns; fill in missing ones with null
+    // so the validator can apply nullable schema rules.
+    // Skip 'geometry' (already present) and 'bbox' (computed property, not data).
+    const skipProps = new Set(['geometry', 'bbox']);
+    for (const prop of schemaProperties) {
+      if (!skipProps.has(prop) && !(prop in record)) {
+        record[prop] = null;
+      }
+    }
+
+    batch.push(record);
+
+    if (batch.length >= batchSize) {
+      yield batch.splice(0, batchSize);
+    }
+  }
+
+  if (batch.length > 0) {
+    yield batch;
+  }
 }
 
 export const MaxErrorSamples = 5;
@@ -103,14 +160,14 @@ export function summariseErrors(errors: ErrorObject[], summary: Map<string, Erro
 
 export const ValidateSchemaCommand = command({
   name: 'validate-schema',
-  description: 'Validate that a parquet file matches a JSON schema',
+  description: 'Validate parquet or FGB files against a JSON schema',
   args: {
     concurrency,
-    schema: option({ type: Url, long: 'schema', description: 'Path to YAML schema file emitted' }),
+    schema: option({ type: Url, long: 'schema', description: 'Path to JSON/YAML schema file' }),
     paths: restPositionals({
       type: Url,
       displayName: 'paths',
-      description: 'Paths to parquet file(s) to validate against the schema',
+      description: 'Paths to parquet or FGB file(s) to validate against the schema',
     }),
     decodeGeometry: flag({
       long: 'decode-geometry',
@@ -133,7 +190,21 @@ export const ValidateSchemaCommand = command({
       logger.info({ file: path.href, schema: args.schema.href }, 'ValidateSchema: Started');
       let valid = 0;
       let invalid = 0;
-      for await (const group of readParquetGroups(path, { decodeGeometry: args.decodeGeometry })) {
+
+      // Auto-detect file format and use appropriate reader
+      const fileExt = path.href.toLowerCase().split('.').pop();
+      const isParquet = fileExt === 'parquet';
+      const isFgb = fileExt === 'fgb';
+
+      if (!isParquet && !isFgb) {
+        throw new Error(`Unsupported file format: ${fileExt}. Expected 'parquet' or 'fgb'.`);
+      }
+
+      const reader = isParquet
+        ? () => readParquetGroups(path, { decodeGeometry: args.decodeGeometry })
+        : () => readFgbGroups(path, getSchemaProperties(schemaContent));
+
+      for await (const group of reader()) {
         for (const record of group) {
           const ret = validate(record);
           if (ret) {
