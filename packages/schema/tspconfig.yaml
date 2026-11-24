@@ -3,4 +3,5 @@ emit:
 options:
   '@linzjs/typespec-emitter':
     json-schema-output-dir: '{project-root}/../../schema'
+    kart-output-dir: '{project-root}/../../schema'
     typescript-output-dir: '{project-root}/src/types'

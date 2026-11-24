@@ -2,6 +2,7 @@ import { createTypeSpecLibrary } from '@typespec/compiler';
 import type { EmitContext, JSONSchemaType } from '@typespec/compiler';
 
 import { emitJsonSchema } from './json-schema.ts';
+import { emitKartSchema } from './kart.ts';
 import { emitParquetSchema } from './parquet.ts';
 import { planEmission } from './plan.ts';
 import { emitPydanticModels } from './pydantic.ts';
@@ -12,6 +13,7 @@ export interface EmitterOptions {
   'typescript-output-file'?: string;
   'typescript-output-dir'?: string;
   'parquet-output-dir'?: string;
+  'kart-output-dir'?: string;
   'pydantic-output-file'?: string;
   /** Namespace that namespace products (e.g. `NzTopo50`, `NzTopo250`) live under. Defaults to `Linz.Topography`. */
   'root-namespace'?: string;
@@ -24,6 +26,7 @@ const EmitterOptionsSchema: JSONSchemaType<EmitterOptions> = {
     'typescript-output-file': { type: 'string', nullable: true },
     'typescript-output-dir': { type: 'string', nullable: true },
     'parquet-output-dir': { type: 'string', nullable: true },
+    'kart-output-dir': { type: 'string', nullable: true },
     'pydantic-output-file': { type: 'string', nullable: true },
     'root-namespace': { type: 'string', nullable: true },
   },
@@ -56,7 +59,12 @@ export async function $onEmit(context: EmitContext<EmitterOptions>) {
     await emitParquetSchema(context, units, options['parquet-output-dir']);
   }
 
-  // 4. Emit Pydantic Models if configured
+  // 4. Emit Kart Schema if configured
+  if (options['kart-output-dir']) {
+    await emitKartSchema(context, units, options['kart-output-dir']);
+  }
+
+  // 5. Emit Pydantic Models if configured
   if (options['pydantic-output-file']) {
     await emitPydanticModels(context, units, options['pydantic-output-file']);
   }
