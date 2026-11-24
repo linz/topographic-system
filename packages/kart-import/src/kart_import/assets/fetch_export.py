@@ -6,6 +6,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from opentelemetry.trace import SpanKind
+
 from ..command import run_command
 from ..config import get_releases, get_source_entry, get_source_repo_name
 from ..env import env_export_url
@@ -121,10 +123,12 @@ def fetch_entry(entry_name: str, base_url: str | None = None) -> str:
 
     missing = [filename for filename in needed if not (output_dir / filename).exists()]
     if missing:
-        run_in_thread_pool(
-            func=lambda filename: download_file(f"{resolved_url}{repo_name}/{filename}", output_dir / filename),
-            items=missing,
-        )
+
+        def fetch_file(filename: str) -> None:
+            download_file(f"{resolved_url}{repo_name}/{filename}", output_dir / filename)
+
+        # CLIENT: each item is itself a network download, not local processing.
+        run_in_thread_pool(func=fetch_file, items=missing, span_kind=SpanKind.CLIENT)
 
     sentinel = entry_exported_sentinel(entry_name)
     sentinel.parent.mkdir(parents=True, exist_ok=True)

@@ -26,7 +26,7 @@ from opentelemetry.sdk._logs.export import (
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import SpanProcessor, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor
-from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.trace import SpanKind, get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
@@ -65,11 +65,16 @@ def format_span_name(kwargs: dict[str, Any]) -> str:
 
 
 @contextmanager
-def log_context(**kwargs):
+def log_context(*, kind: SpanKind = SpanKind.INTERNAL, **kwargs):
     """Attach key/value pairs to all log records emitted within this context block.
 
     Uses OTel baggage for propagation, creates a dedicated Span for the block, and
     logs the block's duration when it exits - callers don't need their own timing.
+
+    `kind` defaults to INTERNAL (in-process work). Pass `SpanKind.CLIENT` for a block that's
+    actually a call out to another system -- a git fetch/clone/push, an HTTP/S3 download -- so
+    backends like Elastic APM can tell a real network dependency apart from local processing
+    (service maps, dependency latency/error-rate breakdowns, etc. key off this).
     """
     ctx = get_current()
     for key, value in kwargs.items():
@@ -83,7 +88,7 @@ def log_context(**kwargs):
 
     start_time = time.perf_counter()
     try:
-        with tracer.start_as_current_span(span_name) as span:
+        with tracer.start_as_current_span(span_name, kind=kind) as span:
             span.set_attributes(span_attrs)
             yield
     finally:

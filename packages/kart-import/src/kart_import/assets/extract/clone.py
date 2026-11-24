@@ -1,6 +1,8 @@
 import logging
 from datetime import date
 
+from opentelemetry.trace import SpanKind
+
 from ...command import run_command
 from ...config import SOURCE_DIR, get_source_repo, source_of
 from ...log import log_context
@@ -22,10 +24,10 @@ def clone_repo(repo_name: str, day: date | None = None) -> None:
     sentinel = target_dir / clone_sentinel_name(day)
 
     if (target_dir / ".git").exists():
-        with log_context(action="git_fetch", repo=repo_name):
+        with log_context(action="git_fetch", repo=repo_name, kind=SpanKind.CLIENT):
             run_command(["git", "fetch", "origin"], cwd=str(target_dir))
     else:
-        with log_context(action="git_clone", repo=repo_name):
+        with log_context(action="git_clone", repo=repo_name, kind=SpanKind.CLIENT):
             run_command(["git", "clone", f"{dataset_url}", str(target_dir), "--no-checkout"])
 
     for old in target_dir.glob(".cloned*"):
