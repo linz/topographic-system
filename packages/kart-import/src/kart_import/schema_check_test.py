@@ -6,10 +6,12 @@ from .config import Theme
 from .schema_check import (
     RFC3339_STRING,
     SchemaCheckError,
+    check_kart_schema,
     check_theme,
     check_theme_or_warn,
     schema_dir,
     schema_dtypes,
+    verify_kart_schema,
 )
 
 SOURCE = "kart@data.koordinates.com:linz/nz-airport-polygons-topo-150k"
@@ -392,3 +394,78 @@ def test_schema_dtypes_resolves_a_nested_pointer(tmp_path, monkeypatch):
     monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
 
     assert schema_dtypes("nested", "v0.3") == {"count": "Int32"}
+
+
+KART_SCHEMA = [
+    {"id": "a1aa653e-8cdb-59e8-8e48-dd5b489c55ab", "name": "id", "dataType": "text", "primaryKeyIndex": 0},
+    {"id": "45f29525-e1ac-5ab6-aaec-643771bc8549", "name": "t50_fid", "dataType": "integer", "size": 32},
+    {"id": "3ae6301e-ca5a-5edf-9f83-3d74e302d614", "name": "name", "dataType": "text"},
+    {"id": "7cd8e758-dce2-5ebd-b0f7-b386db3c4183", "name": "geometry", "dataType": "geometry"},
+]
+
+
+@pytest.fixture
+def kart_schema_folder(tmp_path, monkeypatch):
+    (tmp_path / "v0.3").mkdir()
+    (tmp_path / "v0.3" / "airport.kart.json").write_text(json.dumps(KART_SCHEMA))
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+    return tmp_path / "v0.3"
+
+
+def _matching_actual_kart_schema() -> list[dict]:
+    # Order differs from KART_SCHEMA (Kart puts id, geometry first) and geometry carries CRS + geometryType.
+    return [
+        {"id": "a1aa653e-8cdb-59e8-8e48-dd5b489c55ab", "name": "id", "dataType": "text", "primaryKeyIndex": 0},
+        {
+            "id": "7cd8e758-dce2-5ebd-b0f7-b386db3c4183",
+            "name": "geometry",
+            "dataType": "geometry",
+            "geometryType": "MULTIPOLYGON",
+            "geometryCRS": "EPSG:4167",
+        },
+        {"id": "45f29525-e1ac-5ab6-aaec-643771bc8549", "name": "t50_fid", "dataType": "integer", "size": 32},
+        {"id": "3ae6301e-ca5a-5edf-9f83-3d74e302d614", "name": "name", "dataType": "text"},
+    ]
+
+
+def test_check_kart_schema_exact_match_passes(kart_schema_folder):
+    assert check_kart_schema(_matching_actual_kart_schema(), "airport", "v0.3", target_epsg="EPSG:4167") == []
+
+
+def test_check_kart_schema_reports_missing_and_extra_columns(kart_schema_folder):
+    actual = [col for col in _matching_actual_kart_schema() if col["name"] != "name"]
+    actual.append({"id": "00000000-0000-0000-0000-000000000000", "name": "unexpected", "dataType": "text"})
+
+    problems = check_kart_schema(actual, "airport", "v0.3", target_epsg="EPSG:4167")
+    assert len(problems) == 1
+    assert '-    "name": "name"' in problems[0]
+    assert '+    "name": "unexpected"' in problems[0]
+
+
+def test_check_kart_schema_reports_type_size_id_and_crs_mismatches(kart_schema_folder):
+    actual = _matching_actual_kart_schema()
+    actual[1]["geometryCRS"] = "EPSG:2193"
+    actual[1]["geometryType"] = "Unknown"
+    actual[2]["size"] = 64  # t50_fid widened to 64
+    actual[3]["id"] = "00000000-0000-0000-0000-000000000000"  # wrong uuid5
+
+    problems = check_kart_schema(actual, "airport", "v0.3", target_epsg="EPSG:4167")
+    assert any("geometryCRS" in p for p in problems)
+    assert any("geometryType" in p for p in problems)
+    assert any('"size": 64' in p and "00000000-0000-0000-0000-000000000000" in p for p in problems)
+
+
+def test_check_kart_schema_reports_missing_kart_schema_file(tmp_path, monkeypatch):
+    (tmp_path / "v0.3").mkdir()
+    monkeypatch.setenv("KART_SCHEMA_DIR", str(tmp_path))
+
+    problems = check_kart_schema([], "airport", "v0.3")
+    assert any("no Kart schema at" in p for p in problems)
+
+
+def test_verify_kart_schema_raises_on_mismatch(kart_schema_folder, tmp_path, monkeypatch):
+    bad_actual = tuple(col for col in _matching_actual_kart_schema() if col["name"] != "name")
+    monkeypatch.setattr("kart_import.schema_check.get_dataset_schema", lambda *_: bad_actual)
+
+    with pytest.raises(SchemaCheckError, match="does not match airport.kart.json"):
+        verify_kart_schema(tmp_path, "master", "airport", "v0.3", target_epsg="EPSG:4167")

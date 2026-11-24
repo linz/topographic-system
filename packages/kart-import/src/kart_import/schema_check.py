@@ -39,6 +39,7 @@ property with no usable type contributes no dtype whether the check runs or not.
 
 from __future__ import annotations
 
+import difflib
 import json
 import logging
 from functools import cache
@@ -50,6 +51,7 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
 from .env import env_schema_check_mode, env_schema_dir_override, env_schema_host
+from .git.kart import get_dataset_schema
 
 if TYPE_CHECKING:
     from referencing._core import Resolver
@@ -107,6 +109,10 @@ def schema_dir(schema_version: str) -> Path:
 
 def schema_path(theme_name: str, schema_version: str) -> Path:
     return schema_dir(schema_version) / f"{theme_name}.json"
+
+
+def kart_schema_path(theme_name: str, schema_version: str) -> Path:
+    return schema_dir(schema_version) / f"{theme_name}.kart.json"
 
 
 def _missing_schema(theme_name: str, path: Path) -> str:
@@ -362,3 +368,78 @@ def check_theme_or_warn(theme: Any) -> list[str]:
                 f"{len(problems)} schema problem(s) in theme {theme.name!r}:\n  " + "\n  ".join(problems)
             )
     return problems
+
+
+def _normalize_kart_columns(columns: list[dict[str, Any]]) -> str:
+    """Canonical JSON for Kart columns, sorted by name with runtime geometry metadata stripped."""
+    normalized = [
+        {
+            k: v
+            for k, v in col.items()
+            if not (col.get("dataType") == "geometry" and k in ("geometryType", "geometryCRS"))
+        }
+        for col in sorted(columns, key=lambda c: str(c.get("name", "")))
+    ]
+    return json.dumps(normalized, indent=2, sort_keys=True)
+
+
+def check_kart_schema(
+    actual_columns: list[dict[str, Any]],
+    theme_name: str,
+    schema_version: str,
+    *,
+    target_epsg: str | None = None,
+) -> list[str]:
+    """Verify a Kart dataset's `schema.json` matches the TypeSpec-emitted `<theme>.kart.json` 100%."""
+    kp = kart_schema_path(theme_name, schema_version)
+    if not kp.exists():
+        return [f"{theme_name}: no Kart schema at {kp} (generate it with `npm run -w packages/schema bundle`)"]
+
+    expected_columns: list[dict[str, Any]] = _load_schema(str(kp))
+    problems: list[str] = []
+
+    for col in actual_columns:
+        if col.get("dataType") == "geometry":
+            geom_type = col.get("geometryType")
+            if not isinstance(geom_type, str) or not geom_type or geom_type.lower() == "unknown":
+                problems.append(f"{theme_name}: geometry column has invalid geometryType {geom_type!r}")
+            if target_epsg is not None and col.get("geometryCRS") != target_epsg:
+                problems.append(
+                    f"{theme_name}: geometry column has geometryCRS {col.get('geometryCRS')!r}, "
+                    f"expected {target_epsg!r}"
+                )
+
+    actual_json = _normalize_kart_columns(actual_columns)
+    expected_json = _normalize_kart_columns(expected_columns)
+    if actual_json != expected_json:
+        diff = "\n".join(
+            difflib.unified_diff(
+                expected_json.splitlines(),
+                actual_json.splitlines(),
+                fromfile=kp.name,
+                tofile=f"{theme_name}/.table-dataset/meta/schema.json",
+                lineterm="",
+            )
+        )
+        problems.append(f"{theme_name}: Kart schema does not match {kp.name}:\n{diff}")
+
+    return problems
+
+
+def verify_kart_schema(
+    repo_dir: Path,
+    ref: str,
+    theme_name: str,
+    schema_version: str,
+    *,
+    target_epsg: str | None = None,
+) -> None:
+    """Read `<theme>/.table-dataset/meta/schema.json` at `ref` and raise `SchemaCheckError` if it
+    does not match the TypeSpec-emitted `<theme>.kart.json` 100%."""
+    actual = list(get_dataset_schema(repo_dir, theme_name, ref))
+    problems = check_kart_schema(actual, theme_name, schema_version, target_epsg=target_epsg)
+    if problems:
+        raise SchemaCheckError(
+            f"{len(problems)} Kart schema mismatch(es) in {theme_name!r} ({schema_version}) at {ref}:\n  "
+            + "\n  ".join(problems)
+        )

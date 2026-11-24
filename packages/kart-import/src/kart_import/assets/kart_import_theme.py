@@ -12,7 +12,7 @@ from kart_import.log import log_context
 from ..command import run_command
 from ..config import OUTPUT_DIR, THEME_SUFFIX, WORKING_THEME_DIR, get_releases, get_theme_by_name
 from ..git.schema_ids import assign_stable_column_ids
-from ..schema_check import schema_url
+from ..schema_check import schema_url, verify_kart_schema
 
 logger = logging.getLogger("kart_import")
 
@@ -160,6 +160,7 @@ def kart_import_theme(theme_name: str):
 
         stable_commit = assign_stable_column_ids(repo_dir, stub_commit, theme_name, env=schema_env)
         run_command(["git", "update-ref", "refs/heads/master", stable_commit], cwd=str(repo_dir))
+        verify_kart_schema(repo_dir, "master", theme_name, current_schema_version, target_epsg=theme.target_epsg)
 
     for release, input_file, info in pending:
         with log_context(action="kart_import", theme=theme_name, release=release.id):
@@ -228,6 +229,11 @@ def kart_import_theme(theme_name: str):
                         env=env,
                     )
                     current_schema_version = resolved_schema_version
+
+            if "No changes to commit" not in result:
+                verify_kart_schema(
+                    repo_dir, "master", theme_name, resolved_schema_version, target_epsg=theme.target_epsg
+                )
 
     run_command(["kart", "git", "bundle", "create", str(bundle_file), "--all"], cwd=str(repo_dir))
     logger.info("All releases imported")

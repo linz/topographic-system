@@ -130,15 +130,26 @@ describe('kart.import', async () => {
       'json',
     );
     const schema = JSON.parse(retSchema.buffer().toString()) as {
-      airport: { 'schema.json': { name: string; dataType: string }[] };
+      airport: { 'schema.json': Record<string, unknown>[] };
     };
-    const dataTypes = new Map(schema.airport['schema.json'].map((c) => [c.name, c.dataType]));
+    const actualColumns = schema.airport['schema.json'];
+    const expectedKartSchemaUrl = new URL('./schema/v0.3/airport.kart.json', sourceCodeUrl);
+    const expectedColumns = JSON.parse(await readFile(expectedKartSchemaUrl, 'utf-8')) as Record<string, unknown>[];
 
-    // Before the merge unified dtypes, a dataset contributing an all-NULL column made the
-    // whole merged column text.
-    assert.equal(dataTypes.get('t50_fid'), 'integer');
-    // RFC 3339 text, as the schemas prescribe. A GeoJSON merge records these as `timestamp`.
-    assert.equal(dataTypes.get('created_at'), 'text');
-    assert.equal(dataTypes.get('updated_at'), 'text');
+    const actualByName = new Map(actualColumns.map((c) => [c['name'] as string, c]));
+    const expectedByName = new Map(expectedColumns.map((c) => [c['name'] as string, c]));
+    assert.deepEqual([...actualByName.keys()].sort(), [...expectedByName.keys()].sort());
+
+    for (const [name, expected] of expectedByName) {
+      const actual = actualByName.get(name)!;
+      if (expected['dataType'] === 'geometry') {
+        assert.equal(actual['geometryCRS'], 'EPSG:4167');
+        assert.ok(typeof actual['geometryType'] === 'string' && actual['geometryType'].toLowerCase() !== 'unknown');
+        const { geometryType: _gt, geometryCRS: _crs, ...actualCore } = actual;
+        assert.deepEqual(actualCore, expected);
+      } else {
+        assert.deepEqual(actual, expected);
+      }
+    }
   });
 });
