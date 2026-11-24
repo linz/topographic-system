@@ -141,11 +141,14 @@ describe('kart.import', async () => {
     assert.deepEqual([...actualByName.keys()].sort(), [...expectedByName.keys()].sort());
 
     for (const [name, expected] of expectedByName) {
-      const actual = actualByName.get(name)!;
+      const actual = actualByName.get(name);
+      assert.ok(actual, `Missing column ${name} in Kart schema.json`);
       if (expected['dataType'] === 'geometry') {
         assert.equal(actual['geometryCRS'], 'EPSG:4167');
         assert.ok(typeof actual['geometryType'] === 'string' && actual['geometryType'].toLowerCase() !== 'unknown');
-        const { geometryType: _gt, geometryCRS: _crs, ...actualCore } = actual;
+        const actualCore = Object.fromEntries(
+          Object.entries(actual).filter(([k]) => k !== 'geometryType' && k !== 'geometryCRS'),
+        );
         assert.deepEqual(actualCore, expected);
       } else {
         assert.deepEqual(actual, expected);

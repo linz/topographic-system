@@ -395,7 +395,7 @@ def check_kart_schema(
     if not kp.exists():
         return [f"{theme_name}: no Kart schema at {kp} (generate it with `npm run -w packages/schema bundle`)"]
 
-    expected_columns: list[dict[str, Any]] = _load_schema(str(kp))
+    expected_columns: list[dict[str, Any]] = json.loads(kp.read_text())
     problems: list[str] = []
 
     for col in actual_columns:
