@@ -191,7 +191,6 @@ def export_entry(entry_name: str) -> str:
     run_in_thread_pool(
         func=export_commit,
         items=list(commit_to_releases.values()),
-        thread_count=4,
     )
 
     if releases_before_first_commit:

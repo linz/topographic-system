@@ -346,7 +346,7 @@ def merge_theme_release(theme_name: str, release_id: int):
     _write_theme_hash(theme.name, release_id, output_file)
 
 
-def merge_theme_all_releases(theme_name: str, thread_count: int = 4) -> None:
+def merge_theme_all_releases(theme_name: str, thread_count: int | None = None) -> None:
     """Merge every release of one theme inside a thread pool, then dedupe across them.
 
     One process (and one OTel trace) for the whole theme instead of Snakemake spawning one

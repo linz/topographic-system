@@ -124,7 +124,6 @@ def fetch_entry(entry_name: str, base_url: str | None = None) -> str:
         run_in_thread_pool(
             func=lambda filename: download_file(f"{resolved_url}{repo_name}/{filename}", output_dir / filename),
             items=missing,
-            thread_count=4,
         )
 
     sentinel = entry_exported_sentinel(entry_name)
