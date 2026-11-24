@@ -163,6 +163,7 @@ def kart_import_theme(theme_name: str):
         verify_kart_schema(repo_dir, "master", theme_name, current_schema_version, target_epsg=theme.target_epsg)
 
     for release, input_file, info in pending:
+        # Dropped before export if it ran under OTEL_MIN_SPAN_DURATION_SECONDS (see log.py).
         with log_context(action="kart_import", theme=theme_name, release=release.id):
             # Set commit date using standard Git environment variables
             env = {

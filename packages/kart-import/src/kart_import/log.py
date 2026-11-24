@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 import os
@@ -23,7 +24,7 @@ from opentelemetry.sdk._logs.export import (
     SimpleLogRecordProcessor,
 )
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import SpanProcessor, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
@@ -44,7 +45,7 @@ def _default_service_name() -> str:
     return "kart-import"
 
 
-def _format_span_name(kwargs: dict[str, Any]) -> str:
+def format_span_name(kwargs: dict[str, Any]) -> str:
     """Build a span name from the action and the primary entity it targets, e.g. "transform: fence [r5]"."""
     action = kwargs.get("action")
     entity = (
@@ -76,7 +77,7 @@ def log_context(**kwargs):
     token = attach(ctx)
 
     tracer = get_tracer_provider().get_tracer("kart_import")
-    span_name = _format_span_name(kwargs)
+    span_name = format_span_name(kwargs)
 
     span_attrs = {k: v if isinstance(v, (bool, int, float, str, bytes)) else str(v) for k, v in kwargs.items()}
 
@@ -88,6 +89,46 @@ def log_context(**kwargs):
     finally:
         logging.getLogger("kart_import").info(span_name, extra={"duration": round(time.perf_counter() - start_time, 4)})
         detach(token)
+
+
+class _DurationFilteringSpanProcessor(SpanProcessor):
+    """Wraps another `SpanProcessor` and drops a span before it reaches it, unless the span ran
+    at least `min_duration_seconds` or is a top-level job span.
+
+    A "job" span is one whose parent is either absent or a *remote* context: the root span
+    Snakemake itself opens for the whole run has no parent at all, and every rule's `python -m
+    ...` subprocess inherits that run's trace via `TRACEPARENT` in its environment (see
+    `setup_logging`), so the first span *it* opens is parented by that remote context rather than
+    a local one. Anything nested under a job span -- a per-release/per-commit/per-phase child
+    opened in the same process via `log_context` -- has a local parent instead, and is exactly
+    the high-cardinality, usually-fast detail this exists to filter out: a full pipeline run can
+    open tens of thousands of these, which is what made the trace too slow to render as a
+    waterfall. Set `OTEL_MIN_SPAN_DURATION_SECONDS=0` to disable filtering, e.g. for local
+    debugging where you want to see everything.
+    """
+
+    def __init__(self, wrapped: SpanProcessor, min_duration_seconds: float) -> None:
+        self._wrapped = wrapped
+        self._min_duration_seconds = min_duration_seconds
+
+    def on_start(self, span, parent_context=None) -> None:
+        self._wrapped.on_start(span, parent_context=parent_context)
+
+    def on_end(self, span) -> None:
+        is_job_span = span.parent is None or span.parent.is_remote
+        if is_job_span:
+            self._wrapped.on_end(span)
+            return
+
+        duration_seconds = (span.end_time - span.start_time) / 1_000_000_000
+        if duration_seconds >= self._min_duration_seconds:
+            self._wrapped.on_end(span)
+
+    def shutdown(self) -> None:
+        self._wrapped.shutdown()
+
+    def force_flush(self, timeout_millis: int = 30000) -> bool:
+        return self._wrapped.force_flush(timeout_millis)
 
 
 class _JsonLineExporter(LogExporter):
@@ -144,10 +185,15 @@ class _PathSanitizingFilter(logging.Filter):
 
 
 _initialized = False
+# Set by setup_logging(): kept as module-level SDK references (not looked up via
+# get_tracer_provider()/get_logger_provider(), which are typed to the API's provider classes and
+# don't expose force_flush) so flush_telemetry() can call it with a known-good type.
+_sdk_tracer_provider: TracerProvider | None = None
+_sdk_logger_provider: LoggerProvider | None = None
 
 
 def setup_logging():
-    global _initialized
+    global _initialized, _sdk_tracer_provider, _sdk_logger_provider
     if _initialized:
         return
     _initialized = True
@@ -178,10 +224,12 @@ def setup_logging():
     resource = Resource.create(resource_attrs)
     provider = LoggerProvider(resource=resource)
     set_logger_provider(provider)
+    _sdk_logger_provider = provider
 
     # Configure tracer provider so spans can be generated for each run
     tracer_provider = TracerProvider(resource=resource)
     set_tracer_provider(tracer_provider)
+    _sdk_tracer_provider = tracer_provider
 
     otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip()
     traces_endpoint = otlp_endpoint or os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "").strip()
@@ -191,11 +239,18 @@ def setup_logging():
         os.environ.get("OTEL_TRACES_EXPORTER", "").lower() == "console"
     )
 
+    min_span_duration_seconds = float(os.environ.get("OTEL_MIN_SPAN_DURATION_SECONDS", "1"))
+
+    def filtered(processor: SpanProcessor) -> SpanProcessor:
+        if min_span_duration_seconds <= 0:
+            return processor
+        return _DurationFilteringSpanProcessor(processor, min_span_duration_seconds)
+
     if not is_disabled:
         if traces_endpoint or os.environ.get("OTEL_TRACES_EXPORTER") == "otlp":
-            tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+            tracer_provider.add_span_processor(filtered(BatchSpanProcessor(OTLPSpanExporter())))
         elif console_export:
-            tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+            tracer_provider.add_span_processor(filtered(SimpleSpanProcessor(ConsoleSpanExporter())))
 
         if logs_endpoint or os.environ.get("OTEL_LOGS_EXPORTER") == "otlp":
             provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter()))
@@ -220,6 +275,24 @@ def setup_logging():
 def get_tracer(name: str = "kart_import"):
     setup_logging()
     return trace.get_tracer(name)
+
+
+def flush_telemetry(timeout_millis: int = 2000) -> None:
+    """Force-export any buffered spans/logs immediately.
+
+    `BatchSpanProcessor`/`BatchLogRecordProcessor` normally export on their own schedule, and
+    whatever's still buffered is flushed by the SDK's own `atexit` shutdown hook on a clean exit.
+    But a signal handler that exits via `os._exit` (see `thread.register_signal_handlers`) skips
+    `atexit` entirely, and the default handling of SIGTERM (sent by Kubernetes/Argo on pod
+    termination) doesn't run it either -- both would otherwise silently drop everything buffered.
+    Call this from a signal handler before exiting so the run's telemetry still makes it out.
+    """
+    if _sdk_tracer_provider is not None:
+        with contextlib.suppress(Exception):
+            _sdk_tracer_provider.force_flush(timeout_millis)
+    if _sdk_logger_provider is not None:
+        with contextlib.suppress(Exception):
+            _sdk_logger_provider.force_flush(timeout_millis)
 
 
 setup_logging()
