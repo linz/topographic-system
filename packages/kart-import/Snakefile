@@ -22,7 +22,8 @@ import os
 import sys
 
 from kart_import.assets.extract.clone import clone_sentinel_name
-from kart_import.env import env_export_url
+from kart_import.env import env_export_url, env_schema_check_mode
+from kart_import.schema_check import schema_path
 from kart_import.log import get_tracer
 from opentelemetry.trace import StatusCode
 
@@ -82,6 +83,13 @@ def repo_lookups(repo):
     return list({join.lookup: None for ds in repo_datasets(repo) for join in ds.joins if not is_theme_lookup(join.lookup)})
 
 
+def theme_schemas(theme):
+    """The schema files a theme's check reads, where they exist (`schema/` is generated, so a
+    dev checkout may have none; the check itself reports those as missing)."""
+    versions = set(theme.schema_version.values()) | {theme.latest_schema_version}
+    return [str(p) for p in (schema_path(theme.name, v) for v in sorted(versions)) if p.exists()]
+
+
 def is_theme_lookup(name):
     """A lookup that reads a theme this run builds, rather than a cloned source repo."""
     return LOOKUP_MAP[name].theme is not None
@@ -116,6 +124,10 @@ def _end_root_span(status_code=None, description=""):
 atexit.register(_end_root_span)
 
 
+# Rules run `python -m ...`, not `uv run python -m ...`: the `uv run snakemake` that starts the
+# pipeline has already put its venv on PATH, so a nested `uv run` would only re-resolve (and,
+# without UV_NO_SYNC, try to re-sync) the same environment once per job.
+
 # TARGETS
 ALL_IMPORTED = [f"data/output/{repo}/.imported" for repo in REPOS]
 
@@ -130,7 +142,7 @@ rule clone:
         cloned = f"{SOURCE_DIR}/{{repo}}/{CLONE_SENTINEL}"
     threads: 1
     shell:
-        "OTEL_SERVICE_NAME=clone uv run python -m kart_import.assets.extract.clone {wildcards.repo}"
+        "OTEL_SERVICE_NAME=clone python -m kart_import.assets.extract.clone {wildcards.repo}"
 
 
 # 2. EXPORT (per-commit parquets, schema sidecars and release map for any dataset or lookup).
@@ -145,7 +157,7 @@ if EXPORT_URL:
             releases = ",".join(str(r.id) for r in RELEASES)
         threads: 4
         shell:
-            "OTEL_SERVICE_NAME=fetch_export uv run python -m kart_import.assets.fetch_export {wildcards.entry}"
+            "OTEL_SERVICE_NAME=fetch_export python -m kart_import.assets.fetch_export {wildcards.entry}"
 else:
     rule export:
         input:
@@ -154,18 +166,35 @@ else:
             exported = f"{EXPORT_DIR}/.sentinel/{{entry}}.exported"
         threads: 4
         shell:
-            "OTEL_SERVICE_NAME=export uv run python -m kart_import.assets.extract.export {wildcards.entry}"
+            "OTEL_SERVICE_NAME=export python -m kart_import.assets.extract.export {wildcards.entry}"
+
+
+# 2b. SCHEMA CHECK (one theme's mapping against its JSON schema; see assets.schema_check_theme).
+#     Every dataset waits for its theme's check, so only the themes a target builds are checked,
+#     and with KART_SCHEMA_CHECK=strict a theme that fails stops before any work is done on it.
+rule schema_check:
+    input:
+        config = "config/themes/{theme}.yml",
+        schemas = lambda wildcards: theme_schemas(THEME_MAP[wildcards.theme])
+    output:
+        checked = "data/working/schema_check/{theme}.checked"
+    params:
+        # Re-check when the mode changes, e.g. a `warn` run followed by a `strict` one
+        mode = env_schema_check_mode()
+    shell:
+        "OTEL_SERVICE_NAME=schema_check python -m kart_import.assets.schema_check_theme {wildcards.theme}"
 
 
 # 3a. LIFECYCLE (derive stable UUIDv7 ids and created_at/updated_at from exported parquets -- no clone needed)
 rule lifecycle:
     input:
+        schema_checked = lambda wildcards: f"data/working/schema_check/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.checked",
         exported = lambda wildcards: exported_sentinel(wildcards.dataset),
         config = lambda wildcards: f"config/themes/{DATASET_TO_THEME_MAP[wildcards.dataset].name}.yml"
     output:
         lifecycle = "data/working/lifecycle/{dataset}_release" + f"{RELEASES[0].id}-{RELEASES[-1].id}.json"
     shell:
-        "OTEL_SERVICE_NAME=lifecycle uv run python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=lifecycle python -m kart_import.assets.fid_lifecycle {wildcards.dataset}"
 
 
 # 3b. PREPARE LOOKUPS (slim derived lookup table per commit that will be joined into datasets).
@@ -189,7 +218,7 @@ rule prepare_lookup:
     output:
         prepared = directory("data/working/lookup/{lookup}")
     shell:
-        "OTEL_SERVICE_NAME=prepare_lookup uv run python -m kart_import.assets.prepare {wildcards.lookup}"
+        "OTEL_SERVICE_NAME=prepare_lookup python -m kart_import.assets.prepare {wildcards.lookup}"
 
 
 # 4. TRANSFORM (every release of one dataset, run together in one process with a thread pool)
@@ -217,7 +246,7 @@ rule transform:
         transformed = [f"data/working/transform/release_{r.id}/{{dataset}}" + TRANSFORM_SUFFIX for r in RELEASES]
     threads: 8
     shell:
-        "OTEL_SERVICE_NAME=transform uv run python -m kart_import.assets.transform {wildcards.dataset}"
+        "OTEL_SERVICE_NAME=transform python -m kart_import.assets.transform {wildcards.dataset}"
 
 
 # 5. THEME RELEASE (every release of one theme, run together in one process with a thread pool)
@@ -233,7 +262,7 @@ rule theme_release:
         merged = [f"data/working/theme/release_{r.id}/{{theme}}" + THEME_SUFFIX for r in RELEASES]
     threads: 4
     shell:
-        "OTEL_SERVICE_NAME=theme_release uv run python -m kart_import.assets.theme {wildcards.theme}"
+        "OTEL_SERVICE_NAME=theme_release python -m kart_import.assets.theme {wildcards.theme}"
 
 rule kart_theme:
     input:
@@ -244,7 +273,7 @@ rule kart_theme:
     output:
         imported = "data/output/{theme}.bundle"
     shell:
-        "OTEL_SERVICE_NAME=kart_theme uv run python -m kart_import.assets.kart_import_theme {wildcards.theme}"
+        "OTEL_SERVICE_NAME=kart_theme python -m kart_import.assets.kart_import_theme {wildcards.theme}"
 
 rule kart_repo:
     input:
@@ -255,7 +284,17 @@ rule kart_repo:
     output:
         imported = "data/output/{repo}/.imported"
     shell:
-        "OTEL_SERVICE_NAME=kart_repo uv run python -m kart_import.assets.kart_import_repo {wildcards.repo}"
+        "OTEL_SERVICE_NAME=kart_repo python -m kart_import.assets.kart_import_repo {wildcards.repo}"
+
+
+# 5b. BUNDLE (pack a built target repo into one git bundle file, ready to download and `kart clone`)
+rule bundle:
+    input:
+        imported = "data/output/{repo}/.imported"
+    output:
+        bundle = "data/bundle/{repo}.bundle"
+    shell:
+        "OTEL_SERVICE_NAME=bundle python -m kart_import.assets.bundle_repo {wildcards.repo}"
 
 
 # 6. PUSH (push a built target repo to its GitHub remote - a release-named branch by default)
@@ -265,7 +304,7 @@ rule push:
     output:
         pushed = "data/output/{repo}/.pushed"
     shell:
-        "OTEL_SERVICE_NAME=push uv run python -m kart_import.assets.kart_push_repo {wildcards.repo}"
+        "OTEL_SERVICE_NAME=push python -m kart_import.assets.kart_push_repo {wildcards.repo}"
 
 
 # 7. STAGE 1 (clone + extract parquets for every dataset/source lookup into data/export/).
@@ -303,11 +342,24 @@ for t in THEMES:
         )
     )
 
+    workflow.rule(name=f"schema_check_{t.name}")(
+        workflow.input(f"data/working/schema_check/{t.name}.checked")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
     workflow.rule(name=f"kart_theme_{t.name}")(
         workflow.input(f"data/output/{t.name}.bundle")(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+# Check every theme's mapping against its schema without building anything (e.g. in CI)
+workflow.rule(name="schema_check_all")(
+    workflow.input([f"data/working/schema_check/{t.name}.checked" for t in THEMES])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 workflow.rule(name="kart_theme_all")(
     workflow.input([f"data/output/{t.name}.bundle" for t in SELECTED_THEMES])(
@@ -339,11 +391,23 @@ for repo in REPOS:
         )
     )
 
+    workflow.rule(name=f"bundle_{safe_repo_name}")(
+        workflow.input(f"data/bundle/{repo}.bundle")(
+            workflow.run(lambda *args, **kwargs: None)
+        )
+    )
+
     workflow.rule(name=f"push_{safe_repo_name}")(
         workflow.input(f"data/output/{repo}/.pushed")(
             workflow.run(lambda *args, **kwargs: None)
         )
     )
+
+workflow.rule(name="bundle_all")(
+    workflow.input([f"data/bundle/{repo}.bundle" for repo in REPOS])(
+        workflow.run(lambda *args, **kwargs: None)
+    )
+)
 
 workflow.rule(name="push_all")(
     workflow.input([f"data/output/{repo}/.pushed" for repo in REPOS])(

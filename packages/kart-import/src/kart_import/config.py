@@ -15,7 +15,7 @@ from .env import (
     env_themes,
     env_transform_format,
 )
-from .schema_check import KNOWN_VERSIONS, check_theme_or_warn
+from .schema_check import KNOWN_VERSIONS
 
 logger = logging.getLogger("kart_import")
 
@@ -50,9 +50,14 @@ WORKING_TRANSFORM_DIR = WORKING_DIR / "transform"
 WORKING_THEME_DIR = WORKING_DIR / "theme"
 WORKING_LIFECYCLE_DIR = WORKING_DIR / "lifecycle"
 WORKING_LOOKUP_DIR = WORKING_DIR / "lookup"
+WORKING_SCHEMA_CHECK_DIR = WORKING_DIR / "schema_check"
 
 # output/ — final merged theme GeoPackages
 OUTPUT_DIR = DATA_DIR / "output"
+
+# bundle/ — each built target repo packed as one git bundle file, ready to download.
+# Not under output/, where `kart_theme`'s `{theme}.bundle` pattern would also match it.
+BUNDLE_DIR = DATA_DIR / "bundle"
 
 # Per-commit source exports, the input to transform (GeoParquet by default)
 EXPORT_FORMAT = env_export_format()
@@ -430,7 +435,7 @@ class Theme(BaseModel):
     def latest_schema_version(self) -> str:
         """The schema version that applies to the newest release the mapping overrides (or just
         `default`, if it has none). Used where no specific release is in scope, e.g. the static
-        mapping check at config-load time.
+        mapping check (the `schema_check` rule).
         """
         overrides = {int(key): version for key, version in self.schema_version.items() if key != "default"}
         return overrides[max(overrides)] if overrides else self.schema_version["default"]
@@ -719,7 +724,8 @@ def load_from_yaml():
                 _register_source_repo(lookup)
 
         validate_theme_joins(theme)
-        check_theme_or_warn(theme)
+        # The schema check is not run here, but by the `schema_check` rule for each theme a run
+        # builds (see assets.schema_check_theme), so a target only checks its own themes
 
     themes_by_name = {theme.name: theme for theme in ALL_THEMES}
     for lookup in LOOKUP_MAP.values():

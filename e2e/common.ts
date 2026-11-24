@@ -61,6 +61,9 @@ export const tsKartImport = (...args: (string | string[])[]) =>
         ['-e', 'KART_IMPORT_RELEASE=30,31,32'],
         // Fail rather than warn on schema problems, including missing schemas (see push.yml)
         ['-e', 'KART_SCHEMA_CHECK=strict'],
+        // The image sets UV_NO_SYNC=1 for its own /workspace install, but this runs the mounted
+        // /source checkout, which uv must sync into a venv of its own
+        ['-e', 'UV_NO_SYNC=0'],
         ['-e', 'UV_CACHE_DIR=/source/.uv'],
         ['-e', 'XDG_CACHE_HOME=/source/.cache'],
         ['-e', 'UV_PYTHON_INSTALL_DIR=/source/.uv-python'],

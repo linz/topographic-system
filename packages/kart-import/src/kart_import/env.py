@@ -104,7 +104,7 @@ def env_schema_dir_override() -> str | None:
 
 
 def env_schema_check_mode() -> str:
-    """Behaviour of the static theme schema check run at config-load time.
+    """Behaviour of the static theme schema check run by the `schema_check` rule.
 
     KART_SCHEMA_CHECK=warn|strict|off (default warn):
     ``warn`` logs problems and continues
