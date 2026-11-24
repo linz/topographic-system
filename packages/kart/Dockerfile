@@ -24,8 +24,9 @@ RUN uv sync --directory /workspace --frozen --no-dev --package topographic-syste
 # 4. kart-import reads schemas from <workspace root>/schema; point that at /schema, copied below
 RUN ln --symbolic /schema /workspace/schema
 # 5. Never re-sync at runtime. Everything above is installed at build time, and a sync of the
-#    partial workspace fails (its other members aren't copied). A `uv run --no-sync` flag isn't
-#    enough: each Snakefile rule starts its own `uv run`, and only an env var reaches those.
+#    partial workspace fails (its other members aren't copied). Set as an env var rather than
+#    left to a `--no-sync` flag, so a plain `uv run snakemake ...` can't be run wrong in here.
+#    The e2e overrides this with UV_NO_SYNC=0, as it runs the mounted source checkout instead.
 ENV UV_NO_SYNC=1
 
 COPY packages/kart/dist/ /app/
