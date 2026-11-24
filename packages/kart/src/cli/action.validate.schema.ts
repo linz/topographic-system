@@ -1,12 +1,13 @@
+import { readFileSync } from 'fs';
+
 import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
 import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
-import yaml from 'js-yaml';
 import * as geojson from 'flatgeobuf/geojson';
-import { readFileSync } from 'fs';
+import yaml from 'js-yaml';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
@@ -30,24 +31,25 @@ function getSchemaProperties(schema: SchemaObject): string[] {
 /**
  * Read FGB (FlatGeoBuf) file and yield records in groups.
  * FGB files contain geospatial features with properties that match schema fields.
- * 
+ *
  * FlatGeoBuf has a known limitation where nullable columns are added to the file header
  * but their data is not properly serialized. To work around this, we fill in missing
  * properties with null values so they're treated as nullable by the schema validator.
- * 
+ *
  * Note: We skip computed properties like 'bbox' which are derived from geometry.
  */
-async function* readFgbGroups(path: URL, schemaProperties: string[] = [], batchSize: number = 1000): AsyncGenerator<unknown[]> {
+async function* readFgbGroups(
+  path: URL,
+  schemaProperties: string[] = [],
+  batchSize: number = 1000,
+): AsyncGenerator<unknown[]> {
   const filePath = new URL(path).pathname;
   const buffer = readFileSync(filePath);
 
   const batch: unknown[] = [];
   for await (const feature of geojson.deserialize(buffer)) {
     // Convert GeoJSON feature to record format: combine geometry and properties
-    const record: any = {
-      ...feature.properties,
-      geometry: feature.geometry,
-    };
+    const record: any = { ...feature.properties, geometry: feature.geometry };
 
     // FlatGeoBuf may not deserialize nullable columns; fill in missing ones with null
     // so the validator can apply nullable schema rules.
