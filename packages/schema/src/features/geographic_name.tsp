@@ -97,5 +97,5 @@ enum geographic_name_type {
   WILD: "wilderness_area",
   WRCK: "wreck",
   WWAY: "water_way",
-  UNKNOWN: "unknown"
+  UNKNOWN: "unknown",
 }
