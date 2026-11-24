@@ -26,6 +26,7 @@ import "./nztopo50_ice_contour.tsp";
 import "./nztopo50_map_sheet.tsp";
 import "./nztopo50_sea_polygon.tsp";
 import "./nztopo50_rock_line.tsp";
+import "./nztopo50_tile_index.tsp";
 import "./place_point.tsp";
 import "./railway_line.tsp";
 import "./railway_point.tsp";
