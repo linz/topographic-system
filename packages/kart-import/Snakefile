@@ -37,9 +37,13 @@ THEME_MAP = {t.name: t for t in THEMES}
 # Local source clones; datasets sharing a multi-dataset repo (e.g. topographic-source-data) share one clone.
 SOURCE_REPOS = list(SOURCE_REPO_MAP)
 CLONE_SENTINEL = clone_sentinel_name()
-# When KART_EXPORT_URL is set (https:// or s3://), Stage 2 fetches `<entry>.releases.json` and only
-# downloads missing per-commit parquets on demand instead of cloning/exporting from Kart.
-EXPORT_URL = env_export_url()
+# Stage 2 defaults to fetching `<entry>.releases.json` and missing per-commit parquets on demand
+# from `KART_EXPORT_URL` (defaults to the CloudFront HTTPS export URL) instead of cloning/exporting
+# from Kart. `extract_*` targets always clone/export locally from Kart; set `KART_EXPORT_URL=local`
+# (or `""`) to force local clone/export for Stage 2 targets too.
+_target_args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+_is_extract_target = any(arg == "extract_all" or arg.startswith("extract_") for arg in _target_args)
+EXPORT_URL = None if _is_extract_target else env_export_url()
 
 
 def cloned(name):
@@ -215,7 +219,8 @@ rule transform:
         ]
     output:
         transformed = [f"data/working/transform/release_{r.id}/{{dataset}}" + TRANSFORM_SUFFIX for r in RELEASES]
-    threads: 8
+    # Only nz_contours_topo_150k is memory-heavy enough to need throttling; keep other transforms light so they don't starve concurrency.
+    threads: lambda wildcards: 8 if wildcards.dataset == "nz_contours_topo_150k" else 2
     shell:
         "OTEL_SERVICE_NAME=transform uv run python -m kart_import.assets.transform {wildcards.dataset}"
 

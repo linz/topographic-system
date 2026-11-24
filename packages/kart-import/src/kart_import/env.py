@@ -137,18 +137,31 @@ def env_push_force() -> bool:
     return os.getenv("KART_PUSH_FORCE", "false").lower() == "true"
 
 
+DEFAULT_EXPORT_URL = "https://d1jzh93b1t1cv.cloudfront.net/source/export/"
+
+
 def env_export_url() -> str | None:
     """
     Remote base URL (`https://...` or `s3://...`) hosting the `data/export/` tree produced by
-    `extract_all`. When set, Stage 2 (`process_all`) fetches `<repo>/<entry>.releases.json` from
-    here and downloads only the per-commit parquets (and schema sidecars) needed by the configured
-    releases that are not already present locally -- with no source clones required.
+    `extract_all`. Defaults to `https://d1jzh93b1t1cv.cloudfront.net/source/export/`.
 
-        export KART_EXPORT_URL=https://example.com/export/
+    When set (the default), Stage 2 (`process_all` / `process_<repo>`) fetches
+    `<repo>/<entry>.releases.json` from here and downloads only the per-commit parquets (and
+    schema sidecars) needed by the configured releases that are not already present locally --
+    with no source clones required.
+
+    Set `KART_EXPORT_URL=""` or `KART_EXPORT_URL=local` to disable remote fetching and clone/export
+    from Kart locally instead (note: `extract_*` targets always clone/export locally).
+
+        export KART_EXPORT_URL=https://d1jzh93b1t1cv.cloudfront.net/source/export/
         export KART_EXPORT_URL=s3://linz-topography-nonprod/source/export/
+        export KART_EXPORT_URL=local
     """
     url = os.getenv("KART_EXPORT_URL")
-    if not url:
+    if url is None:
+        return DEFAULT_EXPORT_URL
+    url = url.strip()
+    if not url or url.lower() == "local":
         return None
     if not url.startswith(("https://", "http://", "s3://")):
         raise ValueError(f"KART_EXPORT_URL must start with 'https://', 'http://', or 's3://', got {url!r}")
