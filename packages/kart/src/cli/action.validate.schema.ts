@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { createReadStream } from 'fs';
 
 import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
@@ -32,6 +32,7 @@ function getSchemaProperties(schema: SchemaObject): string[] {
  * Read FGB (FlatGeoBuf) file and yield records in groups.
  * FGB files contain geospatial features with properties that match schema fields.
  *
+ * Uses streaming file reads to avoid loading entire files into memory.
  * FlatGeoBuf has a known limitation where nullable columns are added to the file header
  * but their data is not properly serialized. To work around this, we fill in missing
  * properties with null values so they're treated as nullable by the schema validator.
@@ -44,9 +45,18 @@ async function* readFgbGroups(
   batchSize: number = 1000,
 ): AsyncGenerator<unknown[]> {
   const filePath = new URL(path).pathname;
-  const buffer = readFileSync(filePath);
 
+  // Stream the file from disk instead of loading entire buffer into memory
+  const stream = createReadStream(filePath);
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of stream) {
+    chunks.push(chunk as Buffer);
+  }
+
+  const buffer = Buffer.concat(chunks);
   const batch: unknown[] = [];
+
   for await (const feature of geojson.deserialize(buffer)) {
     // Convert GeoJSON feature to record format: combine geometry and properties
     const record: any = { ...feature.properties, geometry: feature.geometry };
@@ -67,6 +77,7 @@ async function* readFgbGroups(
       yield batch.splice(0, batchSize);
     }
   }
+
 
   if (batch.length > 0) {
     yield batch;
