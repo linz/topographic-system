@@ -1,3 +1,6 @@
+import { extname, parse } from 'node:path/posix';
+import { Readable } from 'node:stream';
+
 import { fsa } from '@chunkd/fs';
 import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
 import addFormats from 'ajv-formats';
@@ -8,7 +11,6 @@ import type { DeserializeContext, IFeature } from 'flatgeobuf/generic';
 import { deserialize, parseProperties } from 'flatgeobuf/generic';
 import { fromGeometry } from 'flatgeobuf/lib/mjs/geojson/geometry.js';
 import yaml from 'js-yaml';
-import { Readable } from 'node:stream';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
@@ -147,12 +149,17 @@ export function summariseErrors(errors: ErrorObject[], summary: Map<string, Erro
   }
 }
 
+const Loaders: Record<string, (path: URL, ctx: { decodeGeometry: boolean }) => AsyncGenerator<unknown[]>> = {
+  parquet: readParquetGroups,
+  fgb: readFgbGroups,
+};
+
 export const ValidateSchemaCommand = command({
   name: 'validate-schema',
   description: 'Validate parquet or FGB files against a JSON schema',
   args: {
     concurrency,
-    schema: option({ type: Url, long: 'schema', description: 'Path to JSON/YAML schema file' }),
+    schema: option({ type: Url, long: 'schema', description: 'Path to JSON/YAML schema file/folder' }),
     paths: restPositionals({
       type: Url,
       displayName: 'paths',
@@ -167,42 +174,63 @@ export const ValidateSchemaCommand = command({
   },
   async handler(args) {
     const q = qFromArgs(args);
-    // Disable strict mode to allow @oneOf schemas without discriminator properties
-    // Strict mode prevents unknown keywords and can interfere with @oneOf union type validation
-    const ajv = new Ajv.default({ strict: false, allErrors: true, verbose: true });
-    addFormats.default(ajv);
 
-    const schemaContent = await loadSchema(args.schema);
-    const validate = ajv.compile(schemaContent);
+    function resolveSchemaUrl(dataPath: URL): URL {
+      let schemaUrl = args.schema;
+      if (args.schema.pathname.endsWith('/')) {
+        const baseName = parse(dataPath.pathname);
+        schemaUrl = new URL(baseName.name + '.json', args.schema);
+      }
+      return schemaUrl;
+    }
+
+    const invalidFiles: string[] = [];
     await qMapAll(q, args.paths, async (path) => {
+      const schemaUrl = resolveSchemaUrl(path);
+      const schema = await loadSchema(schemaUrl);
+      const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
+      addFormats.default(ajv);
+      const validate = ajv.compile(schema);
       const errorSummary = new Map<string, ErrorAggregate>();
 
       const startTime = performance.now();
-      logger.info({ file: path.href, schema: args.schema.href }, 'ValidateSchema: Started');
+      logger.info({ file: path.href, schema: schemaUrl.href }, 'ValidateSchema:Started');
       let valid = 0;
       let invalid = 0;
 
       // Auto-detect file format and use appropriate reader
-      const fileExt = path.href.toLowerCase().split('.').pop();
-      const isParquet = fileExt === 'parquet';
-      const isFgb = fileExt === 'fgb';
-
-      if (!isParquet && !isFgb) {
-        throw new Error(`Unsupported file format: ${fileExt}. Expected 'parquet' or 'fgb'.`);
+      const fileExt = extname(path.pathname.toLowerCase()).slice(1);
+      const loader = Loaders[fileExt];
+      if (loader == null) {
+        throw new Error(`Unsupported file format: ${fileExt}. Expected ${Object.keys(Loaders).join(', ')}.`);
       }
 
-      const reader = isParquet
-        ? () => readParquetGroups(path, { decodeGeometry: args.decodeGeometry })
-        : () => readFgbGroups(path, { decodeGeometry: args.decodeGeometry });
-
-      for await (const group of reader()) {
+      let count = 0;
+      let groupTime = performance.now();
+      for await (const group of loader(path, { decodeGeometry: args.decodeGeometry })) {
         for (const record of group) {
+          count++;
           const ret = validate(record);
           if (ret) {
             valid++;
           } else {
             invalid++;
             summariseErrors(validate.errors ?? [], errorSummary);
+          }
+
+          if (count % 100_000 === 0) {
+            logger.debug(
+              {
+                ile: path.href,
+                schema: schemaUrl.href,
+                count,
+                valid,
+                invalid,
+                duration: performance.now() - groupTime,
+              },
+              'ValidateSchema:Progress',
+            );
+            groupTime = performance.now();
           }
         }
       }
@@ -211,11 +239,11 @@ export const ValidateSchemaCommand = command({
         logger.error({ file: path.href, error, count, samples }, 'ValidateSchema:ErrorSummary');
       }
 
-      let logOption = invalid > 0 ? ('error' as const) : ('info' as const);
+      let logOption: 'error' | 'info' = invalid > 0 ? 'error' : 'info';
       logger[logOption](
         {
           file: path.href,
-          schema: args.schema.href,
+          schema: schemaUrl.href,
           count: valid + invalid,
           invalid,
           duration: performance.now() - startTime,
@@ -223,7 +251,11 @@ export const ValidateSchemaCommand = command({
         'ValidateSchema:Done',
       );
 
-      if (invalid > 0) throw new Error('Schema Validation failed for ' + path.href);
+      if (invalid > 0) invalidFiles.push(path.href);
     });
+
+    if (invalidFiles.length > 0) {
+      throw new Error(`Schema Validation failed for (${invalidFiles.length}): \n ${invalidFiles.join('\n ')}`);
+    }
   },
 });
