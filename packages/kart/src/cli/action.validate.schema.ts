@@ -1,7 +1,7 @@
 import { createReadStream } from 'fs';
 
 import { fsa } from '@chunkd/fs';
-import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
+import { concurrency, logger, qFromArgs, qMapAll, Url } from '@linzjs/topographic-system-shared';
 import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
@@ -83,12 +83,11 @@ function normalizeNumericValues(record: any): void {
 
 /**
  * Read FGB (FlatGeoBuf) file and yield records in groups.
- * FGB files contain geospatial features with properties that match schema fields.
+ * FGB files contain geospatial features with properties.
  *
  * Uses streaming file reads to avoid loading entire files into memory.
- * FlatGeoBuf has a known limitation where nullable columns are added to the file header
- * but their data is not properly serialized. To work around this, we fill in missing
- * properties with null values so they're treated as nullable by the schema validator.
+ * FlatGeoBuf may not include all columns in every record (nullable columns).
+ * We use the schema to know which columns should exist and fill in missing ones with null.
  *
  * Note: We skip computed properties like 'bbox' which are derived from geometry.
  */
@@ -117,13 +116,13 @@ async function* readFgbGroups(
     // Normalize numeric values: convert NaN to null, floats to ints where appropriate
     normalizeNumericValues(record);
 
-    // FlatGeoBuf may not deserialize nullable columns; fill in missing ones with null
-    // so the validator can apply nullable schema rules.
+    // Fill in missing columns with null
+    // FlatGeoBuf only includes columns that have data, but schema expects all columns.
     // Skip 'geometry' (already present) and 'bbox' (computed property, not data).
     const skipProps = new Set(['geometry', 'bbox']);
-    for (const prop of schemaProperties) {
-      if (!skipProps.has(prop) && !(prop in record)) {
-        record[prop] = null;
+    for (const col of schemaProperties) {
+      if (!skipProps.has(col) && !(col in record)) {
+        record[col] = null;
       }
     }
 
@@ -270,9 +269,10 @@ export const ValidateSchemaCommand = command({
         throw new Error(`Unsupported file format: ${fileExt}. Expected 'parquet' or 'fgb'.`);
       }
 
+      const schemaProperties = getSchemaProperties(schemaContent);
       const reader = isParquet
-        ? () => readParquetGroups(path, { decodeGeometry: args.decodeGeometry })
-        : () => readFgbGroups(path, getSchemaProperties(schemaContent));
+        ? () => readParquetGroupsNormalized(path, schemaProperties, args.decodeGeometry)
+        : () => readFgbGroups(path, schemaProperties);
 
       for await (const group of reader()) {
         for (const record of group) {
