@@ -4,23 +4,11 @@ import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
 import { command, flag, option, restPositionals } from 'cmd-ts';
-import * as geojson from 'flatgeobuf/geojson';
+import type { DeserializeContext, IFeature } from 'flatgeobuf/generic';
+import { deserialize, parseProperties } from 'flatgeobuf/generic';
+import { fromGeometry } from 'flatgeobuf/lib/mjs/geojson/geometry.js';
 import yaml from 'js-yaml';
-
-/**
- * Column definition from a Kart schema file.
- */
-interface KartSchemaColumn {
-  id?: string;
-  name: string;
-  dataType?: string;
-  primaryKeyIndex?: number;
-}
-
-/**
- * Kart schema is a simple array of column definitions.
- */
-type KartSchema = KartSchemaColumn[];
+import { Readable } from 'node:stream';
 
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
@@ -30,94 +18,46 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   throw new Error(`Unsupported schema format for file ${schemaPath.href}`);
 }
 
-/**
- * Load Kart schema file (column definitions array).
- * Kart schema is a simple JSON array with column metadata.
- * Throws if the kart schema file is not found or invalid.
- */
-async function loadKartSchema(schemaPath: URL): Promise<KartSchema> {
-  const kartSchemaPath = new URL(`${schemaPath.href.replace(/\.json$/, '')}.kart.json`);
-  return await fsa.readJson<KartSchema>(kartSchemaPath);
-}
-
-/**
- * Extract column names from a Kart schema file.
- * Kart schema is a simple array of column definitions with names.
- * This is much simpler than parsing complex JSON schemas.
- */
-function getSchemaProperties(kartSchema: KartSchema): string[] {
-  const columns = new Set<string>();
-
-  if (Array.isArray(kartSchema)) {
-    for (const col of kartSchema) {
-      if (typeof col === 'object' && col !== null && typeof col.name === 'string') {
-        columns.add(col.name);
+function createFgbReader(decodeGeometry: boolean): DeserializeContext {
+  return {
+    fromFeature: (_id, feature, header) => {
+      const properties: Record<string, unknown> = parseProperties(feature, header.columns);
+      for (const col of header.columns ?? []) {
+        if (properties[col.name] == null) properties[col.name] = null;
       }
-    }
-  }
-
-  return Array.from(columns);
+      const geom = feature.geometry();
+      if (geom == null) {
+        properties['geometry'] = null;
+      } else {
+        properties['geometry'] = decodeGeometry ? fromGeometry(geom, header.geometryType) : {};
+      }
+      return properties as IFeature;
+    },
+  };
 }
 
 /**
- * Read FGB (FlatGeoBuf) file and yield records in groups.
- * FGB files contain geospatial features with properties.
- *
- * Uses efficient file reading with fsa to avoid streaming overhead.
- * Discovers all columns by scanning the file and combines with schema-expected columns.
- * Fills in missing columns with null for records that don't have all columns.
- * Some columns may be entirely absent from the file (all null values),
- * so we use schema properties to ensure complete record validation.
- *
- * Note: We skip computed properties like 'bbox' which are derived from geometry.
+ * Stream an FGB (FlatGeoBuf) file and yield feature records in batches.
+ * Fills omitted columns from the FGB header with `null` so schema validation
+ * checks all declared columns.
  */
 async function* readFgbGroups(
   path: URL,
-  schemaProperties: string[] = [],
-  batchSize: number = 1000,
+  ctx: Partial<{ decodeGeometry: boolean; batchSize: number }> = {},
 ): AsyncGenerator<unknown[]> {
-  // Read entire file efficiently using fsa
-  const fileContent = await fsa.read(path);
-  const buffer = fileContent instanceof ArrayBuffer ? new Uint8Array(fileContent) : (fileContent as Uint8Array);
+  const batchSize = ctx.batchSize ?? 20_000;
+  const decodeGeometry = ctx.decodeGeometry ?? false;
 
-  const fileColumns = new Set<string>();
-  const records: any[] = [];
-
-  // First pass: collect all records and discover all columns that appear in the file
-  for await (const feature of geojson.deserialize(buffer)) {
-    const record: any = { ...feature.properties, geometry: feature.geometry };
-
-    // Track columns from actual file data
-    Object.keys(record).forEach((col) => fileColumns.add(col));
-    records.push(record);
-  }
-
-  // Combine schema-expected columns with discovered file columns
-  // This ensures we validate records against all schema requirements
-  // while also capturing any extra columns in the data
-  const allColumns = new Set([...schemaProperties, ...fileColumns]);
-
-  // Second pass: yield records in batches, filling in missing columns with null
-  const skipProps = new Set(['geometry', 'bbox']);
-  const batch: unknown[] = [];
-
-  for (const record of records) {
-    // Fill in any missing columns (columns from schema or file that aren't in this record)
-    for (const col of allColumns) {
-      if (!skipProps.has(col) && !(col in record)) {
-        record[col] = null;
-      }
-    }
-    batch.push(record);
-
-    if (batch.length >= batchSize) {
-      yield batch.splice(0, batchSize);
+  let records: unknown[] = [];
+  for await (const feature of deserialize(Readable.toWeb(fsa.readStream(path)), createFgbReader(decodeGeometry))) {
+    records.push(feature);
+    if (records.length >= batchSize) {
+      yield records;
+      records = [];
     }
   }
 
-  if (batch.length > 0) {
-    yield batch;
-  }
+  if (records.length > 0) yield records;
 }
 
 export const MaxErrorSamples = 5;
@@ -233,7 +173,6 @@ export const ValidateSchemaCommand = command({
     addFormats.default(ajv);
 
     const schemaContent = await loadSchema(args.schema);
-    const kartSchema = await loadKartSchema(args.schema);
     const validate = ajv.compile(schemaContent);
     await qMapAll(q, args.paths, async (path) => {
       const errorSummary = new Map<string, ErrorAggregate>();
@@ -252,10 +191,9 @@ export const ValidateSchemaCommand = command({
         throw new Error(`Unsupported file format: ${fileExt}. Expected 'parquet' or 'fgb'.`);
       }
 
-      const schemaProperties = getSchemaProperties(kartSchema);
       const reader = isParquet
         ? () => readParquetGroups(path, { decodeGeometry: args.decodeGeometry })
-        : () => readFgbGroups(path, schemaProperties);
+        : () => readFgbGroups(path, { decodeGeometry: args.decodeGeometry });
 
       for await (const group of reader()) {
         for (const record of group) {
