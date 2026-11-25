@@ -34,7 +34,7 @@ datasets:
       metadata: { source: $land_use.id, fixup: true }
       type: golf_course
       label: null
-      orientation: null
+      orientation: 0
       t50_fid: null
     fixups:
       - fn: build_carto_symbol_metadata
@@ -51,7 +51,7 @@ datasets:
       type: $mine_vis
       t50_fid: null
       label: null
-      orientation: null
+      orientation: 0
     fixups:
       - fn: build_carto_symbol_metadata
     corrections:
@@ -73,7 +73,7 @@ datasets:
       metadata: { source: $road_line.id, fixup: true }
       type: highway_shield
       label: $road_line.highway_number
-      orientation: null
+      orientation: 0
       t50_fid: null
     fixups:
       - fn: build_carto_symbol_metadata
@@ -91,7 +91,7 @@ datasets:
       metadata: { source: $contour.id, fixup: true }
       type: contour_number
       label: $contour.elevation
-      orientation: $orientation
+      orientation: { source: $orientation, default: 0 }
       cont_rota: { source: $, fixup: true }
       t50_fid: null
     fixups:

@@ -23,7 +23,7 @@ model LandCoverPointCommon {
 model rock_outcrop {
   ...TopographicFeature;
   type: "rock_outcrop";
-  orientation: int32;
+  orientation: int32 = 0;
   elevation: int32;
   subtype: rock_outcrop_subtype;
   ...LandCoverPointCommon;
@@ -33,7 +33,7 @@ model rock_outcrop {
 model land_cover_point_core_types {
   ...TopographicFeature;
   type: land_cover_point_core_type;
-  orientation: null;
+  orientation: int32 = 0;
   elevation: null;
   subtype: null;
   ...LandCoverPointCommon;

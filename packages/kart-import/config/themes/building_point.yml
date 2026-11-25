@@ -13,7 +13,7 @@ _mappings:
     subtype: $bldg_use
     status: $status
     name: $name
-    orientation: null
+    orientation: 0
     theme: buildings
     metadata: null
 
@@ -59,7 +59,7 @@ datasets:
       subtype: $bldg_use
       status: $status
       name: $name
-      orientation: { source: $orientatn, since_release: 49 }
+      orientation: { source: $orientatn, since_release: 49, default: 0 }
       theme: buildings
       metadata: null
     fixups:
@@ -139,7 +139,7 @@ datasets:
       <<: *building_point
       t50_fid: null
       # `orientn` first appears in the release 67 source export.
-      orientation: { source: $orientn, since_release: 67 }
+      orientation: { source: $orientn, since_release: 67, default: 0 }
     fixups:
       - fn: orientation_degrees
   - source: kart@data.koordinates.com:linz/nz-snares-island-tini-heke-building-points-topo-125k
@@ -149,7 +149,7 @@ datasets:
       <<: *building_point
       t50_fid: { source: $, since_release: 67 }
       # `orientn` first appears in the release 67 source export.
-      orientation: { source: $orientn, since_release: 67 }
+      orientation: { source: $orientn, since_release: 67, default: 0 }
     fixups:
       - fn: orientation_degrees
   # Only keep NZ datasets for initial load.

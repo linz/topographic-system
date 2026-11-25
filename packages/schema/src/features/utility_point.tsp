@@ -10,7 +10,7 @@ namespace Linz.Topography;
 model utility_point {
   ...TopographicFeature;
   type: utility_point_type;
-  orientation: int32 | null;
+  orientation: int32 = 0;
   theme: Theme.Utility;
   ...TopographicMetadata;
   ...GeoParquet;
