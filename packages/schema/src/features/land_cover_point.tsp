@@ -5,20 +5,41 @@ using TypeSpec.JsonSchema;
 namespace Linz.Topography;
 
 @jsonSchema("land_cover_point")
-@extension("additionalProperties", false)
-model land_cover_point {
-  ...TopographicFeature;
-  type: land_cover_point_type | "rock_outcrop";
-  orientation: int32 | null;
-  elevation: int32 | null;
-  subtype: rock_outcrop_subtype | null;
+@oneOf
+union land_cover_point {
+  rock_outcrop: rock_outcrop,
+  other_land_cover_points: land_cover_point_core_types,
+}
+
+// Not decorated with @jsonSchema so it does not get emitted standalone.
+model LandCoverPointCommon {
   name: string | null;
   theme: Theme.Landcover;
   ...TopographicMetadata;
   ...GeoParquet;
 }
 
-enum land_cover_point_type {
+@extension("additionalProperties", false)
+model rock_outcrop {
+  ...TopographicFeature;
+  type: "rock_outcrop";
+  orientation: int32 | null;
+  elevation: int32 | null;
+  subtype: rock_outcrop_subtype | null;
+  ...LandCoverPointCommon;
+}
+
+@extension("additionalProperties", false)
+model land_cover_point_core_types {
+  ...TopographicFeature;
+  type: land_cover_point_core_type;
+  orientation: null;
+  elevation: null;
+  subtype: null;
+  ...LandCoverPointCommon;
+}
+
+enum land_cover_point_core_type {
   Cemetery: "cemetery",
   Fumarole: "fumarole",
   Swamp: "swamp",

@@ -19,13 +19,66 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
 
 /**
  * Extract all property names from a JSON schema's properties object.
- * This handles nested property definitions at the top level.
+ * This handles nested property definitions at the top level and @oneOf union types.
+ * For @oneOf schemas, collects all properties from all branches.
  */
 function getSchemaProperties(schema: SchemaObject): string[] {
+  const properties = new Set<string>();
+
+  // Handle direct properties
   if (typeof schema['properties'] === 'object' && schema['properties'] !== null) {
-    return Object.keys(schema['properties'] as Record<string, unknown>);
+    Object.keys(schema['properties'] as Record<string, unknown>).forEach((p) => properties.add(p));
   }
-  return [];
+
+  // Handle @oneOf union types by collecting properties from each branch
+  if (Array.isArray(schema['oneOf'])) {
+    for (const branch of schema['oneOf']) {
+      if (typeof branch === 'object' && branch !== null) {
+        // Handle $ref references
+        if ('$ref' in branch && typeof branch['$ref'] === 'string') {
+          const refPath = branch['$ref'] as string;
+          const refName = refPath.split('/').pop();
+          if (refName && typeof schema['$defs'] === 'object' && refName in schema['$defs']) {
+            const refSchema = (schema['$defs'] as Record<string, SchemaObject>)[refName];
+            if (typeof refSchema['properties'] === 'object' && refSchema['properties'] !== null) {
+              Object.keys(refSchema['properties'] as Record<string, unknown>).forEach((p) => properties.add(p));
+            }
+          }
+        }
+        // Handle inline properties
+        if (typeof branch['properties'] === 'object' && branch['properties'] !== null) {
+          Object.keys(branch['properties'] as Record<string, unknown>).forEach((p) => properties.add(p));
+        }
+      }
+    }
+  }
+
+  return Array.from(properties);
+}
+
+/**
+ * Normalize numeric values in a record for schema validation.
+ * Converts float values that represent integers back to integers (e.g., 0.0 -> 0).
+ * Converts NaN values to null for proper null validation.
+ * This handles geopandas behavior where integer columns are read as float64.
+ */
+function normalizeNumericValues(record: any): void {
+  for (const key in record) {
+    const value = record[key];
+    // Handle NaN (geopandas reads missing values as NaN, schema expects null)
+    if (typeof value === 'number' && isNaN(value)) {
+      record[key] = null;
+    }
+    // Convert floats that are whole numbers back to integers
+    // (geopandas reads integer FGB columns as float64)
+    else if (typeof value === 'number' && Number.isInteger(value)) {
+      // Value is already an integer, no conversion needed
+      continue;
+    } else if (typeof value === 'number' && value % 1 === 0) {
+      // Float value is a whole number, convert to integer
+      record[key] = Math.trunc(value);
+    }
+  }
 }
 
 /**
@@ -61,6 +114,9 @@ async function* readFgbGroups(
     // Convert GeoJSON feature to record format: combine geometry and properties
     const record: any = { ...feature.properties, geometry: feature.geometry };
 
+    // Normalize numeric values: convert NaN to null, floats to ints where appropriate
+    normalizeNumericValues(record);
+
     // FlatGeoBuf may not deserialize nullable columns; fill in missing ones with null
     // so the validator can apply nullable schema rules.
     // Skip 'geometry' (already present) and 'bbox' (computed property, not data).
@@ -77,7 +133,6 @@ async function* readFgbGroups(
       yield batch.splice(0, batchSize);
     }
   }
-
 
   if (batch.length > 0) {
     yield batch;
@@ -191,7 +246,9 @@ export const ValidateSchemaCommand = command({
   },
   async handler(args) {
     const q = qFromArgs(args);
-    const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
+    // Disable strict mode to allow @oneOf schemas without discriminator properties
+    // Strict mode prevents unknown keywords and can interfere with @oneOf union type validation
+    const ajv = new Ajv.default({ strict: false, allErrors: true, verbose: true });
     addFormats.default(ajv);
 
     const schemaContent = await loadSchema(args.schema);
