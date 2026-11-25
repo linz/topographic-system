@@ -50,31 +50,6 @@ function getSchemaProperties(kartSchema: any[]): string[] {
 }
 
 /**
- * Normalize numeric values in a record for schema validation.
- * Converts float values that represent integers back to integers (e.g., 0.0 -> 0).
- * Converts NaN values to null for proper null validation.
- * This handles geopandas behavior where integer columns are read as float64.
- */
-function normalizeNumericValues(record: any): void {
-  for (const key in record) {
-    const value = record[key];
-    // Handle NaN (geopandas reads missing values as NaN, schema expects null)
-    if (typeof value === 'number' && isNaN(value)) {
-      record[key] = null;
-    }
-    // Convert floats that are whole numbers back to integers
-    // (geopandas reads integer FGB columns as float64)
-    else if (typeof value === 'number' && Number.isInteger(value)) {
-      // Value is already an integer, no conversion needed
-      continue;
-    } else if (typeof value === 'number' && value % 1 === 0) {
-      // Float value is a whole number, convert to integer
-      record[key] = Math.trunc(value);
-    }
-  }
-}
-
-/**
  * Read FGB (FlatGeoBuf) file and yield records in groups.
  * FGB files contain geospatial features with properties.
  *
@@ -101,7 +76,6 @@ async function* readFgbGroups(
   // First pass: collect all records and discover all columns that appear in the file
   for await (const feature of geojson.deserialize(buffer)) {
     const record: any = { ...feature.properties, geometry: feature.geometry };
-    normalizeNumericValues(record);
 
     // Track columns from actual file data
     Object.keys(record).forEach((col) => fileColumns.add(col));
