@@ -20,6 +20,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from opentelemetry.trace import SpanKind
+
 from kart_import.log import log_context
 
 from ..command import run_command
@@ -118,9 +120,12 @@ def push_repo(repo_name: str, to_master: bool = False, force: bool = False) -> s
             refspecs.append(f"refs/tags/{tag}")
 
         # Branch (and tag, at a release marker) in one round trip; a commit already on the
-        # remote is a no-op, not a re-send.
+        # remote is a no-op, not a re-send. CLIENT: a real network round trip to GitHub, not
+        # local processing -- dropped before export like any other sub-1s span (see log.py) when
+        # it's the common no-op case, kept when a real/retried push makes it worth seeing.
         git_command.extend(["origin", *refspecs])
-        push_with_retry(git_command, repo_dir)
+        with log_context(action="push_commit", repo=repo_name, commit=sha[:8], kind=SpanKind.CLIENT):
+            push_with_retry(git_command, repo_dir)
 
         if release_id is not None:
             logger.info("pushing chunk", extra={"push": release_id, "of": final_release})

@@ -8,9 +8,10 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypeVar
 
 from opentelemetry.context import attach, detach, get_current
+from opentelemetry.trace import SpanKind
 
 from .env import env_thread_count
-from .log import log_context
+from .log import flush_telemetry, log_context
 
 logger = logging.getLogger("kart_import")
 
@@ -18,17 +19,21 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 
-def register_sigint_handler() -> None:
-    def handle_sigint(signum: Any, frame: Any) -> None:
-        # Forcefully exit immediately on Ctrl+C to prevent ThreadPoolExecutor / Dask hangs
+def register_signal_handlers() -> None:
+    def handle_signal(signum: Any, frame: Any) -> None:
+        # Forcefully exit immediately to prevent ThreadPoolExecutor / Dask hangs (on Ctrl+C) or a
+        # slow shutdown eating into Kubernetes/Argo's termination grace period (on SIGTERM). This
+        # bypasses atexit, so flush whatever telemetry is buffered ourselves before exiting.
+        flush_telemetry()
         os._exit(1)
 
     with contextlib.suppress(ValueError):
-        signal.signal(signal.SIGINT, handle_sigint)
+        signal.signal(signal.SIGINT, handle_signal)
+        signal.signal(signal.SIGTERM, handle_signal)
 
 
 # Register automatically when the module is imported
-register_sigint_handler()
+register_signal_handlers()
 
 
 _thread_indices: dict[int, int] = {}
@@ -48,6 +53,7 @@ def run_in_thread_pool(
     items: Iterable[T],
     thread_count: int | None = None,
     trace_items: bool = True,
+    span_kind: SpanKind = SpanKind.INTERNAL,
 ) -> list[R]:
     """Runs a function in parallel over an iterable of items using a ThreadPoolExecutor.
 
@@ -57,7 +63,11 @@ def run_in_thread_pool(
     Each item gets its own span/log line named after `func`, unless `trace_items` is False - set
     that when `func` already opens its own properly-named `log_context` per item, so the item
     isn't traced twice under a redundant, generically-named span (e.g. the function's name, or
-    `<lambda>` for an inline one).
+    `<lambda>` for an inline one). A span under `OTEL_MIN_SPAN_DURATION_SECONDS` (default 1s) is
+    dropped before export rather than skipped here, so it's still fully visible locally/on error.
+
+    Pass `span_kind=SpanKind.CLIENT` when `func` is itself a call out to another system (e.g.
+    downloading a file) rather than local processing -- see `log_context`.
 
     `thread_count` defaults to `env_thread_count()` (KART_IMPORT_THREAD_COUNT) when not given.
     """
@@ -82,7 +92,7 @@ def run_in_thread_pool(
             elif isinstance(item, (str, int)):
                 ctx_kwargs["item"] = str(item)[:12]
 
-            with log_context(**ctx_kwargs):
+            with log_context(kind=span_kind, **ctx_kwargs):
                 return func(item)
         finally:
             detach(token)

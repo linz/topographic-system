@@ -383,6 +383,7 @@ def merge_theme_all_releases(theme_name: str, thread_count: int | None = None) -
     def merge_release(release: Release) -> None:
         # Named (not a lambda) and wrapped in its own span so each release still traces as its own
         # "theme: <theme> [rN]", matching the span a dedicated `uv run` process used to open.
+        # Dropped before export if it ran under OTEL_MIN_SPAN_DURATION_SECONDS (see log.py).
         with log_context(action="theme", theme=theme_name, release=release.id):
             merge_theme_release(theme_name, release.id)
 

@@ -380,6 +380,7 @@ def transform_dataset_all_releases(dataset_name: str, thread_count: int | None =
     def transform_release(release: Release) -> None:
         # Named (not a lambda) and wrapped in its own span so each release still traces as its own
         # "transform: dataset [rN]", matching the span a dedicated `uv run` process used to open.
+        # Dropped before export if it ran under OTEL_MIN_SPAN_DURATION_SECONDS (see log.py).
         with log_context(action="transform", dataset=dataset_name, release=release.id):
             transform_dataset_release(dataset_name, release.id)
 
