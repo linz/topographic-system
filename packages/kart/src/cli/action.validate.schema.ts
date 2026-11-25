@@ -1,7 +1,5 @@
-import { createReadStream } from 'fs';
-
 import { fsa } from '@chunkd/fs';
-import { concurrency, logger, qFromArgs, qMapAll, Url } from '@linzjs/topographic-system-shared';
+import { concurrency, logger, qFromArgs, qMapAll, readParquetGroups, Url } from '@linzjs/topographic-system-shared';
 import addFormats from 'ajv-formats';
 import type { ErrorObject, SchemaObject } from 'ajv/dist/2020.js';
 import Ajv from 'ajv/dist/2020.js';
@@ -80,7 +78,8 @@ function normalizeNumericValues(record: any): void {
  * Read FGB (FlatGeoBuf) file and yield records in groups.
  * FGB files contain geospatial features with properties.
  *
- * Discovers all columns by scanning the entire file and combines with schema-expected columns.
+ * Uses efficient file reading with fsa to avoid streaming overhead.
+ * Discovers all columns by scanning the file and combines with schema-expected columns.
  * Fills in missing columns with null for records that don't have all columns.
  * Some columns may be entirely absent from the file (all null values),
  * so we use schema properties to ensure complete record validation.
@@ -92,17 +91,10 @@ async function* readFgbGroups(
   schemaProperties: string[] = [],
   batchSize: number = 1000,
 ): AsyncGenerator<unknown[]> {
-  const filePath = new URL(path).pathname;
+  // Read entire file efficiently using fsa
+  const fileContent = await fsa.read(path);
+  const buffer = fileContent instanceof ArrayBuffer ? new Uint8Array(fileContent) : (fileContent as Uint8Array);
 
-  // Read entire file from disk
-  const stream = createReadStream(filePath);
-  const chunks: Buffer[] = [];
-
-  for await (const chunk of stream) {
-    chunks.push(chunk as Buffer);
-  }
-
-  const buffer = Buffer.concat(chunks);
   const fileColumns = new Set<string>();
   const records: any[] = [];
 
@@ -278,7 +270,7 @@ export const ValidateSchemaCommand = command({
 
       const schemaProperties = getSchemaProperties(kartSchema);
       const reader = isParquet
-        ? () => readParquetGroupsNormalized(path, schemaProperties, args.decodeGeometry)
+        ? () => readParquetGroups(path, { decodeGeometry: args.decodeGeometry })
         : () => readFgbGroups(path, schemaProperties);
 
       for await (const group of reader()) {
