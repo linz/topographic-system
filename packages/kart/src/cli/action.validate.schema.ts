@@ -7,6 +7,21 @@ import { command, flag, option, restPositionals } from 'cmd-ts';
 import * as geojson from 'flatgeobuf/geojson';
 import yaml from 'js-yaml';
 
+/**
+ * Column definition from a Kart schema file.
+ */
+interface KartSchemaColumn {
+  id?: string;
+  name: string;
+  dataType?: string;
+  primaryKeyIndex?: number;
+}
+
+/**
+ * Kart schema is a simple array of column definitions.
+ */
+type KartSchema = KartSchemaColumn[];
+
 async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
   const content = await fsa.read(schemaPath);
   if (schemaPath.href.endsWith('.json')) return JSON.parse(String(content));
@@ -18,16 +33,11 @@ async function loadSchema(schemaPath: URL): Promise<SchemaObject> {
 /**
  * Load Kart schema file (column definitions array).
  * Kart schema is a simple JSON array with column metadata.
+ * Throws if the kart schema file is not found or invalid.
  */
-async function loadKartSchema(schemaPath: URL): Promise<any[]> {
+async function loadKartSchema(schemaPath: URL): Promise<KartSchema> {
   const kartSchemaPath = new URL(`${schemaPath.href.replace(/\.json$/, '')}.kart.json`);
-  try {
-    const content = await fsa.read(kartSchemaPath);
-    return JSON.parse(String(content));
-  } catch {
-    // Fallback: return empty array if kart schema not found
-    return [];
-  }
+  return await fsa.readJson<KartSchema>(kartSchemaPath);
 }
 
 /**
@@ -35,7 +45,7 @@ async function loadKartSchema(schemaPath: URL): Promise<any[]> {
  * Kart schema is a simple array of column definitions with names.
  * This is much simpler than parsing complex JSON schemas.
  */
-function getSchemaProperties(kartSchema: any[]): string[] {
+function getSchemaProperties(kartSchema: KartSchema): string[] {
   const columns = new Set<string>();
 
   if (Array.isArray(kartSchema)) {
