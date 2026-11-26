@@ -1,0 +1,25 @@
+name: nztopo50_tile_index
+target_repo: topographic-product-data
+target_epsg: EPSG:2193 # the tiles are ruled in NZTM2000
+schema_version:
+  default: v0.3
+datasets:
+  # The Topo50 sheet grid from the LINZ Data Service (nz-150k-tile-index)
+  - source: kart@data.koordinates.com:linz/nz-150k-tile-index
+    name: nztopo50_tile_index
+    # The source's primary key. Without it the lifecycle falls back to an auto_pk column
+    # this layer doesn't have; keying on the sheet code also keeps ids stable across LDS reloads
+    feature_key: sheet_code_id
+    # The sheet layout predates the LDS layer, so releases before it reuse its first version
+    backfill: true
+    mapping:
+      sheet_code_id: $
+      scale: 50000
+      topo50_coverage: $
+      metadata: null
+    corrections:
+      - column: topo50_coverage
+        replace:
+          'Yes': 'yes'
+          'Partial': 'partial'
+          'No': 'no'
