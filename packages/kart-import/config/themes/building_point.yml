@@ -83,6 +83,7 @@ datasets:
           'sunstation': substation # source typo, 1 feature, release 36
           'salt works': salt_works
           'shingle works': shingle_works
+          'silos': silo # release 58, 10 features
           'stamping battery': stamping_battery
           'surf club': surf_club
           'visitor centre': visitor_centre

@@ -1159,12 +1159,45 @@ def gate_closed_status(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int)
     return gdf
 
 
+def drop_building_invalid_subtypes(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Drop building records with invalid subtypes not in the schema.
+
+    BM-1783: `chimney` (10 features, releases 32-36) and `railway station` (2 features, releases
+    41-42) are not valid values in the building_subtype ENUM. These records are non-functional
+    and should be dropped rather than assigned a placeholder value.
+    """
+    import pandas as pd
+
+    invalid_subtypes = {"railway station", "chimney"}
+    subtype_col = gdf["subtype"].astype("string")
+    to_drop = subtype_col.isin(invalid_subtypes)
+
+    if not to_drop.any():
+        return gdf
+
+    dropped_count = to_drop.sum()
+    t50_fids = pd.to_numeric(gdf.loc[to_drop, "t50_fid"], errors="coerce").astype(int).tolist()
+
+    logger.info(
+        "dropping building records with invalid subtypes",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "dropped": dropped_count,
+            "invalid_subtypes": list(invalid_subtypes),
+            "t50_fids": sorted(t50_fids),
+        },
+    )
+    return gdf[~to_drop].reset_index(drop=True)
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
     "build_road_metadata": build_road_metadata,
     "carto_text_example_point_id": carto_text_example_point_id,
     "carto_text_styling": carto_text_styling,
+    "drop_building_invalid_subtypes": drop_building_invalid_subtypes,
     "drop_degenerate_fences": drop_degenerate_fences,
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,
