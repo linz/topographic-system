@@ -62,6 +62,7 @@ enum substance_extracted {
   Ironsand: "ironsand",
   Lime: "lime",
   Limestone: "limestone",
+  Limeworks: "limeworks",
   Metal: "metal",
   Quartz: "quartz",
   Scheelite: "scheelite",

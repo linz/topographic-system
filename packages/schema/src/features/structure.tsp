@@ -60,6 +60,7 @@ enum structure_tank_type {
   Uncovered: "uncovered",
   Water: "water",
   SurgeChamber: "surge_chamber",
+  Reservoir: "reservoir",
 }
 
 enum structure_species {

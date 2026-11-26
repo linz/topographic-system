@@ -139,7 +139,17 @@ datasets:
   #    corrections: [*geo_name_type_correction]
   - source: kart@data.koordinates.com:linz/nz-geographic-names-topo-150k
     mapping: *geographic_name
-    corrections: [*geo_name_type_correction]
+    corrections:
+      - *geo_name_type_correction
+      # TODO: Remove these hardcoded corrections once upstream source data is fixed.
+      # These records have no `desc_code` at source (upstream data gap).
+      # Hardcoded as 'unknown' type until the source dataset is updated.
+      - column: type
+        set: unknown
+        where: { t50_fid: 6282556 } # Missing type in releases 35-37
+      - column: type
+        set: unknown
+        where: { t50_fid: 5429178 } # Missing type in releases 54-61
     fixups: *geo_name_split
   - source: kart@data.koordinates.com:linz/nz-antipodes-island-geographic-names-topo-125k
     feature_key: auto_pk

@@ -28,6 +28,7 @@ enum bridge_type {
 }
 
 enum bridge_subtype {
+  Farm: "farm",
   FootTraffic: "foot_traffic",
   Train: "train",
 }

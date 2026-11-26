@@ -22,6 +22,7 @@ enum building_subtype {
   Abattoir: "abattoir",
   Camp: "camp",
   CementWorks: "cement_works",
+  Chimney: "chimney", // TODO: We shouldn't support railway station, will need remove this after data (release_32-36) fix.
   Church: "church",
   EnergyFacility: "energy_facility",
   Factory: "factory",
@@ -45,6 +46,7 @@ enum building_subtype {
   PowerGeneration: "power_generation",
   Prison: "prison",
   PrivateHut: "private_hut",
+  RailwayStation: "railway_station", // TODO: We shouldn't support railway station, will need remove this after data (release_41-42) fix.
   ResearchCentre: "research_centre",
   SaltWorks: "salt_works",
   School: "school",

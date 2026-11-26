@@ -23,9 +23,9 @@ model LandCoverPointCommon {
 model rock_outcrop {
   ...TopographicFeature;
   type: "rock_outcrop";
-  orientation: int32;
-  elevation: int32;
-  subtype: rock_outcrop_subtype;
+  orientation: int32 | null;
+  elevation: int32 | null;
+  subtype: rock_outcrop_subtype | null;
   ...LandCoverPointCommon;
 }
 
