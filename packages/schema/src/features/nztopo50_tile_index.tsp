@@ -11,7 +11,6 @@ namespace Linz.Topography;
  * 1:50,000 tile index: the NZTM2000 (EPSG:2193) Topo50 sheet grid used by the LINZ imagery and
  * mapping tile layouts. Imported from the LINZ Data Service.
  */
-@added(Versions.v0_4)
 @jsonSchema("nztopo50_tile_index")
 @extension("additionalProperties", false)
 model nztopo50_tile_index {
