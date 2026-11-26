@@ -16,8 +16,15 @@ datasets:
       metadata: null
     corrections:
       - { column: type, replace: { 'foot traffic': foot_traffic } }
-      - { column: subtype, replace: { ivestock: livestock } }
+      - { column: subtype, replace: { ivestock: livestock, 'live stock': livestock } }
+      # Releases 34-43: 'farm' in subtype is invalid; subtype only allows 'livestock' or null
+      - { column: subtype, set: null, where: { subtype: 'farm' } }
+      # Release 45 bug: 'foot traffic' (space) in subtype - remove it since subtype should only be livestock or null
+      - { column: subtype, set: null, where: { subtype: 'foot traffic' } }
+      - { column: subtype, set: null, where: { subtype: 'foot_traffic' } }
       - { column: status, replace: { 'under construction': under_construction } }
+      # FALSE is not a valid status value we need to set it to null
+      - { column: status, set: null, where: { status: 'FALSE' } }
       # A handful of releases have use1/use2 swapped: `vehicle` lands in use2 and `livestock` in use1. Put each back in its own column.
       - { column: type, set: vehicle, where: { subtype: vehicle } }
       - { column: subtype, set: livestock, where: { subtype: vehicle } }
