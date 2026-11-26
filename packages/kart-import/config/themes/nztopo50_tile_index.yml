@@ -2,7 +2,7 @@ name: nztopo50_tile_index
 target_repo: topographic-product-data
 target_epsg: EPSG:2193 # the tiles are ruled in NZTM2000
 schema_version:
-  default: v0.4
+  default: v0.3
 datasets:
   # The Topo50 sheet grid from the LINZ Data Service (nz-150k-tile-index)
   - source: kart@data.koordinates.com:linz/nz-150k-tile-index
