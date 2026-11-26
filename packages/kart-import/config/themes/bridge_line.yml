@@ -30,6 +30,9 @@ datasets:
       - column: type
         replace:
           foot traffic: foot_traffic
+      - column: subtype
+        replace:
+          foot traffic: foot_traffic
       # `subtype` (bridge_subtype) only has `foot_traffic`/`train` values; a farm bridge's
       # `use_2` carries no meaningful subtype (e.g. "vehicle", which is a `type` on its own).
       - column: subtype
