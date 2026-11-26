@@ -147,6 +147,24 @@ def drop_degenerate_roads(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: i
     return _drop_listed_empty(gdf, td, "nz_road_centrelines", {6635943, 8532247})
 
 
+def drop_records_with_null_name(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Drop records where the name field is null."""
+    if "name" not in gdf.columns:
+        logger.warning(f"name column not found in {td.name}, skipping drop_records_with_null_name")
+        return gdf
+
+    drop = gdf["name"].isna()
+    if not drop.any():
+        return gdf
+
+    dropped_count = int(drop.sum())
+    logger.info(
+        f"dropping {dropped_count} record(s) with null name",
+        extra={"dataset": td.name, "release": release_id, "dropped": dropped_count},
+    )
+    return gdf[~drop].reset_index(drop=True)
+
+
 class SourceRef(NamedTuple):
     """The constant half of a provenance record: which target column it explains, and where that
     column's value came from. Only `source_key_value` varies per row.
@@ -1169,6 +1187,7 @@ FIXUPS: dict[str, Fixup] = {
     "drop_degenerate_roads": drop_degenerate_roads,
     "drop_degenerate_tracks": drop_degenerate_tracks,
     "drop_empty_residential_areas": drop_empty_residential_areas,
+    "drop_records_with_null_name": drop_records_with_null_name,
     "fish_farm_species": fish_farm_species,
     "gate_closed_status": gate_closed_status,
     "generate_dms_grid_features": generate_dms_grid_features,

@@ -105,6 +105,7 @@ _corrections:
 _fixups:
   geo_name_split: &geo_name_split
     - fn: split_bay_inlet_gorge_valley
+    - fn: drop_records_with_null_name
 
 datasets:
   # Only keep NZ datasets for initial load.
