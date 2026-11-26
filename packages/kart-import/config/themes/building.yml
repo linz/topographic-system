@@ -62,15 +62,15 @@ datasets:
           'visitor centre': visitor_centre
           'water treatment': water_treatment_plant # 1 feature, release 58
           'water treatment plant': water_treatment_plant
-          # BM-1783 (add ENUM values): `chimney` (10 features, releases 32-36) and
-          # `railway_station` (2, releases 41-42) still need a building_subtype value.
-          'railway station': railway_station
     fixups:
       # t50_fid 8229245 is two blobs joined by a 0.107 mm isthmus, which the 1e-8 degree
       # (~1.1 mm) precision snap in normalize_projection closes into a 2-part MultiPolygon.
       # Split the smaller 345 m2 part off as its own null-t50_fid record so the layer stays
       # uniformly POLYGON (a single multipart feature types the whole dataset GEOMETRY).
       - fn: split_multipart_features
+      # BM-1783: Drop records with invalid subtypes not in schema: `chimney` (10 features,
+      # releases 32-36) and `railway_station` (2 features, releases 41-42).
+      - fn: drop_building_invalid_subtypes
   - source: kart@data.koordinates.com:linz/nz-chatham-island-building-polygons-topo-150k
     mapping:
       t50_fid: $
