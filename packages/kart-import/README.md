@@ -164,13 +164,15 @@ machines/credentials:
    needed**: schema, release→commit resolution, and feature lifecycle are all derived from
    `data/export/`, not from a live clone.
 
-   To fetch exports lazily on demand from a remote HTTPS or S3 location (fetching each entry's
+   By default, Stage 2 fetches exports lazily on demand from `KART_EXPORT_URL` (defaulting to
+   `https://d1jzh93b1t1cv.cloudfront.net/source/export/`): fetching each entry's
    `<entry>.releases.json`, validating its `config` (`topo50_release.yml`) hash, and downloading only the
    per-commit parquets/sidecars needed by the configured releases that aren't already cached
-   locally), set `KART_EXPORT_URL`:
+   locally. Override `KART_EXPORT_URL` to use a different HTTPS/S3 location, or set
+   `KART_EXPORT_URL=local` (or `""`) to clone/export locally from Kart instead:
 
    ```shell
-   KART_EXPORT_URL=https://example.com/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
+   uv run snakemake --cores=4 process_all --quiet | npx pjl
    # or from S3:
    KART_EXPORT_URL=s3://linz-topography-nonprod/source/export/ uv run snakemake --cores=4 process_all --quiet | npx pjl
    ```

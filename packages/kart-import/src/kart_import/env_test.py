@@ -1,6 +1,7 @@
 import pytest
 
 from .env import (
+    DEFAULT_EXPORT_URL,
     env_export_url,
     env_push_force,
     env_push_to_master,
@@ -104,8 +105,14 @@ def test_source_dir_override_need_not_already_exist(monkeypatch, tmp_path):
     assert env_source_dir_override() == str(missing)
 
 
-def test_export_url_unset_is_none(monkeypatch):
+def test_export_url_defaults_to_https(monkeypatch):
     monkeypatch.delenv("KART_EXPORT_URL", raising=False)
+    assert env_export_url() == DEFAULT_EXPORT_URL
+
+
+@pytest.mark.parametrize("raw", ["", "  ", "local", "LOCAL"])
+def test_export_url_disabled_returns_none(monkeypatch, raw):
+    monkeypatch.setenv("KART_EXPORT_URL", raw)
     assert env_export_url() is None
 
 
