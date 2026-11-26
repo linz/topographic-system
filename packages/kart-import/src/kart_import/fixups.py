@@ -152,11 +152,11 @@ def drop_records_with_null_name(gdf: gpd.GeoDataFrame, td: ThemeDataset, release
     if "name" not in gdf.columns:
         logger.warning(f"name column not found in {td.name}, skipping drop_records_with_null_name")
         return gdf
-    
+
     drop = gdf["name"].isna()
     if not drop.any():
         return gdf
-    
+
     dropped_count = int(drop.sum())
     logger.info(
         f"dropping {dropped_count} record(s) with null name",
