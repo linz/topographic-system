@@ -17,6 +17,7 @@
     "ajv-formats": "^3.0.1",
     "cmd-ts": "^0.14.3",
     "fast-xml-parser": "^5.5.11",
+    "flatgeobuf": "^4.6.1",
     "zx": "^8.8.5"
   },
   "devDependencies": {
