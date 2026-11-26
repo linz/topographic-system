@@ -14,8 +14,8 @@ model nztopo50_carto_symbol {
   type: carto_symbol_type;
   label: string | null;
 
-  /** Label rotation in degrees clockwise from east. Null for symbols drawn unrotated. */
-  orientation: int32 | null;
+  /** Label rotation in degrees clockwise from east. 0 for symbols drawn unrotated. */
+  orientation: int32 = 0;
 
   ...TopographicMetadata;
   ...GeoParquet;

@@ -13,7 +13,7 @@ model relief_point {
   name: string | null;
   elevation: int32 | null;
   height: float64 | null;
-  orientation: int32 | null;
+  orientation: int32 = 0;
   theme: Theme.Relief;
   ...TopographicMetadata;
   ...GeoParquet;

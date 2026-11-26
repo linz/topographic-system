@@ -12,7 +12,7 @@ _mappings:
     type: soakhole
     name: null
     height: null
-    orientation: null
+    orientation: 0
     temperature_indicator: null
     theme: land_cover
     metadata: null
@@ -21,7 +21,7 @@ _mappings:
     type: waterfall
     name: $
     height: $
-    orientation: null
+    orientation: 0
     temperature_indicator: null
     theme: land_cover
     metadata: null
@@ -46,7 +46,7 @@ datasets:
       type: soakhole
       name: null
       height: null
-      orientation: { source: $orientatn, since_release: 50 }
+      orientation: { source: $orientatn, since_release: 50, default: 0 }
       temperature_indicator: null
       theme: land_cover
       metadata: null
@@ -71,7 +71,7 @@ datasets:
       type: spring
       name: $
       height: null
-      orientation: null
+      orientation: 0
       temperature_indicator: $temp
       theme: land_cover
       metadata: null
@@ -82,7 +82,7 @@ datasets:
       type: spring
       name: $
       height: null
-      orientation: null
+      orientation: 0
       temperature_indicator: $temp
       theme: land_cover
       metadata: null
@@ -106,7 +106,7 @@ datasets:
       name: $
       height: $
       # `orientatn` was added to the source schema on 2020-06-10 (release 50).
-      orientation: { source: $orientatn, since_release: 50 }
+      orientation: { source: $orientatn, since_release: 50, default: 0 }
       temperature_indicator: null
       theme: land_cover
       metadata: null

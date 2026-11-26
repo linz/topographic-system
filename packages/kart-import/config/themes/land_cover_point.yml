@@ -13,7 +13,7 @@ _mappings:
     subtype: null
     elevation: null
     name: $
-    orientation: null
+    orientation: 0
     theme: land_cover
     metadata: null
   swamp: &swamp
@@ -22,7 +22,7 @@ _mappings:
     subtype: null
     elevation: null
     name: $
-    orientation: null
+    orientation: 0
     theme: land_cover
     metadata: null
 
@@ -63,7 +63,7 @@ datasets:
       subtype: null
       elevation: null
       name: null
-      orientation: null
+      orientation: 0
       theme: land_cover
       metadata: null
 
@@ -78,7 +78,7 @@ datasets:
       elevation: $
       name: $
       # `orientatn` was added to the source schema on 2020-06-10 (release 50).
-      orientation: { source: $orientatn, since_release: 50 }
+      orientation: { source: $orientatn, since_release: 50, default: 0 }
       theme: land_cover
       metadata: null
     fixups:

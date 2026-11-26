@@ -13,7 +13,7 @@ _mappings:
     name: null
     elevation: $
     height: null
-    orientation: null
+    orientation: 0
     theme: relief
     metadata: null
 
@@ -28,7 +28,7 @@ datasets:
       elevation: $
       height: null
       # `orientatn` was added to the source schema on 2020-06-10 (release 50).
-      orientation: { source: $orientatn, since_release: 50 }
+      orientation: { source: $orientatn, since_release: 50, default: 0 }
       theme: relief
       metadata: null
     fixups:
@@ -46,7 +46,7 @@ datasets:
       name: null
       elevation: null
       height: null
-      orientation: null
+      orientation: 0
       theme: relief
       metadata: null
 
@@ -96,7 +96,7 @@ datasets:
       name: null
       elevation: null
       height: null
-      orientation: null
+      orientation: 0
       theme: relief
       metadata: null
 
@@ -109,7 +109,7 @@ datasets:
       elevation: null
       height: $
       # `orientatn` was added to the source schema on 2020-06-10 (release 50).
-      orientation: { source: $orientatn, since_release: 50 }
+      orientation: { source: $orientatn, since_release: 50, default: 0 }
       theme: relief
       metadata: null
     fixups:
