@@ -101,6 +101,8 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-scrub-polygons-topo-150k
     name: nz_scrub_polygons_topo_150k
     mapping: *scrub
+    fixups:
+      - fn: split_multipart_features
   - source: kart@data.koordinates.com:linz/nz-chatham-island-scrub-polygons-topo-150k
     name: nz_chatham_island_scrub_polygons_topo_150k
     mapping: *scrub

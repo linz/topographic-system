@@ -150,6 +150,8 @@ datasets:
   - source: kart@data.koordinates.com:linz/nz-shingle-polygons-topo-150k
     name: nz_shingle_polygons_topo_150k
     mapping: *shingle
+    fixups:
+      - fn: split_multipart_features
   - source: kart@data.koordinates.com:linz/nz-chatham-island-shingle-polygons-topo-150k
     name: nz_chatham_island_shingle_polygons_topo_150k
     mapping: *shingle
