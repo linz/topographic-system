@@ -5,6 +5,7 @@ import os
 import re
 import time
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 
 import dask_geopandas as dgpd  # type: ignore[import-untyped]
@@ -29,7 +30,7 @@ from ..kart_types import coerce_integer_columns
 from ..log import log_context
 from ..thread import run_in_thread_pool
 from .extract.export import gpd_read
-from .fid_lifecycle import get_fid_lifecycle_file
+from .fid_lifecycle import get_fid_lifecycle_file, updated_at_for_release
 
 logger = logging.getLogger("kart_import")
 
@@ -172,6 +173,7 @@ def normalize_field_lifecyle(
     gdf: gpd.GeoDataFrame,
     td: ThemeDataset,
     lifecycle_data: dict,
+    as_of: datetime | None = None,
 ) -> gpd.GeoDataFrame:
     # Initialize lifecycle columns
     gdf["created_at"] = None
@@ -191,10 +193,8 @@ def normalize_field_lifecyle(
     primary_key = gdf[pk_col].astype(str)
 
     gdf["created_at"] = primary_key.map(lambda x: lifecycle_data.get(x, {}).get("created_at"))
-    # updated_at is the feature's real last-modified from the lifecycle
-    gdf["updated_at"] = primary_key.map(
-        lambda x: lifecycle_data.get(x, {}).get("updated_at") or lifecycle_data.get(x, {}).get("created_at")
-    )
+    # updated_at is the feature's last-modified timestamp as of this release (never from a future release)
+    gdf["updated_at"] = primary_key.map(lambda x: updated_at_for_release(lifecycle_data.get(x, {}), as_of))
 
     # Look up pre-computed UUIDv7 id from lifecycle data
     def get_feature_id(fid):
@@ -380,11 +380,14 @@ def transform_dataset_release(dataset_name: str, release_id: int, wait_for_relea
             with log_context(action="apply_joins"):
                 gdf = apply_joins(gdf, td, release_id)
 
+        release_until = next((r.until for r in releases if r.id == release_id), None)
+
         with log_context(action="normalize"):
             gdf = normalize_field_lifecyle(
                 gdf,
                 td,
                 lifecycle_data,
+                as_of=release_until,
             )
 
             gdf = normalize_projection(gdf, td, theme.target_epsg)

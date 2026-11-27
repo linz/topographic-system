@@ -1,8 +1,10 @@
 import hashlib
 import json
 import logging
-from datetime import datetime
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import numpy as np
@@ -106,9 +108,38 @@ def _frame_row_digests(gdf: gpd.GeoDataFrame, pk_col: str) -> tuple[dict[str, by
     return digests, duplicates
 
 
+def _parse_iso_utc(value: str | datetime) -> datetime:
+    dt = datetime.fromisoformat(value) if isinstance(value, str) else value
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
+def updated_at_for_release(entry: Mapping[str, Any], as_of: datetime | None = None) -> str | None:
+    """Return the feature's `updated_at` timestamp as of `as_of` (a release's cutoff),
+    so earlier releases never inherit a future modification timestamp."""
+    created_at: str | None = entry.get("created_at")
+    if as_of is None:
+        return entry.get("updated_at") or created_at
+
+    cutoff = _parse_iso_utc(as_of)
+    best = created_at
+    updates: list[str] | None = entry.get("updates")
+    if updates is not None:
+        for ts in updates:
+            if _parse_iso_utc(ts) <= cutoff:
+                best = ts
+    else:
+        # Legacy lifecycle.json without per-change `updates` list
+        updated_at: str | None = entry.get("updated_at")
+        if updated_at is not None and _parse_iso_utc(updated_at) <= cutoff:
+            best = updated_at
+    return best
+
+
 def update_lifecycle_from_frame(
     gdf: gpd.GeoDataFrame,
-    lifecycle: dict[str, dict[str, str]],
+    lifecycle: dict[str, dict[str, Any]],
     prev_digests: dict[str, bytes],
     commit_time: str,
     dataset_id: str,
@@ -132,6 +163,9 @@ def update_lifecycle_from_frame(
             }
         elif prev_digests.get(fid_str) != digest:
             entry["updated_at"] = commit_time
+            updates: list[str] = entry.setdefault("updates", [])
+            if not updates or updates[-1] != commit_time:
+                updates.append(commit_time)
 
     if skipped_fids:
         logger.info(f"skipped {len(skipped_fids)} duplicate fids.")
@@ -168,7 +202,7 @@ def generate_lifecycle(dataset_name: str) -> str:
 
     fid_field = detect_fid_field(td, [export_file for _, _, export_file in steps])
 
-    lifecycle: dict[str, dict[str, str]] = {}
+    lifecycle: dict[str, dict[str, Any]] = {}
     prev_digests: dict[str, bytes] = {}
     for commit, commit_time, export_file in steps:
         gdf = gpd_read(export_file)

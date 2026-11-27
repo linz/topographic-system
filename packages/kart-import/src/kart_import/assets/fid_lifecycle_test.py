@@ -37,8 +37,24 @@ def test_update_lifecycle_tracks_additions_modifications_and_unchanged():
     assert lifecycle["1"] == {"id": id_1, "created_at": t1, "updated_at": t1}
     assert lifecycle["2"]["created_at"] == t1
     assert lifecycle["2"]["updated_at"] == t2
+    assert lifecycle["2"]["updates"] == [t2]
     assert lifecycle["3"]["created_at"] == t2
     assert lifecycle["3"]["updated_at"] == t2
+    assert "updates" not in lifecycle["3"]
+
+
+def test_updated_at_for_release_does_not_leak_future_updates():
+    """Each release sees the latest modification timestamp <= its cutoff, never a future one."""
+    t1 = "2015-12-21T20:14:38Z"
+    t2 = "2020-06-10T05:00:00Z"
+    t3 = "2024-03-01T00:00:00Z"
+    entry = {"id": "u1", "created_at": t1, "updated_at": t3, "updates": [t2, t3]}
+
+    assert fid_lifecycle.updated_at_for_release(entry, datetime(2016, 1, 1)) == t1
+    assert fid_lifecycle.updated_at_for_release(entry, datetime(2020, 6, 10, 5, 0, 0)) == t2
+    assert fid_lifecycle.updated_at_for_release(entry, datetime(2023, 1, 1)) == t2
+    assert fid_lifecycle.updated_at_for_release(entry, datetime(2025, 1, 1)) == t3
+    assert fid_lifecycle.updated_at_for_release(entry, None) == t3
 
 
 def test_update_lifecycle_reads_auto_pk_renamed_to_fid():
