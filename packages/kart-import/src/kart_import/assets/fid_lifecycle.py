@@ -103,7 +103,7 @@ def _frame_row_digests(gdf: gpd.GeoDataFrame, pk_col: str) -> tuple[dict[str, by
         attr_hashes = pd.util.hash_pandas_object(gdf[attr_cols], index=False).to_numpy()
     else:
         attr_hashes = np.zeros(len(gdf), dtype=np.uint64)
-    geoms = shapely.set_precision(gdf.geometry.to_numpy(), _geometry_precision(gdf))
+    geoms = shapely.set_precision(gdf.geometry.to_numpy(), _geometry_precision(gdf), mode="pointwise")
     geom_wkbs = shapely.to_wkb(geoms)
     fids = gdf[pk_col].astype(str).to_numpy()
 
