@@ -131,7 +131,32 @@ datasets:
           vehicle: vehicle_racetrack
           cycle: cycle_racetrack
           dog: dog_racetrack
-
+      # Handle invalid horse subtype values from racetrack dataset
+      # t50_fid 8354741: fields are swapped (track_type="horse", track_use="training")
+      # Correct both type and subtype for this record
+      - column: type
+        set: horse_racetrack
+        where:
+          t50_fid: 8354741
+      - column: subtype
+        set: training
+        where:
+          t50_fid: 8354741
+      # t50_fid 8354742: fields are swapped (track_type="horse", track_use="training")
+      # Correct both type and subtype for this record
+      - column: type
+        set: horse_racetrack
+        where:
+          t50_fid: 8354742
+      - column: subtype
+        set: training
+        where:
+          t50_fid: 8354742
+      # t50_fid 8076013: horse racetrack without valid subtype designation - set to null
+      - column: subtype
+        set: null
+        where:
+          subtype: 'horse'
   - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
     mapping:
       t50_fid: $
