@@ -188,7 +188,7 @@ export const ValidateSchemaCommand = command({
     await qMapAll(q, args.paths, async (path) => {
       const schemaUrl = resolveSchemaUrl(path);
       const schema = await loadSchema(schemaUrl);
-      const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true });
+      const ajv = new Ajv.default({ strict: true, allErrors: true, verbose: true, discriminator: true });
       addFormats.default(ajv);
       const validate = ajv.compile(schema);
       const errorSummary = new Map<string, ErrorAggregate>();
