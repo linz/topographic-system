@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import geopandas as gpd
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point
 
 from .. import export_paths
 from ..config import Release, Source, ThemeDataset
@@ -55,6 +55,41 @@ def test_updated_at_for_release_does_not_leak_future_updates():
     assert fid_lifecycle.updated_at_for_release(entry, datetime(2023, 1, 1)) == t2
     assert fid_lifecycle.updated_at_for_release(entry, datetime(2025, 1, 1)) == t3
     assert fid_lifecycle.updated_at_for_release(entry, None) == t3
+
+
+def test_update_lifecycle_ignores_sub_millimetre_geometry_jitter():
+    """Sub-millimetre float noise in projected (1e-3 m) or geographic (1e-8 deg) exports
+    should not bump updated_at, while real geometry edits still do."""
+    lifecycle: dict = {}
+    t1 = "2015-11-19T02:33:38Z"
+    t2 = "2020-11-17T02:42:53Z"
+    t3 = "2021-02-19T07:00:51Z"
+
+    # Projected CRS (EPSG:2193): 5e-10 m jitter should be ignored, 1 m move should register
+    gdf1 = gpd.GeoDataFrame(
+        {"t50_fid": [2111334]},
+        geometry=[LineString([(1226204.0569910007, 4883179.698231999), (1226139.8711170005, 4883177.46908)])],
+        crs="EPSG:2193",
+    )
+    gdf2 = gpd.GeoDataFrame(
+        {"t50_fid": [2111334]},
+        geometry=[LineString([(1226204.0569910002, 4883179.698231999), (1226139.8711170002, 4883177.469079999)])],
+        crs="EPSG:2193",
+    )
+    gdf3 = gpd.GeoDataFrame(
+        {"t50_fid": [2111334]},
+        geometry=[LineString([(1226205.0569910002, 4883179.698231999), (1226139.8711170002, 4883177.469079999)])],
+        crs="EPSG:2193",
+    )
+
+    digests = fid_lifecycle.update_lifecycle_from_frame(gdf1, lifecycle, {}, t1, "ds", "t50_fid")
+    digests = fid_lifecycle.update_lifecycle_from_frame(gdf2, lifecycle, digests, t2, "ds", "t50_fid")
+    assert lifecycle["2111334"]["updated_at"] == t1
+    assert "updates" not in lifecycle["2111334"]
+
+    fid_lifecycle.update_lifecycle_from_frame(gdf3, lifecycle, digests, t3, "ds", "t50_fid")
+    assert lifecycle["2111334"]["updated_at"] == t3
+    assert lifecycle["2111334"]["updates"] == [t3]
 
 
 def test_update_lifecycle_reads_auto_pk_renamed_to_fid():

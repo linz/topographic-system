@@ -83,6 +83,18 @@ def _resolve_pk_column(gdf: gpd.GeoDataFrame, fid_field: str) -> str:
     raise KeyError(f"Primary key column {fid_field!r} not found in export columns: {list(gdf.columns)}")
 
 
+# Match transform.py's 1e-8 degree (~1.1 mm) precision grid so sub-millimetre float noise
+# in source exports doesn't register as a feature modification.
+_PROJECTED_PRECISION = 1e-3  # 1 mm for projected CRSs (e.g. EPSG:2193)
+_GEOGRAPHIC_PRECISION = 1e-8  # ~1.1 mm for geographic CRSs (e.g. EPSG:4167 / EPSG:4326)
+
+
+def _geometry_precision(gdf: gpd.GeoDataFrame) -> float:
+    if gdf.crs is not None and gdf.crs.is_projected:
+        return _PROJECTED_PRECISION
+    return _GEOGRAPHIC_PRECISION
+
+
 def _frame_row_digests(gdf: gpd.GeoDataFrame, pk_col: str) -> tuple[dict[str, bytes], list[str]]:
     """Compute a deterministic digest per feature row so consecutive commits can be diffed."""
     geom_col = gdf.geometry.name
@@ -91,7 +103,8 @@ def _frame_row_digests(gdf: gpd.GeoDataFrame, pk_col: str) -> tuple[dict[str, by
         attr_hashes = pd.util.hash_pandas_object(gdf[attr_cols], index=False).to_numpy()
     else:
         attr_hashes = np.zeros(len(gdf), dtype=np.uint64)
-    geom_wkbs = shapely.to_wkb(gdf.geometry.to_numpy())
+    geoms = shapely.set_precision(gdf.geometry.to_numpy(), _geometry_precision(gdf))
+    geom_wkbs = shapely.to_wkb(geoms)
     fids = gdf[pk_col].astype(str).to_numpy()
 
     digests: dict[str, bytes] = {}
