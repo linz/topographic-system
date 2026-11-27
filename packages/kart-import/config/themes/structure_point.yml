@@ -382,7 +382,9 @@ datasets:
     corrections: &tank_type_corrections
       - column: tank_type
         replace:
+          'reservoir': null # not a valid tank_type, removed r36-51 (1 feature t50_fid 6314920)
           'surge chamber': surge_chamber
+          'water': null # not a valid tank_type
       - column: subtype
         replace:
           'watre': water # source typo, 1 feature
