@@ -75,7 +75,7 @@ datasets:
       theme: land_use
       metadata: null
     corrections:
-      - { column: status, replace: { historic: old } }
+      - { column: status, replace: { historic: old, Historic: old } }
   - source: kart@data.koordinates.com:linz/nz-pumice-pit-polygons-topo-150k
     mapping:
       t50_fid: $
@@ -98,6 +98,8 @@ datasets:
       metadata: null
     corrections:
       - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
+    fixups:
+      - fn: normalize_lime_derivatives
   - source: kart@data.koordinates.com:linz/nz-chatham-island-quarry-polygons-topo-150k
     mapping:
       t50_fid: $
@@ -110,6 +112,8 @@ datasets:
       metadata: null
     corrections:
       - { column: substance_extracted, replace: { 'silica sand': silica_sand } }
+    fixups:
+      - fn: normalize_lime_derivatives
   - source: kart@data.koordinates.com:linz/nz-racetrack-polygons-topo-150k
     mapping:
       t50_fid: $
@@ -127,6 +131,7 @@ datasets:
           vehicle: vehicle_racetrack
           cycle: cycle_racetrack
           dog: dog_racetrack
+
   - source: kart@data.koordinates.com:linz/nz-rifle-range-polygons-topo-150k
     mapping:
       t50_fid: $
