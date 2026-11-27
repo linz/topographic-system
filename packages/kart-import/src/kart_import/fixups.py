@@ -1159,6 +1159,45 @@ def gate_closed_status(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int)
     return gdf
 
 
+def normalize_lime_derivatives(gdf: gpd.GeoDataFrame, td: ThemeDataset, release_id: int) -> gpd.GeoDataFrame:
+    """Normalize lime derivative substance_extracted values to limestone in quarry datasets.
+
+    "limestone" in the schema includes all lime derivatives (lime, limeworks, limestone), so
+    "lime" and "limeworks" are non-canonical forms. This fixup normalizes all variants to the
+    canonical "limestone" value for quarry records where substance_extracted is a lime variant.
+    Approximately 20 features with "lime" and 1 feature with "limeworks".
+    """
+    import pandas as pd
+
+    if "substance_extracted" not in gdf.columns:
+        return gdf
+
+    gdf = gdf.copy()
+    lime_variants = {"lime", "limeworks"}
+    substance_col = gdf["substance_extracted"].astype("string")
+    to_normalize = substance_col.isin(lime_variants)
+
+    if not to_normalize.any():
+        return gdf
+
+    normalized_count = to_normalize.sum()
+    t50_fids = pd.to_numeric(gdf.loc[to_normalize, "t50_fid"], errors="coerce").astype(int).tolist()
+
+    gdf.loc[to_normalize, "substance_extracted"] = "limestone"
+
+    logger.info(
+        "normalize_lime_derivatives",
+        extra={
+            "dataset": td.name,
+            "release": release_id,
+            "normalized": normalized_count,
+            "lime_variants": list(lime_variants),
+            "t50_fids": sorted(t50_fids),
+        },
+    )
+    return gdf
+
+
 FIXUPS: dict[str, Fixup] = {
     "build_carto_symbol_metadata": build_carto_symbol_metadata,
     "build_nzgb_metadata": build_nzgb_metadata,
@@ -1174,6 +1213,7 @@ FIXUPS: dict[str, Fixup] = {
     "generate_dms_grid_features": generate_dms_grid_features,
     "generate_nztm_grid_features": generate_nztm_grid_features,
     "generate_sea_polygon": generate_sea_polygon,
+    "normalize_lime_derivatives": normalize_lime_derivatives,
     "polygonize_boundaries": polygonize_boundaries,
     "split_bay_inlet_gorge_valley": split_bay_inlet_gorge_valley,
     "split_multipart_features": split_multipart_features,
